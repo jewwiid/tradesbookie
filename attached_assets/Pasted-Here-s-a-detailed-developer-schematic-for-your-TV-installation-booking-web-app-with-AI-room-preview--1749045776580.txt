@@ -1,0 +1,134 @@
+Here’s a detailed developer schematic for your TV installation booking web app with AI room preview functionality. The goal is to ensure clarity for both front-end and back-end implementation:
+
+⸻
+
+🔧 PLATFORM OVERVIEW
+
+Name (placeholder): SmartTVMount
+
+Core Features:
+	1.	Booking Flow (Typeform-style tile UI)
+	2.	Photo Upload + AI Visualization (TV mounted room preview)
+	3.	Admin Panel for job assignments and management
+	4.	Installers Dashboard (to view, accept, and complete bookings)
+	5.	Notifications & Scheduling
+	6.	Payment Integration (Optional)
+
+⸻
+
+🖥️ FRONTEND (Next.js + TailwindCSS / shadcn/ui)
+
+1. Homepage
+	•	Simple hero: “See Your TV on the Wall Before You Book”
+	•	CTA → “Start Now”
+
+2. Booking Flow (Typeform-style)
+
+Use multi-step form tiles:
+	1.	Upload Room Photo (or skip)
+	2.	Choose TV Size (tile options: 32”, 43”, 55”, 65”, etc.)
+	3.	Wall Type (e.g., Drywall, Concrete, Brick – with images)
+	4.	Preferred Mount Type (e.g., Fixed, Tilting, Full Motion)
+	5.	Add-on Options (e.g., Cable concealment, Soundbar install)
+	6.	Choose Date/Time
+	7.	Enter Address & Contact Info
+	8.	Review & Confirm Booking
+	9.	Optional: Payment
+
+Visual Feedback
+	•	After step 1, AI preview is generated & shown by step 2 or 3.
+	•	User can toggle between “Before” and “After” preview.
+
+⸻
+
+🤖 AI VISUALIZATION MODULE
+
+AI Feature: Preview TV mounted on the wall of uploaded photo
+
+Flow:
+	1.	User uploads photo
+	2.	TV detection model (estimate best TV placement using wall detection, depth, perspective)
+	3.	Overlay TV mockup on wall using:
+	•	Pre-rendered TV assets (different sizes and angles)
+	•	Room segmentation model (to place behind furniture, if needed)
+
+Recommended Stack:
+	•	Run on backend: Python + FastAPI
+	•	Use models:
+	•	Segment Anything (Meta)
+	•	DPT or MiDaS for depth/perspective
+	•	ControlNet or Stable Diffusion for photorealistic insertion
+
+Optional API Service: Replicate / Banana / Together.ai
+
+⸻
+
+🔙 BACKEND (Node.js or Python + PostgreSQL)
+
+Core Tables:
+	•	users (email, name, phone)
+	•	bookings (user_id, date, location, selected_options, image_url, ai_preview_url, status)
+	•	installers (name, location, availability, jobs_assigned)
+	•	admins (login, permissions)
+
+Services:
+	•	Image handling (upload to Cloudinary or S3)
+	•	Booking scheduler (availability + time slot locking)
+	•	Email/SMS notifications (via SendGrid/Twilio)
+	•	Admin Dashboard (React Admin or custom)
+
+⸻
+
+🛠️ INSTALLER PANEL
+	•	Job list with status: New, Accepted, Completed
+	•	Route preview (Google Maps API)
+	•	Notes from customer
+	•	Option to mark as complete
+	•	Upload after-photo (optional)
+
+⸻
+
+📱 NOTIFICATIONS SYSTEM
+	•	📩 Email: Booking confirmation, reminders
+	•	📲 SMS: “Installer en route” alerts
+	•	🔔 Admin alerts for new bookings
+
+⸻
+
+💰 PAYMENT SYSTEM (Optional)
+	•	Stripe/PayPal integration
+	•	Install cost based on selections
+	•	Promo code support
+
+⸻
+
+🎨 DESIGN SYSTEM
+	•	Tile UI: Use shadcn/ui’s card components
+	•	Minimalist, mobile-first design
+	•	Soft colors, clear CTAs
+	•	Drag-and-drop image upload UI
+
+⸻
+
+🧪 TESTING + DEPLOYMENT
+	•	End-to-End Tests: Playwright or Cypress
+	•	Image Model Tests: Unit tests for placement accuracy
+	•	Deployment: Vercel (frontend), Railway/Render/Fly.io (backend), Cloudinary for images
+
+⸻
+
+✅ EXAMPLE TECH STACK
+
+Layer	Tool
+Frontend	Next.js + Tailwind + shadcn/ui
+Backend	FastAPI (or Express.js)
+AI Module	Python + ControlNet
+Database	PostgreSQL (via Supabase)
+Image CDN	Cloudinary or S3
+Hosting	Vercel + Railway
+Payments	Stripe
+
+
+⸻
+
+Would you like me to generate wireframes/mockups or draft the AI prompt for ControlNet/SD?

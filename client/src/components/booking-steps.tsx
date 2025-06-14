@@ -281,8 +281,8 @@ export default function BookingSteps({
                     <p className="text-lg text-gray-600">Select your TV size to see the accurate preview</p>
                   </div>
 
-                  {/* AI Preview Section */}
-                  {formData.roomPhotoUrl && formData.tvSize && (
+                  {/* AI Preview Teaser */}
+                  {formData.roomPhotoUrl && (
                     <div className="mb-8">
                       <div className="bg-gray-50 rounded-2xl p-6">
                         <div className="flex items-center justify-between mb-4">
@@ -308,36 +308,27 @@ export default function BookingSteps({
                         </div>
                         
                         <div className="relative">
-                          {!showAfterPreview || !formData.aiPreviewUrl ? (
-                            <img
-                              src={formData.roomPhotoUrl}
-                              alt="Room before"
-                              className="w-full h-64 object-cover rounded-xl"
-                            />
-                          ) : (
-                            <div className="relative">
-                              <img
-                                src={formData.aiPreviewUrl}
-                                alt="Room with TV preview"
-                                className="w-full h-64 object-cover rounded-xl"
-                              />
-                              <Badge className="absolute top-4 right-4 bg-green-600">
-                                <Sparkles className="w-3 h-3 mr-1" />
-                                AI Generated
-                              </Badge>
+                          <img
+                            src={formData.roomPhotoUrl}
+                            alt="Your room"
+                            className="w-full h-64 object-cover rounded-xl"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl flex items-end">
+                            <div className="p-4 text-white w-full">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                                  <span className="text-sm font-medium">Imagining your new space...</span>
+                                </div>
+                                <div className="text-xs bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm">
+                                  Preview coming soon
+                                </div>
+                              </div>
                             </div>
-                          )}
+                          </div>
                         </div>
-
-                        {!formData.aiPreviewUrl && (
-                          <Button
-                            onClick={generateAIPreview}
-                            disabled={isGeneratingPreview}
-                            className="w-full mt-4"
-                          >
-                            {isGeneratingPreview ? "Generating Preview..." : "Generate AI Preview"}
-                          </Button>
-                        )}
                       </div>
                     </div>
                   )}
@@ -427,13 +418,50 @@ export default function BookingSteps({
                     <p className="text-lg text-gray-600">This helps us prepare the right tools and mounting hardware</p>
                   </div>
 
+                  {/* Progressive AI Preview Teaser */}
+                  {formData.roomPhotoUrl && (
+                    <div className="mb-8">
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mr-3">
+                            <Sparkles className="w-4 h-4 text-white" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900">AI Preview</h3>
+                        </div>
+                        
+                        <div className="relative">
+                          <img
+                            src={formData.roomPhotoUrl}
+                            alt="Your room"
+                            className="w-full h-64 object-cover rounded-xl"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl flex items-end">
+                            <div className="p-4 text-white w-full">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                                  <span className="text-sm font-medium">Analyzing wall structure...</span>
+                                </div>
+                                <div className="text-xs bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm">
+                                  75% complete
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="grid md:grid-cols-2 gap-6 mb-8">
                     {WALL_TYPES.map((wall) => (
                       <Button
-                        key={wall.id}
-                        variant={formData.wallType === wall.id ? "default" : "outline"}
+                        key={wall.key}
+                        variant={formData.wallType === wall.key ? "default" : "outline"}
                         className="p-6 h-auto text-left hover:border-primary hover:bg-blue-50"
-                        onClick={() => onUpdateForm({ wallType: wall.id })}
+                        onClick={() => onUpdateForm({ wallType: wall.key })}
                       >
                         <div className="w-full">
                           <img
@@ -476,13 +504,50 @@ export default function BookingSteps({
                     <p className="text-lg text-gray-600">Select how you want your TV to be positioned</p>
                   </div>
 
+                  {/* Progressive AI Preview Teaser */}
+                  {formData.roomPhotoUrl && (
+                    <div className="mb-8">
+                      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-6 border border-purple-100">
+                        <div className="flex items-center mb-4">
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center mr-3">
+                            <Sparkles className="w-4 h-4 text-white" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900">AI Preview</h3>
+                        </div>
+                        
+                        <div className="relative">
+                          <img
+                            src={formData.roomPhotoUrl}
+                            alt="Your room"
+                            className="w-full h-64 object-cover rounded-xl"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl flex items-end">
+                            <div className="p-4 text-white w-full">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                                  <span className="text-sm font-medium">Calculating mount placement...</span>
+                                </div>
+                                <div className="text-xs bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm">
+                                  90% complete
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-4 mb-8">
                     {MOUNT_TYPES.map((mount) => (
                       <Button
-                        key={mount.id}
-                        variant={formData.mountType === mount.id ? "default" : "outline"}
+                        key={mount.key}
+                        variant={formData.mountType === mount.key ? "default" : "outline"}
                         className="w-full p-6 text-left hover:border-primary hover:bg-blue-50"
-                        onClick={() => onUpdateForm({ mountType: mount.id })}
+                        onClick={() => onUpdateForm({ mountType: mount.key })}
                       >
                         <div className="flex items-center">
                           <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
@@ -707,6 +772,82 @@ export default function BookingSteps({
                       className="mt-1"
                     />
                   </div>
+
+                  {/* Final AI Preview */}
+                  {formData.roomPhotoUrl && (
+                    <div className="mb-8">
+                      <div className="bg-gradient-to-br from-gold-50 to-yellow-50 rounded-2xl p-6 border border-yellow-200">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-full flex items-center justify-center mr-3">
+                              <Sparkles className="w-4 h-4 text-white" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900">AI Preview</h3>
+                          </div>
+                          {formData.aiPreviewUrl && (
+                            <div className="flex bg-white rounded-lg p-1">
+                              <Button
+                                size="sm"
+                                variant={!showAfterPreview ? "default" : "ghost"}
+                                onClick={() => setShowAfterPreview(false)}
+                              >
+                                Before
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={showAfterPreview ? "default" : "ghost"}
+                                onClick={() => setShowAfterPreview(true)}
+                              >
+                                After
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="relative">
+                          {!formData.aiPreviewUrl ? (
+                            <>
+                              <img
+                                src={formData.roomPhotoUrl}
+                                alt="Your room"
+                                className="w-full h-64 object-cover rounded-xl"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl flex items-center justify-center">
+                                <div className="text-center text-white">
+                                  <div className="flex items-center justify-center space-x-2 mb-4">
+                                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
+                                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-ping" style={{animationDelay: '0.2s'}}></div>
+                                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-ping" style={{animationDelay: '0.4s'}}></div>
+                                  </div>
+                                  <Button
+                                    onClick={generateAIPreview}
+                                    disabled={isGeneratingPreview}
+                                    className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30"
+                                  >
+                                    {isGeneratingPreview ? "Creating your preview..." : "Generate Final Preview"}
+                                  </Button>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="relative">
+                              <img
+                                src={showAfterPreview ? formData.aiPreviewUrl : formData.roomPhotoUrl}
+                                alt={showAfterPreview ? "Room with TV preview" : "Your original room"}
+                                className="w-full h-64 object-cover rounded-xl"
+                              />
+                              {showAfterPreview && (
+                                <Badge className="absolute top-4 right-4 bg-green-600">
+                                  <Sparkles className="w-3 h-3 mr-1" />
+                                  AI Generated
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Booking Summary */}
                   <Card className="bg-gray-50 p-6 mb-8">

@@ -531,12 +531,174 @@ export default function BookingSteps({
                 </div>
               )}
 
-              {/* Step 7: Schedule */}
+              {/* Step 7: Product Assistance */}
               {currentStep === 7 && (
                 <div>
                   <div className="text-center mb-8">
                     <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-6">
                       {stepIcons[6]}
+                    </div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-4">Product Sourcing Assistance</h2>
+                    <p className="text-lg text-gray-600 mb-6">
+                      Need help selecting the perfect TV or accessories? We offer comprehensive guidance and work closely with Harvey Norman retailers in Ireland.
+                    </p>
+                  </div>
+
+                  <div className="space-y-6">
+                    {/* Product Assistance Options */}
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Sparkles className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">Professional Product Selection</h3>
+                          <p className="text-gray-600 mb-4">
+                            Our experts provide personalized recommendations based on your room size, viewing preferences, and budget.
+                          </p>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="bg-white rounded-lg p-4 border">
+                              <h4 className="font-medium text-gray-900 mb-2">TV Selection Guide</h4>
+                              <ul className="text-sm text-gray-600 space-y-1">
+                                <li>• Room size optimization</li>
+                                <li>• Technology comparison (OLED, QLED, LED)</li>
+                                <li>• Brand recommendations</li>
+                                <li>• Smart features assessment</li>
+                              </ul>
+                            </div>
+                            <div className="bg-white rounded-lg p-4 border">
+                              <h4 className="font-medium text-gray-900 mb-2">Accessory Recommendations</h4>
+                              <ul className="text-sm text-gray-600 space-y-1">
+                                <li>• Sound system pairing</li>
+                                <li>• Gaming console setup</li>
+                                <li>• Streaming device options</li>
+                                <li>• Cable management solutions</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Harvey Norman Partnership */}
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Home className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-xl font-semibold text-gray-900 mb-2">Harvey Norman Partnership</h3>
+                          <p className="text-gray-600 mb-4">
+                            We work closely with Harvey Norman retailers across Ireland to ensure you get the best products at competitive prices.
+                          </p>
+                          <div className="bg-white rounded-lg p-4 border">
+                            <h4 className="font-medium text-gray-900 mb-2">Partnership Benefits</h4>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <ul className="text-sm text-gray-600 space-y-1">
+                                <li>• Exclusive installer discounts</li>
+                                <li>• Extended warranty options</li>
+                                <li>• Priority delivery scheduling</li>
+                              </ul>
+                              <ul className="text-sm text-gray-600 space-y-1">
+                                <li>• Professional setup coordination</li>
+                                <li>• Quality assurance guarantee</li>
+                                <li>• Local store support</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assistance Selection */}
+                    <div className="bg-white rounded-2xl p-6 border border-gray-200">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Do you need product sourcing assistance?</h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="radio"
+                            id="assistance-yes"
+                            name="productAssistance"
+                            value="yes"
+                            checked={formData.productAssistance === "yes"}
+                            onChange={(e) => onUpdateForm({ productAssistance: e.target.value })}
+                            className="w-4 h-4 text-primary"
+                          />
+                          <label htmlFor="assistance-yes" className="text-gray-700 font-medium">
+                            Yes, I need help selecting products
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="radio"
+                            id="assistance-partial"
+                            name="productAssistance"
+                            value="partial"
+                            checked={formData.productAssistance === "partial"}
+                            onChange={(e) => onUpdateForm({ productAssistance: e.target.value })}
+                            className="w-4 h-4 text-primary"
+                          />
+                          <label htmlFor="assistance-partial" className="text-gray-700 font-medium">
+                            I need advice on specific items only
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <input
+                            type="radio"
+                            id="assistance-no"
+                            name="productAssistance"
+                            value="no"
+                            checked={formData.productAssistance === "no"}
+                            onChange={(e) => onUpdateForm({ productAssistance: e.target.value })}
+                            className="w-4 h-4 text-primary"
+                          />
+                          <label htmlFor="assistance-no" className="text-gray-700 font-medium">
+                            No, I already have my products
+                          </label>
+                        </div>
+                      </div>
+
+                      {formData.productAssistance && formData.productAssistance !== "no" && (
+                        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <h4 className="font-medium text-gray-900 mb-2">Additional Information</h4>
+                          <Textarea
+                            placeholder="Tell us about your preferences, budget range, or specific questions about products..."
+                            value={formData.productNotes || ""}
+                            onChange={(e) => onUpdateForm({ productNotes: e.target.value })}
+                            className="w-full"
+                            rows={3}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between mt-8">
+                    <Button 
+                      variant="outline" 
+                      onClick={onPrevStep}
+                      className="flex items-center"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-2" />
+                      Back
+                    </Button>
+                    <Button 
+                      onClick={onNextStep}
+                      className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                    >
+                      Continue
+                      <ChevronRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 8: Schedule */}
+              {currentStep === 8 && (
+                <div>
+                  <div className="text-center mb-8">
+                    <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-6">
+                      {stepIcons[7]}
                     </div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-4">Schedule Your Installation</h2>
                     <p className="text-lg text-gray-600">Choose your preferred date and time</p>
@@ -611,8 +773,8 @@ export default function BookingSteps({
                 </div>
               )}
 
-              {/* Step 8: Contact & Review */}
-              {currentStep === 8 && (
+              {/* Step 9: Contact & Review */}
+              {currentStep === 9 && (
                 <div>
                   <div className="text-center mb-8">
                     <div className="w-20 h-20 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-6">

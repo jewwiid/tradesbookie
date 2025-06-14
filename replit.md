@@ -131,6 +131,10 @@ The application now includes a robust fallback system. When the database is unav
 - **UI Enhancement**: Removed login screens and replaced with public installer showcase
 - Created professional installer directory displaying registered installers with ratings and certifications
 - Updated navigation to focus on booking and installer visibility rather than authentication
+- **Geographic Enhancement**: Added comprehensive Republic of Ireland coverage with all 32 counties for installer registration
+- **Device Expertise**: Enhanced installer registration with detailed device type selection (TVs, soundbars, gaming consoles, streaming devices, smart home integration)
+- **Partnership Integration**: Added Harvey Norman retailer partnership for product sourcing assistance in booking flow
+- **Service Area Mapping**: Implemented detailed installer location coverage with travel distance preferences and availability scheduling
 
 ## Changelog
 
@@ -139,6 +143,10 @@ The application now includes a robust fallback system. When the database is unav
 - June 14, 2025: Added camera functionality with automatic image compression 
 - June 14, 2025: Integrated booking flow inputs (wall type, mount type, concealment) into AI prompt generation
 - June 14, 2025: Fixed AI timing to only generate at final step, improved realism in prompts, addressed database connection issues
+- June 14, 2025: Enhanced installer registration with comprehensive Republic of Ireland coverage (all 32 counties)
+- June 14, 2025: Added detailed device expertise selection and service area mapping for installers
+- June 14, 2025: Integrated Harvey Norman partnership for product sourcing assistance in booking flow
+- June 14, 2025: Implemented comprehensive installer service capabilities including emergency callouts and weekend availability
 
 ## User Preferences
 

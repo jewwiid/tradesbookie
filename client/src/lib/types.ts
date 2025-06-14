@@ -32,11 +32,15 @@ export interface BookingFormData {
   }>;
   addOnTotal: number;
   
-  // Step 7: Scheduling
-  scheduledDate?: string;
-  scheduledTime?: string;
+  // Step 7: Product Assistance
+  productAssistance?: string;
+  productNotes?: string;
   
-  // Step 8: Contact & address
+  // Step 8: Scheduling
+  preferredDate?: string;
+  preferredTime?: string;
+  
+  // Step 9: Contact & address
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -87,6 +91,21 @@ export interface AddOnServiceOption {
   description: string;
   price: number;
   isActive: boolean;
+}
+
+export interface AddOnOption {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  isActive: boolean;
+}
+
+export interface PreviewResponse {
+  success: boolean;
+  previewImageUrl?: string;
+  description?: string;
+  error?: string;
 }
 
 export interface BookingWithDetails {

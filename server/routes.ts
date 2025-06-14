@@ -322,6 +322,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Installer routes
+  app.post("/api/installers/register", async (req, res) => {
+    try {
+      const installerData = req.body;
+      
+      // Check if installer already exists
+      const existingInstaller = await storage.getInstallerByEmail(installerData.email);
+      if (existingInstaller) {
+        return res.status(400).json({ message: "Installer already registered with this email" });
+      }
+      
+      // Create new installer with default password
+      const installer = await storage.createInstaller({
+        ...installerData,
+        password: "demo123", // Default password for demo
+        isActive: true
+      });
+      
+      res.json({ 
+        message: "Registration successful", 
+        installer: { id: installer.id, email: installer.email, name: installer.name }
+      });
+    } catch (error) {
+      console.error("Error registering installer:", error);
+      res.status(500).json({ message: "Failed to register installer" });
+    }
+  });
+
+  app.post("/api/installers/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      const installer = await storage.getInstallerByEmail(email);
+      if (!installer || password !== "demo123") {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      res.json({ 
+        message: "Login successful", 
+        installer: { id: installer.id, email: installer.email, name: installer.name }
+      });
+    } catch (error) {
+      console.error("Error logging in installer:", error);
+      res.status(500).json({ message: "Failed to log in" });
+    }
+  });
+
   app.get("/api/installers", async (req, res) => {
     try {
       const installers = await storage.getAllInstallers();

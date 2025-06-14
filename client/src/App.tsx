@@ -9,6 +9,8 @@ import BookingFlow from "@/pages/booking-flow";
 import CustomerDashboard from "@/pages/customer-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import InstallerDashboard from "@/pages/installer-dashboard";
+import InstallerRegistration from "@/pages/installer-registration";
+import InstallerLogin from "@/pages/installer-login";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,14 +19,12 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/booking" component={BookingFlow} />
       <Route path="/customer/:qrCode?" component={CustomerDashboard} />
+      <Route path="/installer-registration" component={InstallerRegistration} />
+      <Route path="/installer-login" component={InstallerLogin} />
+      <Route path="/installer-dashboard/:id?" component={InstallerDashboard} />
       <Route path="/admin">
         <ProtectedRoute requireAdmin={true}>
           <AdminDashboard />
-        </ProtectedRoute>
-      </Route>
-      <Route path="/installer/:id?">
-        <ProtectedRoute requireAdmin={true}>
-          <InstallerDashboard />
         </ProtectedRoute>
       </Route>
       <Route component={NotFound} />

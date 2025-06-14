@@ -1,250 +1,239 @@
-import { useState, useEffect } from "react";
-import { useLocation, useParams, Link } from "wouter";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { 
   Bolt, 
-  Home, 
   Hammer, 
-  Euro, 
   Star,
   MapPin,
   Clock,
   CheckCircle,
-  Calendar,
-  Camera,
-  Phone,
   User,
-  Loader2,
   LogOut,
-  ArrowLeft,
-  QrCode
+  Navigation,
+  Zap,
+  AlertCircle,
+  DollarSign
 } from "lucide-react";
 
 interface InstallerStats {
   monthlyJobs: number;
   earnings: number;
   rating: number;
+  activeRequests: number;
 }
 
-interface JobAssignment {
+interface ClientRequest {
   id: number;
-  bookingId: number;
-  status: string;
-  assignedDate: string;
-  acceptedDate?: string;
-  completedDate?: string;
-  booking?: {
-    qrCode: string;
-    tvSize: string;
-    serviceType: string;
-    wallType: string;
-    mountType: string;
-    address: string;
-    totalPrice: string;
-    installerEarnings: string;
-    preferredDate?: string;
-    preferredTime?: string;
-    roomPhotoUrl?: string;
-    aiPreviewUrl?: string;
-    customerNotes?: string;
-    contact?: {
-      name: string;
-      phone: string;
-    };
+  customerId: number;
+  tvSize: string;
+  serviceType: string;
+  address: string;
+  county: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+  totalPrice: string;
+  installerEarnings: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  urgency: 'standard' | 'urgent' | 'emergency';
+  timePosted: string;
+  estimatedDuration: string;
+  customerRating: number;
+  distance?: number;
+  roomPhotoUrl?: string;
+  aiPreviewUrl?: string;
+  customerNotes?: string;
+  status: 'pending' | 'accepted' | 'in_progress' | 'completed';
+  customer: {
+    name: string;
+    phone: string;
+    email: string;
   };
 }
 
-function JobCard({ job, onStatusChange }: { 
-  job: JobAssignment; 
-  onStatusChange: (jobId: number, status: string) => void;
+// Interactive Map Component for Ireland
+function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
+  requests: ClientRequest[];
+  onRequestSelect: (request: ClientRequest) => void;
+  selectedRequest?: ClientRequest;
 }) {
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case "assigned":
-        return { color: "bg-warning", text: "New Assignment" };
-      case "accepted":
-        return { color: "bg-blue-500", text: "Accepted" };
-      case "completed":
-        return { color: "bg-success", text: "Completed" };
-      case "declined":
-        return { color: "bg-destructive", text: "Declined" };
+  return (
+    <div className="relative w-full h-96 bg-green-50 border-2 border-green-200 rounded-xl overflow-hidden">
+      {/* Map Header */}
+      <div className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-3">
+        <div className="flex items-center space-x-2">
+          <Navigation className="w-5 h-5 text-green-600" />
+          <span className="font-semibold text-green-800">Ireland Installation Map</span>
+        </div>
+        <div className="text-sm text-gray-600 mt-1">
+          {requests.length} active requests
+        </div>
+      </div>
+
+      {/* Map Legend */}
+      <div className="absolute top-4 right-4 z-10 bg-white rounded-lg shadow-lg p-3">
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+            <span className="text-xs">Standard</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+            <span className="text-xs">Urgent</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+            <span className="text-xs">Emergency</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Simplified Ireland outline */}
+      <svg viewBox="0 0 400 300" className="w-full h-full">
+        {/* Ireland outline (simplified) */}
+        <path
+          d="M80 50 Q90 40 120 45 Q160 50 180 70 Q200 90 195 120 Q190 150 170 180 Q150 200 120 195 Q90 190 70 170 Q50 150 55 120 Q60 90 80 50Z"
+          fill="#e8f5e8"
+          stroke="#22c55e"
+          strokeWidth="2"
+        />
+        
+        {/* Plot request markers on the map */}
+        {requests.map((request, index) => {
+          const x = 80 + (index % 6) * 20;
+          const y = 80 + Math.floor(index / 6) * 25;
+          const color = request.urgency === 'emergency' ? '#ef4444' : 
+                       request.urgency === 'urgent' ? '#f97316' : '#3b82f6';
+          
+          return (
+            <g key={request.id}>
+              <circle
+                cx={x}
+                cy={y}
+                r={selectedRequest?.id === request.id ? "8" : "6"}
+                fill={color}
+                stroke="white"
+                strokeWidth="2"
+                className="cursor-pointer transition-all"
+                onClick={() => onRequestSelect(request)}
+              />
+              {selectedRequest?.id === request.id && (
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="12"
+                  fill="none"
+                  stroke={color}
+                  strokeWidth="2"
+                  opacity="0.5"
+                  className="animate-pulse"
+                />
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+// Request Card Component (Uber-style)
+function RequestCard({ request, onAccept, onDecline, distance }: {
+  request: ClientRequest;
+  onAccept: (requestId: number) => void;
+  onDecline: (requestId: number) => void;
+  distance?: number;
+}) {
+  const getUrgencyInfo = (urgency: string) => {
+    switch (urgency) {
+      case 'emergency':
+        return { color: 'bg-red-100 border-red-300', badge: 'bg-red-500', text: 'Emergency' };
+      case 'urgent':
+        return { color: 'bg-orange-100 border-orange-300', badge: 'bg-orange-500', text: 'Urgent' };
       default:
-        return { color: "bg-muted", text: "Unknown" };
+        return { color: 'bg-blue-50 border-blue-200', badge: 'bg-blue-500', text: 'Standard' };
     }
   };
 
-  const statusInfo = getStatusInfo(job.status);
-  const booking = job.booking;
-
-  if (!booking) {
-    return (
-      <Card className="border-destructive/20">
-        <CardContent className="p-6 text-center">
-          <p className="text-destructive">Booking information not available</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const isNew = job.status === "assigned";
-  const isAccepted = job.status === "accepted";
-  const isCompleted = job.status === "completed";
+  const urgencyInfo = getUrgencyInfo(request.urgency);
+  const timeAgo = new Date(request.timePosted).toLocaleTimeString();
 
   return (
-    <Card className={`${isNew ? 'border-warning/50 bg-warning/5' : ''} ${isAccepted ? 'border-blue-200 bg-blue-50' : ''}`}>
+    <Card className={`${urgencyInfo.color} border-2 hover:shadow-lg transition-all duration-200`}>
       <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center space-x-3 mb-2">
-              <h3 className="text-lg font-semibold text-foreground">
-                {booking.contact?.name || 'Customer'}
-              </h3>
-              <Badge className={`${statusInfo.color} text-white`}>
-                {statusInfo.text}
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center space-x-2">
+            <Badge className={`${urgencyInfo.badge} text-white`}>
+              {urgencyInfo.text}
+            </Badge>
+            {distance && (
+              <Badge variant="outline" className="flex items-center space-x-1">
+                <MapPin className="w-3 h-3" />
+                <span>{distance}km away</span>
               </Badge>
-            </div>
-            <p className="text-muted-foreground mb-2">
-              {booking.serviceType} - {booking.tvSize}" TV
-            </p>
-            <div className="flex items-center text-sm text-muted-foreground">
-              <MapPin className="w-4 h-4 mr-1" />
-              {booking.address}
-            </div>
+            )}
           </div>
           <div className="text-right">
-            <p className="text-lg font-bold text-success">
-              €{parseFloat(booking.installerEarnings).toFixed(2)}
-            </p>
-            {booking.preferredDate && (
-              <p className="text-sm text-muted-foreground">
-                {new Date(booking.preferredDate).toLocaleDateString()}
-                {booking.preferredTime && (
-                  <span className="block">
-                    {booking.preferredTime === "09:00" && "9:00 AM - 11:00 AM"}
-                    {booking.preferredTime === "11:00" && "11:00 AM - 1:00 PM"}
-                    {booking.preferredTime === "13:00" && "1:00 PM - 3:00 PM"}
-                    {booking.preferredTime === "15:00" && "3:00 PM - 5:00 PM"}
-                    {booking.preferredTime === "17:00" && "5:00 PM - 7:00 PM"}
-                  </span>
-                )}
-              </p>
-            )}
+            <div className="text-2xl font-bold text-green-600">€{request.installerEarnings}</div>
+            <div className="text-sm text-gray-500">Est. {request.estimatedDuration}</div>
           </div>
         </div>
 
-        {/* Job Details */}
-        <div className="grid md:grid-cols-2 gap-4 mb-4 text-sm">
-          <div>
-            <span className="text-muted-foreground">Wall Type:</span>
-            <span className="ml-2 font-medium">{booking.wallType}</span>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Mount Type:</span>
-            <span className="ml-2 font-medium">{booking.mountType}</span>
-          </div>
-        </div>
-
-        {/* Customer Photos */}
-        {(booking.roomPhotoUrl || booking.aiPreviewUrl) && (
-          <div className="grid md:grid-cols-2 gap-4 mb-4">
-            {booking.roomPhotoUrl && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Customer Photo</p>
-                <img 
-                  src={booking.roomPhotoUrl}
-                  alt="Customer room photo" 
-                  className="w-full h-32 object-cover rounded-lg border"
-                />
-              </div>
-            )}
-            {booking.aiPreviewUrl && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">AI Preview</p>
-                <div className="relative">
-                  <img 
-                    src={booking.aiPreviewUrl}
-                    alt="AI preview of TV installation" 
-                    className="w-full h-32 object-cover rounded-lg border"
-                  />
-                  <Badge className="absolute top-2 right-2 bg-success text-white text-xs">
-                    <Camera className="w-3 h-3 mr-1" />
-                    AI Generated
-                  </Badge>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Customer Notes */}
-        {booking.customerNotes && (
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-2">Customer Notes</p>
-            <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
-              {booking.customerNotes}
-            </p>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            {booking.contact?.phone && (
-              <Button variant="outline" size="sm">
-                <Phone className="w-4 h-4 mr-1" />
-                Call Customer
-              </Button>
-            )}
-            <Button variant="outline" size="sm">
-              <MapPin className="w-4 h-4 mr-1" />
-              View Route
-            </Button>
+        <div className="space-y-3 mb-4">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-gray-800">{request.tvSize}" TV Installation</span>
+            <div className="flex items-center space-x-1 text-yellow-500">
+              <Star className="w-4 h-4 fill-current" />
+              <span className="text-sm">{request.customerRating}</span>
+            </div>
           </div>
           
-          <div className="space-x-2">
-            {isNew && (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => onStatusChange(job.id, 'declined')}
-                >
-                  Decline
-                </Button>
-                <Button 
-                  size="sm"
-                  onClick={() => onStatusChange(job.id, 'accepted')}
-                  className="bg-success hover:bg-success/90"
-                >
-                  Accept Job
-                </Button>
-              </>
-            )}
-            {isAccepted && (
-              <Button 
-                size="sm"
-                onClick={() => onStatusChange(job.id, 'completed')}
-                className="gradient-bg"
-              >
-                <CheckCircle className="w-4 h-4 mr-1" />
-                Mark Complete
-              </Button>
-            )}
-            {isCompleted && (
-              <Badge className="bg-success text-white">
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Completed
-              </Badge>
+          <div className="flex items-center space-x-2 text-gray-600">
+            <MapPin className="w-4 h-4" />
+            <span className="text-sm">{request.address}, {request.county}</span>
+          </div>
+          
+          <div className="flex items-center space-x-2 text-gray-600">
+            <Clock className="w-4 h-4" />
+            <span className="text-sm">Posted {timeAgo}</span>
+            {request.preferredDate && (
+              <span className="text-sm">• Preferred: {request.preferredDate}</span>
             )}
           </div>
+
+          <div className="flex items-center space-x-2 text-gray-600">
+            <User className="w-4 h-4" />
+            <span className="text-sm">{request.customer.name}</span>
+          </div>
+        </div>
+
+        {request.customerNotes && (
+          <div className="bg-gray-50 rounded-lg p-3 mb-4">
+            <p className="text-sm text-gray-700">"{request.customerNotes}"</p>
+          </div>
+        )}
+
+        <div className="flex space-x-3">
+          <Button 
+            onClick={() => onAccept(request.id)}
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+          >
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Accept Job
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => onDecline(request.id)}
+            className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
+            Decline
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -252,103 +241,169 @@ function JobCard({ job, onStatusChange }: {
 }
 
 export default function InstallerDashboard() {
-  const [, setLocation] = useLocation();
-  const { id } = useParams();
-  const [activeFilter, setActiveFilter] = useState("all");
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const [isOnline, setIsOnline] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
-  const installerId = parseInt(id || "1");
-
-  const { data: jobs = [], isLoading: jobsLoading } = useQuery<JobAssignment[]>({
-    queryKey: [`/api/installers/${installerId}/jobs`]
-  });
-
-  const updateJobMutation = useMutation({
-    mutationFn: async ({ jobId, status }: { jobId: number; status: string }) => {
-      await apiRequest('PATCH', `/api/jobs/${jobId}/status`, { status });
+  // Mock data for demo - in real app this would come from API
+  const mockRequests: ClientRequest[] = [
+    {
+      id: 1,
+      customerId: 101,
+      tvSize: "65",
+      serviceType: "Premium Wall Mount",
+      address: "123 Grafton Street",
+      county: "Dublin",
+      coordinates: { lat: 53.3498, lng: -6.2603 },
+      totalPrice: "199",
+      installerEarnings: "149",
+      preferredDate: "2025-06-15",
+      preferredTime: "14:00",
+      urgency: "standard",
+      timePosted: new Date(Date.now() - 1800000).toISOString(),
+      estimatedDuration: "2 hours",
+      customerRating: 4.8,
+      distance: 12,
+      customerNotes: "Living room mount, prefer afternoon installation",
+      status: "pending",
+      customer: {
+        name: "Sarah O'Connor",
+        phone: "+353 85 123 4567",
+        email: "sarah@email.com"
+      }
     },
-    onSuccess: (_, { status }) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/installers/${installerId}/jobs`] });
-      toast({
-        title: "Job Updated",
-        description: `Job status changed to ${status}.`
-      });
+    {
+      id: 2,
+      customerId: 102,
+      tvSize: "55",
+      serviceType: "Standard Wall Mount",
+      address: "45 Patrick Street",
+      county: "Cork",
+      coordinates: { lat: 51.8985, lng: -8.4756 },
+      totalPrice: "149",
+      installerEarnings: "112",
+      urgency: "urgent",
+      timePosted: new Date(Date.now() - 900000).toISOString(),
+      estimatedDuration: "1.5 hours",
+      customerRating: 4.9,
+      distance: 8,
+      customerNotes: "Need installation before weekend",
+      status: "pending",
+      customer: {
+        name: "Michael Murphy",
+        phone: "+353 86 987 6543",
+        email: "michael@email.com"
+      }
     },
-    onError: (error) => {
-      toast({
-        title: "Update Failed",
-        description: error.message,
-        variant: "destructive"
-      });
+    {
+      id: 3,
+      customerId: 103,
+      tvSize: "75",
+      serviceType: "Premium Wall Mount + Soundbar",
+      address: "12 Eyre Square",
+      county: "Galway",
+      coordinates: { lat: 53.2743, lng: -9.0490 },
+      totalPrice: "299",
+      installerEarnings: "224",
+      urgency: "emergency",
+      timePosted: new Date(Date.now() - 300000).toISOString(),
+      estimatedDuration: "3 hours",
+      customerRating: 5.0,
+      distance: 5,
+      customerNotes: "Emergency replacement for damaged TV",
+      status: "pending",
+      customer: {
+        name: "Emma Walsh",
+        phone: "+353 87 456 7890",
+        email: "emma@email.com"
+      }
     }
-  });
-
-  const handleStatusChange = (jobId: number, status: string) => {
-    updateJobMutation.mutate({ jobId, status });
-  };
-
-  const filteredJobs = jobs.filter(job => {
-    if (activeFilter === "all") return true;
-    return job.status === activeFilter;
-  });
-
-  // Calculate stats
-  const monthlyJobs = jobs.filter(job => {
-    const jobDate = new Date(job.assignedDate);
-    const now = new Date();
-    return jobDate.getMonth() === now.getMonth() && jobDate.getFullYear() === now.getFullYear();
-  }).length;
-
-  const earnings = jobs
-    .filter(job => job.status === "completed")
-    .reduce((sum, job) => sum + parseFloat(job.booking?.installerEarnings || "0"), 0);
-
-  const filterButtons = [
-    { key: "all", label: "All", count: jobs.length },
-    { key: "assigned", label: "New", count: jobs.filter(j => j.status === "assigned").length },
-    { key: "accepted", label: "Accepted", count: jobs.filter(j => j.status === "accepted").length },
-    { key: "completed", label: "Completed", count: jobs.filter(j => j.status === "completed").length }
   ];
 
+  const stats: InstallerStats = {
+    monthlyJobs: 24,
+    earnings: 2850,
+    rating: 4.9,
+    activeRequests: mockRequests.length
+  };
+
+  const handleAcceptRequest = async (requestId: number) => {
+    try {
+      toast({
+        title: "Request Accepted!",
+        description: "Customer will be notified via email and SMS. Check your active jobs.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to accept request",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeclineRequest = async (requestId: number) => {
+    try {
+      toast({
+        title: "Request Declined",
+        description: "Request removed from your list",
+      });
+    } catch (error) {
+      toast({
+        title: "Error", 
+        description: "Failed to decline request",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-border">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Bolt className="w-6 h-6 text-primary mr-3" />
-              <span className="text-xl font-bold text-foreground">Installer Dashboard</span>
-            </div>
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => setLocation("/")} size="sm">
-                <Home className="w-4 h-4 mr-2" />
-                Home
-              </Button>
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-sm font-medium text-foreground">Installer #{installerId}</span>
+                <Bolt className="w-8 h-8 text-blue-600" />
+                <h1 className="text-xl font-bold text-gray-900">SmartTVMount Pro</h1>
               </div>
+              <Badge variant={isOnline ? "default" : "secondary"} className="flex items-center space-x-1">
+                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                <span>{isOnline ? 'Online' : 'Offline'}</span>
+              </Badge>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <span>Available for Jobs</span>
+                <Switch 
+                  checked={isOnline} 
+                  onCheckedChange={setIsOnline}
+                  className="data-[state=checked]:bg-green-600"
+                />
+              </div>
+              <Button variant="ghost" size="sm">
+                <LogOut className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Jobs This Month</p>
-                  <p className="text-2xl font-bold text-foreground">{monthlyJobs}</p>
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Zap className="w-8 h-8 text-blue-600" />
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Hammer className="w-6 h-6 text-blue-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Active Requests</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.activeRequests}</p>
                 </div>
               </div>
             </CardContent>
@@ -356,13 +411,13 @@ export default function InstallerDashboard() {
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Earnings</p>
-                  <p className="text-2xl font-bold text-foreground">€{earnings.toFixed(2)}</p>
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Hammer className="w-8 h-8 text-green-600" />
                 </div>
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <Euro className="w-6 h-6 text-green-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Monthly Jobs</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.monthlyJobs}</p>
                 </div>
               </div>
             </CardContent>
@@ -370,72 +425,116 @@ export default function InstallerDashboard() {
 
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Rating</p>
-                  <p className="text-2xl font-bold text-foreground">4.9</p>
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <DollarSign className="w-8 h-8 text-green-600" />
                 </div>
-                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <Star className="w-6 h-6 text-yellow-600" />
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Monthly Earnings</p>
+                  <p className="text-3xl font-bold text-gray-900">€{stats.earnings}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <Star className="w-8 h-8 text-yellow-500" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Rating</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.rating}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Job Management */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Assigned Jobs</CardTitle>
-              <div className="flex space-x-2">
-                {filterButtons.map((filter) => (
-                  <Button
-                    key={filter.key}
-                    variant={activeFilter === filter.key ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setActiveFilter(filter.key)}
-                  >
-                    {filter.label} ({filter.count})
-                  </Button>
-                ))}
-              </div>
+        {/* View Toggle */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Available Installation Requests
+          </h2>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={viewMode === 'map' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('map')}
+            >
+              <Navigation className="w-4 h-4 mr-2" />
+              Map View
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+            >
+              List View
+            </Button>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        {viewMode === 'map' ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Map */}
+            <div className="lg:col-span-2">
+              <IrelandMap 
+                requests={mockRequests}
+                onRequestSelect={setSelectedRequest}
+                selectedRequest={selectedRequest || undefined}
+              />
             </div>
-          </CardHeader>
-          <CardContent>
-            {jobsLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <div className="text-center">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
-                  <p className="text-muted-foreground">Loading jobs...</p>
-                </div>
-              </div>
-            ) : filteredJobs.length === 0 ? (
-              <div className="text-center py-8">
-                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {activeFilter === "all" ? "No Jobs Available" : `No ${activeFilter} Jobs`}
-                </h3>
-                <p className="text-muted-foreground">
-                  {activeFilter === "all" 
-                    ? "New job assignments will appear here when available."
-                    : `You don't have any ${activeFilter} jobs at the moment.`
-                  }
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredJobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    onStatusChange={handleStatusChange}
-                  />
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            
+            {/* Selected Request Details */}
+            <div className="space-y-4">
+              {selectedRequest ? (
+                <RequestCard
+                  request={selectedRequest}
+                  onAccept={handleAcceptRequest}
+                  onDecline={handleDeclineRequest}
+                  distance={selectedRequest.distance}
+                />
+              ) : (
+                <Card className="h-full flex items-center justify-center">
+                  <CardContent className="text-center p-6">
+                    <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">Select a request on the map to view details</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        ) : (
+          /* List View */
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {mockRequests.map((request) => (
+              <RequestCard
+                key={request.id}
+                request={request}
+                onAccept={handleAcceptRequest}
+                onDecline={handleDeclineRequest}
+                distance={request.distance}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* No Requests State */}
+        {mockRequests.length === 0 && (
+          <Card className="p-12 text-center">
+            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Active Requests</h3>
+            <p className="text-gray-500 mb-6">
+              Turn on "Available for Jobs" to start receiving installation requests
+            </p>
+            <Button onClick={() => setIsOnline(true)} disabled={isOnline}>
+              Go Online
+            </Button>
+          </Card>
+        )}
       </div>
     </div>
   );

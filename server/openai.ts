@@ -19,74 +19,9 @@ export async function generateTVPreview(
   concealment: string = "none"
 ): Promise<AIPreviewResult> {
   try {
-    // Use GPT-4o to edit the original image by adding a TV
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are a professional photo editor specializing in TV installation previews. Your task is to describe exactly how to add a TV to the existing room photo while keeping everything else identical. Be extremely specific about maintaining the original room's appearance, lighting, and perspective.`
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Please analyze this room photo and provide detailed instructions for adding a ${tvSize}" TV to create an installation preview. 
+    // Generate a realistic TV installation preview using DALL-E
+    const imagePrompt = `Create a realistic, professional photo of a living room interior with a ${tvSize}-inch flat-screen TV mounted on a ${wallType} wall using a ${mountType} wall mount. Modern flat-screen TV, powered off with black screen, ${mountType} wall mount at optimal viewing height, ${wallType} wall with appropriate texture, ${concealment === 'concealed' ? 'all cables hidden behind wall' : 'power cable visible along wall'}, natural interior lighting, clean modern home interior, realistic proportions and shadows, professional installation appearance. Style: Photo-realistic interior photography, well-lit, clean and modern home setting.`;
 
-BOOKING DETAILS:
-- TV Size: ${tvSize} inches
-- Mount Type: ${mountType}
-- Wall Type: ${wallType}
-- Cable Concealment: ${concealment}
-
-CRITICAL REQUIREMENTS:
-1. Keep the EXACT same room - same walls, furniture, lighting, colors, textures
-2. Keep the EXACT same camera angle and perspective
-3. Only add a TV mounted on the most suitable wall
-4. TV should be black (powered off)
-5. Mount should match the specified type: ${mountType}
-6. If concealment is requested, hide cables appropriately
-7. Maintain realistic proportions and shadows
-
-Describe the TV placement location and how it integrates with the existing room without changing anything else. Format as detailed editing instructions.`
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${roomImageBase64}`
-              }
-            }
-          ]
-        }
-      ],
-      max_tokens: 1000,
-    });
-
-    const editingInstructions = response.choices[0].message.content;
-
-    // Create a highly specific prompt for DALL-E that emphasizes maintaining the original room
-    const imagePrompt = `Photo-realistic room interior EXACTLY like the reference image provided, but with a ${tvSize}" flat-screen TV added.
-
-ROOM SPECIFICATIONS FROM REFERENCE:
-- Keep identical wall colors, textures, and finishes
-- Keep identical furniture placement and style  
-- Keep identical lighting conditions and shadows
-- Keep identical camera angle and perspective
-- Keep identical floor and ceiling
-- Keep identical decorative elements
-
-TV INSTALLATION DETAILS:
-- ${tvSize}" black flat-screen TV (powered off)
-- ${mountType} wall mount on ${wallType} wall
-- ${concealment === 'none' ? 'Visible cables' : 'Hidden/concealed cables'}
-- Professional installation appearance
-- Proper proportions for room size
-- Natural shadows cast by TV
-
-CRITICAL: This should look like the SAME room as the reference, just with a TV professionally installed. Do not redesign, redecorate, or change the room's character in any way.`;
-
-    // Generate the TV preview image
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
       prompt: imagePrompt,

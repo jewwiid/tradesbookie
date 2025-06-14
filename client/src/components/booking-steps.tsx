@@ -323,7 +323,7 @@ export default function BookingSteps({
                                   <span className="text-sm font-medium">Imagining your new space...</span>
                                 </div>
                                 <div className="text-xs bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm">
-                                  Preview coming soon
+                                  Preview at final step
                                 </div>
                               </div>
                             </div>

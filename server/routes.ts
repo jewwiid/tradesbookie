@@ -79,7 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error uploading photo:", error);
-      res.status(500).json({ message: "Failed to upload photo", error: error.message });
+      res.status(500).json({ message: "Failed to upload photo", error: String(error) });
     }
   });
 
@@ -100,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(result);
     } catch (error) {
       console.error("Error generating AI preview:", error);
-      res.status(500).json({ message: "Failed to generate AI preview", error: error.message });
+      res.status(500).json({ message: "Failed to generate AI preview", error: String(error) });
     }
   });
 
@@ -136,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(booking);
     } catch (error) {
       console.error("Error creating booking:", error);
-      res.status(400).json({ message: "Failed to create booking", error: error.message });
+      res.status(400).json({ message: "Failed to create booking", error: String(error) });
     }
   });
 
@@ -213,6 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentYear = new Date().getFullYear();
       
       const monthlyBookings = bookings.filter(booking => {
+        if (!booking.createdAt) return false;
         const bookingDate = new Date(booking.createdAt);
         return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
       });

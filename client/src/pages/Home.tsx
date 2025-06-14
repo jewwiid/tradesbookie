@@ -149,7 +149,16 @@ export default function Home() {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {serviceTiers.map((tier) => (
-              <ServiceTierCard key={tier.key} {...tier} />
+              <ServiceTierCard 
+                key={tier.key}
+                name={tier.name}
+                description={tier.description}
+                icon={tier.icon}
+                gradient={tier.gradient}
+                border={tier.border}
+                popular={tier.popular}
+                pricing={tier.pricing}
+              />
             ))}
           </div>
         </div>

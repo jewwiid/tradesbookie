@@ -743,20 +743,6 @@ export default function BookingSteps({
                                 </div>
                               </div>
                             </>
-                          ) : (
-                            <div className="relative">
-                              <img
-                                src={showAfterPreview ? formData.aiPreviewUrl : formData.roomPhotoUrl}
-                                alt={showAfterPreview ? "Room with TV preview" : "Your original room"}
-                                className="w-full h-64 object-cover rounded-xl"
-                              />
-                              {showAfterPreview && (
-                                <Badge className="absolute top-4 right-4 bg-green-600">
-                                  <Sparkles className="w-3 h-3 mr-1" />
-                                  AI Generated
-                                </Badge>
-                              )}
-                            </div>
                           )}
                         </div>
                       </div>

@@ -12,6 +12,7 @@ import InstallerDashboard from "@/pages/installer-dashboard";
 import InstallerRegistration from "@/pages/installer-registration";
 import InstallerLogin from "@/pages/installer-login";
 import QRTracking from "@/pages/qr-tracking";
+import TVRecommendation from "@/pages/tv-recommendation";
 import NotFound from "@/pages/not-found";
 
 function Router() {

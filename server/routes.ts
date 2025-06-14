@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertBookingSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
+import { generateTVRecommendation } from "./tvRecommendationService";
 import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
@@ -614,6 +615,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating job status:", error);
       res.status(500).json({ message: "Failed to update job status" });
+    }
+  });
+
+  // TV Recommendation API
+  app.post('/api/tv-recommendation', async (req, res) => {
+    try {
+      const { answers } = req.body;
+      
+      if (!answers || typeof answers !== 'object') {
+        return res.status(400).json({ error: "Valid answers object required" });
+      }
+
+      const recommendation = await generateTVRecommendation(answers);
+      res.json(recommendation);
+    } catch (error) {
+      console.error("TV recommendation error:", error);
+      res.status(500).json({ error: "Failed to generate TV recommendation" });
     }
   });
 

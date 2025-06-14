@@ -68,12 +68,20 @@ export default function Navigation() {
                     Our Installers
                   </span>
                   <Link 
+                    href="/installer-registration" 
+                    className="flex items-center py-2 text-gray-700 hover:text-primary"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Settings className="h-5 w-5 mr-3" />
+                    Join as Installer
+                  </Link>
+                  <Link 
                     href="/booking" 
                     className="w-full"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Button className="w-full justify-start bg-primary hover:bg-primary/90">
-                      <Settings className="h-5 w-5 mr-3" />
+                      <Calendar className="h-5 w-5 mr-3" />
                       Book Installation
                     </Button>
                   </Link>

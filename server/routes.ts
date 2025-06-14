@@ -334,14 +334,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create new installer with default password
       const installer = await storage.createInstaller({
-        ...installerData,
+        contactName: installerData.name,
+        businessName: installerData.businessName || installerData.name,
+        email: installerData.email,
+        phone: installerData.phone,
         password: "demo123", // Default password for demo
         isActive: true
       });
       
       res.json({ 
         message: "Registration successful", 
-        installer: { id: installer.id, email: installer.email, name: installer.name }
+        installer: { id: installer.id, email: installer.email, name: installer.contactName }
       });
     } catch (error) {
       console.error("Error registering installer:", error);
@@ -360,7 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ 
         message: "Login successful", 
-        installer: { id: installer.id, email: installer.email, name: installer.name }
+        installer: { id: installer.id, email: installer.email, name: installer.contactName }
       });
     } catch (error) {
       console.error("Error logging in installer:", error);

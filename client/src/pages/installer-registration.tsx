@@ -35,11 +35,7 @@ export default function InstallerRegistration() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("/api/installers/register", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
-      });
+      return await apiRequest("/api/installers/register", "POST", data);
     },
     onSuccess: (data) => {
       toast({

@@ -19,13 +19,9 @@ export default function InstallerLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("/api/installers/login", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
-      });
+      return await apiRequest("/api/installers/login", "POST", data);
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Login Successful",
         description: "Welcome back to your installer dashboard.",

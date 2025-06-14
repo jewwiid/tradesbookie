@@ -11,6 +11,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import InstallerDashboard from "@/pages/installer-dashboard";
 import InstallerRegistration from "@/pages/installer-registration";
 import InstallerLogin from "@/pages/installer-login";
+import QRTracking from "@/pages/qr-tracking";
 import NotFound from "@/pages/not-found";
 
 function Router() {

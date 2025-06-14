@@ -19,12 +19,41 @@ export async function generateTVPreview(
   concealment: string = "none"
 ): Promise<AIPreviewResult> {
   try {
-    // Generate a realistic TV installation preview using DALL-E
-    const imagePrompt = `Create a realistic, professional photo of a living room interior with a ${tvSize}-inch flat-screen TV mounted on a ${wallType} wall using a ${mountType} wall mount. Modern flat-screen TV, powered off with black screen, ${mountType} wall mount at optimal viewing height, ${wallType} wall with appropriate texture, ${concealment === 'concealed' ? 'all cables hidden behind wall' : 'power cable visible along wall'}, natural interior lighting, clean modern home interior, realistic proportions and shadows, professional installation appearance. Style: Photo-realistic interior photography, well-lit, clean and modern home setting.`;
+    // First analyze the existing room to understand its characteristics
+    const analysisResponse = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a TV installation expert. Analyze this room photo and describe its key characteristics for creating a realistic TV installation preview."
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Analyze this room photo and describe: 1) Wall colors and textures, 2) Lighting conditions, 3) Furniture placement, 4) Room style and decor, 5) Best wall for TV placement. Keep description under 100 words and focus on visual details that would help recreate this exact room with a TV added.`
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${roomImageBase64}`
+              }
+            }
+          ]
+        }
+      ],
+      max_tokens: 150
+    });
+
+    const roomDescription = analysisResponse.choices[0].message.content;
+
+    // Generate realistic TV installation that maintains the original room appearance
+    const enhancedPrompt = `Exact replica of this room: ${roomDescription}. Add ONLY a ${tvSize}-inch black flat-screen TV mounted on the most suitable wall using a ${mountType} mount at proper viewing height (55-65 inches from floor). ${concealment === 'concealed' ? 'All cables hidden behind wall for clean installation' : 'Power cable neatly run along wall'}. Keep everything else identical: same lighting, same furniture positions, same wall colors, same decor, same perspective. The TV should appear as if professionally installed in this exact space without changing anything else.`;
 
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
-      prompt: imagePrompt,
+      prompt: enhancedPrompt,
       n: 1,
       size: "1024x1024",
       quality: "standard",

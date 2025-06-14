@@ -72,52 +72,8 @@ export default function BookingSteps({
     onUpdateForm({ roomPhotoUrl: previewUrl });
   };
 
-  const generateAIPreview = async () => {
-    if (!formData.roomPhoto || !formData.tvSize) return;
-
-    setIsGeneratingPreview(true);
-    try {
-      // Convert file to base64
-      const base64 = await new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const result = reader.result as string;
-          resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
-        };
-        reader.readAsDataURL(formData.roomPhoto);
-      });
-
-      // Generate AI preview with booking flow inputs
-      const aiResponse = await fetch('/api/generate-ai-preview', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageBase64: base64,
-          tvSize: formData.tvSize,
-          mountType: formData.mountType || 'fixed',
-          wallType: formData.wallType || 'drywall',
-          concealment: formData.addOns.some(addon => addon.id === 4) ? 'hidden' : 'none' // Assuming addon ID 4 is cable concealment
-        }),
-      });
-
-      if (!aiResponse.ok) {
-        throw new Error('Failed to generate AI preview');
-      }
-
-      const result = await aiResponse.json();
-      if (result.success && result.imageUrl) {
-        onUpdateForm({ aiPreviewUrl: result.imageUrl });
-        setShowPreviewToggle(true);
-        setShowAfterPreview(true);
-      }
-    } catch (error) {
-      console.error("Failed to generate preview:", error);
-    } finally {
-      setIsGeneratingPreview(false);
-    }
-  };
+  // AI preview generation removed from intermediate steps
+  // Will only occur at final booking summary step
 
   const handleServiceSelect = (serviceId: number, price: string) => {
     onUpdateForm({ 
@@ -279,57 +235,31 @@ export default function BookingSteps({
                     <p className="text-lg text-gray-600">Select your TV size to see the accurate preview</p>
                   </div>
 
-                  {/* AI Preview Teaser */}
-                  {formData.roomPhotoUrl && (
+                  {/* Photo confirmation only - no preview */}
+                  {formData.roomPhoto && (
                     <div className="mb-8">
                       <div className="bg-gray-50 rounded-2xl p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold text-gray-900">AI Preview</h3>
-                          {showPreviewToggle && (
-                            <div className="flex bg-white rounded-lg p-1">
-                              <Button
-                                size="sm"
-                                variant={!showAfterPreview ? "default" : "ghost"}
-                                onClick={() => setShowAfterPreview(false)}
-                              >
-                                Before
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant={showAfterPreview ? "default" : "ghost"}
-                                onClick={() => setShowAfterPreview(true)}
-                              >
-                                After
-                              </Button>
-                            </div>
-                          )}
+                        <div className="flex items-center mb-4">
+                          <Camera className="w-5 h-5 text-blue-600 mr-3" />
+                          <h3 className="text-lg font-semibold text-gray-900">Room Photo Ready</h3>
                         </div>
-                        
                         <div className="relative">
                           <img
-                            src={formData.roomPhotoUrl}
+                            src={URL.createObjectURL(formData.roomPhoto)}
                             alt="Your room"
-                            className="w-full h-64 object-cover rounded-xl"
+                            className="w-full h-48 object-cover rounded-xl"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl flex items-end">
-                            <div className="p-4 text-white w-full">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2">
-                                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                                  <span className="text-sm font-medium">Imagining your new space...</span>
-                                </div>
-                                <div className="text-xs bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm">
-                                  Preview at final step
-                                </div>
-                              </div>
-                            </div>
+                          <div className="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                            ✓ Ready
                           </div>
                         </div>
+                        <p className="text-sm text-gray-600 mt-4 text-center">
+                          AI preview will be generated at the final step
+                        </p>
                       </div>
                     </div>
                   )}
+
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                     {TV_SIZES.map((tv) => (
@@ -339,9 +269,6 @@ export default function BookingSteps({
                         className="p-6 h-auto flex-col space-y-3 hover:border-primary hover:bg-blue-50"
                         onClick={() => {
                           onUpdateForm({ tvSize: tv.size });
-                          if (formData.roomPhoto && !formData.aiPreviewUrl) {
-                            setTimeout(generateAIPreview, 500);
-                          }
                         }}
                       >
                         <Tv className="w-8 h-8" />
@@ -810,20 +737,9 @@ export default function BookingSteps({
                                 alt="Your room"
                                 className="w-full h-64 object-cover rounded-xl"
                               />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-xl flex items-center justify-center">
-                                <div className="text-center text-white">
-                                  <div className="flex items-center justify-center space-x-2 mb-4">
-                                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-                                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-ping" style={{animationDelay: '0.2s'}}></div>
-                                    <div className="w-3 h-3 bg-yellow-400 rounded-full animate-ping" style={{animationDelay: '0.4s'}}></div>
-                                  </div>
-                                  <Button
-                                    onClick={generateAIPreview}
-                                    disabled={isGeneratingPreview}
-                                    className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-white/30"
-                                  >
-                                    {isGeneratingPreview ? "Creating your preview..." : "Generate Final Preview"}
-                                  </Button>
+                              <div className="absolute bottom-4 left-4 right-4">
+                                <div className="bg-black/70 rounded-lg p-3 text-white text-center">
+                                  <p className="text-sm">AI preview will be generated at the final booking step</p>
                                 </div>
                               </div>
                             </>

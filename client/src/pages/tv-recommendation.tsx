@@ -9,6 +9,8 @@ import { Tv, Zap, Eye, Gamepad2, DollarSign, ArrowLeft, ArrowRight, Sparkles } f
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface QuestionData {
   id: string;
@@ -93,6 +95,13 @@ export default function TVRecommendation() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [recommendation, setRecommendation] = useState<TVRecommendation | null>(null);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [contactInfo, setContactInfo] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
   const { toast } = useToast();
 
   const recommendationMutation = useMutation<TVRecommendation, Error, Record<string, string>>({
@@ -121,6 +130,32 @@ export default function TVRecommendation() {
     }
   });
 
+  const contactMutation = useMutation<any, Error, any>({
+    mutationFn: async (contactData: any) => {
+      const response = await fetch('/api/tv-recommendation/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactData)
+      });
+      if (!response.ok) throw new Error('Failed to send contact request');
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Request Sent!",
+        description: "A salesperson will contact you within 24 hours with TV recommendations.",
+      });
+      setShowContactForm(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to send contact request. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
@@ -144,11 +179,136 @@ export default function TVRecommendation() {
     setCurrentStep(0);
     setAnswers({});
     setRecommendation(null);
+    setShowContactForm(false);
+    setContactInfo({ name: '', email: '', phone: '', message: '' });
+  };
+
+  const handleContactSalesperson = () => {
+    // Pre-fill the message with user preferences and recommendation
+    const prefilledMessage = `Hi! I completed the TV recommendation quiz and received a recommendation for ${recommendation?.type} (${recommendation?.model}). 
+
+My preferences were:
+- Primary usage: ${answers.usage}
+- Budget range: ${answers.budget}
+- Room environment: ${answers.room}
+- Gaming importance: ${answers.gaming}
+- Priority feature: ${answers.features}
+
+I'm interested in learning more about this TV and discussing purchase options. Please contact me to discuss further.`;
+
+    setContactInfo(prev => ({ ...prev, message: prefilledMessage }));
+    setShowContactForm(true);
+  };
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactInfo.name || !contactInfo.email) {
+      toast({
+        title: "Required Fields",
+        description: "Please fill in your name and email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    contactMutation.mutate({
+      ...contactInfo,
+      recommendation: recommendation,
+      preferences: answers
+    });
   };
 
   const currentQuestion = questions[currentStep];
   const isAnswered = answers[currentQuestion?.id];
   const progress = ((currentStep + 1) / questions.length) * 100;
+
+  if (showContactForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Contact Our TV Experts</h1>
+            <p className="text-gray-600">Get personalized assistance with your TV selection</p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Speak with a Salesperson</CardTitle>
+              <CardDescription>
+                We'll connect you with a TV expert who can help you find the perfect model and arrange purchase.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleContactSubmit} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Full Name *</Label>
+                    <Input
+                      id="name"
+                      value={contactInfo.name}
+                      onChange={(e) => setContactInfo(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Your full name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email Address *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={contactInfo.email}
+                      onChange={(e) => setContactInfo(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="your.email@example.com"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    value={contactInfo.phone}
+                    onChange={(e) => setContactInfo(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="+353 XX XXX XXXX"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="message">Message</Label>
+                  <Textarea
+                    id="message"
+                    value={contactInfo.message}
+                    onChange={(e) => setContactInfo(prev => ({ ...prev, message: e.target.value }))}
+                    rows={8}
+                    placeholder="Tell us about your requirements..."
+                  />
+                </div>
+
+                <div className="flex gap-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowContactForm(false)}
+                    className="flex-1"
+                  >
+                    Back to Recommendation
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={contactMutation.isPending}
+                    className="flex-1"
+                  >
+                    {contactMutation.isPending ? "Sending..." : "Send Request"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (recommendation) {
     return (
@@ -228,11 +388,14 @@ export default function TVRecommendation() {
               Ready to book your TV installation? Our certified installers can help you set up your new TV perfectly.
             </p>
             <div className="flex justify-center gap-4">
-              <Button onClick={handleRestart} variant="outline">
-                Get Another Recommendation
+              <Button onClick={handleContactSalesperson} className="bg-green-600 hover:bg-green-700">
+                Contact TV Expert
               </Button>
               <Button onClick={() => window.location.href = '/booking'}>
                 Book Installation
+              </Button>
+              <Button onClick={handleRestart} variant="outline">
+                Get Another Recommendation
               </Button>
             </div>
           </div>

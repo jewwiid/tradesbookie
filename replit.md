@@ -161,6 +161,8 @@ The application now includes a robust fallback system. When the database is unav
 - June 14, 2025: Added AI TV recommendation service with 5-question personalized questionnaire using OpenAI GPT-4o
 - June 14, 2025: Integrated TV technology matching for QLED, MINI LED, OLED, 144Hz Frame TV, and anti-reflection displays
 - June 14, 2025: Created comprehensive recommendation engine considering usage, budget, room environment, gaming needs, and feature priorities
+- June 14, 2025: Added contact form with pre-filled user preferences that sends detailed inquiry to admin email
+- June 14, 2025: Implemented automatic customer confirmation emails with inquiry details and follow-up timeline
 
 ## User Preferences
 

@@ -635,6 +635,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // TV Recommendation Contact Form
+  app.post('/api/tv-recommendation/contact', async (req, res) => {
+    try {
+      const { name, email, phone, message, recommendation, preferences } = req.body;
+      
+      if (!name || !email || !message) {
+        return res.status(400).json({ error: "Name, email, and message are required" });
+      }
+
+      // Email content for admin
+      const adminEmailSubject = `New TV Recommendation Inquiry from ${name}`;
+      const adminEmailContent = `
+New TV recommendation inquiry received:
+
+Customer Details:
+- Name: ${name}
+- Email: ${email}
+- Phone: ${phone || 'Not provided'}
+
+TV Recommendation:
+- Type: ${recommendation?.type || 'N/A'}
+- Model: ${recommendation?.model || 'N/A'}
+
+Customer Preferences:
+- Primary usage: ${preferences?.usage || 'N/A'}
+- Budget range: ${preferences?.budget || 'N/A'}
+- Room environment: ${preferences?.room || 'N/A'}
+- Gaming importance: ${preferences?.gaming || 'N/A'}
+- Priority feature: ${preferences?.features || 'N/A'}
+
+Customer Message:
+${message}
+
+Please follow up with this customer within 24 hours.
+      `;
+
+      // Send email to admin
+      await sendNotificationEmail(
+        "admin@smarttvmount.ie", // Admin email
+        adminEmailSubject,
+        adminEmailContent
+      );
+
+      // Send confirmation email to customer
+      const customerEmailSubject = "TV Recommendation Inquiry Received";
+      const customerEmailContent = `
+Hi ${name},
+
+Thank you for your interest in our TV recommendation service! We've received your inquiry about ${recommendation?.type} recommendations.
+
+Our TV experts will review your preferences and contact you within 24 hours to discuss:
+- Specific TV models that match your needs
+- Pricing and availability
+- Installation options
+- Any questions you may have
+
+Your inquiry details:
+- Recommended TV Type: ${recommendation?.type}
+- Budget Range: ${preferences?.budget}
+- Primary Usage: ${preferences?.usage}
+
+Best regards,
+SmartTVMount Team
+
+If you have any urgent questions, please call us at +353 1 XXX XXXX
+      `;
+
+      await sendNotificationEmail(
+        email,
+        customerEmailSubject,
+        customerEmailContent
+      );
+
+      res.json({ 
+        success: true, 
+        message: "Contact request sent successfully" 
+      });
+    } catch (error) {
+      console.error("TV recommendation contact error:", error);
+      res.status(500).json({ error: "Failed to send contact request" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

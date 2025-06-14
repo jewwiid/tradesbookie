@@ -61,9 +61,51 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
     }
   });
 
-  const handleFile = useCallback((file: File) => {
+  const compressImage = useCallback((file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      const img = new Image();
+      
+      img.onload = () => {
+        // Calculate new dimensions (max 1920x1080)
+        const maxWidth = 1920;
+        const maxHeight = 1080;
+        let { width, height } = img;
+        
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width *= ratio;
+          height *= ratio;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve(compressedFile);
+          } else {
+            resolve(file);
+          }
+        }, 'image/jpeg', 0.8);
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  }, []);
+
+  const handleFile = useCallback(async (file: File) => {
     if (file && file.type.startsWith('image/')) {
-      uploadMutation.mutate(file);
+      const compressedFile = await compressImage(file);
+      console.log('Original size:', file.size, 'Compressed size:', compressedFile.size);
+      uploadMutation.mutate(compressedFile);
     } else {
       toast({
         title: "Invalid file type",
@@ -71,7 +113,7 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
         variant: "destructive"
       });
     }
-  }, [uploadMutation, toast]);
+  }, [uploadMutation, toast, compressImage]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -159,13 +201,26 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
       const context = canvas.getContext('2d');
       
       if (context) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0);
+        // Set reasonable capture dimensions
+        const maxWidth = 1920;
+        const maxHeight = 1080;
+        let width = video.videoWidth;
+        let height = video.videoHeight;
+        
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width *= ratio;
+          height *= ratio;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        context.drawImage(video, 0, 0, width, height);
         
         canvas.toBlob((blob) => {
           if (blob) {
             const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+            console.log('Camera photo captured, size:', file.size);
             handleFile(file);
             stopCamera();
           }

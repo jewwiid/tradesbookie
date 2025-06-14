@@ -125,6 +125,9 @@ The application now includes a robust fallback system. When the database is unav
 - Updated AI generation to only trigger at final booking summary step
 - Removed all AI processing from intermediate booking steps (photo upload now only stores image)
 - Fixed timing issue where images were being processed immediately instead of at final step
+- **Security Enhancement**: Implemented admin-only access control for installer dashboard
+- Created ProtectedRoute component to restrict sensitive administrative interfaces
+- Updated routing to prevent unauthorized access to admin and installer management pages
 
 ## Changelog
 

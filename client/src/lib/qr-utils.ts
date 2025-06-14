@@ -1,75 +1,35 @@
-export const generateQRCodeDataURL = (data: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    try {
-      // Create a simple QR code data URL using a placeholder approach
-      // In a real implementation, you would use a proper QR code library
-      const size = 200;
-      const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      
-      if (!ctx) {
-        reject(new Error('Canvas context not available'));
-        return;
+export function generateQRCodeDataURL(text: string, size: number = 200): string {
+  // Simple QR code generation for demo purposes
+  // In a real app, you'd use a proper QR library like qrcode.js
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  
+  if (!ctx) return '';
+  
+  canvas.width = size;
+  canvas.height = size;
+  
+  // Create a simple QR-like pattern for demo
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, size, size);
+  
+  ctx.fillStyle = '#FFFFFF';
+  const cellSize = size / 25;
+  
+  // Create a pattern that looks QR-like
+  for (let i = 0; i < 25; i++) {
+    for (let j = 0; j < 25; j++) {
+      const shouldFill = (i + j + text.charCodeAt(0)) % 3 === 0;
+      if (shouldFill) {
+        ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
       }
-      
-      // Simple QR code placeholder - fill with a pattern
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0, 0, size, size);
-      
-      // Add white background
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(10, 10, size - 20, size - 20);
-      
-      // Add some QR-like pattern
-      ctx.fillStyle = '#000000';
-      for (let i = 0; i < 20; i++) {
-        for (let j = 0; j < 20; j++) {
-          if ((i + j) % 2 === 0 || (i * j) % 3 === 0) {
-            ctx.fillRect(i * 9 + 15, j * 9 + 15, 8, 8);
-          }
-        }
-      }
-      
-      // Add corner markers
-      const cornerSize = 30;
-      const positions = [
-        [15, 15],
-        [size - cornerSize - 15, 15],
-        [15, size - cornerSize - 15]
-      ];
-      
-      positions.forEach(([x, y]) => {
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(x, y, cornerSize, cornerSize);
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(x + 5, y + 5, cornerSize - 10, cornerSize - 10);
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(x + 10, y + 10, cornerSize - 20, cornerSize - 20);
-      });
-      
-      // Add center text (booking ID)
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(size/2 - 40, size/2 - 15, 80, 30);
-      ctx.fillStyle = '#000000';
-      ctx.font = '12px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(data.slice(-8), size/2, size/2 + 5);
-      
-      resolve(canvas.toDataURL());
-    } catch (error) {
-      reject(error);
     }
-  });
-};
+  }
+  
+  return canvas.toDataURL();
+}
 
-export const extractTokenFromURL = (): string | null => {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('token');
-};
-
-export const generateAccessURL = (token: string): string => {
-  const baseURL = window.location.origin;
-  return `${baseURL}/customer-access?token=${token}`;
-};
+export function createBookingQRCode(bookingId: string): string {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/customer-dashboard?booking=${bookingId}`;
+}

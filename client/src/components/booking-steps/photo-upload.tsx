@@ -1,154 +1,124 @@
-import { useState, useRef } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Camera, Upload, CheckCircle, AlertCircle } from 'lucide-react';
-import { useBooking } from '@/hooks/use-booking';
+import { Card, CardContent } from '@/components/ui/card';
+import { Camera, CloudUpload, CheckCircle } from 'lucide-react';
+import { useBookingStore } from '@/lib/booking-store';
+import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
-export default function PhotoUpload() {
-  const { bookingData, updateBookingData, uploadRoomPhoto } = useBooking();
+interface PhotoUploadProps {
+  onNext: () => void;
+}
+
+export default function PhotoUpload({ onNext }: PhotoUploadProps) {
+  const { data, updateData } = useBookingStore();
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string>('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setUploadError('Please select an image file');
-      return;
-    }
-
-    // Validate file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadError('File size must be less than 10MB');
-      return;
-    }
-
     setIsUploading(true);
-    setUploadError('');
 
     try {
-      const result = await uploadRoomPhoto(file);
-      if (result.success) {
-        toast({
-          title: "Photo uploaded successfully",
-          description: "Your room photo has been analyzed and is ready for AI preview.",
-        });
-      } else {
-        setUploadError(result.error || 'Failed to upload photo');
-      }
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await apiRequest('POST', '/api/upload-room-image', formData);
+      const result = await response.json();
+
+      updateData({
+        photo: result.imageBase64,
+        analysisResult: result.analysis
+      });
+
+      toast({
+        title: "Photo uploaded successfully!",
+        description: "Your room has been analyzed by our AI.",
+      });
     } catch (error) {
-      setUploadError('Failed to upload photo. Please try again.');
+      console.error('Error uploading photo:', error);
+      toast({
+        title: "Upload failed",
+        description: "Please try uploading your photo again.",
+        variant: "destructive",
+      });
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      const fakeEvent = {
-        target: { files: [file] }
-      } as React.ChangeEvent<HTMLInputElement>;
-      handleFileSelect(fakeEvent);
-    }
-  };
-
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
+  const handleSkip = () => {
+    updateData({ photo: undefined, analysisResult: undefined });
+    onNext();
   };
 
   return (
-    <Card className="bg-white rounded-3xl shadow-xl">
-      <CardHeader className="text-center">
-        <div className="w-20 h-20 gradient-primary rounded-full flex items-center justify-center mx-auto mb-6">
-          <Camera className="w-8 h-8 text-white" />
+    <Card className="typeform-card">
+      <CardContent className="text-center">
+        <div className="w-20 h-20 typeform-gradient rounded-full flex items-center justify-center mx-auto mb-6">
+          <Camera className="h-8 w-8 text-white" />
         </div>
-        <CardTitle className="text-3xl font-bold text-gray-900 mb-4">
-          Upload Your Room Photo
-        </CardTitle>
-        <CardDescription className="text-lg text-gray-600">
-          Take a photo of the wall where you want your TV mounted. Our AI will show you a preview!
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
-
-        {!bookingData.roomPhotoUrl ? (
-          <div
-            className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-primary transition-colors cursor-pointer"
-            onClick={() => fileInputRef.current?.click()}
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-          >
-            {isUploading ? (
-              <div className="space-y-4">
-                <div className="loading-spinner w-8 h-8 mx-auto"></div>
-                <p className="text-lg text-gray-600">Uploading and analyzing your photo...</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <Upload className="w-12 h-12 text-gray-400 mx-auto" />
-                <div>
-                  <p className="text-lg text-gray-600 mb-2">Click to upload or drag and drop</p>
-                  <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="relative rounded-2xl overflow-hidden">
-              <img
-                src={bookingData.roomPhotoUrl}
-                alt="Room photo"
-                className="w-full h-64 object-cover"
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Upload Your Room Photo</h2>
+        <p className="text-lg text-gray-600 mb-8">Take a photo of the wall where you want your TV mounted. Our AI will show you a preview!</p>
+        
+        <div 
+          className={`border-2 border-dashed rounded-2xl p-8 mb-6 transition-colors cursor-pointer ${
+            data.photo ? 'border-primary bg-blue-50' : 'border-gray-300 hover:border-primary'
+          }`}
+          onClick={() => document.getElementById('photoUpload')?.click()}
+        >
+          <input 
+            type="file" 
+            id="photoUpload" 
+            className="hidden" 
+            accept="image/*" 
+            onChange={handleFileSelect}
+            disabled={isUploading}
+          />
+          
+          {!data.photo ? (
+            <div className="text-center">
+              <CloudUpload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-lg text-gray-600 mb-2">
+                {isUploading ? 'Uploading and analyzing...' : 'Click to upload or drag and drop'}
+              </p>
+              <p className="text-sm text-gray-500">PNG, JPG up to 10MB</p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <img 
+                src={data.photo} 
+                alt="Uploaded room" 
+                className="max-w-full h-64 object-cover rounded-xl mx-auto mb-4"
               />
-              <Badge className="absolute top-4 right-4 bg-green-500 text-white">
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Photo uploaded successfully
-              </Badge>
+              <div className="flex items-center justify-center">
+                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                <span className="text-sm text-green-600 font-medium">Photo uploaded successfully!</span>
+              </div>
+              {data.analysisResult && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-gray-700">
+                    <strong>Room Analysis:</strong> {data.analysisResult.roomType} - {data.analysisResult.wallSuitability}
+                  </p>
+                </div>
+              )}
             </div>
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                Choose Different Photo
-              </Button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {uploadError && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-700">
-            <AlertCircle className="w-4 h-4 mr-2" />
-            {uploadError}
-          </div>
-        )}
-
-        <div className="mt-6 p-4 bg-blue-50 rounded-xl">
-          <h4 className="font-medium text-gray-900 mb-2">Tips for best results:</h4>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li>• Take the photo from where you'll be watching TV</li>
-            <li>• Ensure the wall is clearly visible and well-lit</li>
-            <li>• Include surrounding furniture for context</li>
-            <li>• Avoid backlighting or shadows on the wall</li>
-          </ul>
+        <div className="flex justify-between">
+          <Button variant="ghost" onClick={handleSkip} disabled={isUploading}>
+            Skip this step
+          </Button>
+          <Button 
+            onClick={onNext} 
+            disabled={!data.photo && !isUploading}
+            className="btn-primary"
+          >
+            {isUploading ? 'Processing...' : 'Continue'}
+          </Button>
         </div>
       </CardContent>
     </Card>

@@ -1,245 +1,191 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Tv, 
-  Camera, 
-  Calendar, 
-  Bolt, 
-  CheckCircle,
-  Sparkles,
-  Shield,
-  Clock,
-  Star,
-  Award,
-  Crown
-} from "lucide-react";
-import { SERVICE_TIERS } from "@/lib/constants";
+import { Link } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { WandSparkles, CheckCircle, Camera, CalendarDays, Wrench, Tv, Medal, Award, Crown } from 'lucide-react';
+import { formatPrice, SERVICE_TIERS } from '@/lib/constants';
 
 export default function Home() {
-  const [, navigate] = useLocation();
-
-  const features = [
-    {
-      icon: <CheckCircle className="w-5 h-5 text-success" />,
-      text: "AI Room Preview"
-    },
-    {
-      icon: <CheckCircle className="w-5 h-5 text-success" />,
-      text: "Professional Install"
-    },
-    {
-      icon: <CheckCircle className="w-5 h-5 text-success" />,
-      text: "Instant Booking"
-    }
-  ];
-
-  const howItWorksSteps = [
-    {
-      icon: <Camera className="w-8 h-8 text-white" />,
-      title: "1. Upload & Preview",
-      description: "Take a photo of your room and let our AI show you how your TV will look mounted on the wall",
-      bgColor: "bg-primary"
-    },
-    {
-      icon: <Calendar className="w-8 h-8 text-white" />,
-      title: "2. Book & Schedule", 
-      description: "Choose your service tier, select your preferred date and time, and complete your booking",
-      bgColor: "bg-secondary"
-    },
-    {
-      icon: <Bolt className="w-8 h-8 text-white" />,
-      title: "3. Professional Install",
-      description: "Our certified installer arrives on time and mounts your TV exactly as previewed",
-      bgColor: "bg-success"
-    }
-  ];
-
-  const serviceTierCards = [
-    {
-      ...SERVICE_TIERS['table-top-small'],
-      icon: <Tv className="w-8 h-8 text-blue-600" />,
-      bgGradient: "from-blue-50 to-indigo-50",
-      borderColor: "border-blue-100",
-      iconBg: "bg-blue-100"
-    },
-    {
-      ...SERVICE_TIERS['bronze'],
-      icon: <Award className="w-8 h-8 text-amber-600" />,
-      bgGradient: "from-amber-50 to-orange-50", 
-      borderColor: "border-amber-100",
-      iconBg: "bg-amber-100"
-    },
-    {
-      ...SERVICE_TIERS['silver'],
-      icon: <Shield className="w-8 h-8 text-gray-600" />,
-      bgGradient: "from-gray-50 to-slate-50",
-      borderColor: "border-gray-200",
-      iconBg: "bg-gray-200",
-      popular: true
-    },
-    {
-      ...SERVICE_TIERS['gold'],
-      icon: <Crown className="w-8 h-8 text-yellow-600" />,
-      bgGradient: "from-yellow-50 to-amber-50",
-      borderColor: "border-yellow-200", 
-      iconBg: "bg-yellow-100"
-    }
-  ];
-
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative gradient-hero py-16 lg:py-24">
+      <section className="relative typeform-gradient-bg py-16 lg:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="text-center lg:text-left">
+            <div className="text-center lg:text-left animate-fade-in">
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-                See Your TV on the Wall{" "}
-                <span className="text-transparent bg-clip-text gradient-primary">
-                  Before You Book
-                </span>
+                See Your TV on the Wall{' '}
+                <span className="gradient-text">Before You Book</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                 Upload a photo of your room and our AI will show you exactly how your new TV will look mounted on your wall. Professional installation guaranteed.
               </p>
-              <Button 
-                onClick={() => navigate("/book")}
-                className="btn-primary text-lg px-8 py-4 mb-8"
-              >
-                <Sparkles className="w-5 h-5 mr-3" />
-                Start AI Preview
-              </Button>
-              
-              <div className="flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
-                {features.map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    {feature.icon}
-                    <span className="ml-2">{feature.text}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="relative animate-float">
-              <img 
-                src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
-                alt="Modern living room with mounted TV" 
-                className="rounded-3xl shadow-2xl w-full" 
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl"></div>
-              <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 bg-success rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-gray-800">AI Preview Active</span>
+              <Link href="/booking">
+                <Button size="lg" className="btn-primary">
+                  <WandSparkles className="h-5 w-5 mr-3" />
+                  Start AI Preview
+                </Button>
+              </Link>
+              <div className="mt-8 flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
+                <div className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  AI Room Preview
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Professional Install
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                  Instant Booking
                 </div>
               </div>
+            </div>
+            <div className="relative animate-slide-up">
+              <img
+                src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600"
+                alt="Modern living room with mounted TV"
+                className="rounded-3xl shadow-2xl w-full"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl"></div>
+              <Card className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm border-0">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-gray-800">AI Preview Active</span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
       </section>
 
       {/* Service Tiers Section */}
-      <section id="pricing" className="py-16 bg-white">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Choose Your Installation Service
-            </h2>
-            <p className="text-xl text-gray-600">
-              Professional TV mounting and installation services with transparent pricing
-            </p>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Choose Your Installation Service</h2>
+            <p className="text-xl text-gray-600">Professional TV mounting and installation services with transparent pricing</p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {serviceTierCards.map((service, index) => (
-              <Card 
-                key={service.id}
-                className={`service-card tile-hover bg-gradient-to-br ${service.bgGradient} border ${service.borderColor} relative`}
-              >
-                {service.popular && (
-                  <Badge className="absolute top-4 right-4 bg-primary text-white">
-                    Popular
-                  </Badge>
-                )}
-                <CardHeader className="text-center">
-                  <div className={`w-16 h-16 ${service.iconBg} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                    {service.icon}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Table Top Installation */}
+            <Card className="service-card table-top hover:shadow-lg transition-all duration-300">
+              <CardContent className="text-center p-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Tv className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Table Top Setup</h3>
+                <p className="text-gray-600 mb-4">Perfect for smaller TVs and simple setups</p>
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Up to 43"</span>
+                    <span className="font-semibold">{formatPrice(8900)}</span>
                   </div>
-                  <CardTitle className="text-xl font-semibold text-gray-900 mb-2">
-                    {service.name.replace(/\s*\([^)]*\)/, '')}
-                  </CardTitle>
-                  <p className="text-gray-600 mb-4">{service.description}</p>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="text-2xl font-bold text-primary mb-4">
-                    €{service.basePrice}
+                  <div className="flex justify-between items-center text-sm">
+                    <span>43" and above</span>
+                    <span className="font-semibold">{formatPrice(10900)}</span>
                   </div>
-                  <div className="text-sm text-gray-500">
-                    {service.tvSizeMin && service.tvSizeMax ? 
-                      `${service.tvSizeMin}"-${service.tvSizeMax}"` :
-                      service.tvSizeMin ? 
-                        `${service.tvSizeMin}"+ TVs` :
-                        'All sizes'
-                    }
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bronze Mounting */}
+            <Card className="service-card bronze hover:shadow-lg transition-all duration-300">
+              <CardContent className="text-center p-6">
+                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Medal className="h-8 w-8 text-amber-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Bronze Mount</h3>
+                <p className="text-gray-600 mb-4">Fixed wall mounting for medium TVs</p>
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Up to 42"</span>
+                    <span className="font-semibold">{formatPrice(10900)}</span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Silver Mounting */}
+            <Card className="service-card silver hover:shadow-lg transition-all duration-300 relative">
+              <div className="absolute top-4 right-4 bg-primary text-white text-xs px-2 py-1 rounded-full">Popular</div>
+              <CardContent className="text-center p-6">
+                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Award className="h-8 w-8 text-gray-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Silver Mount</h3>
+                <p className="text-gray-600 mb-4">Tilting mount with cable management</p>
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between items-center text-sm">
+                    <span>43"-85"</span>
+                    <span className="font-semibold">{formatPrice(15900)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span>85"+ Large</span>
+                    <span className="font-semibold">{formatPrice(25900)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gold Mounting */}
+            <Card className="service-card gold hover:shadow-lg transition-all duration-300 md:col-span-2 lg:col-span-1">
+              <CardContent className="text-center p-6">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Crown className="h-8 w-8 text-yellow-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Gold Mount</h3>
+                <p className="text-gray-600 mb-4">Full motion mount with premium features</p>
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between items-center text-sm">
+                    <span>Standard Size</span>
+                    <span className="font-semibold">{formatPrice(25900)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span>85"+ Premium</span>
+                    <span className="font-semibold">{formatPrice(35900)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-16 gradient-hero">
+      <section className="py-16 typeform-gradient-bg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              How It Works
-            </h2>
-            <p className="text-xl text-gray-600">
-              Simple 3-step process to get your TV professionally mounted
-            </p>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
+            <p className="text-xl text-gray-600">Simple 3-step process to get your TV professionally mounted</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            {howItWorksSteps.map((step, index) => (
-              <Card key={index} className="text-center card-gradient tile-hover">
-                <CardHeader>
-                  <div className={`w-20 h-20 ${step.bgColor} rounded-full flex items-center justify-center mx-auto mb-6`}>
-                    {step.icon}
-                  </div>
-                  <CardTitle className="text-xl font-semibold text-gray-900 mb-4">
-                    {step.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">{step.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <div className="text-center animate-fade-in">
+              <div className="w-20 h-20 typeform-gradient rounded-full flex items-center justify-center mx-auto mb-6">
+                <Camera className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">1. Upload & Preview</h3>
+              <p className="text-gray-600">Take a photo of your room and let our AI show you how your TV will look mounted on the wall</p>
+            </div>
+            
+            <div className="text-center animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div className="w-20 h-20 bg-gradient-to-r from-secondary to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CalendarDays className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">2. Book & Schedule</h3>
+              <p className="text-gray-600">Choose your service tier, select your preferred date and time, and complete your booking</p>
+            </div>
+            
+            <div className="text-center animate-fade-in" style={{ animationDelay: '0.4s' }}>
+              <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Wrench className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">3. Professional Install</h3>
+              <p className="text-gray-600">Our certified installer arrives on time and mounts your TV exactly as previewed</p>
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
-            Ready to Mount Your TV?
-          </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Start with our AI preview to see exactly how your TV will look before booking your installation.
-          </p>
-          <Button 
-            onClick={() => navigate("/book")}
-            className="btn-primary text-lg px-8 py-4"
-          >
-            <Camera className="w-5 h-5 mr-3" />
-            Start Your Preview Now
-          </Button>
         </div>
       </section>
     </div>

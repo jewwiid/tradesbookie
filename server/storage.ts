@@ -1,72 +1,81 @@
-import {
-  users,
+import { 
+  users, 
+  businesses,
+  installers,
   serviceTiers,
-  addOnServices,
   bookings,
-  bookingAddOns,
-  feeStructure,
-  installerAvailability,
-  type User,
-  type InsertUser,
+  qrCodes,
+  type User, 
+  type Business,
+  type Installer,
   type ServiceTier,
-  type InsertServiceTier,
   type Booking,
+  type QrCode,
+  type BookingWithDetails,
+  type InsertUser,
+  type InsertBusiness,
+  type InsertInstaller,
+  type InsertServiceTier,
   type InsertBooking,
-  type AddOnService,
-  type InsertAddOnService,
-  type BookingAddOn,
-  type InsertBookingAddOn,
-  type FeeStructure,
-  type InsertFeeStructure,
-  type InstallerAvailability,
+  type InsertQrCode
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, desc, and, or } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
+  // Business operations
+  getBusiness(id: number): Promise<Business | undefined>;
+  getBusinesses(): Promise<Business[]>;
+  createBusiness(business: InsertBusiness): Promise<Business>;
+  updateBusinessFees(id: number, feePercentages: Record<string, number>): Promise<Business | undefined>;
+
+  // Installer operations
+  getInstaller(id: number): Promise<Installer | undefined>;
+  getInstallersByBusiness(businessId: number): Promise<Installer[]>;
+  createInstaller(installer: InsertInstaller): Promise<Installer>;
+  updateInstallerStats(id: number, totalJobs: number, rating: number): Promise<Installer | undefined>;
+
   // Service tier operations
   getServiceTiers(): Promise<ServiceTier[]>;
-  getServiceTiersByTVSize(tvSize: number): Promise<ServiceTier[]>;
+  getServiceTier(id: number): Promise<ServiceTier | undefined>;
+  getServiceTierByKey(key: string): Promise<ServiceTier | undefined>;
   createServiceTier(serviceTier: InsertServiceTier): Promise<ServiceTier>;
-  
-  // Add-on service operations
-  getAddOnServices(): Promise<AddOnService[]>;
-  createAddOnService(addOn: InsertAddOnService): Promise<AddOnService>;
-  
+
   // Booking operations
-  getBooking(id: number): Promise<Booking | undefined>;
-  getBookingByQrCode(qrCode: string): Promise<Booking | undefined>;
-  getBookingsByCustomer(customerId: number): Promise<Booking[]>;
-  getBookingsByInstaller(installerId: number): Promise<Booking[]>;
-  getAllBookings(): Promise<Booking[]>;
+  getBooking(id: number): Promise<BookingWithDetails | undefined>;
+  getBookingByBookingId(bookingId: string): Promise<BookingWithDetails | undefined>;
+  getBookingsByUser(userId: number): Promise<BookingWithDetails[]>;
+  getBookingsByBusiness(businessId: number): Promise<BookingWithDetails[]>;
+  getBookingsByInstaller(installerId: number): Promise<BookingWithDetails[]>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBookingStatus(id: number, status: string): Promise<Booking | undefined>;
-  assignInstaller(bookingId: number, installerId: number): Promise<Booking | undefined>;
-  
-  // Booking add-on operations
-  createBookingAddOn(bookingAddOn: InsertBookingAddOn): Promise<BookingAddOn>;
-  getBookingAddOns(bookingId: number): Promise<BookingAddOn[]>;
-  
-  // Fee structure operations
-  getFeeStructure(): Promise<FeeStructure[]>;
-  getFeeStructureByServiceTier(serviceTierId: number): Promise<FeeStructure | undefined>;
-  updateFeeStructure(feeStructure: InsertFeeStructure): Promise<FeeStructure>;
-  
+  updateBookingInstaller(id: number, installerId: number): Promise<Booking | undefined>;
+
+  // QR Code operations
+  getQrCodeByToken(accessToken: string): Promise<QrCode | undefined>;
+  createQrCode(qrCode: InsertQrCode): Promise<QrCode>;
+
   // Statistics
-  getBookingStats(): Promise<{
+  getBusinessStats(businessId: number): Promise<{
     totalBookings: number;
     monthlyBookings: number;
     revenue: number;
     appFees: number;
   }>;
+  getInstallerStats(installerId: number): Promise<{
+    monthlyJobs: number;
+    earnings: number;
+    rating: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
+  // User operations
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -77,79 +86,204 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createUser(userData: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(userData).returning();
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
+  // Business operations
+  async getBusiness(id: number): Promise<Business | undefined> {
+    const [business] = await db.select().from(businesses).where(eq(businesses.id, id));
+    return business;
+  }
+
+  async getBusinesses(): Promise<Business[]> {
+    return await db.select().from(businesses).where(eq(businesses.isActive, true));
+  }
+
+  async createBusiness(insertBusiness: InsertBusiness): Promise<Business> {
+    const [business] = await db.insert(businesses).values(insertBusiness).returning();
+    return business;
+  }
+
+  async updateBusinessFees(id: number, feePercentages: Record<string, number>): Promise<Business | undefined> {
+    const [business] = await db
+      .update(businesses)
+      .set({ feePercentages })
+      .where(eq(businesses.id, id))
+      .returning();
+    return business;
+  }
+
+  // Installer operations
+  async getInstaller(id: number): Promise<Installer | undefined> {
+    const [installer] = await db.select().from(installers).where(eq(installers.id, id));
+    return installer;
+  }
+
+  async getInstallersByBusiness(businessId: number): Promise<Installer[]> {
+    return await db
+      .select()
+      .from(installers)
+      .where(and(eq(installers.businessId, businessId), eq(installers.isActive, true)));
+  }
+
+  async createInstaller(insertInstaller: InsertInstaller): Promise<Installer> {
+    const [installer] = await db.insert(installers).values(insertInstaller).returning();
+    return installer;
+  }
+
+  async updateInstallerStats(id: number, totalJobs: number, rating: number): Promise<Installer | undefined> {
+    const [installer] = await db
+      .update(installers)
+      .set({ totalJobs, rating: rating.toString() })
+      .where(eq(installers.id, id))
+      .returning();
+    return installer;
+  }
+
+  // Service tier operations
   async getServiceTiers(): Promise<ServiceTier[]> {
     return await db.select().from(serviceTiers).where(eq(serviceTiers.isActive, true));
   }
 
-  async getServiceTiersByTVSize(tvSize: number): Promise<ServiceTier[]> {
-    return await db
-      .select()
-      .from(serviceTiers)
-      .where(
-        and(
-          eq(serviceTiers.isActive, true),
-          sql`(${serviceTiers.tvSizeMin} IS NULL OR ${serviceTiers.tvSizeMin} <= ${tvSize})`,
-          sql`(${serviceTiers.tvSizeMax} IS NULL OR ${serviceTiers.tvSizeMax} >= ${tvSize})`
-        )
-      );
-  }
-
-  async createServiceTier(serviceTierData: InsertServiceTier): Promise<ServiceTier> {
-    const [serviceTier] = await db.insert(serviceTiers).values(serviceTierData).returning();
+  async getServiceTier(id: number): Promise<ServiceTier | undefined> {
+    const [serviceTier] = await db.select().from(serviceTiers).where(eq(serviceTiers.id, id));
     return serviceTier;
   }
 
-  async getAddOnServices(): Promise<AddOnService[]> {
-    return await db.select().from(addOnServices).where(eq(addOnServices.isActive, true));
+  async getServiceTierByKey(key: string): Promise<ServiceTier | undefined> {
+    const [serviceTier] = await db.select().from(serviceTiers).where(eq(serviceTiers.key, key));
+    return serviceTier;
   }
 
-  async createAddOnService(addOnData: InsertAddOnService): Promise<AddOnService> {
-    const [addOn] = await db.insert(addOnServices).values(addOnData).returning();
-    return addOn;
+  async createServiceTier(insertServiceTier: InsertServiceTier): Promise<ServiceTier> {
+    const [serviceTier] = await db.insert(serviceTiers).values(insertServiceTier).returning();
+    return serviceTier;
   }
 
-  async getBooking(id: number): Promise<Booking | undefined> {
-    const [booking] = await db.select().from(bookings).where(eq(bookings.id, id));
-    return booking;
-  }
-
-  async getBookingByQrCode(qrCode: string): Promise<Booking | undefined> {
-    const [booking] = await db.select().from(bookings).where(eq(bookings.qrCode, qrCode));
-    return booking;
-  }
-
-  async getBookingsByCustomer(customerId: number): Promise<Booking[]> {
-    return await db
+  // Booking operations
+  async getBooking(id: number): Promise<BookingWithDetails | undefined> {
+    const [booking] = await db
       .select()
       .from(bookings)
-      .where(eq(bookings.customerId, customerId))
+      .leftJoin(users, eq(bookings.userId, users.id))
+      .leftJoin(businesses, eq(bookings.businessId, businesses.id))
+      .leftJoin(installers, eq(bookings.installerId, installers.id))
+      .leftJoin(serviceTiers, eq(bookings.serviceTierId, serviceTiers.id))
+      .leftJoin(qrCodes, eq(bookings.id, qrCodes.bookingId))
+      .where(eq(bookings.id, id));
+
+    if (!booking) return undefined;
+
+    return {
+      ...booking.bookings,
+      user: booking.users!,
+      business: booking.businesses!,
+      installer: booking.installers || undefined,
+      serviceTier: booking.service_tiers!,
+      qrCode: booking.qr_codes || undefined,
+    };
+  }
+
+  async getBookingByBookingId(bookingId: string): Promise<BookingWithDetails | undefined> {
+    const [booking] = await db
+      .select()
+      .from(bookings)
+      .leftJoin(users, eq(bookings.userId, users.id))
+      .leftJoin(businesses, eq(bookings.businessId, businesses.id))
+      .leftJoin(installers, eq(bookings.installerId, installers.id))
+      .leftJoin(serviceTiers, eq(bookings.serviceTierId, serviceTiers.id))
+      .leftJoin(qrCodes, eq(bookings.id, qrCodes.bookingId))
+      .where(eq(bookings.bookingId, bookingId));
+
+    if (!booking) return undefined;
+
+    return {
+      ...booking.bookings,
+      user: booking.users!,
+      business: booking.businesses!,
+      installer: booking.installers || undefined,
+      serviceTier: booking.service_tiers!,
+      qrCode: booking.qr_codes || undefined,
+    };
+  }
+
+  async getBookingsByUser(userId: number): Promise<BookingWithDetails[]> {
+    const results = await db
+      .select()
+      .from(bookings)
+      .leftJoin(users, eq(bookings.userId, users.id))
+      .leftJoin(businesses, eq(bookings.businessId, businesses.id))
+      .leftJoin(installers, eq(bookings.installerId, installers.id))
+      .leftJoin(serviceTiers, eq(bookings.serviceTierId, serviceTiers.id))
+      .leftJoin(qrCodes, eq(bookings.id, qrCodes.bookingId))
+      .where(eq(bookings.userId, userId))
       .orderBy(desc(bookings.createdAt));
+
+    return results.map(booking => ({
+      ...booking.bookings,
+      user: booking.users!,
+      business: booking.businesses!,
+      installer: booking.installers || undefined,
+      serviceTier: booking.service_tiers!,
+      qrCode: booking.qr_codes || undefined,
+    }));
   }
 
-  async getBookingsByInstaller(installerId: number): Promise<Booking[]> {
-    return await db
+  async getBookingsByBusiness(businessId: number): Promise<BookingWithDetails[]> {
+    const results = await db
       .select()
       .from(bookings)
+      .leftJoin(users, eq(bookings.userId, users.id))
+      .leftJoin(businesses, eq(bookings.businessId, businesses.id))
+      .leftJoin(installers, eq(bookings.installerId, installers.id))
+      .leftJoin(serviceTiers, eq(bookings.serviceTierId, serviceTiers.id))
+      .leftJoin(qrCodes, eq(bookings.id, qrCodes.bookingId))
+      .where(eq(bookings.businessId, businessId))
+      .orderBy(desc(bookings.createdAt));
+
+    return results.map(booking => ({
+      ...booking.bookings,
+      user: booking.users!,
+      business: booking.businesses!,
+      installer: booking.installers || undefined,
+      serviceTier: booking.service_tiers!,
+      qrCode: booking.qr_codes || undefined,
+    }));
+  }
+
+  async getBookingsByInstaller(installerId: number): Promise<BookingWithDetails[]> {
+    const results = await db
+      .select()
+      .from(bookings)
+      .leftJoin(users, eq(bookings.userId, users.id))
+      .leftJoin(businesses, eq(bookings.businessId, businesses.id))
+      .leftJoin(installers, eq(bookings.installerId, installers.id))
+      .leftJoin(serviceTiers, eq(bookings.serviceTierId, serviceTiers.id))
+      .leftJoin(qrCodes, eq(bookings.id, qrCodes.bookingId))
       .where(eq(bookings.installerId, installerId))
       .orderBy(desc(bookings.createdAt));
+
+    return results.map(booking => ({
+      ...booking.bookings,
+      user: booking.users!,
+      business: booking.businesses!,
+      installer: booking.installers || undefined,
+      serviceTier: booking.service_tiers!,
+      qrCode: booking.qr_codes || undefined,
+    }));
   }
 
-  async getAllBookings(): Promise<Booking[]> {
-    return await db.select().from(bookings).orderBy(desc(bookings.createdAt));
-  }
+  async createBooking(insertBooking: InsertBooking): Promise<Booking> {
+    // Generate unique booking ID
+    const year = new Date().getFullYear();
+    const randomNum = Math.floor(Math.random() * 9000) + 1000;
+    const bookingId = `BK-${year}-${randomNum}`;
 
-  async createBooking(bookingData: InsertBooking): Promise<Booking> {
-    // Generate QR code string
-    const qrCode = `BK-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
     const [booking] = await db
       .insert(bookings)
-      .values({ ...bookingData, qrCode })
+      .values({ ...insertBooking, bookingId })
       .returning();
     return booking;
   }
@@ -163,93 +297,85 @@ export class DatabaseStorage implements IStorage {
     return booking;
   }
 
-  async assignInstaller(bookingId: number, installerId: number): Promise<Booking | undefined> {
+  async updateBookingInstaller(id: number, installerId: number): Promise<Booking | undefined> {
     const [booking] = await db
       .update(bookings)
-      .set({ installerId, status: "assigned", updatedAt: new Date() })
-      .where(eq(bookings.id, bookingId))
+      .set({ installerId, updatedAt: new Date() })
+      .where(eq(bookings.id, id))
       .returning();
     return booking;
   }
 
-  async createBookingAddOn(bookingAddOnData: InsertBookingAddOn): Promise<BookingAddOn> {
-    const [bookingAddOn] = await db
-      .insert(bookingAddOns)
-      .values(bookingAddOnData)
-      .returning();
-    return bookingAddOn;
+  // QR Code operations
+  async getQrCodeByToken(accessToken: string): Promise<QrCode | undefined> {
+    const [qrCode] = await db.select().from(qrCodes).where(eq(qrCodes.accessToken, accessToken));
+    return qrCode;
   }
 
-  async getBookingAddOns(bookingId: number): Promise<BookingAddOn[]> {
-    return await db
-      .select()
-      .from(bookingAddOns)
-      .where(eq(bookingAddOns.bookingId, bookingId));
+  async createQrCode(insertQrCode: InsertQrCode): Promise<QrCode> {
+    const [qrCode] = await db.insert(qrCodes).values(insertQrCode).returning();
+    return qrCode;
   }
 
-  async getFeeStructure(): Promise<FeeStructure[]> {
-    return await db.select().from(feeStructure).where(eq(feeStructure.isActive, true));
-  }
-
-  async getFeeStructureByServiceTier(serviceTierId: number): Promise<FeeStructure | undefined> {
-    const [fee] = await db
-      .select()
-      .from(feeStructure)
-      .where(
-        and(
-          eq(feeStructure.serviceTierId, serviceTierId),
-          eq(feeStructure.isActive, true)
-        )
-      );
-    return fee;
-  }
-
-  async updateFeeStructure(feeData: InsertFeeStructure): Promise<FeeStructure> {
-    const [fee] = await db
-      .insert(feeStructure)
-      .values({ ...feeData, updatedAt: new Date() })
-      .onConflictDoUpdate({
-        target: feeStructure.serviceTierId,
-        set: {
-          feePercentage: feeData.feePercentage,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return fee;
-  }
-
-  async getBookingStats(): Promise<{
+  // Statistics
+  async getBusinessStats(businessId: number): Promise<{
     totalBookings: number;
     monthlyBookings: number;
     revenue: number;
     appFees: number;
   }> {
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const [totalResult] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(bookings);
-
-    const [monthlyResult] = await db
-      .select({ count: sql<number>`count(*)` })
+    // This would typically use aggregate functions in a real implementation
+    const allBookings = await db
+      .select()
       .from(bookings)
-      .where(sql`${bookings.createdAt} >= ${firstDayOfMonth}`);
+      .where(eq(bookings.businessId, businessId));
 
-    const [revenueResult] = await db
-      .select({
-        revenue: sql<number>`sum(${bookings.totalPrice})`,
-        fees: sql<number>`sum(${bookings.appFee})`,
-      })
-      .from(bookings)
-      .where(eq(bookings.status, "completed"));
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    const monthlyBookings = allBookings.filter(booking => {
+      const bookingDate = new Date(booking.createdAt!);
+      return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
+    });
+
+    const revenue = allBookings.reduce((sum, booking) => sum + Number(booking.totalPrice), 0);
+    const appFees = allBookings.reduce((sum, booking) => sum + Number(booking.appFee), 0);
 
     return {
-      totalBookings: totalResult.count || 0,
-      monthlyBookings: monthlyResult.count || 0,
-      revenue: Number(revenueResult.revenue) || 0,
-      appFees: Number(revenueResult.fees) || 0,
+      totalBookings: allBookings.length,
+      monthlyBookings: monthlyBookings.length,
+      revenue,
+      appFees,
+    };
+  }
+
+  async getInstallerStats(installerId: number): Promise<{
+    monthlyJobs: number;
+    earnings: number;
+    rating: number;
+  }> {
+    const installer = await this.getInstaller(installerId);
+    const installerBookings = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.installerId, installerId));
+
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
+
+    const monthlyJobs = installerBookings.filter(booking => {
+      const bookingDate = new Date(booking.createdAt!);
+      return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
+    });
+
+    const earnings = installerBookings.reduce((sum, booking) => {
+      return sum + (Number(booking.totalPrice) - Number(booking.appFee) - Number(booking.businessFee));
+    }, 0);
+
+    return {
+      monthlyJobs: monthlyJobs.length,
+      earnings,
+      rating: Number(installer?.rating || 0),
     };
   }
 }

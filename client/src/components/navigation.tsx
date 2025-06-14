@@ -5,7 +5,12 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tv, Menu, Home, Calendar, Settings, User } from 'lucide-react';
 import LoginModals from '@/components/login-modals';
 
-export default function Navigation() {
+interface NavigationProps {
+  onCustomerLogin?: () => void;
+  onAdminLogin?: () => void;
+}
+
+export default function Navigation({ onCustomerLogin, onAdminLogin }: NavigationProps) {
   const [location] = useLocation();
   const [showCustomerLogin, setShowCustomerLogin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);

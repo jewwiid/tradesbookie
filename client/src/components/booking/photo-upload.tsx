@@ -22,10 +22,24 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('Uploading file:', file.name, file.size, file.type);
+      
       const formData = new FormData();
       formData.append('photo', file);
       
-      const response = await apiRequest('POST', '/api/upload-room-photo', formData);
+      // Log FormData contents
+      console.log('FormData created with photo field');
+      
+      const response = await fetch('/api/upload-room-photo', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${response.status} ${errorText}`);
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {
@@ -89,23 +103,42 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
 
   const startCamera = async () => {
     try {
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not supported in this browser");
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          facingMode: 'environment', // Use back camera on mobile
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
+          facingMode: { ideal: 'environment' }, // Use back camera on mobile
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
         } 
       });
       
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+        };
         setShowCamera(true);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Camera error:", error);
+      let description = "Please allow camera access to take a photo";
+      
+      if (error.name === 'NotAllowedError') {
+        description = "Camera access was denied. Please allow camera access and try again.";
+      } else if (error.name === 'NotFoundError') {
+        description = "No camera found on this device.";
+      } else if (error.name === 'NotSupportedError') {
+        description = "Camera is not supported in this browser.";
+      }
+      
       toast({
-        title: "Camera access denied",
-        description: "Please allow camera access to take a photo",
+        title: "Camera initialization failed",
+        description,
         variant: "destructive"
       });
     }

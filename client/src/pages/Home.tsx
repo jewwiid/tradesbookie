@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import Navigation from "@/components/Navigation";
+import Navigation from "@/components/navigation";
 import ServiceTierCard from "@/components/ServiceTierCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

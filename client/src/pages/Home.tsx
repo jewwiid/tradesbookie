@@ -1,17 +1,13 @@
-import { useState } from "react";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import ServiceTierCard from "@/components/ServiceTierCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
-  const [customerLoginOpen, setCustomerLoginOpen] = useState(false);
-  const [adminLoginOpen, setAdminLoginOpen] = useState(false);
 
   const serviceTiers = [
     {
@@ -64,23 +60,15 @@ export default function Home() {
     }
   ];
 
-  const handleCustomerLogin = () => {
-    setCustomerLoginOpen(false);
-    // In a real app, this would validate credentials and redirect
-    window.location.href = "/customer/demo-token";
-  };
-
-  const handleAdminLogin = () => {
-    setAdminLoginOpen(false);
-    window.location.href = "/api/login";
-  };
+  // Fetch installers from the database
+  const { data: installers, isLoading: installersLoading } = useQuery({
+    queryKey: ["/api/installers"],
+    retry: false,
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation 
-        onCustomerLogin={() => setCustomerLoginOpen(true)}
-        onAdminLogin={() => setAdminLoginOpen(true)}
-      />
+      <Navigation />
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-16 lg:py-24">
@@ -210,61 +198,73 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Customer Login Modal */}
-      <Dialog open={customerLoginOpen} onOpenChange={setCustomerLoginOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Customer Access</DialogTitle>
-            <p className="text-gray-600 text-center">Enter your booking details or scan your QR code</p>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="bookingId">Booking ID</Label>
-              <Input id="bookingId" placeholder="BK-2024-001" />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="john@example.com" />
-            </div>
-            <div className="flex space-x-3 pt-4">
-              <Button variant="outline" className="flex-1" onClick={() => setCustomerLoginOpen(false)}>
-                Cancel
-              </Button>
-              <Button className="flex-1" onClick={handleCustomerLogin}>
-                Access Dashboard
-              </Button>
-            </div>
+      {/* Our Installers Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Meet Our Professional Installers
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Our certified technicians are experienced professionals who ensure quality installations with guaranteed satisfaction.
+            </p>
           </div>
-        </DialogContent>
-      </Dialog>
 
-      {/* Admin Login Modal */}
-      <Dialog open={adminLoginOpen} onOpenChange={setAdminLoginOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Admin Login</DialogTitle>
-            <p className="text-gray-600 text-center">Access the admin dashboard</p>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="username">Username</Label>
-              <Input id="username" placeholder="admin" />
+          {installersLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
+                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded mb-4"></div>
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded"></div>
+                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" placeholder="••••••••" />
+          ) : installers && installers.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {installers.map((installer: any) => (
+                <Card key={installer.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6 text-center">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Wrench className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      {installer.name || installer.businessName}
+                    </h3>
+                    <div className="flex items-center justify-center mb-3">
+                      <MapPin className="w-4 h-4 text-gray-500 mr-1" />
+                      <span className="text-gray-600 text-sm">{installer.serviceArea}</span>
+                    </div>
+                    <div className="flex items-center justify-center mb-3">
+                      <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                      <span className="text-gray-700 font-medium">4.9/5</span>
+                      <span className="text-gray-500 text-sm ml-1">(50+ reviews)</span>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <Shield className="w-4 h-4 text-green-600 mr-1" />
+                      <span className="text-green-600 text-sm font-medium">Certified & Insured</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            <div className="flex space-x-3 pt-4">
-              <Button variant="outline" className="flex-1" onClick={() => setAdminLoginOpen(false)}>
-                Cancel
-              </Button>
-              <Button className="flex-1" onClick={handleAdminLogin}>
-                Login
-              </Button>
+          ) : (
+            <div className="text-center py-12">
+              <Wrench className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Our Installer Network</h3>
+              <p className="text-gray-600 max-w-md mx-auto">
+                We work with certified professionals in your area to provide quality TV installation services.
+              </p>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

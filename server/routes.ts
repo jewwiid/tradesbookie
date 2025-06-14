@@ -222,7 +222,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      res.json(booking);
+      
+      // Get job assignment details if exists
+      let jobAssignment = null;
+      let installer = null;
+      
+      if (booking.installerId) {
+        installer = await storage.getInstaller(booking.installerId);
+        const jobs = await storage.getInstallerJobs(booking.installerId);
+        jobAssignment = jobs.find(job => job.bookingId === booking.id);
+      }
+      
+      // Format response with all tracking information
+      const trackingData = {
+        ...booking,
+        installer: installer ? {
+          id: installer.id,
+          name: installer.contactName,
+          businessName: installer.businessName,
+          phone: installer.phone
+        } : null,
+        jobAssignment: jobAssignment ? {
+          status: jobAssignment.status,
+          assignedDate: jobAssignment.assignedDate,
+          acceptedDate: jobAssignment.acceptedDate,
+          completedDate: jobAssignment.completedDate
+        } : null,
+        contact: {
+          name: booking.customerName,
+          phone: booking.customerPhone
+        }
+      };
+      
+      res.json(trackingData);
     } catch (error) {
       console.error("Error fetching booking by QR code:", error);
       res.status(500).json({ message: "Failed to fetch booking" });

@@ -23,6 +23,7 @@ function Router() {
       <Route path="/installer-registration" component={InstallerRegistration} />
       <Route path="/installer-login" component={InstallerLogin} />
       <Route path="/installer-dashboard/:id?" component={InstallerDashboard} />
+      <Route path="/track/:qrCode" component={QRTracking} />
       <Route path="/admin">
         <ProtectedRoute requireAdmin={true}>
           <AdminDashboard />

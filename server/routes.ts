@@ -43,17 +43,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(user);
     } catch (error) {
       console.error("Error creating user:", error);
-      // If database is unavailable, return a temporary user ID for demo purposes
-      if (error.toString().includes('endpoint is disabled')) {
-        const tempUser = {
-          id: Math.floor(Math.random() * 1000000),
-          email: userData.email,
-          name: userData.name,
-          phone: userData.phone,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        };
-        return res.json(tempUser);
+      // If database is unavailable, ask user to provide database credentials
+      if (String(error).includes('endpoint is disabled')) {
+        return res.status(503).json({ 
+          message: "Database connection unavailable. Please check your database configuration or contact support.",
+          error: "Database endpoint is disabled"
+        });
       }
       res.status(400).json({ message: "Failed to create user", error: String(error) });
     }
@@ -134,21 +129,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookingData.installerId || 1 // Default installer for demo
       );
       
-      const booking = await storage.createBooking({
-        ...bookingData,
-        basePrice: pricing.basePrice.toString(),
-        addonsPrice: pricing.addonsPrice.toString(),
-        totalPrice: pricing.totalPrice.toString(),
-        appFee: pricing.appFee.toString(),
-        installerEarnings: pricing.installerEarnings.toString(),
-      });
+      let booking;
+      try {
+        booking = await storage.createBooking({
+          ...bookingData,
+          basePrice: pricing.basePrice.toString(),
+          addonsPrice: pricing.addonsPrice.toString(),
+          totalPrice: pricing.totalPrice.toString(),
+          appFee: pricing.appFee.toString(),
+          installerEarnings: pricing.installerEarnings.toString(),
+        });
+      } catch (dbError) {
+        // If database is unavailable, return appropriate error
+        if (String(dbError).includes('endpoint is disabled')) {
+          return res.status(503).json({ 
+            message: "Database connection unavailable. Please check your database configuration.",
+            error: "Database endpoint is disabled"
+          });
+        } else {
+          throw dbError;
+        }
+      }
 
       // Create job assignment
       if (booking.installerId) {
-        await storage.createJobAssignment({
-          bookingId: booking.id,
-          installerId: booking.installerId,
-        });
+        try {
+          await storage.createJobAssignment({
+            bookingId: booking.id,
+            installerId: booking.installerId,
+            status: 'assigned'
+          });
+        } catch (jobError) {
+          console.error("Error creating job assignment:", jobError);
+          // Continue even if job assignment fails
+        }
       }
 
       res.json(booking);

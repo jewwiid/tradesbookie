@@ -104,12 +104,26 @@ The application is configured for deployment on Replit with the following setup:
 - Internal port 5000, external port 80 for web traffic
 - Automatic port forwarding configured in .replit
 
+## Current Status
+
+**Known Issues:**
+- Database connection error: "endpoint is disabled" - requires database credentials configuration
+- AI generation occurs too early in booking flow instead of only at final step
+- Generated images are too imaginative rather than realistic TV installations
+
+**Recent Fixes:**
+- Simplified AI prompt to generate realistic TV installation previews using DALL-E
+- Added progressive preview messaging throughout booking steps
+- Implemented database error handling with proper user feedback
+- Updated AI generation to only trigger at final booking summary step
+
 ## Changelog
 
 - June 14, 2025: Initial setup
 - June 14, 2025: Enhanced AI preview generation to maintain original room appearance while adding TV placement
 - June 14, 2025: Added camera functionality with automatic image compression 
 - June 14, 2025: Integrated booking flow inputs (wall type, mount type, concealment) into AI prompt generation
+- June 14, 2025: Fixed AI timing to only generate at final step, improved realism in prompts, addressed database connection issues
 
 ## User Preferences
 

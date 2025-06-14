@@ -106,7 +106,10 @@ The application is configured for deployment on Replit with the following setup:
 
 ## Changelog
 
-- June 14, 2025. Initial setup
+- June 14, 2025: Initial setup
+- June 14, 2025: Enhanced AI preview generation to maintain original room appearance while adding TV placement
+- June 14, 2025: Added camera functionality with automatic image compression 
+- June 14, 2025: Integrated booking flow inputs (wall type, mount type, concealment) into AI prompt generation
 
 ## User Preferences
 

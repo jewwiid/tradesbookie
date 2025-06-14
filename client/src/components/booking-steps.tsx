@@ -73,13 +73,47 @@ export default function BookingSteps({
   };
 
   const generateAIPreview = async () => {
-    if (!formData.roomPhoto || !formData.tvSize) return;
+    if (!formData.roomPhotoUrl || !formData.tvSize) return;
 
     setIsGeneratingPreview(true);
     try {
-      const preview = await onGeneratePreview(formData.roomPhoto, formData.tvSize);
-      onUpdateForm({ aiPreviewUrl: preview.imageUrl });
-      setShowPreviewToggle(true);
+      // Convert image to base64
+      const response = await fetch(formData.roomPhotoUrl);
+      const blob = await response.blob();
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
+        };
+        reader.readAsDataURL(blob);
+      });
+
+      // Generate AI preview with booking flow inputs
+      const aiResponse = await fetch('/api/generate-ai-preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          imageBase64: base64,
+          tvSize: formData.tvSize,
+          mountType: formData.mountType || 'fixed',
+          wallType: formData.wallType || 'drywall',
+          concealment: formData.addOns.some(addon => addon.id === 4) ? 'hidden' : 'none' // Assuming addon ID 4 is cable concealment
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        throw new Error('Failed to generate AI preview');
+      }
+
+      const result = await aiResponse.json();
+      if (result.success && result.imageUrl) {
+        onUpdateForm({ aiPreviewUrl: result.imageUrl });
+        setShowPreviewToggle(true);
+        setShowAfterPreview(true);
+      }
     } catch (error) {
       console.error("Failed to generate preview:", error);
     } finally {

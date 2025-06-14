@@ -85,13 +85,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/generate-ai-preview", async (req, res) => {
     try {
-      const { imageBase64, tvSize, mountType } = req.body;
+      const { imageBase64, tvSize, mountType, wallType, concealment } = req.body;
       
       if (!imageBase64 || !tvSize) {
         return res.status(400).json({ message: "Missing required parameters" });
       }
 
-      const result = await generateTVPreview(imageBase64, tvSize, mountType || "fixed");
+      const result = await generateTVPreview(
+        imageBase64, 
+        tvSize, 
+        mountType || "fixed",
+        wallType || "drywall",
+        concealment || "none"
+      );
       
       if (!result.success) {
         return res.status(500).json({ message: result.error });

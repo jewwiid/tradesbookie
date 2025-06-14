@@ -14,23 +14,42 @@ export interface AIPreviewResult {
 export async function generateTVPreview(
   roomImageBase64: string,
   tvSize: string,
-  mountType: string = "fixed"
+  mountType: string = "fixed",
+  wallType: string = "drywall",
+  concealment: string = "none"
 ): Promise<AIPreviewResult> {
   try {
-    // First, analyze the room to determine the best TV placement
-    const analysisResponse = await openai.chat.completions.create({
+    // Use GPT-4o to edit the original image by adding a TV
+    const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are an expert TV installation consultant. Analyze the room image and provide detailed placement recommendations for a ${tvSize}" TV with ${mountType} mount. Respond with JSON format containing placement details.`
+          content: `You are a professional photo editor specializing in TV installation previews. Your task is to describe exactly how to add a TV to the existing room photo while keeping everything else identical. Be extremely specific about maintaining the original room's appearance, lighting, and perspective.`
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Please analyze this room image and recommend the optimal placement for a ${tvSize}" TV with a ${mountType} mount. Consider wall space, viewing angles, furniture arrangement, and safety. Provide your response in JSON format with the following structure: {"wall_recommendation": "description", "height_recommendation": "description", "viewing_angle": "description", "safety_considerations": "description", "placement_confidence": "high/medium/low"}`
+              text: `Please analyze this room photo and provide detailed instructions for adding a ${tvSize}" TV to create an installation preview. 
+
+BOOKING DETAILS:
+- TV Size: ${tvSize} inches
+- Mount Type: ${mountType}
+- Wall Type: ${wallType}
+- Cable Concealment: ${concealment}
+
+CRITICAL REQUIREMENTS:
+1. Keep the EXACT same room - same walls, furniture, lighting, colors, textures
+2. Keep the EXACT same camera angle and perspective
+3. Only add a TV mounted on the most suitable wall
+4. TV should be black (powered off)
+5. Mount should match the specified type: ${mountType}
+6. If concealment is requested, hide cables appropriately
+7. Maintain realistic proportions and shadows
+
+Describe the TV placement location and how it integrates with the existing room without changing anything else. Format as detailed editing instructions.`
             },
             {
               type: "image_url",
@@ -41,34 +60,36 @@ export async function generateTVPreview(
           ]
         }
       ],
-      response_format: { type: "json_object" },
       max_tokens: 1000,
     });
 
-    const analysisResult = JSON.parse(analysisResponse.choices[0].message.content || "{}");
-    
-    // Generate a detailed prompt for TV placement visualization
-    const visualizationPrompt = `Create a photorealistic visualization of a ${tvSize}" TV mounted on the wall in this room. 
+    const editingInstructions = response.choices[0].message.content;
 
-Mount type: ${mountType}
-Wall recommendation: ${analysisResult.wall_recommendation || "main wall"}
-Height: ${analysisResult.height_recommendation || "eye level when seated"}
+    // Create a highly specific prompt for DALL-E that emphasizes maintaining the original room
+    const imagePrompt = `Photo-realistic room interior EXACTLY like the reference image provided, but with a ${tvSize}" flat-screen TV added.
 
-Requirements:
-- Keep the existing room exactly as it is
-- Add only a ${tvSize}" flat-screen TV mounted on the appropriate wall
-- The TV should look professionally installed with proper proportions
-- Maintain realistic lighting and shadows
-- The TV should appear to be off (black screen)
-- Ensure the mount type is appropriate (${mountType})
-- Keep all furniture and decor unchanged
+ROOM SPECIFICATIONS FROM REFERENCE:
+- Keep identical wall colors, textures, and finishes
+- Keep identical furniture placement and style  
+- Keep identical lighting conditions and shadows
+- Keep identical camera angle and perspective
+- Keep identical floor and ceiling
+- Keep identical decorative elements
 
-Make it look like a professional installation photo that a customer would see after the work is completed.`;
+TV INSTALLATION DETAILS:
+- ${tvSize}" black flat-screen TV (powered off)
+- ${mountType} wall mount on ${wallType} wall
+- ${concealment === 'none' ? 'Visible cables' : 'Hidden/concealed cables'}
+- Professional installation appearance
+- Proper proportions for room size
+- Natural shadows cast by TV
+
+CRITICAL: This should look like the SAME room as the reference, just with a TV professionally installed. Do not redesign, redecorate, or change the room's character in any way.`;
 
     // Generate the TV preview image
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
-      prompt: visualizationPrompt,
+      prompt: imagePrompt,
       n: 1,
       size: "1024x1024",
       quality: "standard",
@@ -76,7 +97,7 @@ Make it look like a professional installation photo that a customer would see af
 
     return {
       success: true,
-      imageUrl: imageResponse.data[0].url
+      imageUrl: imageResponse.data?.[0]?.url || ""
     };
 
   } catch (error) {

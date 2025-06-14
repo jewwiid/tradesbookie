@@ -73,20 +73,18 @@ export default function BookingSteps({
   };
 
   const generateAIPreview = async () => {
-    if (!formData.roomPhotoUrl || !formData.tvSize) return;
+    if (!formData.roomPhoto || !formData.tvSize) return;
 
     setIsGeneratingPreview(true);
     try {
-      // Convert image to base64
-      const response = await fetch(formData.roomPhotoUrl);
-      const blob = await response.blob();
+      // Convert file to base64
       const base64 = await new Promise<string>((resolve) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const result = reader.result as string;
           resolve(result.split(',')[1]); // Remove data:image/jpeg;base64, prefix
         };
-        reader.readAsDataURL(blob);
+        reader.readAsDataURL(formData.roomPhoto);
       });
 
       // Generate AI preview with booking flow inputs

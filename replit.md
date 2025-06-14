@@ -123,6 +123,8 @@ The application now includes a robust fallback system. When the database is unav
 - Added progressive preview messaging throughout booking steps
 - Implemented database error handling with proper user feedback
 - Updated AI generation to only trigger at final booking summary step
+- Removed all AI processing from intermediate booking steps (photo upload now only stores image)
+- Fixed timing issue where images were being processed immediately instead of at final step
 
 ## Changelog
 

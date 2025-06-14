@@ -44,12 +44,11 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
     },
     onSuccess: (data) => {
       updateBookingData({
-        roomPhotoBase64: data.imageBase64,
-        roomAnalysis: data.analysis
+        roomPhotoBase64: data.imageBase64
       });
       toast({
         title: "Photo uploaded successfully!",
-        description: "Your room photo has been analyzed by our AI."
+        description: "Photo saved - AI preview will be generated at final booking step."
       });
     },
     onError: (error) => {

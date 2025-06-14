@@ -67,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Photo upload and AI preview
+  // Photo upload - storage only, no AI processing
   app.post("/api/upload-room-photo", upload.single('photo'), async (req, res) => {
     try {
       if (!req.file) {
@@ -76,13 +76,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const base64Image = req.file.buffer.toString('base64');
       
-      // Analyze the room for placement recommendations
-      const analysis = await analyzeRoomForTVPlacement(base64Image);
-      
+      // Store image without processing - AI analysis will happen at final booking step
       res.json({
         success: true,
-        imageBase64: base64Image,
-        analysis
+        imageBase64: base64Image
       });
     } catch (error) {
       console.error("Error uploading photo:", error);

@@ -390,37 +390,15 @@ export default function InstallerDashboard() {
     monthlyJobs: 24,
     earnings: 2850,
     rating: 4.9,
-    activeRequests: mockRequests.length
+    activeRequests: requests.length
   };
 
-  const handleAcceptRequest = async (requestId: number) => {
-    try {
-      toast({
-        title: "Request Accepted!",
-        description: "Customer will be notified via email and SMS. Check your active jobs.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to accept request",
-        variant: "destructive",
-      });
-    }
+  const handleAcceptRequest = (requestId: number) => {
+    acceptRequestMutation.mutate(requestId);
   };
 
-  const handleDeclineRequest = async (requestId: number) => {
-    try {
-      toast({
-        title: "Request Declined",
-        description: "Request removed from your list",
-      });
-    } catch (error) {
-      toast({
-        title: "Error", 
-        description: "Failed to decline request",
-        variant: "destructive",
-      });
-    }
+  const handleDeclineRequest = (requestId: number) => {
+    declineRequestMutation.mutate(requestId);
   };
 
   return (
@@ -575,7 +553,7 @@ export default function InstallerDashboard() {
         ) : (
           /* List View */
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {mockRequests.map((request) => (
+            {requests.map((request: ClientRequest) => (
               <RequestCard
                 key={request.id}
                 request={request}
@@ -588,7 +566,7 @@ export default function InstallerDashboard() {
         )}
 
         {/* No Requests State */}
-        {mockRequests.length === 0 && (
+        {requests.length === 0 && !requestsLoading && (
           <Card className="p-12 text-center">
             <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No Active Requests</h3>

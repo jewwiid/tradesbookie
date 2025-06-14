@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   Bolt, 
   Hammer, 
@@ -242,12 +244,75 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
 
 export default function InstallerDashboard() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isOnline, setIsOnline] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
 
-  // Mock data for demo - in real app this would come from API
-  const mockRequests: ClientRequest[] = [
+  // Fetch available requests from API
+  const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
+    queryKey: ['/api/installer/available-requests'],
+    enabled: isOnline,
+    refetchInterval: 30000, // Refresh every 30 seconds when online
+  });
+
+  // Accept request mutation
+  const acceptRequestMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      return apiRequest(`/api/installer/accept-request/${requestId}`, 'POST', {
+        installerId: 1 // Demo installer ID
+      });
+    },
+    onSuccess: (data: any, requestId) => {
+      toast({
+        title: "Request Accepted!",
+        description: data?.notifications?.emailSent 
+          ? "Customer notified via email and SMS. Check your active jobs."
+          : "Request accepted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer/available-requests'] });
+      
+      // Remove the accepted request from selected state
+      if (selectedRequest?.id === requestId) {
+        setSelectedRequest(null);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to accept request",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Decline request mutation
+  const declineRequestMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      return apiRequest(`/api/installer/decline-request/${requestId}`, 'POST');
+    },
+    onSuccess: (data, requestId) => {
+      toast({
+        title: "Request Declined",
+        description: "Request removed from your list",
+      });
+      
+      // Remove the declined request from selected state
+      if (selectedRequest?.id === requestId) {
+        setSelectedRequest(null);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to decline request",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Use real data from API
+  const requests: ClientRequest[] = Array.isArray(availableRequests) ? availableRequests : [
     {
       id: 1,
       customerId: 101,

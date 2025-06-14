@@ -7,6 +7,20 @@ import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
 
+// Email notification service (placeholder for SendGrid integration)
+async function sendNotificationEmail(to: string, subject: string, content: string) {
+  // In production, this would use SendGrid API
+  console.log(`EMAIL NOTIFICATION: To: ${to}, Subject: ${subject}, Content: ${content}`);
+  return true;
+}
+
+// SMS notification service (placeholder for Twilio integration)
+async function sendNotificationSMS(to: string, message: string) {
+  // In production, this would use Twilio API
+  console.log(`SMS NOTIFICATION: To: ${to}, Message: ${message}`);
+  return true;
+}
+
 // Configure multer for file uploads
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -381,6 +395,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error registering installer:", error);
       res.status(500).json({ message: "Failed to register installer" });
+    }
+  });
+
+  // Uber-style installer request management endpoints
+  app.get("/api/installer/available-requests", async (req, res) => {
+    try {
+      // Get all pending bookings that haven't been assigned to an installer
+      const bookings = await storage.getAllBookings();
+      const availableRequests = bookings.filter(booking => 
+        booking.status === 'pending' && !booking.installerId
+      );
+
+      // Transform bookings into client requests format
+      const requests = availableRequests.map(booking => ({
+        id: booking.id,
+        customerId: booking.userId || 0,
+        tvSize: booking.tvSize,
+        serviceType: booking.serviceType,
+        address: booking.address,
+        county: "Dublin", // Default for demo
+        coordinates: { lat: 53.3498, lng: -6.2603 }, // Default Dublin coordinates
+        totalPrice: booking.totalPrice,
+        installerEarnings: (parseFloat(booking.totalPrice) * 0.75).toFixed(0), // 75% commission
+        preferredDate: booking.scheduledDate,
+        preferredTime: "14:00", // Default time
+        urgency: "standard", // Default urgency
+        timePosted: booking.createdAt?.toISOString() || new Date().toISOString(),
+        estimatedDuration: "2 hours", // Default duration
+        customerRating: 4.8, // Default rating
+        distance: Math.floor(Math.random() * 20) + 5, // Random distance 5-25km
+        customerNotes: booking.customerNotes,
+        status: "pending",
+        customer: {
+          name: booking.contactName || "Customer",
+          phone: booking.contactPhone || "+353 85 000 0000",
+          email: booking.contactEmail || "customer@example.com"
+        }
+      }));
+
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching available requests:", error);
+      res.status(500).json({ message: "Failed to fetch available requests" });
+    }
+  });
+
+  app.post("/api/installer/accept-request/:requestId", async (req, res) => {
+    try {
+      const requestId = parseInt(req.params.requestId);
+      const { installerId } = req.body; // In real app, this would come from authenticated session
+      
+      // Get the booking
+      const booking = await storage.getBooking(requestId);
+      if (!booking) {
+        return res.status(404).json({ message: "Request not found" });
+      }
+
+      if (booking.installerId) {
+        return res.status(400).json({ message: "Request already accepted by another installer" });
+      }
+
+      // Update booking status and assign installer
+      await storage.updateBookingStatus(requestId, "accepted");
+      
+      // In a real implementation, you'd update the booking with installer ID
+      // For now, we'll create a job assignment
+      const jobAssignment = await storage.createJobAssignment({
+        bookingId: requestId,
+        installerId: installerId || 1, // Default installer ID for demo
+        status: "accepted",
+        acceptedDate: new Date().toISOString()
+      });
+
+      // Send notifications to customer
+      await sendNotificationEmail(
+        booking.contactEmail || "customer@example.com",
+        "TV Installation Request Accepted",
+        `Great news! Your TV installation request has been accepted. An installer will contact you soon to confirm the appointment details. Booking reference: ${booking.qrCode}`
+      );
+
+      await sendNotificationSMS(
+        booking.contactPhone || "+353850000000",
+        `Your TV installation has been accepted! Installer will contact you soon. Reference: ${booking.qrCode}`
+      );
+
+      res.json({ 
+        message: "Request accepted successfully",
+        jobAssignment,
+        notifications: {
+          emailSent: true,
+          smsSent: true
+        }
+      });
+    } catch (error) {
+      console.error("Error accepting request:", error);
+      res.status(500).json({ message: "Failed to accept request" });
+    }
+  });
+
+  app.post("/api/installer/decline-request/:requestId", async (req, res) => {
+    try {
+      const requestId = parseInt(req.params.requestId);
+      
+      // In a real app, you might want to track declined requests
+      // For now, we'll just return success
+      
+      res.json({ 
+        message: "Request declined successfully"
+      });
+    } catch (error) {
+      console.error("Error declining request:", error);
+      res.status(500).json({ message: "Failed to decline request" });
+    }
+  });
+
+  app.get("/api/installer/:installerId/active-jobs", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      const jobs = await storage.getInstallerJobs(installerId);
+      
+      // Get full booking details for each job
+      const activeJobs = await Promise.all(
+        jobs.map(async (job) => {
+          const booking = await storage.getBooking(job.bookingId);
+          return {
+            ...job,
+            booking
+          };
+        })
+      );
+
+      res.json(activeJobs);
+    } catch (error) {
+      console.error("Error fetching active jobs:", error);
+      res.status(500).json({ message: "Failed to fetch active jobs" });
+    }
+  });
+
+  app.post("/api/installer/update-job-status/:jobId", async (req, res) => {
+    try {
+      const jobId = parseInt(req.params.jobId);
+      const { status } = req.body;
+      
+      await storage.updateJobStatus(jobId, status);
+      
+      // If job is completed, also update the booking status
+      if (status === "completed") {
+        const jobs = await storage.getInstallerJobs(1); // Demo installer ID
+        const job = jobs.find(j => j.id === jobId);
+        
+        if (job) {
+          await storage.updateBookingStatus(job.bookingId, "completed");
+          
+          // Send completion notification to customer
+          const booking = await storage.getBooking(job.bookingId);
+          if (booking) {
+            await sendNotificationEmail(
+              booking.customerEmail,
+              "TV Installation Completed",
+              `Your TV installation has been completed successfully! Thank you for choosing SmartTVMount. Reference: ${booking.qrCode}`
+            );
+          }
+        }
+      }
+      
+      res.json({ message: "Job status updated successfully" });
+    } catch (error) {
+      console.error("Error updating job status:", error);
+      res.status(500).json({ message: "Failed to update job status" });
     }
   });
 

@@ -1,146 +1,91 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Sparkles, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Loader2, Sparkles } from "lucide-react";
 
 interface AIPreviewProps {
-  originalImageUrl?: string;
-  previewImageUrl?: string;
-  isGenerating?: boolean;
-  onGeneratePreview?: () => void;
-  className?: string;
+  beforeImage?: string;
+  afterImage?: string;
+  isLoading?: boolean;
 }
 
-export default function AIPreview({
-  originalImageUrl,
-  previewImageUrl,
-  isGenerating = false,
-  onGeneratePreview,
-  className,
-}: AIPreviewProps) {
+export default function AIPreview({ beforeImage, afterImage, isLoading }: AIPreviewProps) {
   const [showAfter, setShowAfter] = useState(false);
 
-  if (!originalImageUrl && !previewImageUrl) {
+  if (!beforeImage && !isLoading) {
     return null;
   }
 
   return (
-    <Card className={className}>
+    <Card className="bg-muted/50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
-          AI Room Preview
-        </CardTitle>
-        <CardDescription>
-          See how your TV will look mounted in your room
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {/* Toggle Controls */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex bg-muted rounded-lg p-1">
-            <Button
-              variant={!showAfter ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setShowAfter(false)}
-              className="rounded-md"
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              Before
-            </Button>
-            <Button
-              variant={showAfter ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setShowAfter(true)}
-              className="rounded-md"
-              disabled={!previewImageUrl && !isGenerating}
-            >
-              <EyeOff className="w-4 h-4 mr-2" />
-              After
-            </Button>
-          </div>
-
-          {!previewImageUrl && !isGenerating && onGeneratePreview && (
-            <Button
-              onClick={onGeneratePreview}
-              size="sm"
-              className="gradient-primary text-white"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              Generate Preview
-            </Button>
-          )}
-        </div>
-
-        {/* Image Display */}
-        <div className="relative rounded-lg overflow-hidden">
-          {!showAfter ? (
-            // Before Image
-            originalImageUrl && (
-              <div className="relative">
-                <img
-                  src={originalImageUrl}
-                  alt="Room before TV installation"
-                  className="w-full h-64 object-cover"
-                />
-                <Badge className="absolute top-4 left-4 bg-gray-900/80 text-white">
-                  Original Room
-                </Badge>
-              </div>
-            )
-          ) : (
-            // After Image or Loading State
-            <div className="relative h-64 bg-gray-100 flex items-center justify-center">
-              {isGenerating ? (
-                <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">
-                    AI is generating your preview...
-                  </p>
-                </div>
-              ) : previewImageUrl ? (
-                <>
-                  <img
-                    src={previewImageUrl}
-                    alt="Room with mounted TV preview"
-                    className="w-full h-full object-cover"
-                  />
-                  <Badge className="absolute top-4 right-4 bg-primary/90 text-white">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    AI Generated
-                  </Badge>
-                </>
-              ) : (
-                <div className="text-center">
-                  <Sparkles className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground mb-2">
-                    AI preview not generated yet
-                  </p>
-                  {onGeneratePreview && (
-                    <Button
-                      onClick={onGeneratePreview}
-                      size="sm"
-                      className="gradient-primary text-white"
-                    >
-                      Generate Preview
-                    </Button>
-                  )}
-                </div>
-              )}
+        <CardTitle className="flex items-center justify-between">
+          <span className="flex items-center">
+            <Sparkles className="w-5 h-5 mr-2 text-primary" />
+            AI Preview
+          </span>
+          {(beforeImage || afterImage) && !isLoading && (
+            <div className="flex bg-white rounded-lg p-1">
+              <Button
+                variant={!showAfter ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setShowAfter(false)}
+                className="text-xs"
+              >
+                Before
+              </Button>
+              <Button
+                variant={showAfter ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setShowAfter(true)}
+                className="text-xs"
+                disabled={!afterImage}
+              >
+                After
+              </Button>
             </div>
           )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="relative">
+          {isLoading ? (
+            <div className="w-full h-64 bg-muted rounded-xl flex items-center justify-center">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Generating AI preview...</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              {!showAfter && beforeImage && (
+                <img
+                  src={`data:image/jpeg;base64,${beforeImage}`}
+                  alt="Room before TV installation"
+                  className="w-full h-64 object-cover rounded-xl"
+                />
+              )}
+              {showAfter && afterImage && (
+                <div className="relative">
+                  <img
+                    src={afterImage}
+                    alt="Room with mounted TV preview"
+                    className="w-full h-64 object-cover rounded-xl"
+                  />
+                  <div className="absolute top-4 right-4 bg-success text-white text-xs px-2 py-1 rounded-full flex items-center">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    AI Generated
+                  </div>
+                </div>
+              )}
+              {!afterImage && !isLoading && (
+                <div className="w-full h-64 bg-muted rounded-xl flex items-center justify-center">
+                  <p className="text-muted-foreground">AI preview will appear here</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
-
-        {/* Preview Info */}
-        {previewImageUrl && (
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-800">
-              ✨ This AI-generated preview shows how your TV will look once professionally mounted. 
-              The actual installation will match this visualization.
-            </p>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

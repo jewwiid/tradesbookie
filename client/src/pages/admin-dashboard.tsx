@@ -1,134 +1,281 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Navigation from "@/components/navigation";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
+  Settings, 
+  Home, 
   Calendar, 
   TrendingUp, 
   Euro, 
-  Percent, 
-  Home,
-  Settings
+  Percent,
+  Users,
+  Loader2,
+  Save
 } from "lucide-react";
-import { useLocation } from "wouter";
 
-interface ServicePricing {
-  id: number;
-  serviceKey: string;
-  serviceName: string;
-  basePrice: string;
-  appFeeRate: string;
-  isActive: boolean;
-}
-
-interface BookingStats {
+interface AdminStats {
   totalBookings: number;
   monthlyBookings: number;
-  totalRevenue: number;
-  totalAppFees: number;
+  revenue: number;
+  appFees: number;
 }
 
-export default function AdminDashboard() {
-  const [, setLocation] = useLocation();
+interface Booking {
+  id: number;
+  qrCode: string;
+  tvSize: string;
+  serviceType: string;
+  totalPrice: string;
+  appFee: string;
+  status: string;
+  preferredDate?: string;
+  contact?: {
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+}
+
+function FeeManagement() {
+  const [feeStructures, setFeeStructures] = useState({
+    'table-top-small': 15,
+    'table-top-large': 15,
+    'bronze': 15,
+    'silver': 15,
+    'silver-large': 15,
+    'gold': 15,
+    'gold-large': 15
+  });
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [feeUpdates, setFeeUpdates] = useState<Record<string, string>>({});
 
-  const { data: stats, isLoading: statsLoading } = useQuery<BookingStats>({
-    queryKey: ['/api/admin/stats'],
-  });
-
-  const { data: servicePricing, isLoading: pricingLoading } = useQuery<ServicePricing[]>({
-    queryKey: ['/api/service-pricing'],
-  });
-
-  const { data: bookings, isLoading: bookingsLoading } = useQuery({
-    queryKey: ['/api/admin/bookings'],
-  });
-
-  const updateFeeMutation = useMutation({
-    mutationFn: async ({ serviceKey, appFeeRate }: { serviceKey: string; appFeeRate: number }) => {
-      await apiRequest('PUT', `/api/service-pricing/${serviceKey}`, { appFeeRate });
+  const updateFeesMutation = useMutation({
+    mutationFn: async () => {
+      const promises = Object.entries(feeStructures).map(([serviceType, feePercentage]) =>
+        apiRequest('POST', '/api/admin/fee-structures', {
+          installerId: 1, // Default installer for demo
+          serviceType,
+          feePercentage
+        })
+      );
+      await Promise.all(promises);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/service-pricing'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
       toast({
-        title: "Success",
-        description: "Fee structure updated successfully",
+        title: "Fee Structure Updated",
+        description: "All fee percentages have been saved successfully."
       });
-      setFeeUpdates({});
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: "Failed to update fee structure",
-        variant: "destructive",
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive"
       });
-    },
+    }
   });
 
-  const handleFeeUpdate = (serviceKey: string, value: string) => {
-    setFeeUpdates(prev => ({ ...prev, [serviceKey]: value }));
+  const handleFeeChange = (serviceType: string, value: string) => {
+    const numValue = Math.max(0, Math.min(100, parseFloat(value) || 0));
+    setFeeStructures(prev => ({
+      ...prev,
+      [serviceType]: numValue
+    }));
   };
 
-  const saveFeeUpdates = () => {
-    Object.entries(feeUpdates).forEach(([serviceKey, rate]) => {
-      const numericRate = parseFloat(rate);
-      if (!isNaN(numericRate) && numericRate >= 0 && numericRate <= 100) {
-        updateFeeMutation.mutate({ serviceKey, appFeeRate: numericRate });
-      }
-    });
+  const getServiceDisplayName = (serviceType: string) => {
+    const names: Record<string, string> = {
+      'table-top-small': 'Table Top (Small)',
+      'table-top-large': 'Table Top (Large)',
+      'bronze': 'Bronze Mount',
+      'silver': 'Silver Mount',
+      'silver-large': 'Silver Mount (Large)',
+      'gold': 'Gold Mount',
+      'gold-large': 'Gold Mount (Large)'
+    };
+    return names[serviceType] || serviceType;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'bg-blue-100 text-blue-800';
-      case 'assigned': return 'bg-yellow-100 text-yellow-800';
-      case 'in-progress': return 'bg-purple-100 text-purple-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Percent className="w-5 h-5 mr-2" />
+          Fee Management
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {Object.entries(feeStructures).map(([serviceType, percentage]) => (
+          <div key={serviceType} className="flex items-center justify-between">
+            <Label className="text-sm font-medium">
+              {getServiceDisplayName(serviceType)}
+            </Label>
+            <div className="flex items-center space-x-2">
+              <Input
+                type="number"
+                value={percentage}
+                onChange={(e) => handleFeeChange(serviceType, e.target.value)}
+                className="w-20 text-right"
+                min="0"
+                max="100"
+                step="0.1"
+              />
+              <span className="text-sm text-muted-foreground">%</span>
+            </div>
+          </div>
+        ))}
+        
+        <Button 
+          onClick={() => updateFeesMutation.mutate()}
+          disabled={updateFeesMutation.isPending}
+          className="w-full mt-6"
+        >
+          {updateFeesMutation.isPending ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Save className="w-4 h-4 mr-2" />
+          )}
+          Update Fee Structure
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  if (statsLoading || pricingLoading || bookingsLoading) {
+function BookingsTable({ bookings }: { bookings: Booking[] }) {
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, string> = {
+      pending: "bg-warning text-warning-foreground",
+      confirmed: "bg-blue-500 text-white",
+      assigned: "bg-blue-600 text-white",
+      "in-progress": "bg-orange-500 text-white",
+      completed: "bg-success text-white",
+      cancelled: "bg-destructive text-destructive-foreground"
+    };
+    
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
-        </div>
-      </div>
+      <Badge className={variants[status] || "bg-muted text-muted-foreground"}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
+
+  if (bookings.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">No Bookings Found</h3>
+          <p className="text-muted-foreground">
+            When customers make bookings, they will appear here.
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b border-gray-200">
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Bookings</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Service</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Total</TableHead>
+                <TableHead>App Fee</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {bookings.slice(0, 10).map((booking) => (
+                <TableRow key={booking.id}>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">
+                        {booking.contact?.name || 'Unknown Customer'}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {booking.qrCode}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {booking.serviceType} - {booking.tvSize}"
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {booking.preferredDate 
+                      ? new Date(booking.preferredDate).toLocaleDateString()
+                      : new Date(booking.createdAt).toLocaleDateString()
+                    }
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    €{parseFloat(booking.totalPrice).toFixed(2)}
+                  </TableCell>
+                  <TableCell className="font-medium text-primary">
+                    €{parseFloat(booking.appFee).toFixed(2)}
+                  </TableCell>
+                  <TableCell>
+                    {getStatusBadge(booking.status)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function AdminDashboard() {
+  const [, setLocation] = useLocation();
+
+  const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
+    queryKey: ['/api/admin/stats']
+  });
+
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
+    queryKey: ['/api/admin/bookings']
+  });
+
+  const isLoading = statsLoading || bookingsLoading;
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Settings className="text-2xl text-primary mr-3" />
-              <span className="text-xl font-bold text-gray-900">Admin Dashboard</span>
+              <Settings className="w-6 h-6 text-primary mr-3" />
+              <span className="text-xl font-bold text-foreground">Admin Dashboard</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => setLocation('/')}>
-                <Home className="h-4 w-4" />
+              <Button variant="ghost" onClick={() => setLocation("/")} size="sm">
+                <Home className="w-4 h-4 mr-2" />
+                Home
               </Button>
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">A</span>
+                <Users className="w-4 h-4 text-white" />
               </div>
             </div>
           </div>
@@ -136,150 +283,139 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Bookings</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.totalBookings || 0}</p>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Calendar className="h-6 w-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats?.monthlyBookings || 0}</p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <TrendingUp className="h-6 w-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Revenue</p>
-                  <p className="text-2xl font-bold text-gray-900">€{stats?.totalRevenue?.toFixed(2) || '0.00'}</p>
-                </div>
-                <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <Euro className="h-6 w-6 text-yellow-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">App Fees</p>
-                  <p className="text-2xl font-bold text-gray-900">€{stats?.totalAppFees?.toFixed(2) || '0.00'}</p>
-                </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Percent className="h-6 w-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Fee Management */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Fee Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {servicePricing?.map((service) => (
-                    <div key={service.serviceKey}>
-                      <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                        {service.serviceName}
-                      </Label>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          value={feeUpdates[service.serviceKey] ?? service.appFeeRate}
-                          onChange={(e) => handleFeeUpdate(service.serviceKey, e.target.value)}
-                          className="flex-1"
-                        />
-                        <span className="text-sm text-gray-600">%</span>
-                      </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading dashboard...</p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Bookings</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {stats?.totalBookings || 0}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Calendar className="w-6 h-6 text-blue-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <Button 
-                  className="w-full mt-6" 
-                  onClick={saveFeeUpdates}
-                  disabled={updateFeeMutation.isPending || Object.keys(feeUpdates).length === 0}
-                >
-                  {updateFeeMutation.isPending ? 'Updating...' : 'Update Fee Structure'}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">This Month</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {stats?.monthlyBookings || 0}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <TrendingUp className="w-6 h-6 text-green-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Recent Bookings */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Recent Bookings</CardTitle>
-                  <Button variant="outline" size="sm">View All</Button>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Revenue</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        €{stats?.revenue.toFixed(2) || '0.00'}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                      <Euro className="w-6 h-6 text-yellow-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">App Fees</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        €{stats?.appFees.toFixed(2) || '0.00'}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                      <Percent className="w-6 h-6 text-purple-600" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Main Content */}
+            <Tabs defaultValue="bookings" className="space-y-6">
+              <TabsList>
+                <TabsTrigger value="bookings">Bookings</TabsTrigger>
+                <TabsTrigger value="fees">Fee Management</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="bookings">
+                <BookingsTable bookings={bookings} />
+              </TabsContent>
+
+              <TabsContent value="fees">
+                <div className="grid lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-1">
+                    <FeeManagement />
+                  </div>
+                  <div className="lg:col-span-2">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Fee Structure Overview</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          <div className="bg-muted/50 p-4 rounded-lg">
+                            <h4 className="font-semibold text-foreground mb-2">How It Works</h4>
+                            <ul className="text-sm text-muted-foreground space-y-1">
+                              <li>• App fees are calculated as a percentage of the total booking price</li>
+                              <li>• Fees are automatically deducted from installer earnings</li>
+                              <li>• Different service tiers can have different fee percentages</li>
+                              <li>• Changes take effect for new bookings immediately</li>
+                            </ul>
+                          </div>
+                          
+                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <h4 className="font-semibold text-foreground mb-2">Current Performance</h4>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="text-muted-foreground">Average Fee Rate:</span>
+                                <div className="font-medium">15%</div>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Monthly Fee Income:</span>
+                                <div className="font-medium text-primary">
+                                  €{stats?.appFees.toFixed(2) || '0.00'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">Customer</th>
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">Service</th>
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">Date</th>
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">Total</th>
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">App Fee</th>
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {bookings?.slice(0, 10).map((booking: any) => (
-                        <tr key={booking.id}>
-                          <td className="py-4 text-sm">{booking.customerName}</td>
-                          <td className="py-4 text-sm">{booking.serviceType} {booking.tvSize}"</td>
-                          <td className="py-4 text-sm">{formatDate(booking.scheduledDate)}</td>
-                          <td className="py-4 text-sm font-medium">€{Number(booking.totalPrice).toFixed(2)}</td>
-                          <td className="py-4 text-sm font-medium text-primary">€{Number(booking.appFee).toFixed(2)}</td>
-                          <td className="py-4">
-                            <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(booking.status)}`}>
-                              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+              </TabsContent>
+            </Tabs>
+          </>
+        )}
       </div>
     </div>
   );

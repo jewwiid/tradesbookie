@@ -2,9 +2,10 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, insertBookingSchema } from "@shared/schema";
-import { generateTVPlacement, enhanceRoomImage } from "./openai";
+import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
+import { z } from "zod";
 import multer from "multer";
-import { nanoid } from "nanoid";
+import QRCode from "qrcode";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -18,16 +19,17 @@ const upload = multer({
     } else {
       cb(new Error('Only image files are allowed'));
     }
-  },
+  }
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize default service tiers
-  await initializeServiceTiers();
-  await initializeDefaultBusiness();
+  // Health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "healthy", timestamp: new Date().toISOString() });
+  });
 
-  // User endpoints
-  app.post('/api/users', async (req, res) => {
+  // User routes
+  app.post("/api/users", async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
       
@@ -40,297 +42,250 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.createUser(userData);
       res.json(user);
     } catch (error) {
-      console.error('Error creating user:', error);
-      res.status(400).json({ message: 'Invalid user data' });
+      console.error("Error creating user:", error);
+      res.status(400).json({ message: "Failed to create user", error: error.message });
     }
   });
 
-  app.get('/api/users/:email', async (req, res) => {
+  app.get("/api/users/:email", async (req, res) => {
     try {
       const user = await storage.getUserByEmail(req.params.email);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        return res.status(404).json({ message: "User not found" });
       }
       res.json(user);
     } catch (error) {
-      console.error('Error fetching user:', error);
-      res.status(500).json({ message: 'Failed to fetch user' });
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  // Service tiers endpoints
-  app.get('/api/service-tiers', async (req, res) => {
-    try {
-      const serviceTiers = await storage.getServiceTiers();
-      res.json(serviceTiers);
-    } catch (error) {
-      console.error('Error fetching service tiers:', error);
-      res.status(500).json({ message: 'Failed to fetch service tiers' });
-    }
-  });
-
-  app.get('/api/service-tiers/:key', async (req, res) => {
-    try {
-      const serviceTier = await storage.getServiceTierByKey(req.params.key);
-      if (!serviceTier) {
-        return res.status(404).json({ message: 'Service tier not found' });
-      }
-      res.json(serviceTier);
-    } catch (error) {
-      console.error('Error fetching service tier:', error);
-      res.status(500).json({ message: 'Failed to fetch service tier' });
-    }
-  });
-
-  // AI Image processing endpoints
-  app.post('/api/ai/tv-placement', upload.single('image'), async (req, res) => {
+  // Photo upload and AI preview
+  app.post("/api/upload-room-photo", upload.single('photo'), async (req, res) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ message: 'No image file provided' });
+        return res.status(400).json({ message: "No photo uploaded" });
       }
 
-      const { tvSize, mountType, wallType } = req.body;
+      const base64Image = req.file.buffer.toString('base64');
       
-      if (!tvSize || !mountType || !wallType) {
-        return res.status(400).json({ message: 'Missing required parameters: tvSize, mountType, wallType' });
-      }
-
-      const imageBase64 = req.file.buffer.toString('base64');
+      // Analyze the room for placement recommendations
+      const analysis = await analyzeRoomForTVPlacement(base64Image);
       
-      const result = await generateTVPlacement({
-        imageBase64,
-        tvSize: parseInt(tvSize),
-        mountType,
-        wallType,
+      res.json({
+        success: true,
+        imageBase64: base64Image,
+        analysis
       });
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      res.status(500).json({ message: "Failed to upload photo", error: error.message });
+    }
+  });
+
+  app.post("/api/generate-ai-preview", async (req, res) => {
+    try {
+      const { imageBase64, tvSize, mountType } = req.body;
+      
+      if (!imageBase64 || !tvSize) {
+        return res.status(400).json({ message: "Missing required parameters" });
+      }
+
+      const result = await generateTVPreview(imageBase64, tvSize, mountType || "fixed");
+      
+      if (!result.success) {
+        return res.status(500).json({ message: result.error });
+      }
 
       res.json(result);
     } catch (error) {
-      console.error('Error processing TV placement:', error);
-      res.status(500).json({ message: 'Failed to process image' });
+      console.error("Error generating AI preview:", error);
+      res.status(500).json({ message: "Failed to generate AI preview", error: error.message });
     }
   });
 
-  app.post('/api/ai/enhance-room', upload.single('image'), async (req, res) => {
+  // Booking routes
+  app.post("/api/bookings", async (req, res) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ message: 'No image file provided' });
-      }
-
-      const { tvSize } = req.body;
+      const bookingData = insertBookingSchema.parse(req.body);
       
-      if (!tvSize) {
-        return res.status(400).json({ message: 'Missing required parameter: tvSize' });
-      }
-
-      const imageBase64 = req.file.buffer.toString('base64');
-      const enhancedImageUrl = await enhanceRoomImage(imageBase64, parseInt(tvSize));
-
-      if (!enhancedImageUrl) {
-        return res.status(500).json({ message: 'Failed to enhance image' });
-      }
-
-      res.json({ enhancedImageUrl });
-    } catch (error) {
-      console.error('Error enhancing room image:', error);
-      res.status(500).json({ message: 'Failed to enhance image' });
-    }
-  });
-
-  // Booking endpoints
-  app.post('/api/bookings', async (req, res) => {
-    try {
-      const bookingData = req.body;
+      // Calculate pricing based on service type and addons
+      const pricing = calculateBookingPricing(
+        bookingData.serviceType,
+        bookingData.addons || [],
+        bookingData.installerId || 1 // Default installer for demo
+      );
       
-      // Get service tier for pricing
-      const serviceTier = await storage.getServiceTierByKey(bookingData.serviceKey);
-      if (!serviceTier) {
-        return res.status(400).json({ message: 'Invalid service tier' });
-      }
-
-      // Calculate pricing
-      const basePrice = Number(serviceTier.basePrice);
-      const addonTotal = (bookingData.addons || []).reduce((sum: number, addon: any) => sum + addon.price, 0);
-      const totalPrice = basePrice + addonTotal;
-      
-      // Calculate fees (15% default for app)
-      const appFeePercentage = 0.15;
-      const appFee = totalPrice * appFeePercentage;
-      const businessFee = 0; // Business gets the rest
-
       const booking = await storage.createBooking({
-        userId: bookingData.userId,
-        businessId: 1, // Default business for now
-        serviceTierId: serviceTier.id,
-        tvSize: bookingData.tvSize,
-        wallType: bookingData.wallType,
-        mountType: bookingData.mountType,
-        addons: bookingData.addons || [],
-        scheduledDate: new Date(bookingData.scheduledDate),
-        timeSlot: bookingData.timeSlot,
-        basePrice: basePrice.toString(),
-        addonTotal: addonTotal.toString(),
-        totalPrice: totalPrice.toString(),
-        businessFee: businessFee.toString(),
-        appFee: appFee.toString(),
-        originalImageUrl: bookingData.originalImageUrl,
-        aiPreviewImageUrl: bookingData.aiPreviewImageUrl,
-        customerNotes: bookingData.customerNotes,
-        status: 'confirmed',
+        ...bookingData,
+        basePrice: pricing.basePrice.toString(),
+        addonsPrice: pricing.addonsPrice.toString(),
+        totalPrice: pricing.totalPrice.toString(),
+        appFee: pricing.appFee.toString(),
+        installerEarnings: pricing.installerEarnings.toString(),
       });
 
-      // Create QR code for customer access
-      const accessToken = nanoid(32);
-      await storage.createQrCode({
-        bookingId: booking.id,
-        qrCode: `TV-${booking.bookingId}`,
-        accessToken,
+      // Create job assignment
+      if (booking.installerId) {
+        await storage.createJobAssignment({
+          bookingId: booking.id,
+          installerId: booking.installerId,
+        });
+      }
+
+      res.json(booking);
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      res.status(400).json({ message: "Failed to create booking", error: error.message });
+    }
+  });
+
+  app.get("/api/bookings/:id", async (req, res) => {
+    try {
+      const booking = await storage.getBooking(parseInt(req.params.id));
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      res.json(booking);
+    } catch (error) {
+      console.error("Error fetching booking:", error);
+      res.status(500).json({ message: "Failed to fetch booking" });
+    }
+  });
+
+  app.get("/api/bookings/qr/:qrCode", async (req, res) => {
+    try {
+      const booking = await storage.getBookingByQrCode(req.params.qrCode);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      res.json(booking);
+    } catch (error) {
+      console.error("Error fetching booking by QR code:", error);
+      res.status(500).json({ message: "Failed to fetch booking" });
+    }
+  });
+
+  app.get("/api/users/:userId/bookings", async (req, res) => {
+    try {
+      const bookings = await storage.getUserBookings(parseInt(req.params.userId));
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching user bookings:", error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  // QR Code generation
+  app.get("/api/qr-code/:text", async (req, res) => {
+    try {
+      const qrCodeDataURL = await QRCode.toDataURL(req.params.text, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      
+      res.json({ qrCode: qrCodeDataURL });
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+      res.status(500).json({ message: "Failed to generate QR code" });
+    }
+  });
+
+  // Admin routes
+  app.get("/api/admin/bookings", async (req, res) => {
+    try {
+      const bookings = await storage.getAllBookings();
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching all bookings:", error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  app.get("/api/admin/stats", async (req, res) => {
+    try {
+      const bookings = await storage.getAllBookings();
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      
+      const monthlyBookings = bookings.filter(booking => {
+        const bookingDate = new Date(booking.createdAt);
+        return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
       });
 
-      // Return full booking details
-      const fullBooking = await storage.getBooking(booking.id);
-      res.json(fullBooking);
+      const totalRevenue = bookings.reduce((sum, booking) => sum + parseFloat(booking.totalPrice), 0);
+      const totalAppFees = bookings.reduce((sum, booking) => sum + parseFloat(booking.appFee), 0);
+      
+      res.json({
+        totalBookings: bookings.length,
+        monthlyBookings: monthlyBookings.length,
+        revenue: totalRevenue,
+        appFees: totalAppFees
+      });
     } catch (error) {
-      console.error('Error creating booking:', error);
-      res.status(500).json({ message: 'Failed to create booking' });
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
     }
   });
 
-  app.get('/api/bookings/:bookingId', async (req, res) => {
+  // Fee structure routes
+  app.post("/api/admin/fee-structures", async (req, res) => {
     try {
-      const booking = await storage.getBookingByBookingId(req.params.bookingId);
-      if (!booking) {
-        return res.status(404).json({ message: 'Booking not found' });
+      const { installerId, serviceType, feePercentage } = req.body;
+      
+      // Check if fee structure exists
+      const existing = await storage.getFeeStructure(installerId, serviceType);
+      
+      if (existing) {
+        await storage.updateFeeStructure(installerId, serviceType, feePercentage);
+        res.json({ message: "Fee structure updated" });
+      } else {
+        const feeStructure = await storage.createFeeStructure({
+          installerId,
+          serviceType,
+          feePercentage: feePercentage.toString()
+        });
+        res.json(feeStructure);
       }
-      res.json(booking);
     } catch (error) {
-      console.error('Error fetching booking:', error);
-      res.status(500).json({ message: 'Failed to fetch booking' });
+      console.error("Error managing fee structure:", error);
+      res.status(500).json({ message: "Failed to manage fee structure" });
     }
   });
 
-  app.get('/api/bookings/user/:userId', async (req, res) => {
+  // Installer routes
+  app.get("/api/installers", async (req, res) => {
     try {
-      const bookings = await storage.getBookingsByUser(parseInt(req.params.userId));
-      res.json(bookings);
-    } catch (error) {
-      console.error('Error fetching user bookings:', error);
-      res.status(500).json({ message: 'Failed to fetch bookings' });
-    }
-  });
-
-  app.get('/api/bookings/business/:businessId', async (req, res) => {
-    try {
-      const bookings = await storage.getBookingsByBusiness(parseInt(req.params.businessId));
-      res.json(bookings);
-    } catch (error) {
-      console.error('Error fetching business bookings:', error);
-      res.status(500).json({ message: 'Failed to fetch bookings' });
-    }
-  });
-
-  app.get('/api/bookings/installer/:installerId', async (req, res) => {
-    try {
-      const bookings = await storage.getBookingsByInstaller(parseInt(req.params.installerId));
-      res.json(bookings);
-    } catch (error) {
-      console.error('Error fetching installer bookings:', error);
-      res.status(500).json({ message: 'Failed to fetch bookings' });
-    }
-  });
-
-  app.patch('/api/bookings/:id/status', async (req, res) => {
-    try {
-      const { status } = req.body;
-      const booking = await storage.updateBookingStatus(parseInt(req.params.id), status);
-      res.json(booking);
-    } catch (error) {
-      console.error('Error updating booking status:', error);
-      res.status(500).json({ message: 'Failed to update booking' });
-    }
-  });
-
-  app.patch('/api/bookings/:id/installer', async (req, res) => {
-    try {
-      const { installerId } = req.body;
-      const booking = await storage.updateBookingInstaller(parseInt(req.params.id), installerId);
-      res.json(booking);
-    } catch (error) {
-      console.error('Error assigning installer:', error);
-      res.status(500).json({ message: 'Failed to assign installer' });
-    }
-  });
-
-  // QR Code access endpoint
-  app.get('/api/qr/:accessToken', async (req, res) => {
-    try {
-      const qrCode = await storage.getQrCodeByToken(req.params.accessToken);
-      if (!qrCode) {
-        return res.status(404).json({ message: 'Invalid access token' });
-      }
-
-      const booking = await storage.getBooking(qrCode.bookingId);
-      if (!booking) {
-        return res.status(404).json({ message: 'Booking not found' });
-      }
-
-      res.json(booking);
-    } catch (error) {
-      console.error('Error accessing booking via QR:', error);
-      res.status(500).json({ message: 'Failed to access booking' });
-    }
-  });
-
-  // Business management endpoints
-  app.get('/api/businesses', async (req, res) => {
-    try {
-      const businesses = await storage.getBusinesses();
-      res.json(businesses);
-    } catch (error) {
-      console.error('Error fetching businesses:', error);
-      res.status(500).json({ message: 'Failed to fetch businesses' });
-    }
-  });
-
-  app.get('/api/businesses/:id/stats', async (req, res) => {
-    try {
-      const stats = await storage.getBusinessStats(parseInt(req.params.id));
-      res.json(stats);
-    } catch (error) {
-      console.error('Error fetching business stats:', error);
-      res.status(500).json({ message: 'Failed to fetch stats' });
-    }
-  });
-
-  app.patch('/api/businesses/:id/fees', async (req, res) => {
-    try {
-      const { feePercentages } = req.body;
-      const business = await storage.updateBusinessFees(parseInt(req.params.id), feePercentages);
-      res.json(business);
-    } catch (error) {
-      console.error('Error updating business fees:', error);
-      res.status(500).json({ message: 'Failed to update fees' });
-    }
-  });
-
-  // Installer endpoints
-  app.get('/api/installers/business/:businessId', async (req, res) => {
-    try {
-      const installers = await storage.getInstallersByBusiness(parseInt(req.params.businessId));
+      const installers = await storage.getAllInstallers();
       res.json(installers);
     } catch (error) {
-      console.error('Error fetching installers:', error);
-      res.status(500).json({ message: 'Failed to fetch installers' });
+      console.error("Error fetching installers:", error);
+      res.status(500).json({ message: "Failed to fetch installers" });
     }
   });
 
-  app.get('/api/installers/:id/stats', async (req, res) => {
+  app.get("/api/installers/:id/jobs", async (req, res) => {
     try {
-      const stats = await storage.getInstallerStats(parseInt(req.params.id));
-      res.json(stats);
+      const jobs = await storage.getInstallerJobs(parseInt(req.params.id));
+      res.json(jobs);
     } catch (error) {
-      console.error('Error fetching installer stats:', error);
-      res.status(500).json({ message: 'Failed to fetch stats' });
+      console.error("Error fetching installer jobs:", error);
+      res.status(500).json({ message: "Failed to fetch jobs" });
+    }
+  });
+
+  app.patch("/api/jobs/:id/status", async (req, res) => {
+    try {
+      const { status } = req.body;
+      await storage.updateJobStatus(parseInt(req.params.id), status);
+      res.json({ message: "Job status updated" });
+    } catch (error) {
+      console.error("Error updating job status:", error);
+      res.status(500).json({ message: "Failed to update job status" });
     }
   });
 
@@ -338,101 +293,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
-// Initialize default service tiers
-async function initializeServiceTiers() {
-  const serviceTiers = await storage.getServiceTiers();
-  if (serviceTiers.length === 0) {
-    const defaultTiers = [
-      {
-        key: 'table-top-small',
-        name: 'Table Top TV Installation (Up to 43")',
-        description: 'Basic table top installation for smaller TVs',
-        basePrice: '89.00',
-        minTvSize: 32,
-        maxTvSize: 43,
-        isActive: true,
-      },
-      {
-        key: 'table-top-large',
-        name: 'Table Top TV Installation (43" and above)',
-        description: 'Table top installation for larger TVs',
-        basePrice: '109.00',
-        minTvSize: 43,
-        maxTvSize: null,
-        isActive: true,
-      },
-      {
-        key: 'bronze',
-        name: 'Bronze TV Mounting (up to 42")',
-        description: 'Fixed wall mounting for medium TVs',
-        basePrice: '109.00',
-        minTvSize: 32,
-        maxTvSize: 42,
-        isActive: true,
-      },
-      {
-        key: 'silver',
-        name: 'Silver TV Mounting (43-85")',
-        description: 'Tilting mount with cable management',
-        basePrice: '159.00',
-        minTvSize: 43,
-        maxTvSize: 85,
-        isActive: true,
-      },
-      {
-        key: 'silver-large',
-        name: 'Silver TV Mounting (85"+)',
-        description: 'Tilting mount for large TVs',
-        basePrice: '259.00',
-        minTvSize: 85,
-        maxTvSize: null,
-        isActive: true,
-      },
-      {
-        key: 'gold',
-        name: 'Gold TV Mounting',
-        description: 'Full motion mount with premium features',
-        basePrice: '259.00',
-        minTvSize: 32,
-        maxTvSize: 85,
-        isActive: true,
-      },
-      {
-        key: 'gold-large',
-        name: 'Gold TV Mounting (85"+)',
-        description: 'Full motion mount for large TVs',
-        basePrice: '359.00',
-        minTvSize: 85,
-        maxTvSize: null,
-        isActive: true,
-      },
-    ];
+// Pricing calculation helper
+function calculateBookingPricing(
+  serviceType: string,
+  addons: Array<{ key: string; name: string; price: number }>,
+  installerId: number
+) {
+  // Base pricing structure
+  const basePrices: Record<string, number> = {
+    'table-top-small': 89,
+    'table-top-large': 109,
+    'bronze': 109,
+    'silver': 159,
+    'silver-large': 259,
+    'gold': 259,
+    'gold-large': 359
+  };
 
-    for (const tier of defaultTiers) {
-      await storage.createServiceTier(tier);
-    }
-  }
-}
+  const basePrice = basePrices[serviceType] || 109;
+  const addonsPrice = addons.reduce((sum, addon) => sum + addon.price, 0);
+  const totalPrice = basePrice + addonsPrice;
+  
+  // Default fee percentage (15%)
+  const feePercentage = 15;
+  const appFee = totalPrice * (feePercentage / 100);
+  const installerEarnings = totalPrice - appFee;
 
-// Initialize default business
-async function initializeDefaultBusiness() {
-  const businesses = await storage.getBusinesses();
-  if (businesses.length === 0) {
-    await storage.createBusiness({
-      name: 'SmartTVMount Default',
-      email: 'admin@smarttvmount.com',
-      phone: '+353 1 234 5678',
-      address: 'Dublin, Ireland',
-      feePercentages: {
-        'table-top-small': 15,
-        'table-top-large': 15,
-        'bronze': 15,
-        'silver': 15,
-        'silver-large': 15,
-        'gold': 15,
-        'gold-large': 15,
-      },
-      isActive: true,
-    });
-  }
+  return {
+    basePrice,
+    addonsPrice,
+    totalPrice,
+    appFee,
+    installerEarnings
+  };
 }

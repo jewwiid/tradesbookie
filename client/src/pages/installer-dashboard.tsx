@@ -1,24 +1,27 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import Navigation from "@/components/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
-  Wrench, 
+  Bolt, 
+  Home, 
+  Hammer, 
   Euro, 
-  Star, 
-  Home,
+  Star,
   MapPin,
   Clock,
-  CheckCircle2
+  CheckCircle,
+  Calendar,
+  Camera,
+  Phone,
+  User,
+  Loader2
 } from "lucide-react";
-import { useLocation } from "wouter";
-
-// Mock installer ID - in real app this would come from authentication
-const INSTALLER_ID = 1;
 
 interface InstallerStats {
   monthlyJobs: number;
@@ -26,137 +29,303 @@ interface InstallerStats {
   rating: number;
 }
 
-export default function InstallerDashboard() {
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [filterStatus, setFilterStatus] = useState('all');
-
-  // Mock stats - in real app these would come from API
-  const installerStats: InstallerStats = {
-    monthlyJobs: 18,
-    earnings: 2850,
-    rating: 4.9
-  };
-
-  const { data: bookings, isLoading } = useQuery({
-    queryKey: [`/api/installer/${INSTALLER_ID}/bookings`],
-  });
-
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ bookingId, status }: { bookingId: number; status: string }) => {
-      await apiRequest('PUT', `/api/bookings/${bookingId}/status`, { status });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/installer/${INSTALLER_ID}/bookings`] });
-      toast({
-        title: "Success",
-        description: "Job status updated successfully",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update job status",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const acceptJob = (bookingId: number) => {
-    updateStatusMutation.mutate({ bookingId, status: 'assigned' });
-  };
-
-  const completeJob = (bookingId: number) => {
-    updateStatusMutation.mutate({ bookingId, status: 'completed' });
-  };
-
-  const viewRoute = (address: string) => {
-    const encodedAddress = encodeURIComponent(address);
-    window.open(`https://www.google.com/maps/search/${encodedAddress}`, '_blank');
-  };
-
-  const filterButtons = [
-    { key: 'all', label: 'All' },
-    { key: 'confirmed', label: 'New' },
-    { key: 'assigned', label: 'Accepted' },
-    { key: 'completed', label: 'Completed' },
-  ];
-
-  const filteredBookings = bookings?.filter((booking: any) => 
-    filterStatus === 'all' || booking.status === filterStatus
-  ) || [];
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'bg-blue-100 text-blue-800';
-      case 'assigned': return 'bg-yellow-100 text-yellow-800';
-      case 'in-progress': return 'bg-purple-100 text-purple-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'New';
-      case 'assigned': return 'Accepted';
-      case 'in-progress': return 'In Progress';
-      case 'completed': return 'Completed';
-      default: return status;
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
-  const getTimeSlotText = (timeSlot: string) => {
-    const timeSlots: Record<string, string> = {
-      '09:00': '9:00 AM - 11:00 AM',
-      '11:00': '11:00 AM - 1:00 PM',
-      '13:00': '1:00 PM - 3:00 PM',
-      '15:00': '3:00 PM - 5:00 PM',
-      '17:00': '5:00 PM - 7:00 PM'
+interface JobAssignment {
+  id: number;
+  bookingId: number;
+  status: string;
+  assignedDate: string;
+  acceptedDate?: string;
+  completedDate?: string;
+  booking?: {
+    qrCode: string;
+    tvSize: string;
+    serviceType: string;
+    wallType: string;
+    mountType: string;
+    address: string;
+    totalPrice: string;
+    installerEarnings: string;
+    preferredDate?: string;
+    preferredTime?: string;
+    roomPhotoUrl?: string;
+    aiPreviewUrl?: string;
+    customerNotes?: string;
+    contact?: {
+      name: string;
+      phone: string;
     };
-    return timeSlots[timeSlot] || timeSlot;
+  };
+}
+
+function JobCard({ job, onStatusChange }: { 
+  job: JobAssignment; 
+  onStatusChange: (jobId: number, status: string) => void;
+}) {
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case "assigned":
+        return { color: "bg-warning", text: "New Assignment" };
+      case "accepted":
+        return { color: "bg-blue-500", text: "Accepted" };
+      case "completed":
+        return { color: "bg-success", text: "Completed" };
+      case "declined":
+        return { color: "bg-destructive", text: "Declined" };
+      default:
+        return { color: "bg-muted", text: "Unknown" };
+    }
   };
 
-  if (isLoading) {
+  const statusInfo = getStatusInfo(job.status);
+  const booking = job.booking;
+
+  if (!booking) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your jobs...</p>
-        </div>
-      </div>
+      <Card className="border-destructive/20">
+        <CardContent className="p-6 text-center">
+          <p className="text-destructive">Booking information not available</p>
+        </CardContent>
+      </Card>
     );
   }
 
+  const isNew = job.status === "assigned";
+  const isAccepted = job.status === "accepted";
+  const isCompleted = job.status === "completed";
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b border-gray-200">
+    <Card className={`${isNew ? 'border-warning/50 bg-warning/5' : ''} ${isAccepted ? 'border-blue-200 bg-blue-50' : ''}`}>
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-2">
+              <h3 className="text-lg font-semibold text-foreground">
+                {booking.contact?.name || 'Customer'}
+              </h3>
+              <Badge className={`${statusInfo.color} text-white`}>
+                {statusInfo.text}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground mb-2">
+              {booking.serviceType} - {booking.tvSize}" TV
+            </p>
+            <div className="flex items-center text-sm text-muted-foreground">
+              <MapPin className="w-4 h-4 mr-1" />
+              {booking.address}
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-bold text-success">
+              €{parseFloat(booking.installerEarnings).toFixed(2)}
+            </p>
+            {booking.preferredDate && (
+              <p className="text-sm text-muted-foreground">
+                {new Date(booking.preferredDate).toLocaleDateString()}
+                {booking.preferredTime && (
+                  <span className="block">
+                    {booking.preferredTime === "09:00" && "9:00 AM - 11:00 AM"}
+                    {booking.preferredTime === "11:00" && "11:00 AM - 1:00 PM"}
+                    {booking.preferredTime === "13:00" && "1:00 PM - 3:00 PM"}
+                    {booking.preferredTime === "15:00" && "3:00 PM - 5:00 PM"}
+                    {booking.preferredTime === "17:00" && "5:00 PM - 7:00 PM"}
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Job Details */}
+        <div className="grid md:grid-cols-2 gap-4 mb-4 text-sm">
+          <div>
+            <span className="text-muted-foreground">Wall Type:</span>
+            <span className="ml-2 font-medium">{booking.wallType}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Mount Type:</span>
+            <span className="ml-2 font-medium">{booking.mountType}</span>
+          </div>
+        </div>
+
+        {/* Customer Photos */}
+        {(booking.roomPhotoUrl || booking.aiPreviewUrl) && (
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            {booking.roomPhotoUrl && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">Customer Photo</p>
+                <img 
+                  src={booking.roomPhotoUrl}
+                  alt="Customer room photo" 
+                  className="w-full h-32 object-cover rounded-lg border"
+                />
+              </div>
+            )}
+            {booking.aiPreviewUrl && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-2">AI Preview</p>
+                <div className="relative">
+                  <img 
+                    src={booking.aiPreviewUrl}
+                    alt="AI preview of TV installation" 
+                    className="w-full h-32 object-cover rounded-lg border"
+                  />
+                  <Badge className="absolute top-2 right-2 bg-success text-white text-xs">
+                    <Camera className="w-3 h-3 mr-1" />
+                    AI Generated
+                  </Badge>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Customer Notes */}
+        {booking.customerNotes && (
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground mb-2">Customer Notes</p>
+            <p className="text-sm text-foreground bg-muted/50 p-3 rounded-lg">
+              {booking.customerNotes}
+            </p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            {booking.contact?.phone && (
+              <Button variant="outline" size="sm">
+                <Phone className="w-4 h-4 mr-1" />
+                Call Customer
+              </Button>
+            )}
+            <Button variant="outline" size="sm">
+              <MapPin className="w-4 h-4 mr-1" />
+              View Route
+            </Button>
+          </div>
+          
+          <div className="space-x-2">
+            {isNew && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => onStatusChange(job.id, 'declined')}
+                >
+                  Decline
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => onStatusChange(job.id, 'accepted')}
+                  className="bg-success hover:bg-success/90"
+                >
+                  Accept Job
+                </Button>
+              </>
+            )}
+            {isAccepted && (
+              <Button 
+                size="sm"
+                onClick={() => onStatusChange(job.id, 'completed')}
+                className="gradient-bg"
+              >
+                <CheckCircle className="w-4 h-4 mr-1" />
+                Mark Complete
+              </Button>
+            )}
+            {isCompleted && (
+              <Badge className="bg-success text-white">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Completed
+              </Badge>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export default function InstallerDashboard() {
+  const [, setLocation] = useLocation();
+  const { id } = useParams();
+  const [activeFilter, setActiveFilter] = useState("all");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const installerId = parseInt(id || "1");
+
+  const { data: jobs = [], isLoading: jobsLoading } = useQuery<JobAssignment[]>({
+    queryKey: [`/api/installers/${installerId}/jobs`]
+  });
+
+  const updateJobMutation = useMutation({
+    mutationFn: async ({ jobId, status }: { jobId: number; status: string }) => {
+      await apiRequest('PATCH', `/api/jobs/${jobId}/status`, { status });
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/installers/${installerId}/jobs`] });
+      toast({
+        title: "Job Updated",
+        description: `Job status changed to ${status}.`
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleStatusChange = (jobId: number, status: string) => {
+    updateJobMutation.mutate({ jobId, status });
+  };
+
+  const filteredJobs = jobs.filter(job => {
+    if (activeFilter === "all") return true;
+    return job.status === activeFilter;
+  });
+
+  // Calculate stats
+  const monthlyJobs = jobs.filter(job => {
+    const jobDate = new Date(job.assignedDate);
+    const now = new Date();
+    return jobDate.getMonth() === now.getMonth() && jobDate.getFullYear() === now.getFullYear();
+  }).length;
+
+  const earnings = jobs
+    .filter(job => job.status === "completed")
+    .reduce((sum, job) => sum + parseFloat(job.booking?.installerEarnings || "0"), 0);
+
+  const filterButtons = [
+    { key: "all", label: "All", count: jobs.length },
+    { key: "assigned", label: "New", count: jobs.filter(j => j.status === "assigned").length },
+    { key: "accepted", label: "Accepted", count: jobs.filter(j => j.status === "accepted").length },
+    { key: "completed", label: "Completed", count: jobs.filter(j => j.status === "completed").length }
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-border">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Wrench className="text-2xl text-primary mr-3" />
-              <span className="text-xl font-bold text-gray-900">Installer Dashboard</span>
+              <Bolt className="w-6 h-6 text-primary mr-3" />
+              <span className="text-xl font-bold text-foreground">Installer Dashboard</span>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => setLocation('/')}>
-                <Home className="h-4 w-4" />
+              <Button variant="ghost" onClick={() => setLocation("/")} size="sm">
+                <Home className="w-4 h-4 mr-2" />
+                Home
               </Button>
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">T</span>
+                  <User className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-sm font-medium text-gray-700">Tom Mitchell</span>
+                <span className="text-sm font-medium text-foreground">Installer #{installerId}</span>
               </div>
             </div>
           </div>
@@ -164,17 +333,17 @@ export default function InstallerDashboard() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Stats */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Jobs This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">{installerStats.monthlyJobs}</p>
+                  <p className="text-sm text-muted-foreground">Jobs This Month</p>
+                  <p className="text-2xl font-bold text-foreground">{monthlyJobs}</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Wrench className="h-6 w-6 text-blue-600" />
+                  <Hammer className="w-6 h-6 text-blue-600" />
                 </div>
               </div>
             </CardContent>
@@ -184,11 +353,11 @@ export default function InstallerDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">€{installerStats.earnings}</p>
+                  <p className="text-sm text-muted-foreground">Total Earnings</p>
+                  <p className="text-2xl font-bold text-foreground">€{earnings.toFixed(2)}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                  <Euro className="h-6 w-6 text-green-600" />
+                  <Euro className="w-6 h-6 text-green-600" />
                 </div>
               </div>
             </CardContent>
@@ -198,11 +367,11 @@ export default function InstallerDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Rating</p>
-                  <p className="text-2xl font-bold text-gray-900">{installerStats.rating}</p>
+                  <p className="text-sm text-muted-foreground">Rating</p>
+                  <p className="text-2xl font-bold text-foreground">4.9</p>
                 </div>
                 <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <Star className="h-6 w-6 text-yellow-600" />
+                  <Star className="w-6 h-6 text-yellow-600" />
                 </div>
               </div>
             </CardContent>
@@ -215,105 +384,51 @@ export default function InstallerDashboard() {
             <div className="flex items-center justify-between">
               <CardTitle>Assigned Jobs</CardTitle>
               <div className="flex space-x-2">
-                {filterButtons.map((button) => (
+                {filterButtons.map((filter) => (
                   <Button
-                    key={button.key}
-                    variant={filterStatus === button.key ? "default" : "outline"}
+                    key={filter.key}
+                    variant={activeFilter === filter.key ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setFilterStatus(button.key)}
+                    onClick={() => setActiveFilter(filter.key)}
                   >
-                    {button.label}
+                    {filter.label} ({filter.count})
                   </Button>
                 ))}
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {filteredBookings.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No jobs found for the selected filter.
+            {jobsLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="text-center">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto mb-2" />
+                  <p className="text-muted-foreground">Loading jobs...</p>
                 </div>
-              ) : (
-                filteredBookings.map((booking: any) => (
-                  <Card key={booking.id} className={`border-2 transition-all duration-200 ${
-                    booking.status === 'assigned' ? 'border-green-200 bg-green-50' : 
-                    booking.status === 'completed' ? 'border-gray-200 opacity-75' : 
-                    'border-gray-200 hover:shadow-md'
-                  }`}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">{booking.customerName}</h3>
-                            <Badge className={getStatusColor(booking.status)}>
-                              {getStatusLabel(booking.status)}
-                            </Badge>
-                          </div>
-                          <p className="text-gray-600 mb-2">{booking.serviceType} - {booking.tvSize}" TV</p>
-                          <p className="text-sm text-gray-500 flex items-center">
-                            <MapPin className="h-4 w-4 mr-1" />
-                            {booking.address}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold text-gray-900">
-                            €{(Number(booking.totalPrice) * (100 - Number(booking.appFeeRate)) / 100).toFixed(2)}
-                          </p>
-                          <p className="text-sm text-gray-500 flex items-center justify-end">
-                            <Clock className="h-4 w-4 mr-1" />
-                            {formatDate(booking.scheduledDate)}
-                          </p>
-                          <p className="text-sm text-gray-500">{getTimeSlotText(booking.timeSlot)}</p>
-                        </div>
-                      </div>
-
-                      {booking.customerNotes && (
-                        <div className="mb-4">
-                          <p className="text-sm text-gray-600 mb-2">Customer Notes</p>
-                          <p className="text-sm text-gray-700 bg-white p-3 rounded-lg border">
-                            {booking.customerNotes}
-                          </p>
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => viewRoute(booking.address)}
-                        >
-                          <MapPin className="h-4 w-4 mr-1" />
-                          View Route
-                        </Button>
-                        <div className="space-x-2">
-                          {booking.status === 'confirmed' && (
-                            <Button 
-                              size="sm"
-                              onClick={() => acceptJob(booking.id)}
-                              disabled={updateStatusMutation.isPending}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              Accept Job
-                            </Button>
-                          )}
-                          {booking.status === 'assigned' && (
-                            <Button 
-                              size="sm"
-                              onClick={() => completeJob(booking.id)}
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              <CheckCircle2 className="h-4 w-4 mr-1" />
-                              Mark Complete
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
+              </div>
+            ) : filteredJobs.length === 0 ? (
+              <div className="text-center py-8">
+                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  {activeFilter === "all" ? "No Jobs Available" : `No ${activeFilter} Jobs`}
+                </h3>
+                <p className="text-muted-foreground">
+                  {activeFilter === "all" 
+                    ? "New job assignments will appear here when available."
+                    : `You don't have any ${activeFilter} jobs at the moment.`
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredJobs.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onStatusChange={handleStatusChange}
+                  />
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

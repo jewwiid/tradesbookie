@@ -1,36 +1,43 @@
-import { useEffect, useRef } from 'react';
-import QRCode from 'qrcode';
+import { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface QRCodeGeneratorProps {
-  value: string;
+  text: string;
   size?: number;
   className?: string;
 }
 
-export default function QRCodeGenerator({ value, size = 200, className }: QRCodeGeneratorProps) {
+export default function QRCodeGenerator({ text, size = 200, className = "" }: QRCodeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const { data: qrData } = useQuery({
+    queryKey: [`/api/qr-code/${encodeURIComponent(text)}`],
+    enabled: !!text
+  });
+
   useEffect(() => {
-    if (canvasRef.current && value) {
-      QRCode.toCanvas(canvasRef.current, value, {
-        width: size,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF',
-        },
-      }, (error) => {
-        if (error) {
-          console.error('Error generating QR code:', error);
-        }
-      });
+    if (qrData?.qrCode && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        const img = new Image();
+        img.onload = () => {
+          canvas.width = size;
+          canvas.height = size;
+          ctx.drawImage(img, 0, 0, size, size);
+        };
+        img.src = qrData.qrCode;
+      }
     }
-  }, [value, size]);
+  }, [qrData, size]);
 
   return (
-    <canvas 
-      ref={canvasRef} 
-      className={`border-2 border-gray-200 rounded-lg ${className}`}
+    <canvas
+      ref={canvasRef}
+      className={`border-2 border-border rounded-lg ${className}`}
+      width={size}
+      height={size}
     />
   );
 }

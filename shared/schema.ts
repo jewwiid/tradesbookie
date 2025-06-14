@@ -1,89 +1,74 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, varchar, jsonb } from "drizzle-orm/pg-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb, varchar } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Users table
+// Users table for customers
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   phone: text("phone"),
-  address: text("address"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Businesses table (for multi-tenant support)
-export const businesses = pgTable("businesses", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull(),
-  phone: text("phone"),
-  address: text("address"),
-  feePercentages: jsonb("fee_percentages").notNull().default('{}'), // Fee percentages per service type
-  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Installers table
 export const installers = pgTable("installers", {
   id: serial("id").primaryKey(),
-  businessId: integer("business_id").references(() => businesses.id).notNull(),
-  name: text("name").notNull(),
-  email: text("email").notNull(),
+  businessName: text("business_name").notNull(),
+  contactName: text("contact_name").notNull(),
+  email: text("email").notNull().unique(),
   phone: text("phone").notNull(),
-  location: text("location"),
-  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
-  totalJobs: integer("total_jobs").notNull().default(0),
-  isActive: boolean("is_active").notNull().default(true),
+  address: text("address"),
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Service tiers table
-export const serviceTiers = pgTable("service_tiers", {
+// Fee structures for multi-tenant support
+export const feeStructures = pgTable("fee_structures", {
   id: serial("id").primaryKey(),
-  key: text("key").notNull().unique(),
-  name: text("name").notNull(),
-  description: text("description"),
-  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
-  minTvSize: integer("min_tv_size"),
-  maxTvSize: integer("max_tv_size"),
-  isActive: boolean("is_active").notNull().default(true),
+  installerId: integer("installer_id").references(() => installers.id),
+  serviceType: text("service_type").notNull(), // 'table-top-small', 'bronze', etc.
+  feePercentage: decimal("fee_percentage", { precision: 5, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Bookings table
 export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
-  bookingId: text("booking_id").notNull().unique(), // BK-2024-001 format
-  userId: integer("user_id").references(() => users.id).notNull(),
-  businessId: integer("business_id").references(() => businesses.id).notNull(),
+  userId: integer("user_id").references(() => users.id),
   installerId: integer("installer_id").references(() => installers.id),
-  serviceTierId: integer("service_tier_id").references(() => serviceTiers.id).notNull(),
+  qrCode: text("qr_code").unique(),
   
   // Booking details
-  tvSize: integer("tv_size").notNull(),
+  tvSize: text("tv_size").notNull(),
+  serviceType: text("service_type").notNull(),
   wallType: text("wall_type").notNull(),
   mountType: text("mount_type").notNull(),
-  addons: jsonb("addons").notNull().default('[]'), // Array of addon objects
+  addons: jsonb("addons").default([]),
   
   // Scheduling
-  scheduledDate: timestamp("scheduled_date").notNull(),
-  timeSlot: text("time_slot").notNull(),
+  preferredDate: timestamp("preferred_date"),
+  preferredTime: text("preferred_time"),
+  scheduledDate: timestamp("scheduled_date"),
   
-  // Pricing
-  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(),
-  addonTotal: decimal("addon_total", { precision: 10, scale: 2 }).notNull().default("0.00"),
-  totalPrice: decimal("total_price", { precision: 10, scale: 2 }).notNull(),
-  businessFee: decimal("business_fee", { precision: 10, scale: 2 }).notNull().default("0.00"),
-  appFee: decimal("app_fee", { precision: 10, scale: 2 }).notNull().default("0.00"),
+  // Address
+  address: text("address").notNull(),
   
   // Images
-  originalImageUrl: text("original_image_url"),
-  aiPreviewImageUrl: text("ai_preview_image_url"),
-  completedImageUrl: text("completed_image_url"),
+  roomPhotoUrl: text("room_photo_url"),
+  aiPreviewUrl: text("ai_preview_url"),
+  completedPhotoUrl: text("completed_photo_url"),
+  
+  // Pricing
+  basePrice: decimal("base_price", { precision: 8, scale: 2 }).notNull(),
+  addonsPrice: decimal("addons_price", { precision: 8, scale: 2 }).default("0"),
+  totalPrice: decimal("total_price", { precision: 8, scale: 2 }).notNull(),
+  appFee: decimal("app_fee", { precision: 8, scale: 2 }).notNull(),
+  installerEarnings: decimal("installer_earnings", { precision: 8, scale: 2 }).notNull(),
   
   // Status
-  status: text("status").notNull().default("pending"), // pending, confirmed, assigned, in_progress, completed, cancelled
+  status: text("status").notNull().default("pending"), // pending, confirmed, assigned, in-progress, completed, cancelled
   
   // Notes
   customerNotes: text("customer_notes"),
@@ -93,75 +78,60 @@ export const bookings = pgTable("bookings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// QR codes table for customer access
-export const qrCodes = pgTable("qr_codes", {
+// Job assignments
+export const jobAssignments = pgTable("job_assignments", {
   id: serial("id").primaryKey(),
-  bookingId: integer("booking_id").references(() => bookings.id).notNull(),
-  qrCode: text("qr_code").notNull().unique(),
-  accessToken: text("access_token").notNull().unique(),
-  expiresAt: timestamp("expires_at"),
-  createdAt: timestamp("created_at").defaultNow(),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  installerId: integer("installer_id").references(() => installers.id),
+  assignedDate: timestamp("assigned_date").defaultNow(),
+  acceptedDate: timestamp("accepted_date"),
+  completedDate: timestamp("completed_date"),
+  status: text("status").notNull().default("assigned"), // assigned, accepted, completed, declined
 });
 
 // Relations
-export const businessesRelations = relations(businesses, ({ many }) => ({
-  installers: many(installers),
-  bookings: many(bookings),
-}));
-
-export const installersRelations = relations(installers, ({ one, many }) => ({
-  business: one(businesses, {
-    fields: [installers.businessId],
-    references: [businesses.id],
-  }),
-  bookings: many(bookings),
-}));
-
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
 }));
 
-export const bookingsRelations = relations(bookings, ({ one }) => ({
+export const installersRelations = relations(installers, ({ many }) => ({
+  bookings: many(bookings),
+  feeStructures: many(feeStructures),
+  jobAssignments: many(jobAssignments),
+}));
+
+export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   user: one(users, {
     fields: [bookings.userId],
     references: [users.id],
-  }),
-  business: one(businesses, {
-    fields: [bookings.businessId],
-    references: [businesses.id],
   }),
   installer: one(installers, {
     fields: [bookings.installerId],
     references: [installers.id],
   }),
-  serviceTier: one(serviceTiers, {
-    fields: [bookings.serviceTierId],
-    references: [serviceTiers.id],
-  }),
-  qrCode: one(qrCodes, {
-    fields: [bookings.id],
-    references: [qrCodes.bookingId],
+  jobAssignments: many(jobAssignments),
+}));
+
+export const feeStructuresRelations = relations(feeStructures, ({ one }) => ({
+  installer: one(installers, {
+    fields: [feeStructures.installerId],
+    references: [installers.id],
   }),
 }));
 
-export const qrCodesRelations = relations(qrCodes, ({ one }) => ({
+export const jobAssignmentsRelations = relations(jobAssignments, ({ one }) => ({
   booking: one(bookings, {
-    fields: [qrCodes.bookingId],
+    fields: [jobAssignments.bookingId],
     references: [bookings.id],
   }),
+  installer: one(installers, {
+    fields: [jobAssignments.installerId],
+    references: [installers.id],
+  }),
 }));
 
-export const serviceTiersRelations = relations(serviceTiers, ({ many }) => ({
-  bookings: many(bookings),
-}));
-
-// Insert schemas
+// Zod schemas
 export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertBusinessSchema = createInsertSchema(businesses).omit({
   id: true,
   createdAt: true,
 });
@@ -171,43 +141,41 @@ export const insertInstallerSchema = createInsertSchema(installers).omit({
   createdAt: true,
 });
 
-export const insertServiceTierSchema = createInsertSchema(serviceTiers).omit({
-  id: true,
-});
-
 export const insertBookingSchema = createInsertSchema(bookings).omit({
   id: true,
-  bookingId: true,
   createdAt: true,
   updatedAt: true,
+  qrCode: true,
+}).extend({
+  addons: z.array(z.object({
+    key: z.string(),
+    name: z.string(),
+    price: z.number(),
+  })).optional(),
 });
 
-export const insertQrCodeSchema = createInsertSchema(qrCodes).omit({
+export const insertFeeStructureSchema = createInsertSchema(feeStructures).omit({
   id: true,
   createdAt: true,
 });
 
-// Select types
+export const insertJobAssignmentSchema = createInsertSchema(jobAssignments).omit({
+  id: true,
+  assignedDate: true,
+});
+
+// Types
 export type User = typeof users.$inferSelect;
-export type Business = typeof businesses.$inferSelect;
-export type Installer = typeof installers.$inferSelect;
-export type ServiceTier = typeof serviceTiers.$inferSelect;
-export type Booking = typeof bookings.$inferSelect;
-export type QrCode = typeof qrCodes.$inferSelect;
-
-// Insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type InsertBusiness = z.infer<typeof insertBusinessSchema>;
-export type InsertInstaller = z.infer<typeof insertInstallerSchema>;
-export type InsertServiceTier = z.infer<typeof insertServiceTierSchema>;
-export type InsertBooking = z.infer<typeof insertBookingSchema>;
-export type InsertQrCode = z.infer<typeof insertQrCodeSchema>;
 
-// Extended types for API responses
-export type BookingWithDetails = Booking & {
-  user: User;
-  business: Business;
-  installer?: Installer;
-  serviceTier: ServiceTier;
-  qrCode?: QrCode;
-};
+export type Installer = typeof installers.$inferSelect;
+export type InsertInstaller = z.infer<typeof insertInstallerSchema>;
+
+export type Booking = typeof bookings.$inferSelect;
+export type InsertBooking = z.infer<typeof insertBookingSchema>;
+
+export type FeeStructure = typeof feeStructures.$inferSelect;
+export type InsertFeeStructure = z.infer<typeof insertFeeStructureSchema>;
+
+export type JobAssignment = typeof jobAssignments.$inferSelect;
+export type InsertJobAssignment = z.infer<typeof insertJobAssignmentSchema>;

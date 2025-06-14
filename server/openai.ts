@@ -2,76 +2,73 @@ import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key" 
+  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_KEY || "default_key"
 });
 
-export interface TVPlacementRequest {
-  imageBase64: string;
-  tvSize: number;
-  mountType: 'fixed' | 'tilting' | 'full-motion';
-  wallType: 'drywall' | 'concrete' | 'brick' | 'other';
-}
-
-export interface TVPlacementResponse {
+export interface AIPreviewResult {
   success: boolean;
-  placementAnalysis: {
-    recommendedPosition: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    };
-    wallAnalysis: string;
-    feasibilityScore: number;
-    recommendations: string[];
-  };
-  enhancedImageUrl?: string;
+  imageUrl?: string;
   error?: string;
 }
 
-export async function generateTVPlacement(request: TVPlacementRequest): Promise<TVPlacementResponse> {
+export async function generateTVPreview(
+  roomImageBase64: string,
+  tvSize: string,
+  mountType: string = "fixed"
+): Promise<AIPreviewResult> {
   try {
-    // First, analyze the room and determine optimal TV placement
+    // First, analyze the room to determine the best TV placement
     const analysisResponse = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are an expert TV installation consultant. Analyze the room image and provide detailed recommendations for mounting a ${request.tvSize}" TV. Consider the wall type (${request.wallType}), mount type (${request.mountType}), viewing angles, room layout, and safety factors. Respond with JSON in this exact format: {
-            "recommendedPosition": {"x": number, "y": number, "width": number, "height": number},
-            "wallAnalysis": "string",
-            "feasibilityScore": number,
-            "recommendations": ["string"]
-          }`
+          content: `You are an expert TV installation consultant. Analyze the room image and provide detailed placement recommendations for a ${tvSize}" TV with ${mountType} mount. Respond with JSON format containing placement details.`
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Please analyze this room for mounting a ${request.tvSize}" TV with ${request.mountType} mount on ${request.wallType} wall. Provide placement coordinates (x,y as percentage from top-left, width/height as percentage of wall), wall analysis, feasibility score (0-100), and recommendations.`
+              text: `Please analyze this room image and recommend the optimal placement for a ${tvSize}" TV with a ${mountType} mount. Consider wall space, viewing angles, furniture arrangement, and safety. Provide your response in JSON format with the following structure: {"wall_recommendation": "description", "height_recommendation": "description", "viewing_angle": "description", "safety_considerations": "description", "placement_confidence": "high/medium/low"}`
             },
             {
               type: "image_url",
               image_url: {
-                url: `data:image/jpeg;base64,${request.imageBase64}`
+                url: `data:image/jpeg;base64,${roomImageBase64}`
               }
             }
-          ],
-        },
+          ]
+        }
       ],
       response_format: { type: "json_object" },
       max_tokens: 1000,
     });
 
-    const analysisResult = JSON.parse(analysisResponse.choices[0].message.content || '{}');
+    const analysisResult = JSON.parse(analysisResponse.choices[0].message.content || "{}");
+    
+    // Generate a detailed prompt for TV placement visualization
+    const visualizationPrompt = `Create a photorealistic visualization of a ${tvSize}" TV mounted on the wall in this room. 
 
-    // Generate an enhanced image with TV visualization
-    const enhancementPrompt = `Create a photorealistic image showing the same room with a ${request.tvSize}" TV mounted on the wall in the optimal position. The TV should be ${request.mountType === 'fixed' ? 'flush against the wall' : request.mountType === 'tilting' ? 'slightly tilted down for better viewing' : 'on an articulating arm mount'}. Maintain the exact room layout, lighting, and furniture arrangement. The TV should look professionally installed with appropriate wall mounting hardware for ${request.wallType} wall. Make the TV size proportional and realistic for the room.`;
+Mount type: ${mountType}
+Wall recommendation: ${analysisResult.wall_recommendation || "main wall"}
+Height: ${analysisResult.height_recommendation || "eye level when seated"}
 
+Requirements:
+- Keep the existing room exactly as it is
+- Add only a ${tvSize}" flat-screen TV mounted on the appropriate wall
+- The TV should look professionally installed with proper proportions
+- Maintain realistic lighting and shadows
+- The TV should appear to be off (black screen)
+- Ensure the mount type is appropriate (${mountType})
+- Keep all furniture and decor unchanged
+
+Make it look like a professional installation photo that a customer would see after the work is completed.`;
+
+    // Generate the TV preview image
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",
-      prompt: enhancementPrompt,
+      prompt: visualizationPrompt,
       n: 1,
       size: "1024x1024",
       quality: "standard",
@@ -79,43 +76,63 @@ export async function generateTVPlacement(request: TVPlacementRequest): Promise<
 
     return {
       success: true,
-      placementAnalysis: {
-        recommendedPosition: analysisResult.recommendedPosition || { x: 50, y: 40, width: 30, height: 20 },
-        wallAnalysis: analysisResult.wallAnalysis || "Wall appears suitable for TV mounting.",
-        feasibilityScore: analysisResult.feasibilityScore || 85,
-        recommendations: analysisResult.recommendations || ["Consider cable management options", "Ensure proper wall stud support"]
-      },
-      enhancedImageUrl: imageResponse.data[0].url,
+      imageUrl: imageResponse.data[0].url
     };
 
   } catch (error) {
-    console.error('OpenAI TV placement error:', error);
+    console.error("Error generating TV preview:", error);
     return {
       success: false,
-      placementAnalysis: {
-        recommendedPosition: { x: 50, y: 40, width: 30, height: 20 },
-        wallAnalysis: "Unable to analyze wall due to processing error.",
-        feasibilityScore: 50,
-        recommendations: ["Manual assessment recommended", "Consult with installer on-site"]
-      },
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+      error: error instanceof Error ? error.message : "Failed to generate TV preview"
     };
   }
 }
 
-export async function enhanceRoomImage(imageBase64: string, tvSize: number): Promise<string | null> {
+export async function analyzeRoomForTVPlacement(roomImageBase64: string): Promise<{
+  recommendations: string[];
+  warnings: string[];
+  confidence: "high" | "medium" | "low";
+}> {
   try {
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: `Transform this room image to show a ${tvSize}" TV professionally mounted on the main wall. Keep all furniture, lighting, and room features exactly the same. The TV should be realistically sized and positioned at an appropriate viewing height. Show the TV displaying a subtle, attractive background or home screen. Make it look like a professional installation photo.`,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "You are a professional TV installation expert. Analyze room images and provide installation recommendations and warnings. Respond in JSON format."
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Analyze this room for TV installation. Provide recommendations for optimal TV placement and any warnings about potential issues. Format your response as JSON: {"recommendations": ["list of recommendations"], "warnings": ["list of warnings"], "confidence": "high/medium/low"}`
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: `data:image/jpeg;base64,${roomImageBase64}`
+              }
+            }
+          ]
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 800,
     });
 
-    return response.data[0].url || null;
+    const result = JSON.parse(response.choices[0].message.content || "{}");
+    return {
+      recommendations: result.recommendations || [],
+      warnings: result.warnings || [],
+      confidence: result.confidence || "medium"
+    };
   } catch (error) {
-    console.error('Image enhancement error:', error);
-    return null;
+    console.error("Error analyzing room:", error);
+    return {
+      recommendations: ["Unable to analyze room automatically. Our installer will assess during visit."],
+      warnings: ["Please ensure adequate wall space and power outlets are available."],
+      confidence: "low"
+    };
   }
 }

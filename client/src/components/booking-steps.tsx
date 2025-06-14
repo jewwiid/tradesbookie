@@ -232,34 +232,8 @@ export default function BookingSteps({
                       {stepIcons[1]}
                     </div>
                     <h2 className="text-3xl font-bold text-gray-900 mb-4">What's Your TV Size?</h2>
-                    <p className="text-lg text-gray-600">Select your TV size to see the accurate preview</p>
+                    <p className="text-lg text-gray-600">Help us determine the best installation approach for your space</p>
                   </div>
-
-                  {/* Photo confirmation only - no preview */}
-                  {formData.roomPhoto && (
-                    <div className="mb-8">
-                      <div className="bg-gray-50 rounded-2xl p-6">
-                        <div className="flex items-center mb-4">
-                          <Camera className="w-5 h-5 text-blue-600 mr-3" />
-                          <h3 className="text-lg font-semibold text-gray-900">Room Photo Ready</h3>
-                        </div>
-                        <div className="relative">
-                          <img
-                            src={URL.createObjectURL(formData.roomPhoto)}
-                            alt="Your room"
-                            className="w-full h-48 object-cover rounded-xl"
-                          />
-                          <div className="absolute top-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                            ✓ Ready
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-4 text-center">
-                          AI preview will be generated at the final step
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                     {TV_SIZES.map((tv) => (

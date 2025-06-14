@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CloudUpload, Camera, CheckCircle } from "lucide-react";
+import { CloudUpload, Camera, CheckCircle, X } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +14,10 @@ interface PhotoUploadProps {
 
 export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUploadProps) {
   const [dragActive, setDragActive] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
 
   const uploadMutation = useMutation({
@@ -83,6 +87,69 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
     }
   };
 
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment', // Use back camera on mobile
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        } 
+      });
+      
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setShowCamera(true);
+      }
+    } catch (error) {
+      toast({
+        title: "Camera access denied",
+        description: "Please allow camera access to take a photo",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext('2d');
+      
+      if (context) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+            handleFile(file);
+            stopCamera();
+          }
+        }, 'image/jpeg', 0.8);
+      }
+    }
+  };
+
+  // Cleanup camera stream when component unmounts
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
   return (
     <div className="text-center">
       <div className="step-indicator">
@@ -94,31 +161,86 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
         Take a photo of the wall where you want your TV mounted. Our AI will show you a preview!
       </p>
 
-      {!bookingData.roomPhotoBase64 ? (
-        <Card 
-          className={`border-2 border-dashed ${dragActive ? 'border-primary bg-blue-50' : 'border-muted-foreground/25'} hover:border-primary transition-colors cursor-pointer mb-6`}
-          onDrop={handleDrop}
-          onDragOver={handleDrag}
-          onDragEnter={handleDrag}
-          onDragLeave={handleDrag}
-          onClick={() => document.getElementById('photo-upload')?.click()}
-        >
-          <CardContent className="p-8">
-            <input
-              type="file"
-              id="photo-upload"
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileInput}
-              disabled={uploadMutation.isPending}
-            />
+{!bookingData.roomPhotoBase64 && !showCamera ? (
+        <>
+          <Card 
+            className={`border-2 border-dashed ${dragActive ? 'border-primary bg-blue-50' : 'border-muted-foreground/25'} hover:border-primary transition-colors cursor-pointer mb-6`}
+            onDrop={handleDrop}
+            onDragOver={handleDrag}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onClick={() => document.getElementById('photo-upload')?.click()}
+          >
+            <CardContent className="p-8">
+              <input
+                type="file"
+                id="photo-upload"
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileInput}
+                disabled={uploadMutation.isPending}
+              />
+              
+              <div className="text-center">
+                <CloudUpload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg text-foreground mb-2">
+                  {uploadMutation.isPending ? "Uploading..." : "Click to upload or drag and drop"}
+                </p>
+                <p className="text-sm text-muted-foreground">PNG, JPG up to 10MB</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="flex justify-center items-center gap-4 mb-6">
+            <div className="flex-1 h-px bg-muted-foreground/25"></div>
+            <span className="text-sm text-muted-foreground">or</span>
+            <div className="flex-1 h-px bg-muted-foreground/25"></div>
+          </div>
+          
+          <Button 
+            onClick={startCamera}
+            variant="outline"
+            className="w-full mb-6 h-12 text-lg"
+            disabled={uploadMutation.isPending}
+          >
+            <Camera className="w-5 h-5 mr-2" />
+            Use Camera
+          </Button>
+        </>
+      ) : showCamera ? (
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="relative">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full max-w-md mx-auto rounded-xl"
+              />
+              <canvas
+                ref={canvasRef}
+                className="hidden"
+              />
+            </div>
             
-            <div className="text-center">
-              <CloudUpload className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-lg text-foreground mb-2">
-                {uploadMutation.isPending ? "Uploading..." : "Click to upload or drag and drop"}
-              </p>
-              <p className="text-sm text-muted-foreground">PNG, JPG up to 10MB</p>
+            <div className="flex justify-center gap-4 mt-4">
+              <Button
+                onClick={capturePhoto}
+                size="lg"
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Camera className="w-5 h-5 mr-2" />
+                Take Photo
+              </Button>
+              <Button
+                onClick={stopCamera}
+                variant="outline"
+                size="lg"
+              >
+                <X className="w-5 h-5 mr-2" />
+                Cancel
+              </Button>
             </div>
           </CardContent>
         </Card>

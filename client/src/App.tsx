@@ -20,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/booking" component={BookingFlow} />
+      <Route path="/tv-recommendation" component={TVRecommendation} />
       <Route path="/customer/:qrCode?" component={CustomerDashboard} />
       <Route path="/installer-registration" component={InstallerRegistration} />
       <Route path="/installer-login" component={InstallerLogin} />

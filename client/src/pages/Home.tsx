@@ -82,14 +82,22 @@ export default function Home() {
                 </span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Upload a photo of your room and our AI will show you exactly how your new TV will look mounted on your wall. Professional installation guaranteed.
+                Get personalized TV recommendations and see exactly how your new TV will look mounted on your wall. Professional installation guaranteed.
               </p>
-              <Link href="/booking">
-                <Button className="inline-flex items-center bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
-                  <Camera className="mr-3 h-5 w-5" />
-                  Start AI Preview
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                <Link href="/tv-recommendation">
+                  <Button className="inline-flex items-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                    <Tv className="mr-3 h-5 w-5" />
+                    Find My Perfect TV
+                  </Button>
+                </Link>
+                <Link href="/booking">
+                  <Button className="inline-flex items-center bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                    <Camera className="mr-3 h-5 w-5" />
+                    Start AI Preview
+                  </Button>
+                </Link>
+              </div>
               <div className="mt-8 flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />

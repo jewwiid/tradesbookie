@@ -124,6 +124,7 @@ The application is configured for deployment on Replit with the following setup:
 - Booking system works end-to-end with proper error handling
 - Uber-style real-time installer dashboard with map view and list view
 - Customer notification system (email/SMS) when requests are accepted
+- AI TV recommendation service with 5-question personalized questionnaire
 
 **✅ Real-Time Matching Flow:**
 1. Customer submits installation request → appears on installer map
@@ -140,6 +141,8 @@ The application now includes a robust fallback system. When the database is unav
 - **Notification System**: Implemented email/SMS notifications for booking confirmations
 - **Real-Time Updates**: Added 30-second refresh intervals for live request updates
 - **API Endpoints**: Created complete REST API for installer request management
+- **AI TV Recommendation**: Added personalized 5-question quiz using OpenAI to recommend optimal TV types
+- **TV Technology Matching**: Integrated QLED, MINI LED, OLED, 144Hz Frame TV, and anti-reflection recommendations
 - **Geographic Enhancement**: Added comprehensive Republic of Ireland coverage with all 32 counties
 - **Device Expertise**: Enhanced installer registration with detailed device type selection
 - **Partnership Integration**: Added Harvey Norman retailer partnership for product sourcing assistance
@@ -155,6 +158,9 @@ The application now includes a robust fallback system. When the database is unav
 - June 14, 2025: Added detailed device expertise selection and service area mapping for installers
 - June 14, 2025: Integrated Harvey Norman partnership for product sourcing assistance in booking flow
 - June 14, 2025: Implemented comprehensive installer service capabilities including emergency callouts and weekend availability
+- June 14, 2025: Added AI TV recommendation service with 5-question personalized questionnaire using OpenAI GPT-4o
+- June 14, 2025: Integrated TV technology matching for QLED, MINI LED, OLED, 144Hz Frame TV, and anti-reflection displays
+- June 14, 2025: Created comprehensive recommendation engine considering usage, budget, room environment, gaming needs, and feature priorities
 
 ## User Preferences
 

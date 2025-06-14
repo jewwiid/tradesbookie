@@ -21,8 +21,10 @@ export default function InstallerRegistration() {
     email: "",
     phone: "",
     serviceArea: "",
+    county: "",
     experience: "",
     specialties: [] as string[],
+    deviceTypes: [] as string[],
     certifications: "",
     insurance: false,
     backgroundCheck: false,
@@ -30,7 +32,10 @@ export default function InstallerRegistration() {
     transportation: false,
     availability: "",
     hourlyRate: "",
-    bio: ""
+    bio: "",
+    maxTravelDistance: "",
+    emergencyCallout: false,
+    weekendAvailable: false
   });
 
   const registerMutation = useMutation({
@@ -78,7 +83,22 @@ export default function InstallerRegistration() {
 
   const specialtyOptions = [
     "Wall Mounting", "Ceiling Mounting", "Cable Management", 
-    "Home Theater Setup", "Sound System Installation", "Smart TV Configuration"
+    "Home Theater Setup", "Sound System Installation", "Smart TV Configuration",
+    "Soundbar Installation", "Gaming Console Setup", "Streaming Device Setup"
+  ];
+
+  const deviceOptions = [
+    "LED TVs", "OLED TVs", "QLED TVs", "Plasma TVs", "Projectors",
+    "Soundbars", "Home Theater Systems", "Gaming Consoles", 
+    "Streaming Devices", "Digital Set-top Boxes", "Smart Home Integration"
+  ];
+
+  const countyOptions = [
+    "Antrim", "Armagh", "Carlow", "Cavan", "Clare", "Cork", "Derry", 
+    "Donegal", "Down", "Dublin", "Fermanagh", "Galway", "Kerry", 
+    "Kildare", "Kilkenny", "Laois", "Leitrim", "Limerick", "Longford", 
+    "Louth", "Mayo", "Meath", "Monaghan", "Offaly", "Roscommon", 
+    "Sligo", "Tipperary", "Tyrone", "Waterford", "Westmeath", "Wexford", "Wicklow"
   ];
 
   return (
@@ -167,14 +187,45 @@ export default function InstallerRegistration() {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="serviceArea">Service Area *</Label>
+                  <Label htmlFor="county">Primary County *</Label>
+                  <Select value={formData.county} onValueChange={(value) => setFormData(prev => ({ ...prev, county: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your primary county" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countyOptions.map((county) => (
+                        <SelectItem key={county} value={county}>{county}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="serviceArea">Service Area (Towns/Cities) *</Label>
                   <Input
                     id="serviceArea"
                     required
                     value={formData.serviceArea}
                     onChange={(e) => setFormData(prev => ({ ...prev, serviceArea: e.target.value }))}
-                    placeholder="Los Angeles, CA"
+                    placeholder="Dublin, Cork, Galway"
                   />
+                </div>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="maxTravelDistance">Maximum Travel Distance (km) *</Label>
+                  <Select value={formData.maxTravelDistance} onValueChange={(value) => setFormData(prev => ({ ...prev, maxTravelDistance: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select travel distance" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="25">Up to 25km</SelectItem>
+                      <SelectItem value="50">Up to 50km</SelectItem>
+                      <SelectItem value="100">Up to 100km</SelectItem>
+                      <SelectItem value="150">Up to 150km</SelectItem>
+                      <SelectItem value="nationwide">Nationwide</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="experience">Years of Experience *</Label>
@@ -193,7 +244,7 @@ export default function InstallerRegistration() {
               </div>
               
               <div>
-                <Label>Specialties</Label>
+                <Label>Installation Specialties</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
                   {specialtyOptions.map((specialty) => (
                     <div key={specialty} className="flex items-center space-x-2">
@@ -203,6 +254,29 @@ export default function InstallerRegistration() {
                         onCheckedChange={(checked) => handleSpecialtyChange(specialty, checked as boolean)}
                       />
                       <Label htmlFor={specialty} className="text-sm">{specialty}</Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label>Device Types & Expertise</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">
+                  {deviceOptions.map((device) => (
+                    <div key={device} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={device}
+                        checked={formData.deviceTypes.includes(device)}
+                        onCheckedChange={(checked) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            deviceTypes: checked 
+                              ? [...prev.deviceTypes, device]
+                              : prev.deviceTypes.filter(d => d !== device)
+                          }));
+                        }}
+                      />
+                      <Label htmlFor={device} className="text-sm">{device}</Label>
                     </div>
                   ))}
                 </div>
@@ -300,6 +374,22 @@ export default function InstallerRegistration() {
                     onCheckedChange={(checked) => setFormData(prev => ({ ...prev, transportation: checked as boolean }))}
                   />
                   <Label htmlFor="transportation">I have reliable transportation *</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="emergencyCallout"
+                    checked={formData.emergencyCallout}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, emergencyCallout: checked as boolean }))}
+                  />
+                  <Label htmlFor="emergencyCallout">Available for emergency callouts</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="weekendAvailable"
+                    checked={formData.weekendAvailable}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, weekendAvailable: checked as boolean }))}
+                  />
+                  <Label htmlFor="weekendAvailable">Available for weekend installations</Label>
                 </div>
               </div>
             </CardContent>

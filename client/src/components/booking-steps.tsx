@@ -130,6 +130,7 @@ export default function BookingSteps({
     <Home className="w-6 h-6" />,
     <Cog className="w-6 h-6" />,
     <Plus className="w-6 h-6" />,
+    <Sparkles className="w-6 h-6" />,
     <Calendar className="w-6 h-6" />,
     <User className="w-6 h-6" />,
   ];
@@ -141,6 +142,7 @@ export default function BookingSteps({
     "Wall Type",
     "Mount Type",
     "Add-on Services",
+    "Product Assistance",
     "Schedule Installation",
     "Contact Information"
   ];

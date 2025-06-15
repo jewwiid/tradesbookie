@@ -48,6 +48,11 @@ interface AdminStats {
   completedBookings: number;
   avgBookingValue: number;
   topServiceType: string;
+  totalPayments: number;
+  successfulPayments: number;
+  pendingPayments: number;
+  failedPayments: number;
+  totalPaidAmount: number;
 }
 
 interface User {
@@ -93,6 +98,10 @@ interface Booking {
   customerEmail?: string;
   customerPhone?: string;
   createdAt: string;
+  paymentIntentId?: string;
+  paymentStatus?: string;
+  paidAmount?: string;
+  paymentDate?: string;
 }
 
 interface SystemMetrics {
@@ -127,10 +136,10 @@ function DashboardOverview({ stats }: { stats: AdminStats | undefined }) {
     { label: "Monthly Bookings", value: stats.monthlyBookings, icon: TrendingUp, color: "text-green-600" },
     { label: "Total Revenue", value: `€${stats.revenue}`, icon: Euro, color: "text-emerald-600" },
     { label: "App Fees", value: `€${stats.appFees}`, icon: DollarSign, color: "text-purple-600" },
-    { label: "Total Users", value: stats.totalUsers, icon: Users, color: "text-indigo-600" },
-    { label: "Active Installers", value: stats.totalInstallers, icon: UserCheck, color: "text-orange-600" },
-    { label: "Active Bookings", value: stats.activeBookings, icon: Activity, color: "text-red-600" },
-    { label: "Avg Booking Value", value: `€${stats.avgBookingValue}`, icon: BarChart3, color: "text-cyan-600" },
+    { label: "Successful Payments", value: stats.successfulPayments || 0, icon: UserCheck, color: "text-green-600" },
+    { label: "Pending Payments", value: stats.pendingPayments || 0, icon: Clock, color: "text-yellow-600" },
+    { label: "Total Paid", value: `€${stats.totalPaidAmount || 0}`, icon: Euro, color: "text-emerald-600" },
+    { label: "Failed Payments", value: stats.failedPayments || 0, icon: AlertTriangle, color: "text-red-600" },
   ];
 
   return (
@@ -519,6 +528,151 @@ function SystemMetrics() {
   );
 }
 
+// Payment Management Component
+function PaymentManagement() {
+  const { data: bookings, isLoading } = useQuery<Booking[]>({
+    queryKey: ["/api/admin/bookings"],
+    retry: false,
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const paymentsWithStatus = bookings?.filter(b => b.paymentIntentId) || [];
+  const successfulPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'succeeded');
+  const pendingPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'pending' || b.paymentStatus === 'processing');
+  const failedPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'failed');
+
+  const totalPaidAmount = successfulPayments.reduce((sum, b) => sum + parseFloat(b.paidAmount || '0'), 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Payment Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Successful Payments</p>
+                <p className="text-2xl font-bold text-green-600">{successfulPayments.length}</p>
+              </div>
+              <UserCheck className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pending Payments</p>
+                <p className="text-2xl font-bold text-yellow-600">{pendingPayments.length}</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Failed Payments</p>
+                <p className="text-2xl font-bold text-red-600">{failedPayments.length}</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Collected</p>
+                <p className="text-2xl font-bold text-emerald-600">€{totalPaidAmount.toFixed(2)}</p>
+              </div>
+              <Euro className="h-8 w-8 text-emerald-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Payment Transactions Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <DollarSign className="w-5 h-5 mr-2" />
+            Payment Transactions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Booking ID</TableHead>
+                  <TableHead>Payment Intent</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Payment Date</TableHead>
+                  <TableHead>Customer</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paymentsWithStatus.map((booking) => (
+                  <TableRow key={booking.id}>
+                    <TableCell className="font-medium">#{booking.id}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {booking.paymentIntentId?.substring(0, 20)}...
+                    </TableCell>
+                    <TableCell>€{booking.paidAmount || booking.totalPrice}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          booking.paymentStatus === 'succeeded' ? 'default' :
+                          booking.paymentStatus === 'pending' || booking.paymentStatus === 'processing' ? 'secondary' :
+                          'destructive'
+                        }
+                      >
+                        {booking.paymentStatus || 'Unknown'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {booking.paymentDate ? new Date(booking.paymentDate).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell>{booking.customerEmail || 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          
+          {paymentsWithStatus.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No payment transactions found
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // Fee Management Component  
 function FeeManagement() {
   const [feeStructures, setFeeStructures] = useState({
@@ -652,7 +806,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="w-4 h-4" />
               <span>Overview</span>
@@ -668,6 +822,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="bookings" className="flex items-center space-x-2">
               <Calendar className="w-4 h-4" />
               <span>Bookings</span>
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="flex items-center space-x-2">
+              <DollarSign className="w-4 h-4" />
+              <span>Payments</span>
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center space-x-2">
               <Database className="w-4 h-4" />
@@ -693,6 +851,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="bookings" className="space-y-6">
             <BookingManagement />
+          </TabsContent>
+
+          <TabsContent value="payments" className="space-y-6">
+            <PaymentManagement />
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">

@@ -794,7 +794,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   
   // Admin authentication check middleware
   const isAdmin = (req: any, res: any, next: any) => {
-    if (!req.user || (req.user.claims?.email !== 'admin@smarttvmount.ie' && req.user.claims?.sub !== 'admin')) {
+    const userEmail = req.user?.claims?.email;
+    const userId = req.user?.claims?.sub;
+    
+    const isAdminUser = userEmail === 'admin@smarttvmount.ie' || 
+                       userEmail === 'jude.okun@gmail.com' || 
+                       userId === 'admin' || 
+                       userId === '42442296';
+    
+    if (!req.user || !isAdminUser) {
       return res.status(403).json({ message: "Admin access required" });
     }
     next();

@@ -584,7 +584,10 @@ export default function AdminDashboard() {
   const [, setLocation] = useLocation();
 
   // Check if user is admin
-  const isAdmin = user?.email === 'admin@smarttvmount.ie' || user?.id === 'admin';
+  const isAdmin = user?.email === 'admin@smarttvmount.ie' || 
+                  user?.email === 'jude.okun@gmail.com' || 
+                  user?.id === 'admin' || 
+                  user?.id === '42442296';
 
   if (!isAuthenticated || !isAdmin) {
     return (

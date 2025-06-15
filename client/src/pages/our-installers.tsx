@@ -117,30 +117,16 @@ export default function OurInstallers() {
               ))}
             </div>
           ) : (
-            <div className="grid lg:grid-cols-2 gap-8 mb-12">
+            <div className="grid lg:grid-cols-1 gap-8 mb-12">
               {installers?.map((installer: any) => (
-                <div key={installer.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
-                  <InstallerProfile 
-                    installer={installer} 
-                    showContactActions={false}
-                  />
-                  <div className="p-6 pt-0">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button className="w-full flex items-center gap-2">
-                          <Eye className="h-4 w-4" />
-                          View Full Profile & Reviews
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-                        <InstallerProfile 
-                          installer={installer} 
-                          showContactActions={true}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
+                <Card key={installer.id} className="w-full max-w-4xl mx-auto">
+                  <CardContent className="p-0">
+                    <InstallerProfile 
+                      installer={installer} 
+                      showContactActions={true}
+                    />
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}

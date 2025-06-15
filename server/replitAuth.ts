@@ -84,7 +84,8 @@ export async function setupAuth(app: Express) {
     console.error("Failed to get OIDC config:", error);
     // Add fallback routes for when OIDC is not available
     app.get("/api/login", (req, res) => {
-      res.status(503).json({ message: "Authentication service temporarily unavailable" });
+      console.log("Login attempt without OIDC - redirecting to home");
+      res.redirect("/?auth=unavailable");
     });
     app.get("/api/logout", (req, res) => {
       res.redirect("/");
@@ -118,6 +119,18 @@ export async function setupAuth(app: Express) {
     );
     passport.use(strategy);
   }
+  
+  // Also register with localhost for development
+  const localhostStrategy = new Strategy(
+    {
+      name: `replitauth:localhost`,
+      config,
+      scope: "openid email profile offline_access",
+      callbackURL: `http://localhost:5000/api/callback`,
+    },
+    verify,
+  );
+  passport.use(localhostStrategy);
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));

@@ -2,10 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tv } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import AIPreview from "@/components/ai-preview";
 import { BookingData } from "@/lib/booking-utils";
 
 interface TVSizeSelectorProps {
@@ -24,45 +20,11 @@ const TV_SIZES = [
 
 export default function TVSizeSelector({ bookingData, updateBookingData }: TVSizeSelectorProps) {
   const [selectedSize, setSelectedSize] = useState(bookingData.tvSize);
-  const { toast } = useToast();
-
-  const aiPreviewMutation = useMutation({
-    mutationFn: async ({ imageBase64, tvSize, mountType }: { imageBase64: string, tvSize: string, mountType?: string }) => {
-      const response = await apiRequest('POST', '/api/generate-ai-preview', {
-        imageBase64,
-        tvSize,
-        mountType: mountType || 'fixed'
-      });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      updateBookingData({ aiPreviewUrl: data.imageUrl });
-      toast({
-        title: "AI Preview Generated!",
-        description: "See how your TV will look on the wall."
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Preview Generation Failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
 
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size);
     updateBookingData({ tvSize: size });
-
-    // Generate AI preview if room photo is available
-    if (bookingData.roomPhotoBase64) {
-      aiPreviewMutation.mutate({
-        imageBase64: bookingData.roomPhotoBase64,
-        tvSize: size,
-        mountType: bookingData.mountType || 'fixed'
-      });
-    }
+    // AI preview generation removed - will only occur at final booking summary
   };
 
   return (
@@ -76,14 +38,23 @@ export default function TVSizeSelector({ bookingData, updateBookingData }: TVSiz
         Select your TV size to see the accurate preview
       </p>
 
-      {/* AI Preview Section */}
+      {/* Preview Placeholder - AI generation happens at final step */}
       {bookingData.roomPhotoBase64 && (
         <div className="mb-8">
-          <AIPreview
-            beforeImage={bookingData.roomPhotoBase64}
-            afterImage={bookingData.aiPreviewUrl}
-            isLoading={aiPreviewMutation.isPending}
-          />
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+            <div className="relative">
+              <img
+                src={bookingData.roomPhotoBase64}
+                alt="Your room"
+                className="w-full h-64 object-cover rounded-xl"
+              />
+              <div className="absolute bottom-4 left-4 right-4">
+                <div className="bg-black/70 rounded-lg p-3 text-white text-center">
+                  <p className="text-sm">AI preview will be generated at the final booking step</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

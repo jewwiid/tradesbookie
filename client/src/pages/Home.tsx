@@ -75,7 +75,7 @@ export default function Home() {
       {/* User Authentication Header - only show if authenticated */}
       {isAuthenticated && user && (
         <div className="bg-white border-b border-gray-200 px-4 py-3">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="max-w-7xl mx-auto flex items-center justify-center">
             <div className="flex items-center space-x-3">
               {user?.profileImageUrl && (
                 <img 
@@ -88,13 +88,6 @@ export default function Home() {
                 Welcome, {user?.firstName || user?.email}
               </span>
             </div>
-            <a
-              href="/api/logout"
-              className="inline-flex items-center px-3 py-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <LogOut className="w-4 h-4 mr-1" />
-              Sign out
-            </a>
           </div>
         </div>
       )}

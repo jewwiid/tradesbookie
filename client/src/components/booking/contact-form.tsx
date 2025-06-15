@@ -265,7 +265,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
               ) : (
                 <div className="relative">
                   <img
-                    src={bookingData.roomPhotoBase64}
+                    src={`data:image/jpeg;base64,${bookingData.roomPhotoBase64}`}
                     alt="Your room"
                     className="w-full h-64 object-cover rounded-xl"
                   />

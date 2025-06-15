@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import InstallerProfile from "@/components/installer-profile";
+import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function OurInstallers() {

@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { insertBookingSchema, insertUserSchema } from "@shared/schema";
+import { insertBookingSchema, insertUserSchema, insertReviewSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
 import { z } from "zod";
@@ -1326,6 +1326,49 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error: any) {
       console.error("Webhook error:", error);
       res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
+
+  // Review endpoints
+  app.post("/api/reviews", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const reviewData = {
+        ...req.body,
+        userId
+      };
+
+      const review = await storage.createReview(reviewData);
+      res.json(review);
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  app.get("/api/installers/:id/reviews", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const reviews = await storage.getInstallerReviews(installerId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching installer reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  app.get("/api/installers/:id/rating", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const rating = await storage.getInstallerRating(installerId);
+      res.json(rating);
+    } catch (error) {
+      console.error("Error fetching installer rating:", error);
+      res.status(500).json({ message: "Failed to fetch rating" });
     }
   });
 

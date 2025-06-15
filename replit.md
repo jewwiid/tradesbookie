@@ -199,6 +199,7 @@ The application now includes a robust fallback system. When the database is unav
 - June 15, 2025: Resolved booking creation failures by adding missing createUser method and fixing schema imports
 - June 15, 2025: Fixed broken navigation links by creating How It Works, Pricing, and Our Installers pages with proper routing
 - June 15, 2025: Resolved runtime errors and authentication issues, fixed OIDC configuration and Passport strategy registration
+- June 15, 2025: Complete rebranding from SmartTVMount to tradesbook.ie across all platform components, navigation, pages, and email templates
 
 ## User Preferences
 

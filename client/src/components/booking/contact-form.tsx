@@ -18,8 +18,44 @@ interface ContactFormProps {
 
 export default function ContactForm({ bookingData, updateBookingData, onComplete }: ContactFormProps) {
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showAfterPreview, setShowAfterPreview] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+
+  // AI Preview generation mutation for final step
+  const aiPreviewMutation = useMutation({
+    mutationFn: async () => {
+      if (!bookingData.roomPhotoBase64) {
+        throw new Error('No room photo available');
+      }
+      
+      const response = await apiRequest('POST', '/api/generate-ai-preview', {
+        imageBase64: bookingData.roomPhotoBase64,
+        tvSize: bookingData.tvSize,
+        mountType: bookingData.mountType,
+        wallType: bookingData.wallType
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      updateBookingData({ aiPreviewUrl: data.imageUrl });
+      toast({
+        title: "AI Preview Generated!",
+        description: "See how your TV will look installed."
+      });
+    },
+    onError: (error) => {
+      console.error('AI preview generation failed:', error);
+      // Continue without AI preview - not blocking
+    }
+  });
+
+  // Generate AI preview when component mounts (final step)
+  useEffect(() => {
+    if (bookingData.roomPhotoBase64 && !bookingData.aiPreviewUrl && !aiPreviewMutation.isPending) {
+      aiPreviewMutation.mutate();
+    }
+  }, [bookingData.roomPhotoBase64, bookingData.aiPreviewUrl]);
 
   const createBookingMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -174,6 +210,78 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
           />
         </div>
       </div>
+
+      {/* AI Preview Section - Only shows at final step */}
+      {bookingData.roomPhotoBase64 && (
+        <Card className="mb-8">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-full flex items-center justify-center mr-3">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">AI Preview</h3>
+              </div>
+              {bookingData.aiPreviewUrl && (
+                <div className="flex bg-white rounded-lg p-1 border">
+                  <Button
+                    size="sm"
+                    variant={!showAfterPreview ? "default" : "ghost"}
+                    onClick={() => setShowAfterPreview(false)}
+                  >
+                    Before
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={showAfterPreview ? "default" : "ghost"}
+                    onClick={() => setShowAfterPreview(true)}
+                  >
+                    After
+                  </Button>
+                </div>
+              )}
+            </div>
+            
+            <div className="relative">
+              {aiPreviewMutation.isPending ? (
+                <div className="w-full h-64 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <div className="text-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">Generating AI preview...</p>
+                  </div>
+                </div>
+              ) : bookingData.aiPreviewUrl && showAfterPreview ? (
+                <div className="relative">
+                  <img
+                    src={bookingData.aiPreviewUrl}
+                    alt="Room with mounted TV preview"
+                    className="w-full h-64 object-cover rounded-xl"
+                  />
+                  <div className="absolute top-4 right-4 bg-green-500 text-white text-xs px-2 py-1 rounded-full flex items-center space-x-1">
+                    <Sparkles className="w-3 h-3" />
+                    <span>AI Generated</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <img
+                    src={bookingData.roomPhotoBase64}
+                    alt="Your room"
+                    className="w-full h-64 object-cover rounded-xl"
+                  />
+                  {!bookingData.aiPreviewUrl && !aiPreviewMutation.isPending && (
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <div className="bg-black/70 rounded-lg p-3 text-white text-center">
+                        <p className="text-sm">AI preview generation in progress...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Booking Summary */}
       <Card className="bg-muted/50 mb-8">

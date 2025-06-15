@@ -59,8 +59,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      const userEmail = req.user.claims.email;
+      let user = await storage.getUser(userId);
+      
+      // If user doesn't exist in database, create them
+      if (!user) {
+        const userData = {
+          id: userId,
+          email: userEmail,
+          firstName: req.user.claims.first_name,
+          lastName: req.user.claims.last_name,
+          profileImageUrl: req.user.claims.profile_image_url,
+        };
+        user = await storage.upsertUser(userData);
+      }
+      
+      // Add admin role check for specific email
+      const userWithRole = {
+        ...user,
+        role: userEmail === 'jude.okun@gmail.com' ? 'admin' : 'customer'
+      };
+      
+      res.json(userWithRole);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });

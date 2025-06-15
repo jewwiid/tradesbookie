@@ -46,6 +46,12 @@ export interface IStorage {
   createJobAssignment(assignment: InsertJobAssignment): Promise<JobAssignment>;
   getInstallerJobs(installerId: number): Promise<JobAssignment[]>;
   updateJobStatus(id: number, status: string): Promise<void>;
+
+  // Review operations
+  createReview(review: InsertReview): Promise<Review>;
+  getInstallerReviews(installerId: number): Promise<Review[]>;
+  getUserReviews(userId: string): Promise<Review[]>;
+  getInstallerRating(installerId: number): Promise<{ averageRating: number; totalReviews: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -222,6 +228,40 @@ export class DatabaseStorage implements IStorage {
     await db.update(jobAssignments)
       .set(updateData)
       .where(eq(jobAssignments.id, id));
+  }
+
+  // Review operations
+  async createReview(insertReview: InsertReview): Promise<Review> {
+    const [review] = await db.insert(reviews).values(insertReview).returning();
+    return review;
+  }
+
+  async getInstallerReviews(installerId: number): Promise<Review[]> {
+    return await db.select().from(reviews)
+      .where(eq(reviews.installerId, installerId))
+      .orderBy(desc(reviews.createdAt));
+  }
+
+  async getUserReviews(userId: string): Promise<Review[]> {
+    return await db.select().from(reviews)
+      .where(eq(reviews.userId, userId))
+      .orderBy(desc(reviews.createdAt));
+  }
+
+  async getInstallerRating(installerId: number): Promise<{ averageRating: number; totalReviews: number }> {
+    const installerReviews = await this.getInstallerReviews(installerId);
+    
+    if (installerReviews.length === 0) {
+      return { averageRating: 0, totalReviews: 0 };
+    }
+
+    const totalRating = installerReviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / installerReviews.length;
+
+    return {
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+      totalReviews: installerReviews.length
+    };
   }
 }
 

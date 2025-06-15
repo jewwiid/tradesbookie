@@ -120,7 +120,7 @@ export const jobAssignments = pgTable("job_assignments", {
 // Reviews table
 export const reviews = pgTable("reviews", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
   installerId: integer("installer_id").references(() => installers.id).notNull(),
   bookingId: integer("booking_id").references(() => bookings.id).notNull(),
   rating: integer("rating").notNull(), // 1-5 stars

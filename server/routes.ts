@@ -1145,6 +1145,137 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // ====================== STRIPE PAYMENT ENDPOINTS ======================
+
+  // Create payment intent
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { amount, bookingId } = req.body;
+      
+      if (!amount || amount < 0.5) {
+        return res.status(400).json({ error: "Invalid amount" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "eur",
+        metadata: {
+          bookingId: bookingId?.toString() || "unknown",
+          service: "tv_installation"
+        },
+      });
+
+      // Update booking with payment intent ID
+      if (bookingId) {
+        await storage.updateBookingPayment(bookingId, paymentIntent.id, "processing");
+      }
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error: any) {
+      console.error("Payment intent creation error:", error);
+      res.status(500).json({ error: "Failed to create payment intent" });
+    }
+  });
+
+  // Confirm payment
+  app.post("/api/confirm-payment", async (req, res) => {
+    try {
+      const { paymentIntentId, bookingId } = req.body;
+
+      if (!paymentIntentId) {
+        return res.status(400).json({ error: "Payment intent ID required" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status === "succeeded") {
+        // Update booking payment status
+        if (bookingId) {
+          await storage.updateBookingPayment(
+            bookingId, 
+            paymentIntentId, 
+            "succeeded", 
+            paymentIntent.amount / 100
+          );
+        }
+        
+        res.json({ 
+          success: true, 
+          message: "Payment confirmed successfully",
+          paymentStatus: paymentIntent.status
+        });
+      } else {
+        res.status(400).json({ 
+          success: false, 
+          message: "Payment not completed",
+          status: paymentIntent.status
+        });
+      }
+    } catch (error: any) {
+      console.error("Payment confirmation error:", error);
+      res.status(500).json({ error: "Failed to confirm payment" });
+    }
+  });
+
+  // Check payment status
+  app.get("/api/payment-status/:paymentIntentId", async (req, res) => {
+    try {
+      const { paymentIntentId } = req.params;
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      res.json({
+        id: paymentIntent.id,
+        amount: paymentIntent.amount / 100,
+        currency: paymentIntent.currency,
+        status: paymentIntent.status,
+        metadata: paymentIntent.metadata
+      });
+    } catch (error: any) {
+      console.error("Payment status check error:", error);
+      res.status(500).json({ error: "Failed to check payment status" });
+    }
+  });
+
+  // Stripe webhook for real-time payment updates
+  app.post("/api/stripe-webhook", async (req, res) => {
+    try {
+      const event = req.body;
+      
+      if (event.type === 'payment_intent.succeeded') {
+        const paymentIntent = event.data.object;
+        const bookingId = paymentIntent.metadata?.bookingId;
+        
+        if (bookingId) {
+          await storage.updateBookingPayment(
+            parseInt(bookingId), 
+            paymentIntent.id, 
+            "succeeded", 
+            paymentIntent.amount / 100
+          );
+        }
+      } else if (event.type === 'payment_intent.payment_failed') {
+        const paymentIntent = event.data.object;
+        const bookingId = paymentIntent.metadata?.bookingId;
+        
+        if (bookingId) {
+          await storage.updateBookingPayment(
+            parseInt(bookingId), 
+            paymentIntent.id, 
+            "failed"
+          );
+        }
+      }
+      
+      res.json({ received: true });
+    } catch (error: any) {
+      console.error("Webhook error:", error);
+      res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

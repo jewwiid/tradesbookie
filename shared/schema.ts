@@ -84,6 +84,12 @@ export const bookings = pgTable("bookings", {
   appFee: decimal("app_fee", { precision: 8, scale: 2 }).notNull(),
   installerEarnings: decimal("installer_earnings", { precision: 8, scale: 2 }).notNull(),
   
+  // Payment tracking
+  paymentIntentId: text("payment_intent_id"),
+  paymentStatus: text("payment_status").default("pending"), // pending, processing, succeeded, failed, canceled
+  paidAmount: decimal("paid_amount", { precision: 8, scale: 2 }),
+  paymentDate: timestamp("payment_date"),
+  
   // Status
   status: text("status").notNull().default("pending"), // pending, confirmed, assigned, in-progress, completed, cancelled
   

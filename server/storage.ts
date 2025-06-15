@@ -30,6 +30,7 @@ export interface IStorage {
   getInstallerBookings(installerId: number): Promise<Booking[]>;
   updateBookingStatus(id: number, status: string): Promise<void>;
   updateBookingAiPreview(id: number, aiPreviewUrl: string): Promise<void>;
+  updateBookingPayment(id: number, paymentIntentId: string, paymentStatus: string, paidAmount?: number): Promise<void>;
   getAllBookings(): Promise<Booking[]>;
 
   // Fee structure operations
@@ -133,6 +134,26 @@ export class DatabaseStorage implements IStorage {
   async updateBookingAiPreview(id: number, aiPreviewUrl: string): Promise<void> {
     await db.update(bookings)
       .set({ aiPreviewUrl, updatedAt: new Date() })
+      .where(eq(bookings.id, id));
+  }
+
+  async updateBookingPayment(id: number, paymentIntentId: string, paymentStatus: string, paidAmount?: number): Promise<void> {
+    const updateData: any = {
+      paymentIntentId,
+      paymentStatus,
+      updatedAt: new Date()
+    };
+    
+    if (paidAmount !== undefined) {
+      updateData.paidAmount = paidAmount.toString();
+    }
+    
+    if (paymentStatus === 'succeeded') {
+      updateData.paymentDate = new Date();
+    }
+
+    await db.update(bookings)
+      .set(updateData)
       .where(eq(bookings.id, id));
   }
 

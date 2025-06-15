@@ -98,7 +98,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(existingUser);
       }
       
-      const user = await storage.createUser(userData);
+      const user = await storage.createUser({
+        id: userData.id || String(Date.now()),
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        profileImageUrl: userData.profileImageUrl,
+      });
       res.json(user);
     } catch (error) {
       console.error("Error creating user:", error);

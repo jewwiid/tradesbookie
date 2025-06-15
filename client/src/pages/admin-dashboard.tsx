@@ -143,16 +143,16 @@ function DashboardOverview({ stats }: { stats: AdminStats | undefined }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
       {metrics.map((metric, index) => (
         <Card key={index}>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{metric.label}</p>
-                <p className="text-3xl font-bold text-gray-900">{metric.value}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">{metric.label}</p>
+                <p className="text-xl sm:text-3xl font-bold text-gray-900">{metric.value}</p>
               </div>
-              <metric.icon className={`h-8 w-8 ${metric.color}`} />
+              <metric.icon className={`h-6 w-6 sm:h-8 sm:w-8 ${metric.color}`} />
             </div>
           </CardContent>
         </Card>
@@ -562,51 +562,51 @@ function PaymentManagement() {
   return (
     <div className="space-y-6">
       {/* Payment Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Successful Payments</p>
-                <p className="text-2xl font-bold text-green-600">{successfulPayments.length}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Successful</p>
+                <p className="text-lg sm:text-2xl font-bold text-green-600">{successfulPayments.length}</p>
               </div>
-              <UserCheck className="h-8 w-8 text-green-600" />
+              <UserCheck className="h-5 w-5 sm:h-8 sm:w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Pending Payments</p>
-                <p className="text-2xl font-bold text-yellow-600">{pendingPayments.length}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-lg sm:text-2xl font-bold text-yellow-600">{pendingPayments.length}</p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
+              <Clock className="h-5 w-5 sm:h-8 sm:w-8 text-yellow-600" />
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Failed Payments</p>
-                <p className="text-2xl font-bold text-red-600">{failedPayments.length}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Failed</p>
+                <p className="text-lg sm:text-2xl font-bold text-red-600">{failedPayments.length}</p>
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
+              <AlertTriangle className="h-5 w-5 sm:h-8 sm:w-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Collected</p>
-                <p className="text-2xl font-bold text-emerald-600">€{totalPaidAmount.toFixed(2)}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Collected</p>
+                <p className="text-lg sm:text-2xl font-bold text-emerald-600">€{totalPaidAmount.toFixed(2)}</p>
               </div>
-              <Euro className="h-8 w-8 text-emerald-600" />
+              <Euro className="h-5 w-5 sm:h-8 sm:w-8 text-emerald-600" />
             </div>
           </CardContent>
         </Card>
@@ -620,8 +620,53 @@ function PaymentManagement() {
             Payment Transactions
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        <CardContent className="p-2 sm:p-6">
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-3">
+            {paymentsWithStatus.map((booking) => (
+              <div key={booking.id} className="bg-gray-50 p-3 rounded-lg border">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-sm font-medium">#{booking.id}</span>
+                  <Badge 
+                    variant={
+                      booking.paymentStatus === 'succeeded' ? 'default' :
+                      booking.paymentStatus === 'pending' || booking.paymentStatus === 'processing' ? 'secondary' :
+                      'destructive'
+                    }
+                  >
+                    {booking.paymentStatus || 'Unknown'}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-500">Amount:</span>
+                    <div className="font-medium">€{booking.paidAmount || booking.totalPrice}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Date:</span>
+                    <div className="font-medium">
+                      {booking.paymentDate ? new Date(booking.paymentDate).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs">
+                  <span className="text-gray-500">Customer:</span>
+                  <div className="font-medium truncate">{booking.customerEmail || 'N/A'}</div>
+                </div>
+                {booking.paymentIntentId && (
+                  <div className="mt-2 text-xs">
+                    <span className="text-gray-500">Payment ID:</span>
+                    <div className="font-mono text-xs truncate">
+                      {booking.paymentIntentId.substring(0, 30)}...
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -804,35 +849,40 @@ export default function AdminDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="overview" className="flex items-center space-x-2">
-              <BarChart3 className="w-4 h-4" />
-              <span>Overview</span>
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-1 h-auto p-1">
+            <TabsTrigger value="overview" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <BarChart3 className="w-4 h-4 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Overview</span>
+              <span className="sm:hidden">Stats</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center space-x-2">
-              <Users className="w-4 h-4" />
+            <TabsTrigger value="users" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Users className="w-4 h-4 md:w-4 md:h-4" />
               <span>Users</span>
             </TabsTrigger>
-            <TabsTrigger value="installers" className="flex items-center space-x-2">
-              <Shield className="w-4 h-4" />
-              <span>Installers</span>
+            <TabsTrigger value="installers" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Shield className="w-4 h-4 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Installers</span>
+              <span className="sm:hidden">Pros</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="flex items-center space-x-2">
-              <Calendar className="w-4 h-4" />
-              <span>Bookings</span>
+            <TabsTrigger value="bookings" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Calendar className="w-4 h-4 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Bookings</span>
+              <span className="sm:hidden">Jobs</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center space-x-2">
-              <DollarSign className="w-4 h-4" />
-              <span>Payments</span>
+            <TabsTrigger value="payments" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <DollarSign className="w-4 h-4 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Payments</span>
+              <span className="sm:hidden">Pay</span>
             </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center space-x-2">
-              <Database className="w-4 h-4" />
-              <span>System</span>
+            <TabsTrigger value="system" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Database className="w-4 h-4 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">System</span>
+              <span className="sm:hidden">Sys</span>
             </TabsTrigger>
-            <TabsTrigger value="fees" className="flex items-center space-x-2">
-              <Percent className="w-4 h-4" />
+            <TabsTrigger value="fees" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Percent className="w-4 h-4 md:w-4 md:h-4" />
               <span>Fees</span>
             </TabsTrigger>
           </TabsList>

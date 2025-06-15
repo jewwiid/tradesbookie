@@ -117,58 +117,30 @@ export default function OurInstallers() {
               ))}
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {installers?.slice(0, 6).map((installer: any) => (
-                <Card key={installer.id} className="h-full hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-gray-900 mb-1">
-                          {installer.businessName || installer.contactName}
-                        </h3>
-                        <div className="flex items-center text-sm text-gray-600 mb-2">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {installer.serviceAreas?.[0] || installer.address || "Dublin"}
-                        </div>
-                      </div>
-                      <div className="flex items-center bg-green-50 px-2 py-1 rounded-full">
-                        <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                        <span className="text-sm font-medium text-gray-900">
-                          {installer.rating || "4.9"}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                        {installer.experience || "5+ years experience"}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                        {installer.specialties?.[0] || "Wall mounting specialist"}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                        {installer.availability || "Same-day available"}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1">
-                      {installer.deviceTypes?.slice(0, 3).map((type: string, index: number) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
-                          {type}
-                        </Badge>
-                      )) || (
-                        <>
-                          <Badge variant="secondary" className="text-xs">TV Mounting</Badge>
-                          <Badge variant="secondary" className="text-xs">Cable Management</Badge>
-                          <Badge variant="secondary" className="text-xs">Setup</Badge>
-                        </>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+            <div className="grid lg:grid-cols-2 gap-8 mb-12">
+              {installers?.map((installer: any) => (
+                <div key={installer.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+                  <InstallerProfile 
+                    installer={installer} 
+                    showContactActions={false}
+                  />
+                  <div className="p-6 pt-0">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="w-full flex items-center gap-2">
+                          <Eye className="h-4 w-4" />
+                          View Full Profile & Reviews
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+                        <InstallerProfile 
+                          installer={installer} 
+                          showContactActions={true}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
               ))}
             </div>
           )}

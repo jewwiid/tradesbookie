@@ -654,22 +654,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ error: "Invalid credentials" });
       }
 
-      // Get actual user/installer data from database
-      let userData = null;
-      if (mockUser.role === 'installer') {
-        userData = await storage.getInstallerByEmail(email);
-      } else if (mockUser.role === 'client') {
-        userData = await storage.getUserByEmail(email);
-      }
-
+      // For mock authentication, return user data based on credentials
       res.json({
         success: true,
         user: {
-          id: userData?.id || 1,
+          id: mockUser.role === 'installer' ? 1 : mockUser.role === 'admin' ? 999 : 2,
           email: mockUser.email,
           name: mockUser.name,
-          role: mockUser.role,
-          ...userData
+          role: mockUser.role
         },
         token: `mock-token-${mockUser.role}-${Date.now()}`
       });

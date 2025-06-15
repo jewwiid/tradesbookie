@@ -2,34 +2,27 @@ import { storage } from "./storage";
 
 export async function createMockProfiles() {
   try {
-    // Create mock installer profile
-    const mockInstaller = await storage.createInstaller({
-      email: "installer@demo.com",
-      phone: "+353851234567",
-      businessName: "Dublin TV Solutions",
-      contactName: "Michael O'Connor",
-      address: "15 Grafton Street, Dublin 2, Ireland",
-      isActive: true
-    });
+    // Check if installer already exists
+    const existingInstaller = await storage.getInstallerByEmail("installer@demo.com");
+    
+    if (!existingInstaller) {
+      // Create mock installer profile
+      const mockInstaller = await storage.createInstaller({
+        email: "installer@demo.com",
+        phone: "+353851234567",
+        businessName: "Dublin TV Solutions",
+        contactName: "Michael O'Connor",
+        address: "15 Grafton Street, Dublin 2, Ireland",
+        isActive: true
+      });
+      console.log("Mock installer created:", mockInstaller.email);
+    } else {
+      console.log("Mock installer already exists");
+    }
 
-    // Create mock client/user profile
-    const mockUser = await storage.createUser({
-      email: "client@demo.com",
-      name: "Sarah Murphy",
-      phone: "+353857654321"
-    });
-
-    console.log("Mock profiles created successfully:");
-    console.log("Installer:", mockInstaller);
-    console.log("User:", mockUser);
-
-    return {
-      installer: mockInstaller,
-      user: mockUser
-    };
+    console.log("Mock credentials available for testing authentication");
   } catch (error) {
     console.error("Error creating mock profiles:", error);
-    throw error;
   }
 }
 

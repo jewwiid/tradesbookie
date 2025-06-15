@@ -31,29 +31,35 @@ export default function Navigation() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <Link href="/how-it-works" className="text-gray-700 hover:text-primary transition-colors">
-                How it Works
-              </Link>
-              <Link href="/pricing" className="text-gray-700 hover:text-primary transition-colors">
-                Pricing
-              </Link>
-              <Link href="/our-installers" className="text-gray-700 hover:text-primary transition-colors">
-                Our Installers
-              </Link>
+              {!isAdmin && (
+                <>
+                  <Link href="/how-it-works" className="text-gray-700 hover:text-primary transition-colors">
+                    How it Works
+                  </Link>
+                  <Link href="/pricing" className="text-gray-700 hover:text-primary transition-colors">
+                    Pricing
+                  </Link>
+                  <Link href="/our-installers" className="text-gray-700 hover:text-primary transition-colors">
+                    Our Installers
+                  </Link>
+                </>
+              )}
               {isAuthenticated && isAdmin && (
                 <Link href="/admin-dashboard" className="text-gray-700 hover:text-primary transition-colors flex items-center">
                   <Shield className="h-4 w-4 mr-1" />
                   Admin
                 </Link>
               )}
-              <Link href="/booking">
-                <Button
-                  variant="default"
-                  className="bg-primary hover:bg-primary/90"
-                >
-                  Book Installation
-                </Button>
-              </Link>
+              {!isAdmin && (
+                <Link href="/booking">
+                  <Button
+                    variant="default"
+                    className="bg-primary hover:bg-primary/90"
+                  >
+                    Book Installation
+                  </Button>
+                </Link>
+              )}
               {isAuthenticated ? (
                 <Link href="/api/logout">
                   <Button variant="outline">
@@ -78,30 +84,34 @@ export default function Navigation() {
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px]">
                 <div className="flex flex-col space-y-4 pt-6">
-                  <Link 
-                    href="/how-it-works" 
-                    className="flex items-center py-2 text-gray-700 hover:text-primary"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Home className="h-5 w-5 mr-3" />
-                    How it Works
-                  </Link>
-                  <Link 
-                    href="/pricing" 
-                    className="flex items-center py-2 text-gray-700 hover:text-primary"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Calendar className="h-5 w-5 mr-3" />
-                    Pricing
-                  </Link>
-                  <Link 
-                    href="/our-installers" 
-                    className="flex items-center py-2 text-gray-700 hover:text-primary"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <User className="h-5 w-5 mr-3" />
-                    Our Installers
-                  </Link>
+                  {!isAdmin && (
+                    <>
+                      <Link 
+                        href="/how-it-works" 
+                        className="flex items-center py-2 text-gray-700 hover:text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Home className="h-5 w-5 mr-3" />
+                        How it Works
+                      </Link>
+                      <Link 
+                        href="/pricing" 
+                        className="flex items-center py-2 text-gray-700 hover:text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Calendar className="h-5 w-5 mr-3" />
+                        Pricing
+                      </Link>
+                      <Link 
+                        href="/our-installers" 
+                        className="flex items-center py-2 text-gray-700 hover:text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <User className="h-5 w-5 mr-3" />
+                        Our Installers
+                      </Link>
+                    </>
+                  )}
                   {isAuthenticated && isAdmin && (
                     <Link 
                       href="/admin-dashboard" 
@@ -112,24 +122,28 @@ export default function Navigation() {
                       Admin Dashboard
                     </Link>
                   )}
-                  <Link 
-                    href="/installer-registration" 
-                    className="flex items-center py-2 text-gray-700 hover:text-primary"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Settings className="h-5 w-5 mr-3" />
-                    Join as Installer
-                  </Link>
-                  <Link 
-                    href="/booking" 
-                    className="w-full"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Button className="w-full justify-start bg-primary hover:bg-primary/90">
-                      <Calendar className="h-5 w-5 mr-3" />
-                      Book Installation
-                    </Button>
-                  </Link>
+                  {!isAdmin && (
+                    <>
+                      <Link 
+                        href="/installer-registration" 
+                        className="flex items-center py-2 text-gray-700 hover:text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Settings className="h-5 w-5 mr-3" />
+                        Join as Installer
+                      </Link>
+                      <Link 
+                        href="/booking" 
+                        className="w-full"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Button className="w-full justify-start bg-primary hover:bg-primary/90">
+                          <Calendar className="h-5 w-5 mr-3" />
+                          Book Installation
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                   {isAuthenticated ? (
                     <Link 
                       href="/api/logout" 

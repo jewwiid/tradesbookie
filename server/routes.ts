@@ -986,7 +986,7 @@ Your inquiry details:
 - Primary Usage: ${preferences?.usage}
 
 Best regards,
-SmartTVMount Team
+tradesbook.ie Team
 
 If you have any urgent questions, please call us at +353 1 XXX XXXX
       `;
@@ -1014,7 +1014,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     const userEmail = req.user?.claims?.email;
     const userId = req.user?.claims?.sub;
     
-    const isAdminUser = userEmail === 'admin@smarttvmount.ie' || 
+    const isAdminUser = userEmail === 'admin@tradesbook.ie' || 
                        userEmail === 'jude.okun@gmail.com' || 
                        userId === 'admin' || 
                        userId === '42442296';

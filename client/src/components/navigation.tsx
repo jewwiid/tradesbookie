@@ -13,7 +13,7 @@ export default function Navigation() {
   const isHome = location === '/';
   
   // Check if user is admin
-  const isAdmin = user?.email === 'admin@smarttvmount.ie' || 
+  const isAdmin = user?.email === 'admin@tradesbook.ie' || 
                   user?.email === 'jude.okun@gmail.com' || 
                   user?.id === 'admin' || 
                   user?.id === '42442296';
@@ -26,7 +26,7 @@ export default function Navigation() {
             {/* Logo */}
             <Link href="/" className="flex items-center">
               <Tv className="h-8 w-8 text-primary mr-3" />
-              <span className="text-xl font-bold text-gray-900">SmartTVMount</span>
+              <span className="text-xl font-bold text-gray-900">tradesbook.ie</span>
             </Link>
 
             {/* Desktop Navigation */}

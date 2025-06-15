@@ -114,7 +114,7 @@ export default function InstallerRegistration() {
             Join Our Installer Network
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Become a certified SmartTVMount installer and connect with customers in your area
+            Become a certified tradesbook.ie installer and connect with customers in your area
           </p>
         </div>
 

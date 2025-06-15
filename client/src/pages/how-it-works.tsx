@@ -55,7 +55,7 @@ export default function HowItWorks() {
       <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            How SmartTVMount Works
+            How tradesbook.ie Works
           </h1>
           <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
             Professional TV installation made simple with AI-powered room analysis and instant booking

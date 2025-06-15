@@ -410,7 +410,7 @@ export default function InstallerDashboard() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Bolt className="w-8 h-8 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">SmartTVMount Pro</h1>
+                <h1 className="text-xl font-bold text-gray-900">tradesbook.ie Pro</h1>
               </div>
               <Badge variant={isOnline ? "default" : "secondary"} className="flex items-center space-x-1">
                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>

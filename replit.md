@@ -1,8 +1,8 @@
-# SmartTVMount - TV Installation Service Platform
+# tradesbook.ie - TV Installation Service Platform
 
 ## Overview
 
-SmartTVMount is a full-stack web application that connects customers with professional TV installers through an intelligent booking system. The platform features AI-powered room analysis, dynamic pricing, QR code tracking, and multi-role dashboards for customers, installers, and administrators.
+tradesbook.ie is a full-stack web application that connects customers with professional TV installers through an intelligent booking system. The platform features AI-powered room analysis, dynamic pricing, QR code tracking, and multi-role dashboards for customers, installers, and administrators.
 
 ## System Architecture
 

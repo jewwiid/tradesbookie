@@ -33,7 +33,7 @@ function Router() {
       <Route path="/installer-registration" component={InstallerRegistration} />
       <Route path="/installer-login" component={InstallerLogin} />
       <Route path="/installer-dashboard/:id?" component={InstallerDashboard} />
-      <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin-dashboard" component={AdminDashboard} />
       
       <Route component={NotFound} />
     </Switch>

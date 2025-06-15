@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import Stripe from "stripe";
 import { storage } from "./storage";
 import { insertBookingSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
@@ -8,6 +9,13 @@ import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2024-06-20",
+});
 
 // Email notification service (placeholder for SendGrid integration)
 async function sendNotificationEmail(to: string, subject: string, content: string) {
@@ -357,6 +365,162 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching admin stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
     }
+  });
+
+  // ====================== STRIPE PAYMENT ENDPOINTS ======================
+  
+  // Create payment intent for booking
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { amount, bookingId, metadata = {} } = req.body;
+      
+      // Validate amount
+      if (!amount || amount < 50) { // Minimum 50 cents
+        return res.status(400).json({ message: "Invalid payment amount" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "eur", // Using EUR for Ireland
+        metadata: {
+          bookingId: bookingId?.toString() || '',
+          service: 'tv_installation',
+          ...metadata
+        },
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error: any) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ 
+        message: "Error creating payment intent: " + error.message 
+      });
+    }
+  });
+
+  // Confirm payment and update booking status
+  app.post("/api/confirm-payment", async (req, res) => {
+    try {
+      const { paymentIntentId, bookingId } = req.body;
+
+      // Retrieve payment intent from Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      if (paymentIntent.status === 'succeeded') {
+        // Update booking status to paid
+        if (bookingId) {
+          await storage.updateBookingStatus(parseInt(bookingId), 'paid');
+          
+          // Get booking details for confirmation
+          const booking = await storage.getBooking(parseInt(bookingId));
+          if (booking) {
+            // Send confirmation email to customer
+            await sendNotificationEmail(
+              booking.customerEmail || '',
+              'Payment Confirmed - TV Installation Booking',
+              `Your payment of €${(paymentIntent.amount / 100).toFixed(2)} has been confirmed. Your TV installation is scheduled and you'll receive further updates soon.`
+            );
+          }
+        }
+
+        res.json({
+          success: true,
+          message: "Payment confirmed successfully",
+          paymentIntent: {
+            id: paymentIntent.id,
+            amount: paymentIntent.amount / 100,
+            currency: paymentIntent.currency,
+            status: paymentIntent.status
+          }
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "Payment not completed",
+          status: paymentIntent.status
+        });
+      }
+    } catch (error: any) {
+      console.error("Error confirming payment:", error);
+      res.status(500).json({ 
+        message: "Error confirming payment: " + error.message 
+      });
+    }
+  });
+
+  // Get payment status
+  app.get("/api/payment-status/:paymentIntentId", async (req, res) => {
+    try {
+      const { paymentIntentId } = req.params;
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      res.json({
+        id: paymentIntent.id,
+        amount: paymentIntent.amount / 100,
+        currency: paymentIntent.currency,
+        status: paymentIntent.status,
+        metadata: paymentIntent.metadata
+      });
+    } catch (error: any) {
+      console.error("Error fetching payment status:", error);
+      res.status(500).json({ 
+        message: "Error fetching payment status: " + error.message 
+      });
+    }
+  });
+
+  // Webhook endpoint for Stripe events
+  app.post("/api/stripe-webhook", async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
+    try {
+      // In production, you'd set up a webhook endpoint secret
+      event = stripe.webhooks.constructEvent(req.body, sig as string, process.env.STRIPE_WEBHOOK_SECRET || '');
+    } catch (err: any) {
+      console.log(`Webhook signature verification failed.`, err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Handle the event
+    switch (event.type) {
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        console.log('Payment succeeded:', paymentIntent.id);
+        
+        // Update booking status if metadata contains bookingId
+        if (paymentIntent.metadata.bookingId) {
+          await storage.updateBookingStatus(
+            parseInt(paymentIntent.metadata.bookingId), 
+            'paid'
+          );
+        }
+        break;
+      
+      case 'payment_intent.payment_failed':
+        const failedPayment = event.data.object;
+        console.log('Payment failed:', failedPayment.id);
+        
+        // Update booking status to payment_failed
+        if (failedPayment.metadata.bookingId) {
+          await storage.updateBookingStatus(
+            parseInt(failedPayment.metadata.bookingId), 
+            'payment_failed'
+          );
+        }
+        break;
+
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+
+    res.json({ received: true });
   });
 
   // Fee structure routes

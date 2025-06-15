@@ -13,6 +13,8 @@ import InstallerRegistration from "@/pages/installer-registration";
 import InstallerLogin from "@/pages/installer-login";
 import QRTracking from "@/pages/qr-tracking";
 import TVRecommendation from "@/pages/tv-recommendation";
+import Checkout from "@/pages/checkout";
+import BookingSuccess from "@/pages/booking-success";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -34,6 +36,8 @@ function Router() {
       <Route path="/installer-login" component={InstallerLogin} />
       <Route path="/installer-dashboard/:id?" component={InstallerDashboard} />
       <Route path="/admin-dashboard" component={AdminDashboard} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/booking-success" component={BookingSuccess} />
       
       <Route component={NotFound} />
     </Switch>

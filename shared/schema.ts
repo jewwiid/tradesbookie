@@ -20,11 +20,8 @@ export const installers = pgTable("installers", {
   email: text("email").notNull().unique(),
   phone: text("phone").notNull(),
   address: text("address"),
-  serviceArea: text("service_area").notNull(),
-  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 }).default("15.00"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Fee structures for multi-tenant support

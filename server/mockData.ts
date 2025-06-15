@@ -9,7 +9,6 @@ export async function createMockProfiles() {
       businessName: "Dublin TV Solutions",
       contactName: "Michael O'Connor",
       address: "15 Grafton Street, Dublin 2, Ireland",
-      serviceArea: "Dublin, Wicklow, Kildare",
       isActive: true
     });
 

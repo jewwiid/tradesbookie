@@ -37,25 +37,30 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await apiRequest("/api/auth/login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(loginForm)
       });
 
-      if (response.success) {
+      const data = await response.json();
+
+      if (data.success) {
         // Store user data and token in localStorage for testing
-        localStorage.setItem("auth_token", response.token);
-        localStorage.setItem("user_data", JSON.stringify(response.user));
+        localStorage.setItem("auth_token", data.token);
+        localStorage.setItem("user_data", JSON.stringify(data.user));
 
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${response.user.name}!`,
+          description: `Welcome back, ${data.user.name}!`,
         });
 
         // Redirect based on user role
-        if (response.user.role === "installer") {
+        if (data.user.role === "installer") {
           setLocation("/installer-dashboard");
-        } else if (response.user.role === "admin") {
+        } else if (data.user.role === "admin") {
           setLocation("/admin-dashboard");
         } else {
           setLocation("/customer-dashboard");

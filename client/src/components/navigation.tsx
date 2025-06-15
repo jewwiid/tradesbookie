@@ -40,6 +40,11 @@ export default function Navigation() {
                   Book Installation
                 </Button>
               </Link>
+              <Link href="/login">
+                <Button variant="outline">
+                  Login
+                </Button>
+              </Link>
             </div>
 
             {/* Mobile menu trigger */}

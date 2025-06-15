@@ -1,13 +1,13 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, insertBookingSchema } from "@shared/schema";
+import { insertBookingSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
-import { mockCredentials } from "./mockData";
 import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 // Email notification service (placeholder for SendGrid integration)
 async function sendNotificationEmail(to: string, subject: string, content: string) {
@@ -39,9 +39,24 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
   // Health check
   app.get("/api/health", (req, res) => {
     res.json({ status: "healthy", timestamp: new Date().toISOString() });
+  });
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
   });
 
   // User routes

@@ -1,6 +1,6 @@
 import { 
   users, bookings, installers, feeStructures, jobAssignments,
-  type User, type InsertUser,
+  type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
   type FeeStructure, type InsertFeeStructure,
@@ -46,7 +46,7 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }

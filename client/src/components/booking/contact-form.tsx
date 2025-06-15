@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, CheckCircle } from "lucide-react";
+import { User, CheckCircle, CreditCard } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +18,7 @@ interface ContactFormProps {
 
 export default function ContactForm({ bookingData, updateBookingData, onComplete }: ContactFormProps) {
   const [showSuccess, setShowSuccess] = useState(false);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
 
   const createBookingMutation = useMutation({
@@ -49,14 +51,12 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       return bookingResponse.json();
     },
     onSuccess: (booking) => {
-      setShowSuccess(true);
       toast({
-        title: "Booking Confirmed!",
-        description: "Your TV installation has been scheduled successfully."
+        title: "Booking Created!",
+        description: "Redirecting to secure payment..."
       });
-      setTimeout(() => {
-        onComplete();
-      }, 2000);
+      // Redirect to checkout page with booking ID
+      setLocation(`/checkout?bookingId=${booking.id}`);
     },
     onError: (error) => {
       toast({
@@ -230,11 +230,11 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         className="gradient-bg w-full text-lg px-8 py-4 h-auto"
       >
         {createBookingMutation.isPending ? (
-          <>Processing...</>
+          <>Creating Booking...</>
         ) : (
           <>
-            <CheckCircle className="w-5 h-5 mr-2" />
-            Complete Booking
+            <CreditCard className="w-5 h-5 mr-2" />
+            Proceed to Payment - €{totalPrice}
           </>
         )}
       </Button>

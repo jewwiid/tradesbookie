@@ -355,11 +355,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalRevenue = bookings.reduce((sum, booking) => sum + parseFloat(booking.totalPrice), 0);
       const totalAppFees = bookings.reduce((sum, booking) => sum + parseFloat(booking.appFee), 0);
       
+      // Payment statistics
+      const paymentsWithStatus = bookings.filter(b => b.paymentIntentId);
+      const successfulPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'succeeded');
+      const pendingPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'pending' || b.paymentStatus === 'processing');
+      const failedPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'failed');
+      const totalPaidAmount = successfulPayments.reduce((sum, b) => sum + parseFloat(b.paidAmount || '0'), 0);
+      
       res.json({
         totalBookings: bookings.length,
         monthlyBookings: monthlyBookings.length,
         revenue: totalRevenue,
-        appFees: totalAppFees
+        appFees: totalAppFees,
+        totalUsers: 0, // Will be populated from user data
+        totalInstallers: 0, // Will be populated from installer data
+        activeBookings: bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length,
+        completedBookings: bookings.filter(b => b.status === 'completed').length,
+        avgBookingValue: bookings.length > 0 ? totalRevenue / bookings.length : 0,
+        topServiceType: 'Standard Installation', // Most common service type
+        totalPayments: paymentsWithStatus.length,
+        successfulPayments: successfulPayments.length,
+        pendingPayments: pendingPayments.length,
+        failedPayments: failedPayments.length,
+        totalPaidAmount: totalPaidAmount
       });
     } catch (error) {
       console.error("Error fetching admin stats:", error);

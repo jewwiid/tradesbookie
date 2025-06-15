@@ -1,10 +1,11 @@
 import { 
-  users, bookings, installers, feeStructures, jobAssignments,
+  users, bookings, installers, feeStructures, jobAssignments, reviews,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
   type FeeStructure, type InsertFeeStructure,
-  type JobAssignment, type InsertJobAssignment
+  type JobAssignment, type InsertJobAssignment,
+  type Review, type InsertReview
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";

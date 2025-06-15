@@ -37,6 +37,11 @@ export const installers = pgTable("installers", {
   email: text("email").notNull().unique(),
   phone: text("phone").notNull(),
   address: text("address"),
+  serviceArea: text("service_area").notNull().default("Dublin"),
+  expertise: jsonb("expertise").default([]), // TV types and services
+  bio: text("bio"), // Short description
+  yearsExperience: integer("years_experience").default(0),
+  profileImageUrl: text("profile_image_url"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -112,15 +117,30 @@ export const jobAssignments = pgTable("job_assignments", {
   status: text("status").notNull().default("assigned"), // assigned, accepted, completed, declined
 });
 
+// Reviews table
+export const reviews = pgTable("reviews", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  installerId: integer("installer_id").references(() => installers.id).notNull(),
+  bookingId: integer("booking_id").references(() => bookings.id).notNull(),
+  rating: integer("rating").notNull(), // 1-5 stars
+  title: text("title"),
+  comment: text("comment"),
+  isVerified: boolean("is_verified").default(true), // Only users who completed bookings can review
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
+  reviews: many(reviews),
 }));
 
 export const installersRelations = relations(installers, ({ many }) => ({
   bookings: many(bookings),
   feeStructures: many(feeStructures),
   jobAssignments: many(jobAssignments),
+  reviews: many(reviews),
 }));
 
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
@@ -150,6 +170,21 @@ export const jobAssignmentsRelations = relations(jobAssignments, ({ one }) => ({
   installer: one(installers, {
     fields: [jobAssignments.installerId],
     references: [installers.id],
+  }),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  user: one(users, {
+    fields: [reviews.userId],
+    references: [users.id],
+  }),
+  installer: one(installers, {
+    fields: [reviews.installerId],
+    references: [installers.id],
+  }),
+  booking: one(bookings, {
+    fields: [reviews.bookingId],
+    references: [bookings.id],
   }),
 }));
 
@@ -187,6 +222,11 @@ export const insertJobAssignmentSchema = createInsertSchema(jobAssignments).omit
   assignedDate: true,
 });
 
+export const insertReviewSchema = createInsertSchema(reviews).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -202,3 +242,6 @@ export type InsertFeeStructure = z.infer<typeof insertFeeStructureSchema>;
 
 export type JobAssignment = typeof jobAssignments.$inferSelect;
 export type InsertJobAssignment = z.infer<typeof insertJobAssignmentSchema>;
+
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = z.infer<typeof insertReviewSchema>;

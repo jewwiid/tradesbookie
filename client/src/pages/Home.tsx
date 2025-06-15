@@ -71,6 +71,33 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
+      
+      {/* User Authentication Header */}
+      {isAuthenticated && user && (
+        <div className="bg-white border-b border-gray-200 px-4 py-3">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              {user.profileImageUrl && (
+                <img 
+                  src={user.profileImageUrl} 
+                  alt="Profile" 
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              )}
+              <span className="text-sm text-gray-700">
+                Welcome, {user.firstName || user.email}
+              </span>
+            </div>
+            <a
+              href="/api/logout"
+              className="inline-flex items-center px-3 py-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <LogOut className="w-4 h-4 mr-1" />
+              Sign out
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-16 lg:py-24">

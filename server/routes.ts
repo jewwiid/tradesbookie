@@ -135,10 +135,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const base64Image = req.file.buffer.toString('base64');
       
-      // Store image without processing - AI analysis will happen at final booking step
+      // Perform room analysis when photo is uploaded
+      let analysis = null;
+      try {
+        analysis = await analyzeRoomForTVPlacement(base64Image);
+      } catch (error) {
+        console.error("Room analysis failed:", error);
+        // Continue without analysis if it fails
+      }
+      
       res.json({
         success: true,
-        imageBase64: base64Image
+        imageBase64: base64Image,
+        analysis: analysis
       });
     } catch (error) {
       console.error("Error uploading photo:", error);

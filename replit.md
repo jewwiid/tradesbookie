@@ -193,6 +193,10 @@ The application now includes a robust fallback system. When the database is unav
 - June 15, 2025: Improved mobile UI design for admin dashboard with responsive tab navigation and mobile-friendly card layouts
 - June 15, 2025: Enhanced tab navigation to work better on mobile with icon/text combinations and responsive grid layouts
 - June 15, 2025: Added mobile card view for payment transactions with separate mobile and desktop layouts for optimal viewing experience
+- June 15, 2025: Fixed AI preview timing issue - AI generation now only occurs at final booking summary step, not during TV size selection
+- June 15, 2025: Restored room analysis functionality to photo upload step, displaying AI recommendations and warnings immediately after upload
+- June 15, 2025: Fixed image persistence throughout booking flow with proper base64 data URL formatting
+- June 15, 2025: Resolved booking creation failures by adding missing createUser method and fixing schema imports
 
 ## User Preferences
 

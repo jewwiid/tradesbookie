@@ -44,7 +44,7 @@ export default function TVSizeSelector({ bookingData, updateBookingData }: TVSiz
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
             <div className="relative">
               <img
-                src={bookingData.roomPhotoBase64}
+                src={`data:image/jpeg;base64,${bookingData.roomPhotoBase64}`}
                 alt="Your room"
                 className="w-full h-64 object-cover rounded-xl"
               />

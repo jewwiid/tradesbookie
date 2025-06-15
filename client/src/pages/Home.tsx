@@ -106,7 +106,7 @@ export default function Home() {
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                 Get personalized TV recommendations and see exactly how your new TV will look mounted on your wall. Professional installation guaranteed.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center lg:justify-start">
                 <Link href="/tv-recommendation">
                   <Button className="inline-flex items-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
                     <Tv className="mr-3 h-5 w-5" />

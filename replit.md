@@ -136,10 +136,11 @@ The application is configured for deployment on Replit with the following setup:
 The application now includes a robust fallback system. When the database is unavailable, it creates temporary bookings for demonstration purposes while providing clear feedback about database connectivity.
 
 **Recent Major Updates:**
+- **Guest Access System**: Modified authentication to allow public access to main features with guest booking limits (2 tries per day)
 - **Replit Auth Integration**: Replaced custom authentication with proper OIDC implementation using Replit as identity provider
 - **Secure Session Management**: Implemented PostgreSQL-backed session storage with proper user management
-- **Authentication Flow**: Created landing page for unauthenticated users with secure login redirect
-- **User Operations**: Added mandatory user operations (getUser, upsertUser) for Replit Auth compatibility
+- **Freemium Model**: Users can try AI preview service twice daily without registration, unlimited access with authentication
+- **Usage Tracking**: Local storage tracks daily usage with automatic reset, encouraging user registration after limits
 - **Uber-Style System**: Transformed installer dashboard into real-time request matching system
 - **Interactive Map**: Added clickable Ireland map with color-coded request markers
 - **Notification System**: Implemented email/SMS notifications for booking confirmations
@@ -171,6 +172,9 @@ The application now includes a robust fallback system. When the database is unav
 - June 15, 2025: Implemented secure session management with PostgreSQL storage and proper user operations
 - June 15, 2025: Added authentication middleware and landing page for unauthenticated users
 - June 15, 2025: Created user authentication header with profile information and logout functionality
+- June 15, 2025: Implemented guest booking system allowing 2 free AI preview tries per day without registration
+- June 15, 2025: Modified authentication flow to show public landing page with freemium access model
+- June 15, 2025: Added usage tracking and daily reset functionality for guest users
 
 ## User Preferences
 

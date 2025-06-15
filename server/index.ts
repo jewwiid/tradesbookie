@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeDatabase } from "./db";
+import { createMockProfiles } from "./mockData";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -40,6 +41,14 @@ app.use((req, res, next) => {
 (async () => {
   // Initialize database tables
   await initializeDatabase();
+  
+  // Create mock profiles for testing
+  try {
+    await createMockProfiles();
+  } catch (error) {
+    // Profiles might already exist, continue
+    console.log("Mock profiles setup:", error);
+  }
   
   const server = await registerRoutes(app);
 

@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertUserSchema, insertBookingSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
+import { mockCredentials } from "./mockData";
 import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
@@ -633,6 +634,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("TV recommendation error:", error);
       res.status(500).json({ error: "Failed to generate TV recommendation" });
     }
+  });
+
+  // Mock Authentication API for testing
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+      }
+
+      // Check against mock credentials
+      const mockUser = Object.values(mockCredentials).find(
+        cred => cred.email === email && cred.password === password
+      );
+
+      if (!mockUser) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Get actual user/installer data from database
+      let userData = null;
+      if (mockUser.role === 'installer') {
+        userData = await storage.getInstallerByEmail(email);
+      } else if (mockUser.role === 'client') {
+        userData = await storage.getUserByEmail(email);
+      }
+
+      res.json({
+        success: true,
+        user: {
+          id: userData?.id || 1,
+          email: mockUser.email,
+          name: mockUser.name,
+          role: mockUser.role,
+          ...userData
+        },
+        token: `mock-token-${mockUser.role}-${Date.now()}`
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  // Get mock credentials for testing
+  app.get('/api/auth/mock-credentials', (req, res) => {
+    res.json({
+      installer: {
+        email: mockCredentials.installer.email,
+        password: mockCredentials.installer.password,
+        name: mockCredentials.installer.name
+      },
+      client: {
+        email: mockCredentials.client.email,
+        password: mockCredentials.client.password,
+        name: mockCredentials.client.name
+      },
+      admin: {
+        email: mockCredentials.admin.email,
+        password: mockCredentials.admin.password,
+        name: mockCredentials.admin.name
+      }
+    });
   });
 
   // TV Recommendation Contact Form

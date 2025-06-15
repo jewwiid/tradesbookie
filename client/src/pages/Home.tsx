@@ -72,12 +72,12 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       
-      {/* User Authentication Header */}
+      {/* User Authentication Header - only show if authenticated */}
       {isAuthenticated && user && (
         <div className="bg-white border-b border-gray-200 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              {user.profileImageUrl && (
+              {user?.profileImageUrl && (
                 <img 
                   src={user.profileImageUrl} 
                   alt="Profile" 
@@ -85,7 +85,7 @@ export default function Home() {
                 />
               )}
               <span className="text-sm text-gray-700">
-                Welcome, {user.firstName || user.email}
+                Welcome, {user?.firstName || user?.email}
               </span>
             </div>
             <a

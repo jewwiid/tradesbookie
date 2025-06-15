@@ -1,14 +1,22 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Tv, Menu, Home, Calendar, Settings, User } from 'lucide-react';
+import { Tv, Menu, Home, Calendar, Settings, User, Shield } from 'lucide-react';
 
 export default function Navigation() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   const isHome = location === '/';
+  
+  // Check if user is admin
+  const isAdmin = user?.email === 'admin@smarttvmount.ie' || 
+                  user?.email === 'jude.okun@gmail.com' || 
+                  user?.id === 'admin' || 
+                  user?.id === '42442296';
 
   return (
     <>
@@ -32,6 +40,12 @@ export default function Navigation() {
               <span className="text-gray-700 hover:text-primary transition-colors cursor-pointer">
                 Our Installers
               </span>
+              {isAuthenticated && isAdmin && (
+                <Link href="/admin-dashboard" className="text-gray-700 hover:text-primary transition-colors flex items-center">
+                  <Shield className="h-4 w-4 mr-1" />
+                  Admin
+                </Link>
+              )}
               <Link href="/booking">
                 <Button
                   variant="default"
@@ -40,11 +54,19 @@ export default function Navigation() {
                   Book Installation
                 </Button>
               </Link>
-              <Link href="/login">
-                <Button variant="outline">
-                  Login
-                </Button>
-              </Link>
+              {isAuthenticated ? (
+                <Link href="/api/logout">
+                  <Button variant="outline">
+                    Logout
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/api/login">
+                  <Button variant="outline">
+                    Sign In
+                  </Button>
+                </Link>
+              )}
             </div>
 
             {/* Mobile menu trigger */}
@@ -72,6 +94,16 @@ export default function Navigation() {
                     <User className="h-5 w-5 mr-3" />
                     Our Installers
                   </span>
+                  {isAuthenticated && isAdmin && (
+                    <Link 
+                      href="/admin-dashboard" 
+                      className="flex items-center py-2 text-gray-700 hover:text-primary"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Shield className="h-5 w-5 mr-3" />
+                      Admin Dashboard
+                    </Link>
+                  )}
                   <Link 
                     href="/installer-registration" 
                     className="flex items-center py-2 text-gray-700 hover:text-primary"
@@ -90,6 +122,29 @@ export default function Navigation() {
                       Book Installation
                     </Button>
                   </Link>
+                  {isAuthenticated ? (
+                    <Link 
+                      href="/api/logout" 
+                      className="w-full"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button variant="outline" className="w-full justify-start">
+                        <User className="h-5 w-5 mr-3" />
+                        Logout
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link 
+                      href="/api/login" 
+                      className="w-full"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button variant="outline" className="w-full justify-start">
+                        <User className="h-5 w-5 mr-3" />
+                        Sign In
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

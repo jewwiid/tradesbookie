@@ -31,15 +31,15 @@ export default function Navigation() {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <Link href="/" className="text-gray-700 hover:text-primary transition-colors">
+              <Link href="/how-it-works" className="text-gray-700 hover:text-primary transition-colors">
                 How it Works
               </Link>
-              <span className="text-gray-700 hover:text-primary transition-colors cursor-pointer">
+              <Link href="/pricing" className="text-gray-700 hover:text-primary transition-colors">
                 Pricing
-              </span>
-              <span className="text-gray-700 hover:text-primary transition-colors cursor-pointer">
+              </Link>
+              <Link href="/our-installers" className="text-gray-700 hover:text-primary transition-colors">
                 Our Installers
-              </span>
+              </Link>
               {isAuthenticated && isAdmin && (
                 <Link href="/admin-dashboard" className="text-gray-700 hover:text-primary transition-colors flex items-center">
                   <Shield className="h-4 w-4 mr-1" />
@@ -79,21 +79,29 @@ export default function Navigation() {
               <SheetContent side="right" className="w-[280px]">
                 <div className="flex flex-col space-y-4 pt-6">
                   <Link 
-                    href="/" 
+                    href="/how-it-works" 
                     className="flex items-center py-2 text-gray-700 hover:text-primary"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <Home className="h-5 w-5 mr-3" />
                     How it Works
                   </Link>
-                  <span className="flex items-center py-2 text-gray-700 hover:text-primary cursor-pointer">
+                  <Link 
+                    href="/pricing" 
+                    className="flex items-center py-2 text-gray-700 hover:text-primary"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     <Calendar className="h-5 w-5 mr-3" />
                     Pricing
-                  </span>
-                  <span className="flex items-center py-2 text-gray-700 hover:text-primary cursor-pointer">
+                  </Link>
+                  <Link 
+                    href="/our-installers" 
+                    className="flex items-center py-2 text-gray-700 hover:text-primary"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     <User className="h-5 w-5 mr-3" />
                     Our Installers
-                  </span>
+                  </Link>
                   {isAuthenticated && isAdmin && (
                     <Link 
                       href="/admin-dashboard" 

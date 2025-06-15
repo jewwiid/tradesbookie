@@ -5,6 +5,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProtectedBooking } from "@/components/ProtectedBooking";
 import Home from "@/pages/Home";
+import HowItWorks from "@/pages/how-it-works";
+import Pricing from "@/pages/pricing";
+import OurInstallers from "@/pages/our-installers";
 import BookingFlow from "@/pages/booking-flow";
 import CustomerDashboard from "@/pages/customer-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
@@ -22,6 +25,9 @@ function Router() {
     <Switch>
       {/* Public routes - accessible without authentication */}
       <Route path="/" component={Home} />
+      <Route path="/how-it-works" component={HowItWorks} />
+      <Route path="/pricing" component={Pricing} />
+      <Route path="/our-installers" component={OurInstallers} />
       <Route path="/tv-recommendation" component={TVRecommendation} />
       <Route path="/track/:qrCode" component={QRTracking} />
       

@@ -347,28 +347,90 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
               </div>
               
               {bookingData.roomAnalysis && (
-                <div className="mt-4 p-4 bg-muted rounded-lg text-left">
-                  <h4 className="font-semibold text-foreground mb-2">AI Room Analysis</h4>
-                  {bookingData.roomAnalysis.recommendations?.length > 0 && (
-                    <div className="mb-2">
-                      <h5 className="text-sm font-medium text-foreground">Recommendations:</h5>
-                      <ul className="text-sm text-muted-foreground list-disc list-inside">
-                        {bookingData.roomAnalysis.recommendations.map((rec, idx) => (
-                          <li key={idx}>{rec}</li>
-                        ))}
-                      </ul>
+                <div className="mt-4 space-y-4">
+                  {/* Installation Difficulty Assessment */}
+                  {bookingData.roomAnalysis.difficultyAssessment && (
+                    <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                      <h4 className="font-semibold text-foreground mb-3 flex items-center">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                        Installation Difficulty Assessment
+                      </h4>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-medium text-gray-600">COMPLEXITY</span>
+                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              bookingData.roomAnalysis.difficultyAssessment.level === 'easy' ? 'bg-green-100 text-green-700' :
+                              bookingData.roomAnalysis.difficultyAssessment.level === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
+                              bookingData.roomAnalysis.difficultyAssessment.level === 'difficult' ? 'bg-orange-100 text-orange-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {bookingData.roomAnalysis.difficultyAssessment.level.toUpperCase()}
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-xs font-medium text-gray-600">ESTIMATED TIME</span>
+                          <p className="text-sm font-medium text-foreground">{bookingData.roomAnalysis.difficultyAssessment.estimatedTime}</p>
+                        </div>
+                      </div>
+
+                      {bookingData.roomAnalysis.difficultyAssessment.factors?.length > 0 && (
+                        <div className="mb-3">
+                          <h6 className="text-xs font-medium text-gray-600 mb-1">KEY FACTORS</h6>
+                          <div className="flex flex-wrap gap-1">
+                            {bookingData.roomAnalysis.difficultyAssessment.factors.map((factor, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-white rounded-md text-xs text-gray-700 border">
+                                {factor}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {bookingData.roomAnalysis.difficultyAssessment.priceImpact !== 'none' && (
+                        <div className="flex items-center gap-2 p-2 bg-white rounded-md border">
+                          <div className={`w-2 h-2 rounded-full ${
+                            bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'low' ? 'bg-yellow-400' :
+                            bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'medium' ? 'bg-orange-400' :
+                            'bg-red-400'
+                          }`}></div>
+                          <span className="text-xs font-medium text-gray-600">PRICE IMPACT:</span>
+                          <span className="text-xs font-medium text-gray-800">
+                            {bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'low' ? '+10-20%' :
+                             bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'medium' ? '+20-40%' :
+                             '+40%+'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
-                  {bookingData.roomAnalysis.warnings?.length > 0 && (
-                    <div>
-                      <h5 className="text-sm font-medium text-warning">Considerations:</h5>
-                      <ul className="text-sm text-muted-foreground list-disc list-inside">
-                        {bookingData.roomAnalysis.warnings.map((warning, idx) => (
-                          <li key={idx}>{warning}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+
+                  {/* Room Analysis */}
+                  <div className="p-4 bg-muted rounded-lg text-left">
+                    <h4 className="font-semibold text-foreground mb-2">AI Room Analysis</h4>
+                    {bookingData.roomAnalysis.recommendations?.length > 0 && (
+                      <div className="mb-2">
+                        <h5 className="text-sm font-medium text-foreground">Recommendations:</h5>
+                        <ul className="text-sm text-muted-foreground list-disc list-inside">
+                          {bookingData.roomAnalysis.recommendations.map((rec, idx) => (
+                            <li key={idx}>{rec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {bookingData.roomAnalysis.warnings?.length > 0 && (
+                      <div>
+                        <h5 className="text-sm font-medium text-warning">Considerations:</h5>
+                        <ul className="text-sm text-muted-foreground list-disc list-inside">
+                          {bookingData.roomAnalysis.warnings.map((warning, idx) => (
+                            <li key={idx}>{warning}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

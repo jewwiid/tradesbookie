@@ -96,6 +96,14 @@ export async function analyzeRoomForTVPlacement(roomImageBase64: string): Promis
   recommendations: string[];
   warnings: string[];
   confidence: "high" | "medium" | "low";
+  difficultyAssessment: {
+    level: "easy" | "moderate" | "difficult" | "expert";
+    factors: string[];
+    estimatedTime: string;
+    additionalCosts: string[];
+    skillsRequired: string[];
+    priceImpact: "none" | "low" | "medium" | "high";
+  };
 }> {
   try {
     const response = await openai.chat.completions.create({
@@ -103,14 +111,41 @@ export async function analyzeRoomForTVPlacement(roomImageBase64: string): Promis
       messages: [
         {
           role: "system",
-          content: "You are a professional TV installation expert. Analyze room images and provide installation recommendations and warnings. Respond in JSON format."
+          content: "You are a professional TV installation expert with 15+ years experience. Analyze room images for TV installation, providing detailed difficulty assessment including time estimates, potential additional costs, and skill requirements."
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `Analyze this room for TV installation. Provide recommendations for optimal TV placement and any warnings about potential issues. Format your response as JSON: {"recommendations": ["list of recommendations"], "warnings": ["list of warnings"], "confidence": "high/medium/low"}`
+              text: `Analyze this room for TV installation difficulty. Consider wall type, accessibility, cable routing complexity, mounting challenges, safety factors, and structural considerations.
+
+              Provide analysis in this JSON format:
+              {
+                "recommendations": ["specific placement recommendations"],
+                "warnings": ["safety or difficulty warnings"],
+                "confidence": "high/medium/low",
+                "difficultyAssessment": {
+                  "level": "easy/moderate/difficult/expert",
+                  "factors": ["specific factors affecting difficulty"],
+                  "estimatedTime": "time estimate (e.g., 1-2 hours)",
+                  "additionalCosts": ["potential extra costs like special tools, materials"],
+                  "skillsRequired": ["required expertise level"],
+                  "priceImpact": "none/low/medium/high"
+                }
+              }
+
+              Difficulty Levels:
+              - Easy: Standard drywall, good access, simple cable routing (1-2 hours)
+              - Moderate: Minor obstacles, basic concealment needed (2-3 hours)
+              - Difficult: Complex routing, challenging wall types, height/access issues (3-4 hours)
+              - Expert: Structural work, complex electrical, safety concerns (4+ hours)
+
+              Price Impact:
+              - None: Standard installation cost
+              - Low: 10-20% increase
+              - Medium: 20-40% increase  
+              - High: 40%+ increase`
             },
             {
               type: "image_url",
@@ -122,21 +157,37 @@ export async function analyzeRoomForTVPlacement(roomImageBase64: string): Promis
         }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 800,
+      max_tokens: 1000,
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
     return {
       recommendations: result.recommendations || [],
       warnings: result.warnings || [],
-      confidence: result.confidence || "medium"
+      confidence: result.confidence || "medium",
+      difficultyAssessment: {
+        level: result.difficultyAssessment?.level || "moderate",
+        factors: result.difficultyAssessment?.factors || ["Standard installation assessment"],
+        estimatedTime: result.difficultyAssessment?.estimatedTime || "2-3 hours",
+        additionalCosts: result.difficultyAssessment?.additionalCosts || [],
+        skillsRequired: result.difficultyAssessment?.skillsRequired || ["Professional installer"],
+        priceImpact: result.difficultyAssessment?.priceImpact || "none"
+      }
     };
   } catch (error) {
     console.error("Error analyzing room:", error);
     return {
-      recommendations: ["Unable to analyze room automatically. Our installer will assess during visit."],
-      warnings: ["Please ensure adequate wall space and power outlets are available."],
-      confidence: "low"
+      recommendations: ["Room analysis will be completed during installer visit"],
+      warnings: ["Ensure adequate wall space and power outlets are available"],
+      confidence: "low",
+      difficultyAssessment: {
+        level: "moderate",
+        factors: ["Manual assessment required"],
+        estimatedTime: "2-4 hours",
+        additionalCosts: ["Assessment during visit"],
+        skillsRequired: ["Professional installer"],
+        priceImpact: "none"
+      }
     };
   }
 }

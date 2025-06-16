@@ -7,6 +7,14 @@ export interface BookingData {
     recommendations: string[];
     warnings: string[];
     confidence: "high" | "medium" | "low";
+    difficultyAssessment?: {
+      level: "easy" | "moderate" | "difficult" | "expert";
+      factors: string[];
+      estimatedTime: string;
+      additionalCosts: string[];
+      skillsRequired: string[];
+      priceImpact: "none" | "low" | "medium" | "high";
+    };
   };
 
   // Step 2: TV Size

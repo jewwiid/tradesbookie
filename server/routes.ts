@@ -209,8 +209,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pricing = calculateBookingPricing(
         rawData.serviceType || 'bronze',
         rawData.addons || [],
-        rawData.installerId || 1
+        rawData.installerId || null
       );
+      
+      // Set installerId to null for initial booking creation
+      rawData.installerId = null;
       
       // Add calculated pricing to data as strings
       rawData.basePrice = pricing.basePrice.toFixed(2);
@@ -1469,7 +1472,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 function calculateBookingPricing(
   serviceType: string,
   addons: Array<{ key: string; name: string; price: number }>,
-  installerId: number
+  installerId: number | null
 ) {
   // Base pricing structure
   const basePrices: Record<string, number> = {

@@ -1461,6 +1461,64 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       res.json(mockLocations);
   });
 
+  // Customer selects installer from those who accepted
+  app.post("/api/bookings/:bookingId/select-installer", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const { installerId } = req.body;
+
+      if (!installerId) {
+        return res.status(400).json({ message: "Installer ID required" });
+      }
+
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Update booking with selected installer
+      await storage.updateBookingInstaller(bookingId, installerId);
+      await storage.updateBookingStatus(bookingId, 'installer_assigned');
+
+      // Update job assignment status for selected installer
+      await storage.updateJobInstallerStatus(bookingId, installerId, 'assigned');
+
+      res.json({ 
+        success: true,
+        message: "Installer selected successfully. Installation can now be scheduled." 
+      });
+    } catch (error) {
+      console.error("Error selecting installer:", error);
+      res.status(500).json({ message: "Failed to select installer" });
+    }
+  });
+
+  // Get installers who accepted a specific booking
+  app.get("/api/bookings/:bookingId/accepted-installers", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const assignments = await storage.getBookingJobAssignments(bookingId);
+      
+      const acceptedInstallers = await Promise.all(
+        assignments
+          .filter(assignment => assignment.status === 'accepted')
+          .map(async assignment => {
+            const installer = await storage.getInstaller(assignment.installerId);
+            return {
+              ...installer,
+              assignmentId: assignment.id,
+              acceptedAt: assignment.createdAt
+            };
+          })
+      );
+
+      res.json(acceptedInstallers);
+    } catch (error) {
+      console.error("Error fetching accepted installers:", error);
+      res.status(500).json({ message: "Failed to fetch accepted installers" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

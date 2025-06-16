@@ -881,6 +881,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate product image for TV recommendations
+  app.post('/api/generate-product-image', async (req, res) => {
+    try {
+      const { brand, model, tvType, size } = req.body;
+      
+      if (!brand || !model || !tvType) {
+        return res.status(400).json({ error: 'Missing required product information' });
+      }
+
+      const { getProductImageWithFallback } = await import('./productImageService');
+      const imageUrl = await getProductImageWithFallback({ brand, model, tvType, size });
+      
+      res.json({ success: true, imageUrl });
+    } catch (error) {
+      console.error('Product image generation error:', error);
+      res.status(500).json({ error: 'Failed to generate product image' });
+    }
+  });
+
   // Mock Authentication API for testing
   app.post('/api/auth/login', async (req, res) => {
     try {

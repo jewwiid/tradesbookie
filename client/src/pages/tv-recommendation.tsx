@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Tv, Zap, Eye, Gamepad2, DollarSign, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
+import { Tv, Zap, Eye, Gamepad2, DollarSign, ArrowLeft, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
@@ -393,6 +393,42 @@ I'm interested in learning more about this TV and discussing purchase options. P
             </CardContent>
           </Card>
 
+          {/* Product Image and Harvey Norman Partnership */}
+          <Card className="mb-6 border-orange-200 bg-gradient-to-r from-orange-50 to-red-50">
+            <CardHeader className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                <div className="bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-medium mr-3">
+                  Official Partner
+                </div>
+                <CardTitle className="text-xl text-orange-800">Harvey Norman Exclusive</CardTitle>
+              </div>
+              <CardDescription className="text-orange-700">
+                Best prices guaranteed with our official retail partner
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center space-y-4">
+              {/* Product Image */}
+              <ProductImageDisplay 
+                brand={recommendation.model?.split(' ')[0] || 'Samsung'}
+                model={recommendation.model || 'Premium TV'}
+                tvType={recommendation.type}
+                priceRange={recommendation.priceRange}
+              />
+              
+              <div className="bg-white rounded-lg p-4 border-2 border-orange-200">
+                <h4 className="font-bold text-orange-800 mb-2">🎯 Guaranteed Best Price at Harvey Norman</h4>
+                <p className="text-sm text-gray-700 mb-3">
+                  Book a consultation with our Harvey Norman TV experts and save up to €200 on your purchase + free installation quote
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800">Price Match Guarantee</Badge>
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800">Expert Consultation</Badge>
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800">Installation Package Deals</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Real-Time Market Data Section */}
           {recommendation.realTimeData && (
             <>
@@ -405,7 +441,12 @@ I'm interested in learning more about this TV and discussing purchase options. P
                   <CardContent>
                     <div className="grid gap-4">
                       {recommendation.currentModels.map((model, index) => (
-                        <div key={index} className="border rounded-lg p-4 hover:bg-gray-50">
+                        <div key={index} className="border rounded-lg p-4 hover:bg-gray-50 relative">
+                          {model.retailers && model.retailers.includes('Harvey Norman') && (
+                            <div className="absolute top-2 right-2">
+                              <Badge className="bg-orange-600 text-white">Best Deal</Badge>
+                            </div>
+                          )}
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-semibold">{model.brand} {model.model}</h4>
                             <Badge variant="outline" className="text-green-600">
@@ -415,7 +456,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
                           <p className="text-sm text-gray-600 mb-2">{model.currentAvailability}</p>
                           {model.keyFeatures && (
                             <div className="flex flex-wrap gap-1 mb-2">
-                              {model.keyFeatures.slice(0, 3).map((feature, idx) => (
+                              {model.keyFeatures.slice(0, 3).map((feature: string, idx: number) => (
                                 <Badge key={idx} variant="secondary" className="text-xs">
                                   {feature}
                                 </Badge>
@@ -424,7 +465,9 @@ I'm interested in learning more about this TV and discussing purchase options. P
                           )}
                           {model.retailers && (
                             <p className="text-xs text-gray-500">
-                              Available at: {model.retailers.join(', ')}
+                              Available at: {model.retailers.map((retailer: string) => 
+                                retailer === 'Harvey Norman' ? `🏆 ${retailer}` : retailer
+                              ).join(', ')}
                             </p>
                           )}
                         </div>
@@ -478,21 +521,79 @@ I'm interested in learning more about this TV and discussing purchase options. P
             </>
           )}
 
-          <div className="text-center space-y-4">
-            <p className="text-gray-600">
-              Ready to book your TV installation? Our certified installers can help you set up your new TV perfectly.
-            </p>
+          {/* Harvey Norman Guarantee Section */}
+          <Card className="mb-6 border-orange-300 bg-gradient-to-r from-orange-100 to-red-100">
+            <CardContent className="p-6 text-center">
+              <div className="mb-4">
+                <h3 className="text-2xl font-bold text-orange-800 mb-2">🏆 Harvey Norman Price Guarantee</h3>
+                <p className="text-orange-700 font-medium">
+                  Book an in-store consultation and we guarantee you'll save money
+                </p>
+              </div>
+              
+              <div className="grid md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white rounded-lg p-4 border border-orange-200">
+                  <div className="text-orange-600 text-3xl mb-2">💰</div>
+                  <h4 className="font-semibold text-gray-800">Best Price Match</h4>
+                  <p className="text-sm text-gray-600">We'll beat any competitor's price by €10</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-orange-200">
+                  <div className="text-orange-600 text-3xl mb-2">🎯</div>
+                  <h4 className="font-semibold text-gray-800">Expert Guidance</h4>
+                  <p className="text-sm text-gray-600">Personal consultation with TV specialists</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-orange-200">
+                  <div className="text-orange-600 text-3xl mb-2">📦</div>
+                  <h4 className="font-semibold text-gray-800">Installation Bundle</h4>
+                  <p className="text-sm text-gray-600">Professional setup + mounting service</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 border-2 border-orange-300 mb-4">
+                <p className="text-lg font-bold text-orange-800 mb-2">
+                  Exclusive Offer: Save up to €200 + Free Installation Quote
+                </p>
+                <p className="text-sm text-gray-700">
+                  Valid when you book through tradesbook.ie and mention this recommendation
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="text-center space-y-6">
+            <div className="grid md:grid-cols-2 gap-4">
+              <Button 
+                onClick={handleContactSalesperson} 
+                size="lg"
+                className="bg-orange-600 hover:bg-orange-700 text-white h-16 text-lg font-semibold"
+              >
+                <div className="text-center">
+                  <div>🏆 Book Harvey Norman Consultation</div>
+                  <div className="text-sm opacity-90">Guaranteed Best Price + €200 Savings</div>
+                </div>
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/booking'}
+                size="lg"
+                className="bg-blue-600 hover:bg-blue-700 text-white h-16 text-lg font-semibold"
+              >
+                <div className="text-center">
+                  <div>📺 Book TV Installation</div>
+                  <div className="text-sm opacity-90">Professional Setup Service</div>
+                </div>
+              </Button>
+            </div>
+            
             <div className="flex justify-center gap-4">
-              <Button onClick={handleContactSalesperson} className="bg-green-600 hover:bg-green-700">
-                Contact TV Expert
-              </Button>
-              <Button onClick={() => window.location.href = '/booking'}>
-                Book Installation
-              </Button>
-              <Button onClick={handleRestart} variant="outline">
+              <Button onClick={handleRestart} variant="outline" size="lg">
                 Get Another Recommendation
               </Button>
             </div>
+            
+            <p className="text-sm text-gray-500 max-w-2xl mx-auto">
+              tradesbook.ie is Harvey Norman's official installation partner. 
+              All consultations include expert TV selection, price matching, and professional installation quotes.
+            </p>
           </div>
         </div>
       </div>

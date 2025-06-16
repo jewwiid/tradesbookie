@@ -466,6 +466,42 @@ I'm interested in learning more about this TV and discussing purchase options. P
                   ))}
                 </div>
               </div>
+
+              {/* Harvey Norman Exclusive Offer - Integrated */}
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-4 mt-6">
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-3">
+                    <div className="bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-medium mr-2">
+                      Official Partner
+                    </div>
+                    <h3 className="text-lg font-bold text-orange-800">Harvey Norman Exclusive</h3>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-4 border border-orange-200 mb-3">
+                    <p className="text-orange-800 font-bold text-lg mb-1">
+                      Save up to €200 + Price Match Guarantee
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      Book consultation through tradesbook.ie for guaranteed best price
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="bg-white rounded p-2 border border-orange-200">
+                      <div className="text-orange-600 text-lg mb-1">💰</div>
+                      <div className="font-medium text-gray-800">Best Price</div>
+                    </div>
+                    <div className="bg-white rounded p-2 border border-orange-200">
+                      <div className="text-orange-600 text-lg mb-1">🎯</div>
+                      <div className="font-medium text-gray-800">Expert Advice</div>
+                    </div>
+                    <div className="bg-white rounded p-2 border border-orange-200">
+                      <div className="text-orange-600 text-lg mb-1">📦</div>
+                      <div className="font-medium text-gray-800">Installation</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

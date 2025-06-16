@@ -467,6 +467,91 @@ I'm interested in learning more about this TV and discussing purchase options. P
                 </div>
               </div>
 
+              {/* Current TV Models Available */}
+              {recommendation.currentModels && recommendation.currentModels.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    Recommended TV Models Available Now
+                  </h3>
+                  <div className="grid gap-4">
+                    {recommendation.currentModels.map((tv, index) => (
+                      <Card key={index} className="border-2 border-blue-200 bg-blue-50/30">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h4 className="text-lg font-bold text-gray-900">{tv.model}</h4>
+                              <p className="text-blue-600 font-medium">{tv.brand}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xl font-bold text-green-600">{tv.price}</p>
+                              <p className="text-sm text-gray-600">{tv.currentAvailability}</p>
+                            </div>
+                          </div>
+
+                          {tv.keyFeatures && tv.keyFeatures.length > 0 && (
+                            <div className="mb-3">
+                              <div className="flex flex-wrap gap-1">
+                                {tv.keyFeatures.map((feature, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    {feature}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="grid md:grid-cols-2 gap-3 mb-3">
+                            {tv.pros && tv.pros.length > 0 && (
+                              <div>
+                                <h6 className="text-xs font-medium text-gray-600 mb-1">ADVANTAGES</h6>
+                                <ul className="text-xs space-y-1">
+                                  {tv.pros.slice(0, 3).map((pro, idx) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-green-500 mr-1">✓</span>
+                                      <span className="text-gray-700">{pro}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {tv.cons && tv.cons.length > 0 && (
+                              <div>
+                                <h6 className="text-xs font-medium text-gray-600 mb-1">CONSIDERATIONS</h6>
+                                <ul className="text-xs space-y-1">
+                                  {tv.cons.slice(0, 3).map((con, idx) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-amber-500 mr-1">⚠</span>
+                                      <span className="text-gray-700">{con}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              {tv.expertRating && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {tv.expertRating} Expert Rating
+                                </Badge>
+                              )}
+                            </div>
+                            {tv.retailers && tv.retailers.length > 0 && (
+                              <div className="text-xs text-gray-600">
+                                Available at: {tv.retailers.slice(0, 2).join(", ")}
+                              </div>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Harvey Norman Exclusive Offer - Integrated */}
               <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-lg p-4 mt-6">
                 <div className="text-center">

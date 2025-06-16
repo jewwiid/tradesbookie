@@ -48,9 +48,33 @@ export async function getCurrentTVRecommendations(answers: TVRecommendationQuery
           {
             role: 'system',
             content: `You are a TV technology expert providing current, real-time recommendations for Irish customers in 2025. 
-            Focus on TVs available in Ireland through major retailers like Harvey Norman, Currys, DID Electrical, and online.
-            Include current pricing, availability, and recent reviews. Format response as JSON matching the EnhancedTVRecommendation interface.
-            Search for the most recent information and current market prices.`
+
+CRITICAL: Search for and return ACTUAL TV MODELS with exact model numbers currently available in Ireland.
+
+FORMAT: Return valid JSON matching this structure:
+{
+  "type": "OLED/QLED/LED",
+  "currentModels": [
+    {
+      "model": "Exact Model Name with Number (e.g. Samsung QN95C 65-inch)",
+      "brand": "Samsung/LG/Sony/TCL/Hisense", 
+      "price": "€X,XXX (current Irish retail price)",
+      "currentAvailability": "In Stock/Limited/Pre-order",
+      "keyFeatures": ["4K", "HDR10+", "120Hz", "Smart Platform"],
+      "pros": ["Specific advantages"],
+      "cons": ["Specific limitations"], 
+      "expertRating": "X.X/5",
+      "retailers": ["Harvey Norman", "Currys", "DID Electrical"]
+    }
+  ],
+  "marketAnalysis": "Current market insights",
+  "pricingTrends": "Price trend analysis", 
+  "bestDeals": ["Current promotions"],
+  "futureConsiderations": "Technology outlook",
+  "installationTips": ["Professional installation advice"]
+}
+
+SEARCH for real TVs from major brands available in Irish stores with current pricing.`
           },
           {
             role: 'user',
@@ -98,24 +122,32 @@ function buildTVQuery(answers: TVRecommendationQuery): string {
   const budgetRange = getBudgetRange(answers.budget);
   const currentDate = new Date().toISOString().split('T')[0];
   
-  return `Current TV recommendations for Irish market as of ${currentDate}:
+  return `Find 3-5 specific TV models with exact model numbers for Irish customers in June 2025:
 
-Usage: ${answers.usage}
-Budget: ${budgetRange}
-Room: ${answers.room}
-Gaming needs: ${answers.gaming}
-Priority features: ${answers.features}
+REQUIREMENTS:
+- Usage: ${answers.usage}
+- Budget: ${budgetRange}
+- Room: ${answers.room}
+- Gaming: ${answers.gaming}
+- Features: ${answers.features}
 
-Please provide:
-1. Current best TV models available in Ireland for this budget and usage
-2. Real-time pricing from Irish retailers (Harvey Norman, Currys, DID Electrical)
-3. Current availability and stock status
-4. Recent expert reviews and ratings from 2024-2025
-5. Current market trends and pricing analysis
-6. Best current deals and promotions
-7. Installation considerations specific to Irish homes
+PROVIDE EXACT TV MODELS with:
+1. Full model name & number (e.g., "Samsung QN95C 65-inch", "LG C3 OLED 55-inch")
+2. Current Irish pricing in euros from major retailers
+3. Available stores: Harvey Norman, Currys, DID Electrical, Amazon.ie
+4. Technical specs: panel type, HDR, refresh rate, smart platform
+5. Expert ratings and user reviews
+6. Pros and cons for each model
+7. Current stock status and availability
 
-Focus on TVs actually available for purchase in Ireland today with current pricing and availability.`;
+SEARCH FOR REAL 2024-2025 MODELS from:
+- Samsung: QN90C, QN95C, Q80C, S95C series
+- LG: C3, G3, B3, A3 OLED series
+- Sony: X90L, A80L, X85L Bravia series  
+- TCL: C835, C745, C655 series
+- Hisense: U7K, U8K, A7K series
+
+Return actual models currently sold in Ireland with verified pricing and specifications.`;
 }
 
 function getBudgetRange(budget: string): string {

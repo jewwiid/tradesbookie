@@ -211,6 +211,9 @@ The application now includes a robust fallback system. When the database is unav
 - June 16, 2025: Enhanced TV recommendation system with real-time market data integration using Perplexity API for current pricing, availability, and market insights
 - June 16, 2025: Added live market analysis displaying current TV models, pricing trends, best deals, and retailer availability from Irish market sources
 - June 16, 2025: Implemented dual AI system: Perplexity for real-time market data + OpenAI for personalized analysis and recommendation logic
+- June 16, 2025: Added installation difficulty prediction to photo upload step with AI-powered complexity assessment, time estimates, and price impact warnings
+- June 16, 2025: Enhanced TV recommendation display to prominently feature actual product models with specific model numbers, current Irish pricing, and availability from major retailers
+- June 16, 2025: Integrated visual difficulty indicators (Easy/Moderate/Difficult/Expert) with color-coded complexity levels and detailed installation factors analysis
 
 ## User Preferences
 

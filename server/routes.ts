@@ -261,16 +261,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // For successful database bookings, create job assignment and QR code
+      // For successful database bookings, generate QR code
       try {
-        if (booking.installerId) {
-          await storage.createJobAssignment({
-            bookingId: booking.id,
-            installerId: booking.installerId,
-            status: 'assigned'
-          });
-        }
-
         // Generate QR code for booking tracking
         const qrCodeDataURL = await QRCode.toDataURL(booking.qrCode || `BOOKING-${booking.id}`, {
           width: 200,
@@ -281,10 +273,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
 
-        res.json({ booking, qrCode: qrCodeDataURL });
+        // Update booking status to 'open' for installer matching
+        await storage.updateBookingStatus(booking.id, 'open');
+
+        res.json({ 
+          booking: { ...booking, status: 'open' }, 
+          qrCode: qrCodeDataURL,
+          message: "Booking created successfully. Installers will be notified and can accept your request."
+        });
       } catch (finalError) {
         // If secondary operations fail, still return the booking
-        console.error("Error with job assignment or QR generation:", finalError);
+        console.error("Error with QR generation:", finalError);
         res.json({ booking });
       }
     } catch (error) {
@@ -651,10 +650,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Uber-style installer request management endpoints
   app.get("/api/installer/available-requests", async (req, res) => {
     try {
-      // Get all pending bookings that haven't been assigned to an installer
+      // Get all open bookings that haven't been assigned to an installer
       const bookings = await storage.getAllBookings();
       const availableRequests = bookings.filter(booking => 
-        booking.status === 'pending' && !booking.installerId
+        booking.status === 'open' && !booking.installerId
       );
 
       // Transform bookings into client requests format
@@ -703,20 +702,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       if (booking.installerId) {
-        return res.status(400).json({ message: "Request already accepted by another installer" });
+        return res.status(400).json({ message: "Request already assigned to an installer" });
       }
 
-      // Update booking status and assign installer
-      await storage.updateBookingStatus(requestId, "accepted");
-      
-      // In a real implementation, you'd update the booking with installer ID
-      // For now, we'll create a job assignment
+      // Create job assignment to show installer interest (multiple installers can accept)
       const jobAssignment = await storage.createJobAssignment({
         bookingId: requestId,
-        installerId: installerId || 1, // Default installer ID for demo
-        status: "accepted",
-        acceptedDate: new Date().toISOString()
+        installerId: installerId || 1,
+        status: "accepted"
       });
+
+      // Update booking status to show installers have shown interest
+      await storage.updateBookingStatus(requestId, "installer_accepted");
 
       // Send notifications to customer
       await sendNotificationEmail(

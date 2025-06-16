@@ -216,6 +216,27 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(jobAssignments.assignedDate));
   }
 
+  async getBookingJobAssignments(bookingId: number): Promise<JobAssignment[]> {
+    return await db.select().from(jobAssignments)
+      .where(eq(jobAssignments.bookingId, bookingId))
+      .orderBy(desc(jobAssignments.createdAt));
+  }
+
+  async updateBookingInstaller(bookingId: number, installerId: number): Promise<void> {
+    await db.update(bookings)
+      .set({ installerId, updatedAt: new Date() })
+      .where(eq(bookings.id, bookingId));
+  }
+
+  async updateJobInstallerStatus(bookingId: number, installerId: number, status: string): Promise<void> {
+    await db.update(jobAssignments)
+      .set({ status, updatedAt: new Date() })
+      .where(and(
+        eq(jobAssignments.bookingId, bookingId),
+        eq(jobAssignments.installerId, installerId)
+      ));
+  }
+
   async updateJobStatus(id: number, status: string): Promise<void> {
     const updateData: any = { status };
     

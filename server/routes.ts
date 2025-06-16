@@ -192,25 +192,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Booking routes
   app.post("/api/bookings", async (req, res) => {
     try {
-      const bookingData = insertBookingSchema.parse(req.body);
+      // Transform and validate the incoming data
+      const rawData = req.body;
       
-      // Calculate pricing based on service type and addons
+      // Convert userId to number if it's a string
+      if (rawData.userId && typeof rawData.userId === 'string') {
+        rawData.userId = parseInt(rawData.userId, 10);
+      }
+      
+      // Convert preferredDate string to Date object
+      if (rawData.preferredDate && typeof rawData.preferredDate === 'string') {
+        rawData.preferredDate = new Date(rawData.preferredDate);
+      }
+      
+      // Calculate pricing first to get required price fields
       const pricing = calculateBookingPricing(
-        bookingData.serviceType,
-        bookingData.addons || [],
-        bookingData.installerId || 1 // Default installer for demo
+        rawData.serviceType || 'bronze',
+        rawData.addons || [],
+        rawData.installerId || 1
       );
+      
+      // Add calculated pricing to data as strings
+      rawData.basePrice = pricing.basePrice.toFixed(2);
+      rawData.totalPrice = pricing.totalPrice.toFixed(2);
+      rawData.appFee = pricing.appFee.toFixed(2);
+      rawData.installerEarnings = pricing.installerEarnings.toFixed(2);
+      
+      const bookingData = insertBookingSchema.parse(rawData);
       
       let booking;
       try {
-        booking = await storage.createBooking({
-          ...bookingData,
-          basePrice: pricing.basePrice.toString(),
-          addonsPrice: pricing.addonsPrice.toString(),
-          totalPrice: pricing.totalPrice.toString(),
-          appFee: pricing.appFee.toString(),
-          installerEarnings: pricing.installerEarnings.toString(),
-        });
+        booking = await storage.createBooking(bookingData);
       } catch (dbError) {
         // If database is unavailable, create temporary booking for demo
         if (String(dbError).includes('endpoint is disabled')) {

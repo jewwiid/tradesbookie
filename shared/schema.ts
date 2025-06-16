@@ -210,6 +210,12 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
     name: z.string(),
     price: z.number(),
   })).optional(),
+  userId: z.number().optional(),
+  preferredDate: z.date().optional(),
+  basePrice: z.string(),
+  totalPrice: z.string(), 
+  appFee: z.string(),
+  installerEarnings: z.string(),
 });
 
 export const insertFeeStructureSchema = createInsertSchema(feeStructures).omit({

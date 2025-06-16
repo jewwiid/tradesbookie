@@ -38,6 +38,82 @@ interface TVRecommendation {
   realTimeData?: boolean;
 }
 
+interface ProductImageDisplayProps {
+  brand: string;
+  model: string;
+  tvType: string;
+  priceRange: string;
+}
+
+function ProductImageDisplay({ brand, model, tvType, priceRange }: ProductImageDisplayProps) {
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  const generateImage = async () => {
+    try {
+      setImageLoading(true);
+      const response = await apiRequest("POST", "/api/generate-product-image", {
+        brand,
+        model,
+        tvType
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setImageUrl(data.imageUrl);
+        setImageError(false);
+      } else {
+        setImageError(true);
+      }
+    } catch (error) {
+      console.error('Product image generation failed:', error);
+      setImageError(true);
+    } finally {
+      setImageLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    generateImage();
+  }, [brand, model, tvType]);
+
+  return (
+    <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-sm p-6">
+      <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+        {imageLoading ? (
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2 text-gray-400" />
+            <p className="text-sm text-gray-500">Generating product image...</p>
+          </div>
+        ) : imageError || !imageUrl ? (
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-2 bg-gray-300 rounded-lg flex items-center justify-center">
+              <Tv className="w-8 h-8 text-gray-500" />
+            </div>
+            <p className="text-sm text-gray-600">{model}</p>
+            <p className="text-xs text-gray-500">{tvType}</p>
+          </div>
+        ) : (
+          <img 
+            src={imageUrl} 
+            alt={`${brand} ${model} ${tvType}`}
+            className="w-full h-full object-contain rounded-lg"
+            onError={() => setImageError(true)}
+          />
+        )}
+      </div>
+      <div className="text-center space-y-2">
+        <h4 className="font-semibold text-gray-800">{brand} {model}</h4>
+        <p className="text-sm text-gray-600">{tvType}</p>
+        <Badge variant="outline" className="text-green-600 border-green-600 text-lg px-4 py-2">
+          {priceRange}
+        </Badge>
+      </div>
+    </div>
+  );
+}
+
 const questions: QuestionData[] = [
   {
     id: 'usage',
@@ -408,12 +484,20 @@ I'm interested in learning more about this TV and discussing purchase options. P
             </CardHeader>
             <CardContent className="text-center space-y-4">
               {/* Product Image */}
-              <ProductImageDisplay 
-                brand={recommendation.model?.split(' ')[0] || 'Samsung'}
-                model={recommendation.model || 'Premium TV'}
-                tvType={recommendation.type}
-                priceRange={recommendation.priceRange}
-              />
+              <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-sm p-6">
+                <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                  <div className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-2 bg-orange-600 rounded-lg flex items-center justify-center">
+                      <Tv className="w-8 h-8 text-white" />
+                    </div>
+                    <p className="text-sm text-gray-600 font-semibold">{recommendation.model}</p>
+                    <p className="text-xs text-gray-500">{recommendation.type}</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-green-600 border-green-600 text-lg px-4 py-2">
+                  {recommendation.priceRange}
+                </Badge>
+              </div>
               
               <div className="bg-white rounded-lg p-4 border-2 border-orange-200">
                 <h4 className="font-bold text-orange-800 mb-2">🎯 Guaranteed Best Price at Harvey Norman</h4>

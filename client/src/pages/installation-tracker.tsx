@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/useAuth";
+import Navigation from "@/components/navigation";
 import InstallationMapTracker from "@/components/installation-map-tracker";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin, TrendingUp, BarChart3 } from "lucide-react";
@@ -8,6 +9,7 @@ export default function InstallationTracker() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Navigation />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">

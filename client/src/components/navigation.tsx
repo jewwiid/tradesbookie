@@ -3,7 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Tv, Menu, Home, Calendar, Settings, User, Shield } from 'lucide-react';
+import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin } from 'lucide-react';
 
 export default function Navigation() {
   const [location] = useLocation();
@@ -41,6 +41,9 @@ export default function Navigation() {
                   </Link>
                   <Link href="/our-installers" className="text-gray-700 hover:text-primary transition-colors">
                     Our Installers
+                  </Link>
+                  <Link href="/installation-tracker" className="text-gray-700 hover:text-primary transition-colors">
+                    Installation Map
                   </Link>
                 </>
               )}
@@ -109,6 +112,14 @@ export default function Navigation() {
                       >
                         <User className="h-5 w-5 mr-3" />
                         Our Installers
+                      </Link>
+                      <Link 
+                        href="/installation-tracker" 
+                        className="flex items-center py-2 text-gray-700 hover:text-primary"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <MapPin className="h-5 w-5 mr-3" />
+                        Installation Map
                       </Link>
                     </>
                   )}

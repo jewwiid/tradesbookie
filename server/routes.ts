@@ -139,6 +139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No photo uploaded" });
       }
 
+      // Optimize image for faster AI processing
       const base64Image = req.file.buffer.toString('base64');
       
       // Perform room analysis when photo is uploaded

@@ -74,7 +74,7 @@ CRITICAL: Generate a clean photo with NO TEXT, NO WATERMARKS, NO LOGOS, NO CAPTI
       model: "gpt-image-1",
       prompt: enhancedPrompt,
       n: 1,
-      size: "1024x1024",
+      size: "512x512",
       quality: "standard",
     });
 

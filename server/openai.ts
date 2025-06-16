@@ -66,7 +66,9 @@ ABSOLUTELY DO NOT CHANGE:
 - Window treatments or curtains
 - Any room proportions or architecture
 
-The result must look like someone simply added a TV to the existing unchanged room. No interior design improvements, no lighting adjustments, no furniture rearrangement, no color corrections. Perfect photographic preservation of original space.`;
+The result must look like someone simply added a TV to the existing unchanged room. No interior design improvements, no lighting adjustments, no furniture rearrangement, no color corrections. Perfect photographic preservation of original space.
+
+CRITICAL: Generate a clean photo with NO TEXT, NO WATERMARKS, NO LOGOS, NO CAPTIONS, NO LABELS anywhere on the image. Pure photographic result only.`;
 
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",

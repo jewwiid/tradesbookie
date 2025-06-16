@@ -49,7 +49,24 @@ export async function generateTVPreview(
     const roomDescription = analysisResponse.choices[0].message.content;
 
     // Generate realistic TV installation that maintains the original room appearance
-    const enhancedPrompt = `Exact replica of this room: ${roomDescription}. Add ONLY a ${tvSize}-inch black flat-screen TV mounted on the most suitable wall using a ${mountType} mount at proper viewing height (55-65 inches from floor). ${concealment === 'concealed' ? 'All cables hidden behind wall for clean installation' : 'Power cable neatly run along wall'}. Keep everything else identical: same lighting, same furniture positions, same wall colors, same decor, same perspective. The TV should appear as if professionally installed in this exact space without changing anything else.`;
+    const enhancedPrompt = `STRICT REQUIREMENT: Create an exact photographic copy of this room with ZERO modifications except for the TV installation: ${roomDescription}. 
+
+ONLY ADD: 
+- One ${tvSize}-inch black flat-screen TV mounted on wall using ${mountType} mount at 60 inches height
+- ${concealment === 'concealed' ? 'NO visible cables (hidden in wall)' : 'Single power cable running to nearest outlet'}
+- ${mountType !== 'fixed' ? 'Appropriate mounting bracket visible behind TV' : 'Minimal fixed wall mount (barely visible)'}
+
+ABSOLUTELY DO NOT CHANGE:
+- Wall colors, textures, or paint
+- Furniture positions or arrangements  
+- Lighting conditions or sources
+- Room decor, artwork, or accessories
+- Camera angle or perspective
+- Floor materials or rugs
+- Window treatments or curtains
+- Any room proportions or architecture
+
+The result must look like someone simply added a TV to the existing unchanged room. No interior design improvements, no lighting adjustments, no furniture rearrangement, no color corrections. Perfect photographic preservation of original space.`;
 
     const imageResponse = await openai.images.generate({
       model: "dall-e-3",

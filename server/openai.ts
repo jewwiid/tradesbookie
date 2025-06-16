@@ -71,7 +71,7 @@ The result must look like someone simply added a TV to the existing unchanged ro
 CRITICAL: Generate a clean photo with NO TEXT, NO WATERMARKS, NO LOGOS, NO CAPTIONS, NO LABELS anywhere on the image. Pure photographic result only.`;
 
     const imageResponse = await openai.images.generate({
-      model: "gpt-4o",
+      model: "gpt-image-1",
       prompt: enhancedPrompt,
       n: 1,
       size: "1024x1024",

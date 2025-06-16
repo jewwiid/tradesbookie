@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { getCurrentTVRecommendations, getCurrentTVComparison } from "./perplexityService";
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("OPENAI_API_KEY environment variable must be set");
@@ -22,10 +23,48 @@ interface TVRecommendation {
   cons: string[];
   priceRange: string;
   bestFor: string[];
+  currentModels?: any[];
+  marketAnalysis?: string;
+  pricingTrends?: string;
+  bestDeals?: string[];
+  realTimeData?: boolean;
 }
 
 export async function generateTVRecommendation(answers: QuestionnaireAnswers): Promise<TVRecommendation> {
-  const prompt = `Based on these user preferences, recommend the best TV technology and specific model:
+  try {
+    // First attempt to get real-time data from Perplexity
+    let realTimeData = null;
+    try {
+      if (process.env.PERPLEXITY_API_KEY) {
+        realTimeData = await getCurrentTVRecommendations(answers);
+        console.log("Retrieved real-time TV data from Perplexity");
+      }
+    } catch (perplexityError) {
+      console.log("Perplexity API unavailable, using OpenAI analysis:", String(perplexityError));
+    }
+
+    // Use OpenAI for personalized analysis and recommendation logic
+    const prompt = realTimeData 
+      ? `Based on this current market data and user preferences, provide personalized analysis:
+
+Current Market Data: ${JSON.stringify(realTimeData, null, 2)}
+
+User Preferences:
+Usage: ${answers.usage}
+Budget: ${answers.budget}
+Room Environment: ${answers.room}
+Gaming Importance: ${answers.gaming}
+Priority Feature: ${answers.features}
+
+Analyze the current market data and provide a personalized recommendation in JSON format matching this structure:
+- type: The recommended TV technology
+- model: Specific current model from the market data
+- reasons: 3-4 personalized reasons based on user needs and current market
+- pros: 4-5 advantages considering current availability
+- cons: 2-3 honest considerations including current pricing
+- priceRange: Current realistic price range in euros
+- bestFor: 3-4 use cases this TV excels at`
+      : `Based on these user preferences, recommend the best TV technology and specific model:
 
 Usage: ${answers.usage}
 Budget: ${answers.budget}
@@ -49,15 +88,14 @@ Provide a recommendation in JSON format with:
 - priceRange: Realistic price range in euros
 - bestFor: Array of 3-4 use cases this TV excels at
 
-Be specific about real TV technologies and realistic model names. Focus on matching their actual stated preferences.`;
+Be specific about real TV technologies and realistic model names.`;
 
-  try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [
         {
           role: "system",
-          content: "You are a TV expert who provides personalized recommendations based on user needs. Always respond with valid JSON matching the specified format."
+          content: "You are a TV expert who provides personalized recommendations. When given current market data, incorporate it into your analysis. Always respond with valid JSON matching the specified format."
         },
         {
           role: "user",
@@ -80,6 +118,15 @@ Be specific about real TV technologies and realistic model names. Focus on match
       throw new Error("Invalid recommendation format");
     }
 
+    // Enhance with real-time data if available
+    if (realTimeData) {
+      recommendation.currentModels = realTimeData.currentModels;
+      recommendation.marketAnalysis = realTimeData.marketAnalysis;
+      recommendation.pricingTrends = realTimeData.pricingTrends;
+      recommendation.bestDeals = realTimeData.bestDeals;
+      recommendation.realTimeData = true;
+    }
+
     return recommendation;
   } catch (error) {
     console.error("TV recommendation error:", error);
@@ -88,9 +135,22 @@ Be specific about real TV technologies and realistic model names. Focus on match
 }
 
 export async function getTVComparisonInsights(tvType1: string, tvType2: string): Promise<string> {
-  const prompt = `Compare ${tvType1} vs ${tvType2} TV technologies. Provide a brief, practical comparison focusing on real-world differences that matter to consumers.`;
-
   try {
+    // First attempt to get real-time comparison data
+    let realTimeComparison = null;
+    try {
+      if (process.env.PERPLEXITY_API_KEY) {
+        realTimeComparison = await getCurrentTVComparison(tvType1, tvType2);
+        console.log("Retrieved real-time TV comparison from Perplexity");
+        return realTimeComparison;
+      }
+    } catch (perplexityError) {
+      console.log("Perplexity API unavailable for comparison, using OpenAI:", String(perplexityError));
+    }
+
+    // Fallback to OpenAI analysis
+    const prompt = `Compare ${tvType1} vs ${tvType2} TV technologies. Provide a brief, practical comparison focusing on real-world differences that matter to consumers.`;
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       messages: [

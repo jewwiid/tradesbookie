@@ -31,6 +31,11 @@ interface TVRecommendation {
   cons: string[];
   priceRange: string;
   bestFor: string[];
+  currentModels?: any[];
+  marketAnalysis?: string;
+  pricingTrends?: string;
+  bestDeals?: string[];
+  realTimeData?: boolean;
 }
 
 const questions: QuestionData[] = [
@@ -324,6 +329,11 @@ I'm interested in learning more about this TV and discussing purchase options. P
               <div className="flex items-center justify-center mb-4">
                 <Sparkles className="w-8 h-8 text-yellow-500 mr-2" />
                 <CardTitle className="text-2xl">{recommendation.type}</CardTitle>
+                {recommendation.realTimeData && (
+                  <Badge variant="outline" className="ml-3 text-green-600 border-green-600">
+                    Live Market Data
+                  </Badge>
+                )}
               </div>
               <CardDescription className="text-lg font-medium">{recommendation.model}</CardDescription>
             </CardHeader>
@@ -382,6 +392,91 @@ I'm interested in learning more about this TV and discussing purchase options. P
               </div>
             </CardContent>
           </Card>
+
+          {/* Real-Time Market Data Section */}
+          {recommendation.realTimeData && (
+            <>
+              {recommendation.currentModels && recommendation.currentModels.length > 0 && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Current Available Models</CardTitle>
+                    <CardDescription>Live pricing and availability from Irish retailers</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4">
+                      {recommendation.currentModels.map((model, index) => (
+                        <div key={index} className="border rounded-lg p-4 hover:bg-gray-50">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold">{model.brand} {model.model}</h4>
+                            <Badge variant="outline" className="text-green-600">
+                              {model.price}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{model.currentAvailability}</p>
+                          {model.keyFeatures && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {model.keyFeatures.slice(0, 3).map((feature, idx) => (
+                                <Badge key={idx} variant="secondary" className="text-xs">
+                                  {feature}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                          {model.retailers && (
+                            <p className="text-xs text-gray-500">
+                              Available at: {model.retailers.join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {(recommendation.marketAnalysis || recommendation.pricingTrends) && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Current Market Insights</CardTitle>
+                    <CardDescription>Real-time analysis of the Irish TV market</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {recommendation.marketAnalysis && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Market Analysis</h4>
+                        <p className="text-gray-700 text-sm">{recommendation.marketAnalysis}</p>
+                      </div>
+                    )}
+                    {recommendation.pricingTrends && (
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Pricing Trends</h4>
+                        <p className="text-gray-700 text-sm">{recommendation.pricingTrends}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {recommendation.bestDeals && recommendation.bestDeals.length > 0 && (
+                <Card className="mb-6 border-green-200 bg-green-50">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-green-800">Current Best Deals</CardTitle>
+                    <CardDescription className="text-green-600">Limited-time offers and promotions</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {recommendation.bestDeals.map((deal, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-green-600 mr-2">🔥</span>
+                          <span className="text-green-800 text-sm">{deal}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          )}
 
           <div className="text-center space-y-4">
             <p className="text-gray-600">

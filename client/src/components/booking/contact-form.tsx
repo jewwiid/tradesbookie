@@ -86,7 +86,8 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       
       return bookingResponse.json();
     },
-    onSuccess: (booking) => {
+    onSuccess: (response) => {
+      const booking = response.booking || response;
       toast({
         title: "Booking Created!",
         description: "Redirecting to secure payment..."

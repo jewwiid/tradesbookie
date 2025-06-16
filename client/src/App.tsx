@@ -16,6 +16,7 @@ import InstallerRegistration from "@/pages/installer-registration";
 import InstallerLogin from "@/pages/installer-login";
 import QRTracking from "@/pages/qr-tracking";
 import TVRecommendation from "@/pages/tv-recommendation";
+import InstallationTracker from "@/pages/installation-tracker";
 import Checkout from "@/pages/checkout";
 import BookingSuccess from "@/pages/booking-success";
 import NotFound from "@/pages/not-found";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/how-it-works" component={HowItWorks} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/our-installers" component={OurInstallers} />
+      <Route path="/installation-tracker" component={InstallationTracker} />
       <Route path="/tv-recommendation" component={TVRecommendation} />
       <Route path="/track/:qrCode" component={QRTracking} />
       

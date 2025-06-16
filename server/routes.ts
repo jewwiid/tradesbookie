@@ -1372,6 +1372,71 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Get installation locations for map tracker
+  app.get("/api/installations/locations", async (req, res) => {
+    try {
+      const bookings = await storage.getAllBookings();
+      
+      // Extract city and county from addresses while protecting privacy
+      const locationStats = {};
+      
+      bookings.forEach(booking => {
+        if (booking.address) {
+          // Extract city/county from address (last part typically contains city/county)
+          const addressParts = booking.address.split(',').map(part => part.trim());
+          let location = 'Dublin'; // Default
+          
+          if (addressParts.length >= 2) {
+            // Try to extract meaningful location (city, county)
+            const lastPart = addressParts[addressParts.length - 1];
+            const secondLastPart = addressParts[addressParts.length - 2];
+            
+            // Use county if available, otherwise city
+            if (lastPart.toLowerCase().includes('ireland')) {
+              location = secondLastPart || 'Dublin';
+            } else {
+              location = lastPart || 'Dublin';
+            }
+          }
+          
+          // Normalize location names
+          location = location.replace(/^\d+\s*/, '').trim(); // Remove numbers
+          location = location.split(' ')[0]; // Take first word for consistency
+          
+          if (!locationStats[location]) {
+            locationStats[location] = {
+              location: location,
+              count: 0,
+              recentInstallations: []
+            };
+          }
+          
+          locationStats[location].count++;
+          
+          // Add recent installation info (last 10)
+          if (locationStats[location].recentInstallations.length < 10) {
+            locationStats[location].recentInstallations.push({
+              id: booking.id,
+              serviceType: booking.serviceType,
+              tvSize: booking.tvSize,
+              date: booking.createdAt,
+              status: booking.status
+            });
+          }
+        }
+      });
+      
+      // Convert to array and sort by count
+      const locations = Object.values(locationStats)
+        .sort((a: any, b: any) => b.count - a.count);
+      
+      res.json(locations);
+    } catch (error) {
+      console.error("Error fetching installation locations:", error);
+      res.status(500).json({ message: "Failed to fetch locations" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

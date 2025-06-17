@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import QRCodeGenerator from "@/components/QRCodeGenerator";
 
 interface AdminStats {
   totalBookings: number;
@@ -544,7 +545,14 @@ function BookingManagement() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">QR Code</label>
-                  <p className="font-mono text-sm">{selectedBooking.qrCode}</p>
+                  <div className="mt-2">
+                    <QRCodeGenerator 
+                      value={`${window.location.origin}/qr-tracking/${selectedBooking.qrCode}`}
+                      size={120}
+                      className="mb-2"
+                    />
+                    <p className="font-mono text-xs text-gray-500">{selectedBooking.qrCode}</p>
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Status</label>

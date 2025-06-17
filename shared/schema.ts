@@ -254,6 +254,12 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
   createdAt: true,
 });
 
+export const insertSolarEnquirySchema = createInsertSchema(solarEnquiries).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -272,3 +278,6 @@ export type InsertJobAssignment = z.infer<typeof insertJobAssignmentSchema>;
 
 export type Review = typeof reviews.$inferSelect;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
+
+export type SolarEnquiry = typeof solarEnquiries.$inferSelect;
+export type InsertSolarEnquiry = z.infer<typeof insertSolarEnquirySchema>;

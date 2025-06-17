@@ -935,6 +935,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Solar enquiry endpoints for OHK Energy partnership
+  app.post("/api/solar-enquiries", async (req, res) => {
+    try {
+      const enquiryData = req.body;
+      
+      const enquiry = await storage.createSolarEnquiry({
+        firstName: enquiryData.firstName,
+        lastName: enquiryData.lastName,
+        email: enquiryData.email,
+        phone: enquiryData.phone,
+        address: enquiryData.address,
+        county: enquiryData.county,
+        propertyType: enquiryData.propertyType,
+        roofType: enquiryData.roofType,
+        electricityBill: enquiryData.electricityBill,
+        timeframe: enquiryData.timeframe,
+        grants: enquiryData.grants || false,
+        additionalInfo: enquiryData.additionalInfo || null,
+        status: "new"
+      });
+      
+      // Send notification email to admin
+      await sendNotificationEmail(
+        "admin@tradesbook.ie",
+        "New Solar Panel Installation Enquiry",
+        `
+        New solar panel installation enquiry received:
+        
+        Customer: ${enquiry.firstName} ${enquiry.lastName}
+        Email: ${enquiry.email}
+        Phone: ${enquiry.phone}
+        Location: ${enquiry.address}, ${enquiry.county}
+        Property Type: ${enquiry.propertyType}
+        Roof Type: ${enquiry.roofType}
+        Monthly Bill: ${enquiry.electricityBill}
+        Timeframe: ${enquiry.timeframe}
+        SEAI Grants Interest: ${enquiry.grants ? 'Yes' : 'No'}
+        
+        Additional Information:
+        ${enquiry.additionalInfo || 'None provided'}
+        
+        This is a potential lead for OHK Energy partnership.
+        Commission opportunity available upon successful conversion.
+        `
+      );
+      
+      res.json({ 
+        success: true, 
+        message: "Solar enquiry submitted successfully",
+        enquiryId: enquiry.id 
+      });
+    } catch (error) {
+      console.error("Error creating solar enquiry:", error);
+      res.status(500).json({ message: "Failed to submit solar enquiry" });
+    }
+  });
+
+  app.get("/api/solar-enquiries", async (req, res) => {
+    try {
+      const enquiries = await storage.getAllSolarEnquiries();
+      res.json(enquiries);
+    } catch (error) {
+      console.error("Error fetching solar enquiries:", error);
+      res.status(500).json({ message: "Failed to fetch solar enquiries" });
+    }
+  });
+
+  app.patch("/api/solar-enquiries/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      await storage.updateSolarEnquiryStatus(parseInt(id), status);
+      res.json({ message: "Solar enquiry status updated" });
+    } catch (error) {
+      console.error("Error updating solar enquiry status:", error);
+      res.status(500).json({ message: "Failed to update solar enquiry status" });
+    }
+  });
+
   // Get mock credentials for testing
   app.get('/api/auth/mock-credentials', (req, res) => {
     res.json({

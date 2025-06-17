@@ -1,11 +1,12 @@
 import { 
-  users, bookings, installers, feeStructures, jobAssignments, reviews,
+  users, bookings, installers, feeStructures, jobAssignments, reviews, solarEnquiries,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
   type FeeStructure, type InsertFeeStructure,
   type JobAssignment, type InsertJobAssignment,
-  type Review, type InsertReview
+  type Review, type InsertReview,
+  type SolarEnquiry, type InsertSolarEnquiry
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -52,6 +53,11 @@ export interface IStorage {
   getInstallerReviews(installerId: number): Promise<Review[]>;
   getUserReviews(userId: string): Promise<Review[]>;
   getInstallerRating(installerId: number): Promise<{ averageRating: number; totalReviews: number }>;
+
+  // Solar enquiry operations
+  createSolarEnquiry(enquiry: InsertSolarEnquiry): Promise<SolarEnquiry>;
+  getAllSolarEnquiries(): Promise<SolarEnquiry[]>;
+  updateSolarEnquiryStatus(id: number, status: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -283,6 +289,32 @@ export class DatabaseStorage implements IStorage {
       averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
       totalReviews: installerReviews.length
     };
+  }
+
+  // Solar enquiry operations
+  async createSolarEnquiry(insertEnquiry: InsertSolarEnquiry): Promise<SolarEnquiry> {
+    const [enquiry] = await db
+      .insert(solarEnquiries)
+      .values(insertEnquiry)
+      .returning();
+    return enquiry;
+  }
+
+  async getAllSolarEnquiries(): Promise<SolarEnquiry[]> {
+    return await db
+      .select()
+      .from(solarEnquiries)
+      .orderBy(desc(solarEnquiries.createdAt));
+  }
+
+  async updateSolarEnquiryStatus(id: number, status: string): Promise<void> {
+    await db
+      .update(solarEnquiries)
+      .set({ 
+        status, 
+        updatedAt: new Date() 
+      })
+      .where(eq(solarEnquiries.id, id));
   }
 }
 

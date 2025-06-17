@@ -216,6 +216,10 @@ The application now includes a robust fallback system. When the database is unav
 - June 16, 2025: Integrated visual difficulty indicators (Easy/Moderate/Difficult/Expert) with color-coded complexity levels and detailed installation factors analysis
 - June 16, 2025: Redesigned Current Market Insights section with improved visual hierarchy, clean formatting, and dedicated sections for market analysis, pricing trends, and future considerations
 - June 16, 2025: Enhanced Best Deals section with card-based layout and better visual presentation of promotional offers from Irish retailers
+- June 17, 2025: Added OHK Energy solar panel installation section on homepage for generating sales leads with commission-based referral system
+- June 17, 2025: Created comprehensive solar enquiry form with contact details, property information, and SEAI grant preferences
+- June 17, 2025: Implemented solar enquiry database schema and API endpoints for lead storage and admin dashboard management
+- June 17, 2025: Added email notification system for new solar leads with automatic admin alerts and customer confirmation
 
 ## User Preferences
 

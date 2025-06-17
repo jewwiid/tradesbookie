@@ -33,7 +33,8 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         imageBase64: bookingData.roomPhotoBase64,
         tvSize: bookingData.tvSize,
         mountType: bookingData.mountType,
-        wallType: bookingData.wallType
+        wallType: bookingData.wallType,
+        selectedAddons: bookingData.addons || []
       });
       return response.json();
     },

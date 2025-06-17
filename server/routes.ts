@@ -164,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/generate-ai-preview", async (req, res) => {
     try {
-      const { imageBase64, tvSize, mountType, wallType, concealment } = req.body;
+      const { imageBase64, tvSize, mountType, wallType, selectedAddons } = req.body;
       
       if (!imageBase64 || !tvSize) {
         return res.status(400).json({ message: "Missing required parameters" });
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tvSize, 
         mountType || "fixed",
         wallType || "drywall",
-        concealment || "none"
+        selectedAddons || []
       );
       
       if (!result.success) {

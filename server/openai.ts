@@ -16,7 +16,7 @@ export async function generateTVPreview(
   tvSize: string,
   mountType: string = "fixed",
   wallType: string = "drywall",
-  concealment: string = "none"
+  selectedAddons: Array<{key: string, name: string, price: number}> = []
 ): Promise<AIPreviewResult> {
   try {
     // First analyze the existing room to understand its characteristics
@@ -48,13 +48,34 @@ export async function generateTVPreview(
 
     const roomDescription = analysisResponse.choices[0].message.content;
 
+    // Check for specific add-ons
+    const hasCableConcealment = selectedAddons.some(addon => addon.key === 'cable-concealment');
+    const hasSoundbarInstall = selectedAddons.some(addon => addon.key === 'soundbar-install');
+    const hasCalibration = selectedAddons.some(addon => addon.key === 'calibration');
+
+    // Build installation requirements based on selections
+    let installationDetails = [
+      `One ${tvSize}-inch black flat-screen TV mounted on wall using ${mountType} mount at 60 inches height`,
+      `${mountType !== 'fixed' ? 'Appropriate mounting bracket visible behind TV' : 'Minimal fixed wall mount (barely visible)'}`
+    ];
+
+    // Add cable management based on selection
+    if (hasCableConcealment) {
+      installationDetails.push('NO visible cables anywhere - all cables completely hidden inside the wall with professional cable management');
+    } else {
+      installationDetails.push('Single power cable running down to nearest outlet (visible but neat)');
+    }
+
+    // Add soundbar if selected
+    if (hasSoundbarInstall) {
+      installationDetails.push('Black soundbar mounted directly below the TV, centered and level, with clean cable management to TV');
+    }
+
     // Generate realistic TV installation that maintains the original room appearance
     const enhancedPrompt = `STRICT REQUIREMENT: Create an exact photographic copy of this room with ZERO modifications except for the TV installation: ${roomDescription}. 
 
 ONLY ADD: 
-- One ${tvSize}-inch black flat-screen TV mounted on wall using ${mountType} mount at 60 inches height
-- ${concealment === 'concealed' ? 'NO visible cables (hidden in wall)' : 'Single power cable running to nearest outlet'}
-- ${mountType !== 'fixed' ? 'Appropriate mounting bracket visible behind TV' : 'Minimal fixed wall mount (barely visible)'}
+${installationDetails.map(detail => `- ${detail}`).join('\n')}
 
 ABSOLUTELY DO NOT CHANGE:
 - Wall colors, textures, or paint
@@ -66,7 +87,7 @@ ABSOLUTELY DO NOT CHANGE:
 - Window treatments or curtains
 - Any room proportions or architecture
 
-The result must look like someone simply added a TV to the existing unchanged room. No interior design improvements, no lighting adjustments, no furniture rearrangement, no color corrections. Perfect photographic preservation of original space.
+The result must look like someone simply added a TV${hasSoundbarInstall ? ' and soundbar' : ''} to the existing unchanged room. No interior design improvements, no lighting adjustments, no furniture rearrangement, no color corrections. Perfect photographic preservation of original space.
 
 CRITICAL: Generate a clean photo with NO TEXT, NO WATERMARKS, NO LOGOS, NO CAPTIONS, NO LABELS anywhere on the image. Pure photographic result only.`;
 

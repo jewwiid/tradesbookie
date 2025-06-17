@@ -221,6 +221,8 @@ The application now includes a robust fallback system. When the database is unav
 - June 17, 2025: Implemented solar enquiry database schema and API endpoints for lead storage and admin dashboard management
 - June 17, 2025: Added email notification system for new solar leads with automatic admin alerts and customer confirmation
 - June 17, 2025: Fixed non-functional booking management action buttons in admin dashboard with proper view and edit dialog functionality
+- June 17, 2025: Enhanced AI preview generation to incorporate all booking selections including cable concealment and soundbar installation for accurate customer previews
+- June 17, 2025: Fixed QR code display in admin dashboard to show actual scannable QR images instead of reference text codes
 
 ## User Preferences
 

@@ -220,6 +220,7 @@ The application now includes a robust fallback system. When the database is unav
 - June 17, 2025: Created comprehensive solar enquiry form with contact details, property information, and SEAI grant preferences
 - June 17, 2025: Implemented solar enquiry database schema and API endpoints for lead storage and admin dashboard management
 - June 17, 2025: Added email notification system for new solar leads with automatic admin alerts and customer confirmation
+- June 17, 2025: Fixed non-functional booking management action buttons in admin dashboard with proper view and edit dialog functionality
 
 ## User Preferences
 

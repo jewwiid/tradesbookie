@@ -36,6 +36,8 @@ import {
   DollarSign,
   AlertTriangle
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AdminStats {
   totalBookings: number;
@@ -379,6 +381,11 @@ function InstallerManagement() {
 
 // Booking Management Component
 function BookingManagement() {
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editStatus, setEditStatus] = useState("");
+
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/admin/bookings"],
     retry: false,
@@ -422,76 +429,220 @@ function BookingManagement() {
     }
   };
 
+  const handleViewBooking = (booking: any) => {
+    setSelectedBooking(booking);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleEditBooking = (booking: any) => {
+    setSelectedBooking(booking);
+    setEditStatus(booking.status);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleStatusUpdate = () => {
+    if (selectedBooking) {
+      updateBookingStatusMutation.mutate({
+        bookingId: selectedBooking.id,
+        status: editStatus
+      });
+      setIsEditDialogOpen(false);
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Calendar className="w-5 h-5 mr-2" />
-          Booking Management
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>QR Code</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {bookings?.map((booking) => (
-              <TableRow key={booking.id}>
-                <TableCell className="font-mono text-sm">{booking.qrCode}</TableCell>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">{booking.customerName || 'Guest User'}</div>
-                    <div className="text-sm text-gray-500">{booking.customerEmail}</div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">{booking.serviceType}</div>
-                    <div className="text-sm text-gray-500">{booking.tvSize}"</div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">€{booking.totalPrice}</div>
-                    <div className="text-sm text-gray-500">Fee: €{booking.appFee}</div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <Clock className="w-4 h-4 mr-1 text-gray-400" />
-                    {booking.preferredDate ? new Date(booking.preferredDate).toLocaleDateString() : 'TBD'}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(booking.status)}>
-                    {booking.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Calendar className="w-5 h-5 mr-2" />
+            Booking Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>QR Code</TableHead>
+                <TableHead>Customer</TableHead>
+                <TableHead>Service</TableHead>
+                <TableHead>Value</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {bookings?.map((booking) => (
+                <TableRow key={booking.id}>
+                  <TableCell className="font-mono text-sm">{booking.qrCode}</TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{booking.customerName || 'Guest User'}</div>
+                      <div className="text-sm text-gray-500">{booking.customerEmail}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{booking.serviceType}</div>
+                      <div className="text-sm text-gray-500">{booking.tvSize}"</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">€{booking.totalPrice}</div>
+                      <div className="text-sm text-gray-500">Fee: €{booking.appFee}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-1 text-gray-400" />
+                      {booking.preferredDate ? new Date(booking.preferredDate).toLocaleDateString() : 'TBD'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(booking.status)}>
+                      {booking.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewBooking(booking)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditBooking(booking)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* View Booking Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Booking Details</DialogTitle>
+            <DialogDescription>
+              View complete booking information
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">QR Code</label>
+                  <p className="font-mono text-sm">{selectedBooking.qrCode}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <Badge className={getStatusColor(selectedBooking.status)}>
+                    {selectedBooking.status}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Service Type</label>
+                  <p>{selectedBooking.serviceType}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">TV Size</label>
+                  <p>{selectedBooking.tvSize}"</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Total Price</label>
+                  <p>€{selectedBooking.totalPrice}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">App Fee</label>
+                  <p>€{selectedBooking.appFee}</p>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Address</label>
+                <p>{selectedBooking.address}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Customer</label>
+                <p>{selectedBooking.customerName || 'Guest User'}</p>
+                <p className="text-sm text-gray-500">{selectedBooking.customerEmail}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Created</label>
+                <p>{selectedBooking.createdAt ? new Date(selectedBooking.createdAt).toLocaleString() : 'N/A'}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Booking Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Booking Status</DialogTitle>
+            <DialogDescription>
+              Update the status of this booking
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Current Status</label>
+                <Badge className={getStatusColor(selectedBooking.status)}>
+                  {selectedBooking.status}
+                </Badge>
+              </div>
+              <div>
+                <label className="text-sm font-medium">New Status</label>
+                <Select value={editStatus} onValueChange={setEditStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
+                    <SelectItem value="installer_accepted">Installer Accepted</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleStatusUpdate}
+                  disabled={updateBookingStatusMutation.isPending}
+                >
+                  {updateBookingStatusMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Update Status'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

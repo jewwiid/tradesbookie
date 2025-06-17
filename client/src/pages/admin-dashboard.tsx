@@ -56,6 +56,9 @@ interface AdminStats {
   pendingPayments: number;
   failedPayments: number;
   totalPaidAmount: number;
+  totalSolarEnquiries: number;
+  newSolarEnquiries: number;
+  convertedSolarLeads: number;
 }
 
 interface User {
@@ -83,6 +86,25 @@ interface Installer {
   completedJobs: number;
   rating: number;
   totalEarnings: number;
+}
+
+interface SolarEnquiry {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  county: string;
+  propertyType: string;
+  roofType: string;
+  electricityBill: string;
+  timeframe: string;
+  grants: boolean;
+  additionalInfo?: string;
+  status: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 interface Booking {
@@ -139,10 +161,10 @@ function DashboardOverview({ stats }: { stats: AdminStats | undefined }) {
     { label: "Monthly Bookings", value: stats.monthlyBookings, icon: TrendingUp, color: "text-green-600" },
     { label: "Total Revenue", value: `€${stats.revenue}`, icon: Euro, color: "text-emerald-600" },
     { label: "App Fees", value: `€${stats.appFees}`, icon: DollarSign, color: "text-purple-600" },
+    { label: "Solar Enquiries", value: stats.totalSolarEnquiries || 0, icon: Activity, color: "text-orange-600" },
+    { label: "New Solar Leads", value: stats.newSolarEnquiries || 0, icon: Star, color: "text-yellow-600" },
     { label: "Successful Payments", value: stats.successfulPayments || 0, icon: UserCheck, color: "text-green-600" },
-    { label: "Pending Payments", value: stats.pendingPayments || 0, icon: Clock, color: "text-yellow-600" },
     { label: "Total Paid", value: `€${stats.totalPaidAmount || 0}`, icon: Euro, color: "text-emerald-600" },
-    { label: "Failed Payments", value: stats.failedPayments || 0, icon: AlertTriangle, color: "text-red-600" },
   ];
 
   return (
@@ -877,6 +899,363 @@ function PaymentManagement() {
   );
 }
 
+// Solar Enquiry Management Component for OHK Energy leads
+function SolarEnquiryManagement() {
+  const { data: solarEnquiries, isLoading } = useQuery<SolarEnquiry[]>({
+    queryKey: ["/api/solar-enquiries"],
+    retry: false,
+  });
+
+  const [selectedEnquiry, setSelectedEnquiry] = useState<SolarEnquiry | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      return apiRequest("PATCH", `/api/solar-enquiries/${id}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/solar-enquiries"] });
+      toast({
+        title: "Status Updated",
+        description: "Solar enquiry status has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update enquiry status.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'new':
+        return 'bg-blue-100 text-blue-800';
+      case 'contacted':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'qualified':
+        return 'bg-green-100 text-green-800';
+      case 'converted':
+        return 'bg-emerald-100 text-emerald-800';
+      case 'not_interested':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+            <p>Loading OHK Energy leads...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const enquiriesByStatus = {
+    new: solarEnquiries?.filter(e => e.status === 'new') || [],
+    contacted: solarEnquiries?.filter(e => e.status === 'contacted') || [],
+    qualified: solarEnquiries?.filter(e => e.status === 'qualified') || [],
+    converted: solarEnquiries?.filter(e => e.status === 'converted') || [],
+    not_interested: solarEnquiries?.filter(e => e.status === 'not_interested') || [],
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{enquiriesByStatus.new.length}</div>
+              <div className="text-sm text-blue-700">New Leads</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">{enquiriesByStatus.contacted.length}</div>
+              <div className="text-sm text-yellow-700">Contacted</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-green-50 border-green-200">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{enquiriesByStatus.qualified.length}</div>
+              <div className="text-sm text-green-700">Qualified</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-emerald-50 border-emerald-200">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-emerald-600">{enquiriesByStatus.converted.length}</div>
+              <div className="text-sm text-emerald-700">Converted</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-gray-50 border-gray-200">
+          <CardContent className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-600">{solarEnquiries?.length || 0}</div>
+              <div className="text-sm text-gray-700">Total Leads</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Enquiries Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Activity className="w-5 h-5 mr-2" />
+            OHK Energy Solar Leads
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-3">
+            {solarEnquiries?.map((enquiry) => (
+              <div key={enquiry.id} className="bg-gray-50 p-4 rounded-lg border">
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="font-medium">{enquiry.firstName} {enquiry.lastName}</h3>
+                    <p className="text-sm text-gray-600">{enquiry.email}</p>
+                  </div>
+                  <Badge className={getStatusColor(enquiry.status)}>
+                    {enquiry.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                  <div>
+                    <span className="text-gray-500">Location:</span>
+                    <div className="font-medium">{enquiry.county}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Property:</span>
+                    <div className="font-medium">{enquiry.propertyType}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Bill Range:</span>
+                    <div className="font-medium">{enquiry.electricityBill}</div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Timeframe:</span>
+                    <div className="font-medium">{enquiry.timeframe}</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedEnquiry(enquiry);
+                      setShowDetails(true);
+                    }}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
+                  </Button>
+                  <Select
+                    value={enquiry.status}
+                    onValueChange={(value) => updateStatusMutation.mutate({ id: enquiry.id, status: value })}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="new">New</SelectItem>
+                      <SelectItem value="contacted">Contacted</SelectItem>
+                      <SelectItem value="qualified">Qualified</SelectItem>
+                      <SelectItem value="converted">Converted</SelectItem>
+                      <SelectItem value="not_interested">Not Interested</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Property Details</TableHead>
+                  <TableHead>Bill Range</TableHead>
+                  <TableHead>Timeframe</TableHead>
+                  <TableHead>SEAI Grants</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {solarEnquiries?.map((enquiry) => (
+                  <TableRow key={enquiry.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{enquiry.firstName} {enquiry.lastName}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>{enquiry.email}</div>
+                        <div className="text-gray-500">{enquiry.phone}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>{enquiry.county}</div>
+                        <div className="text-gray-500 max-w-32 truncate">{enquiry.address}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div>{enquiry.propertyType}</div>
+                        <div className="text-gray-500">{enquiry.roofType}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{enquiry.electricityBill}</TableCell>
+                    <TableCell>{enquiry.timeframe}</TableCell>
+                    <TableCell>
+                      <Badge variant={enquiry.grants ? "default" : "secondary"}>
+                        {enquiry.grants ? "Yes" : "No"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={enquiry.status}
+                        onValueChange={(value) => updateStatusMutation.mutate({ id: enquiry.id, status: value })}
+                      >
+                        <SelectTrigger className="w-36">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="new">New</SelectItem>
+                          <SelectItem value="contacted">Contacted</SelectItem>
+                          <SelectItem value="qualified">Qualified</SelectItem>
+                          <SelectItem value="converted">Converted</SelectItem>
+                          <SelectItem value="not_interested">Not Interested</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {new Date(enquiry.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedEnquiry(enquiry);
+                          setShowDetails(true);
+                        }}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {(!solarEnquiries || solarEnquiries.length === 0) && (
+            <div className="text-center py-8 text-gray-500">
+              No solar enquiries found
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Enquiry Details Dialog */}
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Solar Enquiry Details</DialogTitle>
+            <DialogDescription>
+              Complete enquiry information for OHK Energy partnership
+            </DialogDescription>
+          </DialogHeader>
+          {selectedEnquiry && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Customer Name</label>
+                  <p>{selectedEnquiry.firstName} {selectedEnquiry.lastName}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <Badge className={getStatusColor(selectedEnquiry.status)}>
+                    {selectedEnquiry.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Email</label>
+                  <p>{selectedEnquiry.email}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Phone</label>
+                  <p>{selectedEnquiry.phone}</p>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-sm font-medium">Address</label>
+                  <p>{selectedEnquiry.address}, {selectedEnquiry.county}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Property Type</label>
+                  <p>{selectedEnquiry.propertyType}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Roof Type</label>
+                  <p>{selectedEnquiry.roofType}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Monthly Electricity Bill</label>
+                  <p>{selectedEnquiry.electricityBill}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Installation Timeframe</label>
+                  <p>{selectedEnquiry.timeframe}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">SEAI Grants Interest</label>
+                  <p>{selectedEnquiry.grants ? 'Yes - Interested in grants' : 'No - Not interested in grants'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Enquiry Date</label>
+                  <p>{new Date(selectedEnquiry.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+              {selectedEnquiry.additionalInfo && (
+                <div>
+                  <label className="text-sm font-medium">Additional Information</label>
+                  <p className="text-sm bg-gray-50 p-3 rounded-lg">{selectedEnquiry.additionalInfo}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 // Fee Management Component  
 function FeeManagement() {
   const [feeStructures, setFeeStructures] = useState({
@@ -1039,6 +1418,11 @@ export default function AdminDashboard() {
               <span className="hidden sm:inline">System</span>
               <span className="sm:hidden">Sys</span>
             </TabsTrigger>
+            <TabsTrigger value="solar" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Activity className="w-4 h-4 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">OHK Energy</span>
+              <span className="sm:hidden">Solar</span>
+            </TabsTrigger>
             <TabsTrigger value="fees" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
               <Percent className="w-4 h-4 md:w-4 md:h-4" />
               <span>Fees</span>
@@ -1067,6 +1451,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="system" className="space-y-6">
             <SystemMetrics />
+          </TabsContent>
+
+          <TabsContent value="solar" className="space-y-6">
+            <SolarEnquiryManagement />
           </TabsContent>
 
           <TabsContent value="fees" className="space-y-6">

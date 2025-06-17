@@ -412,6 +412,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const failedPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'failed');
       const totalPaidAmount = successfulPayments.reduce((sum, b) => sum + parseFloat(b.paidAmount || '0'), 0);
       
+      // Solar enquiry statistics
+      const solarEnquiries = await storage.getAllSolarEnquiries();
+      const newSolarEnquiries = solarEnquiries.filter(e => {
+        if (!e.createdAt) return false;
+        const enquiryDate = new Date(e.createdAt);
+        return enquiryDate.getMonth() === currentMonth && enquiryDate.getFullYear() === currentYear;
+      });
+      const convertedSolarLeads = solarEnquiries.filter(e => e.status === 'converted');
+      
       res.json({
         totalBookings: bookings.length,
         monthlyBookings: monthlyBookings.length,
@@ -427,7 +436,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         successfulPayments: successfulPayments.length,
         pendingPayments: pendingPayments.length,
         failedPayments: failedPayments.length,
-        totalPaidAmount: totalPaidAmount
+        totalPaidAmount: totalPaidAmount,
+        totalSolarEnquiries: solarEnquiries.length,
+        newSolarEnquiries: newSolarEnquiries.length,
+        convertedSolarLeads: convertedSolarLeads.length
       });
     } catch (error) {
       console.error("Error fetching admin stats:", error);

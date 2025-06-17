@@ -683,22 +683,76 @@ I'm interested in learning more about this TV and discussing purchase options. P
               )}
 
               {(recommendation.marketAnalysis || recommendation.pricingTrends) && (
-                <Card className="mb-6">
+                <Card className="mb-6 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
                   <CardHeader>
-                    <CardTitle className="text-xl">Current Market Insights</CardTitle>
-                    <CardDescription>Real-time analysis of the Irish TV market</CardDescription>
+                    <CardTitle className="text-xl flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                      Current Market Insights
+                    </CardTitle>
+                    <CardDescription className="text-blue-600">Real-time analysis of the Irish TV market</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-6">
                     {recommendation.marketAnalysis && (
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Market Analysis</h4>
-                        <p className="text-gray-700 text-sm">{recommendation.marketAnalysis}</p>
+                      <div className="bg-white rounded-lg p-4 border border-blue-200">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                            <span className="text-blue-600 text-sm">📊</span>
+                          </div>
+                          Market Analysis
+                        </h4>
+                        <div className="text-gray-700 text-sm leading-relaxed">
+                          {/* Clean up JSON-like formatting and display properly */}
+                          {recommendation.marketAnalysis
+                            .replace(/^[^"]*"[^"]*":\s*"/, '')
+                            .replace(/"[^"]*":\s*"/, '\n\n')
+                            .replace(/"/g, '')
+                            .split('\n\n')
+                            .filter(text => text.trim())
+                            .map((text, idx) => (
+                              <p key={idx} className="mb-2 last:mb-0">
+                                {text.trim()}
+                              </p>
+                            ))}
+                        </div>
                       </div>
                     )}
+                    
                     {recommendation.pricingTrends && (
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-2">Pricing Trends</h4>
-                        <p className="text-gray-700 text-sm">{recommendation.pricingTrends}</p>
+                      <div className="bg-white rounded-lg p-4 border border-blue-200">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2">
+                            <span className="text-green-600 text-sm">💹</span>
+                          </div>
+                          Pricing Trends
+                        </h4>
+                        <div className="text-gray-700 text-sm leading-relaxed">
+                          {/* Clean up JSON-like formatting and display properly */}
+                          {recommendation.pricingTrends
+                            .replace(/^[^"]*"[^"]*":\s*"/, '')
+                            .replace(/"[^"]*":\s*"/, '\n\n')
+                            .replace(/"/g, '')
+                            .split('\n\n')
+                            .filter(text => text.trim())
+                            .map((text, idx) => (
+                              <p key={idx} className="mb-2 last:mb-0">
+                                {text.trim()}
+                              </p>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {recommendation.futureConsiderations && (
+                      <div className="bg-white rounded-lg p-4 border border-blue-200">
+                        <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                          <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center mr-2">
+                            <span className="text-purple-600 text-sm">🔮</span>
+                          </div>
+                          Future Considerations
+                        </h4>
+                        <p className="text-gray-700 text-sm leading-relaxed">
+                          {recommendation.futureConsiderations}
+                        </p>
                       </div>
                     )}
                   </CardContent>
@@ -706,20 +760,29 @@ I'm interested in learning more about this TV and discussing purchase options. P
               )}
 
               {recommendation.bestDeals && recommendation.bestDeals.length > 0 && (
-                <Card className="mb-6 border-green-200 bg-green-50">
+                <Card className="mb-6 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
                   <CardHeader>
-                    <CardTitle className="text-xl text-green-800">Current Best Deals</CardTitle>
+                    <CardTitle className="text-xl text-green-800 flex items-center">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                      Current Best Deals
+                    </CardTitle>
                     <CardDescription className="text-green-600">Limited-time offers and promotions</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ul className="space-y-2">
+                    <div className="space-y-3">
                       {recommendation.bestDeals.map((deal, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="text-green-600 mr-2">🔥</span>
-                          <span className="text-green-800 text-sm">{deal}</span>
-                        </li>
+                        <div key={index} className="bg-white rounded-lg p-4 border border-green-200 flex items-start">
+                          <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <span className="text-orange-600 text-sm">🔥</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-green-800 text-sm font-medium leading-relaxed">
+                              {deal.replace(/Check retailer websites for current promotions/, 'Visit Harvey Norman, Currys, and DID Electrical for current TV promotions and bundle offers')}
+                            </p>
+                          </div>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   </CardContent>
                 </Card>
               )}

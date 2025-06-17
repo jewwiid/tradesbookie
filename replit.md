@@ -214,6 +214,8 @@ The application now includes a robust fallback system. When the database is unav
 - June 16, 2025: Added installation difficulty prediction to photo upload step with AI-powered complexity assessment, time estimates, and price impact warnings
 - June 16, 2025: Enhanced TV recommendation display to prominently feature actual product models with specific model numbers, current Irish pricing, and availability from major retailers
 - June 16, 2025: Integrated visual difficulty indicators (Easy/Moderate/Difficult/Expert) with color-coded complexity levels and detailed installation factors analysis
+- June 16, 2025: Redesigned Current Market Insights section with improved visual hierarchy, clean formatting, and dedicated sections for market analysis, pricing trends, and future considerations
+- June 16, 2025: Enhanced Best Deals section with card-based layout and better visual presentation of promotional offers from Irish retailers
 
 ## User Preferences
 

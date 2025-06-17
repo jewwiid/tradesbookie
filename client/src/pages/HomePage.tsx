@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import ServiceTierCard from "@/components/ServiceTierCard";
-import { Tv, Camera, Calendar, Wrench, CheckCircle, Sparkles } from "lucide-react";
+import { Tv, Camera, Calendar, Wrench, CheckCircle, Sparkles, Bolt } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 
@@ -110,6 +111,92 @@ export default function HomePage() {
                 isPopular={tier.name.includes('Silver') && !tier.name.includes('85')}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Solar Panel Installation Section - OHK Energy */}
+      <section className="py-16 bg-gradient-to-br from-yellow-50 to-orange-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mr-4">
+                  <Bolt className="w-6 h-6 text-white" />
+                </div>
+                <Badge className="bg-orange-600 text-white">New Partnership</Badge>
+              </div>
+              
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                Solar Panel Installation
+              </h2>
+              <p className="text-xl text-gray-600 mb-6">
+                Power your home with clean energy. Partner with OHK Energy for professional solar installations across Ireland.
+              </p>
+              
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Residential Solar Solutions</h4>
+                    <p className="text-gray-600 text-sm">Custom solar panel systems designed for Irish homes</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">SEAI Grant Support</h4>
+                    <p className="text-gray-600 text-sm">Up to €2,400 grant assistance available</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Expert Installation</h4>
+                    <p className="text-gray-600 text-sm">Certified installers with 10+ years experience</p>
+                  </div>
+                </div>
+              </div>
+              
+              <Link href="/solar-enquiry">
+                <Button size="lg" className="bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white">
+                  Get Free Solar Quote
+                </Button>
+              </Link>
+            </div>
+            
+            <div className="relative">
+              <div className="bg-white rounded-2xl shadow-xl p-8 border border-yellow-200">
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Bolt className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">OHK Energy Partnership</h3>
+                  <p className="text-gray-600">Ireland's trusted solar installation experts</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="bg-yellow-50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-yellow-600">15+</div>
+                    <div className="text-sm text-gray-600">Years Experience</div>
+                  </div>
+                  <div className="bg-orange-50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-orange-600">2000+</div>
+                    <div className="text-sm text-gray-600">Homes Powered</div>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-green-600">€2,400</div>
+                    <div className="text-sm text-gray-600">Max Grant</div>
+                  </div>
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <div className="text-2xl font-bold text-blue-600">25yr</div>
+                    <div className="text-sm text-gray-600">Warranty</div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

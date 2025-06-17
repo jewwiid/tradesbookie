@@ -130,6 +130,27 @@ export const reviews = pgTable("reviews", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Solar enquiries table for OHK Energy partnership leads
+export const solarEnquiries = pgTable("solar_enquiries", {
+  id: serial("id").primaryKey(),
+  firstName: varchar("first_name", { length: 100 }).notNull(),
+  lastName: varchar("last_name", { length: 100 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  address: text("address").notNull(),
+  county: varchar("county", { length: 50 }).notNull(),
+  propertyType: varchar("property_type", { length: 50 }).notNull(),
+  roofType: varchar("roof_type", { length: 50 }).notNull(),
+  electricityBill: varchar("electricity_bill", { length: 50 }).notNull(),
+  timeframe: varchar("timeframe", { length: 50 }).notNull(),
+  grants: boolean("grants").default(false),
+  additionalInfo: text("additional_info"),
+  status: varchar("status", { length: 50 }).default("new"), // new, contacted, quoted, converted, closed
+  referralCommission: decimal("referral_commission", { precision: 8, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),

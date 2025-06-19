@@ -64,11 +64,15 @@ export default function Navigation() {
                 </Link>
               )}
               {isAuthenticated ? (
-                <Link href="/api/logout">
-                  <Button variant="outline">
-                    Logout
-                  </Button>
-                </Link>
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    localStorage.removeItem("adminSession");
+                    window.location.href = "/";
+                  }}
+                >
+                  Logout
+                </Button>
               ) : (
                 <div className="flex items-center space-x-2">
                   <Link href="/admin-login">
@@ -77,7 +81,7 @@ export default function Navigation() {
                       Admin
                     </Button>
                   </Link>
-                  <Link href="/api/login">
+                  <Link href="/admin-login">
                     <Button variant="outline">
                       Sign In
                     </Button>
@@ -164,19 +168,21 @@ export default function Navigation() {
                     </>
                   )}
                   {isAuthenticated ? (
-                    <Link 
-                      href="/api/logout" 
-                      className="w-full"
-                      onClick={() => setMobileMenuOpen(false)}
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => {
+                        localStorage.removeItem("adminSession");
+                        setMobileMenuOpen(false);
+                        window.location.href = "/";
+                      }}
                     >
-                      <Button variant="outline" className="w-full justify-start">
-                        <User className="h-5 w-5 mr-3" />
-                        Logout
-                      </Button>
-                    </Link>
+                      <User className="h-5 w-5 mr-3" />
+                      Logout
+                    </Button>
                   ) : (
                     <Link 
-                      href="/api/login" 
+                      href="/admin-login" 
                       className="w-full"
                       onClick={() => setMobileMenuOpen(false)}
                     >

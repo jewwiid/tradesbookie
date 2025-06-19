@@ -27,7 +27,7 @@ export default function Navigation() {
             <div className="flex justify-center items-center flex-col py-4">
               <Link href="/" className="flex flex-col items-center">
                 <span className="font-gooddog text-gray-900 text-[40px]">tradesbook.ie</span>
-                <span className="font-gooddog text-gray-600 text-lg mt-1">where trades get booked!</span>
+                <span className="font-gooddog text-[15px] mt-[-7px] mb-[-7px] text-center text-[#453b3b]">where trades get booked!</span>
               </Link>
             </div>
           </div>

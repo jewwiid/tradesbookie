@@ -11,7 +11,7 @@ import OurInstallers from "@/pages/our-installers";
 import BookingFlow from "@/pages/booking-flow";
 import CustomerDashboard from "@/pages/customer-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
-import AdminLogin from "@/pages/admin-login";
+
 import InstallerDashboard from "@/pages/installer-dashboard";
 import InstallerRegistration from "@/pages/installer-registration";
 import InstallerLogin from "@/pages/installer-login";
@@ -46,7 +46,7 @@ function Router() {
       <Route path="/installer-registration" component={InstallerRegistration} />
       <Route path="/installer-login" component={InstallerLogin} />
       <Route path="/installer-dashboard/:id?" component={InstallerDashboard} />
-      <Route path="/admin-login" component={AdminLogin} />
+
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin-dashboard" component={AdminDashboard} />
       <Route path="/checkout" component={Checkout} />

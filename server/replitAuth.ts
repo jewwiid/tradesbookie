@@ -150,11 +150,16 @@ export async function setupAuth(app: Express) {
   });
 
   app.get("/api/logout", (req, res) => {
-    req.logout(() => {
+    req.logout((err) => {
+      if (err) {
+        console.error('Logout error:', err);
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      
       // Clear the session and redirect to home
-      req.session.destroy((err) => {
-        if (err) {
-          console.error('Session destruction error:', err);
+      req.session.destroy((sessionErr) => {
+        if (sessionErr) {
+          console.error('Session destruction error:', sessionErr);
         }
         res.clearCookie('connect.sid');
         res.redirect('/');

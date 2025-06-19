@@ -71,7 +71,7 @@ export default function Navigation() {
                 </Link>
               ) : (
                 <div className="flex items-center space-x-2">
-                  <Link href="/admin-login">
+                  <Link href="/api/login">
                     <Button variant="outline" size="sm">
                       <Shield className="w-4 h-4 mr-1" />
                       Admin

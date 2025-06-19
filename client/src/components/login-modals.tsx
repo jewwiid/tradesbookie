@@ -23,7 +23,7 @@ export default function LoginModals({
 
   const handleAdminLogin = () => {
     setShowAdminLogin(false);
-    window.location.href = "/api/login";
+    window.location.href = "/admin-login";
   };
 
   return (

@@ -24,7 +24,7 @@ export function ProtectedRoute({
         variant: "destructive",
       });
       setTimeout(() => {
-        window.location.href = "/api/login";
+        window.location.href = "/admin-login";
       }, 1000);
       return;
     }

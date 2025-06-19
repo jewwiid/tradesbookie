@@ -25,7 +25,6 @@ export default function Navigation() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
-              <Tv className="h-8 w-8 text-primary mr-3" />
               <span className="text-2xl font-gooddog text-gray-900">tradesbook.ie</span>
             </Link>
 

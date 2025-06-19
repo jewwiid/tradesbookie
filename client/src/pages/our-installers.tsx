@@ -241,7 +241,7 @@ export default function OurInstallers() {
               </Button>
             </Link>
             <Link href="/installer-registration">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+              <Button size="lg" variant="outline" className="border-white text-[#2563eb] hover:bg-white hover:text-[#2563eb]">
                 Become an Installer
                 <Users className="ml-2 w-5 h-5" />
               </Button>

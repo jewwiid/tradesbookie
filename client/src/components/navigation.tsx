@@ -64,19 +64,26 @@ export default function Navigation() {
                 </Link>
               )}
               {isAuthenticated ? (
-                <Link href="/api/logout">
-                  <Button variant="outline">
-                    Logout
-                  </Button>
-                </Link>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Link href="/api/login">
-                    <Button variant="outline" size="sm">
-                      <Shield className="w-4 h-4 mr-1" />
-                      Admin
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-gray-600">
+                    Welcome, {user?.firstName || user?.email}
+                  </span>
+                  {isAdmin && (
+                    <Link href="/admin">
+                      <Button variant="outline" size="sm">
+                        <Shield className="w-4 h-4 mr-1" />
+                        Admin
+                      </Button>
+                    </Link>
+                  )}
+                  <Link href="/api/logout">
+                    <Button variant="outline">
+                      Logout
                     </Button>
                   </Link>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
                   <Link href="/api/login">
                     <Button variant="outline">
                       Sign In
@@ -133,7 +140,7 @@ export default function Navigation() {
                   )}
                   {isAuthenticated && isAdmin && (
                     <Link 
-                      href="/admin-dashboard" 
+                      href="/admin" 
                       className="flex items-center py-2 text-gray-700 hover:text-primary"
                       onClick={() => setMobileMenuOpen(false)}
                     >

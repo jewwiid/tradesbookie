@@ -116,7 +116,7 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
                     Resets tomorrow or sign in for unlimited access.
                   </p>
                   <a
-                    href="/admin-login"
+                    href="/api/login"
                     className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                   >
                     <User className="w-4 h-4 mr-2" />
@@ -160,7 +160,7 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
               
               <div className="pt-4">
                 <a
-                  href="/admin-login"
+                  href="/api/login"
                   className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
                 >
                   <User className="w-4 h-4 mr-2" />

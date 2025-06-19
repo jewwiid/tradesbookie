@@ -24,9 +24,10 @@ export default function Navigation() {
         {/* First Row - Brand */}
         <div className="bg-white border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-center items-center h-16">
-              <Link href="/" className="flex items-center">
+            <div className="flex justify-center items-center flex-col py-4">
+              <Link href="/" className="flex flex-col items-center">
                 <span className="font-gooddog text-gray-900 text-[40px]">tradesbook.ie</span>
+                <span className="font-gooddog text-gray-600 text-lg mt-1">where trades get booked!</span>
               </Link>
             </div>
           </div>

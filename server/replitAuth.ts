@@ -80,20 +80,12 @@ export async function setupAuth(app: Express) {
   let config;
   try {
     config = await getOidcConfig();
+    console.log("OIDC config loaded successfully");
   } catch (error) {
     console.error("Failed to get OIDC config:", error);
-    // Add fallback routes for when OIDC is not available
-    app.get("/api/login", (req, res) => {
-      console.log("Login attempt without OIDC - redirecting to home");
-      res.redirect("/?auth=unavailable");
-    });
-    app.get("/api/logout", (req, res) => {
-      res.redirect("/");
-    });
-    app.get("/api/callback", (req, res) => {
-      res.redirect("/");
-    });
-    return;
+    console.error("REPL_ID:", process.env.REPL_ID);
+    console.error("ISSUER_URL:", process.env.ISSUER_URL || "https://replit.com/oidc");
+    throw error; // Don't continue with broken auth
   }
 
   const verify: VerifyFunction = async (
@@ -136,14 +128,22 @@ export async function setupAuth(app: Express) {
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    console.log("Login request from hostname:", req.hostname);
+    const strategyName = req.hostname === 'localhost' ? 'replitauth:localhost' : `replitauth:${req.hostname}`;
+    console.log("Using strategy:", strategyName);
+    
+    passport.authenticate(strategyName, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
-    passport.authenticate(`replitauth:${req.hostname}`, {
+    console.log("Callback request from hostname:", req.hostname);
+    const strategyName = req.hostname === 'localhost' ? 'replitauth:localhost' : `replitauth:${req.hostname}`;
+    console.log("Using callback strategy:", strategyName);
+    
+    passport.authenticate(strategyName, {
       successReturnToOrRedirect: "/",
       failureRedirect: "/api/login",
     })(req, res, next);

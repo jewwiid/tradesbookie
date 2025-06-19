@@ -26,7 +26,7 @@ export default function Navigation() {
             {/* Logo */}
             <Link href="/" className="flex items-center">
               <Tv className="h-8 w-8 text-primary mr-3" />
-              <span className="text-xl font-bold text-gray-900">tradesbook.ie</span>
+              <span className="text-2xl font-gooddog text-gray-900">tradesbook.ie</span>
             </Link>
 
             {/* Desktop Navigation */}

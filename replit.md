@@ -114,6 +114,12 @@ The application is configured for deployment on Replit with the following setup:
 
 **Current Implementation Status:**
 
+**✅ Registration System:**
+- Client registration: Automatic via Replit Auth (no separate registration needed)
+- Installer registration: Full registration form with business details, specialties, and service areas
+- Installer login: Demo access with password "demo123" for any email address
+- Automatic installer profile creation for demo users
+
 **✅ Uber-Style Installer Matching System:**
 - Interactive map of Ireland showing real-time installation requests
 - Real-time request acceptance/decline with immediate customer notifications

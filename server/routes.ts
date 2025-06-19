@@ -826,22 +826,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Installer registration endpoint
+  app.post("/api/installers/register", async (req, res) => {
+    try {
+      const {
+        name: contactName,
+        businessName,
+        email,
+        phone,
+        serviceArea,
+        county,
+        experience,
+        specialties,
+        deviceTypes,
+        certifications,
+        hourlyRate,
+        bio,
+        maxTravelDistance,
+        availability
+      } = req.body;
+
+      // Check if installer already exists
+      const existingInstaller = await storage.getInstallerByEmail(email);
+      if (existingInstaller) {
+        return res.status(400).json({ message: "An installer with this email already exists" });
+      }
+
+      // Create installer profile
+      const installerData = {
+        businessName: businessName || contactName,
+        contactName,
+        email,
+        phone,
+        address: `${county}, Ireland`,
+        serviceArea,
+        expertise: [...(specialties || []), ...(deviceTypes || [])],
+        bio,
+        yearsExperience: parseInt(experience?.split('-')[0] || '1'),
+        isActive: true
+      };
+
+      const newInstaller = await storage.createInstaller(installerData);
+      
+      res.json({ 
+        success: true, 
+        installer: newInstaller,
+        message: "Registration successful! You can now access your dashboard." 
+      });
+    } catch (error) {
+      console.error("Error registering installer:", error);
+      res.status(500).json({ message: "Registration failed. Please try again." });
+    }
+  });
+
   app.post("/api/installers/login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      
-      const installer = await storage.getInstallerByEmail(email);
-      if (!installer || password !== "demo123") {
-        return res.status(401).json({ message: "Invalid credentials" });
+
+      // For demo purposes, accept any email with password "demo123"
+      if (password === "demo123") {
+        let installer = await storage.getInstallerByEmail(email);
+        
+        // If installer doesn't exist, create a demo installer
+        if (!installer) {
+          const demoInstallerData = {
+            businessName: `${email.split('@')[0]} TV Services`,
+            contactName: email.split('@')[0],
+            email,
+            phone: "(555) 123-4567",
+            address: "Dublin, Ireland",
+            serviceArea: "Dublin",
+            expertise: ["Wall Mounting", "Cable Management", "LED TVs"],
+            bio: "Professional TV installer with years of experience.",
+            yearsExperience: 5,
+            isActive: true
+          };
+          installer = await storage.createInstaller(demoInstallerData);
+        }
+
+        res.json({ 
+          success: true, 
+          installer,
+          message: "Login successful!" 
+        });
+      } else {
+        res.status(401).json({ message: "Invalid credentials" });
       }
-      
-      res.json({ 
-        message: "Login successful", 
-        installer: { id: installer.id, email: installer.email, name: installer.contactName }
-      });
     } catch (error) {
       console.error("Error logging in installer:", error);
-      res.status(500).json({ message: "Failed to log in" });
+      res.status(500).json({ message: "Login failed. Please try again." });
     }
   });
 

@@ -88,11 +88,14 @@ export default function Navigation() {
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
-                  <Link href="/api/login">
-                    <Button variant="outline">
-                      Sign In
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      window.location.href = '/api/login';
+                    }}
+                  >
+                    Sign In
+                  </Button>
                 </div>
               )}
             </div>
@@ -175,27 +178,29 @@ export default function Navigation() {
                     </>
                   )}
                   {isAuthenticated ? (
-                    <Link 
-                      href="/api/logout" 
-                      className="w-full"
-                      onClick={() => setMobileMenuOpen(false)}
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        window.location.href = '/api/logout';
+                      }}
                     >
-                      <Button variant="outline" className="w-full justify-start">
-                        <User className="h-5 w-5 mr-3" />
-                        Logout
-                      </Button>
-                    </Link>
+                      <User className="h-5 w-5 mr-3" />
+                      Logout
+                    </Button>
                   ) : (
-                    <Link 
-                      href="/api/login" 
-                      className="w-full"
-                      onClick={() => setMobileMenuOpen(false)}
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        window.location.href = '/api/login';
+                      }}
                     >
-                      <Button variant="outline" className="w-full justify-start">
-                        <User className="h-5 w-5 mr-3" />
-                        Sign In
-                      </Button>
-                    </Link>
+                      <User className="h-5 w-5 mr-3" />
+                      Sign In
+                    </Button>
                   )}
                 </div>
               </SheetContent>

@@ -144,7 +144,7 @@ export async function setupAuth(app: Express) {
     console.log("Using callback strategy:", strategyName);
     
     passport.authenticate(strategyName, {
-      successReturnToOrRedirect: "/admin",
+      successReturnToOrRedirect: "/",
       failureRedirect: "/",
     })(req, res, next);
   });

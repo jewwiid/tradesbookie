@@ -13,9 +13,9 @@ export default function Navigation() {
   const isHome = location === '/';
   
   // Check if user is admin
-  const isAdmin = user?.email === 'admin@tradesbook.ie' || 
+  const isAdmin = user?.role === 'admin' || 
+                  user?.email === 'admin@tradesbook.ie' || 
                   user?.email === 'jude.okun@gmail.com' || 
-                  user?.id === 'admin' || 
                   user?.id === '42442296';
 
   return (

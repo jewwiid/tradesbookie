@@ -76,11 +76,15 @@ export default function Navigation() {
                       </Button>
                     </Link>
                   )}
-                  <Link href="/api/logout">
-                    <Button variant="outline">
-                      Logout
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      // Force a full page navigation to ensure proper logout
+                      window.location.href = '/api/logout';
+                    }}
+                  >
+                    Logout
+                  </Button>
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">

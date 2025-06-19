@@ -49,8 +49,8 @@ function Router() {
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin-dashboard" component={AdminDashboard} />
-      <Route path="/checkout" component={Checkout} />
-      <Route path="/booking-success" component={BookingSuccess} />
+      <Route path="/checkout/:bookingId?" component={Checkout} />
+      <Route path="/booking-success/:bookingId?" component={BookingSuccess} />
       
       <Route component={NotFound} />
     </Switch>

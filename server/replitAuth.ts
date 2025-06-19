@@ -144,8 +144,8 @@ export async function setupAuth(app: Express) {
     console.log("Using callback strategy:", strategyName);
     
     passport.authenticate(strategyName, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login",
+      successReturnToOrRedirect: "/admin",
+      failureRedirect: "/",
     })(req, res, next);
   });
 
@@ -156,13 +156,13 @@ export async function setupAuth(app: Express) {
         return res.status(500).json({ message: "Logout failed" });
       }
       
-      // Clear the session and redirect to home
+      // Clear the session and redirect to home with logout parameter
       req.session.destroy((sessionErr) => {
         if (sessionErr) {
           console.error('Session destruction error:', sessionErr);
         }
         res.clearCookie('connect.sid');
-        res.redirect('/');
+        res.redirect('/?logout=true');
       });
     });
   });

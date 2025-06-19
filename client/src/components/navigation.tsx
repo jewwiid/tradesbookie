@@ -38,7 +38,7 @@ export default function Navigation() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-12">
               {/* Desktop Navigation Links */}
-              <div className="hidden md:flex items-center justify-center flex-1 space-x-8 font-bold">
+              <div className="hidden md:flex items-center justify-center flex-1 space-x-8 font-bold text-center">
                 {!isAdmin && (
                   <>
                     <Link href="/how-it-works" className="text-gray-700 hover:text-primary transition-colors text-sm">

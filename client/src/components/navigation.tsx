@@ -21,189 +21,202 @@ export default function Navigation() {
   return (
     <>
       <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center">
-              <span className="text-2xl font-gooddog text-gray-900">tradesbook.ie</span>
-            </Link>
+        {/* First Row - Brand */}
+        <div className="bg-white border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-center items-center h-16">
+              <Link href="/" className="flex items-center">
+                <span className="text-3xl font-gooddog text-gray-900">tradesbook.ie</span>
+              </Link>
+            </div>
+          </div>
+        </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {!isAdmin && (
-                <>
-                  <Link href="/how-it-works" className="text-gray-700 hover:text-primary transition-colors">
-                    How it Works
-                  </Link>
-                  <Link href="/pricing" className="text-gray-700 hover:text-primary transition-colors">
-                    Pricing
-                  </Link>
-                  <Link href="/our-installers" className="text-gray-700 hover:text-primary transition-colors">
-                    Our Installers
-                  </Link>
-                  <Link href="/installation-tracker" className="text-gray-700 hover:text-primary transition-colors">
-                    Installation Map
-                  </Link>
-                </>
-              )}
-              {isAuthenticated && isAdmin && (
-                <Link href="/admin-dashboard" className="text-gray-700 hover:text-primary transition-colors flex items-center">
-                  <Shield className="h-4 w-4 mr-1" />
-                  Admin
-                </Link>
-              )}
-              {!isAdmin && (
-                <Link href="/booking">
-                  <Button
-                    variant="default"
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    Book Installation
-                  </Button>
-                </Link>
-              )}
-              {isAuthenticated ? (
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-600">
-                    Welcome, {user?.firstName || user?.email}
-                  </span>
-                  {isAdmin && (
-                    <Link href="/admin">
-                      <Button variant="outline" size="sm">
-                        <Shield className="w-4 h-4 mr-1" />
-                        Admin
-                      </Button>
+        {/* Second Row - Navigation */}
+        <div className="bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-12">
+              {/* Desktop Navigation Links */}
+              <div className="hidden md:flex items-center justify-center flex-1 space-x-8">
+                {!isAdmin && (
+                  <>
+                    <Link href="/how-it-works" className="text-gray-700 hover:text-primary transition-colors text-sm">
+                      How it Works
                     </Link>
-                  )}
+                    <Link href="/pricing" className="text-gray-700 hover:text-primary transition-colors text-sm">
+                      Pricing
+                    </Link>
+                    <Link href="/our-installers" className="text-gray-700 hover:text-primary transition-colors text-sm">
+                      Our Installers
+                    </Link>
+                    <Link href="/installation-tracker" className="text-gray-700 hover:text-primary transition-colors text-sm">
+                      Installation Map
+                    </Link>
+                  </>
+                )}
+                {isAuthenticated && isAdmin && (
+                  <Link href="/admin-dashboard" className="text-gray-700 hover:text-primary transition-colors flex items-center text-sm">
+                    <Shield className="h-4 w-4 mr-1" />
+                    Admin
+                  </Link>
+                )}
+              </div>
+
+              {/* Right Side - CTA and Auth */}
+              <div className="hidden md:flex items-center space-x-4">
+                {!isAdmin && (
+                  <Link href="/booking">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="bg-primary hover:bg-primary/90"
+                    >
+                      Book Installation
+                    </Button>
+                  </Link>
+                )}
+                {isAuthenticated ? (
+                  <div className="flex items-center space-x-3">
+                    <span className="text-xs text-gray-600">
+                      Welcome, {user?.firstName || user?.email}
+                    </span>
+                    {isAdmin && (
+                      <Link href="/admin">
+                        <Button variant="outline" size="sm">
+                          <Shield className="w-4 h-4 mr-1" />
+                          Admin
+                        </Button>
+                      </Link>
+                    )}
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        window.location.href = '/api/logout';
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  </div>
+                ) : (
                   <Button 
                     variant="outline"
-                    onClick={() => {
-                      // Force a full page navigation to ensure proper logout
-                      window.location.href = '/api/logout';
-                    }}
-                  >
-                    Logout
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       window.location.href = '/api/login';
                     }}
                   >
                     Sign In
                   </Button>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            {/* Mobile menu trigger */}
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[280px]">
-                <div className="flex flex-col space-y-4 pt-6">
-                  {!isAdmin && (
-                    <>
+              {/* Mobile menu trigger */}
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[280px]">
+                  <div className="flex flex-col space-y-4 pt-6">
+                    {!isAdmin && (
+                      <>
+                        <Link 
+                          href="/how-it-works" 
+                          className="flex items-center py-2 text-gray-700 hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Home className="h-5 w-5 mr-3" />
+                          How it Works
+                        </Link>
+                        <Link 
+                          href="/pricing" 
+                          className="flex items-center py-2 text-gray-700 hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Calendar className="h-5 w-5 mr-3" />
+                          Pricing
+                        </Link>
+                        <Link 
+                          href="/our-installers" 
+                          className="flex items-center py-2 text-gray-700 hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <User className="h-5 w-5 mr-3" />
+                          Our Installers
+                        </Link>
+                        <Link 
+                          href="/installation-tracker" 
+                          className="flex items-center py-2 text-gray-700 hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <MapPin className="h-5 w-5 mr-3" />
+                          Installation Map
+                        </Link>
+                      </>
+                    )}
+                    {isAuthenticated && isAdmin && (
                       <Link 
-                        href="/how-it-works" 
+                        href="/admin" 
                         className="flex items-center py-2 text-gray-700 hover:text-primary"
                         onClick={() => setMobileMenuOpen(false)}
                       >
-                        <Home className="h-5 w-5 mr-3" />
-                        How it Works
+                        <Shield className="h-5 w-5 mr-3" />
+                        Admin Dashboard
                       </Link>
-                      <Link 
-                        href="/pricing" 
-                        className="flex items-center py-2 text-gray-700 hover:text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Calendar className="h-5 w-5 mr-3" />
-                        Pricing
-                      </Link>
-                      <Link 
-                        href="/our-installers" 
-                        className="flex items-center py-2 text-gray-700 hover:text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
+                    )}
+                    {!isAdmin && (
+                      <>
+                        <Link 
+                          href="/installer-registration" 
+                          className="flex items-center py-2 text-gray-700 hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Settings className="h-5 w-5 mr-3" />
+                          Join as Installer
+                        </Link>
+                        <Link 
+                          href="/booking" 
+                          className="w-full"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Button className="w-full justify-start bg-primary hover:bg-primary/90">
+                            <Calendar className="h-5 w-5 mr-3" />
+                            Book Installation
+                          </Button>
+                        </Link>
+                      </>
+                    )}
+                    {isAuthenticated ? (
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          window.location.href = '/api/logout';
+                        }}
                       >
                         <User className="h-5 w-5 mr-3" />
-                        Our Installers
-                      </Link>
-                      <Link 
-                        href="/installation-tracker" 
-                        className="flex items-center py-2 text-gray-700 hover:text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
+                        Logout
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          window.location.href = '/api/login';
+                        }}
                       >
-                        <MapPin className="h-5 w-5 mr-3" />
-                        Installation Map
-                      </Link>
-                    </>
-                  )}
-                  {isAuthenticated && isAdmin && (
-                    <Link 
-                      href="/admin" 
-                      className="flex items-center py-2 text-gray-700 hover:text-primary"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <Shield className="h-5 w-5 mr-3" />
-                      Admin Dashboard
-                    </Link>
-                  )}
-                  {!isAdmin && (
-                    <>
-                      <Link 
-                        href="/installer-registration" 
-                        className="flex items-center py-2 text-gray-700 hover:text-primary"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Settings className="h-5 w-5 mr-3" />
-                        Join as Installer
-                      </Link>
-                      <Link 
-                        href="/booking" 
-                        className="w-full"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <Button className="w-full justify-start bg-primary hover:bg-primary/90">
-                          <Calendar className="h-5 w-5 mr-3" />
-                          Book Installation
-                        </Button>
-                      </Link>
-                    </>
-                  )}
-                  {isAuthenticated ? (
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        window.location.href = '/api/logout';
-                      }}
-                    >
-                      <User className="h-5 w-5 mr-3" />
-                      Logout
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => {
-                        setMobileMenuOpen(false);
-                        window.location.href = '/api/login';
-                      }}
-                    >
-                      <User className="h-5 w-5 mr-3" />
-                      Sign In
-                    </Button>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
+                        <User className="h-5 w-5 mr-3" />
+                        Sign In
+                      </Button>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </nav>

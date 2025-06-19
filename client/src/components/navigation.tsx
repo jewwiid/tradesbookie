@@ -26,7 +26,7 @@ export default function Navigation() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-center items-center h-16">
               <Link href="/" className="flex items-center">
-                <span className="text-3xl font-gooddog text-gray-900">tradesbook.ie</span>
+                <span className="font-gooddog text-gray-900 text-[40px]">tradesbook.ie</span>
               </Link>
             </div>
           </div>

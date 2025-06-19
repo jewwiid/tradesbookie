@@ -137,7 +137,7 @@ export default function Home() {
             </div>
             <div className="relative">
               <img 
-                src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&h=600" 
+                src="/images/hero-room.jpg" 
                 alt="Modern living room with mounted TV" 
                 className="rounded-3xl shadow-2xl w-full"
               />

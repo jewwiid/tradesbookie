@@ -70,11 +70,19 @@ export default function Navigation() {
                   </Button>
                 </Link>
               ) : (
-                <Link href="/api/login">
-                  <Button variant="outline">
-                    Sign In
-                  </Button>
-                </Link>
+                <div className="flex items-center space-x-2">
+                  <Link href="/admin-login">
+                    <Button variant="outline" size="sm">
+                      <Shield className="w-4 h-4 mr-1" />
+                      Admin
+                    </Button>
+                  </Link>
+                  <Link href="/api/login">
+                    <Button variant="outline">
+                      Sign In
+                    </Button>
+                  </Link>
+                </div>
               )}
             </div>
 

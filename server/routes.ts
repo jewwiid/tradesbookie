@@ -1590,80 +1590,70 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Get installation locations for map tracker
-  app.get("/api/installations/locations", (req, res) => {
-    // Sample location data for demonstration purposes
-    const mockLocations = [
-        {
-          location: 'Dublin',
-          count: 15,
-          recentInstallations: [
-            { id: 1, serviceType: 'Premium Wall Mount', tvSize: '65', date: '2025-06-14T10:30:00Z', status: 'completed' },
-            { id: 2, serviceType: 'Standard Installation', tvSize: '55', date: '2025-06-13T14:20:00Z', status: 'completed' },
-            { id: 3, serviceType: 'Premium Wall Mount', tvSize: '75', date: '2025-06-12T09:15:00Z', status: 'in_progress' },
-            { id: 4, serviceType: 'Basic Installation', tvSize: '43', date: '2025-06-11T16:45:00Z', status: 'completed' },
-            { id: 5, serviceType: 'Standard Installation', tvSize: '58', date: '2025-06-10T11:30:00Z', status: 'completed' }
-          ]
-        },
-        {
-          location: 'Cork',
-          count: 8,
-          recentInstallations: [
-            { id: 6, serviceType: 'Standard Installation', tvSize: '55', date: '2025-06-14T12:00:00Z', status: 'completed' },
-            { id: 7, serviceType: 'Premium Wall Mount', tvSize: '65', date: '2025-06-13T10:30:00Z', status: 'completed' },
-            { id: 8, serviceType: 'Basic Installation', tvSize: '50', date: '2025-06-12T15:20:00Z', status: 'scheduled' }
-          ]
-        },
-        {
-          location: 'Galway',
-          count: 6,
-          recentInstallations: [
-            { id: 9, serviceType: 'Premium Wall Mount', tvSize: '75', date: '2025-06-14T09:45:00Z', status: 'completed' },
-            { id: 10, serviceType: 'Standard Installation', tvSize: '58', date: '2025-06-13T13:15:00Z', status: 'completed' },
-            { id: 11, serviceType: 'Basic Installation', tvSize: '43', date: '2025-06-12T08:30:00Z', status: 'in_progress' }
-          ]
-        },
-        {
-          location: 'Limerick',
-          count: 4,
-          recentInstallations: [
-            { id: 12, serviceType: 'Standard Installation', tvSize: '50', date: '2025-06-14T11:00:00Z', status: 'scheduled' },
-            { id: 13, serviceType: 'Premium Wall Mount', tvSize: '65', date: '2025-06-13T14:30:00Z', status: 'completed' }
-          ]
-        },
-        {
-          location: 'Waterford',
-          count: 3,
-          recentInstallations: [
-            { id: 14, serviceType: 'Basic Installation', tvSize: '43', date: '2025-06-14T10:15:00Z', status: 'completed' },
-            { id: 15, serviceType: 'Standard Installation', tvSize: '55', date: '2025-06-13T16:00:00Z', status: 'completed' }
-          ]
-        },
-        {
-          location: 'Kilkenny',
-          count: 3,
-          recentInstallations: [
-            { id: 16, serviceType: 'Premium Wall Mount', tvSize: '65', date: '2025-06-14T12:30:00Z', status: 'in_progress' },
-            { id: 17, serviceType: 'Standard Installation', tvSize: '58', date: '2025-06-13T09:45:00Z', status: 'completed' }
-          ]
-        },
-        {
-          location: 'Wexford',
-          count: 2,
-          recentInstallations: [
-            { id: 18, serviceType: 'Standard Installation', tvSize: '58', date: '2025-06-14T15:30:00Z', status: 'completed' }
-          ]
-        },
-        {
-          location: 'Carlow',
-          count: 2,
-          recentInstallations: [
-            { id: 19, serviceType: 'Basic Installation', tvSize: '50', date: '2025-06-13T11:20:00Z', status: 'completed' }
-          ]
-        }
-      ];
+  // Get installation locations for map tracker - Real data from bookings
+  app.get("/api/installations/locations", async (req, res) => {
+    try {
+      const allBookings = await storage.getAllBookings();
       
-      res.json(mockLocations);
+      // Group bookings by location (extract county from address)
+      const locationMap = new Map<string, any[]>();
+      
+      allBookings.forEach(booking => {
+        // Extract county from address - assume address format includes county
+        const addressParts = booking.address.split(',');
+        let county = 'Unknown';
+        
+        // Try to extract county from address
+        if (addressParts.length >= 2) {
+          county = addressParts[addressParts.length - 2].trim();
+        } else if (addressParts.length === 1) {
+          // If single part address, check if it contains known Irish counties
+          const knownCounties = ['Dublin', 'Cork', 'Galway', 'Limerick', 'Waterford', 'Kilkenny', 'Wexford', 'Carlow', 'Kildare', 'Laois', 'Meath', 'Wicklow', 'Offaly', 'Westmeath', 'Longford', 'Louth', 'Cavan', 'Monaghan', 'Donegal', 'Sligo', 'Leitrim', 'Roscommon', 'Mayo', 'Clare', 'Kerry', 'Tipperary'];
+          const foundCounty = knownCounties.find(c => booking.address.toLowerCase().includes(c.toLowerCase()));
+          if (foundCounty) county = foundCounty;
+        }
+        
+        if (!locationMap.has(county)) {
+          locationMap.set(county, []);
+        }
+        locationMap.get(county)!.push(booking);
+      });
+      
+      // Transform to required format
+      const locations = Array.from(locationMap.entries()).map(([location, bookings]) => {
+        // Sort bookings by date (most recent first)
+        const sortedBookings = bookings.sort((a, b) => 
+          new Date(b.createdAt || b.scheduledDate || new Date()).getTime() - 
+          new Date(a.createdAt || a.scheduledDate || new Date()).getTime()
+        );
+        
+        // Format recent installations
+        const recentInstallations = sortedBookings.slice(0, 5).map(booking => ({
+          id: booking.id,
+          serviceType: booking.serviceType,
+          tvSize: booking.tvSize,
+          date: booking.scheduledDate || booking.createdAt || new Date().toISOString(),
+          status: booking.status || 'pending'
+        }));
+        
+        return {
+          location,
+          count: bookings.length,
+          recentInstallations
+        };
+      });
+      
+      // Sort locations by count (descending) and filter out Unknown
+      const filteredLocations = locations
+        .filter(loc => loc.location !== 'Unknown' && loc.count > 0)
+        .sort((a, b) => b.count - a.count);
+      
+      res.json(filteredLocations);
+    } catch (error) {
+      console.error("Error fetching installation locations:", error);
+      // Return empty array instead of mock data on error
+      res.json([]);
+    }
   });
 
   // Customer selects installer from those who accepted

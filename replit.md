@@ -235,6 +235,9 @@ The application now includes a robust fallback system. When the database is unav
 - June 17, 2025: Fixed non-functional booking management action buttons in admin dashboard with proper view and edit dialog functionality
 - June 17, 2025: Enhanced AI preview generation to incorporate all booking selections including cable concealment and soundbar installation for accurate customer previews
 - June 17, 2025: Fixed QR code display in admin dashboard to show actual scannable QR images instead of reference text codes
+- June 20, 2025: Replaced mock installation data with real database queries from bookings table for Installation Coverage Map and Statistics
+- June 20, 2025: Implemented intelligent county extraction from booking addresses to accurately populate installation location data
+- June 20, 2025: Added test booking data across Irish counties to demonstrate real-time installation tracking functionality
 
 ## User Preferences
 

@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeDatabase } from "./db";
 import { createMockProfiles } from "./mockData";
+import { createTestInstallationData } from "./testData";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));

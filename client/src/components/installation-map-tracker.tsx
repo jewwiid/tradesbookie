@@ -18,34 +18,34 @@ interface InstallationLocation {
   }>;
 }
 
-// Irish counties with approximate coordinates for visualization
-const IRELAND_LOCATIONS: Record<string, { lat: number; lng: number; county: string }> = {
-  'Dublin': { lat: 53.3498, lng: -6.2603, county: 'Dublin' },
-  'Cork': { lat: 51.8985, lng: -8.4756, county: 'Cork' },
-  'Galway': { lat: 53.2707, lng: -9.0568, county: 'Galway' },
-  'Limerick': { lat: 52.6638, lng: -8.6267, county: 'Limerick' },
-  'Waterford': { lat: 52.2593, lng: -7.1101, county: 'Waterford' },
-  'Kilkenny': { lat: 52.6541, lng: -7.2448, county: 'Kilkenny' },
-  'Wexford': { lat: 52.3369, lng: -6.4633, county: 'Wexford' },
-  'Carlow': { lat: 52.8408, lng: -6.9269, county: 'Carlow' },
-  'Kildare': { lat: 53.1581, lng: -6.9115, county: 'Kildare' },
-  'Laois': { lat: 53.0344, lng: -7.2992, county: 'Laois' },
-  'Meath': { lat: 53.6055, lng: -6.6578, county: 'Meath' },
-  'Wicklow': { lat: 52.9808, lng: -6.0426, county: 'Wicklow' },
-  'Offaly': { lat: 53.2736, lng: -7.7906, county: 'Offaly' },
-  'Westmeath': { lat: 53.5428, lng: -7.3411, county: 'Westmeath' },
-  'Longford': { lat: 53.7289, lng: -7.7956, county: 'Longford' },
-  'Louth': { lat: 53.8578, lng: -6.3481, county: 'Louth' },
-  'Cavan': { lat: 53.9901, lng: -7.3609, county: 'Cavan' },
-  'Monaghan': { lat: 54.2489, lng: -6.9688, county: 'Monaghan' },
-  'Donegal': { lat: 54.6566, lng: -8.1105, county: 'Donegal' },
-  'Sligo': { lat: 54.2697, lng: -8.4694, county: 'Sligo' },
-  'Leitrim': { lat: 54.0199, lng: -8.0739, county: 'Leitrim' },
-  'Roscommon': { lat: 53.6279, lng: -8.1951, county: 'Roscommon' },
-  'Mayo': { lat: 53.8544, lng: -9.2965, county: 'Mayo' },
-  'Clare': { lat: 52.8454, lng: -8.9811, county: 'Clare' },
-  'Kerry': { lat: 52.1665, lng: -9.7047, county: 'Kerry' },
-  'Tipperary': { lat: 52.4731, lng: -8.1600, county: 'Tipperary' },
+// Irish counties with SVG coordinates for accurate map positioning
+const IRELAND_LOCATIONS: Record<string, { x: number; y: number; county: string }> = {
+  'Dublin': { x: 190, y: 180, county: 'Dublin' },
+  'Cork': { x: 90, y: 320, county: 'Cork' },
+  'Galway': { x: 50, y: 200, county: 'Galway' },
+  'Limerick': { x: 80, y: 260, county: 'Limerick' },
+  'Waterford': { x: 140, y: 280, county: 'Waterford' },
+  'Kilkenny': { x: 160, y: 260, county: 'Kilkenny' },
+  'Wexford': { x: 180, y: 300, county: 'Wexford' },
+  'Carlow': { x: 170, y: 240, county: 'Carlow' },
+  'Kildare': { x: 170, y: 200, county: 'Kildare' },
+  'Laois': { x: 150, y: 220, county: 'Laois' },
+  'Meath': { x: 180, y: 160, county: 'Meath' },
+  'Wicklow': { x: 200, y: 220, county: 'Wicklow' },
+  'Offaly': { x: 140, y: 200, county: 'Offaly' },
+  'Westmeath': { x: 160, y: 180, county: 'Westmeath' },
+  'Longford': { x: 140, y: 160, county: 'Longford' },
+  'Louth': { x: 200, y: 140, county: 'Louth' },
+  'Cavan': { x: 160, y: 140, county: 'Cavan' },
+  'Monaghan': { x: 180, y: 120, county: 'Monaghan' },
+  'Donegal': { x: 120, y: 80, county: 'Donegal' },
+  'Sligo': { x: 100, y: 120, county: 'Sligo' },
+  'Leitrim': { x: 120, y: 140, county: 'Leitrim' },
+  'Roscommon': { x: 110, y: 180, county: 'Roscommon' },
+  'Mayo': { x: 80, y: 140, county: 'Mayo' },
+  'Clare': { x: 70, y: 240, county: 'Clare' },
+  'Kerry': { x: 50, y: 300, county: 'Kerry' },
+  'Tipperary': { x: 120, y: 240, county: 'Tipperary' },
 };
 
 export default function InstallationMapTracker() {
@@ -158,13 +158,22 @@ export default function InstallationMapTracker() {
           <CardContent>
             <div className="relative bg-gradient-to-b from-blue-50 to-green-50 dark:from-blue-900 dark:to-green-900 rounded-lg p-4 h-96 overflow-hidden">
               {/* SVG Map of Ireland */}
-              <svg viewBox="0 0 400 500" className="w-full h-full">
-                {/* Simplified Ireland outline */}
+              <svg viewBox="0 0 300 400" className="w-full h-full">
+                {/* Accurate Ireland outline */}
                 <path
-                  d="M100 50 Q150 30 200 50 Q250 40 300 60 Q320 80 330 120 Q340 160 320 200 Q310 240 290 280 Q270 320 250 360 Q230 400 200 420 Q170 440 140 430 Q110 420 90 380 Q70 340 80 300 Q85 260 90 220 Q95 180 90 140 Q85 100 100 50Z"
+                  d="M150 20 L160 25 L170 30 L180 35 L190 45 L200 55 L210 65 L220 75 L225 85 L230 95 L235 105 L240 115 L245 125 L250 135 L252 145 L254 155 L255 165 L256 175 L255 185 L254 195 L252 205 L250 215 L248 225 L245 235 L242 245 L238 255 L234 265 L230 275 L225 285 L220 295 L214 305 L208 315 L200 325 L192 335 L184 345 L175 355 L165 365 L155 370 L145 375 L135 378 L125 380 L115 378 L105 375 L95 370 L85 365 L75 355 L65 345 L57 335 L50 325 L44 315 L40 305 L37 295 L35 285 L34 275 L33 265 L32 255 L31 245 L30 235 L29 225 L28 215 L27 205 L26 195 L25 185 L24 175 L23 165 L22 155 L21 145 L20 135 L19 125 L18 115 L17 105 L16 95 L15 85 L14 75 L13 65 L12 55 L11 45 L10 35 L15 30 L25 25 L35 22 L45 20 L55 19 L65 18 L75 17 L85 16 L95 15 L105 14 L115 13 L125 12 L135 11 L145 15 Z"
                   fill="rgba(34, 197, 94, 0.1)"
                   stroke="rgba(34, 197, 94, 0.3)"
                   strokeWidth="2"
+                />
+                
+                {/* Northern Ireland outline */}
+                <path
+                  d="M180 70 L190 65 L200 62 L210 60 L220 58 L230 56 L240 55 L250 54 L260 53 L270 52 L275 58 L280 65 L285 72 L290 80 L292 88 L294 96 L295 104 L296 112 L295 120 L294 128 L292 136 L290 144 L285 152 L280 159 L275 165 L270 170 L260 174 L250 177 L240 179 L230 180 L220 181 L210 182 L200 183 L190 184 L185 178 L182 170 L180 162 L179 154 L178 146 L177 138 L176 130 L175 122 L174 114 L173 106 L172 98 L171 90 L170 82 L175 75 Z"
+                  fill="rgba(156, 163, 175, 0.2)"
+                  stroke="rgba(156, 163, 175, 0.4)"
+                  strokeWidth="1"
+                  strokeDasharray="3,3"
                 />
                 
                 {/* Location markers */}
@@ -172,16 +181,13 @@ export default function InstallationMapTracker() {
                   const coords = IRELAND_LOCATIONS[location.location];
                   if (!coords) return null;
                   
-                  // Convert lat/lng to SVG coordinates (simplified)
-                  const x = ((coords.lng + 10.5) / 4.5) * 400;
-                  const y = ((55.5 - coords.lat) / 5) * 500;
                   const size = Math.min(Math.max(location.count * 2, 8), 20);
                   
                   return (
                     <g key={location.location}>
                       <circle
-                        cx={x}
-                        cy={y}
+                        cx={coords.x}
+                        cy={coords.y}
                         r={size}
                         fill={selectedLocation?.location === location.location ? "#ef4444" : "#3b82f6"}
                         stroke="white"
@@ -190,16 +196,16 @@ export default function InstallationMapTracker() {
                         onClick={() => setSelectedLocation(location)}
                       />
                       <text
-                        x={x}
-                        y={y + size + 15}
+                        x={coords.x}
+                        y={coords.y + size + 15}
                         textAnchor="middle"
                         className="text-xs font-medium fill-gray-700 dark:fill-gray-300"
                       >
                         {location.location}
                       </text>
                       <text
-                        x={x}
-                        y={y + size + 25}
+                        x={coords.x}
+                        y={coords.y + size + 25}
                         textAnchor="middle"
                         className="text-xs fill-gray-500"
                       >

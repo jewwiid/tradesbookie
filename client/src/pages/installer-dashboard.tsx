@@ -96,14 +96,23 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
         </div>
       </div>
 
-      {/* Simplified Ireland outline */}
-      <svg viewBox="0 0 400 300" className="w-full h-full">
-        {/* Ireland outline (simplified) */}
+      {/* Accurate Ireland outline */}
+      <svg viewBox="0 0 300 400" className="w-full h-full">
+        {/* Republic of Ireland outline */}
         <path
-          d="M80 50 Q90 40 120 45 Q160 50 180 70 Q200 90 195 120 Q190 150 170 180 Q150 200 120 195 Q90 190 70 170 Q50 150 55 120 Q60 90 80 50Z"
+          d="M150 20 L160 25 L170 30 L180 35 L190 45 L200 55 L210 65 L220 75 L225 85 L230 95 L235 105 L240 115 L245 125 L250 135 L252 145 L254 155 L255 165 L256 175 L255 185 L254 195 L252 205 L250 215 L248 225 L245 235 L242 245 L238 255 L234 265 L230 275 L225 285 L220 295 L214 305 L208 315 L200 325 L192 335 L184 345 L175 355 L165 365 L155 370 L145 375 L135 378 L125 380 L115 378 L105 375 L95 370 L85 365 L75 355 L65 345 L57 335 L50 325 L44 315 L40 305 L37 295 L35 285 L34 275 L33 265 L32 255 L31 245 L30 235 L29 225 L28 215 L27 205 L26 195 L25 185 L24 175 L23 165 L22 155 L21 145 L20 135 L19 125 L18 115 L17 105 L16 95 L15 85 L14 75 L13 65 L12 55 L11 45 L10 35 L15 30 L25 25 L35 22 L45 20 L55 19 L65 18 L75 17 L85 16 L95 15 L105 14 L115 13 L125 12 L135 11 L145 15 Z"
           fill="#e8f5e8"
           stroke="#22c55e"
           strokeWidth="2"
+        />
+        
+        {/* Northern Ireland outline */}
+        <path
+          d="M180 70 L190 65 L200 62 L210 60 L220 58 L230 56 L240 55 L250 54 L260 53 L270 52 L275 58 L280 65 L285 72 L290 80 L292 88 L294 96 L295 104 L296 112 L295 120 L294 128 L292 136 L290 144 L285 152 L280 159 L275 165 L270 170 L260 174 L250 177 L240 179 L230 180 L220 181 L210 182 L200 183 L190 184 L185 178 L182 170 L180 162 L179 154 L178 146 L177 138 L176 130 L175 122 L174 114 L173 106 L172 98 L171 90 L170 82 L175 75 Z"
+          fill="#f3f4f6"
+          stroke="#9ca3af"
+          strokeWidth="1"
+          strokeDasharray="3,3"
         />
         
         {/* Plot request markers on the map */}

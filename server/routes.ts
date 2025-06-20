@@ -1708,12 +1708,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 }
 
 // Pricing calculation helper
-function calculateBookingPricing(
+async function calculateBookingPricing(
   serviceType: string,
   addons: Array<{ key: string; name: string; price: number }>,
   installerId: number | null
 ) {
-  // Base pricing structure
+  // Base pricing structure (installer earnings)
   const basePrices: Record<string, number> = {
     'table-top-small': 89,
     'table-top-large': 109,
@@ -1726,18 +1726,31 @@ function calculateBookingPricing(
 
   const basePrice = basePrices[serviceType] || 109;
   const addonsPrice = addons.reduce((sum, addon) => sum + addon.price, 0);
-  const totalPrice = basePrice + addonsPrice;
+  const installerEarnings = basePrice + addonsPrice;
   
-  // Default fee percentage (15%)
-  const feePercentage = 15;
-  const appFee = totalPrice * (feePercentage / 100);
-  const installerEarnings = totalPrice - appFee;
+  // Get fee percentage from database or use default
+  let feePercentage = 15; // Default 15%
+  if (installerId) {
+    try {
+      const feeStructure = await storage.getFeeStructure(installerId, serviceType);
+      if (feeStructure) {
+        feePercentage = parseFloat(feeStructure.feePercentage);
+      }
+    } catch (error) {
+      console.error("Error fetching fee structure:", error);
+    }
+  }
+  
+  // Calculate total price (what customer pays)
+  const appFee = installerEarnings * (feePercentage / 100);
+  const totalPrice = installerEarnings + appFee;
 
   return {
     basePrice,
     addonsPrice,
-    totalPrice,
+    installerEarnings,
     appFee,
-    installerEarnings
+    feePercentage,
+    totalPrice
   };
 }

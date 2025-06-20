@@ -7,6 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Star, Medal, Award, Crown, Tv, ArrowRight } from "lucide-react";
 
 export default function Pricing() {
+  // Calculate prices with commission included (what customers actually pay)
+  const calculateCustomerPrice = (installerPrice: number, feePercentage: number = 15) => {
+    const appFee = installerPrice * (feePercentage / 100);
+    return Math.round(installerPrice + appFee);
+  };
+
   const serviceTiers = [
     {
       key: "table-top",
@@ -16,8 +22,8 @@ export default function Pricing() {
       gradient: "from-blue-50 to-indigo-50",
       border: "border-blue-100",
       pricing: [
-        { label: "Up to 43\"", price: 89 },
-        { label: "43\" and above", price: 109 }
+        { label: "Up to 43\"", price: calculateCustomerPrice(89) },
+        { label: "43\" and above", price: calculateCustomerPrice(109) }
       ]
     },
     {
@@ -28,7 +34,7 @@ export default function Pricing() {
       gradient: "from-amber-50 to-orange-50",
       border: "border-amber-100",
       pricing: [
-        { label: "Up to 42\"", price: 109 }
+        { label: "Up to 42\"", price: calculateCustomerPrice(109) }
       ]
     },
     {
@@ -40,8 +46,8 @@ export default function Pricing() {
       border: "border-gray-200",
       popular: true,
       pricing: [
-        { label: "43\"-85\"", price: 159 },
-        { label: "85\"+ Large", price: 259 }
+        { label: "43\"-85\"", price: calculateCustomerPrice(159) },
+        { label: "85\"+ Large", price: calculateCustomerPrice(259) }
       ]
     },
     {
@@ -52,8 +58,8 @@ export default function Pricing() {
       gradient: "from-yellow-50 to-amber-50",
       border: "border-yellow-200",
       pricing: [
-        { label: "Standard Size", price: 259 },
-        { label: "85\"+ Premium", price: 359 }
+        { label: "Standard Size", price: calculateCustomerPrice(259) },
+        { label: "85\"+ Premium", price: calculateCustomerPrice(359) }
       ]
     }
   ];

@@ -1,9 +1,16 @@
+// Calculate customer price including commission (15% default)
+const calculateCustomerPrice = (installerPrice: number, feePercentage: number = 15) => {
+  const appFee = installerPrice * (feePercentage / 100);
+  return Math.round((installerPrice + appFee) * 100); // Convert to cents
+};
+
 export const SERVICE_TIERS = {
   'table-top-small': {
     key: 'table-top-small',
     name: 'Table Top Installation (Up to 43")',
     description: 'Perfect for smaller TVs and simple setups',
-    basePrice: 8900, // in cents
+    basePrice: calculateCustomerPrice(89), // Customer pays €102 (€89 + 15% commission)
+    installerEarnings: 8900, // Installer earns €89
     minTvSize: 32,
     maxTvSize: 43,
     icon: 'desktop',
@@ -13,7 +20,8 @@ export const SERVICE_TIERS = {
     key: 'table-top-large',
     name: 'Table Top Installation (43" and above)',
     description: 'For larger TVs with table stand setup',
-    basePrice: 10900,
+    basePrice: calculateCustomerPrice(109), // Customer pays €125 (€109 + 15% commission)
+    installerEarnings: 10900, // Installer earns €109
     minTvSize: 43,
     maxTvSize: null,
     icon: 'desktop',
@@ -23,7 +31,8 @@ export const SERVICE_TIERS = {
     key: 'bronze',
     name: 'Bronze TV Mounting (up to 42")',
     description: 'Fixed wall mounting for medium TVs',
-    basePrice: 10900,
+    basePrice: calculateCustomerPrice(109), // Customer pays €125 (€109 + 15% commission)
+    installerEarnings: 10900, // Installer earns €109
     minTvSize: 32,
     maxTvSize: 42,
     icon: 'medal',
@@ -33,7 +42,8 @@ export const SERVICE_TIERS = {
     key: 'silver',
     name: 'Silver TV Mounting (43-85")',
     description: 'Tilting mount with cable management',
-    basePrice: 15900,
+    basePrice: calculateCustomerPrice(159), // Customer pays €183 (€159 + 15% commission)
+    installerEarnings: 15900, // Installer earns €159
     minTvSize: 43,
     maxTvSize: 85,
     icon: 'award',
@@ -43,7 +53,8 @@ export const SERVICE_TIERS = {
     key: 'silver-large',
     name: 'Silver TV Mounting (85"+)',
     description: 'Premium tilting mount for large TVs',
-    basePrice: 25900,
+    basePrice: calculateCustomerPrice(259), // Customer pays €298 (€259 + 15% commission)
+    installerEarnings: 25900, // Installer earns €259
     minTvSize: 85,
     maxTvSize: null,
     icon: 'award',
@@ -53,7 +64,8 @@ export const SERVICE_TIERS = {
     key: 'gold',
     name: 'Gold TV Mounting',
     description: 'Full motion mount with premium features',
-    basePrice: 25900,
+    basePrice: calculateCustomerPrice(259), // Customer pays €298 (€259 + 15% commission)
+    installerEarnings: 25900, // Installer earns €259
     minTvSize: 32,
     maxTvSize: 85,
     icon: 'crown',

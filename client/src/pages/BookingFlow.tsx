@@ -207,12 +207,13 @@ export default function BookingFlow() {
   const handleServiceSelect = (serviceTierId: number) => {
     const selectedTier = serviceTiers.find(tier => tier.id === serviceTierId);
     if (selectedTier) {
-      const basePrice = parseFloat(selectedTier.basePrice);
-      const total = calculateBookingTotal(basePrice, bookingData.addons);
+      // Use customerPrice (includes fees) for booking calculations
+      const customerPrice = parseFloat(selectedTier.customerPrice || selectedTier.basePrice);
+      const total = calculateBookingTotal(customerPrice, bookingData.addons);
       setBookingData(prev => ({
         ...prev,
         serviceTierId,
-        basePrice,
+        basePrice: customerPrice,
         total
       }));
     }
@@ -380,7 +381,7 @@ export default function BookingFlow() {
                     <div className="text-sm text-gray-600">{service.description}</div>
                   </div>
                   <div className="text-2xl font-bold text-primary">
-                    {formatPrice(service.basePrice)}
+                    {formatPrice(service.customerPrice || service.basePrice)}
                   </div>
                 </Button>
               ))}

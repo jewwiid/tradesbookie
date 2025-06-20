@@ -31,7 +31,7 @@ export default function InstallerRegistration() {
     tools: false,
     transportation: false,
     availability: "",
-    hourlyRate: "",
+
     bio: "",
     maxTravelDistance: "",
     emergencyCallout: false,
@@ -282,31 +282,19 @@ export default function InstallerRegistration() {
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="hourlyRate">Hourly Rate *</Label>
-                  <Input
-                    id="hourlyRate"
-                    required
-                    value={formData.hourlyRate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: e.target.value }))}
-                    placeholder="$50/hour"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="availability">Availability</Label>
-                  <Select value={formData.availability} onValueChange={(value) => setFormData(prev => ({ ...prev, availability: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select availability" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekdays">Weekdays only</SelectItem>
-                      <SelectItem value="weekends">Weekends only</SelectItem>
-                      <SelectItem value="flexible">Flexible schedule</SelectItem>
-                      <SelectItem value="evenings">Evenings available</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Label htmlFor="availability">Availability</Label>
+                <Select value={formData.availability} onValueChange={(value) => setFormData(prev => ({ ...prev, availability: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select availability" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekdays">Weekdays only</SelectItem>
+                    <SelectItem value="weekends">Weekends only</SelectItem>
+                    <SelectItem value="flexible">Flexible schedule</SelectItem>
+                    <SelectItem value="evenings">Evenings available</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

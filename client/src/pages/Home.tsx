@@ -97,8 +97,8 @@ export default function Home() {
     {
       key: "bronze",
       name: "Bronze TV Mounting Up To 42\" Only",
-      description: "Professional wall mounting with cable concealment",
-      detailedDescription: "• Up To 43\" Only\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in white conduit cable concealment up to 2m\n• Connect TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
+      description: "Professional wall mounting service",
+      detailedDescription: "• Up To 43\" Only\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• Connect TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Medal className="text-2xl text-amber-600" />,
       gradient: "from-amber-50 to-orange-50",
       border: "border-amber-100",
@@ -112,8 +112,8 @@ export default function Home() {
     {
       key: "silver",
       name: "Silver TV Mounting From 43\" & UP",
-      description: "Advanced mounting with enhanced features",
-      detailedDescription: "• From 43\" & UP\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in white conduit cable concealment up to 2m\n• Connect the TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
+      description: "Advanced mounting service",
+      detailedDescription: "• From 43\" & UP\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• Connect the TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Award className="text-2xl text-gray-600" />,
       gradient: "from-gray-50 to-slate-50",
       border: "border-gray-200",

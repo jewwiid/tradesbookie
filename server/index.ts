@@ -46,6 +46,7 @@ app.use((req, res, next) => {
   // Create mock profiles for testing
   try {
     await createMockProfiles();
+    await createTestInstallationData();
   } catch (error) {
     // Profiles might already exist, continue
     console.log("Mock profiles setup:", error);

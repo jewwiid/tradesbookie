@@ -19,7 +19,7 @@ export const SERVICE_TIERS = {
   'table-top-large': {
     key: 'table-top-large',
     name: 'Table Top Installation (43" and above)',
-    description: 'For larger TVs with table stand setup',
+    description: 'Basic home table setup. WiFi setup included. You must have WiFi credentials ready. No cables included.',
     basePrice: calculateCustomerPrice(109), // Customer pays €125 (€109 + 15% commission)
     installerEarnings: 10900, // Installer earns €109
     minTvSize: 43,
@@ -30,7 +30,7 @@ export const SERVICE_TIERS = {
   'bronze': {
     key: 'bronze',
     name: 'Bronze TV Mounting (up to 42")',
-    description: 'Fixed wall mounting for medium TVs',
+    description: 'Wall mounting with cable concealment up to 2m. Connect to power socket and 3 sources including Wi-Fi. Basic feature demo. No cables or brackets included. Private homes only.',
     basePrice: calculateCustomerPrice(109), // Customer pays €125 (€109 + 15% commission)
     installerEarnings: 10900, // Installer earns €109
     minTvSize: 32,
@@ -41,7 +41,7 @@ export const SERVICE_TIERS = {
   'silver': {
     key: 'silver',
     name: 'Silver TV Mounting (43-85")',
-    description: 'Tilting mount with cable management',
+    description: 'Wall mounting for 43" & up. Cable concealment up to 2m. Connect to power socket and 3 sources including Wi-Fi. Basic feature demo. No cables or brackets included. Private homes only.',
     basePrice: calculateCustomerPrice(159), // Customer pays €183 (€159 + 15% commission)
     installerEarnings: 15900, // Installer earns €159
     minTvSize: 43,
@@ -52,7 +52,7 @@ export const SERVICE_TIERS = {
   'silver-large': {
     key: 'silver-large',
     name: 'Silver TV Mounting (85"+)',
-    description: 'Premium tilting mount for large TVs',
+    description: 'Premium wall mounting for large TVs 85"+. Professional cable concealment and full feature demonstration.',
     basePrice: calculateCustomerPrice(259), // Customer pays €298 (€259 + 15% commission)
     installerEarnings: 25900, // Installer earns €259
     minTvSize: 85,
@@ -62,8 +62,8 @@ export const SERVICE_TIERS = {
   },
   'gold': {
     key: 'gold',
-    name: 'Gold TV Mounting',
-    description: 'Full motion mount with premium features',
+    name: 'Gold TV Mounting (32" & 85")',
+    description: 'Premium wall mounting from 32" & 85". Wall bracket installation with professional cable management. No cables or brackets included. Private homes only.',
     basePrice: calculateCustomerPrice(259), // Customer pays €298 (€259 + 15% commission)
     installerEarnings: 25900, // Installer earns €259
     minTvSize: 32,
@@ -74,7 +74,7 @@ export const SERVICE_TIERS = {
   'gold-large': {
     key: 'gold-large',
     name: 'Gold TV Mounting (85"+)',
-    description: 'Premium full motion mount for large TVs',
+    description: 'Premium wall mounting for large TVs 85"+. Professional installation with full motion mount capabilities.',
     basePrice: 35900,
     minTvSize: 85,
     maxTvSize: null,

@@ -253,6 +253,7 @@ export default function Home() {
                 key={tier.key}
                 name={tier.name}
                 description={tier.description}
+                detailedDescription={tier.detailedDescription}
                 icon={tier.icon}
                 gradient={tier.gradient}
                 border={tier.border}

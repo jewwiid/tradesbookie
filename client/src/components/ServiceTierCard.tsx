@@ -1,12 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatPrice } from "@/lib/utils";
-import { Monitor, Award, Crown, Star } from "lucide-react";
+import { Monitor, Award, Crown, Star, ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 
 interface ServiceTierCardProps {
   key?: string;
   name: string;
   description: string;
+  detailedDescription?: string;
   icon?: React.ReactNode;
   gradient?: string;
   border?: string;
@@ -18,7 +22,8 @@ interface ServiceTierCardProps {
   className?: string;
 }
 
-export default function ServiceTierCard({ name, description, icon, gradient, border, popular, pricing, className }: ServiceTierCardProps) {
+export default function ServiceTierCard({ name, description, detailedDescription, icon, gradient, border, popular, pricing, className }: ServiceTierCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   const getDefaultIcon = (tierName: string) => {
     if (tierName.includes('Table Top')) return <Monitor className="h-6 w-6" />;
     if (tierName.includes('Bronze')) return <Award className="h-6 w-6 text-amber-600" />;
@@ -53,6 +58,35 @@ export default function ServiceTierCard({ name, description, icon, gradient, bor
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">{name}</h3>
           <p className="text-gray-600 mb-4">{description}</p>
+          
+          {detailedDescription && (
+            <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full mb-4 text-primary hover:text-primary/80"
+                >
+                  {isExpanded ? (
+                    <>
+                      Less Details <ChevronUp className="ml-1 h-4 w-4" />
+                    </>
+                  ) : (
+                    <>
+                      More Details <ChevronDown className="ml-1 h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-2">
+                <div className="p-3 bg-white/80 rounded-lg mb-4">
+                  <p className="text-sm text-gray-700 text-left leading-relaxed">
+                    {detailedDescription}
+                  </p>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
           
           <div className="space-y-2 mb-4">
             {pricing.map((tier, index) => (

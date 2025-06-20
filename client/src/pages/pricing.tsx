@@ -5,15 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Star, Medal, Award, Crown, Tv, ArrowRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Pricing() {
-  // Calculate prices with commission included (what customers actually pay)
+  // Fetch dynamic pricing from backend
+  const { data: apiServiceTiers, isLoading } = useQuery({
+    queryKey: ['/api/service-tiers'],
+  });
+
+  // Fallback static tiers if API is loading
   const calculateCustomerPrice = (installerPrice: number, feePercentage: number = 15) => {
     const appFee = installerPrice * (feePercentage / 100);
     return Math.round(installerPrice + appFee);
   };
 
-  const serviceTiers = [
+  const staticServiceTiers = [
     {
       key: "table-top",
       name: "Table Top Setup",
@@ -32,7 +38,7 @@ export default function Pricing() {
       description: "Fixed wall mounting for medium TVs",
       icon: <Medal className="text-2xl text-amber-600" />,
       gradient: "from-amber-50 to-orange-50",
-      border: "border-amber-100",
+      border: "border-blue-100",
       pricing: [
         { label: "Up to 42\"", price: calculateCustomerPrice(109) }
       ]
@@ -60,6 +66,79 @@ export default function Pricing() {
       pricing: [
         { label: "Standard Size", price: calculateCustomerPrice(259) },
         { label: "85\"+ Premium", price: calculateCustomerPrice(359) }
+      ]
+    }
+  ];
+
+  // Map API data to display format
+  const serviceTiers = isLoading || !apiServiceTiers ? staticServiceTiers : [
+    {
+      key: "table-top",
+      name: "Table Top Setup",
+      description: "Perfect for smaller TVs and simple setups",
+      icon: <Tv className="text-2xl text-blue-600" />,
+      gradient: "from-blue-50 to-indigo-50",
+      border: "border-blue-100",
+      pricing: [
+        { 
+          label: "Up to 43\"", 
+          price: apiServiceTiers.find((t: any) => t.key === 'table-top-small')?.customerPrice || calculateCustomerPrice(89)
+        },
+        { 
+          label: "43\" and above", 
+          price: apiServiceTiers.find((t: any) => t.key === 'table-top-large')?.customerPrice || calculateCustomerPrice(109)
+        }
+      ]
+    },
+    {
+      key: "bronze",
+      name: "Bronze Mount",
+      description: "Fixed wall mounting for medium TVs",
+      icon: <Medal className="text-2xl text-amber-600" />,
+      gradient: "from-amber-50 to-orange-50",
+      border: "border-amber-100",
+      pricing: [
+        { 
+          label: "Up to 42\"", 
+          price: apiServiceTiers.find((t: any) => t.key === 'bronze')?.customerPrice || calculateCustomerPrice(109)
+        }
+      ]
+    },
+    {
+      key: "silver",
+      name: "Silver Mount",
+      description: "Tilting mount with cable management",
+      icon: <Award className="text-2xl text-gray-600" />,
+      gradient: "from-gray-50 to-slate-50",
+      border: "border-gray-200",
+      popular: true,
+      pricing: [
+        { 
+          label: "43\"-85\"", 
+          price: apiServiceTiers.find((t: any) => t.key === 'silver')?.customerPrice || calculateCustomerPrice(159)
+        },
+        { 
+          label: "85\"+ Large", 
+          price: apiServiceTiers.find((t: any) => t.key === 'silver-large')?.customerPrice || calculateCustomerPrice(259)
+        }
+      ]
+    },
+    {
+      key: "gold",
+      name: "Gold Mount",
+      description: "Full motion mount with premium features",
+      icon: <Crown className="text-2xl text-yellow-600" />,
+      gradient: "from-yellow-50 to-amber-50",
+      border: "border-yellow-200",
+      pricing: [
+        { 
+          label: "Standard Size", 
+          price: apiServiceTiers.find((t: any) => t.key === 'gold')?.customerPrice || calculateCustomerPrice(259)
+        },
+        { 
+          label: "85\"+ Premium", 
+          price: apiServiceTiers.find((t: any) => t.key === 'gold-large')?.customerPrice || calculateCustomerPrice(359)
+        }
       ]
     }
   ];

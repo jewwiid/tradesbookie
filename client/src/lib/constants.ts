@@ -8,7 +8,7 @@ export const SERVICE_TIERS = {
   'table-top-small': {
     key: 'table-top-small',
     name: 'Table Top Installation (Up to 43")',
-    description: 'Perfect for smaller TVs and simple setups',
+    description: 'Basic home table setup. WiFi setup included. You must have WiFi credentials ready. No cables included.',
     basePrice: calculateCustomerPrice(89), // Customer pays €102 (€89 + 15% commission)
     installerEarnings: 8900, // Installer earns €89
     minTvSize: 32,

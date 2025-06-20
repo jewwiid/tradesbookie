@@ -4,7 +4,7 @@ import ServiceTierCard from "@/components/ServiceTierCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut } from "lucide-react";
+import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -77,9 +77,9 @@ export default function Home() {
   ] : [
     {
       key: "table-top",
-      name: "Table Top Setup",
-      description: "Perfect for smaller TVs and simple setups",
-      detailedDescription: "Basic home table setup service including WiFi configuration. You must have your WiFi credentials ready for setup. This service does not include any cables or additional equipment - only the basic setup and connection of your TV to your home network.",
+      name: "Table Top TV Setup (Northside)",
+      description: "Basic Home Table Top TV Setup",
+      detailedDescription: "You Must Have Your WIFI User Name and Password Ready for the Installer. No Cables are included in this package.",
       icon: <Tv className="text-2xl text-blue-600" />,
       gradient: "from-blue-50 to-indigo-50",
       border: "border-blue-100",
@@ -89,16 +89,16 @@ export default function Home() {
           price: apiServiceTiers.find((t: any) => t.key === 'table-top-small')?.customerPrice || calculateCustomerPrice(89)
         },
         { 
-          label: "43\" and above", 
+          label: "Above 43\"", 
           price: apiServiceTiers.find((t: any) => t.key === 'table-top-large')?.customerPrice || calculateCustomerPrice(109)
         }
       ]
     },
     {
       key: "bronze",
-      name: "Bronze Mount",
-      description: "Fixed wall mounting for medium TVs",
-      detailedDescription: "Professional wall mounting service with cable concealment up to 2 meters. Includes connection to power socket and up to 3 sources including Wi-Fi setup. Basic feature demonstration included. Wall brackets and cables are not included in this service. Available for private homes only.",
+      name: "Bronze TV Mounting Northside Up To 42\" Only",
+      description: "Professional wall mounting with cable concealment",
+      detailedDescription: "• Up To 43\" Only\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in white conduit cable concealment up to 2m\n• Connect TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Medal className="text-2xl text-amber-600" />,
       gradient: "from-amber-50 to-orange-50",
       border: "border-amber-100",
@@ -111,8 +111,9 @@ export default function Home() {
     },
     {
       key: "silver",
-      name: "Silver Mount",
-      description: "Tilting mount with cable management",
+      name: "Silver TV Mounting Northside From 43\" & UP",
+      description: "Advanced mounting with enhanced features",
+      detailedDescription: "• From 43\" & UP\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in white conduit cable concealment up to 2m\n• Connect the TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Award className="text-2xl text-gray-600" />,
       gradient: "from-gray-50 to-slate-50",
       border: "border-gray-200",
@@ -130,19 +131,31 @@ export default function Home() {
     },
     {
       key: "gold",
-      name: "Gold Mount",
-      description: "Full motion mount with premium features",
+      name: "Gold TV Mounting Northside From 32\" & 85''",
+      description: "Premium installation with in-wall cable hiding",
+      detailedDescription: "• From 32\" & 85\"\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in Wall Plasterboard Only (Does not include concrete)\n• Connect the TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Crown className="text-2xl text-yellow-600" />,
       gradient: "from-yellow-50 to-amber-50",
       border: "border-yellow-200",
       pricing: [
         { 
-          label: "Standard Size", 
+          label: "32\"-85\"", 
           price: apiServiceTiers.find((t: any) => t.key === 'gold')?.customerPrice || calculateCustomerPrice(259)
-        },
+        }
+      ]
+    },
+    {
+      key: "commercial",
+      name: "Commercial On-Wall TV Setup (Northside)",
+      description: "Professional commercial installation service",
+      detailedDescription: "Un box and test your TV.\nInstall your wall mounting bracket to the TV and a structurally sound wall.\nAudio & Video cables will be placed in a white paintable track moulding (2M).\nConnect your TV to a power socket and 3 existing sources.\nA basic demonstration of features will be provided.\nNo Cables or Brackets are included in this package\nIn a commercial Building",
+      icon: <Building className="text-2xl text-purple-600" />,
+      gradient: "from-purple-50 to-indigo-50",
+      border: "border-purple-200",
+      pricing: [
         { 
-          label: "85\"+ Premium", 
-          price: apiServiceTiers.find((t: any) => t.key === 'gold-large')?.customerPrice || calculateCustomerPrice(359)
+          label: "Commercial Setup", 
+          price: 199
         }
       ]
     }

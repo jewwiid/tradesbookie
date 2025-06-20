@@ -22,7 +22,7 @@ export default function Pricing() {
   const staticServiceTiers = [
     {
       key: "table-top",
-      name: "Table Top TV Setup (Northside)",
+      name: "Table Top TV Setup",
       description: "Basic Home Table Top TV Setup",
       detailedDescription: "You Must Have Your WIFI User Name and Password Ready for the Installer. No Cables are included in this package.",
       icon: <Tv className="text-2xl text-blue-600" />,
@@ -35,7 +35,7 @@ export default function Pricing() {
     },
     {
       key: "bronze",
-      name: "Bronze TV Mounting Northside Up To 42\" Only",
+      name: "Bronze TV Mounting Up To 42\" Only",
       description: "Professional wall mounting with cable concealment",
       detailedDescription: "• Up To 43\" Only\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in white conduit cable concealment up to 2m\n• Connect TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Medal className="text-2xl text-amber-600" />,
@@ -47,7 +47,7 @@ export default function Pricing() {
     },
     {
       key: "silver",
-      name: "Silver TV Mounting Northside From 43\" & UP",
+      name: "Silver TV Mounting From 43\" & UP",
       description: "Advanced mounting with enhanced features",
       detailedDescription: "• From 43\" & UP\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in white conduit cable concealment up to 2m\n• Connect the TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Award className="text-2xl text-gray-600" />,
@@ -61,7 +61,7 @@ export default function Pricing() {
     },
     {
       key: "gold",
-      name: "Gold TV Mounting Northside From 32\" & 85''",
+      name: "Gold TV Mounting From 32\" & 85''",
       description: "Premium installation with in-wall cable hiding",
       detailedDescription: "• From 32\" & 85\"\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in Wall Plasterboard Only (Does not include concrete)\n• Connect the TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Crown className="text-2xl text-yellow-600" />,
@@ -73,7 +73,7 @@ export default function Pricing() {
     },
     {
       key: "commercial",
-      name: "Commercial On-Wall TV Setup (Northside)",
+      name: "Commercial On-Wall TV Setup",
       description: "Professional commercial installation service",
       detailedDescription: "Un box and test your TV.\nInstall your wall mounting bracket to the TV and a structurally sound wall.\nAudio & Video cables will be placed in a white paintable track moulding (2M).\nConnect your TV to a power socket and 3 existing sources.\nA basic demonstration of features will be provided.\nNo Cables or Brackets are included in this package\nIn a commercial Building",
       icon: <Building className="text-2xl text-purple-600" />,
@@ -89,7 +89,7 @@ export default function Pricing() {
   const serviceTiers = isLoading || !apiServiceTiers ? staticServiceTiers : [
     {
       key: "table-top",
-      name: "Table Top TV Setup (Northside)",
+      name: "Table Top TV Setup",
       description: "Basic Home Table Top TV Setup",
       detailedDescription: "You Must Have Your WIFI User Name and Password Ready for the Installer. No Cables are included in this package.",
       icon: <Tv className="text-2xl text-blue-600" />,
@@ -108,7 +108,7 @@ export default function Pricing() {
     },
     {
       key: "bronze",
-      name: "Bronze TV Mounting Northside Up To 42\" Only",
+      name: "Bronze TV Mounting Up To 42\" Only",
       description: "Professional wall mounting with cable concealment",
       detailedDescription: "• Up To 43\" Only\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in white conduit cable concealment up to 2m\n• Connect TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Medal className="text-2xl text-amber-600" />,
@@ -123,7 +123,7 @@ export default function Pricing() {
     },
     {
       key: "silver",
-      name: "Silver TV Mounting Northside From 43\" & UP",
+      name: "Silver TV Mounting From 43\" & UP",
       description: "Advanced mounting with enhanced features",
       detailedDescription: "• From 43\" & UP\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in white conduit cable concealment up to 2m\n• Connect the TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Award className="text-2xl text-gray-600" />,
@@ -143,7 +143,7 @@ export default function Pricing() {
     },
     {
       key: "gold",
-      name: "Gold TV Mounting Northside From 32\" & 85''",
+      name: "Gold TV Mounting From 32\" & 85''",
       description: "Premium installation with in-wall cable hiding",
       detailedDescription: "• From 32\" & 85\"\n• Unbox and install a wall mounting bracket to a structurally sound wall Bracket not Inc\n• TV Hide cables in Wall Plasterboard Only (Does not include concrete)\n• Connect the TV to a local power socket and connect 3 existing sources including Wi-Fi\n• A basic demonstration of features will be provided.\n• No cables or brackets are included in this package.\n• Private homes only, not a commercial installation",
       icon: <Crown className="text-2xl text-yellow-600" />,
@@ -158,7 +158,7 @@ export default function Pricing() {
     },
     {
       key: "commercial",
-      name: "Commercial On-Wall TV Setup (Northside)",
+      name: "Commercial On-Wall TV Setup",
       description: "Professional commercial installation service",
       detailedDescription: "Un box and test your TV.\nInstall your wall mounting bracket to the TV and a structurally sound wall.\nAudio & Video cables will be placed in a white paintable track moulding (2M).\nConnect your TV to a power socket and 3 existing sources.\nA basic demonstration of features will be provided.\nNo Cables or Brackets are included in this package\nIn a commercial Building",
       icon: <Building className="text-2xl text-purple-600" />,

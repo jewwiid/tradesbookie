@@ -447,6 +447,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ====================== ADD-ONS ENDPOINT ======================
+  
+  // Add-ons endpoint
+  app.get("/api/addons", async (req, res) => {
+    try {
+      const addons = [
+        { id: 1, key: 'cable-concealment', name: 'Cable Concealment', description: 'Hide cables inside the wall for a clean look', price: 49 },
+        { id: 2, key: 'multi-device-setup', name: 'Multi-Device Setup', description: 'Connect and configure multiple devices (soundbar, gaming console, etc.)', price: 79 },
+        { id: 3, key: 'smart-tv-config', name: 'Smart TV Configuration', description: 'Complete setup of smart TV features and apps', price: 39 },
+        { id: 4, key: 'same-day-service', name: 'Same-Day Service', description: 'Priority booking for same-day installation', price: 99 },
+        { id: 5, key: 'weekend-installation', name: 'Weekend Installation', description: 'Saturday and Sunday installation availability', price: 49 },
+        { id: 6, key: 'evening-installation', name: 'Evening Installation', description: 'After 6 PM installation service', price: 39 }
+      ];
+      
+      res.json(addons);
+    } catch (error) {
+      console.error("Error fetching add-ons:", error);
+      res.status(500).json({ message: "Failed to fetch add-ons" });
+    }
+  });
+
   // ====================== STRIPE PAYMENT ENDPOINTS ======================
   
   // Create payment intent for booking

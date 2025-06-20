@@ -90,17 +90,35 @@ export const ADDONS = {
     description: 'Hide cables inside the wall for a clean look',
     price: 4900
   },
-  'soundbar-install': {
-    key: 'soundbar-install',
-    name: 'Soundbar Installation',
-    description: 'Mount your soundbar below the TV',
+  'multi-device-setup': {
+    key: 'multi-device-setup',
+    name: 'Multi-Device Setup',
+    description: 'Connect and configure multiple devices (soundbar, gaming console, etc.)',
+    price: 7900
+  },
+  'smart-tv-config': {
+    key: 'smart-tv-config',
+    name: 'Smart TV Configuration',
+    description: 'Complete setup of smart TV features and apps',
     price: 3900
   },
-  'calibration': {
-    key: 'calibration',
-    name: 'TV Calibration',
-    description: 'Professional picture and sound optimization',
-    price: 2900
+  'same-day-service': {
+    key: 'same-day-service',
+    name: 'Same-Day Service',
+    description: 'Priority booking for same-day installation',
+    price: 9900
+  },
+  'weekend-installation': {
+    key: 'weekend-installation',
+    name: 'Weekend Installation',
+    description: 'Saturday and Sunday installation availability',
+    price: 4900
+  },
+  'evening-installation': {
+    key: 'evening-installation',
+    name: 'Evening Installation',
+    description: 'After 6 PM installation service',
+    price: 3900
   }
 } as const;
 

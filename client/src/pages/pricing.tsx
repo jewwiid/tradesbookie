@@ -147,7 +147,6 @@ export default function Pricing() {
     { name: "Cable Concealment", price: 49, description: "Hide all cables inside the wall for a clean look" },
     { name: "Multi-Device Setup", price: 79, description: "Connect and configure multiple devices (soundbar, gaming console, etc.)" },
     { name: "Smart TV Configuration", price: 39, description: "Complete setup of smart TV features and apps" },
-    { name: "Wall Repair & Paint Touch-up", price: 69, description: "Minor wall repairs and paint matching" },
     { name: "Same-Day Service", price: 99, description: "Priority booking for same-day installation" },
     { name: "Weekend Installation", price: 49, description: "Saturday and Sunday installation availability" },
     { name: "Evening Installation", price: 39, description: "After 6 PM installation service" },

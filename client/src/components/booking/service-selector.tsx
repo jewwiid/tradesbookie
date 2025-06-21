@@ -11,10 +11,10 @@ interface ServiceSelectorProps {
 export default function ServiceSelector({ bookingData, updateBookingData }: ServiceSelectorProps) {
   const availableServices = getAvailableServices(bookingData.tvSize);
 
-  const handleServiceSelect = (serviceKey: string, price: number) => {
+  const handleServiceSelect = (serviceKey: string, customerPrice: number) => {
     updateBookingData({ 
       serviceType: serviceKey,
-      basePrice: price
+      basePrice: customerPrice
     });
   };
 
@@ -36,7 +36,7 @@ export default function ServiceSelector({ bookingData, updateBookingData }: Serv
             className={`service-tile cursor-pointer ${
               bookingData.serviceType === service.key ? 'selected' : ''
             }`}
-            onClick={() => handleServiceSelect(service.key, service.price)}
+            onClick={() => handleServiceSelect(service.key, service.customerPrice)}
           >
             <CardContent className="p-6">
               <div className="flex justify-between items-center">
@@ -45,7 +45,7 @@ export default function ServiceSelector({ bookingData, updateBookingData }: Serv
                   <p className="text-sm text-muted-foreground">{service.description}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-primary">€{service.price}</div>
+                  <div className="text-2xl font-bold text-primary">€{service.customerPrice}</div>
                 </div>
               </div>
             </CardContent>

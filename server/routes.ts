@@ -205,7 +205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Calculate pricing first to get required price fields
-      const pricing = calculateBookingPricing(
+      const pricing = calculatePricing(
         rawData.serviceType || 'bronze',
         rawData.addons || [],
         rawData.installerId || null
@@ -1717,50 +1717,4 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   return httpServer;
 }
 
-// Pricing calculation helper
-async function calculateBookingPricing(
-  serviceType: string,
-  addons: Array<{ key: string; name: string; price: number }>,
-  installerId: number | null
-) {
-  // Base pricing structure (installer earnings)
-  const basePrices: Record<string, number> = {
-    'table-top-small': 89,
-    'table-top-large': 109,
-    'bronze': 109,
-    'silver': 159,
-    'silver-large': 259,
-    'gold': 259,
-    'gold-large': 359
-  };
 
-  const basePrice = basePrices[serviceType] || 109;
-  const addonsPrice = addons.reduce((sum, addon) => sum + addon.price, 0);
-  const installerEarnings = basePrice + addonsPrice;
-  
-  // Get fee percentage from database or use default
-  let feePercentage = 15; // Default 15%
-  if (installerId) {
-    try {
-      const feeStructure = await storage.getFeeStructure(installerId, serviceType);
-      if (feeStructure) {
-        feePercentage = parseFloat(feeStructure.feePercentage);
-      }
-    } catch (error) {
-      console.error("Error fetching fee structure:", error);
-    }
-  }
-  
-  // Calculate total price (what customer pays)
-  const appFee = installerEarnings * (feePercentage / 100);
-  const totalPrice = installerEarnings + appFee;
-
-  return {
-    basePrice,
-    addonsPrice,
-    installerEarnings,
-    appFee,
-    feePercentage,
-    totalPrice
-  };
-}

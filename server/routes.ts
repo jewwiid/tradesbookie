@@ -90,31 +90,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User routes
   app.post("/api/users", async (req, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
+      const { name, email, phone, role } = req.body;
       
       // Check if user already exists
-      const existingUser = await storage.getUserByEmail(userData.email);
+      const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         return res.json(existingUser);
       }
       
+      // Parse name into first and last name
+      const nameParts = (name || '').split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
       const user = await storage.createUser({
-        id: userData.id || String(Date.now()),
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        profileImageUrl: userData.profileImageUrl,
+        id: String(Date.now()), // Generate unique ID
+        email: email,
+        firstName: firstName,
+        lastName: lastName,
+        role: role || 'customer',
+        profileImageUrl: null,
       });
       res.json(user);
     } catch (error) {
       console.error("Error creating user:", error);
-      // If database is unavailable, ask user to provide database credentials
-      if (String(error).includes('endpoint is disabled')) {
-        return res.status(503).json({ 
-          message: "Database connection unavailable. Please check your database configuration or contact support.",
-          error: "Database endpoint is disabled"
-        });
-      }
       res.status(400).json({ message: "Failed to create user", error: String(error) });
     }
   });
@@ -195,9 +194,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Transform and validate the incoming data
       const rawData = req.body;
       
-      // Convert userId to number if it's a string
-      if (rawData.userId && typeof rawData.userId === 'string') {
-        rawData.userId = parseInt(rawData.userId, 10);
+      // Ensure userId is a string
+      if (rawData.userId && typeof rawData.userId === 'number') {
+        rawData.userId = String(rawData.userId);
       }
       
       // Convert preferredDate string to Date object

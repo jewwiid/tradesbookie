@@ -232,7 +232,7 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
     name: z.string(),
     price: z.number(),
   })).optional(),
-  userId: z.number().optional(),
+  userId: z.string().optional(),
   preferredDate: z.date().optional(),
   basePrice: z.string(),
   totalPrice: z.string(), 

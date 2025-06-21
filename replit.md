@@ -238,6 +238,9 @@ The application now includes a robust fallback system. When the database is unav
 - June 20, 2025: Replaced mock installation data with real database queries from bookings table for Installation Coverage Map and Statistics
 - June 20, 2025: Implemented intelligent county extraction from booking addresses to accurately populate installation location data
 - June 20, 2025: Added test booking data across Irish counties to demonstrate real-time installation tracking functionality
+- June 21, 2025: Fixed pricing discrepancy in service selection - implemented dynamic commission-included pricing based on TV size
+- June 21, 2025: Updated service filtering logic to show only appropriate services for selected TV size (no smaller options after selection)
+- June 21, 2025: Removed hourly rate field from installer registration form as installers receive set fees, not hourly rates
 
 ## User Preferences
 

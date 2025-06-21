@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { insertBookingSchema, insertUserSchema, insertReviewSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
+import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing } from "./pricing";
 import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
@@ -53,6 +54,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check
   app.get("/api/health", (req, res) => {
     res.json({ status: "healthy", timestamp: new Date().toISOString() });
+  });
+
+  // Service tiers endpoint with dynamic pricing
+  app.get("/api/service-tiers", async (req, res) => {
+    try {
+      const tvSize = req.query.tvSize ? parseInt(req.query.tvSize as string) : null;
+      
+      let serviceTiers;
+      if (tvSize) {
+        // Filter by TV size and return with dynamic pricing
+        serviceTiers = getServiceTiersForTvSize(tvSize).map((tier, index) => ({
+          id: index + 1,
+          key: tier.key,
+          name: tier.name,
+          description: tier.description,
+          category: tier.category,
+          basePrice: tier.installerEarnings,
+          customerPrice: tier.customerPrice,
+          minTvSize: tier.minTvSize,
+          maxTvSize: tier.maxTvSize
+        }));
+      } else {
+        // Return all service tiers with static data for homepage display
+        serviceTiers = [
+          {
+            id: 1,
+            key: "table-top-small",
+            name: "Table Top Installation",
+            description: "Professional table top setup for smaller TVs",
+            category: "table-top",
+            basePrice: 89,
+            customerPrice: 105,
+            minTvSize: 32,
+            maxTvSize: 42
+          },
+          {
+            id: 2,
+            key: "table-top-large", 
+            name: "Table Top Installation",
+            description: "Professional table top setup for larger TVs",
+            category: "table-top",
+            basePrice: 109,
+            customerPrice: 128,
+            minTvSize: 43,
+            maxTvSize: null
+          },
+          {
+            id: 3,
+            key: "bronze",
+            name: "Bronze TV Mounting",
+            description: "Fixed wall mount installation",
+            category: "bronze",
+            basePrice: 109,
+            customerPrice: 128,
+            minTvSize: 32,
+            maxTvSize: 42
+          },
+          {
+            id: 4,
+            key: "silver",
+            name: "Silver TV Mounting",
+            description: "Tilting wall mount with cable management",
+            category: "silver",
+            basePrice: 159,
+            customerPrice: 187,
+            minTvSize: 43,
+            maxTvSize: 85
+          },
+          {
+            id: 5,
+            key: "silver-large",
+            name: "Silver TV Mounting",
+            description: "Tilting wall mount for large TVs",
+            category: "silver",
+            basePrice: 259,
+            customerPrice: 305,
+            minTvSize: 86,
+            maxTvSize: null
+          },
+          {
+            id: 6,
+            key: "gold",
+            name: "Gold TV Mounting",
+            description: "Full motion mount with premium features",
+            category: "gold",
+            basePrice: 259,
+            customerPrice: 305,
+            minTvSize: 43,
+            maxTvSize: 85
+          },
+          {
+            id: 7,
+            key: "gold-large",
+            name: "Gold TV Mounting",
+            description: "Premium large TV full motion installation",
+            category: "gold",
+            basePrice: 359,
+            customerPrice: 422,
+            minTvSize: 86,
+            maxTvSize: null
+          }
+        ];
+      }
+
+      res.json(serviceTiers);
+    } catch (error) {
+      console.error("Error fetching service tiers:", error);
+      res.status(500).json({ message: "Failed to fetch service tiers" });
+    }
   });
 
   // Auth routes

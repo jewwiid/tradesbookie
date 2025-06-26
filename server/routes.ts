@@ -1930,6 +1930,67 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Test booking confirmation emails without authentication
+  app.post("/api/test-booking-emails", async (req, res) => {
+    try {
+      const { customerEmail, customerName } = req.body;
+      
+      // Mock booking data for email testing
+      const mockBooking = {
+        id: 999,
+        qrCode: "TEST-QR-999",
+        address: "123 Test Street, Dublin, Ireland",
+        tvSize: "65",
+        serviceType: "wall-mount-medium",
+        wallType: "drywall",
+        mountType: "tilting",
+        totalPrice: "€249",
+        scheduledDate: new Date().toISOString().split('T')[0],
+        status: "confirmed"
+      };
+
+      // Send customer booking confirmation
+      const customerEmailSent = await sendBookingConfirmation(
+        customerEmail,
+        customerName,
+        mockBooking
+      );
+
+      // Send installer notification
+      const installerEmailSent = await sendInstallerNotification(
+        "installer@tradesbook.ie",
+        "Test Installer",
+        {
+          ...mockBooking,
+          customerName,
+          customerEmail
+        }
+      );
+
+      if (customerEmailSent && installerEmailSent) {
+        res.json({
+          success: true,
+          message: "Booking confirmation emails sent successfully",
+          details: {
+            customerEmail: customerEmailSent,
+            installerEmail: installerEmailSent
+          }
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: "Failed to send booking confirmation emails"
+        });
+      }
+    } catch (error) {
+      console.error("Error sending booking confirmation emails:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error sending booking confirmation emails"
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

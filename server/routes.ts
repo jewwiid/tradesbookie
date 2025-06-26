@@ -276,6 +276,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Room analysis endpoint for testing
+  app.post("/api/analyze-room", async (req, res) => {
+    try {
+      const { image } = req.body;
+      
+      if (!image) {
+        return res.status(400).json({ message: "No image provided" });
+      }
+
+      // Extract base64 data from data URL
+      const base64Image = image.replace(/^data:image\/[a-z]+;base64,/, '');
+      
+      const analysis = await analyzeRoomForTVPlacement(base64Image);
+      
+      res.json({
+        success: true,
+        analysis: analysis
+      });
+    } catch (error) {
+      console.error("Error analyzing room:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Failed to analyze room", 
+        error: String(error) 
+      });
+    }
+  });
+
   app.post("/api/generate-ai-preview", async (req, res) => {
     try {
       const { imageBase64, tvSize, mountType, wallType, selectedAddons } = req.body;

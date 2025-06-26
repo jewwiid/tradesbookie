@@ -34,23 +34,36 @@ export async function sendGmailEmail(options: EmailOptions): Promise<boolean> {
   }
 
   try {
+    // Check OAuth token status
+    console.log('Gmail service: Checking OAuth token...');
+    const tokenInfo = await oauth2Client.getAccessToken();
+    console.log('Gmail service: Access token obtained successfully');
+
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
     const recipients = Array.isArray(options.to) ? options.to.join(', ') : options.to;
     const fromEmail = options.from || 'noreply@tradesbook.ie';
     const replyToEmail = options.replyTo || 'support@tradesbook.ie';
 
+    console.log(`Gmail service: Sending email to ${recipients} with subject "${options.subject}"`);
+
+    // Create proper MIME message with correct headers
     const emailContent = [
+      `MIME-Version: 1.0`,
       `To: ${recipients}`,
       `From: ${fromEmail}`,
       `Reply-To: ${replyToEmail}`,
       `Subject: ${options.subject}`,
       `Content-Type: text/html; charset=utf-8`,
-      '',
+      ``,
       options.html || options.text || ''
-    ].join('\n');
+    ].join('\r\n');
 
-    const encodedMessage = Buffer.from(emailContent).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const encodedMessage = Buffer.from(emailContent)
+      .toString('base64')
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
 
     const response = await gmail.users.messages.send({
       userId: 'me',
@@ -59,10 +72,32 @@ export async function sendGmailEmail(options: EmailOptions): Promise<boolean> {
       },
     });
 
-    console.log('Gmail sent successfully:', response.data.id);
+    console.log('Gmail API response:', {
+      id: response.data.id,
+      threadId: response.data.threadId,
+      labelIds: response.data.labelIds
+    });
+
+    // Verify the message was sent by checking sent folder
+    try {
+      const sentMessage = await gmail.users.messages.get({
+        userId: 'me',
+        id: response.data.id,
+        format: 'metadata'
+      });
+      console.log('Gmail verification: Message found in sent items');
+    } catch (verifyError) {
+      console.warn('Gmail verification: Could not verify message in sent items');
+    }
+
     return true;
   } catch (error) {
-    console.error('Gmail send error:', error);
+    console.error('Gmail send error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      details: error.details
+    });
     return false;
   }
 }

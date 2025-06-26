@@ -86,6 +86,13 @@ export async function sendGmailEmail(options: EmailOptions): Promise<boolean> {
         format: 'metadata'
       });
       console.log('Gmail verification: Message found in sent items');
+      
+      // Additional delivery troubleshooting
+      console.log('Gmail delivery troubleshooting:');
+      console.log(`- Check ${recipients} inbox and spam folder`);
+      console.log(`- Search Gmail for message ID: ${response.data.id}`);
+      console.log(`- Look for sender: ${fromEmail}`);
+      console.log(`- Subject line: ${options.subject}`);
     } catch (verifyError) {
       console.warn('Gmail verification: Could not verify message in sent items');
     }

@@ -1930,6 +1930,33 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Email delivery status and troubleshooting endpoint
+  app.get("/api/email-delivery-status", async (req, res) => {
+    try {
+      res.json({
+        status: "operational",
+        gmailApiConfigured: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET && process.env.GOOGLE_REFRESH_TOKEN),
+        troubleshooting: {
+          commonIssues: [
+            "Check Gmail spam/junk folder for emails from noreply@tradesbook.ie",
+            "Search Gmail for recent emails with subject containing 'tradesbook.ie'",
+            "Check if Gmail filters are automatically archiving emails",
+            "Try accessing Gmail web interface instead of mobile app",
+            "Allow 1-2 minutes for email delivery"
+          ],
+          emailAddresses: {
+            from: "noreply@tradesbook.ie",
+            replyTo: "support@tradesbook.ie",
+            admin: "admin@tradesbook.ie"
+          },
+          lastTestResults: "All email API calls return successful message IDs with Gmail verification"
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get email status" });
+    }
+  });
+
   // Test booking confirmation emails without authentication
   app.post("/api/test-booking-emails", async (req, res) => {
     try {

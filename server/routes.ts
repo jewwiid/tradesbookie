@@ -1962,7 +1962,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { customerEmail, customerName } = req.body;
       
-      // Mock booking data for email testing
+      // Mock booking data for email testing with complete details
       const mockBooking = {
         id: 999,
         qrCode: "TEST-QR-999",
@@ -1971,9 +1971,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         serviceType: "wall-mount-medium",
         wallType: "drywall",
         mountType: "tilting",
-        totalPrice: "€249",
+        totalPrice: "249",
+        basePrice: "199",
+        installerEarnings: "179", // 90% of base price
+        appFee: "70",
         scheduledDate: new Date().toISOString().split('T')[0],
-        status: "confirmed"
+        status: "confirmed",
+        difficulty: "Standard",
+        estimatedDuration: "2-3 hours"
       };
 
       // Send customer booking confirmation
@@ -1983,9 +1988,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         mockBooking
       );
 
-      // Send installer notification
+      // Send installer notification to admin email (since installer email doesn't exist)
       const installerEmailSent = await sendInstallerNotification(
-        "installer@tradesbook.ie",
+        customerEmail, // Send to your email for testing
         "Test Installer",
         {
           ...mockBooking,

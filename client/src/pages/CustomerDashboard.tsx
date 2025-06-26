@@ -3,7 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import QRCodeGenerator from "@/components/QRCodeGenerator";
+import QRCode from "@/components/QRCode";
 import { Tv, Home, CheckCircle, Clock, Wrench } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 

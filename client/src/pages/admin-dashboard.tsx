@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import QRCodeGenerator from "@/components/QRCodeGenerator";
+import QRCode from "@/components/QRCode";
 
 interface AdminStats {
   totalBookings: number;
@@ -498,7 +498,16 @@ function BookingManagement() {
             <TableBody>
               {bookings?.map((booking) => (
                 <TableRow key={booking.id}>
-                  <TableCell className="font-mono text-sm">{booking.qrCode}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <QRCode 
+                        value={`${window.location.origin}/qr-tracking/${booking.qrCode}`}
+                        size={40}
+                        className="flex-shrink-0"
+                      />
+                      <span className="font-mono text-xs text-gray-500">{booking.qrCode}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div>
                       <div className="font-medium">{booking.customerName || 'Guest User'}</div>
@@ -568,7 +577,7 @@ function BookingManagement() {
                 <div>
                   <label className="text-sm font-medium">QR Code</label>
                   <div className="mt-2">
-                    <QRCodeGenerator 
+                    <QRCode 
                       value={`${window.location.origin}/qr-tracking/${selectedBooking.qrCode}`}
                       size={120}
                       className="mb-2"

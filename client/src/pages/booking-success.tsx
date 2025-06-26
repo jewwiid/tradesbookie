@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Calendar, MapPin, Phone, Mail, Download, Home } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import QRCodeGenerator from "@/components/qr-code-generator";
+import QRCode from "@/components/QRCode";
 
 interface BookingDetails {
   id: number;
@@ -202,19 +202,13 @@ export default function BookingSuccess() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center space-y-4">
-                {qrCodeUrl ? (
-                  <div className="flex justify-center">
-                    <QRCodeGenerator 
-                      text={booking.qrCode || `BOOKING-${booking.id}`}
-                      size={200}
-                      className="border rounded-lg p-4 bg-white"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-[200px] h-[200px] mx-auto bg-gray-100 rounded-lg flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground">QR Code Generating...</p>
-                  </div>
-                )}
+                <div className="flex justify-center">
+                  <QRCode 
+                    value={`${window.location.origin}/qr-tracking/${booking.qrCode}`}
+                    size={200}
+                    className="border rounded-lg p-4 bg-white"
+                  />
+                </div>
                 
                 <p className="text-xs text-muted-foreground">
                   Show this QR code to your installer for quick booking verification

@@ -135,7 +135,7 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
   const subject = `Booking Confirmation - ${bookingDetails.qrCode}`;
   
   // Generate QR code image for email
-  const qrCodeURL = `${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : 'http://localhost:5000'}/qr-tracking/${bookingDetails.qrCode}`;
+  const qrCodeURL = `${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : 'http://localhost:5000'}/track/${bookingDetails.qrCode}`;
   console.log('QR tracking URL:', qrCodeURL);
   const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
   console.log('QR code image generated for email:', qrCodeImage ? 'SUCCESS' : 'FAILED');
@@ -197,7 +197,7 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
           <div class="qr-section">
             <h3>Track Your Installation</h3>
             <p>Use this QR code to track your installation progress:</p>
-            ${qrCodeImage ? `<div style="text-align: center; margin: 20px 0;"><img src="${qrCodeImage}" alt="QR Code for ${bookingDetails.qrCode}" style="border: 2px solid #ddd; border-radius: 8px;" /></div>` : ''}
+            ${qrCodeImage ? `<div style="text-align: center; margin: 20px 0;"><img src="${qrCodeImage}" alt="QR Code for ${bookingDetails.qrCode}" style="border: 2px solid #ddd; border-radius: 8px; max-width: 200px; height: auto;" /></div>` : '<div style="text-align: center; margin: 20px 0; padding: 20px; background: #f0f0f0; border-radius: 8px;"><p>QR Code will be available shortly</p></div>'}
             <p style="text-align: center; font-family: monospace; font-size: 14px; color: #666;"><strong>${bookingDetails.qrCode}</strong></p>
             <p style="text-align: center;"><a href="${qrCodeURL}" style="background: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Track Online</a></p>
           </div>

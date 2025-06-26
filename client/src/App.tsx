@@ -26,6 +26,8 @@ import TermsOfService from "@/pages/TermsOfService";
 import CookiePolicy from "@/pages/CookiePolicy";
 import GDPRCompliance from "@/pages/GDPRCompliance";
 import NotFound from "@/pages/not-found";
+import ReviewPage from "@/pages/review-page";
+import ReferralPage from "@/pages/referral-page";
 
 function Router() {
   return (
@@ -43,6 +45,8 @@ function Router() {
       <Route path="/cookie-policy" component={CookiePolicy} />
       <Route path="/gdpr-compliance" component={GDPRCompliance} />
       <Route path="/track/:qrCode" component={QRTracking} />
+      <Route path="/review/:qrCode" component={ReviewPage} />
+      <Route path="/refer" component={ReferralPage} />
       
       {/* Protected routes - limited guest access then authentication required */}
       <Route path="/booking">

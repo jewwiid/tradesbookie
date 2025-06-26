@@ -1901,6 +1901,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // ====================== STRIPE CONFIGURATION ENDPOINT ======================
+  
+  // Get Stripe publishable key for frontend
+  app.get('/api/stripe/config', (req, res) => {
+    res.json({
+      publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+    });
+  });
+
   // ====================== STRIPE PAYMENT ENDPOINTS ======================
 
   // Create payment intent

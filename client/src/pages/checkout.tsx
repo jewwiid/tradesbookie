@@ -9,12 +9,25 @@ import { Separator } from "@/components/ui/separator";
 import { CheckCircle, Loader2, CreditCard, Shield } from "lucide-react";
 import { useLocation } from "wouter";
 
-// Make sure to call `loadStripe` outside of a component's render to avoid
-// recreating the `Stripe` object on every render.
-if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
-  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
-}
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+// Dynamically load Stripe with live publishable key from server
+let stripePromise: Promise<any> | null = null;
+
+const getStripePromise = async () => {
+  if (!stripePromise) {
+    try {
+      const response = await fetch('/api/stripe/config');
+      const config = await response.json();
+      if (!config.publishableKey) {
+        throw new Error('Stripe publishable key not configured');
+      }
+      stripePromise = loadStripe(config.publishableKey);
+    } catch (error) {
+      console.error('Failed to load Stripe configuration:', error);
+      throw new Error('Payment system unavailable');
+    }
+  }
+  return stripePromise;
+};
 
 interface BookingDetails {
   id: number;

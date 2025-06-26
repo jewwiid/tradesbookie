@@ -126,15 +126,15 @@ export default function Footer() {
               <Shield className="w-4 h-4 mr-1" />
               Privacy Policy
             </Link>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
+            <Link href="/terms-of-service" className="text-gray-400 hover:text-white transition-colors">
               Terms of Service
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
+            </Link>
+            <Link href="/cookie-policy" className="text-gray-400 hover:text-white transition-colors">
               Cookie Policy
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
+            </Link>
+            <Link href="/gdpr-compliance" className="text-gray-400 hover:text-white transition-colors">
               GDPR Compliance
-            </a>
+            </Link>
           </div>
         </div>
 

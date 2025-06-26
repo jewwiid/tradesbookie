@@ -39,6 +39,9 @@ function Router() {
       <Route path="/tv-recommendation" component={TVRecommendation} />
       <Route path="/solar-enquiry" component={SolarEnquiry} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
+      <Route path="/terms-of-service" component={TermsOfService} />
+      <Route path="/cookie-policy" component={CookiePolicy} />
+      <Route path="/gdpr-compliance" component={GDPRCompliance} />
       <Route path="/track/:qrCode" component={QRTracking} />
       
       {/* Protected routes - limited guest access then authentication required */}

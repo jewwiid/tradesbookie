@@ -13,6 +13,7 @@ if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
 // Generate QR code as base64 data URL for email embedding
 async function generateQRCodeDataURL(text: string): Promise<string> {
   try {
+    console.log('Generating QR code for:', text);
     const qrDataURL = await QRCode.toDataURL(text, {
       width: 200,
       margin: 2,
@@ -21,6 +22,7 @@ async function generateQRCodeDataURL(text: string): Promise<string> {
         light: '#FFFFFF'
       }
     });
+    console.log('QR code generated successfully, length:', qrDataURL.length);
     return qrDataURL;
   } catch (error) {
     console.error('Error generating QR code:', error);
@@ -134,7 +136,9 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
   
   // Generate QR code image for email
   const qrCodeURL = `${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : 'http://localhost:5000'}/qr-tracking/${bookingDetails.qrCode}`;
+  console.log('QR tracking URL:', qrCodeURL);
   const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
+  console.log('QR code image generated for email:', qrCodeImage ? 'SUCCESS' : 'FAILED');
   
   const html = `
     <!DOCTYPE html>

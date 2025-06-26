@@ -1142,6 +1142,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // QR Code tracking route
+  app.get("/qr-tracking/:qrCode", async (req, res) => {
+    try {
+      const { qrCode } = req.params;
+      const booking = await storage.getBookingByQrCode(qrCode);
+      
+      if (!booking) {
+        return res.status(404).send(`
+          <html>
+            <head><title>Booking Not Found</title></head>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+              <h1>Booking Not Found</h1>
+              <p>The booking with QR code ${qrCode} was not found.</p>
+              <a href="https://tradesbook.ie">Return to tradesbook.ie</a>
+            </body>
+          </html>
+        `);
+      }
+
+      // Display booking tracking page
+      res.send(`
+        <html>
+          <head>
+            <title>Track Your Installation - ${qrCode}</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+              body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+              .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+              .header { text-align: center; margin-bottom: 30px; }
+              .status { padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: bold; }
+              .status.pending { background: #fff3cd; color: #856404; }
+              .status.confirmed { background: #d4edda; color: #155724; }
+              .status.completed { background: #d1ecf1; color: #0c5460; }
+              .details { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+              .detail-row { display: flex; justify-content: space-between; margin: 10px 0; }
+              .contact { background: #e7f3ff; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Installation Tracking</h1>
+                <h2>Booking: ${booking.qrCode}</h2>
+              </div>
+              
+              <div class="status ${booking.status}">
+                Status: ${booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+              </div>
+              
+              <div class="details">
+                <h3>Installation Details</h3>
+                <div class="detail-row">
+                  <span><strong>Service:</strong></span>
+                  <span>${booking.serviceType}</span>
+                </div>
+                <div class="detail-row">
+                  <span><strong>TV Size:</strong></span>
+                  <span>${booking.tvSize}"</span>
+                </div>
+                <div class="detail-row">
+                  <span><strong>Address:</strong></span>
+                  <span>${booking.address}</span>
+                </div>
+                <div class="detail-row">
+                  <span><strong>Total Cost:</strong></span>
+                  <span>€${booking.totalPrice}</span>
+                </div>
+                ${booking.scheduledDate ? `
+                <div class="detail-row">
+                  <span><strong>Scheduled:</strong></span>
+                  <span>${new Date(booking.scheduledDate).toLocaleDateString()}</span>
+                </div>
+                ` : ''}
+              </div>
+              
+              <div class="contact">
+                <h3>Need Help?</h3>
+                <p>Contact our support team:</p>
+                <p><strong>Email:</strong> support@tradesbook.ie</p>
+                <p><strong>Phone:</strong> +353 1 234 5678</p>
+              </div>
+              
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="https://tradesbook.ie" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">Return to tradesbook.ie</a>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error("Error tracking booking:", error);
+      res.status(500).send(`
+        <html>
+          <head><title>Error</title></head>
+          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+            <h1>Error</h1>
+            <p>Unable to retrieve booking information. Please try again later.</p>
+            <a href="https://tradesbook.ie">Return to tradesbook.ie</a>
+          </body>
+        </html>
+      `);
+    }
+  });
+
   app.patch("/api/jobs/:id/status", async (req, res) => {
     try {
       const { status } = req.body;

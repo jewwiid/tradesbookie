@@ -810,6 +810,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ received: true });
   });
 
+  // Review routes
+  app.post("/api/reviews", async (req, res) => {
+    try {
+      const { bookingId, installerId, userId, rating, title, comment, reviewerName, qrCode } = req.body;
+      
+      if (!rating || !title || !comment || !reviewerName) {
+        return res.status(400).json({ message: "Missing required review fields" });
+      }
+      
+      const review = await storage.createReview({
+        bookingId: bookingId || null,
+        installerId: installerId || null,
+        userId: userId || null,
+        rating: rating,
+        title: title,
+        comment: comment,
+        reviewerName: reviewerName,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      
+      // Send notification to admin about new review
+      await sendNotificationEmail(
+        'admin@tradesbook.ie',
+        `New ${rating}-Star Review Submitted`,
+        `A new review has been submitted:\n\nRating: ${rating}/5 stars\nTitle: ${title}\nReviewer: ${reviewerName}\nComment: ${comment}\n\nBooking: ${qrCode || bookingId}`
+      );
+      
+      res.json({ success: true, review });
+    } catch (error) {
+      console.error("Error creating review:", error);
+      res.status(500).json({ message: "Failed to submit review" });
+    }
+  });
+
+  app.get("/api/reviews/installer/:installerId", async (req, res) => {
+    try {
+      const { installerId } = req.params;
+      const reviews = await storage.getInstallerReviews(parseInt(installerId));
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching installer reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
   // Fee structure routes
   app.post("/api/admin/fee-structures", async (req, res) => {
     try {

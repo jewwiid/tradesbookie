@@ -236,7 +236,7 @@ export async function sendInstallerNotification(installerEmail: string, installe
   const subject = `New Installation Request - ${bookingDetails.qrCode}`;
   
   // Generate QR code image for installer email
-  const qrCodeURL = `${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : 'http://localhost:5000'}/qr-tracking/${bookingDetails.qrCode}`;
+  const qrCodeURL = `${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : 'http://localhost:5000'}/track/${bookingDetails.qrCode}`;
   const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
   
   const html = `
@@ -303,7 +303,7 @@ export async function sendInstallerNotification(installerEmail: string, installe
           <div class="qr-section" style="text-align: center; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px;">
             <h3>Job QR Code</h3>
             <p>Scan this QR code on-site for quick job verification:</p>
-            ${qrCodeImage ? `<div style="margin: 15px 0;"><img src="${qrCodeImage}" alt="QR Code for ${bookingDetails.qrCode}" style="border: 2px solid #ddd; border-radius: 8px;" /></div>` : ''}
+            ${qrCodeImage ? `<div style="margin: 15px 0;"><img src="${qrCodeImage}" alt="QR Code for ${bookingDetails.qrCode}" style="border: 2px solid #ddd; border-radius: 8px; max-width: 200px; height: auto;" /></div>` : '<div style="margin: 15px 0; padding: 20px; background: #f0f0f0; border-radius: 8px;"><p>QR Code will be available shortly</p></div>'}
             <p style="font-family: monospace; font-size: 14px; color: #666;"><strong>${bookingDetails.qrCode}</strong></p>
           </div>
           

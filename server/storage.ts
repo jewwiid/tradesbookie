@@ -58,6 +58,18 @@ export interface IStorage {
   createSolarEnquiry(enquiry: InsertSolarEnquiry): Promise<SolarEnquiry>;
   getAllSolarEnquiries(): Promise<SolarEnquiry[]>;
   updateSolarEnquiryStatus(id: number, status: string): Promise<void>;
+
+  // Referral operations
+  getReferralSettings(): Promise<ReferralSettings | undefined>;
+  updateReferralSettings(settings: InsertReferralSettings): Promise<ReferralSettings>;
+  createReferralCode(referralCode: InsertReferralCode): Promise<ReferralCode>;
+  getReferralCodeByCode(code: string): Promise<ReferralCode | undefined>;
+  getReferralCodeByUserId(userId: string): Promise<ReferralCode | undefined>;
+  validateReferralCode(code: string): Promise<{ valid: boolean; discount: number; referrerId?: string }>;
+  createReferralUsage(usage: InsertReferralUsage): Promise<ReferralUsage>;
+  getReferralUsageByBooking(bookingId: number): Promise<ReferralUsage | undefined>;
+  updateReferralCodeStats(codeId: number, earnings: number): Promise<void>;
+  getReferralEarnings(userId: string): Promise<{ totalEarnings: number; totalReferrals: number }>;
 }
 
 export class DatabaseStorage implements IStorage {

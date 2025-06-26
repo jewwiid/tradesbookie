@@ -103,6 +103,10 @@ export const bookings = pgTable("bookings", {
   customerNotes: text("customer_notes"),
   installerNotes: text("installer_notes"),
   
+  // Referral system
+  referralCode: text("referral_code"),
+  referralDiscount: decimal("referral_discount", { precision: 8, scale: 2 }).default("0.00"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -148,6 +152,40 @@ export const solarEnquiries = pgTable("solar_enquiries", {
   additionalInfo: text("additional_info"),
   status: varchar("status", { length: 50 }).default("new"), // new, contacted, quoted, converted, closed
   referralCommission: decimal("referral_commission", { precision: 8, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const referralSettings = pgTable("referral_settings", {
+  id: serial("id").primaryKey(),
+  referralReward: decimal("referral_reward", { precision: 8, scale: 2 }).notNull().default("25.00"), // Amount in euros
+  refereeDiscount: decimal("referee_discount", { precision: 5, scale: 2 }).notNull().default("10.00"), // Discount percentage
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const referralCodes = pgTable("referral_codes", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  referralCode: text("referral_code").notNull().unique(),
+  totalReferrals: integer("total_referrals").notNull().default(0),
+  totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).notNull().default("0.00"), // In euros
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const referralUsage = pgTable("referral_usage", {
+  id: serial("id").primaryKey(),
+  referralCodeId: integer("referral_code_id").notNull(),
+  bookingId: integer("booking_id").notNull(),
+  referrerUserId: text("referrer_user_id").notNull(),
+  refereeUserId: text("referee_user_id"),
+  discountAmount: decimal("discount_amount", { precision: 8, scale: 2 }).notNull(), // In euros
+  rewardAmount: decimal("reward_amount", { precision: 8, scale: 2 }).notNull(), // In euros
+  status: text("status").notNull().default("pending"), // pending, completed, cancelled
+  paidOut: boolean("paid_out").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -207,6 +245,29 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   booking: one(bookings, {
     fields: [reviews.bookingId],
     references: [bookings.id],
+  }),
+}));
+
+export const referralCodesRelations = relations(referralCodes, ({ one, many }) => ({
+  user: one(users, {
+    fields: [referralCodes.userId],
+    references: [users.id],
+  }),
+  usages: many(referralUsage),
+}));
+
+export const referralUsageRelations = relations(referralUsage, ({ one }) => ({
+  referralCode: one(referralCodes, {
+    fields: [referralUsage.referralCodeId],
+    references: [referralCodes.id],
+  }),
+  booking: one(bookings, {
+    fields: [referralUsage.bookingId],
+    references: [bookings.id],
+  }),
+  referrer: one(users, {
+    fields: [referralUsage.referrerUserId],
+    references: [users.id],
   }),
 }));
 
@@ -282,3 +343,28 @@ export type InsertReview = z.infer<typeof insertReviewSchema>;
 
 export type SolarEnquiry = typeof solarEnquiries.$inferSelect;
 export type InsertSolarEnquiry = z.infer<typeof insertSolarEnquirySchema>;
+
+export const insertReferralSettingsSchema = createInsertSchema(referralSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertReferralCodeSchema = createInsertSchema(referralCodes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertReferralUsageSchema = createInsertSchema(referralUsage).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ReferralSettings = typeof referralSettings.$inferSelect;
+export type InsertReferralSettings = z.infer<typeof insertReferralSettingsSchema>;
+export type ReferralCode = typeof referralCodes.$inferSelect;
+export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
+export type ReferralUsage = typeof referralUsage.$inferSelect;
+export type InsertReferralUsage = z.infer<typeof insertReferralUsageSchema>;

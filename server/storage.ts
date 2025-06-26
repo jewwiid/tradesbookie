@@ -412,14 +412,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createReferralUsage(usage: InsertReferralUsage): Promise<ReferralUsage> {
-    const [referralUsage] = await db.insert(referralUsage)
+    const [referralUsageRecord] = await db.insert(referralUsage)
       .values({
         ...usage,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
       .returning();
-    return referralUsage;
+    return referralUsageRecord;
   }
 
   async getReferralUsageByBooking(bookingId: number): Promise<ReferralUsage | undefined> {
@@ -431,8 +431,8 @@ export class DatabaseStorage implements IStorage {
   async updateReferralCodeStats(codeId: number, earnings: number): Promise<void> {
     await db.update(referralCodes)
       .set({
-        totalReferrals: db.sql`${referralCodes.totalReferrals} + 1`,
-        totalEarnings: db.sql`${referralCodes.totalEarnings} + ${earnings}`,
+        totalReferrals: referralCodes.totalReferrals + 1,
+        totalEarnings: (parseFloat(referralCodes.totalEarnings.toString()) + earnings).toString(),
         updatedAt: new Date(),
       })
       .where(eq(referralCodes.id, codeId));

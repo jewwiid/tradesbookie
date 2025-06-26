@@ -810,6 +810,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ received: true });
   });
 
+  // Referral routes
+  app.get("/api/referral/settings", async (req, res) => {
+    try {
+      const settings = await storage.getReferralSettings();
+      res.json(settings || { referralReward: 25, refereeDiscount: 10, isActive: true });
+    } catch (error) {
+      console.error("Error fetching referral settings:", error);
+      res.status(500).json({ message: "Failed to fetch referral settings" });
+    }
+  });
+
+  app.post("/api/admin/referral/settings", async (req, res) => {
+    try {
+      const { referralReward, refereeDiscount, isActive } = req.body;
+      
+      if (!referralReward || !refereeDiscount) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      const settings = await storage.updateReferralSettings({
+        referralReward: referralReward.toString(),
+        refereeDiscount: refereeDiscount.toString(),
+        isActive: isActive
+      });
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating referral settings:", error);
+      res.status(500).json({ message: "Failed to update referral settings" });
+    }
+  });
+
+  app.post("/api/referral/generate", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID required" });
+      }
+      
+      // Check if user already has a referral code
+      const existingCode = await storage.getReferralCodeByUserId(userId);
+      if (existingCode) {
+        return res.json(existingCode);
+      }
+      
+      // Generate new referral code
+      const referralCode = `TB${userId.slice(-4).toUpperCase()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
+      
+      const newCode = await storage.createReferralCode({
+        userId: userId,
+        referralCode: referralCode,
+        totalReferrals: 0,
+        totalEarnings: "0.00",
+        isActive: true
+      });
+      
+      res.json(newCode);
+    } catch (error) {
+      console.error("Error generating referral code:", error);
+      res.status(500).json({ message: "Failed to generate referral code" });
+    }
+  });
+
+  app.post("/api/referral/validate", async (req, res) => {
+    try {
+      const { code } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ message: "Referral code required" });
+      }
+      
+      const validation = await storage.validateReferralCode(code);
+      res.json(validation);
+    } catch (error) {
+      console.error("Error validating referral code:", error);
+      res.status(500).json({ message: "Failed to validate referral code" });
+    }
+  });
+
+  app.get("/api/referral/earnings/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const earnings = await storage.getReferralEarnings(userId);
+      res.json(earnings);
+    } catch (error) {
+      console.error("Error fetching referral earnings:", error);
+      res.status(500).json({ message: "Failed to fetch referral earnings" });
+    }
+  });
+
   // Review routes
   app.post("/api/reviews", async (req, res) => {
     try {

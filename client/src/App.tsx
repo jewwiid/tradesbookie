@@ -22,6 +22,9 @@ import SolarEnquiry from "@/pages/SolarEnquiry";
 import Checkout from "@/pages/checkout";
 import BookingSuccess from "@/pages/booking-success";
 import PrivacyPolicy from "@/pages/privacy-policy";
+import TermsOfService from "@/pages/TermsOfService";
+import CookiePolicy from "@/pages/CookiePolicy";
+import GDPRCompliance from "@/pages/GDPRCompliance";
 import NotFound from "@/pages/not-found";
 
 function Router() {

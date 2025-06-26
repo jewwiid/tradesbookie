@@ -1265,6 +1265,227 @@ function SolarEnquiryManagement() {
   );
 }
 
+// Referral Management Component
+function ReferralManagement() {
+  const [referralReward, setReferralReward] = useState(25);
+  const [referralDiscount, setReferralDiscount] = useState(10);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const { toast } = useToast();
+
+  const { data: referralStats } = useQuery({
+    queryKey: ['/api/referrals/stats'],
+    queryFn: () => fetch('/api/referrals/stats').then(r => r.json())
+  });
+
+  const { data: referralCodes } = useQuery({
+    queryKey: ['/api/referrals/codes'],
+    queryFn: () => fetch('/api/referrals/codes').then(r => r.json())
+  });
+
+  const updateReferralSettings = useMutation({
+    mutationFn: async (settings: { reward: number; discount: number }) => {
+      const response = await apiRequest('/api/referrals/settings', {
+        method: 'PUT',
+        body: settings
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Referral settings updated successfully"
+      });
+      setIsUpdating(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update referral settings",
+        variant: "destructive"
+      });
+      setIsUpdating(false);
+    }
+  });
+
+  const handleUpdateSettings = () => {
+    setIsUpdating(true);
+    updateReferralSettings.mutate({
+      reward: referralReward,
+      discount: referralDiscount
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Referral Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Users className="h-8 w-8 text-blue-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Referrals</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {referralStats?.totalReferrals || 0}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Euro className="h-8 w-8 text-green-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Rewards Paid</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  €{referralStats?.totalRewardsPaid || 0}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Percent className="h-8 w-8 text-purple-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Active Codes</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {referralStats?.activeCodes || 0}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <TrendingUp className="h-8 w-8 text-orange-600" />
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {referralStats?.conversionRate || 0}%
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Referral Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Settings className="w-5 h-5 mr-2" />
+            Referral Settings
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="referralReward">Referral Reward Amount (€)</Label>
+              <Input
+                id="referralReward"
+                type="number"
+                value={referralReward}
+                onChange={(e) => setReferralReward(Number(e.target.value))}
+                min="5"
+                max="100"
+                step="5"
+              />
+              <p className="text-sm text-gray-500">
+                Amount paid to referrer when referral makes first booking
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="referralDiscount">Customer Discount (%)</Label>
+              <Input
+                id="referralDiscount"
+                type="number"
+                value={referralDiscount}
+                onChange={(e) => setReferralDiscount(Number(e.target.value))}
+                min="5"
+                max="25"
+                step="5"
+              />
+              <p className="text-sm text-gray-500">
+                Discount given to new customers using referral codes
+              </p>
+            </div>
+          </div>
+
+          <Button 
+            onClick={handleUpdateSettings}
+            disabled={isUpdating}
+            className="w-full md:w-auto"
+          >
+            {isUpdating ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Update Settings
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Active Referral Codes */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Users className="w-5 h-5 mr-2" />
+            Active Referral Codes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Referral Code</TableHead>
+                  <TableHead>Referrer</TableHead>
+                  <TableHead>Uses</TableHead>
+                  <TableHead>Earnings</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {referralCodes?.map((code: any) => (
+                  <TableRow key={code.id}>
+                    <TableCell className="font-mono">{code.code}</TableCell>
+                    <TableCell>{code.referrerName || 'Unknown'}</TableCell>
+                    <TableCell>{code.totalReferrals}</TableCell>
+                    <TableCell>€{code.totalEarnings}</TableCell>
+                    <TableCell>
+                      {new Date(code.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={code.isActive ? "default" : "secondary"}>
+                        {code.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // Fee Management Component  
 function FeeManagement() {
   const [feeStructures, setFeeStructures] = useState({
@@ -1436,6 +1657,10 @@ export default function AdminDashboard() {
               <Percent className="w-4 h-4 md:w-4 md:h-4" />
               <span>Fees</span>
             </TabsTrigger>
+            <TabsTrigger value="referrals" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Users className="w-4 h-4 md:w-4 md:h-4" />
+              <span>Referrals</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -1468,6 +1693,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="fees" className="space-y-6">
             <FeeManagement />
+          </TabsContent>
+
+          <TabsContent value="referrals" className="space-y-6">
+            <ReferralManagement />
           </TabsContent>
         </Tabs>
       </div>

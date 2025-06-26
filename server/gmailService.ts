@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import QRCode from 'qrcode';
 import { getInstallerNotificationEmail, getValidFromEmail } from './emailConfig';
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -7,6 +8,24 @@ const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN;
 
 if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
   console.warn('Gmail service not configured - missing required environment variables');
+}
+
+// Generate QR code as base64 data URL for email embedding
+async function generateQRCodeDataURL(text: string): Promise<string> {
+  try {
+    const qrDataURL = await QRCode.toDataURL(text, {
+      width: 200,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+    return qrDataURL;
+  } catch (error) {
+    console.error('Error generating QR code:', error);
+    return '';
+  }
 }
 
 const oauth2Client = new google.auth.OAuth2(
@@ -113,6 +132,10 @@ export async function sendGmailEmail(options: EmailOptions): Promise<boolean> {
 export async function sendBookingConfirmation(customerEmail: string, customerName: string, bookingDetails: any): Promise<boolean> {
   const subject = `Booking Confirmation - ${bookingDetails.qrCode}`;
   
+  // Generate QR code image for email
+  const qrCodeURL = `${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : 'http://localhost:5000'}/qr-tracking/${bookingDetails.qrCode}`;
+  const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
+  
   const html = `
     <!DOCTYPE html>
     <html>
@@ -170,8 +193,9 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
           <div class="qr-section">
             <h3>Track Your Installation</h3>
             <p>Use this QR code to track your installation progress:</p>
-            <p><strong>${bookingDetails.qrCode}</strong></p>
-            <p><a href="https://tradesbook.ie/track/${bookingDetails.qrCode}" style="background: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Track Online</a></p>
+            ${qrCodeImage ? `<div style="text-align: center; margin: 20px 0;"><img src="${qrCodeImage}" alt="QR Code for ${bookingDetails.qrCode}" style="border: 2px solid #ddd; border-radius: 8px;" /></div>` : ''}
+            <p style="text-align: center; font-family: monospace; font-size: 14px; color: #666;"><strong>${bookingDetails.qrCode}</strong></p>
+            <p style="text-align: center;"><a href="${qrCodeURL}" style="background: #667eea; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Track Online</a></p>
           </div>
           
           <h3>What happens next?</h3>
@@ -206,6 +230,10 @@ export async function sendInstallerNotification(installerEmail: string, installe
   // Use valid email address for testing
   const validInstallerEmail = getInstallerNotificationEmail(installerEmail);
   const subject = `New Installation Request - ${bookingDetails.qrCode}`;
+  
+  // Generate QR code image for installer email
+  const qrCodeURL = `${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : 'http://localhost:5000'}/qr-tracking/${bookingDetails.qrCode}`;
+  const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
   
   const html = `
     <!DOCTYPE html>
@@ -266,6 +294,13 @@ export async function sendInstallerNotification(installerEmail: string, installe
               <span class="detail-label">Difficulty:</span>
               <span>${bookingDetails.difficulty || 'Standard'}</span>
             </div>
+          </div>
+          
+          <div class="qr-section" style="text-align: center; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+            <h3>Job QR Code</h3>
+            <p>Scan this QR code on-site for quick job verification:</p>
+            ${qrCodeImage ? `<div style="margin: 15px 0;"><img src="${qrCodeImage}" alt="QR Code for ${bookingDetails.qrCode}" style="border: 2px solid #ddd; border-radius: 8px;" /></div>` : ''}
+            <p style="font-family: monospace; font-size: 14px; color: #666;"><strong>${bookingDetails.qrCode}</strong></p>
           </div>
           
           <div class="action-buttons">

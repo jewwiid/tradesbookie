@@ -260,6 +260,8 @@ The application now includes a robust fallback system. When the database is unav
 - June 26, 2025: Fixed solar enquiry database schema and confirmed all email types send successfully to valid addresses
 - June 26, 2025: Fixed email delivery issues by implementing proper email configuration system with valid addresses
 - June 26, 2025: Resolved installer notification delivery problems and missing job details (earnings now display correctly)
+- June 26, 2025: Updated email configuration to use production Google Workspace aliases (bookings@, installer@, noreply@ routing correctly)
+- June 26, 2025: Confirmed email system working with proper alias routing - customer emails via bookings@ and installer notifications via installer@
 
 ## User Preferences
 

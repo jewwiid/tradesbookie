@@ -2,23 +2,23 @@
 // Maps service types to actual valid email addresses
 
 export const EMAIL_CONFIG = {
-  // Customer-facing emails
-  BOOKINGS: 'bookings@tradesbook.ie',
+  // Customer-facing emails (using your Google Workspace setup)
+  BOOKINGS: 'bookings@tradesbook.ie', // Alias to support@tradesbook.ie
   SUPPORT: 'support@tradesbook.ie', 
-  NOREPLY: 'noreply@tradesbook.ie',
+  NOREPLY: 'noreply@tradesbook.ie', // Alias to admin@tradesbook.ie
   
-  // Business operations (all route to admin for now)
+  // Business operations (using your actual aliases)
   ADMIN: 'admin@tradesbook.ie',
-  INSTALLERS: 'admin@tradesbook.ie', // Route to admin since installers@ doesn't exist
-  JOBS: 'admin@tradesbook.ie', // Route to admin since jobs@ doesn't exist
+  INSTALLERS: 'installer@tradesbook.ie', // Now valid - alias to admin@tradesbook.ie
+  JOBS: 'admin@tradesbook.ie', // Route to admin
   
-  // Test mode - route installer emails to admin for testing
-  TEST_INSTALLER_EMAIL: 'admin@tradesbook.ie'
+  // Production mode - use actual installer alias
+  INSTALLER_NOTIFICATIONS: 'installer@tradesbook.ie' // Valid alias to admin@tradesbook.ie
 };
 
 export function getInstallerNotificationEmail(installerEmail?: string): string {
-  // For testing, always use admin email since installer emails don't exist yet
-  return EMAIL_CONFIG.TEST_INSTALLER_EMAIL;
+  // Use the installer alias which routes to admin@tradesbook.ie
+  return EMAIL_CONFIG.INSTALLER_NOTIFICATIONS;
 }
 
 export function getValidFromEmail(serviceType: 'booking' | 'support' | 'job' | 'admin'): string {
@@ -26,7 +26,7 @@ export function getValidFromEmail(serviceType: 'booking' | 'support' | 'job' | '
     case 'booking':
       return EMAIL_CONFIG.BOOKINGS;
     case 'job':
-      return EMAIL_CONFIG.ADMIN; // Use admin instead of non-existent jobs@
+      return EMAIL_CONFIG.INSTALLERS; // Use installer alias
     case 'support':
       return EMAIL_CONFIG.SUPPORT;
     case 'admin':

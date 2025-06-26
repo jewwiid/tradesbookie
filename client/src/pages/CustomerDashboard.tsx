@@ -87,7 +87,7 @@ export default function CustomerDashboard() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Booking QR Code</h2>
             <p className="text-gray-600 mb-6">Save this QR code to quickly access your booking details</p>
             <div className="flex justify-center mb-4">
-              <QRCodeGenerator value={`${window.location.origin}/customer/${booking.qrCode}`} />
+              <QRCode value={`${window.location.origin}/qr-tracking/${booking.qrCode}`} size={200} />
             </div>
             <p className="text-sm text-gray-500">Booking ID: {booking.id}</p>
           </CardContent>

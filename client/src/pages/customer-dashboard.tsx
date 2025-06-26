@@ -23,7 +23,7 @@ import {
   Camera,
   Loader2
 } from "lucide-react";
-import QRCodeGenerator from "@/components/qr-code-generator";
+import QRCode from "@/components/QRCode";
 import QRCodeScanner from "@/components/qr-code-scanner";
 
 interface CustomerLoginProps {
@@ -206,8 +206,8 @@ export default function CustomerDashboard() {
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <div className="flex justify-center">
-              <QRCodeGenerator 
-                text={`https://smarttvmount.app/customer/${booking.qrCode}`}
+              <QRCode 
+                value={`${window.location.origin}/qr-tracking/${booking.qrCode}`}
                 size={200}
               />
             </div>

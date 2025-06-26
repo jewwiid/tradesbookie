@@ -1,11 +1,41 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ServiceTierCard from "@/components/ServiceTierCard";
-import { Tv, Camera, Calendar, Wrench, CheckCircle, Sparkles, Bolt } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Tv, Camera, Calendar, Wrench, CheckCircle, Sparkles, Bolt, Sun, Home, Euro, Phone } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
 
+const solarQuickFormSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  phone: z.string().min(10, "Please enter a valid phone number"),
+  county: z.string().min(1, "Please select your county"),
+  electricityBill: z.string().min(1, "Please select your monthly electricity bill range"),
+});
+
+type SolarQuickForm = z.infer<typeof solarQuickFormSchema>;
+
+const counties = [
+  "Antrim", "Armagh", "Carlow", "Cavan", "Clare", "Cork", "Derry", "Donegal", "Down", "Dublin", 
+  "Fermanagh", "Galway", "Kerry", "Kildare", "Kilkenny", "Laois", "Leitrim", "Limerick", 
+  "Longford", "Louth", "Mayo", "Meath", "Monaghan", "Offaly", "Roscommon", "Sligo", 
+  "Tipperary", "Tyrone", "Waterford", "Westmeath", "Wexford", "Wicklow"
+];
+
 export default function HomePage() {
+  const { toast } = useToast();
+  const [solarSubmitted, setSolarSubmitted] = useState(false);
+  
   const { data: serviceTiers = [] } = useQuery({
     queryKey: ["/api/service-tiers"],
   });
@@ -13,6 +43,57 @@ export default function HomePage() {
   const { data: initResult } = useQuery({
     queryKey: ["/api/init"],
   });
+
+  const solarForm = useForm<SolarQuickForm>({
+    resolver: zodResolver(solarQuickFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      county: "",
+      electricityBill: "",
+    },
+  });
+
+  const submitSolarEnquiry = useMutation({
+    mutationFn: async (data: SolarQuickForm) => {
+      const [firstName, ...lastNameParts] = data.name.split(' ');
+      const lastName = lastNameParts.join(' ') || firstName;
+      
+      return apiRequest("POST", "/api/solar-enquiries", {
+        firstName,
+        lastName,
+        email: data.email,
+        phone: data.phone,
+        address: `${data.county}, Ireland`,
+        county: data.county,
+        propertyType: "House",
+        roofType: "Pitched",
+        electricityBill: data.electricityBill,
+        timeframe: "3-6 months",
+        grants: true,
+        additionalInfo: "Quick enquiry from homepage",
+      });
+    },
+    onSuccess: () => {
+      setSolarSubmitted(true);
+      toast({
+        title: "Solar Enquiry Submitted",
+        description: "We'll contact you within 24 hours with your free consultation.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Submission Failed",
+        description: error.message || "Please try again or contact us directly.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSolarSubmit = (data: SolarQuickForm) => {
+    submitSolarEnquiry.mutate(data);
+  };
 
   return (
     <div className="min-h-screen">
@@ -233,6 +314,195 @@ export default function HomePage() {
               <h3 className="text-xl font-semibold text-gray-900 mb-4">3. Professional Install</h3>
               <p className="text-gray-600">Our certified installer arrives on time and mounts your TV exactly as previewed</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Solar Panel Section */}
+      <section className="py-16 bg-gradient-to-br from-yellow-50 to-orange-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="flex items-center mb-6">
+                <Sun className="h-12 w-12 text-yellow-500 mr-4" />
+                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                  OHK Energy Partnership
+                </Badge>
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+                Save on Your Electricity Bills with
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500">
+                  {" "}Solar Power
+                </span>
+              </h2>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Get a free solar consultation and discover how much you could save with solar panels. SEAI grants available up to €2,400 per home.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                  <span className="text-sm text-gray-700">Free Consultation</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                  <span className="text-sm text-gray-700">SEAI Grant Support</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                  <span className="text-sm text-gray-700">Professional Install</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                  <span className="text-sm text-gray-700">25 Year Warranty</span>
+                </div>
+              </div>
+            </div>
+
+            <Card className="bg-white/90 backdrop-blur-sm shadow-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bolt className="h-5 w-5 text-yellow-500" />
+                  Get Your Free Solar Quote
+                </CardTitle>
+                <CardDescription>
+                  Fill out this quick form and we'll contact you within 24 hours
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {solarSubmitted ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Thank You!</h3>
+                    <p className="text-gray-600">
+                      We'll contact you within 24 hours with your free solar consultation.
+                    </p>
+                  </div>
+                ) : (
+                  <Form {...solarForm}>
+                    <form onSubmit={solarForm.handleSubmit(onSolarSubmit)} className="space-y-4">
+                      <FormField
+                        control={solarForm.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your full name" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={solarForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="your@email.com" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={solarForm.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Phone</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Your phone number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={solarForm.control}
+                          name="county"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>County</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select county" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="max-h-48">
+                                  {counties.map((county) => (
+                                    <SelectItem key={county} value={county}>
+                                      {county}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={solarForm.control}
+                          name="electricityBill"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Monthly Electricity Bill</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select range" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Under €100">Under €100</SelectItem>
+                                  <SelectItem value="€100-€150">€100-€150</SelectItem>
+                                  <SelectItem value="€150-€200">€150-€200</SelectItem>
+                                  <SelectItem value="€200-€300">€200-€300</SelectItem>
+                                  <SelectItem value="Over €300">Over €300</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <Button 
+                        type="submit" 
+                        className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                        disabled={submitSolarEnquiry.isPending}
+                      >
+                        {submitSolarEnquiry.isPending ? (
+                          <>
+                            <Sun className="h-4 w-4 mr-2 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          <>
+                            <Sun className="h-4 w-4 mr-2" />
+                            Get Free Solar Quote
+                          </>
+                        )}
+                      </Button>
+
+                      <p className="text-xs text-gray-500 text-center">
+                        Free consultation • No obligation • SEAI approved installer
+                      </p>
+                    </form>
+                  </Form>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>

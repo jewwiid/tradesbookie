@@ -278,6 +278,8 @@ The application now includes a robust fallback system. When the database is unav
 - June 26, 2025: Added referral code input field to booking contact form with real-time validation and automatic discount calculations
 - June 26, 2025: Implemented referral functionality in booking context with SET_REFERRAL action and proper discount application
 - June 26, 2025: Successfully tested complete booking flow email simulation to jude.okun@gmail.com with referral discounts and professional formatting
+- June 26, 2025: Added comprehensive solar registration form to homepage with OHK Energy branding, professional styling, and full API integration
+- June 26, 2025: Solar form includes essential fields (name, email, phone, county, electricity bill) and connects to existing enquiry system with Gmail notifications
 
 ## User Preferences
 

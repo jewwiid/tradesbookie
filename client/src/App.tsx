@@ -21,6 +21,7 @@ import InstallationTracker from "@/pages/installation-tracker";
 import SolarEnquiry from "@/pages/SolarEnquiry";
 import Checkout from "@/pages/checkout";
 import BookingSuccess from "@/pages/booking-success";
+import PrivacyPolicy from "@/pages/privacy-policy";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/installation-tracker" component={InstallationTracker} />
       <Route path="/tv-recommendation" component={TVRecommendation} />
       <Route path="/solar-enquiry" component={SolarEnquiry} />
+      <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/track/:qrCode" component={QRTracking} />
       
       {/* Protected routes - limited guest access then authentication required */}

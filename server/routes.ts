@@ -18,11 +18,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-06-20",
 });
 
-// Email notification service (placeholder for SendGrid integration)
-async function sendNotificationEmail(to: string, subject: string, content: string) {
-  // In production, this would use SendGrid API
-  console.log(`EMAIL NOTIFICATION: To: ${to}, Subject: ${subject}, Content: ${content}`);
-  return true;
+import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification } from "./gmailService";
+
+// Email notification service with Gmail integration
+async function sendNotificationEmail(to: string, subject: string, content: string, html?: string) {
+  return await sendGmailEmail({
+    to,
+    subject,
+    text: content,
+    html: html || content.replace(/\n/g, '<br>')
+  });
 }
 
 // SMS notification service (placeholder for Twilio integration)
@@ -1287,11 +1292,11 @@ ${message}
 Please follow up with this customer within 24 hours.
       `;
 
-      // Send email to admin
-      await sendNotificationEmail(
-        "admin@smarttvmount.ie", // Admin email
+      // Send email to admin using Gmail service
+      await sendAdminNotification(
         adminEmailSubject,
-        adminEmailContent
+        adminEmailContent,
+        { recommendation, preferences, customerDetails: { name, email, phone } }
       );
 
       // Send confirmation email to customer
@@ -1318,11 +1323,44 @@ tradesbook.ie Team
 If you have any urgent questions, please call us at +353 1 XXX XXXX
       `;
 
-      await sendNotificationEmail(
-        email,
-        customerEmailSubject,
-        customerEmailContent
-      );
+      // Send confirmation email to customer with professional HTML format
+      const customerEmailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
+            <h1>TV Recommendation Inquiry Received</h1>
+          </div>
+          <div style="padding: 30px; background: #f8f9fa;">
+            <p>Hi ${name},</p>
+            <p>Thank you for your interest in our TV recommendation service! We've received your inquiry about ${recommendation?.type} recommendations.</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3>Your Inquiry Details:</h3>
+              <p><strong>Recommended TV Type:</strong> ${recommendation?.type}</p>
+              <p><strong>Budget Range:</strong> ${preferences?.budget}</p>
+              <p><strong>Primary Usage:</strong> ${preferences?.usage}</p>
+            </div>
+            
+            <p>Our TV experts will review your preferences and contact you within 24 hours to discuss:</p>
+            <ul>
+              <li>Specific TV models that match your needs</li>
+              <li>Pricing and availability</li>
+              <li>Installation options</li>
+              <li>Any questions you may have</li>
+            </ul>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <p style="color: #666;">Best regards,<br><strong>tradesbook.ie Team</strong></p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      await sendGmailEmail({
+        to: email,
+        subject: customerEmailSubject,
+        html: customerEmailHtml,
+        from: 'recommendations@tradesbook.ie'
+      });
 
       res.json({ 
         success: true, 

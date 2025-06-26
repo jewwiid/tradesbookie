@@ -2,7 +2,7 @@ import { google } from 'googleapis';
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN;
+const REFRESH_TOKEN = process.env.GOOGLE_REFRESH_TOKEN;
 
 if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
   console.warn('Gmail service not configured - missing required environment variables');

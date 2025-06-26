@@ -1905,6 +1905,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Test Gmail service endpoint
+  app.post('/api/test-email', async (req, res) => {
+    try {
+      const { to, subject, message } = req.body;
+      
+      if (!to || !subject || !message) {
+        return res.status(400).json({ error: "Missing required fields: to, subject, message" });
+      }
+
+      const success = await sendAdminNotification(
+        `Test Email: ${subject}`,
+        `This is a test email from tradesbook.ie:\n\n${message}\n\nSent to: ${to}`
+      );
+
+      if (success) {
+        res.json({ success: true, message: "Test email sent successfully" });
+      } else {
+        res.status(500).json({ success: false, message: "Failed to send test email" });
+      }
+    } catch (error) {
+      console.error("Test email error:", error);
+      res.status(500).json({ success: false, message: "Error sending test email" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

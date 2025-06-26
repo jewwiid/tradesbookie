@@ -3,7 +3,10 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
+// Configure WebSocket for Neon
 neonConfig.webSocketConstructor = ws;
+neonConfig.useSecureWebSocket = true;
+neonConfig.pipelineConnect = false;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -11,104 +14,30 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Create pool with proper configuration for serverless
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
 export const db = drizzle({ client: pool, schema });
 
 // Initialize database tables
 export async function initializeDatabase() {
   try {
-    // Create tables one by one to avoid transaction issues
-    const tables = [
-      `CREATE TABLE IF NOT EXISTS sessions (
-        sid VARCHAR PRIMARY KEY,
-        sess JSONB NOT NULL,
-        expire TIMESTAMP NOT NULL
-      )`,
-      `CREATE INDEX IF NOT EXISTS IDX_session_expire ON sessions (expire)`,
-      `CREATE TABLE IF NOT EXISTS users (
-        id VARCHAR PRIMARY KEY NOT NULL,
-        email VARCHAR UNIQUE,
-        first_name VARCHAR,
-        last_name VARCHAR,
-        profile_image_url VARCHAR,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )`,
-      `CREATE TABLE IF NOT EXISTS installers (
-        id SERIAL PRIMARY KEY,
-        business_name VARCHAR NOT NULL,
-        contact_name VARCHAR NOT NULL,
-        email VARCHAR UNIQUE NOT NULL,
-        phone VARCHAR NOT NULL,
-        address TEXT NOT NULL,
-        service_area VARCHAR NOT NULL,
-        base_fee_percentage DECIMAL(5,2) DEFAULT 15.00,
-        is_active BOOLEAN DEFAULT true,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )`,
-      `CREATE TABLE IF NOT EXISTS fee_structures (
-        id SERIAL PRIMARY KEY,
-        installer_id INTEGER NOT NULL REFERENCES installers(id),
-        service_type VARCHAR NOT NULL,
-        fee_percentage DECIMAL(5,2) NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
-        UNIQUE(installer_id, service_type)
-      )`,
-      `CREATE TABLE IF NOT EXISTS bookings (
-        id SERIAL PRIMARY KEY,
-        booking_id VARCHAR UNIQUE NOT NULL,
-        user_id VARCHAR REFERENCES users(id),
-        installer_id INTEGER REFERENCES installers(id),
-        business_id INTEGER NOT NULL DEFAULT 1,
-        customer_name VARCHAR NOT NULL,
-        customer_email VARCHAR NOT NULL,  
-        customer_phone VARCHAR NOT NULL,
-        tv_size VARCHAR NOT NULL,
-        service_type VARCHAR NOT NULL,
-        wall_type VARCHAR NOT NULL,
-        mount_type VARCHAR NOT NULL,
-        addons JSONB DEFAULT '[]'::jsonb,
-        scheduled_date DATE NOT NULL,
-        time_slot VARCHAR NOT NULL,
-        address TEXT NOT NULL,
-        room_photo_url VARCHAR,
-        ai_preview_url VARCHAR,
-        base_price DECIMAL(10,2) NOT NULL,
-        addon_total DECIMAL(10,2) DEFAULT 0.00,
-        total_price DECIMAL(10,2) NOT NULL,
-        app_fee DECIMAL(10,2) NOT NULL,
-        installer_earning DECIMAL(10,2) NOT NULL,
-        status VARCHAR DEFAULT 'pending',
-        customer_notes TEXT,
-        installer_notes TEXT,
-        qr_code VARCHAR UNIQUE NOT NULL,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )`,
-      `CREATE TABLE IF NOT EXISTS job_assignments (
-        id SERIAL PRIMARY KEY,
-        installer_id INTEGER NOT NULL REFERENCES installers(id),
-        booking_id INTEGER NOT NULL REFERENCES bookings(id),
-        assigned_date TIMESTAMP DEFAULT NOW(),
-        status VARCHAR DEFAULT 'assigned',
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW()
-      )`
-    ];
+    // Test the connection first
+    console.log("Testing database connection...");
+    await pool.query('SELECT 1');
+    console.log("Database connection successful");
 
-    for (const sql of tables) {
-      try {
-        await pool.query(sql);
-      } catch (tableError) {
-        console.log(`Table creation skipped (may already exist): ${String(tableError).substring(0, 100)}`);
-      }
-    }
-    
+    // Use npm run db:push instead of manual table creation
+    console.log("Database schema should be managed via: npm run db:push");
     console.log("Database initialization completed");
+    
   } catch (error) {
-    console.log("Database initialization skipped - continuing with in-memory fallback");
+    console.log("Database connection failed, continuing with limited functionality:", error);
+    // Don't throw error - let app continue with fallback behavior
   }
 }

@@ -150,22 +150,53 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
         throw new Error("Camera not supported in this browser");
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: { ideal: 'environment' }, // Use back camera on mobile
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
-      });
+      // Request camera permission with fallback constraints
+      let stream;
+      try {
+        // Try with preferred back camera
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          } 
+        });
+      } catch (e) {
+        // Fallback to any available camera
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          } 
+        });
+      }
       
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-        };
-        setShowCamera(true);
-      }
+      setShowCamera(true);
+      
+      // Wait for video element to be available
+      setTimeout(() => {
+        if (videoRef.current && stream) {
+          videoRef.current.srcObject = stream;
+          
+          // Handle video loading
+          videoRef.current.onloadedmetadata = () => {
+            console.log("Video metadata loaded");
+            videoRef.current?.play().catch(err => {
+              console.error("Video play failed:", err);
+            });
+          };
+          
+          videoRef.current.oncanplay = () => {
+            console.log("Video can play");
+          };
+          
+          videoRef.current.onerror = (err) => {
+            console.error("Video error:", err);
+          };
+        }
+      }, 100);
+      
     } catch (error: any) {
       console.error("Camera error:", error);
       let description = "Please allow camera access to take a photo";
@@ -176,11 +207,40 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
         description = "No camera found on this device.";
       } else if (error.name === 'NotSupportedError') {
         description = "Camera is not supported in this browser.";
+      } else if (error.name === 'OverconstrainedError') {
+        description = "Camera constraints not supported. Trying again...";
+        // Retry with basic constraints
+        setTimeout(() => startCameraBasic(), 1000);
+        return;
       }
       
       toast({
         title: "Camera initialization failed",
         description,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const startCameraBasic = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      streamRef.current = stream;
+      setShowCamera(true);
+      
+      setTimeout(() => {
+        if (videoRef.current && stream) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play();
+          };
+        }
+      }, 100);
+    } catch (error: any) {
+      console.error("Basic camera error:", error);
+      toast({
+        title: "Camera unavailable",
+        description: "Unable to access camera. Please use file upload instead.",
         variant: "destructive"
       });
     }
@@ -200,12 +260,14 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
       
-      if (context) {
+      if (context && video.videoWidth > 0 && video.videoHeight > 0) {
         // Set reasonable capture dimensions
         const maxWidth = 1920;
         const maxHeight = 1080;
         let width = video.videoWidth;
         let height = video.videoHeight;
+        
+        console.log('Video dimensions:', width, 'x', height);
         
         if (width > maxWidth || height > maxHeight) {
           const ratio = Math.min(maxWidth / width, maxHeight / height);
@@ -223,8 +285,20 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
             console.log('Camera photo captured, size:', file.size);
             handleFile(file);
             stopCamera();
+          } else {
+            toast({
+              title: "Capture failed",
+              description: "Unable to capture photo. Please try again.",
+              variant: "destructive"
+            });
           }
         }, 'image/jpeg', 0.8);
+      } else {
+        toast({
+          title: "Camera not ready",
+          description: "Please wait for camera to initialize completely.",
+          variant: "destructive"
+        });
       }
     }
   };
@@ -304,12 +378,23 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
                 autoPlay
                 playsInline
                 muted
-                className="w-full max-w-md mx-auto rounded-xl"
+                webkit-playsinline="true"
+                className="w-full max-w-md mx-auto rounded-xl bg-gray-100"
+                style={{ aspectRatio: '16/9' }}
               />
               <canvas
                 ref={canvasRef}
                 className="hidden"
               />
+              {/* Loading indicator */}
+              {showCamera && videoRef.current && videoRef.current.readyState < 3 && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-xl">
+                  <div className="text-center">
+                    <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-600">Initializing camera...</p>
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="flex justify-center gap-4 mt-4">

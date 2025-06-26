@@ -257,6 +257,12 @@ export default function InstallerDashboard() {
   const [isOnline, setIsOnline] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [stats, setStats] = useState<InstallerStats>({
+    monthlyJobs: 24,
+    earnings: 2850,
+    rating: 4.9,
+    activeRequests: 0
+  });
 
   // Fetch available requests from API
   const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
@@ -401,10 +407,9 @@ export default function InstallerDashboard() {
     }
   ];
 
-  const stats: InstallerStats = {
-    monthlyJobs: 24,
-    earnings: 2850,
-    rating: 4.9,
+  // Update stats to reflect current requests
+  const currentStats = {
+    ...stats,
     activeRequests: requests.length
   };
 
@@ -461,7 +466,7 @@ export default function InstallerDashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Active Requests</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.activeRequests}</p>
+                  <p className="text-3xl font-bold text-gray-900">{currentStats.activeRequests}</p>
                 </div>
               </div>
             </CardContent>
@@ -475,7 +480,7 @@ export default function InstallerDashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Monthly Jobs</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.monthlyJobs}</p>
+                  <p className="text-3xl font-bold text-gray-900">{currentStats.monthlyJobs}</p>
                 </div>
               </div>
             </CardContent>
@@ -489,7 +494,7 @@ export default function InstallerDashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Monthly Earnings</p>
-                  <p className="text-3xl font-bold text-gray-900">€{stats.earnings}</p>
+                  <p className="text-3xl font-bold text-gray-900">€{currentStats.earnings}</p>
                 </div>
               </div>
             </CardContent>
@@ -503,7 +508,7 @@ export default function InstallerDashboard() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Rating</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.rating}</p>
+                  <p className="text-3xl font-bold text-gray-900">{currentStats.rating}</p>
                 </div>
               </div>
             </CardContent>

@@ -1,12 +1,16 @@
 import { 
   users, bookings, installers, feeStructures, jobAssignments, reviews, solarEnquiries,
+  referralSettings, referralCodes, referralUsage,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
   type FeeStructure, type InsertFeeStructure,
   type JobAssignment, type InsertJobAssignment,
   type Review, type InsertReview,
-  type SolarEnquiry, type InsertSolarEnquiry
+  type SolarEnquiry, type InsertSolarEnquiry,
+  type ReferralSettings, type InsertReferralSettings,
+  type ReferralCode, type InsertReferralCode,
+  type ReferralUsage, type InsertReferralUsage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -336,6 +340,116 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date() 
       })
       .where(eq(solarEnquiries.id, id));
+  }
+
+  // Referral operations
+  async getReferralSettings(): Promise<ReferralSettings | undefined> {
+    const [settings] = await db.select().from(referralSettings).limit(1);
+    return settings;
+  }
+
+  async updateReferralSettings(settings: InsertReferralSettings): Promise<ReferralSettings> {
+    const existingSettings = await this.getReferralSettings();
+    
+    if (existingSettings) {
+      const [updated] = await db.update(referralSettings)
+        .set({
+          ...settings,
+          updatedAt: new Date(),
+        })
+        .where(eq(referralSettings.id, existingSettings.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db.insert(referralSettings)
+        .values({
+          ...settings,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async createReferralCode(referralCode: InsertReferralCode): Promise<ReferralCode> {
+    const [code] = await db.insert(referralCodes)
+      .values({
+        ...referralCode,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return code;
+  }
+
+  async getReferralCodeByCode(code: string): Promise<ReferralCode | undefined> {
+    const [referralCode] = await db.select().from(referralCodes)
+      .where(and(eq(referralCodes.referralCode, code), eq(referralCodes.isActive, true)));
+    return referralCode;
+  }
+
+  async getReferralCodeByUserId(userId: string): Promise<ReferralCode | undefined> {
+    const [referralCode] = await db.select().from(referralCodes)
+      .where(eq(referralCodes.userId, userId));
+    return referralCode;
+  }
+
+  async validateReferralCode(code: string): Promise<{ valid: boolean; discount: number; referrerId?: string }> {
+    const referralCode = await this.getReferralCodeByCode(code);
+    if (!referralCode) {
+      return { valid: false, discount: 0 };
+    }
+
+    const settings = await this.getReferralSettings();
+    const discount = settings ? parseFloat(settings.refereeDiscount.toString()) : 10;
+
+    return {
+      valid: true,
+      discount,
+      referrerId: referralCode.userId,
+    };
+  }
+
+  async createReferralUsage(usage: InsertReferralUsage): Promise<ReferralUsage> {
+    const [referralUsage] = await db.insert(referralUsage)
+      .values({
+        ...usage,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return referralUsage;
+  }
+
+  async getReferralUsageByBooking(bookingId: number): Promise<ReferralUsage | undefined> {
+    const [usage] = await db.select().from(referralUsage)
+      .where(eq(referralUsage.bookingId, bookingId));
+    return usage;
+  }
+
+  async updateReferralCodeStats(codeId: number, earnings: number): Promise<void> {
+    await db.update(referralCodes)
+      .set({
+        totalReferrals: db.sql`${referralCodes.totalReferrals} + 1`,
+        totalEarnings: db.sql`${referralCodes.totalEarnings} + ${earnings}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(referralCodes.id, codeId));
+  }
+
+  async getReferralEarnings(userId: string): Promise<{ totalEarnings: number; totalReferrals: number }> {
+    const [referralCode] = await db.select().from(referralCodes)
+      .where(eq(referralCodes.userId, userId));
+    
+    if (!referralCode) {
+      return { totalEarnings: 0, totalReferrals: 0 };
+    }
+
+    return {
+      totalEarnings: parseFloat(referralCode.totalEarnings.toString()),
+      totalReferrals: referralCode.totalReferrals,
+    };
   }
 }
 

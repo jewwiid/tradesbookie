@@ -274,12 +274,18 @@ export default function InstallerDashboard() {
     },
     onSuccess: (data: any, requestId) => {
       toast({
-        title: "Request Accepted!",
-        description: data?.notifications?.emailSent 
-          ? "Customer notified via email and SMS. Check your active jobs."
-          : "Request accepted successfully.",
+        title: "Request Accepted Successfully",
+        description: "Professional email sent to customer with your contact details. They will reach out within 24 hours to confirm scheduling.",
+        duration: 6000,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/installer/available-requests'] });
+      
+      // Update local stats to reflect accepted job
+      setStats(prev => ({
+        ...prev,
+        monthlyJobs: prev.monthlyJobs + 1,
+        earnings: prev.earnings + parseFloat(selectedRequest?.installerEarnings || "0")
+      }));
       
       // Remove the accepted request from selected state
       if (selectedRequest?.id === requestId) {

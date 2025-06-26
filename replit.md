@@ -263,6 +263,8 @@ The application now includes a robust fallback system. When the database is unav
 - June 26, 2025: Updated email configuration to use production Google Workspace aliases (bookings@, installer@, noreply@ routing correctly)
 - June 26, 2025: Confirmed email system working with proper alias routing - customer emails via bookings@ and installer notifications via installer@
 - June 26, 2025: Corrected email flow logic - customer confirmations from noreply@ (prevents spam), installer notifications from installer@ (enables communication)
+- June 26, 2025: Fixed QR code display issues across platform - created reliable QR component with proper error handling and fallback states
+- June 26, 2025: Enhanced email templates with embedded QR code images - emails now include actual visual QR codes generated as base64 data URLs
 
 ## User Preferences
 

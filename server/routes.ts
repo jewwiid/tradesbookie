@@ -906,17 +906,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update booking status to show installers have shown interest
       await storage.updateBookingStatus(requestId, "installer_accepted");
 
-      // Send notifications to customer
-      await sendNotificationEmail(
-        booking.contactEmail || "customer@example.com",
-        "TV Installation Request Accepted",
-        `Great news! Your TV installation request has been accepted. An installer will contact you soon to confirm the appointment details. Booking reference: ${booking.qrCode}`
-      );
-
-      await sendNotificationSMS(
-        booking.contactPhone || "+353850000000",
-        `Your TV installation has been accepted! Installer will contact you soon. Reference: ${booking.qrCode}`
-      );
+      // Send professional email notification to customer using Gmail service
+      if (booking.contactEmail) {
+        await sendGmailEmail({
+          to: booking.contactEmail,
+          subject: `TV Installation Request Accepted - ${booking.qrCode}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: #667eea; color: white; padding: 20px; text-align: center;">
+                <h1>Great News!</h1>
+                <p>Your TV installation request has been accepted</p>
+              </div>
+              
+              <div style="padding: 20px; background: #f8f9fa;">
+                <h2>What happens next?</h2>
+                <ul>
+                  <li>Your assigned installer will contact you within 24 hours</li>
+                  <li>You'll confirm the installation date and time</li>
+                  <li>The installer will arrive at your scheduled appointment</li>
+                </ul>
+                
+                <div style="background: white; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                  <h3>Booking Details</h3>
+                  <p><strong>Reference:</strong> ${booking.qrCode}</p>
+                  <p><strong>Service:</strong> ${booking.serviceType}</p>
+                  <p><strong>TV Size:</strong> ${booking.tvSize}"</p>
+                  <p><strong>Address:</strong> ${booking.address}</p>
+                </div>
+                
+                <p><strong>Questions?</strong> Contact us at <a href="mailto:support@tradesbook.ie">support@tradesbook.ie</a></p>
+              </div>
+            </div>
+          `,
+          from: 'bookings@tradesbook.ie',
+          replyTo: 'support@tradesbook.ie'
+        });
+      }
 
       res.json({ 
         message: "Request accepted successfully",

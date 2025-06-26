@@ -183,7 +183,8 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
           </ol>
           
           <div class="footer">
-            <p>Need help? Contact us at <a href="mailto:support@tradesbook.ie">support@tradesbook.ie</a></p>
+            <p><strong>This is an automated confirmation email - please do not reply to this address.</strong></p>
+            <p>Need help? Contact us at <a href="mailto:support@tradesbook.ie">support@tradesbook.ie</a> or call 01-XXX-XXXX</p>
             <p>tradesbook.ie - Professional TV Installation Service</p>
           </div>
         </div>
@@ -196,8 +197,8 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
     to: customerEmail,
     subject,
     html,
-    from: 'bookings@tradesbook.ie',
-    replyTo: 'support@tradesbook.ie'
+    from: 'noreply@tradesbook.ie',
+    replyTo: 'support@tradesbook.ie' // Still allows support contact if needed
   });
 }
 
@@ -287,8 +288,8 @@ export async function sendInstallerNotification(installerEmail: string, installe
     to: validInstallerEmail,
     subject,
     html,
-    from: getValidFromEmail('job'),
-    replyTo: 'support@tradesbook.ie'
+    from: 'installer@tradesbook.ie',
+    replyTo: 'admin@tradesbook.ie' // Installer replies go to admin
   });
 }
 

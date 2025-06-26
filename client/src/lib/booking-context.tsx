@@ -19,6 +19,8 @@ export interface BookingData {
     address?: string;
   };
   customerNotes?: string;
+  referralCode?: string;
+  referralDiscount?: number;
   basePrice: number;
   addonTotal: number;
   totalPrice: number;
@@ -37,6 +39,7 @@ type BookingAction =
   | { type: 'SET_SCHEDULE'; scheduledDate: string; timeSlot: string }
   | { type: 'SET_CONTACT'; contact: Partial<BookingData['contact']> }
   | { type: 'SET_NOTES'; customerNotes: string }
+  | { type: 'SET_REFERRAL'; referralCode: string; discount: number }
   | { type: 'RESET' };
 
 const initialState: BookingData = {
@@ -117,6 +120,15 @@ function bookingReducer(state: BookingData, action: BookingAction): BookingData 
     
     case 'SET_NOTES':
       return { ...state, customerNotes: action.customerNotes };
+    
+    case 'SET_REFERRAL':
+      const discountAmount = (state.totalPrice * action.discount) / 100;
+      return { 
+        ...state, 
+        referralCode: action.referralCode,
+        referralDiscount: action.discount,
+        totalPrice: state.totalPrice - discountAmount
+      };
     
     case 'RESET':
       return initialState;

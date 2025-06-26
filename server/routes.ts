@@ -2251,6 +2251,101 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Referral system endpoints
+  app.post('/api/referral/validate', async (req, res) => {
+    try {
+      const { code } = req.body;
+      
+      if (!code) {
+        return res.status(400).json({ valid: false, message: "Referral code required" });
+      }
+
+      const validation = await storage.validateReferralCode(code);
+      res.json(validation);
+    } catch (error) {
+      console.error('Error validating referral code:', error);
+      res.status(500).json({ valid: false, message: "Error validating referral code" });
+    }
+  });
+
+  app.get('/api/referrals/stats', async (req, res) => {
+    try {
+      // Mock referral statistics for admin dashboard
+      const stats = {
+        totalReferrals: 47,
+        totalRewardsPaid: 1175,
+        activeCodes: 12,
+        conversionRate: 18.5
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching referral stats:', error);
+      res.status(500).json({ error: "Failed to fetch referral statistics" });
+    }
+  });
+
+  app.get('/api/referrals/codes', async (req, res) => {
+    try {
+      // Mock referral codes data for admin dashboard
+      const codes = [
+        {
+          id: 1,
+          code: "TB1234ABCD",
+          referrerName: "John Smith",
+          totalReferrals: 8,
+          totalEarnings: 200,
+          createdAt: "2025-06-01T10:00:00Z",
+          isActive: true
+        },
+        {
+          id: 2,
+          code: "TB5678EFGH",
+          referrerName: "Sarah Wilson",
+          totalReferrals: 5,
+          totalEarnings: 125,
+          createdAt: "2025-06-15T14:30:00Z",
+          isActive: true
+        },
+        {
+          id: 3,
+          code: "TB9012IJKL",
+          referrerName: "Mike O'Connor",
+          totalReferrals: 12,
+          totalEarnings: 300,
+          createdAt: "2025-05-20T09:15:00Z",
+          isActive: true
+        }
+      ];
+      
+      res.json(codes);
+    } catch (error) {
+      console.error('Error fetching referral codes:', error);
+      res.status(500).json({ error: "Failed to fetch referral codes" });
+    }
+  });
+
+  app.put('/api/referrals/settings', async (req, res) => {
+    try {
+      const { reward, discount } = req.body;
+      
+      if (!reward || !discount) {
+        return res.status(400).json({ error: "Reward and discount amounts required" });
+      }
+
+      // Update referral settings in database
+      const settings = await storage.updateReferralSettings({
+        rewardAmount: reward,
+        discountPercentage: discount
+      });
+      
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('Error updating referral settings:', error);
+      res.status(500).json({ error: "Failed to update referral settings" });
+    }
+  });
+
   // Test booking confirmation emails without authentication
   app.post("/api/test-booking-emails", async (req, res) => {
     try {

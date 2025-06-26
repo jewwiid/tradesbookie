@@ -25,10 +25,13 @@ export function StepContactReview({ onSubmit, onBack, isSubmitting = false }: St
   const [referralValidation, setReferralValidation] = useState<{ valid: boolean; discount: number; message: string } | null>(null);
 
   const validateReferralMutation = useMutation({
-    mutationFn: (code: string) => apiRequest('/api/referral/validate', {
-      method: 'POST',
-      body: { code }
-    }),
+    mutationFn: async (code: string) => {
+      const response = await apiRequest('/api/referral/validate', {
+        method: 'POST',
+        body: { code }
+      });
+      return response;
+    },
     onSuccess: (data) => {
       if (data.valid) {
         setReferralValidation({

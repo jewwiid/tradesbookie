@@ -188,6 +188,7 @@ export default function Checkout() {
   const [booking, setBooking] = useState<BookingDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [stripePromise, setStripePromise] = useState<Promise<any> | null>(null);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 

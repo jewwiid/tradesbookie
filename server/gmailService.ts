@@ -202,6 +202,8 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
 }
 
 export async function sendInstallerNotification(installerEmail: string, installerName: string, bookingDetails: any): Promise<boolean> {
+  // Use valid email address for testing
+  const validInstallerEmail = getInstallerNotificationEmail(installerEmail);
   const subject = `New Installation Request - ${bookingDetails.qrCode}`;
   
   const html = `
@@ -282,11 +284,11 @@ export async function sendInstallerNotification(installerEmail: string, installe
   `;
 
   return await sendGmailEmail({
-    to: installerEmail,
+    to: validInstallerEmail,
     subject,
     html,
-    from: 'jobs@tradesbook.ie',
-    replyTo: 'installers@tradesbook.ie'
+    from: getValidFromEmail('job'),
+    replyTo: 'support@tradesbook.ie'
   });
 }
 

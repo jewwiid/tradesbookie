@@ -2252,6 +2252,48 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Referral system endpoints
+  app.post('/api/send-booking-simulation', async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email address required" });
+      }
+
+      const bookingDetails = {
+        id: 'TEST-001',
+        qrCode: 'QR-TEST-001',
+        tvSize: '65"',
+        serviceType: 'Professional Wall Mount',
+        address: '123 Test Street, Dublin 2, Ireland',
+        totalPrice: '€289',
+        installerEarnings: '€231',
+        scheduledDate: '2025-06-28',
+        timeSlot: '10:00 AM - 12:00 PM',
+        wallType: 'Drywall',
+        mountType: 'Tilting Mount',
+        addons: ['Cable Management', 'Soundbar Installation'],
+        customerNotes: 'Please call before arrival. Parking available in driveway.',
+        basePrice: '€199',
+        addonTotal: '€90',
+        appFee: '€58',
+        referralCode: 'FRIEND25',
+        referralDiscount: '10%'
+      };
+
+      const success = await sendBookingConfirmation(email, 'Jude Okun', bookingDetails);
+      
+      if (success) {
+        res.json({ success: true, message: "Booking simulation email sent successfully" });
+      } else {
+        res.status(500).json({ error: "Failed to send booking simulation email" });
+      }
+    } catch (error) {
+      console.error('Error sending booking simulation:', error);
+      res.status(500).json({ error: "Failed to send booking simulation" });
+    }
+  });
+
   app.post('/api/referral/validate', async (req, res) => {
     try {
       const { code } = req.body;

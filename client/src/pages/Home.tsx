@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
@@ -395,6 +396,9 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

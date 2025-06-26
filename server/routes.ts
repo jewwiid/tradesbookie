@@ -390,6 +390,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update booking status to 'open' for installer matching
         await storage.updateBookingStatus(booking.id, 'open');
 
+        // Send professional booking confirmation email
+        try {
+          const bookingDetails = {
+            qrCode: booking.qrCode || `BOOKING-${booking.id}`,
+            serviceType: bookingData.serviceType,
+            tvSize: bookingData.tvSize,
+            address: bookingData.address,
+            totalPrice: pricing.totalPrice,
+            installerEarnings: pricing.installerEarnings,
+            difficulty: bookingData.difficulty || 'Standard'
+          };
+
+          // Send confirmation to customer if user is authenticated
+          if (req.user?.email) {
+            await sendBookingConfirmation(
+              req.user.email, 
+              `${req.user.firstName} ${req.user.lastName}`.trim(), 
+              bookingDetails
+            );
+          }
+
+          // Notify all available installers about new booking
+          const installers = await storage.getAllInstallers();
+          for (const installer of installers) {
+            if (installer.email) {
+              await sendInstallerNotification(
+                installer.email,
+                installer.contactName || installer.businessName,
+                bookingDetails
+              );
+            }
+          }
+
+          // Send admin notification
+          await sendAdminNotification(
+            'New Booking Created',
+            `A new TV installation booking has been created:\n\nBooking ID: ${bookingDetails.qrCode}\nService: ${bookingDetails.serviceType}\nLocation: ${bookingDetails.address}\nTotal: €${bookingDetails.totalPrice}`,
+            bookingDetails
+          );
+        } catch (emailError) {
+          console.error("Email notification error:", emailError);
+          // Don't fail the booking creation if emails fail
+        }
+
         res.json({ 
           booking: { ...booking, status: 'open' }, 
           qrCode: qrCodeDataURL,

@@ -11,6 +11,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import HarveyNormanBooking from '@/components/HarveyNormanBooking';
 
 interface QuestionData {
   id: string;
@@ -177,6 +178,7 @@ export default function TVRecommendation() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [recommendation, setRecommendation] = useState<TVRecommendation | null>(null);
   const [showContactForm, setShowContactForm] = useState(false);
+  const [showHarveyNormanBooking, setShowHarveyNormanBooking] = useState(false);
   const [contactInfo, setContactInfo] = useState({
     name: '',
     email: '',
@@ -302,6 +304,16 @@ I'm interested in learning more about this TV and discussing purchase options. P
   const currentQuestion = questions[currentStep];
   const isAnswered = answers[currentQuestion?.id];
   const progress = ((currentStep + 1) / questions.length) * 100;
+
+  if (showHarveyNormanBooking) {
+    return (
+      <HarveyNormanBooking 
+        recommendation={recommendation} 
+        preferences={answers}
+        onClose={() => setShowHarveyNormanBooking(false)}
+      />
+    );
+  }
 
   if (showContactForm) {
     return (
@@ -809,7 +821,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
           <div className="text-center space-y-6">
             <div className="grid md:grid-cols-2 gap-4">
               <Button 
-                onClick={handleContactSalesperson} 
+                onClick={() => setShowHarveyNormanBooking(true)} 
                 size="lg"
                 className="bg-orange-600 hover:bg-orange-700 text-white h-16 text-lg font-semibold"
               >

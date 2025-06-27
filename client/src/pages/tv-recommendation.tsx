@@ -497,7 +497,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
                             </div>
                             <div className="text-right">
                               <p className="text-xl font-bold text-green-600">{tv.price}</p>
-                              <p className="text-sm text-gray-600">{tv.currentAvailability}</p>
+                              <p className="text-sm text-orange-600 font-medium">Subject to availability</p>
                             </div>
                           </div>
 

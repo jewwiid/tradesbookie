@@ -28,6 +28,7 @@ import GDPRCompliance from "@/pages/GDPRCompliance";
 import NotFound from "@/pages/not-found";
 import ReviewPage from "@/pages/review-page";
 import ReferralPage from "@/pages/referral-page";
+import BookingConfirmation from "@/pages/booking-confirmation";
 
 function Router() {
   return (
@@ -61,6 +62,7 @@ function Router() {
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin-dashboard" component={AdminDashboard} />
+      <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/checkout/:bookingId?" component={Checkout} />
       <Route path="/booking-success/:bookingId?" component={BookingSuccess} />
       

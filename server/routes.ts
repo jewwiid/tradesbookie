@@ -392,7 +392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             totalPrice: pricing.totalPrice.toString(),
             appFee: pricing.appFee.toString(),
             installerEarning: pricing.installerEarnings.toString(),
-            status: 'confirmed',
+            status: 'pending',
             customerNotes: bookingData.customerNotes,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
@@ -1068,28 +1068,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "accepted"
       });
 
-      // Update booking status to show installers have shown interest
-      await storage.updateBookingStatus(requestId, "installer_accepted");
+      // Update booking status to show installer assigned
+      await storage.updateBookingStatus(requestId, "assigned");
 
-      // Send professional email notification to customer using Gmail service
+      // Send professional email notification to customer with payment link
       if (booking.contactEmail) {
         await sendGmailEmail({
           to: booking.contactEmail,
-          subject: `TV Installation Request Accepted - ${booking.qrCode}`,
+          subject: `TV Installation Confirmed - Payment Required - ${booking.qrCode}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: #667eea; color: white; padding: 20px; text-align: center;">
-                <h1>Great News!</h1>
-                <p>Your TV installation request has been accepted</p>
+                <h1>Installer Assigned!</h1>
+                <p>Your TV installation request has been accepted and confirmed</p>
               </div>
               
               <div style="padding: 20px; background: #f8f9fa;">
-                <h2>What happens next?</h2>
-                <ul>
-                  <li>Your assigned installer will contact you within 24 hours</li>
-                  <li>You'll confirm the installation date and time</li>
-                  <li>The installer will arrive at your scheduled appointment</li>
-                </ul>
+                <h2>Next Steps</h2>
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #2196f3;">
+                  <h3 style="margin: 0 0 10px 0; color: #1976d2;">⚡ Payment Required</h3>
+                  <p style="margin: 0;">Now that your installer is confirmed, please complete your payment to secure your booking.</p>
+                  <div style="text-align: center; margin: 15px 0;">
+                    <a href="${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'http://localhost:5000'}/checkout?bookingId=${booking.id}" 
+                       style="background: #4caf50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                      Complete Payment - €${booking.totalPrice}
+                    </a>
+                  </div>
+                </div>
                 
                 <div style="background: white; padding: 15px; border-radius: 8px; margin: 20px 0;">
                   <h3>Booking Details</h3>
@@ -1097,6 +1102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   <p><strong>Service:</strong> ${booking.serviceType}</p>
                   <p><strong>TV Size:</strong> ${booking.tvSize}"</p>
                   <p><strong>Address:</strong> ${booking.address}</p>
+                  <p><strong>Total Amount:</strong> €${booking.totalPrice}</p>
                 </div>
                 
                 <p><strong>Questions?</strong> Contact us at <a href="mailto:support@tradesbook.ie">support@tradesbook.ie</a></p>

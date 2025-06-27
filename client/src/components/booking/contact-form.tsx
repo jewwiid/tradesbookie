@@ -91,10 +91,10 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       const booking = response.booking || response;
       toast({
         title: "Booking Created!",
-        description: "Redirecting to secure payment..."
+        description: "Your request has been submitted. We'll find an installer for you."
       });
-      // Redirect to checkout page with booking ID
-      setLocation(`/checkout?bookingId=${booking.id}`);
+      // Redirect to booking confirmation page instead of payment
+      setLocation(`/booking-confirmation?bookingId=${booking.id}`);
     },
     onError: (error) => {
       toast({

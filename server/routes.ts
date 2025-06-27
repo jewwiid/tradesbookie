@@ -1627,11 +1627,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         TV Recommendation: ${booking.tvRecommendation?.type || 'N/A'} - ${booking.tvRecommendation?.model || 'N/A'}
         
         Customer's Quiz Preferences:
-        - Primary Usage: ${booking.customerPreferences?.usage || 'Not specified'}
-        - Budget Range: ${booking.customerPreferences?.budget || 'Not specified'}
-        - Room Type: ${booking.customerPreferences?.room || 'Not specified'}
-        - Gaming Importance: ${booking.customerPreferences?.gaming || 'Not specified'}
-        - Priority Features: ${booking.customerPreferences?.features || 'Not specified'}
+        - Primary Usage: ${typeof booking.customerPreferences === 'object' ? booking.customerPreferences?.usage : 'Not specified'}
+        - Budget Range: ${typeof booking.customerPreferences === 'object' ? booking.customerPreferences?.budget : 'Not specified'}
+        - Room Type: ${typeof booking.customerPreferences === 'object' ? booking.customerPreferences?.room : 'Not specified'}
+        - Gaming Importance: ${typeof booking.customerPreferences === 'object' ? booking.customerPreferences?.gaming : 'Not specified'}
+        - Priority Features: ${typeof booking.customerPreferences === 'object' ? booking.customerPreferences?.features : 'Not specified'}
         
         Special Requests:
         ${booking.specialRequests || 'None'}

@@ -286,6 +286,8 @@ The application now includes a robust fallback system. When the database is unav
 - June 27, 2025: Added comprehensive consultation booking component with Google Maps integration, store information, and professional booking form
 - June 27, 2025: Created consultation_bookings database table and API endpoints for managing in-store appointment requests
 - June 27, 2025: Integrated consultation booking into TV recommendation flow with email notifications for both admin and customers
+- June 27, 2025: Added "subject to availability" disclaimers and removed all "in stock" references from TV recommendations
+- June 27, 2025: Enhanced consultation booking emails to include user's quiz inputs for better consultant preparation and alternative suggestions
 
 ## User Preferences
 

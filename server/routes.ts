@@ -1626,13 +1626,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         TV Recommendation: ${booking.tvRecommendation?.type || 'N/A'} - ${booking.tvRecommendation?.model || 'N/A'}
         
+        Customer's Quiz Preferences:
+        - Primary Usage: ${booking.customerPreferences?.usage || 'Not specified'}
+        - Budget Range: ${booking.customerPreferences?.budget || 'Not specified'}
+        - Room Type: ${booking.customerPreferences?.room || 'Not specified'}
+        - Gaming Importance: ${booking.customerPreferences?.gaming || 'Not specified'}
+        - Priority Features: ${booking.customerPreferences?.features || 'Not specified'}
+        
         Special Requests:
         ${booking.specialRequests || 'None'}
         
         Store Location: Harvey Norman Carrickmines
         Address: The Park, Carrickmines, Dublin 18, D18 R9P0
         
-        Please contact the customer to confirm the appointment and assign an installer.
+        Please contact the customer to confirm the appointment and assign a TV installation expert. Use the quiz preferences above to suggest alternative models if needed.
         `
       );
       
@@ -1650,10 +1657,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         - Preferred Time: ${booking.preferredTime}
         - Location: Harvey Norman Carrickmines, The Park, Carrickmines, Dublin 18
         
+        Recommended TV: ${booking.tvRecommendation?.type || 'N/A'} - ${booking.tvRecommendation?.model || 'N/A'}
+        
+        Your preferences (for reference during consultation):
+        - Primary Usage: ${booking.customerPreferences?.usage || 'Not specified'}
+        - Budget Range: ${booking.customerPreferences?.budget || 'Not specified'}
+        - Room Type: ${booking.customerPreferences?.room || 'Not specified'}
+        - Gaming Importance: ${booking.customerPreferences?.gaming || 'Not specified'}
+        - Priority Features: ${booking.customerPreferences?.features || 'Not specified'}
+        
         Our team will contact you within 24 hours to confirm your appointment time and assign a TV installation expert to meet with you.
         
         During your consultation, you'll be able to:
         • View your recommended TV model in person
+        • Explore alternative models based on your preferences
         • Discuss installation options and pricing
         • Get expert advice on setup and placement
         • Arrange professional installation if needed

@@ -280,6 +280,8 @@ The application now includes a robust fallback system. When the database is unav
 - June 26, 2025: Successfully tested complete booking flow email simulation to jude.okun@gmail.com with referral discounts and professional formatting
 - June 26, 2025: Added comprehensive solar registration form to homepage with OHK Energy branding, professional styling, and full API integration
 - June 26, 2025: Solar form includes essential fields (name, email, phone, county, electricity bill) and connects to existing enquiry system with Gmail notifications
+- June 26, 2025: Fixed TV recommendation page formatting issues - cleaned up Current Market Insights display, updated section heading to "Alternative TV Models Available", changed contact form title from "Speak with a Salesperson" to "Contact TV Expert"
+- June 26, 2025: Confirmed TV recommendation contact form email functionality working properly - admin and customer notifications sending successfully via Gmail API
 
 ## User Preferences
 

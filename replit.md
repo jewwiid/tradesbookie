@@ -282,6 +282,10 @@ The application now includes a robust fallback system. When the database is unav
 - June 26, 2025: Solar form includes essential fields (name, email, phone, county, electricity bill) and connects to existing enquiry system with Gmail notifications
 - June 26, 2025: Fixed TV recommendation page formatting issues - cleaned up Current Market Insights display, updated section heading to "Alternative TV Models Available", changed contact form title from "Speak with a Salesperson" to "Contact TV Expert"
 - June 26, 2025: Confirmed TV recommendation contact form email functionality working properly - admin and customer notifications sending successfully via Gmail API
+- June 27, 2025: Implemented Harvey Norman Carrickmines consultation booking system for in-store TV expert meetings
+- June 27, 2025: Added comprehensive consultation booking component with Google Maps integration, store information, and professional booking form
+- June 27, 2025: Created consultation_bookings database table and API endpoints for managing in-store appointment requests
+- June 27, 2025: Integrated consultation booking into TV recommendation flow with email notifications for both admin and customers
 
 ## User Preferences
 

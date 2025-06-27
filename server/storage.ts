@@ -1,6 +1,6 @@
 import { 
   users, bookings, installers, feeStructures, jobAssignments, reviews, solarEnquiries,
-  referralSettings, referralCodes, referralUsage,
+  referralSettings, referralCodes, referralUsage, consultationBookings,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -10,7 +10,8 @@ import {
   type SolarEnquiry, type InsertSolarEnquiry,
   type ReferralSettings, type InsertReferralSettings,
   type ReferralCode, type InsertReferralCode,
-  type ReferralUsage, type InsertReferralUsage
+  type ReferralUsage, type InsertReferralUsage,
+  type ConsultationBooking, type InsertConsultationBooking
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -74,6 +75,13 @@ export interface IStorage {
   getReferralUsageByBooking(bookingId: number): Promise<ReferralUsage | undefined>;
   updateReferralCodeStats(codeId: number, earnings: number): Promise<void>;
   getReferralEarnings(userId: string): Promise<{ totalEarnings: number; totalReferrals: number }>;
+
+  // Consultation booking operations
+  createConsultationBooking(booking: InsertConsultationBooking): Promise<ConsultationBooking>;
+  getConsultationBooking(id: number): Promise<ConsultationBooking | undefined>;
+  getAllConsultationBookings(): Promise<ConsultationBooking[]>;
+  updateConsultationBookingStatus(id: number, status: string): Promise<void>;
+  getConsultationBookingsByEmail(email: string): Promise<ConsultationBooking[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -450,6 +458,33 @@ export class DatabaseStorage implements IStorage {
       totalEarnings: parseFloat(referralCode.totalEarnings.toString()),
       totalReferrals: referralCode.totalReferrals,
     };
+  }
+
+  // Consultation booking operations
+  async createConsultationBooking(insertBooking: InsertConsultationBooking): Promise<ConsultationBooking> {
+    const [booking] = await db.insert(consultationBookings).values(insertBooking).returning();
+    return booking;
+  }
+
+  async getConsultationBooking(id: number): Promise<ConsultationBooking | undefined> {
+    const [booking] = await db.select().from(consultationBookings).where(eq(consultationBookings.id, id));
+    return booking;
+  }
+
+  async getAllConsultationBookings(): Promise<ConsultationBooking[]> {
+    return await db.select().from(consultationBookings).orderBy(desc(consultationBookings.createdAt));
+  }
+
+  async updateConsultationBookingStatus(id: number, status: string): Promise<void> {
+    await db.update(consultationBookings)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(consultationBookings.id, id));
+  }
+
+  async getConsultationBookingsByEmail(email: string): Promise<ConsultationBooking[]> {
+    return await db.select().from(consultationBookings)
+      .where(eq(consultationBookings.customerEmail, email))
+      .orderBy(desc(consultationBookings.createdAt));
   }
 }
 

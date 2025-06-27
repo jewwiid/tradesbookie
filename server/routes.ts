@@ -1594,6 +1594,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Harvey Norman Carrickmines Consultation Booking
+  app.post('/api/consultation-booking', async (req, res) => {
+    try {
+      const bookingData = req.body;
+      
+      const booking = await storage.createConsultationBooking({
+        customerName: bookingData.customerName,
+        customerEmail: bookingData.customerEmail,
+        customerPhone: bookingData.customerPhone,
+        preferredDate: new Date(bookingData.preferredDate),
+        preferredTime: bookingData.preferredTime,
+        tvRecommendation: bookingData.tvRecommendation,
+        customerPreferences: bookingData.customerPreferences,
+        specialRequests: bookingData.specialRequests || null,
+        status: "pending"
+      });
+      
+      // Send notification email to admin
+      await sendNotificationEmail(
+        "admin@tradesbook.ie",
+        `[tradesbook.ie] New Harvey Norman Consultation Booking - ${booking.customerName}`,
+        `
+        New Harvey Norman Carrickmines consultation booking:
+        
+        Customer: ${booking.customerName}
+        Email: ${booking.customerEmail}
+        Phone: ${booking.customerPhone}
+        Preferred Date: ${booking.preferredDate.toDateString()}
+        Preferred Time: ${booking.preferredTime}
+        
+        TV Recommendation: ${booking.tvRecommendation?.type || 'N/A'} - ${booking.tvRecommendation?.model || 'N/A'}
+        
+        Special Requests:
+        ${booking.specialRequests || 'None'}
+        
+        Store Location: Harvey Norman Carrickmines
+        Address: The Park, Carrickmines, Dublin 18, D18 R9P0
+        
+        Please contact the customer to confirm the appointment and assign an installer.
+        `
+      );
+      
+      // Send confirmation email to customer
+      await sendNotificationEmail(
+        booking.customerEmail,
+        "Harvey Norman Consultation Booking Received",
+        `
+        Dear ${booking.customerName},
+        
+        Thank you for booking a TV consultation at Harvey Norman Carrickmines!
+        
+        Your booking details:
+        - Preferred Date: ${booking.preferredDate.toDateString()}
+        - Preferred Time: ${booking.preferredTime}
+        - Location: Harvey Norman Carrickmines, The Park, Carrickmines, Dublin 18
+        
+        Our team will contact you within 24 hours to confirm your appointment time and assign a TV installation expert to meet with you.
+        
+        During your consultation, you'll be able to:
+        • View your recommended TV model in person
+        • Discuss installation options and pricing
+        • Get expert advice on setup and placement
+        • Arrange professional installation if needed
+        
+        If you need to make any changes, please contact us at bookings@tradesbook.ie
+        
+        Best regards,
+        The tradesbook.ie Team
+        `
+      );
+
+      res.json({ 
+        success: true, 
+        message: "Consultation booking submitted successfully",
+        bookingId: booking.id 
+      });
+    } catch (error) {
+      console.error("Error creating consultation booking:", error);
+      res.status(500).json({ message: "Failed to create consultation booking" });
+    }
+  });
+
+  app.get("/api/consultation-bookings", async (req, res) => {
+    try {
+      const bookings = await storage.getAllConsultationBookings();
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching consultation bookings:", error);
+      res.status(500).json({ message: "Failed to fetch consultation bookings" });
+    }
+  });
+
+  app.patch("/api/consultation-bookings/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      await storage.updateConsultationBookingStatus(parseInt(id), status);
+      res.json({ message: "Consultation booking status updated" });
+    } catch (error) {
+      console.error("Error updating consultation booking status:", error);
+      res.status(500).json({ message: "Failed to update consultation booking status" });
+    }
+  });
+
   // TV Recommendation Contact Form
   app.post('/api/tv-recommendation/contact', async (req, res) => {
     try {

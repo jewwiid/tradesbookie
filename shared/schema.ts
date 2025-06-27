@@ -368,3 +368,32 @@ export type ReferralCode = typeof referralCodes.$inferSelect;
 export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
 export type ReferralUsage = typeof referralUsage.$inferSelect;
 export type InsertReferralUsage = z.infer<typeof insertReferralUsageSchema>;
+
+// Harvey Norman Carrickmines consultation bookings
+export const consultationBookings = pgTable("consultation_bookings", {
+  id: serial("id").primaryKey(),
+  customerName: text("customer_name").notNull(),
+  customerEmail: text("customer_email").notNull(),
+  customerPhone: text("customer_phone").notNull(),
+  preferredDate: timestamp("preferred_date").notNull(),
+  preferredTime: text("preferred_time").notNull(), // "morning", "afternoon", "evening"
+  tvRecommendation: jsonb("tv_recommendation"), // Store the recommendation data
+  customerPreferences: jsonb("customer_preferences"), // Store quiz answers
+  specialRequests: text("special_requests"),
+  status: text("status").default("pending"), // pending, confirmed, completed, cancelled
+  installerId: integer("installer_id"), // Optional assigned installer
+  confirmedDateTime: timestamp("confirmed_date_time"),
+  storeLocation: text("store_location").default("Harvey Norman Carrickmines"),
+  storeAddress: text("store_address").default("The Park, Carrickmines, Dublin 18, D18 R9P0"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertConsultationBookingSchema = createInsertSchema(consultationBookings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ConsultationBooking = typeof consultationBookings.$inferSelect;
+export type InsertConsultationBooking = z.infer<typeof insertConsultationBookingSchema>;

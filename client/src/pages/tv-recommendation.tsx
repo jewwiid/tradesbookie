@@ -314,7 +314,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
 
           <Card>
             <CardHeader>
-              <CardTitle>Speak with a Salesperson</CardTitle>
+              <CardTitle>Contact TV Expert</CardTitle>
               <CardDescription>
                 We'll connect you with a TV expert who can help you find the perfect model and arrange purchase.
               </CardDescription>
@@ -472,7 +472,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
                 <div className="mt-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
                     <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    Recommended TV Models Available Now
+                    Alternative TV Models Available
                   </h3>
                   <div className="grid gap-4">
                     {recommendation.currentModels.map((tv, index) => (
@@ -701,18 +701,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
                           Market Analysis
                         </h4>
                         <div className="text-gray-700 text-sm leading-relaxed">
-                          {/* Clean up JSON-like formatting and display properly */}
-                          {recommendation.marketAnalysis
-                            .replace(/^[^"]*"[^"]*":\s*"/, '')
-                            .replace(/"[^"]*":\s*"/, '\n\n')
-                            .replace(/"/g, '')
-                            .split('\n\n')
-                            .filter(text => text.trim())
-                            .map((text, idx) => (
-                              <p key={idx} className="mb-2 last:mb-0">
-                                {text.trim()}
-                              </p>
-                            ))}
+                          <p>{recommendation.marketAnalysis}</p>
                         </div>
                       </div>
                     )}
@@ -726,18 +715,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
                           Pricing Trends
                         </h4>
                         <div className="text-gray-700 text-sm leading-relaxed">
-                          {/* Clean up JSON-like formatting and display properly */}
-                          {recommendation.pricingTrends
-                            .replace(/^[^"]*"[^"]*":\s*"/, '')
-                            .replace(/"[^"]*":\s*"/, '\n\n')
-                            .replace(/"/g, '')
-                            .split('\n\n')
-                            .filter(text => text.trim())
-                            .map((text, idx) => (
-                              <p key={idx} className="mb-2 last:mb-0">
-                                {text.trim()}
-                              </p>
-                            ))}
+                          <p>{recommendation.pricingTrends}</p>
                         </div>
                       </div>
                     )}

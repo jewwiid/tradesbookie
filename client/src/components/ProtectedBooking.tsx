@@ -32,10 +32,10 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
   }, []);
 
   const handleGuestBooking = () => {
-    if (usageCount >= 2) {
+    if (usageCount >= 3) {
       toast({
         title: "Daily limit reached",
-        description: "You've used your 2 free tries today. Please sign in to continue booking.",
+        description: "You've used your 3 free AI previews today. Please sign in to continue with unlimited access.",
         variant: "destructive",
       });
       return;
@@ -75,45 +75,48 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
             Book Your TV Installation
           </h1>
           <p className="text-xl text-gray-600">
-            Try our service for free or sign in for unlimited access
+            Try our AI room preview for free or sign in for unlimited access
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Guest Booking Option */}
+          {/* Free Trial Option */}
           <Card className="relative">
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Tv className="w-5 h-5 mr-2 text-indigo-600" />
-                Guest Booking
+                Free AI Preview
               </CardTitle>
               <CardDescription>
-                Try our AI preview service with limited access
+                Try our AI room visualization with 3 daily previews
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                <span className="text-sm text-gray-600">Daily usage:</span>
-                <span className="font-medium text-gray-900">{usageCount}/2 tries used</span>
+                <span className="text-sm text-gray-600">Daily AI previews:</span>
+                <span className="font-medium text-gray-900">{usageCount}/3 used</span>
               </div>
               
-              {usageCount < 2 ? (
+              {usageCount < 3 ? (
                 <div>
                   <Button 
                     onClick={handleGuestBooking}
                     className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
                   >
-                    Try Free Booking ({2 - usageCount} tries left)
+                    Start Free Preview ({3 - usageCount} left today)
                   </Button>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Visual AI generation only - full booking requires sign in
+                  </p>
                 </div>
               ) : (
                 <div className="text-center py-8">
                   <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 mb-4">
-                    You've reached your daily limit of 2 free tries.
+                    You've used all 3 free AI previews today.
                   </p>
                   <p className="text-sm text-gray-500 mb-6">
-                    Resets tomorrow or sign in for unlimited access.
+                    Resets tomorrow or sign in for unlimited AI previews.
                   </p>
                   <a
                     href="/api/login"
@@ -132,21 +135,25 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <User className="w-5 h-5 mr-2 text-green-600" />
-                Full Access
+                Full Access Account
               </CardTitle>
               <CardDescription>
-                Sign in for unlimited bookings and additional features
+                Create an account for unlimited AI previews and complete booking features
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-2 text-sm text-gray-600">
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                  Unlimited AI previews
+                  Unlimited AI room visualizations
                 </li>
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                  Booking history & tracking
+                  Complete booking and payment process
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
+                  Booking history & QR tracking
                 </li>
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
@@ -154,7 +161,7 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
                 </li>
                 <li className="flex items-center">
                   <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                  Exclusive discounts
+                  Exclusive discounts & referral rewards
                 </li>
               </ul>
               
@@ -164,7 +171,7 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
                   className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Sign In Now
+                  Create Account / Sign In
                 </a>
               </div>
             </CardContent>

@@ -362,11 +362,55 @@ export async function setupAuth(app: Express) {
     
     console.log("Strategy found, initiating OAuth flow...");
     
-    // Don't wrap in try-catch as passport.authenticate handles its own errors
-    passport.authenticate(strategyName, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
+    // Save session before initiating OAuth flow
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error before OAuth:", err);
+        return res.status(500).json({ error: "Session configuration error" });
+      }
+      
+      console.log("Session saved, initiating OAuth redirect...");
+      
+      // Create middleware function that handles both redirect and errors
+      const authMiddleware = (authErr: any, user: any, info: any) => {
+        if (authErr) {
+          console.error("OAuth initiation error:", authErr);
+          return res.status(500).json({ error: "OAuth initialization failed", details: authErr.message });
+        }
+        
+        // If we reach here without a redirect, something is wrong
+        console.error("OAuth flow completed without redirect or user");
+        return res.status(500).json({ error: "OAuth flow failed to initiate" });
+      };
+      
+      // Use direct redirect to OAuth provider
+      try {
+        const strategy = (passport as any)._strategies[strategyName];
+        if (!strategy) {
+          throw new Error(`Strategy ${strategyName} not found`);
+        }
+        
+        // Get the authorization URL directly from the strategy
+        const authorizationURL = strategy._client.authorizationUrl({
+          response_type: 'code',
+          scope: 'openid email profile offline_access',
+          prompt: 'login consent',
+          state: req.sessionID, // Use session ID as state for security
+        });
+        
+        console.log("Redirecting to OAuth provider:", authorizationURL);
+        
+        // Perform direct redirect to OAuth provider
+        res.redirect(authorizationURL);
+        
+      } catch (redirectError) {
+        console.error("OAuth redirect error:", redirectError);
+        return res.status(500).json({ 
+          error: "OAuth redirect failed", 
+          details: redirectError.message 
+        });
+      }
+    });
   });
 
   app.get("/api/callback", (req, res, next) => {

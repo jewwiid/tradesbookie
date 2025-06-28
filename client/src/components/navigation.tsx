@@ -170,6 +170,14 @@ export default function Navigation() {
                     {!isAdmin && (
                       <>
                         <Link 
+                          href="/installer-login" 
+                          className="flex items-center py-2 text-gray-700 hover:text-primary"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          <Settings className="h-5 w-5 mr-3" />
+                          Installer Login
+                        </Link>
+                        <Link 
                           href="/installer-registration" 
                           className="flex items-center py-2 text-gray-700 hover:text-primary"
                           onClick={() => setMobileMenuOpen(false)}

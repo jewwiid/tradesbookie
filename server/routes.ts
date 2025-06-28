@@ -1635,7 +1635,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Real-time analytics endpoints
+  // Public analytics endpoints - no authentication required for transparency
   app.get('/api/analytics/website-metrics', async (req, res) => {
     try {
       const { getWebsiteMetrics } = await import('./analyticsService');
@@ -1655,6 +1655,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching real-time stats:', error);
       res.status(500).json({ message: 'Failed to fetch real-time data' });
+    }
+  });
+
+  // Public service tier metrics based on actual usage
+  app.get('/api/analytics/service-popularity', async (req, res) => {
+    try {
+      const { getWebsiteMetrics } = await import('./analyticsService');
+      const metrics = await getWebsiteMetrics();
+      res.json({
+        popularServices: metrics.popularServices,
+        totalBookings: metrics.totalBookings
+      });
+    } catch (error) {
+      console.error('Error fetching service popularity:', error);
+      res.status(500).json({ message: 'Failed to fetch service data' });
     }
   });
 

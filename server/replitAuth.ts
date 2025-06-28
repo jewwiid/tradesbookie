@@ -68,6 +68,7 @@ function updateUserSession(
 
 async function upsertUser(
   claims: any,
+  intendedRole?: string
 ) {
   const existingUser = await storage.getUser(claims["sub"]);
   
@@ -77,6 +78,7 @@ async function upsertUser(
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
+    role: 'customer' // Default role
   };
 
   if (!existingUser) {
@@ -85,6 +87,18 @@ async function upsertUser(
     const verificationToken = await generateVerificationToken();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     
+    // Set role based on intended signup type
+    if (intendedRole === 'installer') {
+      userData.role = 'installer';
+      console.log("Creating new installer user via OAuth:", userData.email);
+    } else if (intendedRole === 'admin') {
+      userData.role = 'admin';
+      console.log("Creating new admin user via OAuth:", userData.email);
+    } else {
+      userData.role = 'customer';
+      console.log("Creating new customer user via OAuth:", userData.email);
+    }
+    
     const newUserData = {
       ...userData,
       emailVerified: false,
@@ -92,8 +106,30 @@ async function upsertUser(
       emailVerificationExpires: expiresAt,
     };
     
-    console.log("Creating new user via OAuth:", newUserData.email);
     await storage.upsertUser(newUserData);
+    
+    // If this is an installer signup, create installer profile
+    if (intendedRole === 'installer') {
+      try {
+        const installerData = {
+          contactName: `${claims["first_name"]} ${claims["last_name"]}`.trim(),
+          businessName: `${claims["first_name"]} ${claims["last_name"]} TV Services`.trim(),
+          email: claims["email"],
+          phone: '', // Will be completed during profile setup
+          address: 'Ireland', // Default location
+          serviceArea: 'Greater Dublin Area', // Default service area
+          expertise: ['TV Mounting', 'Wall Installation'],
+          bio: 'Professional TV installer registered via OAuth',
+          yearsExperience: 1,
+          isActive: false // Requires profile completion
+        };
+        
+        await storage.createInstaller(installerData);
+        console.log("Created installer profile for OAuth user:", claims["email"]);
+      } catch (err) {
+        console.error("Failed to create installer profile:", err);
+      }
+    }
     
     // Send verification email for new OAuth users
     try {
@@ -132,7 +168,8 @@ export async function setupAuth(app: Express) {
 
   const verify: VerifyFunction = async (
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
-    verified: passport.AuthenticateCallback
+    verified: passport.AuthenticateCallback,
+    req?: any
   ) => {
     try {
       console.log("Starting OAuth verification process");
@@ -143,7 +180,11 @@ export async function setupAuth(app: Express) {
       const claims = tokens.claims();
       console.log("User claims:", { sub: claims?.sub, email: claims?.email });
       
-      await upsertUser(claims);
+      // Get intended role from session
+      const intendedRole = req?.session?.intendedRole || 'customer';
+      console.log("Intended role for user:", intendedRole);
+      
+      await upsertUser(claims, intendedRole);
       console.log("User upserted successfully");
       
       verified(null, user);
@@ -202,6 +243,24 @@ export async function setupAuth(app: Express) {
   app.get("/api/login", (req, res, next) => {
     console.log("Login request from hostname:", req.hostname);
     console.log("Request headers host:", req.headers.host);
+    console.log("Login query params:", req.query);
+    
+    // Store intended role in session for post-OAuth processing
+    if (req.query.role === 'installer') {
+      (req.session as any).intendedRole = 'installer';
+      console.log("User intends to sign up/login as installer");
+    } else if (req.query.role === 'admin') {
+      (req.session as any).intendedRole = 'admin';
+      console.log("User intends to sign up/login as admin");
+    } else {
+      (req.session as any).intendedRole = 'customer';
+      console.log("User intends to sign up/login as customer (default)");
+    }
+    
+    // Store return URL if provided
+    if (req.query.returnTo) {
+      (req.session as any).returnTo = req.query.returnTo as string;
+    }
     
     // Determine strategy based on hostname/domain
     let strategyName;
@@ -210,25 +269,19 @@ export async function setupAuth(app: Express) {
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       strategyName = 'replitauth:localhost';
     } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
-      // Use the registered Replit domain strategy
       strategyName = `replitauth:${hostname}`;
     } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
-      // For production tradesbook.ie domain
       strategyName = 'replitauth:tradesbook.ie';
     } else {
-      // Fallback to the registered domain
       const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
       strategyName = `replitauth:${registeredDomain}`;
     }
     
     console.log("Using strategy:", strategyName);
-    console.log("Available strategies:", Object.keys((passport as any)._strategies || {}));
     
     // Check if strategy exists
     if (!(passport as any)._strategies[strategyName]) {
       console.error(`Strategy ${strategyName} not found!`);
-      console.error("Hostname:", hostname);
-      console.error("Available strategies:", Object.keys((passport as any)._strategies || {}));
       return res.status(500).json({ error: "OAuth strategy not configured for this domain" });
     }
     
@@ -280,7 +333,27 @@ export async function setupAuth(app: Express) {
         console.error("Passport authentication error:", err);
         return res.redirect("/?error=auth_callback_failed");
       }
-      next();
+      
+      // Handle role-based redirect after successful authentication
+      const intendedRole = (req.session as any)?.intendedRole;
+      const returnTo = (req.session as any)?.returnTo;
+      
+      console.log("Post-auth redirect - Role:", intendedRole, "ReturnTo:", returnTo);
+      
+      // Clear session data
+      delete (req.session as any).intendedRole;
+      delete (req.session as any).returnTo;
+      
+      // Redirect based on role
+      if (intendedRole === 'installer') {
+        return res.redirect('/installer-dashboard');
+      } else if (intendedRole === 'admin') {
+        return res.redirect('/admin-dashboard');
+      } else if (returnTo) {
+        return res.redirect(returnTo);
+      } else {
+        return res.redirect('/');
+      }
     });
   });
 

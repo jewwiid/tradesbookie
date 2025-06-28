@@ -24,10 +24,8 @@ export const users = pgTable("users", {
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
-  name: varchar("name"), // Full name from OAuth
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role").default("customer"), // customer, admin, installer
-  replitId: varchar("replit_id").unique(), // Replit OAuth user ID
+  role: varchar("role").default("customer"), // customer, admin
   emailVerified: boolean("email_verified").default(false),
   emailVerificationToken: varchar("email_verification_token"),
   emailVerificationExpires: timestamp("email_verification_expires"),

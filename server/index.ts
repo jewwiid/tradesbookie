@@ -52,14 +52,6 @@ app.use((req, res, next) => {
     console.log("Mock profiles setup:", error);
   }
   
-  // Setup API route handler to prevent static file interference
-  const { setupApiRouteHandler } = await import("./apiRouteHandler");
-  setupApiRouteHandler(app);
-  
-  // Register authentication routes first to prevent static file interference
-  const { setupAuth } = await import("./simpleAuth");
-  await setupAuth(app);
-  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

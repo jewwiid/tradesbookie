@@ -50,7 +50,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       maxAge: sessionTtl,
     },
   });
@@ -191,10 +191,6 @@ export async function setupAuth(app: Express) {
       const claims = tokens.claims();
       console.log("User claims:", { sub: claims?.sub, email: claims?.email });
       
-      if (!claims) {
-        throw new Error("No claims received from OAuth provider");
-      }
-
       // Get intended role from session
       const intendedRole = req?.session?.intendedRole || 'customer';
       console.log("Intended role for user:", intendedRole);
@@ -203,12 +199,7 @@ export async function setupAuth(app: Express) {
       console.log("User upserted successfully");
       
       // Get the actual user from database after upsert
-      const userEmail = claims.email as string;
-      if (!userEmail) {
-        throw new Error("No email in claims");
-      }
-      
-      const dbUser = await storage.getUserByEmail(userEmail);
+      const dbUser = await storage.getUserByEmail(claims.email);
       if (!dbUser) {
         throw new Error("Failed to retrieve user after upsert");
       }
@@ -282,31 +273,11 @@ export async function setupAuth(app: Express) {
     cb(null, user.id);
   });
   
-  passport.deserializeUser(async (id: string | number, cb) => {
+  passport.deserializeUser(async (userId: string, cb) => {
     try {
-      console.log("Deserializing user ID:", id, "type:", typeof id);
-      
-      if (!id) {
-        console.log("No user ID found in session");
-        return cb(null, false);
-      }
-      
-      // Convert to number if needed
-      const userId = typeof id === 'string' ? parseInt(id, 10) : id;
-      
-      if (isNaN(userId)) {
-        console.log("Invalid user ID:", id);
-        return cb(null, false);
-      }
-      
-      const user = await storage.getUser(userId.toString());
+      console.log("Deserializing user ID:", userId);
+      const user = await storage.getUserById(userId);
       console.log("Deserialized user:", user ? { id: user.id, email: user.email, role: user.role } : null);
-      
-      if (!user) {
-        console.log("User not found for ID:", userId);
-        return cb(null, false);
-      }
-      
       cb(null, user);
     } catch (error) {
       console.error("Error deserializing user:", error);
@@ -356,65 +327,13 @@ export async function setupAuth(app: Express) {
     // Check if strategy exists
     if (!(passport as any)._strategies[strategyName]) {
       console.error(`Strategy ${strategyName} not found!`);
-      console.error("Available strategies:", Object.keys((passport as any)._strategies || {}));
       return res.status(500).json({ error: "OAuth strategy not configured for this domain" });
     }
     
-    console.log("Strategy found, initiating OAuth flow...");
-    
-    // Save session before initiating OAuth flow
-    req.session.save((err) => {
-      if (err) {
-        console.error("Session save error before OAuth:", err);
-        return res.status(500).json({ error: "Session configuration error" });
-      }
-      
-      console.log("Session saved, initiating OAuth redirect...");
-      
-      // Build authorization URL directly without async calls in callback
-      try {
-        const issuerUrl = process.env.ISSUER_URL || "https://replit.com/oidc";
-        const clientId = process.env.REPL_ID;
-        
-        if (!clientId) {
-          throw new Error("REPL_ID environment variable not set");
-        }
-        
-        // Determine correct redirect URI based on hostname
-        let redirectUri: string;
-        if (hostname === 'localhost' || hostname === '127.0.0.1') {
-          redirectUri = `http://localhost:5000/api/callback`;
-        } else if (hostname === 'tradesbook.ie') {
-          redirectUri = `https://tradesbook.ie/api/callback`;
-        } else {
-          redirectUri = `https://${hostname}/api/callback`;
-        }
-        
-        const authParams = new URLSearchParams({
-          response_type: 'code',
-          client_id: clientId,
-          redirect_uri: redirectUri,
-          scope: 'openid email profile offline_access',
-          prompt: 'login consent',
-          state: req.sessionID, // Use session ID as state for security
-        });
-        
-        const authorizationURL = `${issuerUrl}/auth?${authParams.toString()}`;
-        
-        console.log("Redirecting to OAuth provider:", authorizationURL);
-        console.log("Redirect URI:", redirectUri);
-        
-        // Perform direct redirect to OAuth provider
-        res.redirect(authorizationURL);
-        
-      } catch (redirectError: any) {
-        console.error("OAuth redirect error:", redirectError);
-        return res.status(500).json({ 
-          error: "OAuth redirect failed", 
-          details: redirectError.message 
-        });
-      }
-    });
+    passport.authenticate(strategyName, {
+      prompt: "login consent",
+      scope: ["openid", "email", "profile", "offline_access"],
+    })(req, res, next);
   });
 
   app.get("/api/callback", (req, res, next) => {
@@ -506,42 +425,22 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  // Handle both GET and POST logout requests
-  const handleLogout = (req: any, res: any) => {
-    console.log("Logout request received");
-    req.logout((err: any) => {
+  app.get("/api/logout", (req, res) => {
+    req.logout((err) => {
       if (err) {
         console.error('Logout error:', err);
         return res.status(500).json({ message: "Logout failed" });
       }
       
       // Clear the session and redirect to home with logout parameter
-      req.session.destroy((sessionErr: any) => {
+      req.session.destroy((sessionErr) => {
         if (sessionErr) {
           console.error('Session destruction error:', sessionErr);
         }
         res.clearCookie('connect.sid');
-        
-        // For GET requests, redirect; for POST requests, return JSON
-        if (req.method === 'GET') {
-          res.redirect('/?logout=true');
-        } else {
-          res.json({ success: true, message: "Logged out successfully" });
-        }
+        res.redirect('/?logout=true');
       });
     });
-  };
-
-  app.get("/api/logout", handleLogout);
-  app.post("/api/logout", handleLogout);
-
-  // User endpoint that requires proper authentication
-  app.get("/api/user", (req: any, res: any) => {
-    if (req.isAuthenticated() && req.user) {
-      res.json(req.user);
-    } else {
-      res.status(401).json({ message: "Not authenticated" });
-    }
   });
 }
 

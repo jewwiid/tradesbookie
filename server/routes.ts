@@ -5,11 +5,11 @@ import { storage } from "./storage";
 import { insertBookingSchema, insertUserSchema, insertReviewSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
-import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing, SERVICE_TIERS } from "./pricing";
+import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing } from "./pricing";
 import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
-import { setupAuth, isAuthenticated } from "./workingAuth";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -54,7 +54,8 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth is now setup early in index.ts to prevent static file interference
+  // Auth middleware
+  await setupAuth(app);
 
   // Health check
   app.get("/api/health", (req, res) => {
@@ -82,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
       } else {
         // Return service tiers with dynamic pricing based on current data
-        const dynamicTiers = Object.values(SERVICE_TIERS).map((tier: any, index: number) => ({
+        const dynamicTiers = Object.values(SERVICE_TIERS).map((tier, index) => ({
           id: index + 1,
           key: tier.key,
           name: tier.name,
@@ -182,7 +183,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test endpoint to debug session state  
+  // Auth routes
+  app.get('/api/auth/user', async (req: any, res) => {
+    try {
+      console.log("GET /api/auth/user - Session ID:", req.sessionID);
+      console.log("GET /api/auth/user - req.user:", req.user);
+      console.log("GET /api/auth/user - isAuthenticated:", req.isAuthenticated());
+      console.log("GET /api/auth/user - Session:", req.session);
+      
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // req.user now contains the full user object from database
+      const user = req.user;
+      console.log("Returning user data:", { id: user.id, email: user.email, role: user.role });
+      
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Test endpoint to debug session state
   app.get('/api/auth/debug', async (req: any, res) => {
     res.json({
       sessionID: req.sessionID,
@@ -1499,7 +1523,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mock Authentication API for testing
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password required" });
+      }
 
+      // Check against mock credentials
+      const mockUser = Object.values(mockCredentials).find(
+        cred => cred.email === email && cred.password === password
+      );
+
+      if (!mockUser) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // For mock authentication, return user data based on credentials
+      res.json({
+        success: true,
+        user: {
+          id: mockUser.role === 'installer' ? 1 : mockUser.role === 'admin' ? 999 : 2,
+          email: mockUser.email,
+          name: mockUser.name,
+          role: mockUser.role
+        },
+        token: `mock-token-${mockUser.role}-${Date.now()}`
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
 
   // Solar enquiry endpoints for OHK Energy partnership
   app.post("/api/solar-enquiries", async (req, res) => {

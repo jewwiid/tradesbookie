@@ -119,6 +119,18 @@ export const ADDONS = {
     name: 'Evening Installation',
     description: 'After 6 PM installation service',
     price: 3900
+  },
+  'old-tv-removal': {
+    key: 'old-tv-removal',
+    name: 'Old TV Removal',
+    description: 'Remove your old TV from the wall safely and professionally',
+    price: 8900
+  },
+  'tv-recycling': {
+    key: 'tv-recycling',
+    name: 'TV Recycling Service',
+    description: 'Environmentally responsible disposal of your old TV',
+    price: 4900
   }
 } as const;
 

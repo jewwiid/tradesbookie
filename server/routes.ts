@@ -182,30 +182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Auth routes
-  app.get('/api/auth/user', async (req: any, res) => {
-    try {
-      console.log("GET /api/auth/user - Session ID:", req.sessionID);
-      console.log("GET /api/auth/user - req.user:", req.user);
-      console.log("GET /api/auth/user - isAuthenticated:", req.isAuthenticated());
-      console.log("GET /api/auth/user - Session:", req.session);
-      
-      if (!req.isAuthenticated() || !req.user) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
-      // req.user now contains the full user object from database
-      const user = req.user;
-      console.log("Returning user data:", { id: user.id, email: user.email, role: user.role });
-      
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
-  // Test endpoint to debug session state
+  // Test endpoint to debug session state  
   app.get('/api/auth/debug', async (req: any, res) => {
     res.json({
       sessionID: req.sessionID,

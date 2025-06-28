@@ -506,22 +506,42 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  app.get("/api/logout", (req, res) => {
-    req.logout((err) => {
+  // Handle both GET and POST logout requests
+  const handleLogout = (req: any, res: any) => {
+    console.log("Logout request received");
+    req.logout((err: any) => {
       if (err) {
         console.error('Logout error:', err);
         return res.status(500).json({ message: "Logout failed" });
       }
       
       // Clear the session and redirect to home with logout parameter
-      req.session.destroy((sessionErr) => {
+      req.session.destroy((sessionErr: any) => {
         if (sessionErr) {
           console.error('Session destruction error:', sessionErr);
         }
         res.clearCookie('connect.sid');
-        res.redirect('/?logout=true');
+        
+        // For GET requests, redirect; for POST requests, return JSON
+        if (req.method === 'GET') {
+          res.redirect('/?logout=true');
+        } else {
+          res.json({ success: true, message: "Logged out successfully" });
+        }
       });
     });
+  };
+
+  app.get("/api/logout", handleLogout);
+  app.post("/api/logout", handleLogout);
+
+  // User endpoint that requires proper authentication
+  app.get("/api/user", (req: any, res: any) => {
+    if (req.isAuthenticated() && req.user) {
+      res.json(req.user);
+    } else {
+      res.status(401).json({ message: "Not authenticated" });
+    }
   });
 }
 

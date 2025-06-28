@@ -57,7 +57,7 @@ app.use((req, res, next) => {
   setupApiRouteHandler(app);
   
   // Register authentication routes first to prevent static file interference
-  const { setupAuth } = await import("./workingAuth");
+  const { setupAuth } = await import("./simpleAuth");
   await setupAuth(app);
   
   const server = await registerRoutes(app);

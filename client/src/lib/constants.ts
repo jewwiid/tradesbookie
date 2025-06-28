@@ -134,6 +134,65 @@ export const ADDONS = {
   }
 } as const;
 
+export const WALL_MOUNT_OPTIONS = {
+  'basic-fixed': {
+    key: 'basic-fixed',
+    name: 'Basic Fixed Mount',
+    description: 'Standard fixed wall mount for TVs up to 55"',
+    price: 2900,
+    maxSize: 55,
+    type: 'fixed'
+  },
+  'premium-fixed': {
+    key: 'premium-fixed',
+    name: 'Premium Fixed Mount',
+    description: 'Heavy-duty fixed mount for TVs 55" and above',
+    price: 4900,
+    maxSize: null,
+    type: 'fixed'
+  },
+  'basic-tilt': {
+    key: 'basic-tilt',
+    name: 'Basic Tilt Mount',
+    description: 'Tilting mount for TVs up to 55" - adjustable viewing angle',
+    price: 3900,
+    maxSize: 55,
+    type: 'tilting'
+  },
+  'premium-tilt': {
+    key: 'premium-tilt',
+    name: 'Premium Tilt Mount',
+    description: 'Heavy-duty tilting mount for TVs 55" and above',
+    price: 5900,
+    maxSize: null,
+    type: 'tilting'
+  },
+  'basic-full-motion': {
+    key: 'basic-full-motion',
+    name: 'Basic Full Motion Mount',
+    description: 'Full articulating mount for TVs up to 55" - swivel, tilt & extend',
+    price: 5900,
+    maxSize: 55,
+    type: 'full-motion'
+  },
+  'premium-full-motion': {
+    key: 'premium-full-motion',
+    name: 'Premium Full Motion Mount',
+    description: 'Heavy-duty full motion mount for TVs 55" and above',
+    price: 7900,
+    maxSize: null,
+    type: 'full-motion'
+  },
+  'ultra-slim': {
+    key: 'ultra-slim',
+    name: 'Ultra-Slim Fixed Mount',
+    description: 'Low-profile mount sits just 15mm from wall - premium finish',
+    price: 6900,
+    maxSize: null,
+    type: 'fixed'
+  }
+} as const;
+
 export const WALL_TYPES = [
   {
     key: 'drywall',

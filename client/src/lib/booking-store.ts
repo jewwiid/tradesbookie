@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { WALL_MOUNT_OPTIONS } from './constants';
 
 export interface BookingData {
   step: number;
@@ -9,6 +10,7 @@ export interface BookingData {
   wallType?: string;
   mountType?: string;
   needsWallMount?: boolean;
+  wallMountOption?: string;
   addons: Array<{ key: string; name: string; price: number }>;
   date?: string;
   time?: string;

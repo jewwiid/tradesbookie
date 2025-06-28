@@ -62,13 +62,41 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
-  await storage.upsertUser({
+  const existingUser = await storage.getUser(claims["sub"]);
+  
+  const userData = {
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
-  });
+  };
+
+  if (!existingUser) {
+    // New user - set up email verification
+    const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
+    const verificationToken = await generateVerificationToken();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    
+    const newUserData = {
+      ...userData,
+      emailVerified: false,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: expiresAt,
+    };
+    
+    await storage.upsertUser(newUserData);
+    
+    // Send verification email
+    await sendVerificationEmail(
+      claims["email"], 
+      claims["first_name"] || 'User', 
+      verificationToken
+    );
+  } else {
+    // Existing user - just update their info
+    await storage.upsertUser(userData);
+  }
 }
 
 export async function setupAuth(app: Express) {

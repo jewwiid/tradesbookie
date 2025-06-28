@@ -288,6 +288,12 @@ The application now includes a robust fallback system. When the database is unav
 - June 27, 2025: Integrated consultation booking into TV recommendation flow with email notifications for both admin and customers
 - June 27, 2025: Added "subject to availability" disclaimers and removed all "in stock" references from TV recommendations
 - June 27, 2025: Enhanced consultation booking emails to include user's quiz inputs for better consultant preparation and alternative suggestions
+- June 28, 2025: Updated Book Your TV Installation page with improved wording and increased daily AI preview limit from 2 to 3 tries
+- June 28, 2025: Removed "Guest Booking" terminology and clarified that limits apply to AI room generation, not the booking process
+- June 28, 2025: Implemented comprehensive email verification system for new user signups with automatic verification emails
+- June 28, 2025: Added email verification database fields, API endpoints, and professional verification page with success/error handling
+- June 28, 2025: Integrated email verification into Replit Auth flow - new users receive verification emails automatically upon account creation
+- June 28, 2025: Created complete verification workflow with 24-hour token expiration, resend functionality, and Gmail integration
 
 ## User Preferences
 

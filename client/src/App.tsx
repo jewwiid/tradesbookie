@@ -29,6 +29,7 @@ import NotFound from "@/pages/not-found";
 import ReviewPage from "@/pages/review-page";
 import ReferralPage from "@/pages/referral-page";
 import BookingConfirmation from "@/pages/booking-confirmation";
+import VerifyEmail from "@/pages/verify-email";
 
 function Router() {
   return (
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/track/:qrCode" component={QRTracking} />
       <Route path="/review/:qrCode" component={ReviewPage} />
       <Route path="/refer" component={ReferralPage} />
+      <Route path="/verify-email" component={VerifyEmail} />
       
       {/* Protected routes - limited guest access then authentication required */}
       <Route path="/booking">

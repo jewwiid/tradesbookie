@@ -203,6 +203,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Email verification endpoints
+  app.post("/api/auth/send-verification", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const result = await resendVerificationEmail(email);
+      
+      if (result.success) {
+        res.json({ message: result.message });
+      } else {
+        res.status(400).json({ message: result.message });
+      }
+    } catch (error) {
+      console.error("Error sending verification email:", error);
+      res.status(500).json({ message: "Failed to send verification email" });
+    }
+  });
+
+  app.get("/api/auth/verify-email", async (req, res) => {
+    try {
+      const { token } = req.query;
+      
+      if (!token || typeof token !== 'string') {
+        return res.status(400).json({ message: "Invalid verification token" });
+      }
+
+      const result = await verifyEmailToken(token);
+      
+      if (result.success) {
+        res.json({ message: result.message });
+      } else {
+        res.status(400).json({ message: result.message });
+      }
+    } catch (error) {
+      console.error("Error verifying email:", error);
+      res.status(500).json({ message: "Email verification failed" });
+    }
+  });
+
   // User routes
   app.post("/api/users", async (req, res) => {
     try {

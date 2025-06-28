@@ -260,17 +260,9 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
     }
     
     try {
-      const currentConstraints = streamRef.current?.getVideoTracks()[0]?.getConstraints();
-      const currentFacingMode = currentConstraints?.facingMode;
-      
-      // Toggle between front and back camera
-      const newFacingMode = currentFacingMode === 'environment' || currentFacingMode?.ideal === 'environment' 
-        ? 'user' 
-        : 'environment';
-      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
-          facingMode: { ideal: newFacingMode },
+          facingMode: 'environment',
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 }
         } 
@@ -451,46 +443,44 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
               </div>
             )}
             
-            {/* Camera controls overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
-              <div className="flex justify-center items-center gap-6">
-                {/* Cancel button */}
-                <Button
-                  onClick={stopCamera}
-                  variant="outline"
-                  size="lg"
-                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
-                >
-                  Cancel
-                </Button>
-                
-                {/* Capture button */}
-                <Button
-                  onClick={capturePhoto}
-                  size="lg"
-                  className="bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-full"
-                  disabled={!videoRef.current || videoRef.current.readyState < 3}
-                >
-                  <Camera className="w-6 h-6 mr-2" />
-                  Capture Photo
-                </Button>
-                
-                {/* Switch camera button (if supported) */}
-                <Button
-                  onClick={switchCamera}
-                  variant="outline"
-                  size="lg"
-                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
-                >
-                  <RotateCcw className="w-5 h-5" />
-                </Button>
+            {/* Camera controls overlay - positioned higher for better mobile accessibility */}
+            <div className="absolute bottom-20 left-0 right-0 px-4">
+              {/* Instructions */}
+              <div className="text-center mb-6">
+                <p className="text-white text-sm bg-black/60 rounded-full px-4 py-2 inline-block">
+                  Position camera to show your TV wall
+                </p>
               </div>
               
-              {/* Instructions */}
-              <div className="text-center mt-4">
-                <p className="text-white/80 text-sm">
-                  Position your camera to show the wall where you want your TV mounted
-                </p>
+              {/* Control buttons */}
+              <div className="flex justify-center items-center gap-4">
+                {/* Cancel button */}
+                <button
+                  onClick={stopCamera}
+                  className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/40 text-white hover:bg-white/30 transition-all duration-200 flex items-center justify-center"
+                  type="button"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+                
+                {/* Capture button - larger and more prominent */}
+                <button
+                  onClick={capturePhoto}
+                  className="w-20 h-20 rounded-full bg-white text-black hover:bg-gray-200 transition-all duration-200 flex items-center justify-center shadow-lg"
+                  type="button"
+                  disabled={!videoRef.current || (videoRef.current && videoRef.current.readyState < 3)}
+                >
+                  <Camera className="w-8 h-8" />
+                </button>
+                
+                {/* Switch camera button */}
+                <button
+                  onClick={switchCamera}
+                  className="w-16 h-16 rounded-full bg-white/20 border-2 border-white/40 text-white hover:bg-white/30 transition-all duration-200 flex items-center justify-center"
+                  type="button"
+                >
+                  <RotateCcw className="w-6 h-6" />
+                </button>
               </div>
             </div>
           </div>

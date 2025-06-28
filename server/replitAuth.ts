@@ -156,6 +156,7 @@ export async function setupAuth(app: Express) {
       verify,
     );
     passport.use(strategy);
+    console.log(`Registered OAuth strategy for domain: ${domain} with callback: https://${domain}/api/callback`);
   }
   
   // Also register with localhost for development

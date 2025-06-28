@@ -6,6 +6,8 @@ import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { pool } from "./db";
 
+const PgSession = ConnectPgSimple(session);
+
 // Extend session interface to include custom properties
 declare module "express-session" {
   interface SessionData {
@@ -20,8 +22,6 @@ declare module "express-session" {
   }
 }
 
-const PgSession = ConnectPgSimple(session);
-
 export function getSession() {
   return session({
     store: new PgSession({
@@ -31,9 +31,9 @@ export function getSession() {
     }),
     secret: process.env.SESSION_SECRET || 'dev-secret-key',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Allow HTTP for development
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     },
@@ -41,78 +41,56 @@ export function getSession() {
 }
 
 export async function setupAuth(app: Express) {
-  // Setup session middleware
+  // Setup session middleware first
   app.use(getSession());
 
-  // Initialize user session property
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    if (!req.session.user) {
-      req.session.user = null;
-    }
-    next();
-  });
-
   // OAuth configuration
-  const clientId = process.env.REPL_ID || 'unknown';
+  const clientId = process.env.REPL_ID || 'tradesbook-ie';
   const issuerUrl = 'https://replit.com';
 
-  // OAuth login endpoint - redirects to Replit OAuth
-  const handleLogin = (req: Request, res: Response) => {
-    try {
-      const role = req.query.role as string || 'customer';
-      console.log("OAuth login request for role:", role);
+  // Simple login redirect - bypass complex session logic
+  app.get("/api/login", (req: Request, res: Response) => {
+    const role = req.query.role as string || 'customer';
+    console.log(`Login redirect for role: ${role}`);
 
-      // Store intended role in session
-      req.session.intendedRole = role;
-
-      // Save session before redirect
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-        }
-
-        // Determine correct redirect URI based on hostname
-        const hostname = req.get('host') || req.hostname;
-        let redirectUri: string;
-        
-        if (hostname === 'localhost:5000' || hostname === '127.0.0.1:5000') {
-          redirectUri = `http://localhost:5000/api/callback`;
-        } else if (hostname === 'tradesbook.ie') {
-          redirectUri = `https://tradesbook.ie/api/callback`;
-        } else {
-          redirectUri = `https://${hostname}/api/callback`;
-        }
-
-        console.log("Using redirect URI:", redirectUri);
-
-        const authParams = new URLSearchParams({
-          response_type: 'code',
-          client_id: clientId,
-          redirect_uri: redirectUri,
-          scope: 'openid email profile',
-          state: req.sessionID,
-        });
-
-        const authorizationURL = `${issuerUrl}/auth?${authParams.toString()}`;
-        console.log("Redirecting to OAuth provider:", authorizationURL);
-        
-        res.redirect(authorizationURL);
-      });
-    } catch (error) {
-      console.error("OAuth login error:", error);
-      res.redirect("/?error=oauth_login_failed");
+    // Store role in query parameter for callback
+    const hostname = req.get('host') || req.hostname;
+    let redirectUri: string;
+    
+    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+      redirectUri = `http://localhost:5000/api/callback`;
+    } else {
+      redirectUri = `https://${hostname}/api/callback`;
     }
-  };
 
-  // Register both GET and POST for login endpoint
-  app.get("/api/login", handleLogin);
-  app.post("/api/login", handleLogin);
+    const authParams = new URLSearchParams({
+      response_type: 'code',
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      scope: 'openid email profile',
+      state: role, // Use role as state parameter
+    });
+
+    const authorizationURL = `${issuerUrl}/auth?${authParams.toString()}`;
+    console.log(`Redirecting to: ${authorizationURL}`);
+    
+    // Force redirect
+    res.writeHead(302, { 'Location': authorizationURL });
+    res.end();
+  });
+
+  // Also handle POST for form submissions
+  app.post("/api/login", (req: Request, res: Response) => {
+    res.redirect(`/api/login?role=${req.body.role || 'customer'}`);
+  });
 
   // OAuth callback endpoint
   app.get("/api/callback", async (req: Request, res: Response) => {
     try {
       const { code, state } = req.query;
-      console.log("OAuth callback received:", { code: !!code, state });
+      const role = state as string || 'customer';
+      
+      console.log(`OAuth callback: code=${!!code}, role=${role}`);
 
       if (!code) {
         console.error("No authorization code received");
@@ -133,20 +111,20 @@ export async function setupAuth(app: Express) {
         return res.redirect("/?error=user_info_failed");
       }
 
-      console.log("User authenticated:", userInfo.email);
+      console.log(`User authenticated: ${userInfo.email}`);
 
       // Create or update user in database
       let user = await db.select().from(users).where(eq(users.email, userInfo.email)).limit(1);
       
       if (user.length === 0) {
-        // Create new user - generate unique ID
+        // Create new user
         const userId = `replit_${userInfo.id}_${Date.now()}`;
         const newUser = await db.insert(users).values({
           id: userId,
           email: userInfo.email,
           name: userInfo.name || userInfo.email,
-          role: req.session.intendedRole || 'customer',
-          emailVerified: true, // Replit users are pre-verified
+          role: role,
+          emailVerified: true,
         }).returning();
         user = newUser;
       }
@@ -160,15 +138,22 @@ export async function setupAuth(app: Express) {
         replitId: userInfo.id,
       };
 
-      // Redirect based on role
-      const userRole = user[0].role;
-      if (userRole === 'admin') {
-        res.redirect("/admin");
-      } else if (userRole === 'installer') {
-        res.redirect("/installer");
-      } else {
-        res.redirect("/");
-      }
+      // Save session and redirect
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+        }
+
+        // Redirect based on role
+        const userRole = user[0].role;
+        if (userRole === 'admin') {
+          res.redirect("/admin");
+        } else if (userRole === 'installer') {
+          res.redirect("/installer");
+        } else {
+          res.redirect("/");
+        }
+      });
 
     } catch (error) {
       console.error("OAuth callback error:", error);
@@ -203,10 +188,8 @@ async function exchangeCodeForTokens(code: string, req: Request) {
     const hostname = req.get('host') || req.hostname;
     let redirectUri: string;
     
-    if (hostname === 'localhost:5000' || hostname === '127.0.0.1:5000') {
+    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
       redirectUri = `http://localhost:5000/api/callback`;
-    } else if (hostname === 'tradesbook.ie') {
-      redirectUri = `https://tradesbook.ie/api/callback`;
     } else {
       redirectUri = `https://${hostname}/api/callback`;
     }
@@ -215,7 +198,7 @@ async function exchangeCodeForTokens(code: string, req: Request) {
       grant_type: 'authorization_code',
       code: code,
       redirect_uri: redirectUri,
-      client_id: process.env.REPL_ID || 'unknown',
+      client_id: process.env.REPL_ID || 'tradesbook-ie',
     });
 
     const response = await fetch('https://replit.com/auth/token', {
@@ -227,7 +210,7 @@ async function exchangeCodeForTokens(code: string, req: Request) {
     });
 
     if (!response.ok) {
-      console.error("Token exchange failed:", response.status, response.statusText);
+      console.error(`Token exchange failed: ${response.status} ${response.statusText}`);
       return null;
     }
 
@@ -247,7 +230,7 @@ async function getUserInfoFromTokens(tokens: any) {
     });
 
     if (!response.ok) {
-      console.error("User info fetch failed:", response.status, response.statusText);
+      console.error(`User info fetch failed: ${response.status} ${response.statusText}`);
       return null;
     }
 

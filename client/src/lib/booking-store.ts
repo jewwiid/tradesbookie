@@ -94,7 +94,17 @@ export const useBookingStore = create<BookingStore>()(
       calculateTotals: () => {
         set((state) => {
           const addonsPrice = state.data.addons.reduce((sum, addon) => sum + addon.price, 0);
-          const totalPrice = state.data.basePrice + addonsPrice;
+          
+          // Add wall mount price if selected
+          let wallMountPrice = 0;
+          if (state.data.needsWallMount && state.data.wallMountOption) {
+            const selectedMount = WALL_MOUNT_OPTIONS[state.data.wallMountOption as keyof typeof WALL_MOUNT_OPTIONS];
+            if (selectedMount) {
+              wallMountPrice = selectedMount.price;
+            }
+          }
+          
+          const totalPrice = state.data.basePrice + addonsPrice + wallMountPrice;
           
           return {
             data: {

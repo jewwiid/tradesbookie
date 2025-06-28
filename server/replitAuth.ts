@@ -80,29 +80,31 @@ async function upsertUser(
   };
 
   if (!existingUser) {
-    // New user - temporarily disable email verification during OAuth to prevent callback failures
+    // New user - create account with email verification system
+    const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
+    const verificationToken = await generateVerificationToken();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    
     const newUserData = {
       ...userData,
-      emailVerified: true, // Set to true for OAuth users temporarily
-      emailVerificationToken: null,
-      emailVerificationExpires: null,
+      emailVerified: false,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: expiresAt,
     };
     
     console.log("Creating new user via OAuth:", newUserData.email);
     await storage.upsertUser(newUserData);
     
-    // TODO: Re-enable email verification after fixing OAuth callback
-    // Try to send verification email in background (don't await to prevent blocking)
+    // Send verification email for new OAuth users
     try {
-      const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
-      const verificationToken = await generateVerificationToken();
-      sendVerificationEmail(
+      await sendVerificationEmail(
         claims["email"], 
         claims["first_name"] || 'User', 
         verificationToken
-      ).catch(err => console.log("Background email verification failed:", err));
+      );
+      console.log("Verification email sent to new OAuth user:", claims["email"]);
     } catch (err) {
-      console.log("Could not send verification email:", err);
+      console.error("Failed to send verification email to new OAuth user:", err);
     }
   } else {
     // Existing user - just update their info
@@ -151,8 +153,10 @@ export async function setupAuth(app: Express) {
     }
   };
 
-  for (const domain of process.env
-    .REPLIT_DOMAINS!.split(",")) {
+  // Register strategies for all configured domains
+  const domains = process.env.REPLIT_DOMAINS!.split(",");
+  
+  for (const domain of domains) {
     const strategy = new Strategy(
       {
         name: `replitauth:${domain}`,
@@ -166,7 +170,20 @@ export async function setupAuth(app: Express) {
     console.log(`Registered OAuth strategy for domain: ${domain} with callback: https://${domain}/api/callback`);
   }
   
-  // Also register with localhost for development
+  // Register strategy for production tradesbook.ie domain
+  const productionStrategy = new Strategy(
+    {
+      name: `replitauth:tradesbook.ie`,
+      config,
+      scope: "openid email profile offline_access",
+      callbackURL: `https://tradesbook.ie/api/callback`,
+    },
+    verify,
+  );
+  passport.use(productionStrategy);
+  console.log(`Registered OAuth strategy for production domain: tradesbook.ie with callback: https://tradesbook.ie/api/callback`);
+  
+  // Register strategy for localhost development
   const localhostStrategy = new Strategy(
     {
       name: `replitauth:localhost`,
@@ -177,44 +194,42 @@ export async function setupAuth(app: Express) {
     verify,
   );
   passport.use(localhostStrategy);
+  console.log(`Registered OAuth strategy for localhost with callback: http://localhost:5000/api/callback`);
 
   passport.serializeUser((user: Express.User, cb) => cb(null, user));
   passport.deserializeUser((user: Express.User, cb) => cb(null, user));
 
   app.get("/api/login", (req, res, next) => {
     console.log("Login request from hostname:", req.hostname);
+    console.log("Request headers host:", req.headers.host);
     
-    // Temporary guest mode bypass for OAuth issues
-    if (req.query.guest === 'true') {
-      console.log("Guest login mode activated");
-      const guestUser = {
-        id: 'guest-' + Date.now(),
-        email: 'guest@tradesbook.ie',
-        firstName: 'Guest',
-        lastName: 'User',
-        profileImageUrl: null,
-        emailVerified: true
-      };
-      
-      req.login(guestUser, (err) => {
-        if (err) {
-          console.error("Guest login error:", err);
-          return res.redirect('/?error=guest_login_failed');
-        }
-        return res.redirect('/?guest=true');
-      });
-      return;
+    // Determine strategy based on hostname/domain
+    let strategyName;
+    const hostname = req.hostname;
+    
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      strategyName = 'replitauth:localhost';
+    } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+      // Use the registered Replit domain strategy
+      strategyName = `replitauth:${hostname}`;
+    } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
+      // For production tradesbook.ie domain
+      strategyName = 'replitauth:tradesbook.ie';
+    } else {
+      // Fallback to the registered domain
+      const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+      strategyName = `replitauth:${registeredDomain}`;
     }
     
-    console.log("Request headers:", req.headers);
-    const strategyName = req.hostname === 'localhost' ? 'replitauth:localhost' : `replitauth:${req.hostname}`;
     console.log("Using strategy:", strategyName);
     console.log("Available strategies:", Object.keys((passport as any)._strategies || {}));
     
     // Check if strategy exists
     if (!(passport as any)._strategies[strategyName]) {
       console.error(`Strategy ${strategyName} not found!`);
-      return res.status(500).json({ error: "OAuth strategy not configured" });
+      console.error("Hostname:", hostname);
+      console.error("Available strategies:", Object.keys((passport as any)._strategies || {}));
+      return res.status(500).json({ error: "OAuth strategy not configured for this domain" });
     }
     
     passport.authenticate(strategyName, {
@@ -226,7 +241,6 @@ export async function setupAuth(app: Express) {
   app.get("/api/callback", (req, res, next) => {
     console.log("Callback request from hostname:", req.hostname);
     console.log("Callback query params:", req.query);
-    console.log("Callback body:", req.body);
     
     // Check for OAuth error in query params
     if (req.query.error) {
@@ -234,13 +248,28 @@ export async function setupAuth(app: Express) {
       return res.redirect(`/?error=oauth_error&details=${encodeURIComponent(req.query.error as string)}`);
     }
     
-    const strategyName = req.hostname === 'localhost' ? 'replitauth:localhost' : `replitauth:${req.hostname}`;
+    // Determine strategy based on hostname/domain (same logic as login)
+    let strategyName;
+    const hostname = req.hostname;
+    
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      strategyName = 'replitauth:localhost';
+    } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+      strategyName = `replitauth:${hostname}`;
+    } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
+      strategyName = 'replitauth:tradesbook.ie';
+    } else {
+      const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+      strategyName = `replitauth:${registeredDomain}`;
+    }
+    
     console.log("Using callback strategy:", strategyName);
     
     // Check if strategy exists
     if (!(passport as any)._strategies[strategyName]) {
       console.error(`Callback strategy ${strategyName} not found!`);
-      return res.status(500).json({ error: "OAuth strategy not configured for callback" });
+      console.error("Available strategies:", Object.keys((passport as any)._strategies || {}));
+      return res.redirect("/?error=strategy_not_found");
     }
     
     passport.authenticate(strategyName, {
@@ -249,8 +278,7 @@ export async function setupAuth(app: Express) {
     })(req, res, (err: any) => {
       if (err) {
         console.error("Passport authentication error:", err);
-        console.error("Full error object:", JSON.stringify(err, null, 2));
-        return res.status(500).json({ error: "Authentication failed", details: err.message || err.toString() });
+        return res.redirect("/?error=auth_callback_failed");
       }
       next();
     });

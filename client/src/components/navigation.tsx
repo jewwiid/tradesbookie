@@ -100,26 +100,15 @@ export default function Navigation() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        window.location.href = '/api/login?guest=true';
-                      }}
-                    >
-                      Continue as Guest
-                    </Button>
-                    <Button 
-                      variant="default"
-                      size="sm"
-                      onClick={() => {
-                        window.location.href = '/api/login';
-                      }}
-                    >
-                      Sign In
-                    </Button>
-                  </div>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      window.location.href = '/api/login';
+                    }}
+                  >
+                    Sign In
+                  </Button>
                 )}
               </div>
 
@@ -213,30 +202,17 @@ export default function Navigation() {
                         Logout
                       </Button>
                     ) : (
-                      <div className="space-y-2">
-                        <Button 
-                          variant="outline" 
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            window.location.href = '/api/login?guest=true';
-                          }}
-                        >
-                          <User className="h-5 w-5 mr-3" />
-                          Continue as Guest
-                        </Button>
-                        <Button 
-                          variant="default" 
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            window.location.href = '/api/login';
-                          }}
-                        >
-                          <User className="h-5 w-5 mr-3" />
-                          Sign In
-                        </Button>
-                      </div>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          window.location.href = '/api/login';
+                        }}
+                      >
+                        <User className="h-5 w-5 mr-3" />
+                        Sign In
+                      </Button>
                     )}
                   </div>
                 </SheetContent>

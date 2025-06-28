@@ -1499,40 +1499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mock Authentication API for testing
-  app.post('/api/auth/login', async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      
-      if (!email || !password) {
-        return res.status(400).json({ error: "Email and password required" });
-      }
 
-      // Check against mock credentials
-      const mockUser = Object.values(mockCredentials).find(
-        cred => cred.email === email && cred.password === password
-      );
-
-      if (!mockUser) {
-        return res.status(401).json({ error: "Invalid credentials" });
-      }
-
-      // For mock authentication, return user data based on credentials
-      res.json({
-        success: true,
-        user: {
-          id: mockUser.role === 'installer' ? 1 : mockUser.role === 'admin' ? 999 : 2,
-          email: mockUser.email,
-          name: mockUser.name,
-          role: mockUser.role
-        },
-        token: `mock-token-${mockUser.role}-${Date.now()}`
-      });
-    } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({ error: "Login failed" });
-    }
-  });
 
   // Solar enquiry endpoints for OHK Energy partnership
   app.post("/api/solar-enquiries", async (req, res) => {

@@ -9,7 +9,7 @@ import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing }
 import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./replitAuthFixed";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');

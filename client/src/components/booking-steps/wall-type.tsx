@@ -34,11 +34,6 @@ export default function WallType({ onNext, onBack }: WallTypeProps) {
               onClick={() => handleWallTypeSelect(wall.key)}
               className={`tile-option text-left ${data.wallType === wall.key ? 'selected' : ''}`}
             >
-              <img 
-                src={wall.image} 
-                alt={wall.name}
-                className="w-full h-32 object-cover rounded-lg mb-4"
-              />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">{wall.name}</h3>
               <p className="text-sm text-gray-600">{wall.description}</p>
             </button>

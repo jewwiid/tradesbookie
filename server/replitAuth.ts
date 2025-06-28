@@ -50,7 +50,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       maxAge: sessionTtl,
     },
   });
@@ -327,9 +327,13 @@ export async function setupAuth(app: Express) {
     // Check if strategy exists
     if (!(passport as any)._strategies[strategyName]) {
       console.error(`Strategy ${strategyName} not found!`);
+      console.error("Available strategies:", Object.keys((passport as any)._strategies || {}));
       return res.status(500).json({ error: "OAuth strategy not configured for this domain" });
     }
     
+    console.log("Strategy found, initiating OAuth flow...");
+    
+    // Don't wrap in try-catch as passport.authenticate handles its own errors
     passport.authenticate(strategyName, {
       prompt: "login consent",
       scope: ["openid", "email", "profile", "offline_access"],

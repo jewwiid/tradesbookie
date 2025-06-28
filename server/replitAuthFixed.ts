@@ -56,8 +56,8 @@ export async function setupAuth(app: Express) {
     }
   });
 
-  // OAuth login endpoint - redirects to Replit OAuth
-  app.post("/api/login", (req: Request, res: Response) => {
+  // OAuth login endpoint - redirects to Replit OAuth (handle both GET and POST)
+  const handleLogin = (req: Request, res: Response) => {
     const role = req.query.role as string || 'customer';
     console.log("Login request for role:", role);
 
@@ -96,7 +96,11 @@ export async function setupAuth(app: Express) {
     
     console.log("Redirecting to OAuth provider:", authorizationURL);
     res.redirect(authorizationURL);
-  });
+  };
+
+  // Register both GET and POST for login endpoint
+  app.get("/api/login", handleLogin);
+  app.post("/api/login", handleLogin);
 
   // OAuth callback endpoint - handles the code exchange
   app.get("/api/callback", async (req: Request, res: Response) => {

@@ -50,33 +50,46 @@ export async function setupAuth(app: Express) {
 
   // Simple login redirect - bypass complex session logic
   app.get("/api/login", (req: Request, res: Response) => {
-    const role = req.query.role as string || 'customer';
-    console.log(`Login redirect for role: ${role}`);
+    try {
+      const role = req.query.role as string || 'customer';
+      console.log(`OAuth login request for role: ${role}`);
 
-    // Store role in query parameter for callback
-    const hostname = req.get('host') || req.hostname;
-    let redirectUri: string;
-    
-    if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
-      redirectUri = `http://localhost:5000/api/callback`;
-    } else {
-      redirectUri = `https://${hostname}/api/callback`;
+      // Store role in query parameter for callback
+      const hostname = req.get('host') || req.hostname;
+      let redirectUri: string;
+      
+      if (hostname.includes('localhost') || hostname.includes('127.0.0.1')) {
+        redirectUri = `http://localhost:5000/api/callback`;
+      } else {
+        redirectUri = `https://${hostname}/api/callback`;
+      }
+
+      console.log(`Using hostname: ${hostname}, redirect URI: ${redirectUri}`);
+
+      const authParams = new URLSearchParams({
+        response_type: 'code',
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        scope: 'openid email profile',
+        state: role, // Use role as state parameter
+      });
+
+      const authorizationURL = `${issuerUrl}/auth?${authParams.toString()}`;
+      console.log(`Authorization URL: ${authorizationURL}`);
+      
+      // Set proper headers and redirect
+      res.writeHead(302, { 
+        'Location': authorizationURL,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      res.end();
+    } catch (error) {
+      console.error("OAuth login error:", error);
+      res.writeHead(302, { 'Location': '/?error=oauth_login_failed' });
+      res.end();
     }
-
-    const authParams = new URLSearchParams({
-      response_type: 'code',
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      scope: 'openid email profile',
-      state: role, // Use role as state parameter
-    });
-
-    const authorizationURL = `${issuerUrl}/auth?${authParams.toString()}`;
-    console.log(`Redirecting to: ${authorizationURL}`);
-    
-    // Force redirect
-    res.writeHead(302, { 'Location': authorizationURL });
-    res.end();
   });
 
   // Also handle POST for form submissions

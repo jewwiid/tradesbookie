@@ -5,11 +5,11 @@ import { storage } from "./storage";
 import { insertBookingSchema, insertUserSchema, insertReviewSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
-import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing } from "./pricing";
+import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing, SERVICE_TIERS } from "./pricing";
 import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
-import { setupAuth, isAuthenticated } from "./simpleAuth";
+import { setupAuth, isAuthenticated } from "./workingAuth";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -83,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
       } else {
         // Return service tiers with dynamic pricing based on current data
-        const dynamicTiers = Object.values(SERVICE_TIERS).map((tier, index) => ({
+        const dynamicTiers = Object.values(SERVICE_TIERS).map((tier: any, index: number) => ({
           id: index + 1,
           key: tier.key,
           name: tier.name,

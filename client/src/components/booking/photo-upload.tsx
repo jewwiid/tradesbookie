@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CloudUpload, Camera, CheckCircle, X } from "lucide-react";
+import { CloudUpload, Camera, CheckCircle, X, RotateCcw } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -254,6 +254,48 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
     setShowCamera(false);
   };
 
+  const switchCamera = async () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    
+    try {
+      const currentConstraints = streamRef.current?.getVideoTracks()[0]?.getConstraints();
+      const currentFacingMode = currentConstraints?.facingMode;
+      
+      // Toggle between front and back camera
+      const newFacingMode = currentFacingMode === 'environment' || currentFacingMode?.ideal === 'environment' 
+        ? 'user' 
+        : 'environment';
+      
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: { ideal: newFacingMode },
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 }
+        } 
+      });
+      
+      streamRef.current = stream;
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(err => {
+            console.error("Video play failed:", err);
+          });
+        };
+      }
+    } catch (error) {
+      console.error("Camera switch failed:", error);
+      toast({
+        title: "Camera switch failed",
+        description: "Unable to switch camera. Using current camera.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
       const video = videoRef.current;
@@ -370,53 +412,89 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
           </Button>
         </>
       ) : showCamera ? (
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="relative">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                webkit-playsinline="true"
-                className="w-full max-w-md mx-auto rounded-xl bg-gray-100"
-                style={{ aspectRatio: '16/9' }}
-              />
-              <canvas
-                ref={canvasRef}
-                className="hidden"
-              />
-              {/* Loading indicator */}
-              {showCamera && videoRef.current && videoRef.current.readyState < 3 && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-xl">
-                  <div className="text-center">
-                    <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-600">Initializing camera...</p>
-                  </div>
-                </div>
-              )}
-            </div>
+        <div className="fixed inset-0 bg-black z-50 flex flex-col">
+          {/* Header with close button */}
+          <div className="flex justify-between items-center p-4 bg-black/50 text-white">
+            <h3 className="text-lg font-semibold">Take Photo</h3>
+            <Button
+              onClick={stopCamera}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
+          
+          {/* Full screen camera preview */}
+          <div className="flex-1 relative">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              webkit-playsinline="true"
+              className="w-full h-full object-cover"
+            />
+            <canvas
+              ref={canvasRef}
+              className="hidden"
+            />
             
-            <div className="flex justify-center gap-4 mt-4">
-              <Button
-                onClick={capturePhoto}
-                size="lg"
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Camera className="w-5 h-5 mr-2" />
-                Take Photo
-              </Button>
-              <Button
-                onClick={stopCamera}
-                variant="outline"
-                size="lg"
-              >
-                <X className="w-5 h-5 mr-2" />
-                Cancel
-              </Button>
+            {/* Loading indicator */}
+            {showCamera && videoRef.current && videoRef.current.readyState < 3 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div className="text-center text-white">
+                  <div className="animate-spin w-12 h-12 border-4 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-lg">Initializing camera...</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Camera controls overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/70 to-transparent">
+              <div className="flex justify-center items-center gap-6">
+                {/* Cancel button */}
+                <Button
+                  onClick={stopCamera}
+                  variant="outline"
+                  size="lg"
+                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                >
+                  Cancel
+                </Button>
+                
+                {/* Capture button */}
+                <Button
+                  onClick={capturePhoto}
+                  size="lg"
+                  className="bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-full"
+                  disabled={!videoRef.current || videoRef.current.readyState < 3}
+                >
+                  <Camera className="w-6 h-6 mr-2" />
+                  Capture Photo
+                </Button>
+                
+                {/* Switch camera button (if supported) */}
+                <Button
+                  onClick={switchCamera}
+                  variant="outline"
+                  size="lg"
+                  className="bg-white/20 border-white/30 text-white hover:bg-white/30"
+                >
+                  <RotateCcw className="w-5 h-5" />
+                </Button>
+              </div>
+              
+              {/* Instructions */}
+              <div className="text-center mt-4">
+                <p className="text-white/80 text-sm">
+                  Position your camera to show the wall where you want your TV mounted
+                </p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
         <Card className="mb-6">
           <CardContent className="p-4">

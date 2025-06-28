@@ -129,8 +129,8 @@ export const ADDONS = {
   'tv-recycling': {
     key: 'tv-recycling',
     name: 'TV Recycling Service',
-    description: 'Environmentally responsible disposal of your old TV',
-    price: 4900
+    description: 'Environmentally responsible disposal of your old TV (Free service)',
+    price: 0
   }
 } as const;
 

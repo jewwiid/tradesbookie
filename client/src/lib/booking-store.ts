@@ -8,6 +8,7 @@ export interface BookingData {
   serviceTierId?: number;
   wallType?: string;
   mountType?: string;
+  needsWallMount?: boolean;
   addons: Array<{ key: string; name: string; price: number }>;
   date?: string;
   time?: string;

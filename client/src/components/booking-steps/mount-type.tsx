@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Settings, Square, ChevronDown, Move } from 'lucide-react';
+import { ArrowLeft, Settings, Square, ChevronDown, Move, Check, X } from 'lucide-react';
 import { useBookingStore } from '@/lib/booking-store';
 import { MOUNT_TYPES } from '@/lib/constants';
 
@@ -14,6 +14,10 @@ export default function MountType({ onNext, onBack }: MountTypeProps) {
 
   const handleMountTypeSelect = (mountType: string) => {
     updateData({ mountType });
+  };
+
+  const handleWallMountSelect = (needsWallMount: boolean) => {
+    updateData({ needsWallMount });
   };
 
   const getIcon = (iconName: string) => {
@@ -64,6 +68,46 @@ export default function MountType({ onNext, onBack }: MountTypeProps) {
           ))}
         </div>
 
+        {/* Wall Mount Question - appears after mount type is selected */}
+        {data.mountType && (
+          <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Do you need a wall mount?</h3>
+            <p className="text-gray-600 mb-6">
+              Let us know if you need us to supply a wall mount bracket for your TV installation.
+            </p>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => handleWallMountSelect(true)}
+                className={`p-4 border-2 rounded-xl transition-all duration-300 ${
+                  data.needsWallMount === true
+                    ? 'border-green-500 bg-green-50 text-green-700'
+                    : 'border-gray-200 hover:border-green-400 hover:bg-green-50'
+                }`}
+              >
+                <div className="flex items-center justify-center">
+                  <Check className="w-6 h-6 mr-2" />
+                  <span className="font-medium">Yes, provide wall mount</span>
+                </div>
+              </button>
+              
+              <button
+                onClick={() => handleWallMountSelect(false)}
+                className={`p-4 border-2 rounded-xl transition-all duration-300 ${
+                  data.needsWallMount === false
+                    ? 'border-red-500 bg-red-50 text-red-700'
+                    : 'border-gray-200 hover:border-red-400 hover:bg-red-50'
+                }`}
+              >
+                <div className="flex items-center justify-center">
+                  <X className="w-6 h-6 mr-2" />
+                  <span className="font-medium">No, I have one</span>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-between">
           <Button variant="ghost" onClick={onBack} className="flex items-center">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -71,7 +115,7 @@ export default function MountType({ onNext, onBack }: MountTypeProps) {
           </Button>
           <Button 
             onClick={onNext} 
-            disabled={!data.mountType}
+            disabled={!data.mountType || data.needsWallMount === undefined}
             className="btn-primary"
           >
             Continue

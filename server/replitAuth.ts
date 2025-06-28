@@ -371,39 +371,43 @@ export async function setupAuth(app: Express) {
       
       console.log("Session saved, initiating OAuth redirect...");
       
-      // Create middleware function that handles both redirect and errors
-      const authMiddleware = (authErr: any, user: any, info: any) => {
-        if (authErr) {
-          console.error("OAuth initiation error:", authErr);
-          return res.status(500).json({ error: "OAuth initialization failed", details: authErr.message });
-        }
-        
-        // If we reach here without a redirect, something is wrong
-        console.error("OAuth flow completed without redirect or user");
-        return res.status(500).json({ error: "OAuth flow failed to initiate" });
-      };
-      
-      // Use direct redirect to OAuth provider
+      // Build authorization URL directly without async calls in callback
       try {
-        const strategy = (passport as any)._strategies[strategyName];
-        if (!strategy) {
-          throw new Error(`Strategy ${strategyName} not found`);
+        const issuerUrl = process.env.ISSUER_URL || "https://replit.com/oidc";
+        const clientId = process.env.REPL_ID;
+        
+        if (!clientId) {
+          throw new Error("REPL_ID environment variable not set");
         }
         
-        // Get the authorization URL directly from the strategy
-        const authorizationURL = strategy._client.authorizationUrl({
+        // Determine correct redirect URI based on hostname
+        let redirectUri: string;
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          redirectUri = `http://localhost:5000/api/callback`;
+        } else if (hostname === 'tradesbook.ie') {
+          redirectUri = `https://tradesbook.ie/api/callback`;
+        } else {
+          redirectUri = `https://${hostname}/api/callback`;
+        }
+        
+        const authParams = new URLSearchParams({
           response_type: 'code',
+          client_id: clientId,
+          redirect_uri: redirectUri,
           scope: 'openid email profile offline_access',
           prompt: 'login consent',
           state: req.sessionID, // Use session ID as state for security
         });
         
+        const authorizationURL = `${issuerUrl}/auth?${authParams.toString()}`;
+        
         console.log("Redirecting to OAuth provider:", authorizationURL);
+        console.log("Redirect URI:", redirectUri);
         
         // Perform direct redirect to OAuth provider
         res.redirect(authorizationURL);
         
-      } catch (redirectError) {
+      } catch (redirectError: any) {
         console.error("OAuth redirect error:", redirectError);
         return res.status(500).json({ 
           error: "OAuth redirect failed", 

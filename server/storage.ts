@@ -24,6 +24,9 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  verifyUserEmail(userId: string): Promise<void>;
+  updateEmailVerificationToken(userId: string, token: string, expiresAt: Date): Promise<void>;
 
   // Installer operations
   getInstaller(id: number): Promise<Installer | undefined>;
@@ -123,6 +126,33 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async verifyUserEmail(userId: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        emailVerified: true, 
+        emailVerificationToken: null,
+        emailVerificationExpires: null,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async updateEmailVerificationToken(userId: string, token: string, expiresAt: Date): Promise<void> {
+    await db
+      .update(users)
+      .set({ 
+        emailVerificationToken: token,
+        emailVerificationExpires: expiresAt,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, userId));
   }
 
   // Installer operations

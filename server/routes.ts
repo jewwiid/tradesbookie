@@ -19,6 +19,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification } from "./gmailService";
+import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
 
 // Email notification service with Gmail integration
 async function sendNotificationEmail(to: string, subject: string, content: string, html?: string) {

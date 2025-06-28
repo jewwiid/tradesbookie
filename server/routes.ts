@@ -82,8 +82,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           maxTvSize: tier.maxTvSize
         }));
       } else {
-        // Return all service tiers with static data for homepage display
-        serviceTiers = [
+        // Return service tiers with dynamic pricing based on current data
+        const dynamicTiers = Object.values(SERVICE_TIERS).map((tier, index) => ({
+          id: index + 1,
+          key: tier.key,
+          name: tier.name,
+          description: tier.description,
+          category: tier.category,
+          basePrice: tier.installerEarnings,
+          customerPrice: tier.customerPrice,
+          minTvSize: tier.minTvSize,
+          maxTvSize: tier.maxTvSize
+        }));
+        
+        serviceTiers = dynamicTiers.length > 0 ? dynamicTiers : [
           {
             id: 1,
             key: "table-top-small",
@@ -1623,25 +1635,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get mock credentials for testing
-  app.get('/api/auth/mock-credentials', (req, res) => {
-    res.json({
-      installer: {
-        email: mockCredentials.installer.email,
-        password: mockCredentials.installer.password,
-        name: mockCredentials.installer.name
-      },
-      client: {
-        email: mockCredentials.client.email,
-        password: mockCredentials.client.password,
-        name: mockCredentials.client.name
-      },
-      admin: {
-        email: mockCredentials.admin.email,
-        password: mockCredentials.admin.password,
-        name: mockCredentials.admin.name
-      }
-    });
+  // Real-time analytics endpoints
+  app.get('/api/analytics/website-metrics', async (req, res) => {
+    try {
+      const { getWebsiteMetrics } = await import('./analyticsService');
+      const metrics = await getWebsiteMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error fetching website metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch analytics data' });
+    }
+  });
+
+  app.get('/api/analytics/realtime-stats', async (req, res) => {
+    try {
+      const { getRealTimeStats } = await import('./analyticsService');
+      const stats = await getRealTimeStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching real-time stats:', error);
+      res.status(500).json({ message: 'Failed to fetch real-time data' });
+    }
   });
 
   // Harvey Norman Carrickmines Consultation Booking

@@ -289,51 +289,91 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
   };
 
   const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
+    console.log('Capture button clicked');
+    
+    if (!videoRef.current || !canvasRef.current) {
+      console.error('Video or canvas ref not available');
+      toast({
+        title: "Camera error",
+        description: "Camera not properly initialized. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    
+    console.log('Video ready state:', video.readyState);
+    console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+    
+    if (!context) {
+      console.error('Canvas context not available');
+      toast({
+        title: "Capture failed",
+        description: "Unable to initialize canvas. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (video.videoWidth === 0 || video.videoHeight === 0) {
+      console.error('Video not ready - dimensions are 0');
+      toast({
+        title: "Camera not ready",
+        description: "Please wait for camera to fully load.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      // Set reasonable capture dimensions
+      const maxWidth = 1920;
+      const maxHeight = 1080;
+      let width = video.videoWidth;
+      let height = video.videoHeight;
       
-      if (context && video.videoWidth > 0 && video.videoHeight > 0) {
-        // Set reasonable capture dimensions
-        const maxWidth = 1920;
-        const maxHeight = 1080;
-        let width = video.videoWidth;
-        let height = video.videoHeight;
-        
-        console.log('Video dimensions:', width, 'x', height);
-        
-        if (width > maxWidth || height > maxHeight) {
-          const ratio = Math.min(maxWidth / width, maxHeight / height);
-          width *= ratio;
-          height *= ratio;
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        context.drawImage(video, 0, 0, width, height);
-        
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
-            console.log('Camera photo captured, size:', file.size);
-            handleFile(file);
-            stopCamera();
-          } else {
-            toast({
-              title: "Capture failed",
-              description: "Unable to capture photo. Please try again.",
-              variant: "destructive"
-            });
-          }
-        }, 'image/jpeg', 0.8);
-      } else {
-        toast({
-          title: "Camera not ready",
-          description: "Please wait for camera to initialize completely.",
-          variant: "destructive"
-        });
+      console.log('Original video dimensions:', width, 'x', height);
+      
+      if (width > maxWidth || height > maxHeight) {
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        width *= ratio;
+        height *= ratio;
       }
+      
+      console.log('Capture dimensions:', width, 'x', height);
+      
+      canvas.width = width;
+      canvas.height = height;
+      context.drawImage(video, 0, 0, width, height);
+      
+      console.log('Image drawn to canvas');
+      
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+          console.log('Camera photo captured successfully, size:', file.size);
+          handleFile(file);
+          stopCamera();
+        } else {
+          console.error('Failed to create blob from canvas');
+          toast({
+            title: "Capture failed",
+            description: "Unable to process photo. Please try again.",
+            variant: "destructive"
+          });
+        }
+      }, 'image/jpeg', 0.8);
+      
+    } catch (error) {
+      console.error('Error during photo capture:', error);
+      toast({
+        title: "Capture failed",
+        description: "An error occurred while capturing the photo.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -405,14 +445,13 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
         </>
       ) : showCamera ? (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
-          {/* Header with close button */}
-          <div className="flex justify-between items-center p-4 bg-black/50 text-white">
-            <h3 className="text-lg font-semibold">Take Photo</h3>
+          {/* Close button only */}
+          <div className="absolute top-4 right-4 z-10">
             <Button
               onClick={stopCamera}
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-white/20"
+              className="text-white hover:bg-white/20 bg-black/30 rounded-full w-10 h-10 p-0"
             >
               <X className="w-6 h-6" />
             </Button>

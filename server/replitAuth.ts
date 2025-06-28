@@ -267,8 +267,23 @@ export async function setupAuth(app: Express) {
   passport.use(localhostStrategy);
   console.log(`Registered OAuth strategy for localhost with callback: http://localhost:5000/api/callback`);
 
-  passport.serializeUser((user: Express.User, cb) => cb(null, user));
-  passport.deserializeUser((user: Express.User, cb) => cb(null, user));
+  passport.serializeUser((user: any, cb) => {
+    console.log("Serializing user:", { id: user.id, email: user.email, role: user.role });
+    // Store only the user ID in the session
+    cb(null, user.id);
+  });
+  
+  passport.deserializeUser(async (userId: string, cb) => {
+    try {
+      console.log("Deserializing user ID:", userId);
+      const user = await storage.getUserById(userId);
+      console.log("Deserialized user:", user ? { id: user.id, email: user.email, role: user.role } : null);
+      cb(null, user);
+    } catch (error) {
+      console.error("Error deserializing user:", error);
+      cb(error, null);
+    }
+  });
 
   app.get("/api/login", (req, res, next) => {
     console.log("Login request from hostname:", req.hostname);

@@ -15,10 +15,17 @@ if (!process.env.REPLIT_DOMAINS) {
 const getOidcConfig = memoize(
   async () => {
     try {
-      return await client.discovery(
-        new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-        process.env.REPL_ID!
+      const issuerUrl = process.env.ISSUER_URL ?? "https://replit.com/oidc";
+      const clientId = process.env.REPL_ID!;
+      console.log("OIDC Discovery - Issuer:", issuerUrl, "Client ID:", clientId);
+      
+      const config = await client.discovery(
+        new URL(issuerUrl),
+        clientId
       );
+      
+      console.log("OIDC discovery successful");
+      return config;
     } catch (error) {
       console.error("OIDC discovery failed:", error);
       throw error;
@@ -176,9 +183,39 @@ export async function setupAuth(app: Express) {
 
   app.get("/api/login", (req, res, next) => {
     console.log("Login request from hostname:", req.hostname);
+    
+    // Temporary guest mode bypass for OAuth issues
+    if (req.query.guest === 'true') {
+      console.log("Guest login mode activated");
+      const guestUser = {
+        id: 'guest-' + Date.now(),
+        email: 'guest@tradesbook.ie',
+        firstName: 'Guest',
+        lastName: 'User',
+        profileImageUrl: null,
+        emailVerified: true
+      };
+      
+      req.login(guestUser, (err) => {
+        if (err) {
+          console.error("Guest login error:", err);
+          return res.redirect('/?error=guest_login_failed');
+        }
+        return res.redirect('/?guest=true');
+      });
+      return;
+    }
+    
+    console.log("Request headers:", req.headers);
     const strategyName = req.hostname === 'localhost' ? 'replitauth:localhost' : `replitauth:${req.hostname}`;
     console.log("Using strategy:", strategyName);
     console.log("Available strategies:", Object.keys((passport as any)._strategies || {}));
+    
+    // Check if strategy exists
+    if (!(passport as any)._strategies[strategyName]) {
+      console.error(`Strategy ${strategyName} not found!`);
+      return res.status(500).json({ error: "OAuth strategy not configured" });
+    }
     
     passport.authenticate(strategyName, {
       prompt: "login consent",
@@ -189,8 +226,22 @@ export async function setupAuth(app: Express) {
   app.get("/api/callback", (req, res, next) => {
     console.log("Callback request from hostname:", req.hostname);
     console.log("Callback query params:", req.query);
+    console.log("Callback body:", req.body);
+    
+    // Check for OAuth error in query params
+    if (req.query.error) {
+      console.error("OAuth provider error:", req.query.error, req.query.error_description);
+      return res.redirect(`/?error=oauth_error&details=${encodeURIComponent(req.query.error as string)}`);
+    }
+    
     const strategyName = req.hostname === 'localhost' ? 'replitauth:localhost' : `replitauth:${req.hostname}`;
     console.log("Using callback strategy:", strategyName);
+    
+    // Check if strategy exists
+    if (!(passport as any)._strategies[strategyName]) {
+      console.error(`Callback strategy ${strategyName} not found!`);
+      return res.status(500).json({ error: "OAuth strategy not configured for callback" });
+    }
     
     passport.authenticate(strategyName, {
       successReturnToOrRedirect: "/",
@@ -198,7 +249,8 @@ export async function setupAuth(app: Express) {
     })(req, res, (err: any) => {
       if (err) {
         console.error("Passport authentication error:", err);
-        return res.status(500).json({ error: "Authentication failed", details: err.message });
+        console.error("Full error object:", JSON.stringify(err, null, 2));
+        return res.status(500).json({ error: "Authentication failed", details: err.message || err.toString() });
       }
       next();
     });

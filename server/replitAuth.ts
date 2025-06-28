@@ -187,9 +187,6 @@ export async function setupAuth(app: Express) {
   ) => {
     try {
       console.log("Starting OAuth verification process");
-      const user = {};
-      updateUserSession(user, tokens);
-      console.log("User session updated");
       
       const claims = tokens.claims();
       console.log("User claims:", { sub: claims?.sub, email: claims?.email });
@@ -200,6 +197,25 @@ export async function setupAuth(app: Express) {
       
       await upsertUser(claims, intendedRole);
       console.log("User upserted successfully");
+      
+      // Get the actual user from database after upsert
+      const dbUser = await storage.getUserByEmail(claims.email);
+      if (!dbUser) {
+        throw new Error("Failed to retrieve user after upsert");
+      }
+      
+      // Create user object with session tokens
+      const user = {
+        id: dbUser.id,
+        email: dbUser.email,
+        firstName: dbUser.firstName,
+        lastName: dbUser.lastName,
+        role: dbUser.role,
+        profileImageUrl: dbUser.profileImageUrl
+      };
+      
+      updateUserSession(user, tokens);
+      console.log("User session updated with database user:", { email: user.email, role: user.role });
       
       verified(null, user);
     } catch (error) {
@@ -339,36 +355,59 @@ export async function setupAuth(app: Express) {
       return res.redirect("/?error=strategy_not_found");
     }
     
-    passport.authenticate(strategyName, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/?error=auth_failed",
-    })(req, res, (err: any) => {
+    passport.authenticate(strategyName, (err: any, user: any, info: any) => {
       if (err) {
         console.error("Passport authentication error:", err);
         return res.redirect("/?error=auth_callback_failed");
       }
       
-      // Handle role-based redirect after successful authentication
-      const intendedRole = (req.session as any)?.intendedRole;
-      const returnTo = (req.session as any)?.returnTo;
-      
-      console.log("Post-auth redirect - Role:", intendedRole, "ReturnTo:", returnTo);
-      
-      // Clear session data
-      delete (req.session as any).intendedRole;
-      delete (req.session as any).returnTo;
-      
-      // Redirect based on role
-      if (intendedRole === 'installer') {
-        return res.redirect('/installer-dashboard');
-      } else if (intendedRole === 'admin') {
-        return res.redirect('/admin-dashboard');
-      } else if (returnTo) {
-        return res.redirect(returnTo);
-      } else {
-        return res.redirect('/');
+      if (!user) {
+        console.error("No user returned from authentication:", info);
+        return res.redirect("/?error=auth_no_user");
       }
-    });
+      
+      console.log("Authentication successful, user:", { id: user.id, email: user.email, role: user.role });
+      
+      // Log in the user to establish session
+      req.logIn(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Session login error:", loginErr);
+          return res.redirect("/?error=session_failed");
+        }
+        
+        console.log("User logged in successfully, session established");
+        console.log("Session user:", req.user);
+        console.log("Session ID:", req.sessionID);
+        
+        // Handle role-based redirect after successful authentication
+        const intendedRole = (req.session as any)?.intendedRole;
+        const returnTo = (req.session as any)?.returnTo;
+        
+        console.log("Post-auth redirect - Role:", intendedRole, "ReturnTo:", returnTo);
+        
+        // Clear session data
+        delete (req.session as any).intendedRole;
+        delete (req.session as any).returnTo;
+        
+        // Save session before redirect
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+          }
+          
+          // Redirect based on role
+          if (intendedRole === 'installer') {
+            return res.redirect('/installer-dashboard');
+          } else if (intendedRole === 'admin') {
+            return res.redirect('/admin-dashboard');
+          } else if (returnTo) {
+            return res.redirect(returnTo);
+          } else {
+            return res.redirect('/');
+          }
+        });
+      });
+    })(req, res, next);
   });
 
   app.get("/api/logout", (req, res) => {

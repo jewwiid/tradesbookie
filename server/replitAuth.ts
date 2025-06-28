@@ -108,6 +108,20 @@ async function upsertUser(
     
     await storage.upsertUser(newUserData);
     
+    // Send admin notification for new registration
+    const { sendAdminNotification } = await import('./gmailService');
+    await sendAdminNotification(
+      `New ${intendedRole || 'customer'} registration`,
+      `A new ${intendedRole || 'customer'} has registered on tradesbook.ie`,
+      {
+        name: `${claims["first_name"]} ${claims["last_name"]}`.trim(),
+        email: claims["email"],
+        role: intendedRole || 'customer',
+        registrationDate: new Date().toISOString(),
+        profileImageUrl: claims["profile_image_url"]
+      }
+    );
+    
     // If this is an installer signup, create installer profile
     if (intendedRole === 'installer') {
       try {

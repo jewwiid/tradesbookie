@@ -445,17 +445,6 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
         </>
       ) : showCamera ? (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
-          {/* Close button only */}
-          <div className="absolute top-4 right-4 z-10">
-            <Button
-              onClick={stopCamera}
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 bg-black/30 rounded-full w-10 h-10 p-0"
-            >
-              <X className="w-6 h-6" />
-            </Button>
-          </div>
           
           {/* Full screen camera preview */}
           <div className="flex-1 relative">
@@ -505,9 +494,8 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
                 {/* Capture button - larger and more prominent */}
                 <button
                   onClick={capturePhoto}
-                  className="w-20 h-20 rounded-full bg-white text-black hover:bg-gray-200 transition-all duration-200 flex items-center justify-center shadow-lg"
+                  className="w-20 h-20 rounded-full bg-white text-black hover:bg-gray-200 transition-all duration-200 flex items-center justify-center shadow-lg active:scale-95"
                   type="button"
-                  disabled={!videoRef.current || (videoRef.current && videoRef.current.readyState < 3)}
                 >
                   <Camera className="w-8 h-8" />
                 </button>

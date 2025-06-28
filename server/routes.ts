@@ -189,12 +189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("GET /api/auth/user - Session ID:", req.sessionID);
       console.log("GET /api/auth/user - req.user:", req.user);
       console.log("GET /api/auth/user - isAuthenticated:", req.isAuthenticated());
-      
-      // Temporary fix: Check for demo session first
-      if (req.session?.demoUser) {
-        console.log("Returning demo user:", req.session.demoUser);
-        return res.json(req.session.demoUser);
-      }
+      console.log("GET /api/auth/user - Session:", req.session);
       
       if (!req.isAuthenticated() || !req.user) {
         return res.status(401).json({ message: "Unauthorized" });
@@ -208,47 +203,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-
-  // Temporary demo login for testing
-  app.post('/api/auth/demo-login', async (req: any, res) => {
-    try {
-      const { email, role = 'customer' } = req.body;
-      
-      if (!email) {
-        return res.status(400).json({ message: "Email required" });
-      }
-      
-      // Create demo user session
-      const demoUser = {
-        id: `demo-${Date.now()}`,
-        email: email,
-        firstName: email.split('@')[0],
-        lastName: 'Demo',
-        role: role,
-        profileImageUrl: null,
-        emailVerified: true
-      };
-      
-      req.session.demoUser = demoUser;
-      
-      console.log("Demo user logged in:", { email, role });
-      res.json({ success: true, user: demoUser });
-    } catch (error) {
-      console.error("Demo login error:", error);
-      res.status(500).json({ message: "Demo login failed" });
-    }
-  });
-
-  // Demo logout
-  app.post('/api/auth/demo-logout', async (req: any, res) => {
-    try {
-      delete req.session.demoUser;
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Demo logout error:", error);
-      res.status(500).json({ message: "Demo logout failed" });
     }
   });
 

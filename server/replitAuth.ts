@@ -191,6 +191,10 @@ export async function setupAuth(app: Express) {
       const claims = tokens.claims();
       console.log("User claims:", { sub: claims?.sub, email: claims?.email });
       
+      if (!claims) {
+        throw new Error("No claims received from OAuth provider");
+      }
+
       // Get intended role from session
       const intendedRole = req?.session?.intendedRole || 'customer';
       console.log("Intended role for user:", intendedRole);
@@ -199,7 +203,12 @@ export async function setupAuth(app: Express) {
       console.log("User upserted successfully");
       
       // Get the actual user from database after upsert
-      const dbUser = await storage.getUserByEmail(claims.email);
+      const userEmail = claims.email as string;
+      if (!userEmail) {
+        throw new Error("No email in claims");
+      }
+      
+      const dbUser = await storage.getUserByEmail(userEmail);
       if (!dbUser) {
         throw new Error("Failed to retrieve user after upsert");
       }
@@ -273,11 +282,31 @@ export async function setupAuth(app: Express) {
     cb(null, user.id);
   });
   
-  passport.deserializeUser(async (userId: string, cb) => {
+  passport.deserializeUser(async (id: string | number, cb) => {
     try {
-      console.log("Deserializing user ID:", userId);
-      const user = await storage.getUserById(userId);
+      console.log("Deserializing user ID:", id, "type:", typeof id);
+      
+      if (!id) {
+        console.log("No user ID found in session");
+        return cb(null, false);
+      }
+      
+      // Convert to number if needed
+      const userId = typeof id === 'string' ? parseInt(id, 10) : id;
+      
+      if (isNaN(userId)) {
+        console.log("Invalid user ID:", id);
+        return cb(null, false);
+      }
+      
+      const user = await storage.getUser(userId.toString());
       console.log("Deserialized user:", user ? { id: user.id, email: user.email, role: user.role } : null);
+      
+      if (!user) {
+        console.log("User not found for ID:", userId);
+        return cb(null, false);
+      }
+      
       cb(null, user);
     } catch (error) {
       console.error("Error deserializing user:", error);

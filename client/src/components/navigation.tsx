@@ -100,93 +100,15 @@ export default function Navigation() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        window.location.href = '/api/login';
-                      }}
-                    >
-                      Sign In
-                    </Button>
-                    <Button 
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        // Create demo login modal
-                        const modal = document.createElement('div');
-                        modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
-                        modal.innerHTML = `
-                          <div class="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-                            <h3 class="text-lg font-semibold mb-4">Quick Sign In</h3>
-                            <form id="demo-login-form" class="space-y-4">
-                              <div>
-                                <label class="block text-sm font-medium mb-1">Email</label>
-                                <input type="email" id="demo-email" value="jude.okun@gmail.com" 
-                                       class="w-full border rounded px-3 py-2" required />
-                              </div>
-                              <div>
-                                <label class="block text-sm font-medium mb-1">Role</label>
-                                <select id="demo-role" class="w-full border rounded px-3 py-2">
-                                  <option value="customer">Customer</option>
-                                  <option value="installer">Installer</option>
-                                  <option value="admin">Admin</option>
-                                </select>
-                              </div>
-                              <div class="flex space-x-2">
-                                <button type="submit" class="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-                                  Sign In
-                                </button>
-                                <button type="button" id="demo-cancel" class="flex-1 border py-2 rounded hover:bg-gray-50">
-                                  Cancel
-                                </button>
-                              </div>
-                            </form>
-                          </div>
-                        `;
-                        
-                        document.body.appendChild(modal);
-                        
-                        const form = modal.querySelector('#demo-login-form');
-                        const cancelBtn = modal.querySelector('#demo-cancel');
-                        
-                        form?.addEventListener('submit', async (e) => {
-                          e.preventDefault();
-                          const email = (modal.querySelector('#demo-email') as HTMLInputElement).value;
-                          const role = (modal.querySelector('#demo-role') as HTMLSelectElement).value;
-                          
-                          try {
-                            const response = await fetch('/api/auth/demo-login', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ email, role })
-                            });
-                            
-                            if (response.ok) {
-                              window.location.reload();
-                            } else {
-                              alert('Login failed');
-                            }
-                          } catch (error) {
-                            alert('Login failed');
-                          }
-                        });
-                        
-                        cancelBtn?.addEventListener('click', () => {
-                          document.body.removeChild(modal);
-                        });
-                        
-                        modal.addEventListener('click', (e) => {
-                          if (e.target === modal) {
-                            document.body.removeChild(modal);
-                          }
-                        });
-                      }}
-                    >
-                      Demo Login
-                    </Button>
-                  </div>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      window.location.href = '/api/login';
+                    }}
+                  >
+                    Sign In
+                  </Button>
                 )}
               </div>
 

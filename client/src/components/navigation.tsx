@@ -213,17 +213,30 @@ export default function Navigation() {
                         Logout
                       </Button>
                     ) : (
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-start"
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          window.location.href = '/api/login';
-                        }}
-                      >
-                        <User className="h-5 w-5 mr-3" />
-                        Sign In
-                      </Button>
+                      <div className="space-y-2">
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-start"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            window.location.href = '/api/login?guest=true';
+                          }}
+                        >
+                          <User className="h-5 w-5 mr-3" />
+                          Continue as Guest
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          className="w-full justify-start"
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            window.location.href = '/api/login';
+                          }}
+                        >
+                          <User className="h-5 w-5 mr-3" />
+                          Sign In
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </SheetContent>

@@ -476,6 +476,50 @@ export class DatabaseStorage implements IStorage {
       .where(eq(referralCodes.id, codeId));
   }
 
+  async getAllReferralCodes(): Promise<ReferralCode[]> {
+    return await db.select().from(referralCodes).orderBy(referralCodes.createdAt);
+  }
+
+  async getReferralEarnings(userId: string): Promise<{ totalEarnings: number; pendingEarnings: number; totalReferrals: number }> {
+    const referralCode = await this.getReferralCodeByUserId(userId);
+    if (!referralCode) {
+      return { totalEarnings: 0, pendingEarnings: 0, totalReferrals: 0 };
+    }
+
+    const usages = await db.select().from(referralUsage)
+      .where(eq(referralUsage.referrerUserId, userId));
+
+    const totalEarnings = usages
+      .filter(usage => usage.status === 'completed' && usage.paidOut)
+      .reduce((sum, usage) => sum + parseFloat(usage.rewardAmount.toString()), 0);
+
+    const pendingEarnings = usages
+      .filter(usage => usage.status === 'completed' && !usage.paidOut)
+      .reduce((sum, usage) => sum + parseFloat(usage.rewardAmount.toString()), 0);
+
+    return {
+      totalEarnings,
+      pendingEarnings,
+      totalReferrals: referralCode.totalReferrals
+    };
+  }
+
+  async getAllReviews(): Promise<Review[]> {
+    return await db.select().from(reviews).orderBy(reviews.createdAt);
+  }
+
+  async getReviewsByInstaller(installerId: number): Promise<Review[]> {
+    return await db.select().from(reviews)
+      .where(eq(reviews.installerId, installerId))
+      .orderBy(reviews.createdAt);
+  }
+
+  async getReviewsByBooking(bookingId: number): Promise<Review | undefined> {
+    const [review] = await db.select().from(reviews)
+      .where(eq(reviews.bookingId, bookingId));
+    return review;
+  }
+
   async getReferralEarnings(userId: string): Promise<{ totalEarnings: number; totalReferrals: number }> {
     const [referralCode] = await db.select().from(referralCodes)
       .where(eq(referralCodes.userId, userId));

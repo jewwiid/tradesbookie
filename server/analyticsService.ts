@@ -25,6 +25,17 @@ export interface WebsiteMetrics {
     bookings: number;
     revenue: number;
   }>;
+  reviewMetrics: {
+    totalReviews: number;
+    averageRating: number;
+    ratingDistribution: Array<{ rating: number; count: number }>;
+  };
+  referralMetrics: {
+    totalReferralCodes: number;
+    activeReferrals: number;
+    totalReferralEarnings: number;
+    averageReferralsPerCode: number;
+  };
 }
 
 export interface RealTimeStats {
@@ -70,6 +81,12 @@ export async function getWebsiteMetrics(): Promise<WebsiteMetrics> {
     // Get recent activity from multiple sources
     const recentActivity = await getRecentActivity();
 
+    // Get review metrics from database
+    const reviewMetrics = await getReviewMetrics();
+
+    // Get referral metrics from database
+    const referralMetrics = await getReferralMetrics();
+
     // Calculate conversion rate (placeholder - would need page view tracking)
     const conversionRate = 12.5; // This would come from analytics tracking
 
@@ -81,7 +98,9 @@ export async function getWebsiteMetrics(): Promise<WebsiteMetrics> {
       popularServices,
       recentActivity,
       geographicData,
-      monthlyTrends
+      monthlyTrends,
+      reviewMetrics,
+      referralMetrics
     };
   } catch (error) {
     console.error('Error getting website metrics:', error);
@@ -245,6 +264,75 @@ async function getRecentActivity(): Promise<Array<{type: 'booking' | 'registrati
   }
 }
 
+async function getReviewMetrics(): Promise<{totalReviews: number, averageRating: number, ratingDistribution: Array<{rating: number, count: number}>}> {
+  try {
+    const reviews = await storage.getAllReviews();
+    const totalReviews = reviews.length;
+    
+    if (totalReviews === 0) {
+      return {
+        totalReviews: 0,
+        averageRating: 0,
+        ratingDistribution: []
+      };
+    }
+
+    const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / totalReviews;
+
+    // Calculate rating distribution
+    const ratingCounts = [1, 2, 3, 4, 5].map(rating => ({
+      rating,
+      count: reviews.filter(review => review.rating === rating).length
+    }));
+
+    return {
+      totalReviews,
+      averageRating: Math.round(averageRating * 10) / 10,
+      ratingDistribution: ratingCounts
+    };
+  } catch (error) {
+    console.error('Error getting review metrics:', error);
+    return {
+      totalReviews: 0,
+      averageRating: 0,
+      ratingDistribution: []
+    };
+  }
+}
+
+async function getReferralMetrics(): Promise<{totalReferralCodes: number, activeReferrals: number, totalReferralEarnings: number, averageReferralsPerCode: number}> {
+  try {
+    const referralCodes = await storage.getAllReferralCodes();
+    const totalReferralCodes = referralCodes.length;
+    const activeReferrals = referralCodes.filter(code => code.isActive).length;
+    
+    const totalReferralEarnings = referralCodes.reduce((sum, code) => 
+      sum + parseFloat(code.totalEarnings.toString()), 0);
+    
+    const totalReferrals = referralCodes.reduce((sum, code) => 
+      sum + code.totalReferrals, 0);
+    
+    const averageReferralsPerCode = totalReferralCodes > 0 ? 
+      totalReferrals / totalReferralCodes : 0;
+
+    return {
+      totalReferralCodes,
+      activeReferrals,
+      totalReferralEarnings,
+      averageReferralsPerCode: Math.round(averageReferralsPerCode * 10) / 10
+    };
+  } catch (error) {
+    console.error('Error getting referral metrics:', error);
+    return {
+      totalReferralCodes: 0,
+      activeReferrals: 0,
+      totalReferralEarnings: 0,
+      averageReferralsPerCode: 0
+    };
+  }
+}
+
 function getEmptyMetrics(): WebsiteMetrics {
   return {
     totalBookings: 0,
@@ -254,6 +342,17 @@ function getEmptyMetrics(): WebsiteMetrics {
     popularServices: [],
     recentActivity: [],
     geographicData: [],
-    monthlyTrends: []
+    monthlyTrends: [],
+    reviewMetrics: {
+      totalReviews: 0,
+      averageRating: 0,
+      ratingDistribution: []
+    },
+    referralMetrics: {
+      totalReferralCodes: 0,
+      activeReferrals: 0,
+      totalReferralEarnings: 0,
+      averageReferralsPerCode: 0
+    }
   };
 }

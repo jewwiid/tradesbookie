@@ -1673,6 +1673,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Review analytics endpoint
+  app.get('/api/analytics/reviews', async (req, res) => {
+    try {
+      const { getWebsiteMetrics } = await import('./analyticsService');
+      const metrics = await getWebsiteMetrics();
+      res.json(metrics.reviewMetrics);
+    } catch (error) {
+      console.error('Error fetching review analytics:', error);
+      res.status(500).json({ message: 'Failed to fetch review data' });
+    }
+  });
+
+  // Referral analytics endpoint
+  app.get('/api/analytics/referrals', async (req, res) => {
+    try {
+      const { getWebsiteMetrics } = await import('./analyticsService');
+      const metrics = await getWebsiteMetrics();
+      res.json(metrics.referralMetrics);
+    } catch (error) {
+      console.error('Error fetching referral analytics:', error);
+      res.status(500).json({ message: 'Failed to fetch referral data' });
+    }
+  });
+
   // Harvey Norman Carrickmines Consultation Booking
   app.post('/api/consultation-booking', async (req, res) => {
     try {
@@ -2539,38 +2563,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   app.get('/api/referrals/codes', async (req, res) => {
     try {
-      // Mock referral codes data for admin dashboard
-      const codes = [
-        {
-          id: 1,
-          code: "TB1234ABCD",
-          referrerName: "John Smith",
-          totalReferrals: 8,
-          totalEarnings: 200,
-          createdAt: "2025-06-01T10:00:00Z",
-          isActive: true
-        },
-        {
-          id: 2,
-          code: "TB5678EFGH",
-          referrerName: "Sarah Wilson",
-          totalReferrals: 5,
-          totalEarnings: 125,
-          createdAt: "2025-06-15T14:30:00Z",
-          isActive: true
-        },
-        {
-          id: 3,
-          code: "TB9012IJKL",
-          referrerName: "Mike O'Connor",
-          totalReferrals: 12,
-          totalEarnings: 300,
-          createdAt: "2025-05-20T09:15:00Z",
-          isActive: true
-        }
-      ];
+      const referralCodes = await storage.getAllReferralCodes();
       
-      res.json(codes);
+      // Get user details for each referral code
+      const codesWithUserData = await Promise.all(
+        referralCodes.map(async (code) => {
+          const user = await storage.getUserById(code.userId);
+          return {
+            id: code.id,
+            code: code.referralCode,
+            referrerName: user?.firstName && user?.lastName ? 
+              `${user.firstName} ${user.lastName}` : 
+              user?.email || 'Unknown User',
+            totalReferrals: code.totalReferrals,
+            totalEarnings: parseFloat(code.totalEarnings.toString()),
+            createdAt: code.createdAt?.toISOString() || new Date().toISOString(),
+            isActive: code.isActive
+          };
+        })
+      );
+      
+      res.json(codesWithUserData);
     } catch (error) {
       console.error('Error fetching referral codes:', error);
       res.status(500).json({ error: "Failed to fetch referral codes" });

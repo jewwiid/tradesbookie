@@ -54,8 +54,7 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
+  // Auth is now setup early in index.ts to prevent static file interference
 
   // Health check
   app.get("/api/health", (req, res) => {

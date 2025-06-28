@@ -43,6 +43,12 @@ export function getSession() {
 export async function setupAuth(app: Express) {
   // Setup session middleware first
   app.use(getSession());
+  
+  // Force API route middleware to prevent static file serving interference
+  app.use('/api/*', (req: Request, res: Response, next: NextFunction) => {
+    console.log(`API route intercepted: ${req.method} ${req.originalUrl}`);
+    next();
+  });
 
   // OAuth configuration
   const clientId = process.env.REPL_ID || 'tradesbook-ie';

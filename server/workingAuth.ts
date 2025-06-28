@@ -48,9 +48,21 @@ export async function setupAuth(app: Express) {
   const clientId = process.env.REPL_ID || 'tradesbook-ie';
   const issuerUrl = 'https://replit.com';
 
-  // Simple login redirect - bypass complex session logic
-  app.get("/api/login", (req: Request, res: Response) => {
+  // Debug endpoint to check OAuth configuration
+  app.get("/api/auth-debug", (req: Request, res: Response) => {
+    res.json({
+      clientId: clientId,
+      hostname: req.get('host'),
+      repl_id: process.env.REPL_ID,
+      environment: process.env.NODE_ENV
+    });
+  });
+
+  // OAuth login endpoint - force early route registration
+  app.get("/api/login", (req: Request, res: Response, next: NextFunction) => {
     try {
+      console.log("OAuth login endpoint hit - preventing static file serving");
+      
       const role = req.query.role as string || 'customer';
       console.log(`OAuth login request for role: ${role}`);
 
@@ -77,7 +89,7 @@ export async function setupAuth(app: Express) {
       const authorizationURL = `${issuerUrl}/auth?${authParams.toString()}`;
       console.log(`Authorization URL: ${authorizationURL}`);
       
-      // Set proper headers and redirect
+      // Force immediate redirect without allowing middleware chain to continue
       res.writeHead(302, { 
         'Location': authorizationURL,
         'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -85,10 +97,12 @@ export async function setupAuth(app: Express) {
         'Expires': '0'
       });
       res.end();
+      return; // Prevent next() from being called
     } catch (error) {
       console.error("OAuth login error:", error);
       res.writeHead(302, { 'Location': '/?error=oauth_login_failed' });
       res.end();
+      return;
     }
   });
 

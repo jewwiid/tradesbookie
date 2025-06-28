@@ -199,7 +199,7 @@ export async function setupAuth(app: Express) {
       console.log("User upserted successfully");
       
       // Get the actual user from database after upsert
-      const dbUser = await storage.getUserByEmail(claims.email);
+      const dbUser = await storage.getUserByEmail(String(claims?.email || ''));
       if (!dbUser) {
         throw new Error("Failed to retrieve user after upsert");
       }
@@ -285,56 +285,75 @@ export async function setupAuth(app: Express) {
     }
   });
 
+  // Separate sign-in and sign-up endpoints for clarity
   app.get("/api/login", (req, res, next) => {
     console.log("Login request from hostname:", req.hostname);
-    console.log("Request headers host:", req.headers.host);
     console.log("Login query params:", req.query);
     
-    // Store intended role in session for post-OAuth processing
-    if (req.query.role === 'installer') {
-      (req.session as any).intendedRole = 'installer';
-      console.log("User intends to sign up/login as installer");
-    } else if (req.query.role === 'admin') {
-      (req.session as any).intendedRole = 'admin';
-      console.log("User intends to sign up/login as admin");
-    } else {
-      (req.session as any).intendedRole = 'customer';
-      console.log("User intends to sign up/login as customer (default)");
-    }
+    // Store intended action and role in session
+    (req.session as any).authAction = 'login';
+    (req.session as any).intendedRole = req.query.role || 'customer';
     
     // Store return URL if provided
     if (req.query.returnTo) {
       (req.session as any).returnTo = req.query.returnTo as string;
     }
     
-    // Determine strategy based on hostname/domain
-    let strategyName;
-    const hostname = req.hostname;
+    console.log("User attempting to LOGIN as:", req.query.role || 'customer');
     
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      strategyName = 'replitauth:localhost';
-    } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
-      strategyName = `replitauth:${hostname}`;
-    } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
-      strategyName = 'replitauth:tradesbook.ie';
-    } else {
-      const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
-      strategyName = `replitauth:${registeredDomain}`;
-    }
-    
-    console.log("Using strategy:", strategyName);
-    
-    // Check if strategy exists
-    if (!(passport as any)._strategies[strategyName]) {
-      console.error(`Strategy ${strategyName} not found!`);
+    // Determine strategy and initiate OAuth
+    const strategyName = getStrategyName(req.hostname);
+    if (!strategyName) {
       return res.status(500).json({ error: "OAuth strategy not configured for this domain" });
     }
     
     passport.authenticate(strategyName, {
-      prompt: "login consent",
+      prompt: "login",
       scope: ["openid", "email", "profile", "offline_access"],
     })(req, res, next);
   });
+
+  // Separate sign-up endpoint
+  app.get("/api/signup", (req, res, next) => {
+    console.log("Signup request from hostname:", req.hostname);
+    console.log("Signup query params:", req.query);
+    
+    // Store intended action and role in session
+    (req.session as any).authAction = 'signup';
+    (req.session as any).intendedRole = req.query.role || 'customer';
+    
+    // Store return URL if provided
+    if (req.query.returnTo) {
+      (req.session as any).returnTo = req.query.returnTo as string;
+    }
+    
+    console.log("User attempting to SIGNUP as:", req.query.role || 'customer');
+    
+    // Determine strategy and initiate OAuth
+    const strategyName = getStrategyName(req.hostname);
+    if (!strategyName) {
+      return res.status(500).json({ error: "OAuth strategy not configured for this domain" });
+    }
+    
+    passport.authenticate(strategyName, {
+      prompt: "consent",  // Force consent screen for signup
+      scope: ["openid", "email", "profile", "offline_access"],
+    })(req, res, next);
+  });
+
+  // Helper function to determine strategy name
+  function getStrategyName(hostname: string): string | null {
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'replitauth:localhost';
+    } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+      return `replitauth:${hostname}`;
+    } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
+      return 'replitauth:tradesbook.ie';
+    } else {
+      const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+      return registeredDomain ? `replitauth:${registeredDomain}` : null;
+    }
+  }
 
   app.get("/api/callback", (req, res, next) => {
     console.log("Callback request from hostname:", req.hostname);

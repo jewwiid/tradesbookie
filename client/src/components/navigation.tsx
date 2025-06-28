@@ -100,15 +100,26 @@ export default function Navigation() {
                     </Button>
                   </div>
                 ) : (
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      window.location.href = '/api/login';
-                    }}
-                  >
-                    Sign In
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        window.location.href = '/api/login';
+                      }}
+                    >
+                      Sign In
+                    </Button>
+                    <Button 
+                      variant="default"
+                      size="sm"
+                      onClick={() => {
+                        window.location.href = '/api/signup';
+                      }}
+                    >
+                      Sign Up
+                    </Button>
+                  </div>
                 )}
               </div>
 

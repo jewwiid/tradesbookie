@@ -68,7 +68,8 @@ function updateUserSession(
 
 async function upsertUser(
   claims: any,
-  intendedRole?: string
+  intendedRole?: string,
+  authAction?: string
 ) {
   const existingUser = await storage.getUser(claims["sub"]);
   
@@ -81,8 +82,21 @@ async function upsertUser(
     role: 'customer' // Default role
   };
 
+  // Handle sign-in vs sign-up flow separation
+  if (!existingUser && authAction === 'login') {
+    // User tried to login but doesn't exist - redirect to signup
+    throw new Error("ACCOUNT_NOT_FOUND");
+  }
+  
+  if (existingUser && authAction === 'signup') {
+    // User tried to signup but already exists - proceed with login
+    console.log("Existing user attempting signup, proceeding with login:", userData.email);
+    await storage.upsertUser(userData);
+    return;
+  }
+
   if (!existingUser) {
-    // New user - create account with email verification system
+    // New user registration flow
     const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
     const verificationToken = await generateVerificationToken();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
@@ -191,11 +205,13 @@ export async function setupAuth(app: Express) {
       const claims = tokens.claims();
       console.log("User claims:", { sub: claims?.sub, email: claims?.email });
       
-      // Get intended role from session
+      // Get intended role and action from session
       const intendedRole = req?.session?.intendedRole || 'customer';
+      const authAction = req?.session?.authAction || 'login';
       console.log("Intended role for user:", intendedRole);
+      console.log("Auth action:", authAction);
       
-      await upsertUser(claims, intendedRole);
+      await upsertUser(claims, intendedRole, authAction);
       console.log("User upserted successfully");
       
       // Get the actual user from database after upsert

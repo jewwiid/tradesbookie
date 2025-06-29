@@ -321,6 +321,13 @@ The application now includes a robust fallback system. When the database is unav
 - June 28, 2025: Fixed OAuth authentication callback session establishment with proper passport serialization/deserialization
 - June 28, 2025: Enhanced session management to store user ID and retrieve full user data from database during authentication
 - June 28, 2025: Implemented comprehensive OAuth callback debugging with detailed logging for authentication flow troubleshooting
+- June 29, 2025: **Successfully completed OAuth Sign-In/Sign-Up flow separation with proper functionality verification**
+- June 29, 2025: **Fixed SERVICE_TIERS import error preventing service selection from loading**
+- June 29, 2025: **Added separate Sign In (ghost) and Sign Up (primary) buttons to both desktop and mobile navigation**
+- June 29, 2025: **Implemented proper OAuth flow differentiation: /api/login uses prompt="login", /api/signup uses prompt="consent"**
+- June 29, 2025: **Enhanced session tracking with authAction field to distinguish login vs signup attempts**
+- June 29, 2025: **Added account validation logic to prevent mismatched authentication flows**
+- June 29, 2025: **Confirmed OAuth consent screen displays correctly for new user registrations**
 
 ## User Preferences
 

@@ -333,6 +333,8 @@ The application now includes a robust fallback system. When the database is unav
 - June 29, 2025: **Verified OAuth authentication working on both development and production domains**
 - June 29, 2025: **Confirmed tradesbook.ie production OAuth endpoints properly configured and responding**
 - June 29, 2025: **Authenticated users now properly display in navigation with admin dashboard access**
+- June 29, 2025: **Fixed referral tracking accuracy - replaced hardcoded values with authentic database calculations**
+- June 29, 2025: **Referral statistics now display real data: active codes, total referrals, and earnings from database**
 
 ## User Preferences
 

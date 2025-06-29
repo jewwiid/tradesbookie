@@ -2602,6 +2602,30 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  app.get('/api/referrals/settings', async (req, res) => {
+    try {
+      const settings = await storage.getReferralSettings();
+      
+      if (!settings) {
+        // Return default settings if none exist
+        return res.json({
+          referralReward: 25,
+          refereeDiscount: 10,
+          isActive: true
+        });
+      }
+      
+      res.json({
+        referralReward: parseFloat(settings.referralReward),
+        refereeDiscount: parseFloat(settings.refereeDiscount),
+        isActive: settings.isActive
+      });
+    } catch (error) {
+      console.error('Error fetching referral settings:', error);
+      res.status(500).json({ error: "Failed to fetch referral settings" });
+    }
+  });
+
   app.put('/api/referrals/settings', async (req, res) => {
     try {
       const { reward, discount } = req.body;

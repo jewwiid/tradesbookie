@@ -26,9 +26,9 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role").default("customer"), // customer, admin
-  emailVerified: boolean("email_verified").default(false),
+  emailVerified: boolean("is_email_verified").default(false),
   emailVerificationToken: varchar("email_verification_token"),
-  emailVerificationExpires: timestamp("email_verification_expires"),
+  emailVerificationExpires: timestamp("verification_token_expires"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

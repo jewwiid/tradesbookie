@@ -82,10 +82,10 @@ async function upsertUser(
     role: 'customer' // Default role
   };
 
-  // Handle sign-in vs sign-up flow separation
+  // Handle sign-in vs sign-up flow separation with automatic account creation
   if (!existingUser && authAction === 'login') {
-    // User tried to login but doesn't exist - redirect to signup
-    throw new Error("ACCOUNT_NOT_FOUND");
+    // User tried to login but doesn't exist - create account automatically
+    console.log("User attempted login but account doesn't exist, creating new account:", userData.email);
   }
   
   if (existingUser && authAction === 'signup') {

@@ -2549,12 +2549,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   app.get('/api/referrals/stats', async (req, res) => {
     try {
-      // Mock referral statistics for admin dashboard
+      // Get real referral statistics from database
+      const referralCodes = await storage.getAllReferralCodes();
+      
+      const totalReferrals = referralCodes.reduce((sum, code) => sum + code.totalReferrals, 0);
+      const totalRewardsPaid = referralCodes.reduce((sum, code) => sum + parseFloat(code.totalEarnings.toString()), 0);
+      const activeCodes = referralCodes.filter(code => code.isActive).length;
+      
+      // Calculate conversion rate (referrals / active codes)
+      const conversionRate = activeCodes > 0 ? (totalReferrals / activeCodes) : 0;
+      
       const stats = {
-        totalReferrals: 47,
-        totalRewardsPaid: 1175,
-        activeCodes: 12,
-        conversionRate: 18.5
+        totalReferrals,
+        totalRewardsPaid,
+        activeCodes,
+        conversionRate: Math.round(conversionRate * 10) / 10
       };
       
       res.json(stats);

@@ -3,58 +3,24 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wrench, Home, MapPin, Star, Euro, Calendar } from "lucide-react";
-import { formatPrice, formatDate } from "@/lib/utils";
+import { Wrench, Home, MapPin, Star, Euro, Calendar, Tv, Settings, Plus, Info } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 import { useLocation } from "wouter";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function InstallerDashboard() {
   const [, setLocation] = useLocation();
   const [jobFilter, setJobFilter] = useState('all');
 
-  // Mock installer data for demo purposes
-  const installerStats = {
-    monthlyJobs: 18,
-    earnings: "2,850",
-    rating: "4.9"
-  };
+  // Fetch real installer data from database
+  const { data: installerStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['/api/installer/stats'],
+  });
 
-  // Mock jobs data
-  const jobs = [
-    {
-      id: 1,
-      customer: "Emma Wilson",
-      service: "Gold Mount - 65\" TV",
-      address: "123 Oak Street, Dublin 4",
-      earning: "220.15",
-      date: "Dec 16, 2:00 PM",
-      status: "new",
-      originalImage: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200",
-      aiPreview: "https://images.unsplash.com/photo-1567016432779-094069958ea5?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200"
-    },
-    {
-      id: 2,
-      customer: "Mike Johnson",
-      service: "Bronze Mount - 43\" TV",
-      address: "456 Pine Road, Dublin 2",
-      earning: "92.65",
-      date: "Tomorrow, 10:00 AM",
-      status: "accepted",
-      notes: "Please ring the doorbell twice. TV is already unboxed in the living room.",
-      originalImage: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200",
-      aiPreview: "https://images.unsplash.com/photo-1567016432779-094069958ea5?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200"
-    },
-    {
-      id: 3,
-      customer: "Sarah Davis",
-      service: "Silver Mount - 55\" TV + Cable Concealment",
-      address: "789 Elm Avenue, Dublin 8",
-      earning: "177.35",
-      date: "Dec 13, Completed",
-      status: "completed",
-      originalImage: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200",
-      completedImage: "https://images.unsplash.com/photo-1567016432779-094069958ea5?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200"
-    }
-  ];
+  // Fetch real bookings assigned to this installer
+  const { data: jobs = [], isLoading: jobsLoading } = useQuery({
+    queryKey: ['/api/installer/bookings'],
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -187,24 +153,82 @@ export default function InstallerDashboard() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{job.customer}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900">{job.customerName || job.customer}</h3>
                           <Badge className={getStatusBadge(job.status)}>
                             {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
                           </Badge>
                         </div>
-                        <p className="text-gray-600 mb-2">{job.service}</p>
+                        <p className="text-gray-600 mb-2">{job.serviceTier} - {job.tvSize}" TV</p>
                         <p className="text-sm text-gray-500 flex items-center">
                           <MapPin className="w-4 h-4 mr-1" />
                           {job.address}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-gray-900">€{job.earning}</p>
+                        <p className="text-lg font-bold text-gray-900">€{job.installerEarnings || job.earning}</p>
                         <p className="text-sm text-gray-500 flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
-                          {job.date}
+                          {job.preferredDate || job.date}
                         </p>
                       </div>
+                    </div>
+
+                    {/* Client Booking Selections */}
+                    <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                        <Info className="w-4 h-4 mr-1" />
+                        Client Selections
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-500">TV Size:</span>
+                          <p className="font-medium">{job.tvSize}"</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Wall Type:</span>
+                          <p className="font-medium capitalize">{job.wallType || 'Not specified'}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Mount Type:</span>
+                          <p className="font-medium capitalize">{job.mountType || 'Not specified'}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Wall Mount:</span>
+                          <p className="font-medium">{job.wallMount || 'Not needed'}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Add-ons */}
+                      {job.addons && job.addons.length > 0 && (
+                        <div className="mt-3">
+                          <span className="text-gray-500 text-sm">Add-ons:</span>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {job.addons.map((addon, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {addon.name} (+€{addon.price})
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Installation difficulty */}
+                      {job.difficulty && (
+                        <div className="mt-3">
+                          <span className="text-gray-500 text-sm">Difficulty:</span>
+                          <Badge 
+                            variant="outline" 
+                            className={`ml-2 ${
+                              job.difficulty === 'Expert' ? 'border-red-300 text-red-700' :
+                              job.difficulty === 'Difficult' ? 'border-orange-300 text-orange-700' :
+                              job.difficulty === 'Moderate' ? 'border-yellow-300 text-yellow-700' :
+                              'border-green-300 text-green-700'
+                            }`}
+                          >
+                            {job.difficulty}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
 
                     {job.notes && (

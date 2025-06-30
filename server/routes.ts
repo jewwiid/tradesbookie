@@ -2002,15 +2002,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   
   // Admin authentication check middleware
   const isAdmin = (req: any, res: any, next: any) => {
-    const userEmail = req.user?.claims?.email;
-    const userId = req.user?.claims?.sub;
+    if (!req.user) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
+    const userEmail = req.user.email;
+    const userId = req.user.id;
+    const userRole = req.user.role;
     
     const isAdminUser = userEmail === 'admin@tradesbook.ie' || 
                        userEmail === 'jude.okun@gmail.com' || 
-                       userId === 'admin' || 
-                       userId === '42442296';
+                       userId === 42442296 ||
+                       userRole === 'admin';
     
-    if (!req.user || !isAdminUser) {
+    if (!isAdminUser) {
       return res.status(403).json({ message: "Admin access required" });
     }
     next();

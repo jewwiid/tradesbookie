@@ -2002,7 +2002,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   
   // Admin authentication check middleware
   const isAdmin = (req: any, res: any, next: any) => {
+    console.log("Admin check - req.user:", req.user);
+    console.log("Admin check - isAuthenticated:", req.isAuthenticated());
+    
     if (!req.user) {
+      console.log("Admin check failed: No user in request");
       return res.status(401).json({ message: "Authentication required" });
     }
     
@@ -2010,19 +2014,28 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     const userId = req.user.id;
     const userRole = req.user.role;
     
+    console.log("Admin check - userEmail:", userEmail);
+    console.log("Admin check - userId:", userId);
+    console.log("Admin check - userRole:", userRole);
+    
     const isAdminUser = userEmail === 'admin@tradesbook.ie' || 
                        userEmail === 'jude.okun@gmail.com' || 
                        userId === 42442296 ||
                        userRole === 'admin';
     
+    console.log("Admin check - isAdminUser result:", isAdminUser);
+    
     if (!isAdminUser) {
+      console.log("Admin check failed: User is not admin");
       return res.status(403).json({ message: "Admin access required" });
     }
+    
+    console.log("Admin check passed - proceeding");
     next();
   };
 
   // Admin Dashboard Stats
-  app.get("/api/admin/stats", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/admin/stats", isAdmin, async (req, res) => {
     try {
       const bookings = await storage.getAllBookings();
       const installers = await storage.getAllInstallers();
@@ -2072,7 +2085,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Admin Users Management
-  app.get("/api/admin/users", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/admin/users", isAdmin, async (req, res) => {
     try {
       const bookings = await storage.getAllBookings();
       const userMap = new Map();

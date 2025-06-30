@@ -2001,37 +2001,47 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // ====================== ADMIN DASHBOARD ENDPOINTS ======================
   
   // Admin authentication check middleware
-  const isAdmin = (req: any, res: any, next: any) => {
-    console.log("Admin check - req.user:", req.user);
-    console.log("Admin check - isAuthenticated:", req.isAuthenticated());
-    
-    if (!req.user) {
-      console.log("Admin check failed: No user in request");
-      return res.status(401).json({ message: "Authentication required" });
+  const isAdmin = async (req: any, res: any, next: any) => {
+    try {
+      console.log("Admin check - Session ID:", req.sessionID);
+      console.log("Admin check - Session passport:", req.session?.passport);
+      
+      // Check if session exists and has user ID
+      if (!req.session?.passport?.user) {
+        console.log("Admin check failed: No session user ID");
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      const userId = req.session.passport.user;
+      console.log("Admin check - Session user ID:", userId);
+
+      // Fetch user from database
+      const user = await storage.getUserById(userId);
+      if (!user) {
+        console.log("Admin check failed: User not found in database");
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      console.log("Admin check - User from DB:", { id: user.id, email: user.email, role: user.role });
+
+      const isAdminUser = user.email === 'admin@tradesbook.ie' || 
+                         user.email === 'jude.okun@gmail.com' || 
+                         user.id === 42442296 ||
+                         user.role === 'admin';
+      
+      console.log("Admin check - isAdminUser result:", isAdminUser);
+      
+      if (!isAdminUser) {
+        console.log("Admin check failed: User is not admin");
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      console.log("Admin check passed - proceeding");
+      next();
+    } catch (error) {
+      console.error("Admin check error:", error);
+      return res.status(500).json({ message: "Internal server error" });
     }
-    
-    const userEmail = req.user.email;
-    const userId = req.user.id;
-    const userRole = req.user.role;
-    
-    console.log("Admin check - userEmail:", userEmail);
-    console.log("Admin check - userId:", userId);
-    console.log("Admin check - userRole:", userRole);
-    
-    const isAdminUser = userEmail === 'admin@tradesbook.ie' || 
-                       userEmail === 'jude.okun@gmail.com' || 
-                       userId === 42442296 ||
-                       userRole === 'admin';
-    
-    console.log("Admin check - isAdminUser result:", isAdminUser);
-    
-    if (!isAdminUser) {
-      console.log("Admin check failed: User is not admin");
-      return res.status(403).json({ message: "Admin access required" });
-    }
-    
-    console.log("Admin check passed - proceeding");
-    next();
   };
 
   // Admin Dashboard Stats
@@ -2119,7 +2129,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Admin Installers Management
-  app.get("/api/admin/installers", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/admin/installers", isAdmin, async (req, res) => {
     try {
       const installers = await storage.getAllInstallers();
       
@@ -2146,7 +2156,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Admin System Metrics
-  app.get("/api/admin/system-metrics", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/admin/system-metrics", isAdmin, async (req, res) => {
     try {
       const metrics = {
         uptime: process.uptime() > 3600 ? `${Math.floor(process.uptime() / 3600)}h ${Math.floor((process.uptime() % 3600) / 60)}m` : `${Math.floor(process.uptime() / 60)}m`,
@@ -2164,7 +2174,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Admin Actions - Update Installer Status
-  app.patch("/api/admin/installers/:id/status", isAuthenticated, isAdmin, async (req, res) => {
+  app.patch("/api/admin/installers/:id/status", isAdmin, async (req, res) => {
     try {
       const installerId = parseInt(req.params.id);
       const { isActive } = req.body;

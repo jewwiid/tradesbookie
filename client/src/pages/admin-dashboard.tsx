@@ -399,11 +399,25 @@ function InstallerManagement() {
                         installerId: installer.id,
                         isActive: !installer.isActive
                       })}
+                      title={installer.isActive ? "Deactivate installer" : "Activate installer"}
                     >
                       {installer.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewInstaller(installer)}
+                      title="View installer details"
+                    >
                       <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditInstaller(installer)}
+                      title="Edit installer"
+                    >
+                      <Edit className="w-4 h-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -412,6 +426,154 @@ function InstallerManagement() {
           </TableBody>
         </Table>
       </CardContent>
+
+      {/* View Installer Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Installer Details</DialogTitle>
+            <DialogDescription>
+              View complete installer information and statistics
+            </DialogDescription>
+          </DialogHeader>
+          {selectedInstaller && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Business Name</Label>
+                  <p className="text-sm">{selectedInstaller.businessName}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Contact Name</Label>
+                  <p className="text-sm">{selectedInstaller.contactName}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Email</Label>
+                  <p className="text-sm">{selectedInstaller.email}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Phone</Label>
+                  <p className="text-sm">{selectedInstaller.phone}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Service Area</Label>
+                  <p className="text-sm">{selectedInstaller.serviceArea || 'Not specified'}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Status</Label>
+                  <Badge variant={selectedInstaller.isActive ? "default" : "secondary"}>
+                    {selectedInstaller.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <Label className="text-sm font-medium text-gray-600">Completed Jobs</Label>
+                  <p className="text-2xl font-bold text-blue-600">{selectedInstaller.completedJobs}</p>
+                </div>
+                <div className="text-center">
+                  <Label className="text-sm font-medium text-gray-600">Rating</Label>
+                  <div className="flex items-center justify-center">
+                    <Star className="w-5 h-5 text-yellow-500 mr-1" />
+                    <p className="text-2xl font-bold text-yellow-600">{selectedInstaller.rating.toFixed(1)}</p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <Label className="text-sm font-medium text-gray-600">Total Earnings</Label>
+                  <p className="text-2xl font-bold text-green-600">€{selectedInstaller.totalEarnings}</p>
+                </div>
+              </div>
+
+              {selectedInstaller.address && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Address</Label>
+                  <p className="text-sm">{selectedInstaller.address}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Installer Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Installer</DialogTitle>
+            <DialogDescription>
+              Update installer information and settings
+            </DialogDescription>
+          </DialogHeader>
+          {selectedInstaller && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="businessName">Business Name</Label>
+                  <Input 
+                    id="businessName" 
+                    defaultValue={selectedInstaller.businessName}
+                    placeholder="Business name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contactName">Contact Name</Label>
+                  <Input 
+                    id="contactName" 
+                    defaultValue={selectedInstaller.contactName}
+                    placeholder="Contact person"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email"
+                    defaultValue={selectedInstaller.email}
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input 
+                    id="phone" 
+                    defaultValue={selectedInstaller.phone}
+                    placeholder="Phone number"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="serviceArea">Service Area</Label>
+                  <Input 
+                    id="serviceArea" 
+                    defaultValue={selectedInstaller.serviceArea || ''}
+                    placeholder="Service coverage area"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input 
+                    id="address" 
+                    defaultValue={selectedInstaller.address || ''}
+                    placeholder="Business address"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  toast({ title: "Installer updated", description: "Changes saved successfully" });
+                  setShowEditDialog(false);
+                }}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

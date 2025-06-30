@@ -197,26 +197,22 @@ export const WALL_TYPES = [
   {
     key: 'drywall',
     name: 'Drywall',
-    description: 'Most common interior wall type',
-    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200'
+    description: 'Most common interior wall type'
   },
   {
     key: 'concrete',
     name: 'Concrete',
-    description: 'Solid masonry wall',
-    image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200'
+    description: 'Solid masonry wall'
   },
   {
     key: 'brick',
     name: 'Brick',
-    description: 'Traditional brick construction',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200'
+    description: 'Traditional brick construction'
   },
   {
     key: 'other',
     name: 'Other',
-    description: "We'll assess on-site",
-    image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200'
+    description: "We'll assess on-site"
   }
 ];
 

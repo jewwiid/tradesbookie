@@ -335,6 +335,9 @@ The application now includes a robust fallback system. When the database is unav
 - June 29, 2025: **Authenticated users now properly display in navigation with admin dashboard access**
 - June 29, 2025: **Fixed referral tracking accuracy - replaced hardcoded values with authentic database calculations**
 - June 29, 2025: **Referral statistics now display real data: active codes, total referrals, and earnings from database**
+- June 30, 2025: **Fixed wall mount options visibility to customers in booking flow**
+- June 30, 2025: **Created proper MountTypeSelection component with wall mount options, pricing (€25-€85), and real-time total calculation**
+- June 30, 2025: **Removed missing photo references from wall type selection - implemented clean simple card layouts for better user experience**
 
 ## User Preferences
 

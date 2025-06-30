@@ -11,26 +11,22 @@ const WALL_TYPES = [
   {
     type: "drywall",
     name: "Drywall",
-    description: "Most common interior wall type",
-    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200"
+    description: "Most common interior wall type"
   },
   {
     type: "concrete",
     name: "Concrete",
-    description: "Solid masonry wall",
-    image: "https://images.unsplash.com/photo-1486172278538-a683b1c9b34c?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200"
+    description: "Solid masonry wall"
   },
   {
     type: "brick",
     name: "Brick",
-    description: "Traditional brick construction",
-    image: "https://images.unsplash.com/photo-1507701943804-5b7c8e8d0ffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200"
+    description: "Traditional brick construction"
   },
   {
     type: "other",
     name: "Other",
-    description: "We'll assess on-site",
-    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&h=200"
+    description: "We'll assess on-site"
   }
 ];
 
@@ -60,11 +56,6 @@ export default function WallTypeSelector({ bookingData, updateBookingData }: Wal
             onClick={() => handleWallTypeSelect(wall.type)}
           >
             <CardContent className="p-6 text-left">
-              <img 
-                src={wall.image} 
-                alt={`${wall.name} surface`} 
-                className="w-full h-32 object-cover rounded-lg mb-4"
-              />
               <h3 className="text-lg font-semibold text-foreground mb-2">{wall.name}</h3>
               <p className="text-sm text-muted-foreground">{wall.description}</p>
             </CardContent>

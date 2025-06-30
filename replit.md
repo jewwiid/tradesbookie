@@ -338,6 +338,9 @@ The application now includes a robust fallback system. When the database is unav
 - June 30, 2025: **Fixed wall mount options visibility to customers in booking flow**
 - June 30, 2025: **Created proper MountTypeSelection component with wall mount options, pricing (€25-€85), and real-time total calculation**
 - June 30, 2025: **Removed missing photo references from wall type selection - implemented clean simple card layouts for better user experience**
+- June 30, 2025: **Added "no addons needed" option to booking addons step with proper logic and UI feedback**
+- June 30, 2025: **Enhanced installer dashboard to display complete client booking selections including TV size, wall type, mount type, wall mount, addons, and difficulty level**
+- June 30, 2025: **Created comprehensive booking details API endpoints for installers with real database integration showing all customer choices**
 
 ## User Preferences
 

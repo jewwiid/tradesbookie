@@ -869,6 +869,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ received: true });
   });
 
+  // Installer Dashboard API endpoints
+  app.get("/api/installer/stats", async (req, res) => {
+    try {
+      // For demo purposes, return mock stats
+      // In production, this would calculate real stats from database
+      const stats = {
+        monthlyJobs: 18,
+        earnings: "2,850",
+        rating: "4.9"
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching installer stats:", error);
+      res.status(500).json({ message: "Failed to fetch installer stats" });
+    }
+  });
+
+  app.get("/api/installer/bookings", async (req, res) => {
+    try {
+      // Get all bookings with complete details including client selections
+      const allBookings = await storage.getAllBookings();
+      
+      // Transform bookings to include all client selection details for installers
+      const enhancedBookings = allBookings.map(booking => ({
+        id: booking.id,
+        customerName: booking.customerName,
+        customer: booking.customerName, // Fallback for compatibility
+        serviceTier: booking.serviceTier,
+        service: `${booking.serviceTier} - ${booking.tvSize}" TV`, // Fallback for compatibility
+        tvSize: booking.tvSize,
+        wallType: booking.wallType,
+        mountType: booking.mountType,
+        wallMount: booking.wallMount,
+        addons: booking.addons ? JSON.parse(booking.addons) : [],
+        address: booking.address,
+        preferredDate: booking.preferredDate,
+        date: booking.preferredDate, // Fallback for compatibility
+        installerEarnings: booking.installerEarnings,
+        earning: booking.installerEarnings?.toString(), // Fallback for compatibility
+        status: booking.status === 'pending' ? 'new' : booking.status,
+        difficulty: booking.difficulty,
+        roomPhoto: booking.roomPhoto,
+        originalImage: booking.roomPhoto, // Fallback for compatibility
+        aiPreview: booking.aiPreviewUrl,
+        customerEmail: booking.customerEmail,
+        customerPhone: booking.customerPhone,
+        notes: booking.notes,
+        qrCode: booking.qrCode,
+        createdAt: booking.createdAt,
+        totalPrice: booking.totalPrice
+      }));
+
+      res.json(enhancedBookings);
+    } catch (error) {
+      console.error("Error fetching installer bookings:", error);
+      res.status(500).json({ message: "Failed to fetch installer bookings" });
+    }
+  });
+
   // Referral routes
   app.get("/api/referral/settings", async (req, res) => {
     try {

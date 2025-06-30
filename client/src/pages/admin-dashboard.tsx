@@ -287,6 +287,10 @@ function UserManagement() {
 
 // Installer Management Component
 function InstallerManagement() {
+  const [selectedInstaller, setSelectedInstaller] = useState<Installer | null>(null);
+  const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
   const { data: installers, isLoading } = useQuery<Installer[]>({
     queryKey: ["/api/admin/installers"],
     retry: false,
@@ -307,6 +311,16 @@ function InstallerManagement() {
       toast({ title: "Failed to update installer status", variant: "destructive" });
     },
   });
+
+  const handleViewInstaller = (installer: Installer) => {
+    setSelectedInstaller(installer);
+    setShowViewDialog(true);
+  };
+
+  const handleEditInstaller = (installer: Installer) => {
+    setSelectedInstaller(installer);
+    setShowEditDialog(true);
+  };
 
   if (isLoading) {
     return (
@@ -1550,6 +1564,12 @@ export default function AdminDashboard() {
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
+  // Move all hooks to the top before any conditional returns
+  const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
+    queryKey: ['/api/admin/stats'],
+    retry: false,
+  });
+
   // Check if user is admin
   const isAdmin = user?.email === 'jude.okun@gmail.com' || 
                   user?.id === '42442296' ||
@@ -1577,11 +1597,6 @@ export default function AdminDashboard() {
       </div>
     );
   }
-
-  const { data: stats, isLoading: statsLoading } = useQuery<AdminStats>({
-    queryKey: ['/api/admin/stats'],
-    retry: false,
-  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1630,8 +1645,7 @@ export default function AdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="installers" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
               <Shield className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Installers</span>
-              <span className="sm:hidden">Pros</span>
+              <span>Installers</span>
             </TabsTrigger>
             <TabsTrigger value="bookings" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
               <Calendar className="w-4 h-4 md:w-4 md:h-4" />

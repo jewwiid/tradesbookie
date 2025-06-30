@@ -10,7 +10,7 @@ import PhotoUpload from '@/components/booking-steps/photo-upload';
 import TVSizeSelection from '@/components/booking-steps/tv-size-selection';
 import ServiceSelection from '@/components/booking-steps/service-selection';
 import WallTypeSelection from '@/components/booking-steps/wall-type-selection';
-import MountTypeSelection from '@/components/booking-steps/mount-type-selection';
+import MountType from '@/components/booking-steps/mount-type';
 import AddonsSelection from '@/components/booking-steps/addons-selection';
 import ScheduleSelection from '@/components/booking-steps/schedule-selection';
 import ContactReview from '@/components/booking-steps/contact-review';
@@ -76,7 +76,7 @@ export default function Booking() {
       case 4:
         return <WallTypeSelection />;
       case 5:
-        return <MountTypeSelection />;
+        return <MountType onNext={nextStep} onBack={prevStep} />;
       case 6:
         return <AddonsSelection addons={addons} />;
       case 7:
@@ -117,36 +117,38 @@ export default function Booking() {
             {renderCurrentStep()}
           </div>
 
-          {/* Navigation Controls */}
-          <div className="flex justify-between mt-8">
-            {bookingData.step > 1 ? (
-              <Button
-                variant="outline"
-                onClick={prevStep}
-                className="flex items-center"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            ) : (
-              <Link href="/">
-                <Button variant="outline" className="flex items-center">
+          {/* Navigation Controls - Hide for steps that have their own navigation */}
+          {bookingData.step !== 5 && (
+            <div className="flex justify-between mt-8">
+              {bookingData.step > 1 ? (
+                <Button
+                  variant="outline"
+                  onClick={prevStep}
+                  className="flex items-center"
+                >
                   <ArrowLeft className="w-4 h-4 mr-2" />
-                  Home
+                  Back
                 </Button>
-              </Link>
-            )}
+              ) : (
+                <Link href="/">
+                  <Button variant="outline" className="flex items-center">
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Home
+                  </Button>
+                </Link>
+              )}
 
-            {bookingData.step < TOTAL_STEPS ? (
-              <Button
-                onClick={nextStep}
-                disabled={!canProceedToNext()}
-                className="gradient-primary text-white"
-              >
-                Continue
-              </Button>
-            ) : null}
-          </div>
+              {bookingData.step < TOTAL_STEPS ? (
+                <Button
+                  onClick={nextStep}
+                  disabled={!canProceedToNext()}
+                  className="gradient-primary text-white"
+                >
+                  Continue
+                </Button>
+              ) : null}
+            </div>
+          )}
         </div>
       </div>
     </div>

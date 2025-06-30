@@ -9,10 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 import PhotoUpload from '@/components/booking-steps/photo-upload';
 import TVSizeSelection from '@/components/booking-steps/tv-size-selection';
 import ServiceSelection from '@/components/booking-steps/service-selection';
-import WallTypeSelection from '@/components/booking-steps/wall-type-selection';
-import MountType from '@/components/booking-steps/mount-type';
-import AddonsSelection from '@/components/booking-steps/addons-selection';
-import ScheduleSelection from '@/components/booking-steps/schedule-selection';
+import WallType from '@/components/booking-steps/wall-type';
+import MountTypeSelection from '@/components/booking-steps/mount-type-selection';
+import Addons from '@/components/booking-steps/addons';
+import Schedule from '@/components/booking-steps/schedule';
 import ContactReview from '@/components/booking-steps/contact-review';
 
 const TOTAL_STEPS = 8;
@@ -50,7 +50,7 @@ export default function Booking() {
       case 4:
         return bookingData.wallType !== '';
       case 5:
-        return bookingData.mountType !== '';
+        return bookingData.mountType !== ''; // Mount type selection includes wall mount options
       case 6:
         return true; // Addons are optional
       case 7:
@@ -74,15 +74,15 @@ export default function Booking() {
       case 3:
         return <ServiceSelection serviceTiers={serviceTiers} />;
       case 4:
-        return <WallTypeSelection />;
+        return <WallType onNext={nextStep} onBack={prevStep} />;
       case 5:
-        return <MountType onNext={nextStep} onBack={prevStep} />;
+        return <MountTypeSelection />;
       case 6:
-        return <AddonsSelection addons={addons} />;
+        return <Addons onNext={nextStep} onBack={prevStep} />;
       case 7:
-        return <ScheduleSelection />;
+        return <Schedule onNext={nextStep} onBack={prevStep} />;
       case 8:
-        return <ContactReview serviceTiers={serviceTiers} addons={addons} />;
+        return <ContactReview onNext={nextStep} onBack={prevStep} />;
       default:
         return <PhotoUpload />;
     }
@@ -118,7 +118,7 @@ export default function Booking() {
           </div>
 
           {/* Navigation Controls - Hide for steps that have their own navigation */}
-          {bookingData.step !== 5 && (
+          {![4, 6, 7, 8].includes(bookingData.step) && (
             <div className="flex justify-between mt-8">
               {bookingData.step > 1 ? (
                 <Button

@@ -142,6 +142,21 @@ export const leadPricing = pgTable("lead_pricing", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Wall Mount Pricing table for managing wall mount options and pricing
+export const wallMountPricing = pgTable("wall_mount_pricing", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(), // e.g. "basic-fixed", "premium-tilting"
+  name: text("name").notNull(), // e.g. "Basic Fixed Mount"
+  description: text("description").notNull(),
+  mountType: text("mount_type").notNull(), // "Fixed", "Tilting", "Full Motion"
+  price: decimal("price", { precision: 8, scale: 2 }).notNull(), // Price in euros
+  maxTvSize: integer("max_tv_size"), // Maximum TV size in inches, null for no limit
+  isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0), // For ordering in UI
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Installer wallet/credits system
 export const installerWallets = pgTable("installer_wallets", {
   id: serial("id").primaryKey(),
@@ -300,6 +315,10 @@ export const leadPricingRelations = relations(leadPricing, ({ one }) => ({
   // No direct relations yet, but could add service tier relations
 }));
 
+export const wallMountPricingRelations = relations(wallMountPricing, ({ one }) => ({
+  // No direct relations needed currently
+}));
+
 export const installerWalletsRelations = relations(installerWallets, ({ one, many }) => ({
   installer: one(installers, {
     fields: [installerWallets.installerId],
@@ -414,6 +433,12 @@ export const insertLeadPricingSchema = createInsertSchema(leadPricing).omit({
   updatedAt: true,
 });
 
+export const insertWallMountPricingSchema = createInsertSchema(wallMountPricing).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertInstallerWalletSchema = createInsertSchema(installerWallets).omit({
   id: true,
   createdAt: true,
@@ -454,6 +479,9 @@ export type InsertSolarEnquiry = z.infer<typeof insertSolarEnquirySchema>;
 
 export type LeadPricing = typeof leadPricing.$inferSelect;
 export type InsertLeadPricing = z.infer<typeof insertLeadPricingSchema>;
+
+export type WallMountPricing = typeof wallMountPricing.$inferSelect;
+export type InsertWallMountPricing = z.infer<typeof insertWallMountPricingSchema>;
 
 export type InstallerWallet = typeof installerWallets.$inferSelect;
 export type InsertInstallerWallet = z.infer<typeof insertInstallerWalletSchema>;

@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Settings, Square, ChevronDown, Move, Check, X } from 'lucide-react';
 import { useBooking } from '@/hooks/use-booking';
+import { useQuery } from '@tanstack/react-query';
 
 const MOUNT_TYPES = [
   {

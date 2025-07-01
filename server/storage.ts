@@ -1,7 +1,7 @@
 import { 
   users, bookings, installers, jobAssignments, reviews, solarEnquiries,
   referralSettings, referralCodes, referralUsage, consultationBookings,
-  leadPricing, installerWallets, installerTransactions,
+  leadPricing, wallMountPricing, installerWallets, installerTransactions,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -13,6 +13,7 @@ import {
   type ReferralUsage, type InsertReferralUsage,
   type ConsultationBooking, type InsertConsultationBooking,
   type LeadPricing, type InsertLeadPricing,
+  type WallMountPricing, type InsertWallMountPricing,
   type InstallerWallet, type InsertInstallerWallet,
   type InstallerTransaction, type InsertInstallerTransaction
 } from "@shared/schema";
@@ -91,6 +92,13 @@ export interface IStorage {
   createLeadPricing(pricing: InsertLeadPricing): Promise<LeadPricing>;
   getAllLeadPricing(): Promise<LeadPricing[]>;
   updateLeadPricing(id: number, pricing: Partial<InsertLeadPricing>): Promise<void>;
+
+  // Wall mount pricing operations
+  getWallMountPricing(key: string): Promise<WallMountPricing | undefined>;
+  createWallMountPricing(pricing: InsertWallMountPricing): Promise<WallMountPricing>;
+  getAllWallMountPricing(): Promise<WallMountPricing[]>;
+  updateWallMountPricing(id: number, pricing: Partial<InsertWallMountPricing>): Promise<void>;
+  getActiveWallMountPricing(): Promise<WallMountPricing[]>;
 
   // Installer wallet operations
   getInstallerWallet(installerId: number): Promise<InstallerWallet | undefined>;
@@ -618,6 +626,37 @@ export class DatabaseStorage implements IStorage {
     await db.update(leadPricing)
       .set({ ...pricing, updatedAt: new Date() })
       .where(eq(leadPricing.id, id));
+  }
+
+  // Wall mount pricing operations
+  async getWallMountPricing(key: string): Promise<WallMountPricing | undefined> {
+    const [pricing] = await db.select().from(wallMountPricing)
+      .where(eq(wallMountPricing.key, key));
+    return pricing;
+  }
+
+  async createWallMountPricing(pricing: InsertWallMountPricing): Promise<WallMountPricing> {
+    const [newPricing] = await db.insert(wallMountPricing)
+      .values(pricing)
+      .returning();
+    return newPricing;
+  }
+
+  async getAllWallMountPricing(): Promise<WallMountPricing[]> {
+    return await db.select().from(wallMountPricing)
+      .orderBy(wallMountPricing.displayOrder, wallMountPricing.name);
+  }
+
+  async updateWallMountPricing(id: number, pricing: Partial<InsertWallMountPricing>): Promise<void> {
+    await db.update(wallMountPricing)
+      .set({ ...pricing, updatedAt: new Date() })
+      .where(eq(wallMountPricing.id, id));
+  }
+
+  async getActiveWallMountPricing(): Promise<WallMountPricing[]> {
+    return await db.select().from(wallMountPricing)
+      .where(eq(wallMountPricing.isActive, true))
+      .orderBy(wallMountPricing.displayOrder, wallMountPricing.name);
   }
 
   // Installer wallet operations

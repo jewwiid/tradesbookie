@@ -2002,6 +2002,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+
   // TV Recommendation Contact Form
   app.post('/api/tv-recommendation/contact', async (req, res) => {
     try {
@@ -3402,6 +3404,77 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Error fetching available leads:", error);
       res.status(500).json({ message: "Failed to fetch available leads" });
+    }
+  });
+
+  // ====================== WALL MOUNT PRICING API ENDPOINTS ======================
+  
+  // Get all wall mount pricing options (admin only)
+  app.get("/api/admin/wall-mount-pricing", isAdmin, async (req, res) => {
+    try {
+      const pricing = await storage.getAllWallMountPricing();
+      res.json(pricing);
+    } catch (error) {
+      console.error("Error fetching wall mount pricing:", error);
+      res.status(500).json({ message: "Failed to fetch wall mount pricing" });
+    }
+  });
+
+  // Get active wall mount pricing options (public for booking flow)
+  app.get("/api/wall-mount-pricing", async (req, res) => {
+    try {
+      const pricing = await storage.getActiveWallMountPricing();
+      res.json(pricing);
+    } catch (error) {
+      console.error("Error fetching active wall mount pricing:", error);
+      res.status(500).json({ message: "Failed to fetch wall mount pricing" });
+    }
+  });
+
+  // Create wall mount pricing option (admin only)
+  app.post("/api/admin/wall-mount-pricing", isAdmin, async (req, res) => {
+    try {
+      const { key, name, description, price, isActive, displayOrder } = req.body;
+      
+      if (!key || !name || !price) {
+        return res.status(400).json({ message: "Key, name, and price are required" });
+      }
+
+      const pricing = await storage.createWallMountPricing({
+        key,
+        name,
+        description: description || null,
+        price: parseFloat(price),
+        isActive: isActive ?? true,
+        displayOrder: displayOrder || 0
+      });
+
+      res.json(pricing);
+    } catch (error) {
+      console.error("Error creating wall mount pricing:", error);
+      res.status(500).json({ message: "Failed to create wall mount pricing" });
+    }
+  });
+
+  // Update wall mount pricing option (admin only)
+  app.put("/api/admin/wall-mount-pricing/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { key, name, description, price, isActive, displayOrder } = req.body;
+      
+      await storage.updateWallMountPricing(id, {
+        key,
+        name,
+        description,
+        price: price ? parseFloat(price) : undefined,
+        isActive,
+        displayOrder
+      });
+
+      res.json({ message: "Wall mount pricing updated successfully" });
+    } catch (error) {
+      console.error("Error updating wall mount pricing:", error);
+      res.status(500).json({ message: "Failed to update wall mount pricing" });
     }
   });
 

@@ -384,10 +384,10 @@ export default function PricingManagement() {
                     Add Pricing
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl" aria-describedby="create-pricing-description">
                   <DialogHeader>
                     <DialogTitle>Create New Pricing Configuration</DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription id="create-pricing-description">
                       Configure pricing for our lead generation marketplace. Customer Price is shown as an estimate - customers pay installers directly. Lead Fee is what installers pay us to access leads.
                     </DialogDescription>
                   </DialogHeader>
@@ -504,10 +504,10 @@ export default function PricingManagement() {
 
       {/* Edit Dialog */}
       <Dialog open={editingPricing !== null} onOpenChange={() => setEditingPricing(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="edit-pricing-description">
           <DialogHeader>
             <DialogTitle>Edit Pricing Configuration</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="edit-pricing-description">
               Update pricing for our lead generation marketplace. Customer Price is shown as an estimate - customers pay installers directly. Lead Fee is what installers pay us to access leads.
             </DialogDescription>
           </DialogHeader>

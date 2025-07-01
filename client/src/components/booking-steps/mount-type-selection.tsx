@@ -65,8 +65,9 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
     return wallMountPricing.filter(mount => mount.isActive);
   };
 
-  // Debug logging
-  console.log('Mount Type Selection - Debug:', {
+  // Debug logging - Check if component is even rendering
+  console.log('🔧 Mount Type Selection Component Loaded');
+  console.log('📊 Mount Type Selection Debug:', {
     needsWallMount,
     selectedMountType: bookingData.mountType,
     wallMountPricingData: wallMountPricing,
@@ -76,6 +77,11 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
     shouldShowWallMountQuestion: !!bookingData.mountType,
     shouldShowWallMountOptions: needsWallMount === true
   });
+  
+  // Also check if API is even being called
+  if (error) {
+    console.error('❌ Wall Mount Pricing API Error:', error);
+  }
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -128,6 +134,10 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Mount Type</h2>
           <p className="text-lg text-gray-600">Select how you want your TV to be positioned</p>
+          {/* Debug indicator */}
+          <div className="text-xs text-red-500 mt-2">
+            DEBUG: Mount={bookingData.mountType} | NeedsMount={String(needsWallMount)} | API Loading={String(isLoadingPricing)}
+          </div>
         </div>
 
         {/* Mount Type Selection */}

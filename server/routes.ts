@@ -69,33 +69,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const tvSize = req.query.tvSize ? parseInt(req.query.tvSize as string) : null;
       
-      let serviceTiers;
-      if (tvSize) {
-        // Filter by TV size and return with dynamic pricing
-        const tiers = await getServiceTiersForTvSize(tvSize);
-        serviceTiers = tiers.map((tier, index) => ({
-          id: index + 1,
-          key: tier.key,
+      // Get service tiers from database
+      const dbTiers = await pricingManagementService.getAllPricing();
+      const serviceTierCategories = ['table-top', 'wall-mount', 'premium'];
+      
+      let serviceTiers = dbTiers
+        .filter(tier => serviceTierCategories.includes(tier.category) && tier.isActive)
+        .map(tier => ({
+          id: tier.id,
+          key: tier.itemKey,
           name: tier.name,
           description: tier.description,
           category: tier.category,
-          basePrice: tier.customerEstimate, // Use customerEstimate for basePrice
-          customerPrice: tier.customerEstimate,
+          basePrice: tier.customerPrice,
+          customerPrice: tier.customerPrice,
           leadFee: tier.leadFee,
-          installerEarnings: tier.customerEstimate - tier.leadFee,
-          minTvSize: tier.minTvSize,
+          installerEarnings: tier.customerPrice - tier.leadFee,
+          minTvSize: tier.minTvSize || 32,
           maxTvSize: tier.maxTvSize
         }));
-      } else {
-        // Return service tiers with dynamic pricing based on current data
+
+      // Filter by TV size if provided
+      if (tvSize) {
+        serviceTiers = serviceTiers.filter(tier => {
+          return tvSize >= tier.minTvSize && (tier.maxTvSize === null || tvSize <= tier.maxTvSize);
+        });
+      }
+
+      // Fallback if no database tiers found
+      if (serviceTiers.length === 0) {
         const dynamicTiers = Object.values(SERVICE_TIERS).map((tier, index) => ({
           id: index + 1,
           key: tier.key,
           name: tier.name,
           description: tier.description,
           category: tier.category,
-          basePrice: tier.installerEarnings,
-          customerPrice: tier.customerPrice,
+          basePrice: tier.customerEstimate,
+          customerPrice: tier.customerEstimate,
+          leadFee: tier.leadFee,
+          installerEarnings: tier.customerEstimate - tier.leadFee,
           minTvSize: tier.minTvSize,
           maxTvSize: tier.maxTvSize
         }));

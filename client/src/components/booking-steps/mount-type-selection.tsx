@@ -32,7 +32,9 @@ interface WallMountPricing {
   key: string;
   name: string;
   description: string | null;
-  price: number;
+  price: string;
+  mountType: string;
+  maxTvSize: number | null;
   isActive: boolean;
   displayOrder: number;
   createdAt: Date | null;
@@ -215,7 +217,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-bold text-gray-900">
-                          €{mount.price.toFixed(0)}
+                          €{parseFloat(mount.price).toFixed(0)}
                         </div>
                       </div>
                     </div>

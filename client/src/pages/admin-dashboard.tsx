@@ -196,6 +196,8 @@ function UserManagement() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showUserDialog, setShowUserDialog] = useState(false);
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -210,6 +212,17 @@ function UserManagement() {
     },
   });
 
+  const handleViewUser = (user: User) => {
+    setSelectedUser(user);
+    setShowUserDialog(true);
+  };
+
+  const handleDeleteUser = (user: User) => {
+    if (confirm(`Are you sure you want to delete user ${user.email}?`)) {
+      deleteUserMutation.mutate(user.id);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -223,64 +236,122 @@ function UserManagement() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Users className="w-5 h-5 mr-2" />
-          User Management
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Joined</TableHead>
-              <TableHead>Lead Requests</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users?.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell>
-                  <div className="flex items-center space-x-3">
-                    {user.profileImageUrl && (
-                      <img 
-                        src={user.profileImageUrl} 
-                        alt="Profile" 
-                        className="w-8 h-8 rounded-full"
-                      />
-                    )}
-                    <span className="font-medium">
-                      {user.firstName ? `${user.firstName} ${user.lastName}` : 'Anonymous User'}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell>{user.bookingCount}</TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => deleteUserMutation.mutate(user.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Users className="w-5 h-5 mr-2" />
+            User Management
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Joined</TableHead>
+                <TableHead>Lead Requests</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {users?.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell>
+                    <div className="flex items-center space-x-3">
+                      {user.profileImageUrl && (
+                        <img 
+                          src={user.profileImageUrl} 
+                          alt="Profile" 
+                          className="w-8 h-8 rounded-full"
+                        />
+                      )}
+                      <span className="font-medium">
+                        {user.firstName ? `${user.firstName} ${user.lastName}` : 'Anonymous User'}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{user.bookingCount}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewUser(user)}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteUser(user)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* User Details Dialog */}
+      {selectedUser && (
+        <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>User Details</DialogTitle>
+              <DialogDescription>
+                View user information and activity
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-sm text-gray-500">Name</h4>
+                <p className="text-sm">
+                  {selectedUser.firstName ? 
+                    `${selectedUser.firstName} ${selectedUser.lastName}` : 
+                    'Anonymous User'
+                  }
+                </p>
+              </div>
+              <div>
+                <h4 className="font-medium text-sm text-gray-500">Email</h4>
+                <p className="text-sm">{selectedUser.email}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-sm text-gray-500">Role</h4>
+                <p className="text-sm capitalize">{selectedUser.role || 'customer'}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-sm text-gray-500">Joined</h4>
+                <p className="text-sm">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <h4 className="font-medium text-sm text-gray-500">Lead Requests</h4>
+                <p className="text-sm">{selectedUser.bookingCount}</p>
+              </div>
+              {selectedUser.lastLogin && (
+                <div>
+                  <h4 className="font-medium text-sm text-gray-500">Last Login</h4>
+                  <p className="text-sm">{new Date(selectedUser.lastLogin).toLocaleDateString()}</p>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowUserDialog(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }
 

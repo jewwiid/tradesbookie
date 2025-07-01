@@ -66,6 +66,7 @@ export default function Booking() {
   };
 
   const renderCurrentStep = () => {
+    console.log("🔴 CURRENT STEP IS:", bookingData.step);
     switch (bookingData.step) {
       case 1:
         return <PhotoUpload />;

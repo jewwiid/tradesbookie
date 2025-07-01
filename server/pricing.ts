@@ -1,11 +1,10 @@
-// Dynamic pricing calculation with commission included
+// New business model pricing - installers pay for leads, customers pay installers directly
+
 export interface PricingResult {
-  basePrice: number;
-  addonsPrice: number;
-  installerEarnings: number;
-  appFee: number;
-  totalPrice: number; // What customer pays
-  feePercentage: number;
+  estimatedPrice: number;    // Base estimate for customer
+  addonsPrice: number;       // Addon estimates
+  totalEstimate: number;     // Total customer estimate
+  leadFee: number;          // What installer pays to access this lead
 }
 
 export interface ServiceTier {
@@ -15,30 +14,33 @@ export interface ServiceTier {
   category: string;
   minTvSize: number;
   maxTvSize: number | null;
-  installerEarnings: number; // What installer receives
-  customerPrice: number; // What customer pays (with commission)
+  customerEstimate: number; // Estimated price for customer
+  leadFee: number; // What installer pays to access this lead
 }
 
-// Base installer earnings (what installers receive)
-const BASE_INSTALLER_EARNINGS: Record<string, number> = {
-  'table-top-small': 89,
-  'table-top-large': 109,
-  'bronze': 109,
-  'silver': 159,
-  'silver-large': 259,
-  'gold': 259,
-  'gold-large': 359
+// Customer price estimates (what customers expect to pay installers directly)
+const CUSTOMER_ESTIMATES: Record<string, number> = {
+  'table-top-small': 60,
+  'table-top-large': 85,
+  'bronze': 120,
+  'silver': 180,
+  'silver-large': 280,
+  'gold': 250,
+  'gold-large': 380
 };
 
-// Commission rate (15%)
-const COMMISSION_RATE = 0.15;
+// Lead fees (what installers pay platform to access jobs)
+const LEAD_FEES: Record<string, number> = {
+  'table-top-small': 12,
+  'table-top-large': 15,
+  'bronze': 20,
+  'silver': 25,
+  'silver-large': 30,
+  'gold': 30,
+  'gold-large': 35
+};
 
-// Calculate customer price (installer earnings + commission)
-function calculateCustomerPrice(installerEarnings: number): number {
-  return Math.round(installerEarnings / (1 - COMMISSION_RATE));
-}
-
-// Service tiers with dynamic pricing
+// Service tiers with new pricing model
 export const SERVICE_TIERS: Record<string, ServiceTier> = {
   'table-top-small': {
     key: 'table-top-small',
@@ -47,8 +49,8 @@ export const SERVICE_TIERS: Record<string, ServiceTier> = {
     category: 'table-top',
     minTvSize: 32,
     maxTvSize: 42,
-    installerEarnings: BASE_INSTALLER_EARNINGS['table-top-small'],
-    customerPrice: calculateCustomerPrice(BASE_INSTALLER_EARNINGS['table-top-small'])
+    customerEstimate: CUSTOMER_ESTIMATES['table-top-small'],
+    leadFee: LEAD_FEES['table-top-small']
   },
   'table-top-large': {
     key: 'table-top-large',
@@ -57,94 +59,95 @@ export const SERVICE_TIERS: Record<string, ServiceTier> = {
     category: 'table-top',
     minTvSize: 43,
     maxTvSize: null,
-    installerEarnings: BASE_INSTALLER_EARNINGS['table-top-large'],
-    customerPrice: calculateCustomerPrice(BASE_INSTALLER_EARNINGS['table-top-large'])
+    customerEstimate: CUSTOMER_ESTIMATES['table-top-large'],
+    leadFee: LEAD_FEES['table-top-large']
   },
   'bronze': {
     key: 'bronze',
-    name: 'Bronze TV Mounting',
-    description: 'Fixed wall mount installation',
-    category: 'bronze',
+    name: 'Bronze Installation',
+    description: 'Professional wall mount with basic cable management',
+    category: 'wall-mount',
     minTvSize: 32,
-    maxTvSize: 42,
-    installerEarnings: BASE_INSTALLER_EARNINGS['bronze'],
-    customerPrice: calculateCustomerPrice(BASE_INSTALLER_EARNINGS['bronze'])
+    maxTvSize: 65,
+    customerEstimate: CUSTOMER_ESTIMATES['bronze'],
+    leadFee: LEAD_FEES['bronze']
   },
   'silver': {
     key: 'silver',
-    name: 'Silver TV Mounting',
-    description: 'Tilting wall mount with cable management',
-    category: 'silver',
-    minTvSize: 43,
-    maxTvSize: 85,
-    installerEarnings: BASE_INSTALLER_EARNINGS['silver'],
-    customerPrice: calculateCustomerPrice(BASE_INSTALLER_EARNINGS['silver'])
+    name: 'Silver Installation',
+    description: 'Premium wall mount with advanced cable management',
+    category: 'wall-mount',
+    minTvSize: 32,
+    maxTvSize: 65,
+    customerEstimate: CUSTOMER_ESTIMATES['silver'],
+    leadFee: LEAD_FEES['silver']
   },
   'silver-large': {
     key: 'silver-large',
-    name: 'Silver TV Mounting',
-    description: 'Tilting wall mount for large TVs',
-    category: 'silver',
-    minTvSize: 86,
+    name: 'Silver Installation (Large)',
+    description: 'Premium wall mount for large TVs with advanced cable management',
+    category: 'wall-mount',
+    minTvSize: 66,
     maxTvSize: null,
-    installerEarnings: BASE_INSTALLER_EARNINGS['silver-large'],
-    customerPrice: calculateCustomerPrice(BASE_INSTALLER_EARNINGS['silver-large'])
+    customerEstimate: CUSTOMER_ESTIMATES['silver-large'],
+    leadFee: LEAD_FEES['silver-large']
   },
   'gold': {
     key: 'gold',
-    name: 'Gold TV Mounting',
-    description: 'Full motion mount with premium features',
-    category: 'gold',
-    minTvSize: 43,
-    maxTvSize: 85,
-    installerEarnings: BASE_INSTALLER_EARNINGS['gold'],
-    customerPrice: calculateCustomerPrice(BASE_INSTALLER_EARNINGS['gold'])
+    name: 'Gold Installation',
+    description: 'Complete installation with full cable concealment',
+    category: 'premium',
+    minTvSize: 32,
+    maxTvSize: 65,
+    customerEstimate: CUSTOMER_ESTIMATES['gold'],
+    leadFee: LEAD_FEES['gold']
   },
   'gold-large': {
     key: 'gold-large',
-    name: 'Gold TV Mounting',
-    description: 'Premium large TV full motion installation',
-    category: 'gold',
-    minTvSize: 86,
+    name: 'Gold Installation (Large)',
+    description: 'Complete installation for large TVs with full cable concealment',
+    category: 'premium',
+    minTvSize: 66,
     maxTvSize: null,
-    installerEarnings: BASE_INSTALLER_EARNINGS['gold-large'],
-    customerPrice: calculateCustomerPrice(BASE_INSTALLER_EARNINGS['gold-large'])
+    customerEstimate: CUSTOMER_ESTIMATES['gold-large'],
+    leadFee: LEAD_FEES['gold-large']
   }
 };
 
 export function getServiceTiersForTvSize(tvSize: number): ServiceTier[] {
-  return Object.values(SERVICE_TIERS).filter(tier => {
-    if (tier.maxTvSize === null) {
-      return tvSize >= tier.minTvSize;
-    }
-    return tvSize >= tier.minTvSize && tvSize <= tier.maxTvSize;
+  return Object.values(SERVICE_TIERS).filter((tier) => {
+    return tvSize >= tier.minTvSize && (tier.maxTvSize === null || tvSize <= tier.maxTvSize);
   });
 }
 
 export function calculateBookingPricing(
   serviceType: string,
-  addons: Array<{ key: string; name: string; price: number }> = [],
-  installerId: number | null = null
+  addons: Array<{ key: string; name: string; price: number }> = []
 ): PricingResult {
   const serviceTier = SERVICE_TIERS[serviceType];
   if (!serviceTier) {
     throw new Error(`Unknown service type: ${serviceType}`);
   }
 
-  const basePrice = serviceTier.installerEarnings;
+  const estimatedPrice = serviceTier.customerEstimate;
   const addonsPrice = addons.reduce((sum, addon) => sum + addon.price, 0);
-  const installerEarnings = basePrice + addonsPrice;
-  
-  // Calculate commission
-  const appFee = installerEarnings * COMMISSION_RATE;
-  const totalPrice = installerEarnings + appFee;
+  const totalEstimate = estimatedPrice + addonsPrice;
+  const leadFee = serviceTier.leadFee;
 
   return {
-    basePrice,
+    estimatedPrice,
     addonsPrice,
-    installerEarnings,
-    appFee,
-    totalPrice,
-    feePercentage: COMMISSION_RATE * 100
+    totalEstimate,
+    leadFee
   };
+}
+
+export function getLeadFee(serviceType: string): number {
+  const serviceTier = SERVICE_TIERS[serviceType];
+  return serviceTier ? serviceTier.leadFee : 15; // Default €15 lead fee
+}
+
+export function getCustomerEstimate(serviceType: string): number {
+  const serviceTier = SERVICE_TIERS[serviceType];
+  return serviceTier ? serviceTier.customerEstimate : 120; // Default €120 estimate
 }

@@ -52,9 +52,18 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
   const [selectedWallMount, setSelectedWallMount] = useState<string>(bookingData.wallMountOption || '');
 
   // Fetch wall mount pricing from database
-  const { data: wallMountPricing, isLoading: isLoadingPricing } = useQuery<WallMountPricing[]>({
+  const { data: wallMountPricing, isLoading: isLoadingPricing, error } = useQuery<WallMountPricing[]>({
     queryKey: ['/api/wall-mount-pricing'],
-    enabled: needsWallMount === true, // Only fetch when user wants wall mount
+    // Always fetch wall mount pricing so it's available when user selects "Yes"
+  });
+
+  // Debug logging
+  console.log('Mount Type Selection - Debug:', {
+    needsWallMount,
+    wallMountPricingData: wallMountPricing,
+    isLoadingPricing,
+    error,
+    availableWallMounts: getAvailableWallMounts()
   });
 
   const getIcon = (iconName: string) => {
@@ -71,11 +80,11 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
   };
 
   const getAvailableWallMounts = () => {
-    if (!wallMountPricing) return [];
+    if (!wallMountPricing || wallMountPricing.length === 0) return [];
     
     // Return all active wall mount options from database
     // The database handles the filtering by active status
-    return wallMountPricing;
+    return wallMountPricing.filter(mount => mount.isActive);
   };
 
   const handleMountTypeSelect = (mountType: string) => {
@@ -101,10 +110,9 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
     // Find the selected wall mount from database pricing and add its price
     const selectedMount = wallMountPricing?.find(mount => mount.key === wallMountKey);
     if (selectedMount) {
-      const wallMountPrice = selectedMount.price; // Price is already in euros from database
-      const newTotal = bookingData.subtotal + bookingData.addonTotal + wallMountPrice;
+      const wallMountPrice = parseFloat(selectedMount.price); // Convert string to number
       updateBookingData({ 
-        total: newTotal
+        wallMountPrice: wallMountPrice
       });
     }
   };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,11 @@ export default function SimplifiedAuthDialog({
   const [lastName, setLastName] = useState('');
   const [activeTab, setActiveTab] = useState(defaultTab);
   const { toast } = useToast();
+
+  // Update active tab when defaultTab prop changes
+  useEffect(() => {
+    setActiveTab(defaultTab);
+  }, [defaultTab]);
 
   // Harvey Norman Invoice Login
   const invoiceLoginMutation = useMutation({

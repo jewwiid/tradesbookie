@@ -360,6 +360,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Updated installer dashboard terminology: "Jobs This Month" → "Leads This Month", "Assigned Jobs" → "Purchased Leads", added "Lead Fee Paid" indicators**
 - July 1, 2025: **Transformed customer dashboard messaging: "Booking Status" → "Request Status", "Booking Confirmed" → "Request Submitted", added "Pay Installer Directly" payment method display**
 - July 1, 2025: **Enhanced customer dashboard with clear lead generation messaging: "Your installation request is live on our platform" and payment options (Cash • Card • Bank Transfer)**
+- July 1, 2025: **Database cleanup completed: Removed obsolete feeStructures table and commission-based schema elements no longer needed in lead generation model**
+- July 1, 2025: **Fixed accessibility issues: Added proper DialogTitle and DialogDescription components to login modals for screen reader compatibility**
 
 ## User Preferences
 

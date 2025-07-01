@@ -48,11 +48,7 @@ export interface IStorage {
   updateBookingPayment(id: number, paymentIntentId: string, paymentStatus: string, paidAmount?: number): Promise<void>;
   getAllBookings(): Promise<Booking[]>;
 
-  // Fee structure operations
-  getFeeStructure(installerId: number, serviceType: string): Promise<FeeStructure | undefined>;
-  createFeeStructure(feeStructure: InsertFeeStructure): Promise<FeeStructure>;
-  updateFeeStructure(installerId: number, serviceType: string, feePercentage: number): Promise<void>;
-  getInstallerFeeStructures(installerId: number): Promise<FeeStructure[]>;
+  // Removed: Fee structure operations no longer needed in lead generation model
 
   // Job assignment operations
   createJobAssignment(assignment: InsertJobAssignment): Promise<JobAssignment>;
@@ -269,34 +265,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(bookings).orderBy(desc(bookings.createdAt));
   }
 
-  // Fee structure operations
-  async getFeeStructure(installerId: number, serviceType: string): Promise<FeeStructure | undefined> {
-    const [feeStructure] = await db.select().from(feeStructures)
-      .where(and(
-        eq(feeStructures.installerId, installerId),
-        eq(feeStructures.serviceType, serviceType)
-      ));
-    return feeStructure;
-  }
-
-  async createFeeStructure(insertFeeStructure: InsertFeeStructure): Promise<FeeStructure> {
-    const [feeStructure] = await db.insert(feeStructures).values(insertFeeStructure).returning();
-    return feeStructure;
-  }
-
-  async updateFeeStructure(installerId: number, serviceType: string, feePercentage: number): Promise<void> {
-    await db.update(feeStructures)
-      .set({ feePercentage: feePercentage.toString() })
-      .where(and(
-        eq(feeStructures.installerId, installerId),
-        eq(feeStructures.serviceType, serviceType)
-      ));
-  }
-
-  async getInstallerFeeStructures(installerId: number): Promise<FeeStructure[]> {
-    return await db.select().from(feeStructures)
-      .where(eq(feeStructures.installerId, installerId));
-  }
+  // Removed: Fee structure operations no longer needed in lead generation model
 
   // Job assignment operations
   async createJobAssignment(insertAssignment: InsertJobAssignment): Promise<JobAssignment> {

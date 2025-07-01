@@ -205,8 +205,12 @@ export const referralSettings = pgTable("referral_settings", {
 
 export const referralCodes = pgTable("referral_codes", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(),
+  userId: text("user_id"), // Nullable for sales staff codes
   referralCode: text("referral_code").notNull().unique(),
+  referralType: text("referral_type").notNull().default("customer"), // "customer" or "sales_staff"
+  salesStaffName: text("sales_staff_name"), // For Harvey Norman staff
+  salesStaffStore: text("sales_staff_store"), // Store location
+  discountPercentage: decimal("discount_percentage", { precision: 5, scale: 2 }).notNull().default("10.00"), // 10% for sales staff
   totalReferrals: integer("total_referrals").notNull().default(0),
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).notNull().default("0.00"), // In euros
   isActive: boolean("is_active").notNull().default(true),
@@ -218,10 +222,12 @@ export const referralUsage = pgTable("referral_usage", {
   id: serial("id").primaryKey(),
   referralCodeId: integer("referral_code_id").notNull(),
   bookingId: integer("booking_id").notNull(),
-  referrerUserId: text("referrer_user_id").notNull(),
-  refereeUserId: text("referee_user_id"),
+  referrerUserId: text("referrer_user_id"), // Nullable for sales staff codes
+  refereeUserId: text("referee_user_id"), // Customer who used the code
   discountAmount: decimal("discount_amount", { precision: 8, scale: 2 }).notNull(), // In euros
   rewardAmount: decimal("reward_amount", { precision: 8, scale: 2 }).notNull(), // In euros
+  subsidizedByInstaller: boolean("subsidized_by_installer").notNull().default(false), // If discount is paid by installer
+  installerSubsidyAmount: decimal("installer_subsidy_amount", { precision: 8, scale: 2 }).default("0.00"), // Amount installer pays for discount
   status: text("status").notNull().default("pending"), // pending, completed, cancelled
   paidOut: boolean("paid_out").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),

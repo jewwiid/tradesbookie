@@ -248,7 +248,7 @@ export const TIME_SLOTS = [
 ];
 
 export function formatPrice(priceInCents: number): string {
-  return `€${(priceInCents / 100).toFixed(0)}`;
+  return `From €${(priceInCents / 100).toFixed(0)}`;
 }
 
 export function getServiceTiersForTvSize(tvSize: number) {

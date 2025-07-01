@@ -2092,13 +2092,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       // Calculate platform revenue from lead fees (not customer payments)
       let totalRevenue = 0;
+      console.log('Admin stats - Number of bookings:', bookings.length);
       for (const booking of bookings) {
+        console.log('Processing booking service type:', booking.serviceType);
         const leadFee = getLeadFee(booking.serviceType);
+        console.log('Lead fee for', booking.serviceType, ':', leadFee);
         totalRevenue += leadFee;
       }
+      console.log('Total calculated revenue:', totalRevenue);
       
       // Average lead fee per booking
       const avgLeadFee = totalBookings > 0 ? totalRevenue / totalBookings : 0;
+      console.log('Average lead fee:', avgLeadFee);
       const activeBookings = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length;
       const completedBookings = bookings.filter(b => b.status === 'completed').length;
       const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;

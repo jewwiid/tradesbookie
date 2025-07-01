@@ -160,7 +160,7 @@ export default function SimplifiedAuthDialog({
                   <Label htmlFor="invoice">Invoice Number</Label>
                   <Input
                     id="invoice"
-                    placeholder="HN-2025-123456"
+                    placeholder="HN-DUB-2576597"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
                     className="mt-1"

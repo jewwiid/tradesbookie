@@ -310,10 +310,10 @@ function UserManagement() {
       {/* User Details Dialog */}
       {selectedUser && (
         <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-md" aria-describedby="user-dialog-description">
             <DialogHeader>
               <DialogTitle>User Details</DialogTitle>
-              <DialogDescription>
+              <DialogDescription id="user-dialog-description">
                 View user information and activity
               </DialogDescription>
             </DialogHeader>
@@ -506,10 +506,10 @@ function InstallerManagement() {
 
       {/* View Installer Dialog */}
       <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="installer-view-description">
           <DialogHeader>
             <DialogTitle>Installer Details</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="installer-view-description">
               View complete installer information and statistics
             </DialogDescription>
           </DialogHeader>
@@ -575,10 +575,10 @@ function InstallerManagement() {
 
       {/* Edit Installer Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="installer-edit-description">
           <DialogHeader>
             <DialogTitle>Edit Installer</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="installer-edit-description">
               Update installer information and settings
             </DialogDescription>
           </DialogHeader>

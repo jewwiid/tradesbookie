@@ -26,61 +26,29 @@ const MOUNT_TYPES = [
   }
 ];
 
-const WALL_MOUNT_OPTIONS = [
-  {
-    key: "basic-fixed",
-    name: "Basic Fixed Mount",
-    description: "Simple, sturdy fixed mounting bracket",
-    type: "Fixed",
-    price: 2500, // €25.00 in cents
-    maxSize: 65
-  },
-  {
-    key: "premium-fixed",
-    name: "Premium Fixed Mount",
-    description: "Heavy-duty fixed mount for larger TVs",
-    type: "Fixed", 
-    price: 4000, // €40.00 in cents
-    maxSize: null
-  },
-  {
-    key: "basic-tilting",
-    name: "Basic Tilting Mount",
-    description: "Allows up/down tilt adjustment",
-    type: "Tilting",
-    price: 3500, // €35.00 in cents
-    maxSize: 65
-  },
-  {
-    key: "premium-tilting",
-    name: "Premium Tilting Mount", 
-    description: "Heavy-duty tilting mount for larger TVs",
-    type: "Tilting",
-    price: 5000, // €50.00 in cents  
-    maxSize: null
-  },
-  {
-    key: "basic-full-motion",
-    name: "Basic Full Motion Mount",
-    description: "Swivel, tilt, and extend functionality",
-    type: "Full Motion",
-    price: 6000, // €60.00 in cents
-    maxSize: 55
-  },
-  {
-    key: "premium-full-motion", 
-    name: "Premium Full Motion Mount",
-    description: "Heavy-duty full motion mount for larger TVs",
-    type: "Full Motion",
-    price: 8500, // €85.00 in cents
-    maxSize: null
-  }
-];
+// Interface for wall mount pricing from database
+interface WallMountPricing {
+  id: number;
+  key: string;
+  name: string;
+  description: string | null;
+  price: number;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
 
 export default function MountTypeSelection() {
   const { bookingData, updateBookingData } = useBooking();
   const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(undefined);
   const [selectedWallMount, setSelectedWallMount] = useState<string>('');
+
+  // Fetch wall mount pricing from database
+  const { data: wallMountPricing, isLoading: isLoadingPricing } = useQuery<WallMountPricing[]>({
+    queryKey: ['/api/wall-mount-pricing'],
+    enabled: needsWallMount === true, // Only fetch when user wants wall mount
+  });
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -96,17 +64,11 @@ export default function MountTypeSelection() {
   };
 
   const getAvailableWallMounts = () => {
-    const tvSize = bookingData.tvSize;
-    if (!tvSize) return WALL_MOUNT_OPTIONS;
+    if (!wallMountPricing) return [];
     
-    return WALL_MOUNT_OPTIONS.filter(mount => 
-      mount.maxSize === null || tvSize <= mount.maxSize
-    ).filter(mount => {
-      // Filter by selected mount type
-      if (!bookingData.mountType) return true;
-      const mountTypeName = MOUNT_TYPES.find(t => t.key === bookingData.mountType)?.name || '';
-      return mount.type === mountTypeName;
-    });
+    // Return all active wall mount options from database
+    // The database handles the filtering by active status
+    return wallMountPricing;
   };
 
   const handleMountTypeSelect = (mountType: string) => {
@@ -130,13 +92,15 @@ export default function MountTypeSelection() {
   const handleWallMountOptionSelect = (wallMountKey: string) => {
     setSelectedWallMount(wallMountKey);
     
-    // Find the selected wall mount and add its price
-    const selectedMount = WALL_MOUNT_OPTIONS.find(mount => mount.key === wallMountKey);
+    // Find the selected wall mount from database pricing and add its price
+    const selectedMount = wallMountPricing?.find(mount => mount.key === wallMountKey);
     if (selectedMount) {
-      const wallMountPrice = selectedMount.price / 100; // Convert cents to euros
+      const wallMountPrice = selectedMount.price; // Price is already in euros from database
       const newTotal = bookingData.subtotal + bookingData.addonTotal + wallMountPrice;
       updateBookingData({ 
-        total: newTotal
+        total: newTotal,
+        wallMountOption: wallMountKey,
+        wallMountPrice: wallMountPrice * 100 // Store as cents for compatibility
       });
     }
   };
@@ -223,41 +187,40 @@ export default function MountTypeSelection() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Choose Your Wall Mount</h3>
             <p className="text-gray-600 mb-6">Select the wall mount that best fits your TV and viewing needs</p>
             
-            <div className="grid gap-4">
-              {getAvailableWallMounts().map((mount) => (
-                <button
-                  key={mount.key}
-                  onClick={() => handleWallMountOptionSelect(mount.key)}
-                  className={`p-4 border-2 rounded-xl transition-all duration-300 text-left ${
-                    selectedWallMount === mount.key
-                      ? 'border-indigo-500 bg-indigo-50'
-                      : 'border-gray-200 hover:border-indigo-400 hover:bg-indigo-50'
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900 mb-1">{mount.name}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{mount.description}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                          {mount.type}
-                        </span>
-                        {mount.maxSize && (
-                          <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                            Up to {mount.maxSize}"
-                          </span>
+            {isLoadingPricing ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                <p className="text-gray-600 mt-2">Loading wall mount options...</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {getAvailableWallMounts().map((mount) => (
+                  <button
+                    key={mount.key}
+                    onClick={() => handleWallMountOptionSelect(mount.key)}
+                    className={`p-4 border-2 rounded-xl transition-all duration-300 text-left ${
+                      selectedWallMount === mount.key
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-gray-200 hover:border-indigo-400 hover:bg-indigo-50'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-gray-900 mb-1">{mount.name}</h4>
+                        {mount.description && (
+                          <p className="text-sm text-gray-600 mb-2">{mount.description}</p>
                         )}
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-gray-900">
-                        €{(mount.price / 100).toFixed(0)}
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-gray-900">
+                          €{mount.price.toFixed(0)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

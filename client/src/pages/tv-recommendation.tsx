@@ -437,7 +437,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
                 )}
               </div>
             </CardHeader>
-            <CardContent className="space-y-6 bg-white">
+            <CardContent className="space-y-6 bg-white pt-6">
               <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
                 <h3 className="font-bold text-blue-900 mb-3 text-lg">Why This TV Is Perfect For You</h3>
                 <ul className="space-y-2">

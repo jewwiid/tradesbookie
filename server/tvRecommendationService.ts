@@ -64,6 +64,7 @@ Provide a recommendation in JSON format with:
 - cons: Array of 2-3 honest considerations including budget limitations if applicable
 - priceRange: MUST be within the user's selected budget range
 - bestFor: Array of 3-4 use cases this TV excels at within this price category
+- currentModels: Array of 2-3 alternative TV models in the same budget range, each with: { model, brand, price, keyFeatures, pros, cons }
 
 Be realistic about what features are available at each price point.`;
 
@@ -118,6 +119,11 @@ Be realistic about what features are available at each price point.`;
       Object.assign(recommendation, budgetValidation.adjustedRecommendation);
     }
 
+    // Ensure currentModels are present - generate fallback if missing
+    if (!recommendation.currentModels || recommendation.currentModels.length === 0) {
+      recommendation.currentModels = generateAlternativeModels(answers.budget, recommendation.type);
+    }
+
     return recommendation;
   } catch (error) {
     console.error("TV recommendation error:", error);
@@ -159,6 +165,117 @@ function validateBudgetConstraints(recommendation: TVRecommendation, budget: str
   }
 
   return { isValid: true };
+}
+
+function generateAlternativeModels(budget: string, tvType: string): any[] {
+  const budgetModels = {
+    budget: [
+      {
+        model: "Samsung Q60C 55\"",
+        brand: "Samsung",
+        price: "€650-€750",
+        keyFeatures: ["4K QLED", "Smart TV", "HDR10+"],
+        pros: ["Great value", "Reliable brand", "Good picture quality"],
+        cons: ["Basic local dimming", "Limited gaming features"]
+      },
+      {
+        model: "LG QNED80 50\"",
+        brand: "LG",
+        price: "€550-€650",
+        keyFeatures: ["4K QNED", "webOS", "HDR10"],
+        pros: ["Smart interface", "Good color accuracy", "Energy efficient"],
+        cons: ["Smaller size", "Standard refresh rate"]
+      },
+      {
+        model: "TCL C745 55\"",
+        brand: "TCL",
+        price: "€500-€600",
+        keyFeatures: ["4K QLED", "Google TV", "Dolby Vision"],
+        pros: ["Excellent value", "Google TV platform", "HDR support"],
+        cons: ["Lesser known brand", "Basic build quality"]
+      }
+    ],
+    mid: [
+      {
+        model: "Samsung Q70C 55\"",
+        brand: "Samsung",
+        price: "€1,100-€1,300",
+        keyFeatures: ["4K QLED", "120Hz", "Gaming Hub"],
+        pros: ["Gaming features", "Bright display", "Premium design"],
+        cons: ["No OLED contrast", "Reflection issues"]
+      },
+      {
+        model: "LG C3 OLED 48\"",
+        brand: "LG",
+        price: "€1,200-€1,400",
+        keyFeatures: ["4K OLED", "120Hz", "webOS"],
+        pros: ["Perfect blacks", "Gaming optimized", "Thin design"],
+        cons: ["Smaller size", "Potential burn-in"]
+      },
+      {
+        model: "Sony X90L 55\"",
+        brand: "Sony",
+        price: "€1,000-€1,200",
+        keyFeatures: ["4K LED", "XR Processor", "Google TV"],
+        pros: ["Excellent processing", "Natural colors", "Good upscaling"],
+        cons: ["Limited HDR brightness", "Average gaming features"]
+      }
+    ],
+    high: [
+      {
+        model: "LG C3 OLED 65\"",
+        brand: "LG",
+        price: "€1,800-€2,200",
+        keyFeatures: ["4K OLED", "120Hz", "Dolby Vision IQ"],
+        pros: ["Perfect contrast", "Gaming excellence", "Premium design"],
+        cons: ["Potential burn-in", "Reflection sensitivity"]
+      },
+      {
+        model: "Samsung QN90C 65\"",
+        brand: "Samsung",
+        price: "€2,000-€2,400",
+        keyFeatures: ["4K Neo QLED", "Mini LED", "120Hz"],
+        pros: ["Extremely bright", "No burn-in risk", "Gaming features"],
+        cons: ["Higher price", "Complex interface"]
+      },
+      {
+        model: "Sony A80L OLED 65\"",
+        brand: "Sony",
+        price: "€1,900-€2,300",
+        keyFeatures: ["4K OLED", "XR Processor", "Acoustic Surface"],
+        pros: ["Natural picture", "Great upscaling", "Unique sound"],
+        cons: ["Gaming limitations", "Slower interface"]
+      }
+    ],
+    premium: [
+      {
+        model: "LG G3 OLED 77\"",
+        brand: "LG",
+        price: "€3,500-€4,200",
+        keyFeatures: ["4K OLED evo", "Gallery Design", "120Hz"],
+        pros: ["Ultra-thin design", "Gallery mount", "Exceptional picture"],
+        cons: ["Very expensive", "Requires wall mount"]
+      },
+      {
+        model: "Samsung QN95C 75\"",
+        brand: "Samsung",
+        price: "€3,200-€3,800",
+        keyFeatures: ["8K Neo QLED", "Mini LED", "AI Upscaling"],
+        pros: ["8K resolution", "Future-proof", "Extreme brightness"],
+        cons: ["Limited 8K content", "High power consumption"]
+      },
+      {
+        model: "Sony A95L QD-OLED 77\"",
+        brand: "Sony",
+        price: "€4,000-€4,800",
+        keyFeatures: ["4K QD-OLED", "XR Processor", "Acoustic Surface+"],
+        pros: ["Quantum Dot OLED", "Exceptional color", "Premium audio"],
+        cons: ["Highest price", "Limited availability"]
+      }
+    ]
+  };
+
+  return budgetModels[budget as keyof typeof budgetModels] || budgetModels.mid;
 }
 
 function getBudgetAppropriateRecommendation(budget: string): Partial<TVRecommendation> {

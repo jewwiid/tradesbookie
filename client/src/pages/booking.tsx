@@ -50,7 +50,7 @@ export default function Booking() {
       case 4:
         return bookingData.wallType !== '';
       case 5:
-        return bookingData.mountType !== ''; // Mount type selection includes wall mount options
+        return true; // Mount type is optional - users can skip to decide later
       case 6:
         return true; // Addons are optional
       case 7:

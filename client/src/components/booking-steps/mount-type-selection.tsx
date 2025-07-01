@@ -243,6 +243,22 @@ export default function MountTypeSelection() {
             </div>
           </div>
         )}
+
+        {/* Skip Mount Type Option */}
+        {!bookingData.mountType && (
+          <div className="text-center mt-8 pt-6 border-t border-gray-200">
+            <p className="text-sm text-gray-500 mb-4">
+              Not sure about mount type? You can decide with your installer
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => updateBookingData({ mountType: 'to-be-decided' })}
+              className="text-gray-600 hover:text-gray-800"
+            >
+              Skip - Decide with Installer
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

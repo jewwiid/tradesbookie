@@ -51,7 +51,9 @@ export default function BookingFlow() {
       case 4:
         return bookingData.wallType !== "";
       case 5:
-        return bookingData.mountType !== "";
+        return bookingData.mountType !== "" && 
+               (bookingData.needsWallMount === false || 
+                (bookingData.needsWallMount === true && bookingData.wallMountOption));
       case 6:
         return true; // Addons are optional
       case 7:

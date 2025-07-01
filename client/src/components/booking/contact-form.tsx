@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, CheckCircle, CreditCard, Sparkles, Loader2, Tag } from "lucide-react";
+import { User, CheckCircle, Sparkles, Loader2, Tag } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -445,8 +445,8 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
           <>Creating Booking...</>
         ) : (
           <>
-            <CreditCard className="w-5 h-5 mr-2" />
-            Proceed to Payment - €{totalPrice}
+            <CheckCircle className="w-5 h-5 mr-2" />
+            Submit Installation Request
           </>
         )}
       </Button>

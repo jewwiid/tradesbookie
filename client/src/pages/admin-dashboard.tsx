@@ -55,6 +55,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import QRCode from "@/components/QRCode";
 import PricingManagement from "@/components/admin/PricingManagement";
+import WallMountPricingManagement from "@/components/admin/WallMountPricingManagement";
 
 interface AdminStats {
   totalBookings: number;

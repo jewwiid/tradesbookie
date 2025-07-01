@@ -216,7 +216,7 @@ export default function Home() {
                 <Link href="/booking">
                   <Button className="inline-flex items-center bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
                     <Camera className="mr-3 h-5 w-5" />
-                    Start AI Preview
+                    Book TV Installation
                   </Button>
                 </Link>
               </div>

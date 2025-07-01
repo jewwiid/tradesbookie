@@ -217,7 +217,7 @@ const PricingForm = ({
 export default function PricingManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'service' | 'addon' | 'bracket'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'service' | 'addon' | 'bracket' | 'wall-mount'>('all');
   const [editingPricing, setEditingPricing] = useState<PricingItem | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 

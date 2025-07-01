@@ -113,10 +113,10 @@ export async function getWebsiteMetrics(): Promise<WebsiteMetrics> {
       .slice(0, 5);
 
     // Extract geographic data from booking addresses
-    const geographicData = extractGeographicData(bookings);
+    const geographicData = await extractGeographicData(bookings);
 
     // Generate monthly trends from booking dates
-    const monthlyTrends = generateMonthlyTrends(bookings);
+    const monthlyTrends = await generateMonthlyTrends(bookings);
 
     // Get recent activity from multiple sources
     const recentActivity = await getRecentActivity();
@@ -204,19 +204,21 @@ export async function getRealTimeStats(): Promise<RealTimeStats> {
   }
 }
 
-function extractGeographicData(bookings: any[]): Array<{county: string, bookingCount: number, revenue: number}> {
+async function extractGeographicData(bookings: any[]): Promise<Array<{county: string, bookingCount: number, revenue: number}>> {
   const counties: Record<string, {count: number, revenue: number}> = {};
   
-  bookings.forEach(booking => {
+  for (const booking of bookings) {
     const county = extractCountyFromAddress(booking.address);
     if (county) {
       if (!counties[county]) {
         counties[county] = { count: 0, revenue: 0 };
       }
       counties[county].count++;
-      counties[county].revenue += parseFloat(booking.totalPrice || '0');
+      // Use lead fee instead of customer payment for platform revenue
+      const leadFee = await getLeadFeeForService(booking.serviceType);
+      counties[county].revenue += leadFee;
     }
-  });
+  }
 
   return Object.entries(counties).map(([county, data]) => ({
     county,
@@ -243,10 +245,10 @@ function extractCountyFromAddress(address: string): string | null {
   return 'Unknown';
 }
 
-function generateMonthlyTrends(bookings: any[]): Array<{month: string, bookings: number, revenue: number}> {
+async function generateMonthlyTrends(bookings: any[]): Promise<Array<{month: string, bookings: number, revenue: number}>> {
   const months: Record<string, {bookings: number, revenue: number}> = {};
   
-  bookings.forEach(booking => {
+  for (const booking of bookings) {
     const date = new Date(booking.createdAt || booking.scheduledDate);
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     
@@ -254,8 +256,10 @@ function generateMonthlyTrends(bookings: any[]): Array<{month: string, bookings:
       months[monthKey] = { bookings: 0, revenue: 0 };
     }
     months[monthKey].bookings++;
-    months[monthKey].revenue += parseFloat(booking.totalPrice || '0');
-  });
+    // Use lead fee instead of customer payment for platform revenue
+    const leadFee = await getLeadFeeForService(booking.serviceType);
+    months[monthKey].revenue += leadFee;
+  }
 
   return Object.entries(months)
     .sort(([a], [b]) => a.localeCompare(b))

@@ -30,6 +30,8 @@ export interface BookingData {
 
   // Step 5: Mount Type
   mountType: string;
+  needsWallMount?: boolean;
+  wallMountOption?: string;
 
   // Step 6: Add-ons
   addons?: Array<{

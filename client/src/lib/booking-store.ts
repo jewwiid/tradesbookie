@@ -27,6 +27,7 @@ export interface BookingData {
   analysisResult?: any;
   photoStorageConsent?: boolean;
   roomAnalysis?: string;
+  roomPhotoBase64?: string;
 }
 
 interface BookingStore {

@@ -310,7 +310,10 @@ export default function Home() {
                   Enter your Harvey Norman receipt number to book instantly. No account needed.
                 </p>
                 <Button 
-                  onClick={() => setAuthDialogOpen(true)}
+                  onClick={() => {
+                    setAuthDialogTab('invoice');
+                    setAuthDialogOpen(true);
+                  }}
                   className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600"
                 >
                   Use Invoice Number
@@ -328,7 +331,10 @@ export default function Home() {
                   Skip registration. Just provide your email for booking updates.
                 </p>
                 <Button 
-                  onClick={() => setAuthDialogOpen(true)}
+                  onClick={() => {
+                    setAuthDialogTab('guest');
+                    setAuthDialogOpen(true);
+                  }}
                   className="w-full bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600"
                 >
                   Book as Guest
@@ -346,7 +352,10 @@ export default function Home() {
                   Create an account for booking history, dashboard access, and more.
                 </p>
                 <Button 
-                  onClick={() => setAuthDialogOpen(true)}
+                  onClick={() => {
+                    setAuthDialogTab('oauth');
+                    setAuthDialogOpen(true);
+                  }}
                   className="w-full bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600"
                 >
                   Create Account
@@ -492,6 +501,7 @@ export default function Home() {
         }}
         title="Get Started"
         description="Choose how you'd like to book your TV installation"
+        defaultTab={authDialogTab}
       />
     </div>
   );

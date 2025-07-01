@@ -45,10 +45,13 @@ export const harveyNormanInvoices = pgTable("harvey_norman_invoices", {
   invoiceNumber: varchar("invoice_number").unique().notNull(),
   customerEmail: varchar("customer_email").notNull(),
   customerName: varchar("customer_name").notNull(),
+  customerPhone: varchar("customer_phone"),
   purchaseDate: timestamp("purchase_date").notNull(),
   tvModel: varchar("tv_model"),
   tvSize: varchar("tv_size"),
   purchaseAmount: decimal("purchase_amount", { precision: 8, scale: 2 }),
+  storeName: varchar("store_name"),
+  storeCode: varchar("store_code"),
   isUsedForRegistration: boolean("is_used_for_registration").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });

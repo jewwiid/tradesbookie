@@ -183,6 +183,42 @@ export class HarveyNormanInvoiceService {
         purchaseAmount: '1599.99',
         storeName: 'Harvey Norman Limerick',
         storeCode: 'LIM'
+      },
+      {
+        invoiceNumber: 'HN-BLA-112233',
+        customerEmail: 'david.walsh@email.com',
+        customerName: 'David Walsh',
+        customerPhone: '0851234567',
+        purchaseDate: new Date('2025-06-30'),
+        tvModel: 'LG 65" OLED',
+        tvSize: '65"',
+        purchaseAmount: '1299.00',
+        storeName: 'Harvey Norman Blanchardstown',
+        storeCode: 'BLA'
+      },
+      {
+        invoiceNumber: 'HN-TAL-998877',
+        customerEmail: 'sarah.kelly@email.com',
+        customerName: 'Sarah Kelly',
+        customerPhone: '0865432109',
+        purchaseDate: new Date('2025-07-01'),
+        tvModel: 'Sony 55" Bravia',
+        tvSize: '55"',
+        purchaseAmount: '749.99',
+        storeName: 'Harvey Norman Tallaght',
+        storeCode: 'TAL'
+      },
+      {
+        invoiceNumber: 'HN-WAT-445566',
+        customerEmail: 'michael.brown@email.com',
+        customerName: 'Michael Brown',
+        customerPhone: '0877654321',
+        purchaseDate: new Date('2025-06-25'),
+        tvModel: 'Samsung 43" Crystal UHD',
+        tvSize: '43"',
+        purchaseAmount: '399.99',
+        storeName: 'Harvey Norman Waterford',
+        storeCode: 'WAT'
       }
     ];
 
@@ -220,15 +256,22 @@ export class HarveyNormanInvoiceService {
    */
   getStoreName(storeCode: string): string {
     const storeMap: Record<string, string> = {
+      'BLA': 'Harvey Norman Blanchardstown',
       'CRK': 'Harvey Norman Carrickmines',
-      'DUB': 'Harvey Norman Dublin',
-      'COR': 'Harvey Norman Cork',
+      'CAS': 'Harvey Norman Castlebar',
+      'DRO': 'Harvey Norman Drogheda',
+      'FON': 'Harvey Norman Fonthill',
       'GAL': 'Harvey Norman Galway',
+      'KIN': 'Harvey Norman Kinsale Road',
       'LIM': 'Harvey Norman Limerick',
-      'WAT': 'Harvey Norman Waterford',
-      'ATH': 'Harvey Norman Athlone',
-      'BLF': 'Harvey Norman Belfast',
-      'NEW': 'Harvey Norman Newry'
+      'LIT': 'Harvey Norman Little Island',
+      'NAA': 'Harvey Norman Naas',
+      'RAT': 'Harvey Norman Rathfarnham',
+      'SLI': 'Harvey Norman Sligo',
+      'SWO': 'Harvey Norman Swords',
+      'TAL': 'Harvey Norman Tallaght',
+      'TRA': 'Harvey Norman Tralee',
+      'WAT': 'Harvey Norman Waterford'
     };
     return storeMap[storeCode] || `Harvey Norman ${storeCode}`;
   }

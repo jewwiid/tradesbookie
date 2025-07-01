@@ -169,7 +169,7 @@ export default function SimplifiedAuthDialog({
                     Format: HN-[STORE]-[NUMBER] (e.g., HN-CRK-2576597 for Carrickmines)
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Store codes: CRK (Carrickmines), DUB (Dublin), COR (Cork), GAL (Galway), LIM (Limerick)
+                    Store codes: BLA, CRK, CAS, DRO, FON, GAL, KIN, LIM, LIT, NAA, RAT, SLI, SWO, TAL, TRA, WAT
                   </p>
                 </div>
                 <Button 

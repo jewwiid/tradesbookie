@@ -167,8 +167,8 @@ export default function SimplifiedAuthDialog({
                   />
                   <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
                     <p className="font-medium mb-2">Format: HN-[STORE]-[NUMBER]</p>
-                    <p className="mb-1">Store codes:</p>
-                    <div className="grid grid-cols-4 gap-1 text-xs">
+                    <p className="mb-2">Store codes:</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                       <span>BLA (Blanchardstown)</span>
                       <span>CRK (Carrickmines)</span>
                       <span>CAS (Castlebar)</span>

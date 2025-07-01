@@ -106,6 +106,21 @@ The application is configured for deployment on Replit with the following setup:
 
 ## Current Status
 
+**✅ Lead Generation Business Model Transformation Complete (July 1, 2025):**
+- Transformed from commission-based to lead generation marketplace
+- Customers book for free and pay installers directly (cash, card, bank transfer)
+- Installers pay platform fixed lead fees (€12-€35) to access customer requests
+- Platform revenue from connection fees instead of service commissions
+- Complete installer wallet system with credit management and transaction tracking
+- Real-time lead marketplace with profit margin calculations
+
+**✅ New Revenue Structure:**
+- Table Mount Small: €60 customer estimate, €12 lead fee (80% installer margin)
+- Bronze Wall Mount: €120 customer estimate, €20 lead fee (83% installer margin)
+- Silver Premium: €180 customer estimate, €25 lead fee (86% installer margin)
+- Gold Premium Large: €380 customer estimate, €35 lead fee (91% installer margin)
+- Fixed lead fees provide predictable platform revenue vs. variable commissions
+
 **Authentication System Fixed:**
 - Restored proper Replit Auth OIDC integration (June 19, 2025)
 - Removed temporary localStorage admin session workaround

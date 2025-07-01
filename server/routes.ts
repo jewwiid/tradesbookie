@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { insertBookingSchema, insertUserSchema, insertReviewSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
-import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing, SERVICE_TIERS } from "./pricing";
+import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing, SERVICE_TIERS, getLeadFee } from "./pricing";
 import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";

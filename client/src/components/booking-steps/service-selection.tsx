@@ -87,7 +87,8 @@ export default function ServiceSelection({ onNext, onBack }: ServiceSelectionPro
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-primary">{formatPrice(service.basePrice)}</div>
+                  <div className="text-2xl font-bold text-primary">{formatPrice(service.customerEstimate)}</div>
+                  <div className="text-xs text-gray-500">Estimated cost</div>
                 </div>
               </div>
             </button>

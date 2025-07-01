@@ -81,6 +81,9 @@ const PricingForm = ({
               <SelectItem value="bracket">Bracket</SelectItem>
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground mt-1">
+            Choose the type: Service (main installation tiers), Add-on (optional extras), or Bracket (wall mount types)
+          </p>
         </div>
         <div>
           <Label htmlFor="itemKey">Item Key</Label>
@@ -91,6 +94,9 @@ const PricingForm = ({
             placeholder="e.g., bronze, soundbar-mounting"
             required
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            Unique identifier used in code. Use lowercase with hyphens (e.g., "gold-premium", "cable-hiding")
+          </p>
         </div>
       </div>
       
@@ -103,6 +109,9 @@ const PricingForm = ({
           placeholder="e.g., Bronze Wall Mount"
           required
         />
+        <p className="text-xs text-muted-foreground mt-1">
+          Display name shown to customers (e.g., "Bronze Wall Mount", "Soundbar Installation", "Premium Fixed Bracket")
+        </p>
       </div>
       
       <div>
@@ -114,6 +123,9 @@ const PricingForm = ({
           placeholder="Brief description of the service/addon/bracket"
           rows={3}
         />
+        <p className="text-xs text-muted-foreground mt-1">
+          Short description explaining what this item includes. Shown to customers during booking.
+        </p>
       </div>
       
       <div className="grid grid-cols-2 gap-4">
@@ -128,6 +140,9 @@ const PricingForm = ({
             onChange={(e) => setFormData(prev => ({ ...prev, customerPrice: parseFloat(e.target.value) || 0 }))}
             required
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            Estimated price shown to customers. They pay installers directly (cash/card/transfer).
+          </p>
         </div>
         <div>
           <Label htmlFor="leadFee">Lead Fee (€)</Label>
@@ -140,6 +155,9 @@ const PricingForm = ({
             onChange={(e) => setFormData(prev => ({ ...prev, leadFee: parseFloat(e.target.value) || 0 }))}
             required
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            Fixed fee installers pay to access this lead. Platform revenue source (€12-€35 typically).
+          </p>
         </div>
       </div>
       
@@ -158,6 +176,9 @@ const PricingForm = ({
               }))}
               placeholder="e.g., 32"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Minimum TV size for this service tier. Helps filter appropriate options for customers.
+            </p>
           </div>
           <div>
             <Label htmlFor="maxTvSize">Max TV Size (inches)</Label>
@@ -172,6 +193,9 @@ const PricingForm = ({
               }))}
               placeholder="e.g., 65 (leave empty for unlimited)"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Maximum TV size for this tier. Leave empty for no upper limit (e.g., premium services).
+            </p>
           </div>
         </div>
       )}

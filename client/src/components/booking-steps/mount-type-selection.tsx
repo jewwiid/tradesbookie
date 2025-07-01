@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Settings, Square, ChevronDown, Move, Check, X, ArrowLeft } from 'lucide-react';
-import { useBooking } from '@/hooks/use-booking';
+import { useBookingStore } from '@/lib/booking-store';
 import { useQuery } from '@tanstack/react-query';
 
 const MOUNT_TYPES = [
@@ -45,9 +45,9 @@ interface MountTypeSelectionProps {
 }
 
 export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectionProps) {
-  const { bookingData, updateBookingData } = useBooking();
-  const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(undefined);
-  const [selectedWallMount, setSelectedWallMount] = useState<string>('');
+  const { data, updateData } = useBookingStore();
+  const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(data.needsWallMount);
+  const [selectedWallMount, setSelectedWallMount] = useState<string>(data.wallMountOption || '');
 
   // Fetch wall mount pricing from database
   const { data: wallMountPricing, isLoading: isLoadingPricing } = useQuery<WallMountPricing[]>({
@@ -77,35 +77,32 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
   };
 
   const handleMountTypeSelect = (mountType: string) => {
-    updateBookingData({ mountType });
+    updateData({ mountType });
     // Reset wall mount selection when mount type changes
     setSelectedWallMount('');
+    updateData({ wallMountOption: undefined, needsWallMount: undefined });
   };
 
   const handleWallMountSelect = (needs: boolean) => {
     setNeedsWallMount(needs);
+    updateData({ needsWallMount: needs });
     if (!needs) {
       setSelectedWallMount('');
-      // Update total price by removing wall mount cost
-      updateBookingData({ 
-        addonTotal: bookingData.addonTotal,
-        total: bookingData.subtotal + bookingData.addonTotal
-      });
+      updateData({ wallMountOption: undefined });
     }
   };
 
   const handleWallMountOptionSelect = (wallMountKey: string) => {
     setSelectedWallMount(wallMountKey);
+    updateData({ wallMountOption: wallMountKey });
     
     // Find the selected wall mount from database pricing and add its price
     const selectedMount = wallMountPricing?.find(mount => mount.key === wallMountKey);
     if (selectedMount) {
       const wallMountPrice = selectedMount.price; // Price is already in euros from database
-      const newTotal = bookingData.subtotal + bookingData.addonTotal + wallMountPrice;
-      updateBookingData({ 
-        total: newTotal,
-        wallMountOption: wallMountKey,
-        wallMountPrice: wallMountPrice * 100 // Store as cents for compatibility
+      const newTotal = data.basePrice + data.addonsPrice + wallMountPrice;
+      updateData({ 
+        totalPrice: newTotal
       });
     }
   };
@@ -128,7 +125,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
               key={mount.key}
               onClick={() => handleMountTypeSelect(mount.key)}
               className={`w-full p-6 border-2 rounded-2xl transition-all duration-300 text-left ${
-                bookingData.mountType === mount.key
+                data.mountType === mount.key
                   ? 'border-indigo-500 bg-gradient-to-br from-blue-50 to-indigo-50'
                   : 'border-gray-200 hover:border-indigo-400 hover:bg-blue-50'
               }`}
@@ -147,7 +144,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
         </div>
 
         {/* Wall Mount Question - appears after mount type is selected */}
-        {bookingData.mountType && (
+        {data.mountType && (
           <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Do you need a wall mount?</h3>
             <p className="text-gray-600 mb-6">
@@ -234,7 +231,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="font-medium text-gray-700">Updated Total:</span>
-              <span className="text-xl font-bold text-indigo-600">€{bookingData.total.toFixed(2)}</span>
+              <span className="text-xl font-bold text-indigo-600">€{data.totalPrice.toFixed(2)}</span>
             </div>
           </div>
         )}
@@ -247,7 +244,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
           </Button>
           <Button 
             onClick={onNext} 
-            disabled={!bookingData.mountType || (needsWallMount === true && !selectedWallMount)}
+            disabled={!data.mountType || (needsWallMount === true && !selectedWallMount)}
             className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
           >
             Continue

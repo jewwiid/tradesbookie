@@ -48,7 +48,7 @@ export const calculateTotal = (
 };
 
 export const formatPrice = (price: number): string => {
-  return `€${price.toFixed(2)}`;
+  return `From €${price.toFixed(0)}`;
 };
 
 export const getTVSizeCategory = (size: number): string => {

@@ -7,5 +7,5 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatPrice(price: number | string): string {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
-  return `€${numPrice.toFixed(2)}`;
+  return `From €${numPrice.toFixed(0)}`;
 }

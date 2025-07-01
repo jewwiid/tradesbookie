@@ -382,6 +382,7 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Added comprehensive platform insights: Monthly lead revenue projections, average lead values, conversion rates, installer retention metrics**
 - July 1, 2025: **Created revenue breakdown by service type showing estimated monthly lead volume and platform earnings from each tier**
 - July 1, 2025: **Added platform health indicators displaying installer margins (80-91%), lead fee ranges (€12-€35), and annual revenue projections**
+- July 1, 2025: **Updated homepage and pricing page display to show "From €X" format instead of fixed prices to reflect installer rate variability**
 
 ## User Preferences
 

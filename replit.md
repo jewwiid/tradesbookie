@@ -362,6 +362,12 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Enhanced customer dashboard with clear lead generation messaging: "Your installation request is live on our platform" and payment options (Cash • Card • Bank Transfer)**
 - July 1, 2025: **Database cleanup completed: Removed obsolete feeStructures table and commission-based schema elements no longer needed in lead generation model**
 - July 1, 2025: **Fixed accessibility issues: Added proper DialogTitle and DialogDescription components to login modals for screen reader compatibility**
+- July 1, 2025: **Completed Harvey Norman sales staff referral system with full end-to-end functionality**
+- July 1, 2025: **Added Harvey Norman referral management section to admin dashboard for creating and managing sales staff codes**
+- July 1, 2025: **Updated contact form to capture and validate Harvey Norman referral codes with real-time discount calculation**
+- July 1, 2025: **Implemented 10% customer discount system with installer subsidy structure maintaining platform revenue**
+- July 1, 2025: **Fixed database schema issues for referral_codes table to support sales staff codes with nullable user_id**
+- July 1, 2025: **Tested complete Harvey Norman referral flow: code creation, validation, discount application, and admin management**
 
 ## User Preferences
 

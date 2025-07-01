@@ -2092,18 +2092,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       // Calculate platform revenue from lead fees (not customer payments)
       let totalRevenue = 0;
-      console.log('Admin stats - Number of bookings:', bookings.length);
       for (const booking of bookings) {
-        console.log('Processing booking service type:', booking.serviceType);
         const leadFee = getLeadFee(booking.serviceType);
-        console.log('Lead fee for', booking.serviceType, ':', leadFee);
         totalRevenue += leadFee;
       }
-      console.log('Total calculated revenue:', totalRevenue);
       
       // Average lead fee per booking
       const avgLeadFee = totalBookings > 0 ? totalRevenue / totalBookings : 0;
-      console.log('Average lead fee:', avgLeadFee);
       const activeBookings = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length;
       const completedBookings = bookings.filter(b => b.status === 'completed').length;
       const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
@@ -2140,31 +2135,42 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Admin Users Management
   app.get("/api/admin/users", isAdmin, async (req, res) => {
     try {
+      // Get all users from the users table
+      const allUsers = await storage.getAllUsers();
       const bookings = await storage.getAllBookings();
-      const userMap = new Map();
       
+      // Create a map of user booking statistics
+      const userStats = new Map();
       bookings.forEach(booking => {
-        if (booking.userId && booking.customerEmail) {
-          if (!userMap.has(booking.userId)) {
-            userMap.set(booking.userId, {
-              id: booking.userId,
-              email: booking.customerEmail,
-              firstName: booking.customerName?.split(' ')[0] || '',
-              lastName: booking.customerName?.split(' ').slice(1).join(' ') || '',
-              profileImageUrl: null,
-              createdAt: booking.createdAt,
+        if (booking.userId) {
+          if (!userStats.has(booking.userId)) {
+            userStats.set(booking.userId, {
               bookingCount: 0,
               totalSpent: 0
             });
           }
-          const user = userMap.get(booking.userId);
-          user.bookingCount++;
-          user.totalSpent += parseFloat(booking.totalPrice || '0');
+          const stats = userStats.get(booking.userId);
+          stats.bookingCount++;
+          // Calculate total lead fees paid (what customer saves, platform revenue)
+          const leadFee = getLeadFee(booking.serviceType);
+          stats.totalSpent += leadFee;
         }
       });
 
-      const users = Array.from(userMap.values());
-      res.json(users);
+      // Combine user data with booking statistics
+      const enhancedUsers = allUsers.map(user => ({
+        id: user.id.toString(),
+        email: user.email,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        profileImageUrl: user.profileImageUrl,
+        createdAt: user.createdAt?.toISOString() || '',
+        lastLogin: user.updatedAt?.toISOString() || '',
+        bookingCount: userStats.get(user.id)?.bookingCount || 0,
+        totalSpent: userStats.get(user.id)?.totalSpent || 0
+      }));
+
+      res.json(enhancedUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });

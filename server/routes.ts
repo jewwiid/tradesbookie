@@ -983,6 +983,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin referral code management endpoints
+  app.post("/api/referrals/codes", async (req, res) => {
+    try {
+      const { code, referralType, discountPercentage, salesStaffName, salesStaffStore, isActive } = req.body;
+      
+      if (!code || !referralType || discountPercentage === undefined) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Check if code already exists
+      const existingCode = await storage.getReferralCodeByCode(code);
+      if (existingCode) {
+        return res.status(400).json({ message: "Referral code already exists" });
+      }
+
+      const newCode = await storage.createReferralCode({
+        userId: referralType === 'customer' ? null : null, // Admin created codes
+        referralCode: code,
+        referralType: referralType,
+        salesStaffName: salesStaffName || null,
+        salesStaffStore: salesStaffStore || null,
+        discountPercentage: discountPercentage.toString(),
+        totalReferrals: 0,
+        totalEarnings: "0.00",
+        isActive: isActive !== undefined ? isActive : true
+      });
+
+      res.json(newCode);
+    } catch (error) {
+      console.error("Error creating referral code:", error);
+      res.status(500).json({ message: "Failed to create referral code" });
+    }
+  });
+
+  app.put("/api/referrals/codes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { code, discountPercentage, isActive } = req.body;
+      
+      if (!code || discountPercentage === undefined) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const updatedCode = await storage.updateReferralCode(parseInt(id), {
+        referralCode: code,
+        discountPercentage: discountPercentage.toString(),
+        isActive: isActive
+      });
+
+      if (!updatedCode) {
+        return res.status(404).json({ message: "Referral code not found" });
+      }
+
+      res.json(updatedCode);
+    } catch (error) {
+      console.error("Error updating referral code:", error);
+      res.status(500).json({ message: "Failed to update referral code" });
+    }
+  });
+
+  app.delete("/api/referrals/codes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const success = await storage.deleteReferralCode(parseInt(id));
+      
+      if (!success) {
+        return res.status(404).json({ message: "Referral code not found" });
+      }
+
+      res.json({ message: "Referral code deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting referral code:", error);
+      res.status(500).json({ message: "Failed to delete referral code" });
+    }
+  });
+
+  app.get("/api/referrals/usage", async (req, res) => {
+    try {
+      const usage = await storage.getReferralUsageHistory();
+      res.json(usage);
+    } catch (error) {
+      console.error("Error fetching referral usage:", error);
+      res.status(500).json({ message: "Failed to fetch referral usage" });
+    }
+  });
+
   // Harvey Norman Sales Staff Referral Routes
   app.post("/api/harvey-norman/create-code", async (req, res) => {
     try {

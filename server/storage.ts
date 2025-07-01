@@ -485,6 +485,34 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(referralCodes).orderBy(referralCodes.createdAt);
   }
 
+  async getReferralCodeByCode(code: string): Promise<ReferralCode | undefined> {
+    const [referralCode] = await db.select().from(referralCodes)
+      .where(eq(referralCodes.referralCode, code));
+    return referralCode;
+  }
+
+  async updateReferralCode(id: number, updates: { referralCode?: string; discountPercentage?: string; isActive?: boolean }): Promise<ReferralCode | undefined> {
+    const [updated] = await db.update(referralCodes)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(referralCodes.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteReferralCode(id: number): Promise<boolean> {
+    const result = await db.delete(referralCodes)
+      .where(eq(referralCodes.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getReferralUsageHistory(): Promise<ReferralUsage[]> {
+    return await db.select().from(referralUsage)
+      .orderBy(referralUsage.createdAt);
+  }
+
   async getReferralEarnings(userId: string): Promise<{ totalEarnings: number; pendingEarnings: number; totalReferrals: number }> {
     const referralCode = await this.getReferralCodeByUserId(userId);
     if (!referralCode) {

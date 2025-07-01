@@ -43,9 +43,15 @@ import {
   Star,
   Clock,
   DollarSign,
-  AlertTriangle
+  AlertTriangle,
+  Plus
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import QRCode from "@/components/QRCode";
 import PricingManagement from "@/components/admin/PricingManagement";
 
@@ -1546,6 +1552,82 @@ function ReferralManagement() {
     queryFn: () => fetch('/api/referrals/usage').then(r => r.json())
   });
 
+  // Create referral code mutation
+  const createReferralCodeMutation = useMutation({
+    mutationFn: async (data: ReferralCodeFormData) => {
+      const response = await fetch('/api/referrals/codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to create referral code');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/codes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/stats'] });
+      setShowCreateDialog(false);
+      toast({ title: "Referral code created successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error creating referral code", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    }
+  });
+
+  // Update referral code mutation
+  const updateReferralCodeMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: ReferralCodeFormData }) => {
+      const response = await fetch(`/api/referrals/codes/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to update referral code');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/codes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/stats'] });
+      setShowEditDialog(false);
+      setEditingCode(null);
+      toast({ title: "Referral code updated successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error updating referral code", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    }
+  });
+
+  // Delete referral code mutation
+  const deleteReferralCodeMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/referrals/codes/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete referral code');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/codes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/stats'] });
+      toast({ title: "Referral code deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error deleting referral code", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    }
+  });
+
   const updateReferralSettings = useMutation({
     mutationFn: async (settings: { reward: number; discount: number }) => {
       const response = await apiRequest('PUT', '/api/referrals/settings', settings);
@@ -1593,29 +1675,7 @@ function ReferralManagement() {
     }
   });
 
-  // Create new referral code mutation
-  const createReferralCodeMutation = useMutation({
-    mutationFn: async (data: { code: string; referralType: string; discountPercentage: number; salesStaffName?: string; salesStaffStore?: string }) => {
-      const response = await apiRequest('POST', '/api/referrals/codes', data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/referrals/codes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/referrals/stats'] });
-      toast({
-        title: "Success",
-        description: "Referral code created successfully"
-      });
-      setShowCreateDialog(false);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create referral code",
-        variant: "destructive"
-      });
-    }
-  });
+
 
   // Delete referral code mutation
   const deleteReferralCodeMutation = useMutation({
@@ -2001,6 +2061,178 @@ function FeeManagement() {
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+// Referral Code Form Schema
+const referralCodeSchema = z.object({
+  code: z.string().min(3, "Code must be at least 3 characters").max(20, "Code must be at most 20 characters"),
+  referralType: z.enum(["customer", "sales_staff"]),
+  discountPercentage: z.number().min(0, "Discount must be positive").max(100, "Discount cannot exceed 100%"),
+  salesStaffName: z.string().optional(),
+  salesStaffStore: z.string().optional(),
+  isActive: z.boolean().default(true)
+});
+
+type ReferralCodeFormData = z.infer<typeof referralCodeSchema>;
+
+interface ReferralCodeFormProps {
+  code?: any;
+  onSubmit: (data: ReferralCodeFormData) => void;
+  onCancel: () => void;
+  isLoading?: boolean;
+}
+
+function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeFormProps) {
+  const form = useForm<ReferralCodeFormData>({
+    resolver: zodResolver(referralCodeSchema),
+    defaultValues: {
+      code: code?.code || "",
+      referralType: code?.referralType || "customer",
+      discountPercentage: parseFloat(code?.discountPercentage || "10"),
+      salesStaffName: code?.salesStaffName || "",
+      salesStaffStore: code?.salesStaffStore || "",
+      isActive: code?.isActive ?? true
+    }
+  });
+
+  const referralType = form.watch("referralType");
+
+  const handleSubmit = (data: ReferralCodeFormData) => {
+    onSubmit(data);
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="code"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Referral Code</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter referral code" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="referralType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Type</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select referral type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="customer">Customer Referral</SelectItem>
+                  <SelectItem value="sales_staff">Harvey Norman Staff</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {referralType === "sales_staff" && (
+          <>
+            <FormField
+              control={form.control}
+              name="salesStaffName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sales Staff Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter staff member name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="salesStaffStore"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Store Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Carrickmines" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+
+        <FormField
+          control={form.control}
+          name="discountPercentage"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Discount Percentage</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  min="0" 
+                  max="100" 
+                  step="0.1"
+                  placeholder="10.0" 
+                  {...field}
+                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="isActive"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <FormLabel>Active Status</FormLabel>
+                <div className="text-sm text-muted-foreground">
+                  Enable or disable this referral code
+                </div>
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {code ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              code ? "Update Code" : "Create Code"
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 

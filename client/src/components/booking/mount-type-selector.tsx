@@ -1,10 +1,26 @@
+import { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Settings, Square, ChevronDown, Move } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Settings, Square, ChevronDown, Move, Check, X } from "lucide-react";
 import { BookingData } from "@/lib/booking-utils";
+import { useQuery } from '@tanstack/react-query';
 
 interface MountTypeSelectorProps {
   bookingData: BookingData;
   updateBookingData: (data: Partial<BookingData>) => void;
+}
+
+// Interface for wall mount pricing from database
+interface WallMountPricing {
+  id: number;
+  key: string;
+  name: string;
+  description: string | null;
+  price: number;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: Date | null;
+  updatedAt: Date | null;
 }
 
 const MOUNT_TYPES = [

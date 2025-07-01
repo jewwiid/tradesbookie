@@ -8,19 +8,19 @@ import { useQuery } from '@tanstack/react-query';
 const MOUNT_TYPES = [
   {
     key: "fixed",
-    name: "Fixed Mount",
+    name: "🔴 TEST - Fixed Mount",
     description: "TV sits flat against the wall (most secure)",
     icon: "square"
   },
   {
     key: "tilting",
-    name: "Tilting Mount",
+    name: "🔴 TEST - Tilting Mount",
     description: "TV can tilt up and down for better viewing angles",
     icon: "angle-down"
   },
   {
     key: "full-motion",
-    name: "Full Motion Mount",
+    name: "🔴 TEST - Full Motion Mount",
     description: "TV can swivel, tilt, and extend from wall",
     icon: "arrows-alt"
   }
@@ -139,7 +139,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
           <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Settings className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Mount Type</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">🔴 TESTING - Choose Mount Type</h2>
           <p className="text-lg text-gray-600">Select how you want your TV to be positioned</p>
           {/* Debug indicator */}
           <div className="text-xs text-red-500 mt-2">

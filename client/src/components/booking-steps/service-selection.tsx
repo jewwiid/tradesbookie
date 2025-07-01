@@ -4,7 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Wrench, Tv, Medal, Award, Crown } from 'lucide-react';
 import { useBookingStore } from '@/lib/booking-store';
 import { useQuery } from '@tanstack/react-query';
-import { formatPrice, getServiceTiersForTvSize } from '@/lib/constants';
+import { formatPrice } from '@/lib/constants';
+import { getServiceTiers, getServiceTiersForTvSize, ServiceTier } from '@/lib/pricingService';
 
 interface ServiceSelectionProps {
   onNext: () => void;
@@ -13,19 +14,25 @@ interface ServiceSelectionProps {
 
 export default function ServiceSelection({ onNext, onBack }: ServiceSelectionProps) {
   const { data, updateData } = useBookingStore();
+  const [availableServices, setAvailableServices] = useState<ServiceTier[]>([]);
 
   const { data: serviceTiers, isLoading } = useQuery({
-    queryKey: ['/api/service-tiers'],
+    queryKey: ['/api/service-tiers', data.tvSize],
+    queryFn: () => getServiceTiers(data.tvSize),
   });
 
-  const availableServices = data.tvSize ? getServiceTiersForTvSize(data.tvSize) : [];
+  useEffect(() => {
+    if (serviceTiers && data.tvSize) {
+      const filtered = getServiceTiersForTvSize(data.tvSize, serviceTiers);
+      setAvailableServices(filtered);
+    }
+  }, [serviceTiers, data.tvSize]);
 
-  const handleServiceSelect = (serviceKey: string, price: number) => {
-    // Find the service tier ID from the API data
-    const serviceTier = serviceTiers?.find((tier: any) => tier.key === serviceKey);
+  const handleServiceSelect = (service: ServiceTier) => {
     updateData({ 
-      serviceTierId: serviceTier?.id,
-      basePrice: price 
+      serviceTierId: service.id,
+      serviceType: service.key,
+      basePrice: service.customerPrice 
     });
   };
 
@@ -69,9 +76,9 @@ export default function ServiceSelection({ onNext, onBack }: ServiceSelectionPro
           {availableServices.map((service) => (
             <button
               key={service.key}
-              onClick={() => handleServiceSelect(service.key, service.basePrice)}
+              onClick={() => handleServiceSelect(service)}
               className={`w-full p-6 border-2 rounded-2xl transition-all duration-300 text-left ${
-                data.serviceTierId === serviceTiers?.find((tier: any) => tier.key === service.key)?.id
+                data.serviceTierId === service.id
                   ? 'border-primary bg-gradient-to-br from-blue-50 to-indigo-50'
                   : 'border-gray-200 hover:border-primary hover:bg-blue-50'
               }`}
@@ -79,7 +86,7 @@ export default function ServiceSelection({ onNext, onBack }: ServiceSelectionPro
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
                   <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
-                    {getIcon(service.icon)}
+                    {getIcon(service.icon || 'wrench')}
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.name}</h3>
@@ -87,7 +94,7 @@ export default function ServiceSelection({ onNext, onBack }: ServiceSelectionPro
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold text-primary">{formatPrice(service.customerEstimate)}</div>
+                  <div className="text-2xl font-bold text-primary">{formatPrice(service.customerPrice)}</div>
                   <div className="text-xs text-gray-500">Estimated cost</div>
                 </div>
               </div>

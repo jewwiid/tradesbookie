@@ -25,6 +25,8 @@ export interface BookingData {
   totalPrice: number;
   aiPreviewUrl?: string;
   analysisResult?: any;
+  photoStorageConsent?: boolean;
+  roomAnalysis?: string;
 }
 
 interface BookingStore {

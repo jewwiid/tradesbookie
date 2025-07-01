@@ -79,6 +79,10 @@ export const bookings = pgTable("bookings", {
   aiPreviewUrl: text("ai_preview_url"),
   completedPhotoUrl: text("completed_photo_url"),
   
+  // Photo storage consent and analysis
+  photoStorageConsent: boolean("photo_storage_consent").default(false),
+  roomAnalysis: text("room_analysis"), // AI analysis text for installer reference
+  
   // Pricing - for reference/estimation only (customer pays installer directly)
   estimatedPrice: decimal("estimated_price", { precision: 8, scale: 2 }).notNull(),
   estimatedAddonsPrice: decimal("estimated_addons_price", { precision: 8, scale: 2 }).default("0"),

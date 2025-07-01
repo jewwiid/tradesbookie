@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CloudUpload, Camera, CheckCircle, X, RotateCcw } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CloudUpload, Camera, CheckCircle, X, RotateCcw, Info } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -613,6 +614,42 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
                   </div>
                 </div>
               )}
+              
+              {/* Photo Storage Consent Section */}
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="photo-storage-consent"
+                    checked={bookingData.photoStorageConsent || false}
+                    onCheckedChange={(checked) => 
+                      updateBookingData({ photoStorageConsent: checked as boolean })
+                    }
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <label 
+                      htmlFor="photo-storage-consent" 
+                      className="text-sm font-medium cursor-pointer flex items-start"
+                    >
+                      <Info className="w-4 h-4 mr-2 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <div className="text-gray-900 mb-1">
+                          Share room photo with installer for better preparation
+                        </div>
+                        <div className="text-gray-600 text-xs">
+                          Allow your installer to see the room photo and AI analysis to better prepare for your installation. This helps ensure they bring the right tools and equipment.
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                
+                {!bookingData.photoStorageConsent && (
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
+                    <strong>Note:</strong> If photo sharing is declined, only the room analysis text will be visible to your installer to help assess the installation complexity.
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -621,7 +658,7 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
       <div className="text-center">
         <Button 
           variant="outline" 
-          onClick={() => updateBookingData({ roomPhotoBase64: undefined, roomAnalysis: undefined })}
+          onClick={() => updateBookingData({ roomPhotoBase64: undefined, roomAnalysis: undefined, photoStorageConsent: false })}
           className="text-muted-foreground hover:text-foreground"
         >
           Skip this step

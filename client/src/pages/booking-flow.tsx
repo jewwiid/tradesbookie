@@ -13,6 +13,7 @@ import AddonSelector from "@/components/booking/addon-selector";
 import ScheduleSelector from "@/components/booking/schedule-selector";
 import ContactForm from "@/components/booking/contact-form";
 import { useBookingData } from "@/lib/booking-utils";
+import Navigation from "@/components/navigation";
 
 const TOTAL_STEPS = 8;
 
@@ -90,6 +91,7 @@ export default function BookingFlow() {
 
   return (
     <div className="min-h-screen hero-gradient">
+      <Navigation />
       {/* Progress Bar */}
       <div className="bg-white shadow-sm border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-4">

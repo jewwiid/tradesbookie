@@ -12,6 +12,7 @@ import { useMutation } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import HarveyNormanBooking from '@/components/HarveyNormanBooking';
+import Navigation from '@/components/navigation';
 
 interface QuestionData {
   id: string;
@@ -859,8 +860,9 @@ I'm interested in learning more about this TV and discussing purchase options. P
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+      <Navigation />
+      <div className="max-w-2xl mx-auto p-4">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">TV Recommendation Quiz</h1>
           <p className="text-gray-600">Answer 5 questions to get your perfect TV match</p>

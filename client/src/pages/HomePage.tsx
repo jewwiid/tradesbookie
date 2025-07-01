@@ -181,17 +181,146 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Choose Your Installation Service</h2>
-            <p className="text-xl text-gray-600">Professional TV mounting and installation services with transparent pricing</p>
+            <p className="text-xl text-gray-600 mb-4">Connect with certified installers for professional TV mounting services</p>
+            <div className="inline-flex items-center px-4 py-2 bg-green-50 border border-green-200 rounded-full">
+              <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+              <span className="text-green-800 font-medium">Free booking • Pay installer directly</span>
+            </div>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {serviceTiers.map((tier, index) => (
-              <ServiceTierCard
-                key={tier.id}
-                tier={tier}
-                isPopular={tier.name.includes('Silver') && !tier.name.includes('85')}
-              />
-            ))}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* Table Mount Small */}
+            <Card className="relative hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100 rounded-lg border">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
+                    <Tv className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Table Mount</h3>
+                  <p className="text-gray-600 mb-4">Basic table setup for TVs up to 43"</p>
+                  
+                  <div className="text-center mb-4">
+                    <div className="text-2xl font-bold text-blue-600 mb-1">€60</div>
+                    <div className="text-sm text-gray-500">Estimated cost</div>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div>✓ Basic table setup</div>
+                    <div>✓ WiFi connection included</div>
+                    <div>✓ Professional installer</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bronze Wall Mount */}
+            <Card className="relative hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100 rounded-lg border">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
+                    <Home className="h-6 w-6 text-amber-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Bronze Mount</h3>
+                  <p className="text-gray-600 mb-4">Wall mounting for most TV sizes</p>
+                  
+                  <div className="text-center mb-4">
+                    <div className="text-2xl font-bold text-amber-600 mb-1">€120</div>
+                    <div className="text-sm text-gray-500">Estimated cost</div>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div>✓ Professional wall mount</div>
+                    <div>✓ Cable management</div>
+                    <div>✓ WiFi setup included</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Silver Premium */}
+            <Card className="relative hover:shadow-lg transition-all duration-300">
+              <Badge className="absolute -top-3 right-4 bg-primary text-white">
+                Popular
+              </Badge>
+              <CardContent className="p-6 bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200 rounded-lg border">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
+                    <CheckCircle className="h-6 w-6 text-gray-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Silver Premium</h3>
+                  <p className="text-gray-600 mb-4">Premium installation with extras</p>
+                  
+                  <div className="text-center mb-4">
+                    <div className="text-2xl font-bold text-gray-600 mb-1">€180</div>
+                    <div className="text-sm text-gray-500">Estimated cost</div>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div>✓ Premium wall mount</div>
+                    <div>✓ Full cable concealment</div>
+                    <div>✓ Smart TV setup</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Gold Premium Large */}
+            <Card className="relative hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6 bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200 rounded-lg border">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
+                    <Sparkles className="h-6 w-6 text-yellow-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Gold Premium</h3>
+                  <p className="text-gray-600 mb-4">Ultimate installation experience</p>
+                  
+                  <div className="text-center mb-4">
+                    <div className="text-2xl font-bold text-yellow-600 mb-1">€380</div>
+                    <div className="text-sm text-gray-500">Estimated cost</div>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div>✓ Premium large TV mount</div>
+                    <div>✓ Complete home theater</div>
+                    <div>✓ Soundbar installation</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="text-center">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 max-w-4xl mx-auto">
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0">
+                  <Euro className="w-8 h-8 text-blue-600" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-2">How Our New Pricing Works</h3>
+                  <div className="grid md:grid-cols-3 gap-4 text-sm text-blue-800">
+                    <div>
+                      <div className="font-medium mb-1">1. Book for Free</div>
+                      <div>Create your installation request with no upfront cost</div>
+                    </div>
+                    <div>
+                      <div className="font-medium mb-1">2. Get Matched</div>
+                      <div>Local certified installers bid on your project</div>
+                    </div>
+                    <div>
+                      <div className="font-medium mb-1">3. Pay Installer</div>
+                      <div>Pay your chosen installer directly when job is complete</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <Link href="/booking">
+              <Button size="lg" className="bg-primary hover:bg-primary/90">
+                Start Free Booking
+                <Camera className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
@@ -287,7 +416,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-600">Simple 3-step process to get your TV professionally mounted</p>
+            <p className="text-xl text-gray-600">Simple 3-step process to connect with certified installers</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -295,16 +424,16 @@ export default function HomePage() {
               <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
                 <Camera className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">1. Upload & Preview</h3>
-              <p className="text-gray-600">Take a photo of your room and let our AI show you how your TV will look mounted on the wall</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">1. Create Free Request</h3>
+              <p className="text-gray-600">Upload a photo of your room and get AI analysis with installation recommendations</p>
             </div>
             
             <div className="text-center">
               <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6">
-                <Calendar className="w-8 h-8 text-white" />
+                <Phone className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">2. Book & Schedule</h3>
-              <p className="text-gray-600">Choose your service tier, select your preferred date and time, and complete your booking</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">2. Get Matched</h3>
+              <p className="text-gray-600">Local certified installers contact you directly with competitive quotes</p>
             </div>
             
             <div className="text-center">
@@ -312,7 +441,7 @@ export default function HomePage() {
                 <Wrench className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-4">3. Professional Install</h3>
-              <p className="text-gray-600">Our certified installer arrives on time and mounts your TV exactly as previewed</p>
+              <p className="text-gray-600">Choose your installer and pay them directly when the job is completed</p>
             </div>
           </div>
         </div>

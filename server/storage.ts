@@ -1,6 +1,7 @@
 import { 
   users, bookings, installers, feeStructures, jobAssignments, reviews, solarEnquiries,
   referralSettings, referralCodes, referralUsage, consultationBookings,
+  leadPricing, installerWallets, installerTransactions,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -11,7 +12,10 @@ import {
   type ReferralSettings, type InsertReferralSettings,
   type ReferralCode, type InsertReferralCode,
   type ReferralUsage, type InsertReferralUsage,
-  type ConsultationBooking, type InsertConsultationBooking
+  type ConsultationBooking, type InsertConsultationBooking,
+  type LeadPricing, type InsertLeadPricing,
+  type InstallerWallet, type InsertInstallerWallet,
+  type InstallerTransaction, type InsertInstallerTransaction
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -85,6 +89,23 @@ export interface IStorage {
   getAllConsultationBookings(): Promise<ConsultationBooking[]>;
   updateConsultationBookingStatus(id: number, status: string): Promise<void>;
   getConsultationBookingsByEmail(email: string): Promise<ConsultationBooking[]>;
+
+  // New model: Lead pricing and installer wallet operations
+  getLeadPricing(serviceType: string): Promise<LeadPricing | undefined>;
+  createLeadPricing(pricing: InsertLeadPricing): Promise<LeadPricing>;
+  getAllLeadPricing(): Promise<LeadPricing[]>;
+  updateLeadPricing(id: number, pricing: Partial<InsertLeadPricing>): Promise<void>;
+
+  // Installer wallet operations
+  getInstallerWallet(installerId: number): Promise<InstallerWallet | undefined>;
+  createInstallerWallet(wallet: InsertInstallerWallet): Promise<InstallerWallet>;
+  updateInstallerWalletBalance(installerId: number, amount: number): Promise<void>;
+  addInstallerTransaction(transaction: InsertInstallerTransaction): Promise<InstallerTransaction>;
+  getInstallerTransactions(installerId: number): Promise<InstallerTransaction[]>;
+
+  // Lead payment operations
+  updateJobAssignmentLeadFee(jobId: number, leadFee: number, paymentIntentId: string, status: string): Promise<void>;
+  markLeadFeePaid(jobId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {

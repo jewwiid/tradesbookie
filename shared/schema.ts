@@ -435,6 +435,15 @@ export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type SolarEnquiry = typeof solarEnquiries.$inferSelect;
 export type InsertSolarEnquiry = z.infer<typeof insertSolarEnquirySchema>;
 
+export type LeadPricing = typeof leadPricing.$inferSelect;
+export type InsertLeadPricing = z.infer<typeof insertLeadPricingSchema>;
+
+export type InstallerWallet = typeof installerWallets.$inferSelect;
+export type InsertInstallerWallet = z.infer<typeof insertInstallerWalletSchema>;
+
+export type InstallerTransaction = typeof installerTransactions.$inferSelect;
+export type InsertInstallerTransaction = z.infer<typeof insertInstallerTransactionSchema>;
+
 export const insertReferralSettingsSchema = createInsertSchema(referralSettings).omit({
   id: true,
   createdAt: true,

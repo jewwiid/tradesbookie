@@ -391,6 +391,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Fixed database schema alignment - added needs_wall_mount and wall_mount_option columns to bookings table**
 - July 1, 2025: **Resolved accessibility warnings by adding proper DialogTitle and aria-describedby attributes to all dialog components**
 - July 1, 2025: **Updated homepage messaging from "Start AI Preview" to "Book TV Installation" reflecting complete booking process**
+- July 1, 2025: **Fixed TV recommendation budget constraint enforcement - AI now strictly adheres to selected budget ranges**
+- July 1, 2025: **Enhanced TV recommendation prompts with specific budget restrictions and TV type mapping for each price tier**
+- July 1, 2025: **Added budget validation function with fallback recommendations to prevent expensive TV suggestions for lower budgets**
+- July 1, 2025: **Simplified TV recommendation service by removing problematic Perplexity integration causing timeouts**
+- July 1, 2025: **Confirmed budget enforcement working: €400-800 budget recommends QLED, €1500-3000 budget recommends OLED**
 
 ## User Preferences
 

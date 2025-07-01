@@ -206,19 +206,6 @@ function getBudgetAppropriateRecommendation(budget: string): Partial<TVRecommend
 
 export async function getTVComparisonInsights(tvType1: string, tvType2: string): Promise<string> {
   try {
-    // First attempt to get real-time comparison data
-    let realTimeComparison = null;
-    try {
-      if (process.env.PERPLEXITY_API_KEY) {
-        realTimeComparison = await getCurrentTVComparison(tvType1, tvType2);
-        console.log("Retrieved real-time TV comparison from Perplexity");
-        return realTimeComparison;
-      }
-    } catch (perplexityError) {
-      console.log("Perplexity API unavailable for comparison, using OpenAI:", String(perplexityError));
-    }
-
-    // Fallback to OpenAI analysis
     const prompt = `Compare ${tvType1} vs ${tvType2} TV technologies. Provide a brief, practical comparison focusing on real-world differences that matter to consumers.`;
 
     const response = await openai.chat.completions.create({

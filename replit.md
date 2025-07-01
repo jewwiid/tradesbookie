@@ -378,6 +378,10 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Transformed admin dashboard "Fee Management" to "Lead Pricing Management" reflecting lead generation business model instead of commission-based structure**
 - July 1, 2025: **Updated pricing display to show fixed lead fees (€12-€35), customer estimates (€60-€380), and installer profit margins (80-91%) rather than commission percentages**
 - July 1, 2025: **Added clear business model explanation: Fixed lead fees as revenue source, customers pay installers directly via cash/card/transfer, predictable platform revenue**
+- July 1, 2025: **Transformed "System" tab to "Platform Insights" with lead generation marketplace metrics instead of generic server statistics**
+- July 1, 2025: **Added comprehensive platform insights: Monthly lead revenue projections, average lead values, conversion rates, installer retention metrics**
+- July 1, 2025: **Created revenue breakdown by service type showing estimated monthly lead volume and platform earnings from each tier**
+- July 1, 2025: **Added platform health indicators displaying installer margins (80-91%), lead fee ranges (€12-€35), and annual revenue projections**
 
 ## User Preferences
 

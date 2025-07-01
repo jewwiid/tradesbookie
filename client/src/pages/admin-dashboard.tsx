@@ -1677,28 +1677,7 @@ function ReferralManagement() {
 
 
 
-  // Delete referral code mutation
-  const deleteReferralCodeMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const response = await apiRequest('DELETE', `/api/referrals/codes/${id}`);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/referrals/codes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/referrals/stats'] });
-      toast({
-        title: "Success",
-        description: "Referral code deleted successfully"
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to delete referral code",
-        variant: "destructive"
-      });
-    }
-  });
+
 
   const handleUpdateSettings = () => {
     setIsUpdating(true);

@@ -409,6 +409,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Added complete store code coverage: BLA (Blanchardstown), CRK (Carrickmines), CAS (Castlebar), DRO (Drogheda), FON (Fonthill), GAL (Galway), KIN (Kinsale Road), LIM (Limerick), LIT (Little Island), NAA (Naas), RAT (Rathfarnham), SLI (Sligo), SWO (Swords), TAL (Tallaght), TRA (Tralee), WAT (Waterford)**
 - July 1, 2025: **Enhanced database schema with customerPhone, storeName, and storeCode fields for comprehensive invoice tracking**
 - July 1, 2025: **Updated UI guidance with complete store code reference and format examples for customer clarity**
+- July 1, 2025: **Fixed critical session persistence bug in Harvey Norman invoice and guest booking authentication using req.login() for proper Passport session establishment**
+- July 1, 2025: **Clarified contact information requirement: Invoice-authenticated users must still provide current contact details for installer communication, preventing reliance on potentially outdated invoice data**
 
 ## User Preferences
 

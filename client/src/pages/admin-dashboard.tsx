@@ -826,10 +826,10 @@ function BookingManagement() {
 
       {/* View Booking Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="booking-view-description">
           <DialogHeader>
             <DialogTitle>Booking Details</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="booking-view-description">
               View complete booking information
             </DialogDescription>
           </DialogHeader>
@@ -890,10 +890,10 @@ function BookingManagement() {
 
       {/* Edit Booking Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent aria-describedby="booking-edit-description">
           <DialogHeader>
             <DialogTitle>Edit Booking Status</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="booking-edit-description">
               Update the status of this booking
             </DialogDescription>
           </DialogHeader>

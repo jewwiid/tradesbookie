@@ -383,6 +383,14 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Created revenue breakdown by service type showing estimated monthly lead volume and platform earnings from each tier**
 - July 1, 2025: **Added platform health indicators displaying installer margins (80-91%), lead fee ranges (€12-€35), and annual revenue projections**
 - July 1, 2025: **Updated homepage and pricing page display to show "From €X" format instead of fixed prices to reflect installer rate variability**
+- July 1, 2025: **Completed wall mount pricing system transformation - moved from hardcoded values to fully database-driven pricing**
+- July 1, 2025: **Created wall_mount_pricing table with 6 mount options (€25-€85) including Fixed, Tilting, and Full Motion categories**
+- July 1, 2025: **Built complete WallMountPricingManagement admin component with CRUD operations for real-time pricing control**
+- July 1, 2025: **Updated MountTypeSelection component to use React Query for dynamic pricing instead of static values**
+- July 1, 2025: **Added wall mount pricing management section to admin dashboard under "Pricing" tab**
+- July 1, 2025: **Fixed database schema alignment - added needs_wall_mount and wall_mount_option columns to bookings table**
+- July 1, 2025: **Resolved accessibility warnings by adding proper DialogTitle and aria-describedby attributes to all dialog components**
+- July 1, 2025: **Updated homepage messaging from "Start AI Preview" to "Book TV Installation" reflecting complete booking process**
 
 ## User Preferences
 

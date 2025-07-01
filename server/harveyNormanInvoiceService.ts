@@ -175,8 +175,8 @@ export class HarveyNormanInvoiceService {
    * Validate invoice format
    */
   isValidInvoiceFormat(invoiceNumber: string): boolean {
-    // Harvey Norman invoice format: HN-YYYY-NNNNNN or HN-STORE-YYYY-NNNNNN
-    const regex = /^HN-(\d{4}-\d{6}|[A-Z]{3,4}-\d{4}-\d{6})$/;
+    // Harvey Norman invoice format: Simple 7-digit number (e.g., 2576597)
+    const regex = /^\d{7}$/;
     return regex.test(invoiceNumber);
   }
 }

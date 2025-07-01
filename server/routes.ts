@@ -1703,6 +1703,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Harvey Norman Invoice Authentication API
+  app.post('/api/auth/invoice-login', async (req, res) => {
+    try {
+      const { invoiceNumber } = req.body;
+      
+      if (!invoiceNumber) {
+        return res.status(400).json({ error: "Invoice number is required" });
+      }
+
+      const { harveyNormanInvoiceService } = await import('./harveyNormanInvoiceService');
+      
+      // Validate invoice format first
+      if (!harveyNormanInvoiceService.isValidInvoiceFormat(invoiceNumber)) {
+        return res.status(400).json({ 
+          error: "Invalid invoice format. Please enter your Harvey Norman invoice number (format: HN-YYYY-NNNNNN)" 
+        });
+      }
+
+      const result = await harveyNormanInvoiceService.loginWithInvoice(invoiceNumber);
+      
+      if (result.success && result.user) {
+        // Set session data for invoice-authenticated user
+        (req.session as any).userId = result.user.id;
+        (req.session as any).isAuthenticated = true;
+        (req.session as any).authMethod = 'invoice';
+        
+        res.json({
+          success: true,
+          user: result.user,
+          message: result.message,
+          isNewRegistration: result.isNewRegistration
+        });
+      } else {
+        res.status(401).json({ error: result.message });
+      }
+    } catch (error) {
+      console.error("Invoice login error:", error);
+      res.status(500).json({ error: "Unable to process invoice login at this time" });
+    }
+  });
+
+  // Guest Booking API - allows booking with just email/phone
+  app.post('/api/auth/guest-booking', async (req, res) => {
+    try {
+      const { email, phone, firstName, lastName } = req.body;
+      
+      if (!email || !phone) {
+        return res.status(400).json({ error: "Email and phone number are required" });
+      }
+
+      // Check if user already exists
+      let user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Create guest user account
+        const { randomUUID } = await import('crypto');
+        const userId = randomUUID();
+        
+        const userData = {
+          id: userId,
+          email,
+          firstName: firstName || '',
+          lastName: lastName || '',
+          role: 'customer',
+          registrationMethod: 'guest',
+          emailVerified: false, // Guest users need to verify later
+        };
+
+        user = await storage.upsertUser(userData);
+      }
+
+      // Set session for guest user
+      (req.session as any).userId = user.id;
+      (req.session as any).isAuthenticated = true;
+      (req.session as any).authMethod = 'guest';
+
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role
+        },
+        message: "Guest account created successfully. You can proceed with booking."
+      });
+    } catch (error) {
+      console.error("Guest booking error:", error);
+      res.status(500).json({ error: "Unable to create guest account at this time" });
+    }
+  });
+
   // Mock Authentication API for testing
   app.post('/api/auth/login', async (req, res) => {
     try {

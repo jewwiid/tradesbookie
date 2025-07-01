@@ -4,10 +4,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin } from 'lucide-react';
+import SimplifiedAuthDialog from './SimplifiedAuthDialog';
 
 export default function Navigation() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
   const isHome = location === '/';
@@ -96,22 +98,11 @@ export default function Navigation() {
                 ) : (
                   <div className="flex items-center space-x-2">
                     <Button 
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
-                      onClick={() => {
-                        window.location.href = '/api/login';
-                      }}
+                      onClick={() => setAuthDialogOpen(true)}
                     >
-                      Sign In
-                    </Button>
-                    <Button 
-                      variant="default"
-                      size="sm"
-                      onClick={() => {
-                        window.location.href = '/api/signup';
-                      }}
-                    >
-                      Sign Up
+                      Quick Sign In
                     </Button>
                   </div>
                 )}
@@ -215,30 +206,17 @@ export default function Navigation() {
                         Logout
                       </Button>
                     ) : (
-                      <div className="flex flex-col space-y-3">
-                        <Button 
-                          variant="ghost" 
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            window.location.href = '/api/login';
-                          }}
-                        >
-                          <User className="h-5 w-5 mr-3" />
-                          Sign In
-                        </Button>
-                        <Button 
-                          variant="default" 
-                          className="w-full justify-start"
-                          onClick={() => {
-                            setMobileMenuOpen(false);
-                            window.location.href = '/api/signup';
-                          }}
-                        >
-                          <User className="h-5 w-5 mr-3" />
-                          Sign Up
-                        </Button>
-                      </div>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          setAuthDialogOpen(true);
+                        }}
+                      >
+                        <User className="h-5 w-5 mr-3" />
+                        Quick Sign In
+                      </Button>
                     )}
                   </div>
                 </SheetContent>

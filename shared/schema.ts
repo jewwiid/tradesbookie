@@ -86,18 +86,19 @@ export const bookings = pgTable("bookings", {
   aiPreviewUrl: text("ai_preview_url"),
   completedPhotoUrl: text("completed_photo_url"),
   
-  // Pricing
-  basePrice: decimal("base_price", { precision: 8, scale: 2 }).notNull(),
-  addonsPrice: decimal("addons_price", { precision: 8, scale: 2 }).default("0"),
-  totalPrice: decimal("total_price", { precision: 8, scale: 2 }).notNull(),
-  appFee: decimal("app_fee", { precision: 8, scale: 2 }).notNull(),
-  installerEarnings: decimal("installer_earnings", { precision: 8, scale: 2 }).notNull(),
+  // Pricing - for reference/estimation only (customer pays installer directly)
+  estimatedPrice: decimal("estimated_price", { precision: 8, scale: 2 }).notNull(),
+  estimatedAddonsPrice: decimal("estimated_addons_price", { precision: 8, scale: 2 }).default("0"),
+  estimatedTotal: decimal("estimated_total", { precision: 8, scale: 2 }).notNull(),
   
-  // Payment tracking
-  paymentIntentId: text("payment_intent_id"),
-  paymentStatus: text("payment_status").default("pending"), // pending, processing, succeeded, failed, canceled
-  paidAmount: decimal("paid_amount", { precision: 8, scale: 2 }),
-  paymentDate: timestamp("payment_date"),
+  // Final price agreed between customer and installer
+  agreedPrice: decimal("agreed_price", { precision: 8, scale: 2 }),
+  priceNegotiated: boolean("price_negotiated").default(false),
+  
+  // Direct payment tracking (customer pays installer directly)
+  paymentMethod: text("payment_method"), // cash, card, bank_transfer, etc.
+  paidToInstaller: boolean("paid_to_installer").default(false),
+  installerPaymentDate: timestamp("installer_payment_date"),
   
   // Status
   status: text("status").notNull().default("pending"), // pending, confirmed, assigned, in-progress, completed, cancelled
@@ -123,6 +124,47 @@ export const jobAssignments = pgTable("job_assignments", {
   acceptedDate: timestamp("accepted_date"),
   completedDate: timestamp("completed_date"),
   status: text("status").notNull().default("assigned"), // assigned, accepted, completed, declined
+  
+  // New model: Installer pays platform for lead access
+  leadFee: decimal("lead_fee", { precision: 8, scale: 2 }).notNull().default("15.00"), // Fee installer pays to secure job
+  leadFeeStatus: text("lead_fee_status").default("pending"), // pending, paid, failed
+  leadPaymentIntentId: text("lead_payment_intent_id"), // Stripe payment for lead access
+  leadPaidDate: timestamp("lead_paid_date"),
+});
+
+// Lead pricing structure - what installers pay for different job types
+export const leadPricing = pgTable("lead_pricing", {
+  id: serial("id").primaryKey(),
+  serviceType: text("service_type").notNull(), // 'table-top-small', 'bronze', etc.
+  leadFee: decimal("lead_fee", { precision: 8, scale: 2 }).notNull(), // What installer pays to access this lead
+  priority: integer("priority").default(0), // Higher priority = more expensive but better visibility
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Installer wallet/credits system
+export const installerWallets = pgTable("installer_wallets", {
+  id: serial("id").primaryKey(),
+  installerId: integer("installer_id").references(() => installers.id).notNull(),
+  balance: decimal("balance", { precision: 8, scale: 2 }).default("0.00"), // Current credit balance
+  totalSpent: decimal("total_spent", { precision: 8, scale: 2 }).default("0.00"), // Total spent on leads
+  totalEarned: decimal("total_earned", { precision: 8, scale: 2 }).default("0.00"), // Total earned from completed jobs
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Installer transactions (credits, lead purchases, earnings)
+export const installerTransactions = pgTable("installer_transactions", {
+  id: serial("id").primaryKey(),
+  installerId: integer("installer_id").references(() => installers.id).notNull(),
+  type: text("type").notNull(), // 'credit_purchase', 'lead_purchase', 'job_earnings', 'refund'
+  amount: decimal("amount", { precision: 8, scale: 2 }).notNull(),
+  description: text("description").notNull(),
+  jobAssignmentId: integer("job_assignment_id").references(() => jobAssignments.id), // If related to specific job
+  paymentIntentId: text("payment_intent_id"), // Stripe payment ID
+  status: text("status").default("completed"), // completed, pending, failed
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Reviews table
@@ -199,11 +241,13 @@ export const usersRelations = relations(users, ({ many }) => ({
   reviews: many(reviews),
 }));
 
-export const installersRelations = relations(installers, ({ many }) => ({
+export const installersRelations = relations(installers, ({ one, many }) => ({
   bookings: many(bookings),
   feeStructures: many(feeStructures),
   jobAssignments: many(jobAssignments),
   reviews: many(reviews),
+  wallet: one(installerWallets),
+  transactions: many(installerTransactions),
 }));
 
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
@@ -225,7 +269,7 @@ export const feeStructuresRelations = relations(feeStructures, ({ one }) => ({
   }),
 }));
 
-export const jobAssignmentsRelations = relations(jobAssignments, ({ one }) => ({
+export const jobAssignmentsRelations = relations(jobAssignments, ({ one, many }) => ({
   booking: one(bookings, {
     fields: [jobAssignments.bookingId],
     references: [bookings.id],
@@ -233,6 +277,34 @@ export const jobAssignmentsRelations = relations(jobAssignments, ({ one }) => ({
   installer: one(installers, {
     fields: [jobAssignments.installerId],
     references: [installers.id],
+  }),
+  transactions: many(installerTransactions),
+}));
+
+export const leadPricingRelations = relations(leadPricing, ({ one }) => ({
+  // No direct relations yet, but could add service tier relations
+}));
+
+export const installerWalletsRelations = relations(installerWallets, ({ one, many }) => ({
+  installer: one(installers, {
+    fields: [installerWallets.installerId],
+    references: [installers.id],
+  }),
+  transactions: many(installerTransactions),
+}));
+
+export const installerTransactionsRelations = relations(installerTransactions, ({ one }) => ({
+  installer: one(installers, {
+    fields: [installerTransactions.installerId],
+    references: [installers.id],
+  }),
+  wallet: one(installerWallets, {
+    fields: [installerTransactions.installerId],
+    references: [installerWallets.installerId],
+  }),
+  jobAssignment: one(jobAssignments, {
+    fields: [installerTransactions.jobAssignmentId],
+    references: [jobAssignments.id],
   }),
 }));
 
@@ -298,10 +370,9 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   })).optional(),
   userId: z.string().optional(),
   preferredDate: z.date().optional(),
-  basePrice: z.string(),
-  totalPrice: z.string(), 
-  appFee: z.string(),
-  installerEarnings: z.string(),
+  estimatedPrice: z.string(),
+  estimatedTotal: z.string(), 
+  estimatedAddonsPrice: z.string().optional(),
 });
 
 export const insertFeeStructureSchema = createInsertSchema(feeStructures).omit({
@@ -323,6 +394,23 @@ export const insertSolarEnquirySchema = createInsertSchema(solarEnquiries).omit(
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertLeadPricingSchema = createInsertSchema(leadPricing).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInstallerWalletSchema = createInsertSchema(installerWallets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertInstallerTransactionSchema = createInsertSchema(installerTransactions).omit({
+  id: true,
+  createdAt: true,
 });
 
 // Types

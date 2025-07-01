@@ -1,0 +1,47 @@
+[plugin:runtime-error-plugin] referralCodes?.map is not a function. (In 'referralCodes?.map(
+          (code) => /* @__PURE__ */ jsxDEV(TableRow, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:1641:16", "data-component-name": "TableRow", children: [
+            /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:1642:20", "data-component-name": "TableCell", className: "font-mono", children: code.code }, void 0, false, {
+              fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+              lineNumber: 1642,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:1643:20", "data-component-name": "TableCell", children: code.referrerName || "Unknown" }, void 0, false, {
+              fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+              lineNumber: 1643,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:1644:20", "data-component-name": "TableCell", children: code.totalReferrals }, void 0, false, {
+              fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+              lineNumber: 1644,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:1645:20", "data-component-name": "TableCell", children: [
+              "€",
+              code.totalEarnings
+            ] }, void 0, true, {
+              fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+              lineNumber: 1645,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:1646:20", "data-component-name": "TableCell", children: new Date(code.createdAt).toLocaleDateString() }, void 0, false, {
+              fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+              lineNumber: 1646,
+              columnNumber: 21
+            }, this),
+            /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:1649:20", "data-component-name": "TableCell", children: /* @__PURE__ */ jsxDEV(Badge, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:1650:22", "data-component-name": "Badge", variant: code.isActive ? "default" : "secondary", children: code.isActive ? "Active" : "Inactive" }, void 0, false, {
+              fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+              lineNumber: 1650,
+              columnNumber: 23
+            }, this) }, void 0, false, {
+              fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+              lineNumber: 1649,
+              columnNumber: 21
+            }, this)
+          ] }, code.id, true, {
+            fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+            lineNumber: 1641,
+            columnNumber: 17
+          }, this)
+        )', 'referralCodes?.map' is undefined)
+Click outside, press Esc key, or fix the code to dismiss.
+You can also disable this overlay by setting server.hmr.overlay to false in vite.config.js.

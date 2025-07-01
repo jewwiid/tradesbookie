@@ -234,6 +234,22 @@ export const referralUsage = pgTable("referral_usage", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Pricing Configuration table for admin-managed pricing
+export const pricingConfig = pgTable("pricing_config", {
+  id: serial("id").primaryKey(),
+  category: varchar("category", { length: 50 }).notNull(), // 'service', 'addon', 'bracket'
+  itemKey: varchar("item_key", { length: 100 }).notNull(), // service key or addon key
+  name: varchar("name", { length: 200 }).notNull(),
+  description: text("description"),
+  customerPrice: decimal("customer_price", { precision: 10, scale: 2 }).notNull(), // What customer pays
+  leadFee: decimal("lead_fee", { precision: 10, scale: 2 }).notNull(), // What installer pays
+  minTvSize: integer("min_tv_size"),
+  maxTvSize: integer("max_tv_size"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -403,6 +419,12 @@ export const insertInstallerTransactionSchema = createInsertSchema(installerTran
   createdAt: true,
 });
 
+export const insertPricingConfigSchema = createInsertSchema(pricingConfig).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -432,6 +454,9 @@ export type InsertInstallerWallet = z.infer<typeof insertInstallerWalletSchema>;
 
 export type InstallerTransaction = typeof installerTransactions.$inferSelect;
 export type InsertInstallerTransaction = z.infer<typeof insertInstallerTransactionSchema>;
+
+export type PricingConfig = typeof pricingConfig.$inferSelect;
+export type InsertPricingConfig = z.infer<typeof insertPricingConfigSchema>;
 
 export const insertReferralSettingsSchema = createInsertSchema(referralSettings).omit({
   id: true,

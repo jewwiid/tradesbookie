@@ -22,6 +22,7 @@ import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sen
 import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
 import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { pricingManagementService } from "./pricingManagementService";
+import { getWebsiteMetrics } from "./analyticsService";
 
 // Email notification service with Gmail integration
 async function sendNotificationEmail(to: string, subject: string, content: string, html?: string) {
@@ -2144,8 +2145,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
                bookingDate.getFullYear() === thisMonth.getFullYear();
       }).length;
       
-      const totalRevenue = bookings.reduce((sum, b) => sum + parseFloat(b.totalPrice || '0'), 0);
-      const appFees = bookings.reduce((sum, b) => sum + parseFloat(b.appFee || '0'), 0);
+      // Calculate platform revenue from lead fees (not customer payments)
+      let totalRevenue = 0;
+      for (const booking of bookings) {
+        const leadFee = getLeadFee(booking.serviceType);
+        totalRevenue += leadFee;
+      }
+      
+      // Average lead fee per booking
+      const avgLeadFee = totalBookings > 0 ? totalRevenue / totalBookings : 0;
       const activeBookings = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length;
       const completedBookings = bookings.filter(b => b.status === 'completed').length;
       const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
@@ -2163,7 +2171,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         totalBookings,
         monthlyBookings,
         revenue: Math.round(totalRevenue),
-        appFees: Math.round(appFees),
+        appFees: Math.round(avgLeadFee),
         totalUsers: bookings.filter(b => b.userId).length,
         totalInstallers: installers.length,
         activeBookings,

@@ -22,6 +22,12 @@ const ADDONS = [
     price: 39
   },
   {
+    key: "tv-disassembly",
+    name: "TV Disassembly from Wall",
+    description: "Remove existing TV from current wall mount",
+    price: 35
+  },
+  {
     key: "calibration",
     name: "TV Calibration",
     description: "Professional picture and sound optimization",

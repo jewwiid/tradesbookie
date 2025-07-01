@@ -64,6 +64,8 @@ export const bookings = pgTable("bookings", {
   serviceType: text("service_type").notNull(),
   wallType: text("wall_type").notNull(),
   mountType: text("mount_type").notNull(),
+  needsWallMount: boolean("needs_wall_mount").default(false),
+  wallMountOption: text("wall_mount_option"), // Selected wall mount type if needed
   addons: jsonb("addons").default([]),
   
   // Scheduling

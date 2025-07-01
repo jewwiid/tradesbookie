@@ -1211,6 +1211,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Customer booking routes
+  app.get("/api/customer/bookings", async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Get all bookings for the current user
+      const bookings = await storage.getAllBookings();
+      const userBookings = bookings.filter(booking => booking.userId === user.id);
+      
+      res.json(userBookings);
+    } catch (error) {
+      console.error("Error fetching customer bookings:", error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
   // Installer routes
   app.post("/api/installers/register", async (req, res) => {
     try {

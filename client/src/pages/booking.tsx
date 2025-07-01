@@ -19,7 +19,7 @@ import ContactReview from '@/components/booking-steps/contact-review';
 const TOTAL_STEPS = 8;
 
 export default function Booking() {
-  const { bookingData, nextStep, prevStep, resetBooking } = useBooking();
+  const { bookingData, nextStep, prevStep, resetBooking, updateBookingData } = useBooking();
   const { toast } = useToast();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
@@ -42,8 +42,16 @@ export default function Booking() {
   useEffect(() => {
     if (!authLoading && authUser) {
       setCurrentUser(authUser);
+      // Auto-populate user data in booking
+      updateBookingData({
+        userId: authUser.id,
+        customerName: authUser.firstName && authUser.lastName ? 
+          `${authUser.firstName} ${authUser.lastName}` : authUser.email,
+        customerEmail: authUser.email,
+        customerPhone: authUser.phone || ''
+      });
     }
-  }, [authUser, authLoading]);
+  }, [authUser, authLoading, updateBookingData]);
 
   const progressPercentage = (bookingData.step / TOTAL_STEPS) * 100;
 

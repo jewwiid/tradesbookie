@@ -1,440 +1,253 @@
-import { useState } from "react";
-import { useLocation, useParams } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Tv, 
-  Home, 
-  CheckCircle, 
-  Clock, 
-  Bolt, 
-  MapPin, 
-  Calendar,
-  Phone,
-  Mail,
-  QrCode,
-  Camera,
-  Loader2
-} from "lucide-react";
-import QRCode from "@/components/QRCode";
-import QRCodeScanner from "@/components/qr-code-scanner";
-
-interface CustomerLoginProps {
-  onLogin: (bookingId: string) => void;
-}
-
-function CustomerLogin({ onLogin }: CustomerLoginProps) {
-  const [bookingId, setBookingId] = useState("");
-  const [email, setEmail] = useState("");
-  const [showScanner, setShowScanner] = useState(false);
-  const { toast } = useToast();
-
-  const handleLogin = () => {
-    if (!bookingId || !email) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter both booking ID and email address.",
-        variant: "destructive"
-      });
-      return;
-    }
-    onLogin(bookingId);
-  };
-
-  return (
-    <div className="min-h-screen hero-gradient flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <Tv className="w-8 h-8 text-white" />
-          </div>
-          <CardTitle className="text-2xl">Customer Access</CardTitle>
-          <p className="text-muted-foreground">Enter your booking details or scan your QR code</p>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="bookingId">Booking ID</Label>
-            <Input
-              id="bookingId"
-              placeholder="BK-2024-001"
-              value={bookingId}
-              onChange={(e) => setBookingId(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="john@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Button onClick={handleLogin} className="w-full gradient-bg">
-              Access Dashboard
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={() => setShowScanner(true)}
-              className="w-full"
-            >
-              <QrCode className="w-4 h-4 mr-2" />
-              Scan QR Code
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {showScanner && (
-        <QRCodeScanner
-          onScan={(result) => {
-            setShowScanner(false);
-            onLogin(result);
-          }}
-          onClose={() => setShowScanner(false)}
-        />
-      )}
-    </div>
-  );
-}
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star } from 'lucide-react';
+import { Link } from 'wouter';
 
 export default function CustomerDashboard() {
-  const [, setLocation] = useLocation();
-  const { qrCode } = useParams();
-  const [currentBookingId, setCurrentBookingId] = useState(qrCode || "");
-
-  const { data: booking, isLoading, error } = useQuery({
-    queryKey: [`/api/bookings/qr/${currentBookingId}`],
-    enabled: !!currentBookingId
+  // Get current user
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ['/api/auth/user'],
+    retry: false,
   });
 
-  if (!currentBookingId) {
-    return <CustomerLogin onLogin={setCurrentBookingId} />;
-  }
+  // Get user's bookings
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
+    queryKey: ['/api/customer/bookings'],
+    enabled: !!user,
+  });
 
-  if (isLoading) {
+  if (userLoading) {
     return (
-      <div className="min-h-screen hero-gradient flex items-center justify-center">
+      <div className="min-h-screen gradient-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your booking...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
-  if (error || !booking) {
+  if (!user) {
     return (
-      <div className="min-h-screen hero-gradient flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Tv className="w-8 h-8 text-destructive" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">Booking Not Found</h2>
-            <p className="text-muted-foreground mb-4">
-              We couldn't find a booking with the provided details.
-            </p>
-            <Button onClick={() => setCurrentBookingId("")} variant="outline">
-              Try Again
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen gradient-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h1>
+          <p className="text-gray-600 mb-6">You need to be signed in to view your dashboard</p>
+          <Link href="/">
+            <Button>Go to Homepage</Button>
+          </Link>
+        </div>
       </div>
     );
   }
 
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case "pending":
-        return { icon: Clock, color: "bg-warning", text: "Pending Confirmation" };
-      case "confirmed":
-        return { icon: CheckCircle, color: "bg-primary", text: "Confirmed" };
-      case "assigned":
-        return { icon: Bolt, color: "bg-blue-500", text: "Installer Assigned" };
-      case "in-progress":
-        return { icon: Bolt, color: "bg-orange-500", text: "Installation in Progress" };
-      case "completed":
-        return { icon: CheckCircle, color: "bg-success", text: "Completed" };
-      case "cancelled":
-        return { icon: Clock, color: "bg-destructive", text: "Cancelled" };
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'confirmed':
+        return 'bg-blue-100 text-blue-800';
+      case 'in-progress':
+        return 'bg-purple-100 text-purple-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800';
       default:
-        return { icon: Clock, color: "bg-muted", text: "Unknown" };
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const statusInfo = getStatusInfo(booking.status);
-  const StatusIcon = statusInfo.icon;
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'pending':
+        return <Clock className="w-4 h-4 text-yellow-600" />;
+      default:
+        return <AlertCircle className="w-4 h-4 text-blue-600" />;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Tv className="w-6 h-6 text-primary mr-3" />
-              <span className="text-xl font-bold text-foreground">Customer Dashboard</span>
-            </div>
-            <Button variant="ghost" onClick={() => setLocation("/")} size="sm">
-              <Home className="w-4 h-4 mr-2" />
-              Home
-            </Button>
-          </div>
+    <div className="min-h-screen gradient-background">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {user.firstName || user.email}!
+          </h1>
+          <p className="text-gray-600">
+            Manage your TV installation requests and track progress
+          </p>
         </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
-        {/* QR Code Section */}
-        <Card>
+        {/* User Info Card */}
+        <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-center">Your Booking QR Code</CardTitle>
-            <p className="text-center text-muted-foreground">
-              Save this QR code to quickly access your booking details
-            </p>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <div className="flex justify-center">
-              <QRCode 
-                value={`${window.location.origin}/qr-tracking/${booking.qrCode}`}
-                size={200}
-              />
-            </div>
-            <p className="text-sm text-muted-foreground font-mono">
-              Booking ID: {booking.qrCode}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Status Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Booking Status</CardTitle>
-              <Badge className={`${statusInfo.color} text-white`}>
-                {statusInfo.text}
-              </Badge>
-            </div>
+            <CardTitle className="flex items-center">
+              <User className="w-5 h-5 mr-2" />
+              Account Information
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-success rounded-full flex items-center justify-center mr-4">
-                  <CheckCircle className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground">Booking Confirmed</div>
-                  <div className="text-sm text-muted-foreground">
-                    Your installation has been scheduled
-                  </div>
-                </div>
+                <Mail className="w-4 h-4 mr-2 text-gray-500" />
+                <span>{user.email}</span>
               </div>
-              
-              <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
-                  booking.status === "assigned" || booking.status === "in-progress" || booking.status === "completed" 
-                    ? "bg-success" : "bg-warning"
-                }`}>
-                  <Bolt className="w-4 h-4 text-white" />
+              {user.phone && (
+                <div className="flex items-center">
+                  <Phone className="w-4 h-4 mr-2 text-gray-500" />
+                  <span>{user.phone}</span>
                 </div>
-                <div>
-                  <div className="font-semibold text-foreground">Installer Assignment</div>
-                  <div className="text-sm text-muted-foreground">
-                    {booking.status === "assigned" || booking.status === "in-progress" || booking.status === "completed"
-                      ? "Professional installer has been assigned"
-                      : "Waiting for installer assignment"
-                    }
-                  </div>
-                </div>
+              )}
+              <div>
+                <span className="text-sm text-gray-500">Registration Method: </span>
+                <Badge variant="outline" className="capitalize">
+                  {user.registrationMethod || 'OAuth'}
+                </Badge>
               </div>
-              
-              <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
-                  booking.status === "completed" ? "bg-success" : "bg-muted"
-                }`}>
-                  <StatusIcon className={`w-4 h-4 ${
-                    booking.status === "completed" ? "text-white" : "text-muted-foreground"
-                  }`} />
-                </div>
+              {user.harveyNormanInvoiceNumber && (
                 <div>
-                  <div className={`font-semibold ${
-                    booking.status === "completed" ? "text-foreground" : "text-muted-foreground"
-                  }`}>
-                    Installation Day
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {booking.status === "completed" 
-                      ? "Installation completed successfully"
-                      : "We'll arrive at your scheduled time"
-                    }
-                  </div>
+                  <span className="text-sm text-gray-500">Harvey Norman Invoice: </span>
+                  <span className="font-mono text-sm">{user.harveyNormanInvoiceNumber}</span>
                 </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Installation Details */}
+        {/* Quick Actions */}
+        <div className="grid md:grid-cols-3 gap-4 mb-8">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Star className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="font-semibold mb-2">New Installation</h3>
+              <p className="text-sm text-gray-600 mb-4">Book a new TV installation with AI preview</p>
+              <Link href="/booking">
+                <Button className="w-full">Book Now</Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="font-semibold mb-2">My Bookings</h3>
+              <p className="text-sm text-gray-600 mb-4">View and manage your requests</p>
+              <Button variant="outline" className="w-full">
+                {bookings.length} Active Request{bookings.length !== 1 ? 's' : ''}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardContent className="p-6 text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <User className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold mb-2">Support</h3>
+              <p className="text-sm text-gray-600 mb-4">Get help with your installations</p>
+              <Button variant="outline" className="w-full">Contact Support</Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Bookings */}
         <Card>
           <CardHeader>
-            <CardTitle>Installation Details</CardTitle>
+            <CardTitle>Your Installation Requests</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="font-semibold text-foreground mb-3">Service Information</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">TV Size:</span>
-                    <span className="font-medium">{booking.tvSize}"</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Service Type:</span>
-                    <span className="font-medium">{booking.serviceType}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Wall Type:</span>
-                    <span className="font-medium">{booking.wallType}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Mount Type:</span>
-                    <span className="font-medium">{booking.mountType}</span>
-                  </div>
-                  {booking.addons && booking.addons.length > 0 && (
-                    <div>
-                      <span className="text-muted-foreground">Add-ons:</span>
-                      <ul className="mt-1">
-                        {booking.addons.map((addon: any, idx: number) => (
-                          <li key={idx} className="text-sm font-medium ml-4">
-                            • {addon.name} (+€{addon.price})
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
+            {bookingsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading your requests...</p>
               </div>
-              
-              <div>
-                <h3 className="font-semibold text-foreground mb-3">Schedule & Contact</h3>
-                <div className="space-y-2 text-sm">
-                  {booking.preferredDate && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Date:</span>
-                      <span className="font-medium">
-                        {new Date(booking.preferredDate).toLocaleDateString()}
-                      </span>
-                    </div>
-                  )}
-                  {booking.preferredTime && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Time:</span>
-                      <span className="font-medium">
-                        {booking.preferredTime === "09:00" && "9:00 AM - 11:00 AM"}
-                        {booking.preferredTime === "11:00" && "11:00 AM - 1:00 PM"}
-                        {booking.preferredTime === "13:00" && "1:00 PM - 3:00 PM"}
-                        {booking.preferredTime === "15:00" && "3:00 PM - 5:00 PM"}
-                        {booking.preferredTime === "17:00" && "5:00 PM - 7:00 PM"}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Address:</span>
-                    <span className="font-medium text-right">{booking.address}</span>
-                  </div>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between text-lg">
-                    <span className="text-muted-foreground">Total Cost:</span>
-                    <span className="font-bold text-primary">€{parseFloat(booking.totalPrice).toFixed(2)}</span>
-                  </div>
-                </div>
+            ) : bookings.length === 0 ? (
+              <div className="text-center py-8">
+                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No installation requests yet</h3>
+                <p className="text-gray-600 mb-4">
+                  Ready to mount your TV? Create your first installation request with our AI preview system.
+                </p>
+                <Link href="/booking">
+                  <Button>Book Your First Installation</Button>
+                </Link>
               </div>
-            </div>
-
-            {/* AI Preview Section */}
-            {(booking.roomPhotoUrl || booking.aiPreviewUrl) && (
-              <>
-                <Separator className="my-6" />
-                <div>
-                  <h3 className="font-semibold text-foreground mb-3">AI Room Preview</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {booking.roomPhotoUrl && (
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">Before</p>
-                        <img 
-                          src={booking.roomPhotoUrl}
-                          alt="Room before TV installation" 
-                          className="w-full h-48 object-cover rounded-lg border"
-                        />
-                      </div>
-                    )}
-                    {booking.aiPreviewUrl && (
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">After (AI Preview)</p>
-                        <div className="relative">
-                          <img 
-                            src={booking.aiPreviewUrl}
-                            alt="Room with mounted TV preview" 
-                            className="w-full h-48 object-cover rounded-lg border"
-                          />
-                          <Badge className="absolute top-2 right-2 bg-success text-white">
-                            <Camera className="w-3 h-3 mr-1" />
-                            AI Generated
+            ) : (
+              <div className="space-y-4">
+                {bookings.map((booking: any) => (
+                  <Card key={booking.id} className="border-l-4 border-l-blue-500">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h3 className="font-semibold text-lg">{booking.tvSize}" TV Installation</h3>
+                          <p className="text-gray-600">{booking.serviceType} • {booking.wallType} Wall</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(booking.status)}
+                          <Badge className={getStatusColor(booking.status)}>
+                            {booking.status === 'pending' ? 'Request Submitted' : booking.status}
                           </Badge>
                         </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
 
-            {/* Customer Notes */}
-            {booking.customerNotes && (
-              <>
-                <Separator className="my-6" />
-                <div>
-                  <h3 className="font-semibold text-foreground mb-3">Special Instructions</h3>
-                  <p className="text-muted-foreground bg-muted/50 p-4 rounded-lg">
-                    {booking.customerNotes}
-                  </p>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+                      <div className="grid md:grid-cols-2 gap-4 mb-4">
+                        <div className="flex items-center">
+                          <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                          <span className="text-sm">{booking.address}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Clock className="w-4 h-4 mr-2 text-gray-500" />
+                          <span className="text-sm">
+                            {booking.scheduledDate ? 
+                              new Date(booking.scheduledDate).toLocaleDateString() : 
+                              'Flexible scheduling'
+                            }
+                          </span>
+                        </div>
+                      </div>
 
-        {/* Contact Support */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Need Help?</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="outline" className="flex-1">
-                <Phone className="w-4 h-4 mr-2" />
-                Call Support
-              </Button>
-              <Button variant="outline" className="flex-1">
-                <Mail className="w-4 h-4 mr-2" />
-                Email Support
-              </Button>
-              <Button variant="outline" className="flex-1">
-                <MapPin className="w-4 h-4 mr-2" />
-                Track Installer
-              </Button>
-            </div>
+                      <div className="bg-blue-50 p-4 rounded-lg mb-4">
+                        <h4 className="font-medium text-blue-900 mb-2">Lead Generation Model</h4>
+                        <p className="text-sm text-blue-800">
+                          Your installation request is live on our platform. Local installers can view and 
+                          accept your request. You'll pay the installer directly using:
+                        </p>
+                        <div className="flex items-center mt-2 text-sm text-blue-800">
+                          <span className="font-medium">Cash • Card • Bank Transfer</span>
+                        </div>
+                      </div>
+
+                      {booking.estimatedTotal && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-600">Estimated Cost:</span>
+                          <span className="font-semibold">From €{booking.estimatedTotal}</span>
+                        </div>
+                      )}
+
+                      {booking.qrCode && (
+                        <div className="mt-4 pt-4 border-t">
+                          <Button variant="outline" size="sm">
+                            <Link href={`/track/${booking.qrCode}`}>
+                              Track Installation
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

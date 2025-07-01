@@ -2547,6 +2547,7 @@ export default function AdminDashboard() {
 
           <TabsContent value="pricing" className="space-y-6">
             <PricingManagement />
+            <WallMountPricingManagement />
           </TabsContent>
         </Tabs>
       </div>

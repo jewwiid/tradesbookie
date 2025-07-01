@@ -2805,6 +2805,148 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // ====================== ADMIN PRICING MANAGEMENT ENDPOINTS ======================
+  
+  // Get all pricing configurations
+  app.get("/api/admin/pricing", isAdmin, async (req, res) => {
+    try {
+      const pricing = await pricingManagementService.getAllPricing();
+      res.json(pricing);
+    } catch (error) {
+      console.error("Error fetching pricing:", error);
+      res.status(500).json({ message: "Failed to fetch pricing configurations" });
+    }
+  });
+
+  // Get pricing by category
+  app.get("/api/admin/pricing/:category", isAdmin, async (req, res) => {
+    try {
+      const category = req.params.category as 'service' | 'addon' | 'bracket';
+      if (!['service', 'addon', 'bracket'].includes(category)) {
+        return res.status(400).json({ message: "Invalid category" });
+      }
+      
+      const pricing = await pricingManagementService.getPricingByCategory(category);
+      res.json(pricing);
+    } catch (error) {
+      console.error("Error fetching pricing by category:", error);
+      res.status(500).json({ message: "Failed to fetch pricing by category" });
+    }
+  });
+
+  // Create or update pricing configuration
+  app.post("/api/admin/pricing", isAdmin, async (req, res) => {
+    try {
+      const { category, itemKey, name, description, customerPrice, leadFee, minTvSize, maxTvSize } = req.body;
+      
+      // Validation
+      if (!category || !itemKey || !name || !customerPrice || !leadFee) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      if (!['service', 'addon', 'bracket'].includes(category)) {
+        return res.status(400).json({ message: "Invalid category" });
+      }
+
+      if (typeof customerPrice !== 'number' || customerPrice < 0) {
+        return res.status(400).json({ message: "Customer price must be a positive number" });
+      }
+
+      if (typeof leadFee !== 'number' || leadFee < 0) {
+        return res.status(400).json({ message: "Lead fee must be a positive number" });
+      }
+
+      const pricingData = {
+        category,
+        itemKey,
+        name,
+        description,
+        customerPrice,
+        leadFee,
+        minTvSize,
+        maxTvSize,
+        isActive: true
+      };
+
+      const savedPricing = await pricingManagementService.upsertPricing(pricingData);
+      res.json(savedPricing);
+    } catch (error) {
+      console.error("Error saving pricing:", error);
+      res.status(500).json({ message: "Failed to save pricing configuration" });
+    }
+  });
+
+  // Update existing pricing configuration
+  app.put("/api/admin/pricing/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { category, itemKey, name, description, customerPrice, leadFee, minTvSize, maxTvSize, isActive } = req.body;
+      
+      if (!category || !itemKey || !name || customerPrice === undefined || leadFee === undefined) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      if (!['service', 'addon', 'bracket'].includes(category)) {
+        return res.status(400).json({ message: "Invalid category" });
+      }
+
+      if (typeof customerPrice !== 'number' || customerPrice < 0) {
+        return res.status(400).json({ message: "Customer price must be a positive number" });
+      }
+
+      if (typeof leadFee !== 'number' || leadFee < 0) {
+        return res.status(400).json({ message: "Lead fee must be a positive number" });
+      }
+
+      const pricingData = {
+        id,
+        category,
+        itemKey,
+        name,
+        description,
+        customerPrice,
+        leadFee,
+        minTvSize,
+        maxTvSize,
+        isActive: isActive !== undefined ? isActive : true
+      };
+
+      const updatedPricing = await pricingManagementService.upsertPricing(pricingData);
+      res.json(updatedPricing);
+    } catch (error) {
+      console.error("Error updating pricing:", error);
+      res.status(500).json({ message: "Failed to update pricing configuration" });
+    }
+  });
+
+  // Delete pricing configuration (soft delete)
+  app.delete("/api/admin/pricing/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await pricingManagementService.deletePricing(id);
+      
+      if (success) {
+        res.json({ message: "Pricing configuration deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Pricing configuration not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting pricing:", error);
+      res.status(500).json({ message: "Failed to delete pricing configuration" });
+    }
+  });
+
+  // Initialize default pricing (for setup)
+  app.post("/api/admin/pricing/initialize", isAdmin, async (req, res) => {
+    try {
+      await pricingManagementService.initializeDefaultPricing();
+      res.json({ message: "Default pricing configurations initialized successfully" });
+    } catch (error) {
+      console.error("Error initializing pricing:", error);
+      res.status(500).json({ message: "Failed to initialize pricing configurations" });
+    }
+  });
+
   // Test booking confirmation emails without authentication
   app.post("/api/test-booking-emails", async (req, res) => {
     try {

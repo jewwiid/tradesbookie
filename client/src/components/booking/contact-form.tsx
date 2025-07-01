@@ -384,7 +384,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       {/* Booking Summary */}
       <Card className="bg-muted/50 mb-8">
         <CardContent className="p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Installation Request Summary</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-4">Booking Summary</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">TV Size:</span>
@@ -429,13 +429,8 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
           </div>
           <div className="border-t border-border mt-4 pt-4">
             <div className="flex justify-between items-center text-lg font-semibold">
-              <span>Estimated Total</span>
+              <span>Total</span>
               <span className="text-primary">€{totalPrice}</span>
-            </div>
-            <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-800 text-center">
-                💳 <strong>Pay installer directly:</strong> Cash • Card • Bank Transfer
-              </p>
             </div>
           </div>
         </CardContent>
@@ -447,11 +442,11 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         className="gradient-bg w-full text-lg px-8 py-4 h-auto"
       >
         {createBookingMutation.isPending ? (
-          <>Submitting Request...</>
+          <>Creating Booking...</>
         ) : (
           <>
-            <CheckCircle className="w-5 h-5 mr-2" />
-            Submit Installation Request
+            <CreditCard className="w-5 h-5 mr-2" />
+            Proceed to Payment - €{totalPrice}
           </>
         )}
       </Button>

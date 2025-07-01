@@ -8,19 +8,19 @@ import { useQuery } from '@tanstack/react-query';
 const MOUNT_TYPES = [
   {
     key: "fixed",
-    name: "🔴 TEST - Fixed Mount",
+    name: "Fixed Mount",
     description: "TV sits flat against the wall (most secure)",
     icon: "square"
   },
   {
     key: "tilting",
-    name: "🔴 TEST - Tilting Mount",
+    name: "Tilting Mount",
     description: "TV can tilt up and down for better viewing angles",
     icon: "angle-down"
   },
   {
     key: "full-motion",
-    name: "🔴 TEST - Full Motion Mount",
+    name: "Full Motion Mount",
     description: "TV can swivel, tilt, and extend from wall",
     icon: "arrows-alt"
   }
@@ -32,9 +32,7 @@ interface WallMountPricing {
   key: string;
   name: string;
   description: string | null;
-  price: string;
-  mountType: string;
-  maxTvSize: number | null;
+  price: number;
   isActive: boolean;
   displayOrder: number;
   createdAt: Date | null;
@@ -47,43 +45,15 @@ interface MountTypeSelectionProps {
 }
 
 export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectionProps) {
-  console.log("MountTypeSelection component is rendering");
   const { bookingData, updateBookingData } = useBooking();
-  console.log("Booking data:", bookingData);
   const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(bookingData.needsWallMount);
   const [selectedWallMount, setSelectedWallMount] = useState<string>(bookingData.wallMountOption || '');
 
   // Fetch wall mount pricing from database
-  const { data: wallMountPricing, isLoading: isLoadingPricing, error } = useQuery<WallMountPricing[]>({
+  const { data: wallMountPricing, isLoading: isLoadingPricing } = useQuery<WallMountPricing[]>({
     queryKey: ['/api/wall-mount-pricing'],
-    // Always fetch wall mount pricing so it's available when user selects "Yes"
+    enabled: needsWallMount === true, // Only fetch when user wants wall mount
   });
-
-  const getAvailableWallMounts = () => {
-    if (!wallMountPricing || wallMountPricing.length === 0) return [];
-    
-    // Return all active wall mount options from database
-    // The database handles the filtering by active status
-    return wallMountPricing.filter(mount => mount.isActive);
-  };
-
-  // Debug logging - Check if component is even rendering
-  console.log('🔧 Mount Type Selection Component Loaded');
-  console.log('📊 Mount Type Selection Debug:', {
-    needsWallMount,
-    selectedMountType: bookingData.mountType,
-    wallMountPricingData: wallMountPricing,
-    isLoadingPricing,
-    error,
-    availableWallMounts: getAvailableWallMounts(),
-    shouldShowWallMountQuestion: !!bookingData.mountType,
-    shouldShowWallMountOptions: needsWallMount === true
-  });
-  
-  // Also check if API is even being called
-  if (error) {
-    console.error('❌ Wall Mount Pricing API Error:', error);
-  }
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -96,6 +66,14 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
       default:
         return <Settings className="h-8 w-8 text-gray-600" />;
     }
+  };
+
+  const getAvailableWallMounts = () => {
+    if (!wallMountPricing) return [];
+    
+    // Return all active wall mount options from database
+    // The database handles the filtering by active status
+    return wallMountPricing;
   };
 
   const handleMountTypeSelect = (mountType: string) => {
@@ -121,30 +99,23 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
     // Find the selected wall mount from database pricing and add its price
     const selectedMount = wallMountPricing?.find(mount => mount.key === wallMountKey);
     if (selectedMount) {
-      const wallMountPrice = parseFloat(selectedMount.price); // Convert string to number
-      // Store the wall mount price in booking data (we'll update the interface later)
-      console.log('Selected wall mount:', wallMountKey, 'Price:', wallMountPrice);
+      const wallMountPrice = selectedMount.price; // Price is already in euros from database
+      const newTotal = bookingData.subtotal + bookingData.addonTotal + wallMountPrice;
+      updateBookingData({ 
+        total: newTotal
+      });
     }
   };
 
   return (
     <Card className="max-w-2xl mx-auto">
       <CardContent className="p-8 lg:p-12">
-        {/* Bright red test banner */}
-        <div className="bg-red-500 text-white p-4 text-center font-bold mb-4">
-          🔴 MOUNT TYPE SELECTION COMPONENT IS RENDERING 🔴
-        </div>
-        
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Settings className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">🔴 TESTING - Choose Mount Type</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Choose Mount Type</h2>
           <p className="text-lg text-gray-600">Select how you want your TV to be positioned</p>
-          {/* Debug indicator */}
-          <div className="text-xs text-red-500 mt-2">
-            DEBUG: Mount={bookingData.mountType} | NeedsMount={String(needsWallMount)} | API Loading={String(isLoadingPricing)}
-          </div>
         </div>
 
         {/* Mount Type Selection */}
@@ -173,8 +144,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
         </div>
 
         {/* Wall Mount Question - appears after mount type is selected */}
-        {/* Force show for debugging */}
-        {true && (
+        {bookingData.mountType && (
           <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Do you need a wall mount?</h3>
             <p className="text-gray-600 mb-6">
@@ -214,8 +184,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
         )}
 
         {/* Wall Mount Options Selection */}
-        {/* Force show for debugging */}
-        {true && (
+        {needsWallMount === true && (
           <div className="mt-8">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Choose Your Wall Mount</h3>
             <p className="text-gray-600 mb-6">Select the wall mount that best fits your TV and viewing needs</p>
@@ -246,7 +215,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-bold text-gray-900">
-                          €{parseFloat(mount.price).toFixed(0)}
+                          €{mount.price.toFixed(0)}
                         </div>
                       </div>
                     </div>

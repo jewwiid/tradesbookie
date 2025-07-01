@@ -52,8 +52,7 @@ function Router() {
       <Route path="/verify-email" component={VerifyEmail} />
       
       {/* Protected routes - limited guest access then authentication required */}
-      <Route path="/booking" component={BookingFlow} />
-      <Route path="/booking-protected">
+      <Route path="/booking">
         <ProtectedBooking>
           <BookingFlow />
         </ProtectedBooking>

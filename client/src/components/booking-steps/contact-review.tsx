@@ -92,42 +92,18 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
               <span className="font-medium">{bookingData.tvSize}"</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Service:</span>
-              <span className="font-medium">€{bookingData.basePrice}</span>
-            </div>
-            <div className="flex justify-between">
               <span className="text-gray-600">Wall Type:</span>
               <span className="font-medium capitalize">{bookingData.wallType}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Mount Type:</span>
-              <span className="font-medium capitalize">{bookingData.mountType?.replace('-', ' ')}</span>
+              <span className="font-medium capitalize">{bookingData.mountType}</span>
             </div>
-            {bookingData.needsWallMount && bookingData.wallMountOption && (
+            {bookingData.selectedAddons.length > 0 && (
               <div className="flex justify-between">
-                <span className="text-gray-600">Wall Mount:</span>
-                <span className="font-medium">€{bookingData.wallMountPrice}</span>
+                <span className="text-gray-600">Add-ons:</span>
+                <span className="font-medium">{bookingData.selectedAddons.length} selected</span>
               </div>
-            )}
-            {bookingData.selectedAddons && bookingData.selectedAddons.length > 0 && 
-              bookingData.selectedAddons.map((addon, index) => (
-                <div key={index} className="flex justify-between">
-                  <span className="text-gray-600">{addon.name}:</span>
-                  <span className="font-medium">€{addon.price}</span>
-                </div>
-              ))
-            }
-            {bookingData.scheduledDate && bookingData.timeSlot && (
-              <>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Date:</span>
-                  <span className="font-medium">{new Date(bookingData.scheduledDate).toLocaleDateString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Time:</span>
-                  <span className="font-medium">{bookingData.timeSlot}</span>
-                </div>
-              </>
             )}
             <div className="border-t pt-2 mt-4">
               <div className="flex justify-between font-semibold">

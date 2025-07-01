@@ -10,7 +10,7 @@ import PhotoUpload from '@/components/booking-steps/photo-upload';
 import TVSizeSelection from '@/components/booking-steps/tv-size-selection';
 import ServiceSelection from '@/components/booking-steps/service-selection';
 import WallType from '@/components/booking-steps/wall-type';
-import MountTypeSelectionNew from '@/components/booking-steps/mount-type-selection-new';
+import MountTypeSelection from '@/components/booking-steps/mount-type-selection';
 import Addons from '@/components/booking-steps/addons';
 import Schedule from '@/components/booking-steps/schedule';
 import ContactReview from '@/components/booking-steps/contact-review';
@@ -18,7 +18,6 @@ import ContactReview from '@/components/booking-steps/contact-review';
 const TOTAL_STEPS = 8;
 
 export default function Booking() {
-  console.log("🟢 BOOKING COMPONENT LOADED");
   const { bookingData, nextStep, prevStep, resetBooking } = useBooking();
   const { toast } = useToast();
 
@@ -67,7 +66,6 @@ export default function Booking() {
   };
 
   const renderCurrentStep = () => {
-    console.log("🔴 CURRENT STEP IS:", bookingData.step);
     switch (bookingData.step) {
       case 1:
         return <PhotoUpload />;
@@ -78,8 +76,7 @@ export default function Booking() {
       case 4:
         return <WallType onNext={nextStep} onBack={prevStep} />;
       case 5:
-        console.log("🔴 STEP 5 CASE REACHED - Loading MountTypeSelectionNew");
-        return <MountTypeSelectionNew onNext={nextStep} onBack={prevStep} />;
+        return <MountTypeSelection onNext={nextStep} onBack={prevStep} />;
       case 6:
         return <Addons onNext={nextStep} onBack={prevStep} />;
       case 7:

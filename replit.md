@@ -356,6 +356,10 @@ The application now includes a robust fallback system. When the database is unav
 - June 30, 2025: **Added "no addons needed" option to booking addons step with proper logic and UI feedback**
 - June 30, 2025: **Enhanced installer dashboard to display complete client booking selections including TV size, wall type, mount type, wall mount, addons, and difficulty level**
 - June 30, 2025: **Created comprehensive booking details API endpoints for installers with real database integration showing all customer choices**
+- July 1, 2025: **Completed full transformation of installer and customer dashboards to reflect lead generation business model**
+- July 1, 2025: **Updated installer dashboard terminology: "Jobs This Month" → "Leads This Month", "Assigned Jobs" → "Purchased Leads", added "Lead Fee Paid" indicators**
+- July 1, 2025: **Transformed customer dashboard messaging: "Booking Status" → "Request Status", "Booking Confirmed" → "Request Submitted", added "Pay Installer Directly" payment method display**
+- July 1, 2025: **Enhanced customer dashboard with clear lead generation messaging: "Your installation request is live on our platform" and payment options (Cash • Card • Bank Transfer)**
 
 ## User Preferences
 

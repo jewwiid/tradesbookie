@@ -892,7 +892,15 @@ I'm interested in learning more about this TV and discussing purchase options. P
               className="space-y-4"
             >
               {currentQuestion.options.map((option) => (
-                <div key={option.value} className="flex items-start space-x-3 p-4 rounded-lg border hover:bg-gray-50 transition-colors">
+                <div 
+                  key={option.value} 
+                  className={`flex items-start space-x-3 p-4 rounded-lg border transition-colors cursor-pointer ${
+                    answers[currentQuestion.id] === option.value 
+                      ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200' 
+                      : 'hover:bg-gray-50 border-gray-200'
+                  }`}
+                  onClick={() => handleAnswerChange(currentQuestion.id, option.value)}
+                >
                   <RadioGroupItem value={option.value} id={option.value} className="mt-1" />
                   <div className="flex-1">
                     <Label htmlFor={option.value} className="font-medium cursor-pointer">

@@ -396,6 +396,14 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Added budget validation function with fallback recommendations to prevent expensive TV suggestions for lower budgets**
 - July 1, 2025: **Simplified TV recommendation service by removing problematic Perplexity integration causing timeouts**
 - July 1, 2025: **Confirmed budget enforcement working: €400-800 budget recommends QLED, €1500-3000 budget recommends OLED**
+- July 1, 2025: **Implemented comprehensive simplified authentication system to reduce booking psychological barriers**
+- July 1, 2025: **Created SimplifiedAuthDialog component with three authentication pathways: Harvey Norman invoice, guest booking, and full OAuth registration**
+- July 1, 2025: **Added prominent "Book Faster Than Ever" authentication showcase section to homepage with gradient cards demonstrating each option**
+- July 1, 2025: **Built Harvey Norman invoice authentication service with database lookup for instant customer login using receipt numbers**
+- July 1, 2025: **Enhanced navigation components (desktop and mobile) to include simplified authentication access points**
+- July 1, 2025: **Integrated guest booking flow allowing users to start booking with just email and phone, bypassing full registration**
+- July 1, 2025: **Fixed database schema issues by adding harvey_norman_invoice, invoice_verified, and registration_method columns to users table**
+- July 1, 2025: **Created harvey_norman_invoices lookup table with sample data for testing invoice-based authentication**
 
 ## User Preferences
 

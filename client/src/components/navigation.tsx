@@ -62,15 +62,35 @@ export default function Navigation() {
               {/* Right Side - CTA and Auth */}
               <div className="hidden md:flex items-center space-x-4">
                 {!isAdmin && (
-                  <Link href="/booking">
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="bg-primary hover:bg-primary/90"
-                    >
-                      Book Installation
-                    </Button>
-                  </Link>
+                  <>
+                    <Link href="/installer-login">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-700 hover:text-primary"
+                      >
+                        Installer Login
+                      </Button>
+                    </Link>
+                    <Link href="/installer-registration">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-700 hover:text-primary"
+                      >
+                        Join as Installer
+                      </Button>
+                    </Link>
+                    <Link href="/booking">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90"
+                      >
+                        Book Installation
+                      </Button>
+                    </Link>
+                  </>
                 )}
                 {isAuthenticated ? (
                   <div className="flex items-center space-x-3">

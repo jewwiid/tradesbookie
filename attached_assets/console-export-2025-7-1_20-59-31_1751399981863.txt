@@ -1,0 +1,47 @@
+SES The 'dateTaming' option is deprecated and does nothing. In the future specifying it will be an error. lockdown-install.js:1:194912
+SES The 'mathTaming' option is deprecated and does nothing. In the future specifying it will be an error. lockdown-install.js:1:194912
+SES Removing unpermitted intrinsics lockdown-install.js:1:195048
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:194893
+SES_UNCAUGHT_EXCEPTION: TypeError: setting getter-only property "ethereum"
+    c https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking:1
+    initializeProvider https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking:1
+    [2]</</< https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking:1
+    [2]</< https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking:1
+    [2]< https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking:1
+    i https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking:1
+    e https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking:1
+    <anonymous> https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking:1
+lockdown-install.js:1:138390
+Error: An unexpected error occurred spoofer.js:1:38935
+[vite] connecting... client:495:9
+[vite] connected. client:618:15
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools chunk-WERSD76P.js:21551:25
+Content-Security-Policy warnings 2
+Error: An unexpected error occurred spoofer.js:1:38935
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2F3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev%2Fbooking&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil” because it is loaded in the third-party context and dynamic state partitioning is enabled. content-script.js:2:65288
+SES The 'dateTaming' option is deprecated and does nothing. In the future specifying it will be an error. lockdown-install.js:1:194912
+SES The 'mathTaming' option is deprecated and does nothing. In the future specifying it will be an error. lockdown-install.js:1:194912
+SES Removing unpermitted intrinsics lockdown-install.js:1:195048
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:194893
+SES_UNCAUGHT_EXCEPTION: TypeError: setting getter-only property "ethereum"
+    c https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking&title=tradesbook.ie - Professional TV Installation Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil:1
+    initializeProvider https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking&title=tradesbook.ie - Professional TV Installation Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil:1
+    [2]</</< https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking&title=tradesbook.ie - Professional TV Installation Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil:1
+    [2]</< https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking&title=tradesbook.ie - Professional TV Installation Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil:1
+    [2]< https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking&title=tradesbook.ie - Professional TV Installation Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil:1
+    i https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking&title=tradesbook.ie - Professional TV Installation Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil:1
+    e https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking&title=tradesbook.ie - Professional TV Installation Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil:1
+    <anonymous> https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/booking&title=tradesbook.ie - Professional TV Installation Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil:1
+lockdown-install.js:1:138390
+Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-NHm6oPJKWoG64nRG8ZJtL7AWiA5+ZLnfDjKbgeZRCnQ=') or a nonce. inpage.js:1:352837
+Content-Security-Policy warnings 3
+Error: An unexpected error occurred spoofer.js:1:38935
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2F3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev%2Fbooking&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=&muid=531fe4c7-604d-44da-92e6-df94d1f995a2016e98&sid=6d44116e-ef4f-4127-b080-a018e98479e384d132&version=6&preview=false&__shared_params__[version]=basil” because it is loaded in the third-party context and dynamic state partitioning is enabled. content-script.js:2:65288
+SES The 'dateTaming' option is deprecated and does nothing. In the future specifying it will be an error. lockdown-install.js:1:194912
+SES The 'mathTaming' option is deprecated and does nothing. In the future specifying it will be an error. lockdown-install.js:1:194912
+SES Removing unpermitted intrinsics lockdown-install.js:1:195048
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:194893
+Content-Security-Policy: The page’s settings blocked an inline script (script-src-elem) from being executed because it violates the following directive: “script-src https://m.stripe.network 'sha256-5DA+a07wxWmEka9IdoWjSPVHb17Cp5284/lJzfbl8KA=' 'sha256-/5Guo2nzv5n/w6ukZpOBZOtTJBJPSkJ6mhHpnBgm3Ls=' 'unsafe-inline' https://www.google-analytics.com/analytics.js https://www.google-analytics.com/analytics.js”. Consider using a hash ('sha256-NHm6oPJKWoG64nRG8ZJtL7AWiA5+ZLnfDjKbgeZRCnQ=') or a nonce. inpage.js:1:352837
+Cookie warnings 2
+Cookie “m” will soon be rejected because it is foreign and does not have the “Partitioned“ attribute. 6
+Cookie “m” will soon be rejected because it is foreign and does not have the “Partitioned“ attribute. 3 6

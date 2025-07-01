@@ -1,4 +1,7 @@
 import { storage } from "./storage";
+import { db } from "./db";
+import { pricingConfig } from "../shared/schema";
+import { eq } from "drizzle-orm";
 
 export interface WebsiteMetrics {
   totalBookings: number;
@@ -46,6 +49,36 @@ export interface RealTimeStats {
   monthlyGrowth: number;
 }
 
+// Helper function to get lead fee for a service type
+async function getLeadFeeForService(serviceType: string): Promise<number> {
+  try {
+    const result = await db.select()
+      .from(pricingConfig)
+      .where(eq(pricingConfig.itemKey, serviceType))
+      .limit(1);
+    
+    if (result.length > 0) {
+      return result[0].leadFee;
+    }
+    
+    // Fallback to default lead fees if not found in database
+    const fallbackFees: Record<string, number> = {
+      'table-top-small': 12,
+      'table-top-large': 15, 
+      'bronze': 20,
+      'silver': 25,
+      'silver-wall': 25,
+      'gold': 30,
+      'gold-large': 35
+    };
+    
+    return fallbackFees[serviceType] || 20; // Default to €20 if not found
+  } catch (error) {
+    console.error('Error fetching lead fee for service:', serviceType, error);
+    return 20; // Default fallback
+  }
+}
+
 export async function getWebsiteMetrics(): Promise<WebsiteMetrics> {
   try {
     // Get real booking data from database
@@ -53,8 +86,15 @@ export async function getWebsiteMetrics(): Promise<WebsiteMetrics> {
     const installers = await storage.getAllInstallers();
     
     const totalBookings = bookings.length;
-    const totalRevenue = bookings.reduce((sum, booking) => 
-      sum + parseFloat(booking.totalPrice || '0'), 0);
+    
+    // In lead generation model, platform revenue comes from lead fees, not customer payments
+    let totalRevenue = 0;
+    for (const booking of bookings) {
+      // Get the lead fee for this service type from pricing config
+      const leadFee = await getLeadFeeForService(booking.serviceType);
+      totalRevenue += leadFee;
+    }
+    
     const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
     // Calculate service popularity from real data
@@ -117,12 +157,17 @@ export async function getRealTimeStats(): Promise<RealTimeStats> {
 
     const bookings = await storage.getAllBookings();
     
-    const todayBookings = bookings.filter(booking => 
-      new Date(booking.createdAt || booking.scheduledDate) >= startOfDay).length;
+    // Calculate today's revenue from lead fees, not customer payments
+    const todayBookingsArray = bookings.filter(booking => 
+      new Date(booking.createdAt || booking.scheduledDate) >= startOfDay);
     
-    const todayRevenue = bookings
-      .filter(booking => new Date(booking.createdAt || booking.scheduledDate) >= startOfDay)
-      .reduce((sum, booking) => sum + parseFloat(booking.totalPrice || '0'), 0);
+    const todayBookings = todayBookingsArray.length;
+    let todayRevenue = 0;
+    
+    for (const booking of todayBookingsArray) {
+      const leadFee = await getLeadFeeForService(booking.serviceType);
+      todayRevenue += leadFee;
+    }
 
     const weeklyBookings = bookings.filter(booking => 
       new Date(booking.createdAt || booking.scheduledDate) >= startOfWeek).length;

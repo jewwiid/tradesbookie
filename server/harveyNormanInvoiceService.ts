@@ -125,31 +125,64 @@ export class HarveyNormanInvoiceService {
   async createSampleInvoices(): Promise<void> {
     const sampleInvoices = [
       {
-        invoiceNumber: 'HN-2025-001234',
+        invoiceNumber: 'HN-CRK-2576597',
+        customerEmail: 'jude.okun@email.com',
+        customerName: 'Jude Okun',
+        customerPhone: '0851159264',
+        purchaseDate: new Date('2025-05-05'),
+        tvModel: 'SILKN DUAL LED MASK',
+        tvSize: 'N/A',
+        purchaseAmount: '224.50',
+        storeName: 'Harvey Norman Carrickmines',
+        storeCode: 'CRK'
+      },
+      {
+        invoiceNumber: 'HN-DUB-001234',
         customerEmail: 'john.smith@email.com',
         customerName: 'John Smith',
+        customerPhone: '0871234567',
         purchaseDate: new Date('2025-06-15'),
         tvModel: 'Samsung 55" QLED',
         tvSize: '55"',
-        purchaseAmount: '899.99'
+        purchaseAmount: '899.99',
+        storeName: 'Harvey Norman Dublin',
+        storeCode: 'DUB'
       },
       {
-        invoiceNumber: 'HN-2025-005678',
+        invoiceNumber: 'HN-COR-005678',
         customerEmail: 'mary.jones@email.com',
         customerName: 'Mary Jones',
+        customerPhone: '0879876543',
         purchaseDate: new Date('2025-06-20'),
         tvModel: 'LG 65" OLED',
         tvSize: '65"',
-        purchaseAmount: '1299.99'
+        purchaseAmount: '1299.99',
+        storeName: 'Harvey Norman Cork',
+        storeCode: 'COR'
       },
       {
-        invoiceNumber: 'HN-2025-009876',
+        invoiceNumber: 'HN-GAL-009876',
         customerEmail: 'david.brown@email.com',
         customerName: 'David Brown',
+        customerPhone: '0861122334',
         purchaseDate: new Date('2025-06-25'),
         tvModel: 'Sony 43" LED',
         tvSize: '43"',
-        purchaseAmount: '549.99'
+        purchaseAmount: '549.99',
+        storeName: 'Harvey Norman Galway',
+        storeCode: 'GAL'
+      },
+      {
+        invoiceNumber: 'HN-LIM-012345',
+        customerEmail: 'sarah.murphy@email.com',
+        customerName: 'Sarah Murphy',
+        customerPhone: '0863456789',
+        purchaseDate: new Date('2025-06-28'),
+        tvModel: 'Samsung 75" QLED',
+        tvSize: '75"',
+        purchaseAmount: '1599.99',
+        storeName: 'Harvey Norman Limerick',
+        storeCode: 'LIM'
       }
     ];
 
@@ -175,9 +208,29 @@ export class HarveyNormanInvoiceService {
    * Validate invoice format
    */
   isValidInvoiceFormat(invoiceNumber: string): boolean {
-    // Harvey Norman invoice format: HN-YYYY-NNNNNN or HN-STORE-YYYY-NNNNNN
-    const regex = /^HN-(\d{4}-\d{6}|[A-Z]{3,4}-\d{4}-\d{6})$/;
+    // Harvey Norman invoice format: HN-[STORE_CODE]-[INVOICE_NUMBER]
+    // Store codes: CRK (Carrickmines), DUB (Dublin), COR (Cork), GAL (Galway), LIM (Limerick), etc.
+    // Invoice numbers are typically 7 digits but can vary
+    const regex = /^HN-[A-Z]{3,4}-\d{6,8}$/;
     return regex.test(invoiceNumber);
+  }
+
+  /**
+   * Get store name from store code
+   */
+  getStoreName(storeCode: string): string {
+    const storeMap: Record<string, string> = {
+      'CRK': 'Harvey Norman Carrickmines',
+      'DUB': 'Harvey Norman Dublin',
+      'COR': 'Harvey Norman Cork',
+      'GAL': 'Harvey Norman Galway',
+      'LIM': 'Harvey Norman Limerick',
+      'WAT': 'Harvey Norman Waterford',
+      'ATH': 'Harvey Norman Athlone',
+      'BLF': 'Harvey Norman Belfast',
+      'NEW': 'Harvey Norman Newry'
+    };
+    return storeMap[storeCode] || `Harvey Norman ${storeCode}`;
   }
 }
 

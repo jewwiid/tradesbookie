@@ -10,7 +10,7 @@ import PhotoUpload from '@/components/booking-steps/photo-upload';
 import TVSizeSelection from '@/components/booking-steps/tv-size-selection';
 import ServiceSelection from '@/components/booking-steps/service-selection';
 import WallType from '@/components/booking-steps/wall-type';
-import MountTypeSelection from '@/components/booking-steps/mount-type-selection';
+import MountTypeSelectionNew from '@/components/booking-steps/mount-type-selection-new';
 import Addons from '@/components/booking-steps/addons';
 import Schedule from '@/components/booking-steps/schedule';
 import ContactReview from '@/components/booking-steps/contact-review';
@@ -76,7 +76,7 @@ export default function Booking() {
       case 4:
         return <WallType onNext={nextStep} onBack={prevStep} />;
       case 5:
-        return <MountTypeSelection onNext={nextStep} onBack={prevStep} />;
+        return <MountTypeSelectionNew onNext={nextStep} onBack={prevStep} />;
       case 6:
         return <Addons onNext={nextStep} onBack={prevStep} />;
       case 7:

@@ -160,13 +160,16 @@ export default function SimplifiedAuthDialog({
                   <Label htmlFor="invoice">Invoice Number</Label>
                   <Input
                     id="invoice"
-                    placeholder="HN-2025-123456"
+                    placeholder="HN-CRK-2576597"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
                     className="mt-1"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Find this on your Harvey Norman receipt
+                    Format: HN-[STORE]-[NUMBER] (e.g., HN-CRK-2576597 for Carrickmines)
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Store codes: CRK (Carrickmines), DUB (Dublin), COR (Cork), GAL (Galway), LIM (Limerick)
                   </p>
                 </div>
                 <Button 

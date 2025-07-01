@@ -76,7 +76,7 @@ export default function Booking() {
       case 4:
         return <WallType onNext={nextStep} onBack={prevStep} />;
       case 5:
-        return <MountTypeSelection />;
+        return <MountTypeSelection onNext={nextStep} onBack={prevStep} />;
       case 6:
         return <Addons onNext={nextStep} onBack={prevStep} />;
       case 7:

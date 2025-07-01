@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Settings, Square, ChevronDown, Move, Check, X } from 'lucide-react';
+import { Settings, Square, ChevronDown, Move, Check, X, ArrowLeft } from 'lucide-react';
 import { useBooking } from '@/hooks/use-booking';
 import { useQuery } from '@tanstack/react-query';
 
@@ -39,7 +39,12 @@ interface WallMountPricing {
   updatedAt: Date | null;
 }
 
-export default function MountTypeSelection() {
+interface MountTypeSelectionProps {
+  onNext?: () => void;
+  onBack?: () => void;
+}
+
+export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectionProps) {
   const { bookingData, updateBookingData } = useBooking();
   const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(undefined);
   const [selectedWallMount, setSelectedWallMount] = useState<string>('');
@@ -233,6 +238,21 @@ export default function MountTypeSelection() {
             </div>
           </div>
         )}
+
+        {/* Navigation Buttons */}
+        <div className="flex justify-between mt-8">
+          <Button variant="ghost" onClick={onBack} className="flex items-center">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <Button 
+            onClick={onNext} 
+            disabled={!bookingData.mountType || (needsWallMount === true && !selectedWallMount)}
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
+          >
+            Continue
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

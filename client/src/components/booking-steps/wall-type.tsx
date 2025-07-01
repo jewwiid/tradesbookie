@@ -27,7 +27,7 @@ export default function WallType({ onNext, onBack }: WallTypeProps) {
           <p className="text-lg text-gray-600">This helps us prepare the right tools and mounting hardware</p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-2 gap-4 mb-8">
           {WALL_TYPES.map((wall) => (
             <button
               key={wall.key}

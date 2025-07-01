@@ -8,6 +8,9 @@ export interface BookingData {
   tvSize: number;
   wallType: string;
   mountType: string;
+  needsWallMount?: boolean;
+  wallMountOption?: string;
+  wallMountPrice?: number;
   selectedAddons: Array<{
     key: string;
     name: string;
@@ -23,6 +26,8 @@ export interface BookingData {
   roomPhotoFile?: File;
   roomPhotoUrl?: string;
   aiPreviewUrl?: string;
+  roomAnalysis?: string;
+  photoStorageConsent?: boolean;
   subtotal: number;
   addonTotal: number;
   total: number;

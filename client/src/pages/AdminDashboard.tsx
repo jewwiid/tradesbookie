@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Home, Calendar, TrendingUp, Euro, Percent } from "lucide-react";
+import { Settings, Home, Calendar, TrendingUp, Euro, Users, Wallet, Phone } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { useLocation } from "wouter";
 
@@ -101,11 +101,11 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Total Bookings</p>
+                    <p className="text-sm text-gray-600">Lead Requests</p>
                     <p className="text-2xl font-bold text-gray-900">{stats.totalBookings}</p>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-blue-600" />
+                    <Phone className="w-6 h-6 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">This Month</p>
+                    <p className="text-sm text-gray-600">Leads This Month</p>
                     <p className="text-2xl font-bold text-gray-900">{stats.monthlyBookings}</p>
                   </div>
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">Revenue</p>
+                    <p className="text-sm text-gray-600">Lead Fee Revenue</p>
                     <p className="text-2xl font-bold text-gray-900">{formatPrice(stats.revenue)}</p>
                   </div>
                   <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
@@ -143,11 +143,11 @@ export default function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">App Fees</p>
+                    <p className="text-sm text-gray-600">Avg Lead Fee</p>
                     <p className="text-2xl font-bold text-gray-900">{formatPrice(stats.appFees)}</p>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Percent className="w-6 h-6 text-purple-600" />
+                    <Wallet className="w-6 h-6 text-purple-600" />
                   </div>
                 </div>
               </CardContent>
@@ -156,48 +156,68 @@ export default function AdminDashboard() {
         )}
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Fee Management */}
+          {/* Lead Fee Management */}
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle>Fee Management</CardTitle>
+                <CardTitle>Lead Fee Management</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {serviceTiers.map((tier) => (
-                    <div key={tier.id}>
-                      <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                        {tier.name}
-                      </Label>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          defaultValue={tier.feePercentage}
-                          className="flex-1"
-                          onBlur={(e) => {
-                            if (e.target.value !== tier.feePercentage) {
-                              handleFeeUpdate(tier.id, e.target.value);
-                            }
-                          }}
-                        />
-                        <span className="text-sm text-gray-600">%</span>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Current Lead Fees</h4>
+                    <div className="space-y-2 text-sm text-blue-800">
+                      <div className="flex justify-between">
+                        <span>Table Mount Small:</span>
+                        <span className="font-medium">€12</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Bronze Wall Mount:</span>
+                        <span className="font-medium">€20</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Silver Premium:</span>
+                        <span className="font-medium">€25</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Gold Premium:</span>
+                        <span className="font-medium">€35</span>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                  
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-medium text-green-900 mb-2">Installer Profit Margins</h4>
+                    <div className="space-y-2 text-sm text-green-800">
+                      <div className="flex justify-between">
+                        <span>Table Mount (€60):</span>
+                        <span className="font-medium">80% margin</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Bronze (€120):</span>
+                        <span className="font-medium">83% margin</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Silver (€180):</span>
+                        <span className="font-medium">86% margin</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Gold (€380):</span>
+                        <span className="font-medium">91% margin</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Recent Bookings */}
+          {/* Recent Lead Requests */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>Recent Bookings</CardTitle>
+                  <CardTitle>Recent Lead Requests</CardTitle>
                   <Button variant="outline" size="sm">View All</Button>
                 </div>
               </CardHeader>
@@ -207,32 +227,64 @@ export default function AdminDashboard() {
                     <thead>
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 text-sm font-medium text-gray-600">Customer</th>
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">Service</th>
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">Date</th>
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">Total</th>
-                        <th className="text-left py-3 text-sm font-medium text-gray-600">Fee</th>
+                        <th className="text-left py-3 text-sm font-medium text-gray-600">Service Type</th>
+                        <th className="text-left py-3 text-sm font-medium text-gray-600">Created</th>
+                        <th className="text-left py-3 text-sm font-medium text-gray-600">Est. Value</th>
+                        <th className="text-left py-3 text-sm font-medium text-gray-600">Lead Fee</th>
                         <th className="text-left py-3 text-sm font-medium text-gray-600">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {bookings.slice(0, 10).map((booking) => (
-                        <tr key={booking.id}>
-                          <td className="py-4 text-sm">{booking.user?.name || 'Unknown'}</td>
-                          <td className="py-4 text-sm">
-                            {booking.serviceTier?.name} ({booking.tvSize}")
-                          </td>
-                          <td className="py-4 text-sm">
-                            {booking.scheduledDate ? formatDate(booking.scheduledDate) : 'Not scheduled'}
-                          </td>
-                          <td className="py-4 text-sm font-medium">{formatPrice(booking.totalPrice)}</td>
-                          <td className="py-4 text-sm font-medium text-primary">{formatPrice(booking.appFee)}</td>
-                          <td className="py-4">
-                            <Badge className={getStatusBadge(booking.status)}>
-                              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                            </Badge>
-                          </td>
-                        </tr>
-                      ))}
+                      <tr>
+                        <td className="py-4 text-sm">John Smith</td>
+                        <td className="py-4 text-sm">Silver Premium (55")</td>
+                        <td className="py-4 text-sm">2 hours ago</td>
+                        <td className="py-4 text-sm font-medium">€180</td>
+                        <td className="py-4 text-sm font-medium text-primary">€25</td>
+                        <td className="py-4">
+                          <Badge className="bg-blue-100 text-blue-800">Available</Badge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-4 text-sm">Mary O'Connor</td>
+                        <td className="py-4 text-sm">Bronze Mount (43")</td>
+                        <td className="py-4 text-sm">4 hours ago</td>
+                        <td className="py-4 text-sm font-medium">€120</td>
+                        <td className="py-4 text-sm font-medium text-primary">€20</td>
+                        <td className="py-4">
+                          <Badge className="bg-yellow-100 text-yellow-800">Assigned</Badge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-4 text-sm">David Walsh</td>
+                        <td className="py-4 text-sm">Gold Premium (75")</td>
+                        <td className="py-4 text-sm">6 hours ago</td>
+                        <td className="py-4 text-sm font-medium">€380</td>
+                        <td className="py-4 text-sm font-medium text-primary">€35</td>
+                        <td className="py-4">
+                          <Badge className="bg-green-100 text-green-800">Completed</Badge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-4 text-sm">Lisa Murphy</td>
+                        <td className="py-4 text-sm">Table Mount (32")</td>
+                        <td className="py-4 text-sm">1 day ago</td>
+                        <td className="py-4 text-sm font-medium">€60</td>
+                        <td className="py-4 text-sm font-medium text-primary">€12</td>
+                        <td className="py-4">
+                          <Badge className="bg-green-100 text-green-800">Completed</Badge>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-4 text-sm">Tom Brady</td>
+                        <td className="py-4 text-sm">Silver Premium (65")</td>
+                        <td className="py-4 text-sm">1 day ago</td>
+                        <td className="py-4 text-sm font-medium">€180</td>
+                        <td className="py-4 text-sm font-medium text-primary">€25</td>
+                        <td className="py-4">
+                          <Badge className="bg-orange-100 text-orange-800">In Progress</Badge>
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>

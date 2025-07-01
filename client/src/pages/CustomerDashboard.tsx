@@ -93,11 +93,11 @@ export default function CustomerDashboard() {
           </CardContent>
         </Card>
 
-        {/* Booking Status */}
+        {/* Request Status */}
         <Card className="mb-8">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Booking Status</CardTitle>
+              <CardTitle>Request Status</CardTitle>
               <Badge className={statusInfo.color}>
                 <StatusIcon className="w-4 h-4 mr-1" />
                 {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
@@ -114,8 +114,8 @@ export default function CustomerDashboard() {
                   <CheckCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">Booking Confirmed</div>
-                  <div className="text-sm text-gray-600">Your installation has been scheduled</div>
+                  <div className="font-semibold text-gray-900">Request Submitted</div>
+                  <div className="text-sm text-gray-600">Your installation request is live on our platform</div>
                 </div>
               </div>
               
@@ -198,8 +198,12 @@ export default function CustomerDashboard() {
                     <span className="font-medium">{booking.address}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Total Cost:</span>
+                    <span className="text-gray-600">Estimated Cost:</span>
                     <span className="font-medium text-lg">{formatPrice(booking.totalPrice)}</span>
+                  </div>
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="text-green-800 text-sm font-medium">Pay Installer Directly</div>
+                    <div className="text-green-600 text-xs mt-1">Cash • Card • Bank Transfer</div>
                   </div>
                 </div>
               </div>

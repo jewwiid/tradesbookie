@@ -84,7 +84,7 @@ export default function InstallerDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Jobs This Month</p>
+                  <p className="text-sm text-gray-600">Leads This Month</p>
                   <p className="text-2xl font-bold text-gray-900">{installerStats.monthlyJobs}</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -123,11 +123,11 @@ export default function InstallerDashboard() {
           </Card>
         </div>
 
-        {/* Job Management */}
+        {/* Lead Management */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Assigned Jobs</CardTitle>
+              <CardTitle>Purchased Leads</CardTitle>
               <div className="flex space-x-2">
                 {['all', 'new', 'accepted', 'completed'].map((filter) => (
                   <Button
@@ -166,6 +166,7 @@ export default function InstallerDashboard() {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-gray-900">€{job.installerEarnings || job.earning}</p>
+                        <p className="text-xs text-green-600 font-medium">Lead Fee Paid</p>
                         <p className="text-sm text-gray-500 flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
                           {job.preferredDate || job.date}

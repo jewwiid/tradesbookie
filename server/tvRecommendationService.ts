@@ -1,5 +1,4 @@
 import OpenAI from "openai";
-import { getCurrentTVRecommendations, getCurrentTVComparison } from "./perplexityService";
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("OPENAI_API_KEY environment variable must be set");
@@ -32,39 +31,10 @@ interface TVRecommendation {
 
 export async function generateTVRecommendation(answers: QuestionnaireAnswers): Promise<TVRecommendation> {
   try {
-    // First attempt to get real-time data from Perplexity
-    let realTimeData = null;
-    try {
-      if (process.env.PERPLEXITY_API_KEY) {
-        realTimeData = await getCurrentTVRecommendations(answers);
-        console.log("Retrieved real-time TV data from Perplexity");
-      }
-    } catch (perplexityError) {
-      console.log("Perplexity API unavailable, using OpenAI analysis:", String(perplexityError));
-    }
+    console.log("Starting TV recommendation with answers:", answers);
 
     // Use OpenAI for personalized analysis and recommendation logic
-    const prompt = realTimeData 
-      ? `Based on this current market data and user preferences, provide personalized analysis:
-
-Current Market Data: ${JSON.stringify(realTimeData, null, 2)}
-
-User Preferences:
-Usage: ${answers.usage}
-Budget: ${answers.budget}
-Room Environment: ${answers.room}
-Gaming Importance: ${answers.gaming}
-Priority Feature: ${answers.features}
-
-Analyze the current market data and provide a personalized recommendation in JSON format matching this structure:
-- type: The recommended TV technology
-- model: Specific current model from the market data
-- reasons: 3-4 personalized reasons based on user needs and current market
-- pros: 4-5 advantages considering current availability
-- cons: 2-3 honest considerations including current pricing
-- priceRange: Current realistic price range in euros
-- bestFor: 3-4 use cases this TV excels at`
-      : `Based on these user preferences, recommend the BEST TV technology and specific model that STRICTLY FITS their budget:
+    const prompt = `Based on these user preferences, recommend the BEST TV technology and specific model that STRICTLY FITS their budget:
 
 Usage: ${answers.usage}
 Budget: ${answers.budget}
@@ -118,10 +88,25 @@ Be realistic about what features are available at each price point.`;
       throw new Error("No recommendation generated");
     }
 
-    const recommendation: TVRecommendation = JSON.parse(recommendationText);
+    console.log("Raw AI response:", recommendationText);
+
+    let recommendation: TVRecommendation;
+    try {
+      recommendation = JSON.parse(recommendationText);
+    } catch (parseError) {
+      console.error("JSON parse error:", parseError);
+      console.error("Raw text that failed to parse:", recommendationText);
+      throw new Error("Invalid JSON response from AI");
+    }
     
     // Validate the response structure
     if (!recommendation.type || !recommendation.model || !Array.isArray(recommendation.reasons)) {
+      console.error("Invalid recommendation structure:", {
+        hasType: !!recommendation.type,
+        hasModel: !!recommendation.model,
+        hasReasonsArray: Array.isArray(recommendation.reasons),
+        actualRecommendation: recommendation
+      });
       throw new Error("Invalid recommendation format");
     }
 
@@ -131,15 +116,6 @@ Be realistic about what features are available at each price point.`;
       console.log(`Budget validation failed: ${budgetValidation.message}. Adjusting recommendation.`);
       // Override with budget-appropriate recommendation
       Object.assign(recommendation, budgetValidation.adjustedRecommendation);
-    }
-
-    // Enhance with real-time data if available
-    if (realTimeData) {
-      recommendation.currentModels = realTimeData.currentModels;
-      recommendation.marketAnalysis = realTimeData.marketAnalysis;
-      recommendation.pricingTrends = realTimeData.pricingTrends;
-      recommendation.bestDeals = realTimeData.bestDeals;
-      recommendation.realTimeData = true;
     }
 
     return recommendation;

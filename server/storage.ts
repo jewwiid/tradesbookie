@@ -28,6 +28,7 @@ export interface IStorage {
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  deleteUser(userId: number): Promise<boolean>;
   verifyUserEmail(userId: string): Promise<void>;
   updateEmailVerificationToken(userId: string, token: string, expiresAt: Date): Promise<void>;
 
@@ -151,6 +152,16 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users);
+  }
+
+  async deleteUser(userId: number): Promise<boolean> {
+    try {
+      const result = await db.delete(users).where(eq(users.id, userId.toString()));
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
   }
 
   async verifyUserEmail(userId: string): Promise<void> {

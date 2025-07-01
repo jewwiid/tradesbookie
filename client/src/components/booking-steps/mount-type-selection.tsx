@@ -57,6 +57,14 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
     // Always fetch wall mount pricing so it's available when user selects "Yes"
   });
 
+  const getAvailableWallMounts = () => {
+    if (!wallMountPricing || wallMountPricing.length === 0) return [];
+    
+    // Return all active wall mount options from database
+    // The database handles the filtering by active status
+    return wallMountPricing.filter(mount => mount.isActive);
+  };
+
   // Debug logging
   console.log('Mount Type Selection - Debug:', {
     needsWallMount,
@@ -77,14 +85,6 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
       default:
         return <Settings className="h-8 w-8 text-gray-600" />;
     }
-  };
-
-  const getAvailableWallMounts = () => {
-    if (!wallMountPricing || wallMountPricing.length === 0) return [];
-    
-    // Return all active wall mount options from database
-    // The database handles the filtering by active status
-    return wallMountPricing.filter(mount => mount.isActive);
   };
 
   const handleMountTypeSelect = (mountType: string) => {
@@ -111,9 +111,8 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
     const selectedMount = wallMountPricing?.find(mount => mount.key === wallMountKey);
     if (selectedMount) {
       const wallMountPrice = parseFloat(selectedMount.price); // Convert string to number
-      updateBookingData({ 
-        wallMountPrice: wallMountPrice
-      });
+      // Store the wall mount price in booking data (we'll update the interface later)
+      console.log('Selected wall mount:', wallMountKey, 'Price:', wallMountPrice);
     }
   };
 

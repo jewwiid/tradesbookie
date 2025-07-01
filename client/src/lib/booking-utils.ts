@@ -49,6 +49,11 @@ export interface BookingData {
     address: string;
   };
 
+  // Harvey Norman Referral
+  referralCode?: string;
+  referralDiscount?: number;
+  referralCodeId?: number;
+
   // AI Preview
   aiPreviewUrl?: string;
 

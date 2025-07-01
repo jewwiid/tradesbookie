@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, CheckCircle, CreditCard, Sparkles, Loader2 } from "lucide-react";
+import { User, CheckCircle, CreditCard, Sparkles, Loader2, Tag } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -51,7 +51,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         updateBookingData({ 
           referralCode: '',
           referralDiscount: 0,
-          referralCodeId: null
+          referralCodeId: undefined
         });
       }
     },
@@ -61,7 +61,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       updateBookingData({ 
         referralCode: '',
         referralDiscount: 0,
-        referralCodeId: null
+        referralCodeId: undefined
       });
     }
   });
@@ -257,6 +257,58 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         </div>
       </div>
 
+      {/* Harvey Norman Referral Code Section */}
+      <Card className="mb-8 border-2 border-dashed border-blue-200 bg-blue-50/50">
+        <CardContent className="p-6">
+          <div className="flex items-center mb-4">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+              <Tag className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">Harvey Norman Referral Code</h3>
+              <p className="text-sm text-muted-foreground">Got a code from Harvey Norman sales staff? Save 10%!</p>
+            </div>
+          </div>
+          
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <Input
+                placeholder="Enter referral code (e.g., HN-JOHN-CARRICKMINES)"
+                value={referralCode}
+                onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
+                className="border-blue-200 focus:border-blue-400"
+              />
+            </div>
+            <Button
+              onClick={() => {
+                if (referralCode.trim()) {
+                  validateReferralMutation.mutate(referralCode.trim());
+                }
+              }}
+              disabled={!referralCode.trim() || validateReferralMutation.isPending}
+              variant="outline"
+              className="border-blue-200 text-blue-600 hover:bg-blue-50"
+            >
+              {validateReferralMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                'Apply'
+              )}
+            </Button>
+          </div>
+          
+          {referralMessage && (
+            <div className={`mt-3 p-3 rounded-lg text-sm ${
+              referralDiscount > 0 
+                ? 'bg-green-100 text-green-800 border border-green-200' 
+                : 'bg-red-100 text-red-800 border border-red-200'
+            }`}>
+              {referralMessage}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* AI Preview Section - Only shows at final step */}
       {bookingData.roomPhotoBase64 && (
         <Card className="mb-8">
@@ -350,6 +402,12 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
                 <span className="font-medium">€{addon.price}</span>
               </div>
             ))}
+            {bookingData.referralDiscount && bookingData.referralDiscount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span className="text-muted-foreground">Harvey Norman Discount (10%):</span>
+                <span className="font-medium">-€{bookingData.referralDiscount.toFixed(2)}</span>
+              </div>
+            )}
             {bookingData.preferredDate && bookingData.preferredTime && (
               <>
                 <div className="flex justify-between">

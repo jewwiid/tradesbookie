@@ -414,7 +414,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
           </div>
 
           {/* Main Recommendation - Prominent Display */}
-          <Card className="mb-8 border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-xl">
+          <Card className="mb-8 border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-xl hover:shadow-xl hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100">
             <CardHeader className="text-center bg-blue-600 text-white rounded-t-lg">
               <div className="flex items-center justify-center mb-2">
                 <Trophy className="w-6 h-6 mr-2" />

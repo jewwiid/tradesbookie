@@ -1103,10 +1103,10 @@ function SystemMetrics() {
   );
 }
 
-// Payment Management Component
+// Lead Fee Management Component - Tracks installer payments to platform
 function PaymentManagement() {
-  const { data: bookings, isLoading } = useQuery<Booking[]>({
-    queryKey: ["/api/admin/bookings"],
+  const { data: leadPayments, isLoading } = useQuery({
+    queryKey: ["/api/admin/lead-payments"],
     retry: false,
   });
 
@@ -1127,22 +1127,22 @@ function PaymentManagement() {
     );
   }
 
-  const paymentsWithStatus = bookings?.filter(b => b.paymentIntentId) || [];
-  const successfulPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'succeeded');
-  const pendingPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'pending' || b.paymentStatus === 'processing');
-  const failedPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'failed');
+  const transactions = leadPayments?.transactions || [];
+  const successfulPayments = transactions.filter((t: any) => t.status === 'completed' && t.type === 'lead_fee');
+  const pendingPayments = transactions.filter((t: any) => t.status === 'pending' && t.type === 'lead_fee');
+  const failedPayments = transactions.filter((t: any) => t.status === 'failed' && t.type === 'lead_fee');
 
-  const totalPaidAmount = successfulPayments.reduce((sum, b) => sum + parseFloat(b.paidAmount || '0'), 0);
+  const totalLeadRevenue = successfulPayments.reduce((sum: number, t: any) => sum + Math.abs(parseFloat(t.amount || '0')), 0);
 
   return (
     <div className="space-y-6">
-      {/* Payment Summary Cards */}
+      {/* Lead Fee Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         <Card>
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Successful</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Paid Lead Fees</p>
                 <p className="text-lg sm:text-2xl font-bold text-green-600">{successfulPayments.length}</p>
               </div>
               <UserCheck className="h-5 w-5 sm:h-8 sm:w-8 text-green-600" />
@@ -1154,7 +1154,7 @@ function PaymentManagement() {
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Pending</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Pending Fees</p>
                 <p className="text-lg sm:text-2xl font-bold text-yellow-600">{pendingPayments.length}</p>
               </div>
               <Clock className="h-5 w-5 sm:h-8 sm:w-8 text-yellow-600" />
@@ -1166,7 +1166,7 @@ function PaymentManagement() {
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Failed</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Failed Payments</p>
                 <p className="text-lg sm:text-2xl font-bold text-red-600">{failedPayments.length}</p>
               </div>
               <AlertTriangle className="h-5 w-5 sm:h-8 sm:w-8 text-red-600" />
@@ -1178,8 +1178,8 @@ function PaymentManagement() {
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Collected</p>
-                <p className="text-lg sm:text-2xl font-bold text-emerald-600">€{totalPaidAmount.toFixed(2)}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Platform Revenue</p>
+                <p className="text-lg sm:text-2xl font-bold text-emerald-600">€{totalLeadRevenue.toFixed(2)}</p>
               </div>
               <Euro className="h-5 w-5 sm:h-8 sm:w-8 text-emerald-600" />
             </div>
@@ -1187,55 +1187,47 @@ function PaymentManagement() {
         </Card>
       </div>
 
-      {/* Payment Transactions Table */}
+      {/* Lead Fee Transactions Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
             <DollarSign className="w-5 h-5 mr-2" />
-            Payment Transactions
+            Lead Fee Transactions
           </CardTitle>
         </CardHeader>
         <CardContent className="p-2 sm:p-6">
           {/* Mobile Card View */}
           <div className="block md:hidden space-y-3">
-            {paymentsWithStatus.map((booking) => (
-              <div key={booking.id} className="bg-gray-50 p-3 rounded-lg border">
+            {transactions.map((transaction: any) => (
+              <div key={transaction.id} className="bg-gray-50 p-3 rounded-lg border">
                 <div className="flex justify-between items-start mb-2">
-                  <span className="text-sm font-medium">#{booking.id}</span>
+                  <span className="text-sm font-medium">#{transaction.id}</span>
                   <Badge 
                     variant={
-                      booking.paymentStatus === 'succeeded' ? 'default' :
-                      booking.paymentStatus === 'pending' || booking.paymentStatus === 'processing' ? 'secondary' :
+                      transaction.status === 'completed' ? 'default' :
+                      transaction.status === 'pending' ? 'secondary' :
                       'destructive'
                     }
                   >
-                    {booking.paymentStatus || 'Unknown'}
+                    {transaction.status}
                   </Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-gray-500">Amount:</span>
-                    <div className="font-medium">€{booking.paidAmount || booking.totalPrice}</div>
+                    <div className="font-medium">€{Math.abs(parseFloat(transaction.amount || '0')).toFixed(2)}</div>
                   </div>
                   <div>
                     <span className="text-gray-500">Date:</span>
                     <div className="font-medium">
-                      {booking.paymentDate ? new Date(booking.paymentDate).toLocaleDateString() : 'N/A'}
+                      {transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString() : 'N/A'}
                     </div>
                   </div>
-                </div>
-                <div className="mt-2 text-xs">
-                  <span className="text-gray-500">Customer:</span>
-                  <div className="font-medium truncate">{booking.customerEmail || 'N/A'}</div>
-                </div>
-                {booking.paymentIntentId && (
-                  <div className="mt-2 text-xs">
-                    <span className="text-gray-500">Payment ID:</span>
-                    <div className="font-mono text-xs truncate">
-                      {booking.paymentIntentId.substring(0, 30)}...
-                    </div>
+                  <div className="col-span-2">
+                    <span className="text-gray-500">Installer:</span>
+                    <div className="font-medium">{transaction.installerName || `Installer #${transaction.installerId}`}</div>
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>
@@ -1245,46 +1237,44 @@ function PaymentManagement() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Booking ID</TableHead>
-                  <TableHead>Payment Intent</TableHead>
+                  <TableHead>Transaction ID</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Payment Date</TableHead>
-                  <TableHead>Customer</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Installer</TableHead>
+                  <TableHead>Description</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paymentsWithStatus.map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell className="font-medium">#{booking.id}</TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {booking.paymentIntentId?.substring(0, 20)}...
-                    </TableCell>
-                    <TableCell>€{booking.paidAmount || booking.totalPrice}</TableCell>
+                {transactions.map((transaction: any) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell className="font-medium">#{transaction.id}</TableCell>
+                    <TableCell>€{Math.abs(parseFloat(transaction.amount || '0')).toFixed(2)}</TableCell>
                     <TableCell>
                       <Badge 
                         variant={
-                          booking.paymentStatus === 'succeeded' ? 'default' :
-                          booking.paymentStatus === 'pending' || booking.paymentStatus === 'processing' ? 'secondary' :
+                          transaction.status === 'completed' ? 'default' :
+                          transaction.status === 'pending' ? 'secondary' :
                           'destructive'
                         }
                       >
-                        {booking.paymentStatus || 'Unknown'}
+                        {transaction.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {booking.paymentDate ? new Date(booking.paymentDate).toLocaleDateString() : 'N/A'}
+                      {transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString() : 'N/A'}
                     </TableCell>
-                    <TableCell>{booking.customerEmail || 'N/A'}</TableCell>
+                    <TableCell>{transaction.installerName || `Installer #${transaction.installerId}`}</TableCell>
+                    <TableCell className="text-sm text-gray-600">{transaction.description}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </div>
           
-          {paymentsWithStatus.length === 0 && (
+          {transactions.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              No payment transactions found
+              No lead fee transactions found
             </div>
           )}
         </CardContent>

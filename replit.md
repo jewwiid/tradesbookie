@@ -404,6 +404,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Integrated guest booking flow allowing users to start booking with just email and phone, bypassing full registration**
 - July 1, 2025: **Fixed database schema issues by adding harvey_norman_invoice, invoice_verified, and registration_method columns to users table**
 - July 1, 2025: **Created harvey_norman_invoices lookup table with sample data for testing invoice-based authentication**
+- July 1, 2025: **Upgraded Harvey Norman invoice format to include store codes (HN-[STORE]-[NUMBER]) handling duplicate invoice numbers across different stores**
+- July 1, 2025: **Implemented comprehensive store code mapping for all 16 Harvey Norman locations across Ireland**
+- July 1, 2025: **Added complete store code coverage: BLA (Blanchardstown), CRK (Carrickmines), CAS (Castlebar), DRO (Drogheda), FON (Fonthill), GAL (Galway), KIN (Kinsale Road), LIM (Limerick), LIT (Little Island), NAA (Naas), RAT (Rathfarnham), SLI (Sligo), SWO (Swords), TAL (Tallaght), TRA (Tralee), WAT (Waterford)**
+- July 1, 2025: **Enhanced database schema with customerPhone, storeName, and storeCode fields for comprehensive invoice tracking**
+- July 1, 2025: **Updated UI guidance with complete store code reference and format examples for customer clarity**
 
 ## User Preferences
 

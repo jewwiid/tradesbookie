@@ -129,7 +129,7 @@ export default function SimplifiedAuthDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-center">{title}</DialogTitle>
           <DialogDescription className="text-center">
@@ -137,8 +137,8 @@ export default function SimplifiedAuthDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'invoice' | 'guest' | 'oauth')} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'invoice' | 'guest' | 'oauth')} className="w-full mt-4">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="invoice" className="text-xs">Harvey Norman</TabsTrigger>
             <TabsTrigger value="guest" className="text-xs">Quick Start</TabsTrigger>
             <TabsTrigger value="oauth" className="text-xs">Full Account</TabsTrigger>

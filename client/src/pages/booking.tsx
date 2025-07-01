@@ -22,6 +22,7 @@ export default function Booking() {
   const { bookingData, nextStep, prevStep, resetBooking, updateBookingData } = useBooking();
   const { toast } = useToast();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [authDialogTab, setAuthDialogTab] = useState<'invoice' | 'guest' | 'oauth'>('invoice');
   const [currentUser, setCurrentUser] = useState(null);
 
   // Check authentication status
@@ -196,7 +197,10 @@ export default function Booking() {
                 </div>
 
                 <Button
-                  onClick={() => setShowAuthDialog(true)}
+                  onClick={() => {
+                    setAuthDialogTab('oauth');
+                    setShowAuthDialog(true);
+                  }}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg"
                 >
                   <User className="w-4 h-4 mr-2" />
@@ -229,7 +233,10 @@ export default function Booking() {
                     <code className="text-blue-600 font-mono text-sm">HN-DUB-2024-001234</code>
                   </div>
                   <Button
-                    onClick={() => setShowAuthDialog(true)}
+                    onClick={() => {
+                      setAuthDialogTab('invoice');
+                      setShowAuthDialog(true);
+                    }}
                     variant="outline"
                     className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
                   >
@@ -254,7 +261,10 @@ export default function Booking() {
                     </ul>
                   </div>
                   <Button
-                    onClick={() => setShowAuthDialog(true)}
+                    onClick={() => {
+                      setAuthDialogTab('guest');
+                      setShowAuthDialog(true);
+                    }}
                     variant="outline"
                     className="w-full border-green-300 text-green-700 hover:bg-green-50"
                   >
@@ -280,7 +290,10 @@ export default function Booking() {
                     </ul>
                   </div>
                   <Button
-                    onClick={() => setShowAuthDialog(true)}
+                    onClick={() => {
+                      setAuthDialogTab('oauth');
+                      setShowAuthDialog(true);
+                    }}
                     variant="outline"
                     className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
                   >
@@ -303,6 +316,7 @@ export default function Booking() {
               description: "You can now proceed with your booking.",
             });
           }}
+          defaultTab={authDialogTab}
         />
       </div>
     );

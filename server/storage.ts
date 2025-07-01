@@ -1,11 +1,10 @@
 import { 
-  users, bookings, installers, feeStructures, jobAssignments, reviews, solarEnquiries,
+  users, bookings, installers, jobAssignments, reviews, solarEnquiries,
   referralSettings, referralCodes, referralUsage, consultationBookings,
   leadPricing, installerWallets, installerTransactions,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
-  type FeeStructure, type InsertFeeStructure,
   type JobAssignment, type InsertJobAssignment,
   type Review, type InsertReview,
   type SolarEnquiry, type InsertSolarEnquiry,

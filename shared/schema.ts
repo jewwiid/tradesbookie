@@ -50,14 +50,7 @@ export const installers = pgTable("installers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Fee structures for multi-tenant support
-export const feeStructures = pgTable("fee_structures", {
-  id: serial("id").primaryKey(),
-  installerId: integer("installer_id").references(() => installers.id),
-  serviceType: text("service_type").notNull(), // 'table-top-small', 'bronze', etc.
-  feePercentage: decimal("fee_percentage", { precision: 5, scale: 2 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// Removed: feeStructures table no longer needed in lead generation model
 
 // Bookings table
 export const bookings = pgTable("bookings", {
@@ -243,7 +236,6 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const installersRelations = relations(installers, ({ one, many }) => ({
   bookings: many(bookings),
-  feeStructures: many(feeStructures),
   jobAssignments: many(jobAssignments),
   reviews: many(reviews),
   wallet: one(installerWallets),
@@ -262,12 +254,7 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   jobAssignments: many(jobAssignments),
 }));
 
-export const feeStructuresRelations = relations(feeStructures, ({ one }) => ({
-  installer: one(installers, {
-    fields: [feeStructures.installerId],
-    references: [installers.id],
-  }),
-}));
+// Removed: feeStructuresRelations no longer needed
 
 export const jobAssignmentsRelations = relations(jobAssignments, ({ one, many }) => ({
   booking: one(bookings, {
@@ -375,10 +362,7 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   estimatedAddonsPrice: z.string().optional(),
 });
 
-export const insertFeeStructureSchema = createInsertSchema(feeStructures).omit({
-  id: true,
-  createdAt: true,
-});
+// Removed: insertFeeStructureSchema no longer needed
 
 export const insertJobAssignmentSchema = createInsertSchema(jobAssignments).omit({
   id: true,
@@ -423,8 +407,7 @@ export type InsertInstaller = z.infer<typeof insertInstallerSchema>;
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
-export type FeeStructure = typeof feeStructures.$inferSelect;
-export type InsertFeeStructure = z.infer<typeof insertFeeStructureSchema>;
+// Removed: FeeStructure types no longer needed
 
 export type JobAssignment = typeof jobAssignments.$inferSelect;
 export type InsertJobAssignment = z.infer<typeof insertJobAssignmentSchema>;

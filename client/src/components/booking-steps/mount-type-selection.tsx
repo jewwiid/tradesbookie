@@ -47,7 +47,9 @@ interface MountTypeSelectionProps {
 }
 
 export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectionProps) {
+  console.log("MountTypeSelection component is rendering");
   const { bookingData, updateBookingData } = useBooking();
+  console.log("Booking data:", bookingData);
   const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(bookingData.needsWallMount);
   const [selectedWallMount, setSelectedWallMount] = useState<string>(bookingData.wallMountOption || '');
 
@@ -128,6 +130,11 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
   return (
     <Card className="max-w-2xl mx-auto">
       <CardContent className="p-8 lg:p-12">
+        {/* Bright red test banner */}
+        <div className="bg-red-500 text-white p-4 text-center font-bold mb-4">
+          🔴 MOUNT TYPE SELECTION COMPONENT IS RENDERING 🔴
+        </div>
+        
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <Settings className="w-8 h-8 text-white" />

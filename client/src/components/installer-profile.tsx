@@ -260,10 +260,10 @@ export default function InstallerProfile({ installer, showContactActions = true 
                   Write Review
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]" aria-describedby="review-dialog-description">
+              <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Write a Review</DialogTitle>
-                  <DialogDescription id="review-dialog-description">
+                  <DialogDescription>
                     Share your experience with {installer.businessName}
                   </DialogDescription>
                 </DialogHeader>

@@ -178,16 +178,6 @@ export default function MountTypeSelection() {
                 </div>
               </button>
             </div>
-            
-            {/* Skip Wall Mount Option */}
-            <div className="text-center mt-4">
-              <button
-                onClick={() => handleWallMountSelect(false)}
-                className="text-sm text-gray-500 hover:text-gray-700 underline"
-              >
-                Skip this question - decide later
-              </button>
-            </div>
           </div>
         )}
 
@@ -241,22 +231,6 @@ export default function MountTypeSelection() {
               <span className="font-medium text-gray-700">Updated Total:</span>
               <span className="text-xl font-bold text-indigo-600">€{bookingData.total.toFixed(2)}</span>
             </div>
-          </div>
-        )}
-
-        {/* Skip Mount Type Option */}
-        {!bookingData.mountType && (
-          <div className="text-center mt-8 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-500 mb-4">
-              Not sure about mount type? You can decide with your installer
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => updateBookingData({ mountType: 'to-be-decided' })}
-              className="text-gray-600 hover:text-gray-800"
-            >
-              Skip - Decide with Installer
-            </Button>
           </div>
         )}
       </CardContent>

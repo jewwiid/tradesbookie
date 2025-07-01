@@ -1758,8 +1758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!user) {
         // Create guest user account
-        const { randomUUID } = await import('crypto');
-        const userId = randomUUID();
+        const userId = Math.floor(Math.random() * 1000000000); // Generate random integer ID
         
         const userData = {
           id: userId,

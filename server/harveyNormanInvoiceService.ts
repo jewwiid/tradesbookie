@@ -1,7 +1,6 @@
 import { db } from './db';
 import { harveyNormanInvoices, users } from '../shared/schema';
 import { eq } from 'drizzle-orm';
-import { randomUUID } from 'crypto';
 
 export interface InvoiceLoginResult {
   success: boolean;
@@ -61,7 +60,7 @@ export class HarveyNormanInvoiceService {
         }
       } else {
         // Create new user from invoice data
-        const userId = randomUUID();
+        const userId = Math.floor(Math.random() * 1000000000); // Generate random integer ID
         const nameParts = invoiceData.customerName.split(' ');
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';

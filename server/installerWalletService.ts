@@ -69,24 +69,25 @@ export class InstallerWalletService {
   }
 
   // Charge for lead access
-  async chargeLeadFee(installerId: number, jobAssignmentId: number, leadFee: number): Promise<boolean> {
+  async chargeLeadFee(installerId: number, jobAssignmentId: number, leadFee: number, subsidyAmount: number = 0): Promise<boolean> {
     const wallet = await this.getOrCreateWallet(installerId);
     const currentBalance = parseFloat(wallet.balance);
+    const totalCharge = leadFee + subsidyAmount;
     
-    if (currentBalance < leadFee) {
+    if (currentBalance < totalCharge) {
       return false; // Insufficient balance
     }
 
-    // Deduct from wallet
+    // Deduct total charge from wallet
     await db.update(installerWallets)
       .set({ 
-        balance: (currentBalance - leadFee).toFixed(2),
-        totalSpent: (parseFloat(wallet.totalSpent) + leadFee).toFixed(2),
+        balance: (currentBalance - totalCharge).toFixed(2),
+        totalSpent: (parseFloat(wallet.totalSpent) + totalCharge).toFixed(2),
         updatedAt: new Date()
       })
       .where(eq(installerWallets.installerId, installerId));
 
-    // Record transaction
+    // Record lead fee transaction
     await this.addTransaction({
       installerId,
       type: 'lead_purchase',
@@ -95,6 +96,18 @@ export class InstallerWalletService {
       jobAssignmentId,
       status: 'completed'
     });
+
+    // Record subsidy transaction if applicable
+    if (subsidyAmount > 0) {
+      await this.addTransaction({
+        installerId,
+        type: 'referral_subsidy',
+        amount: subsidyAmount.toFixed(2),
+        description: `Harvey Norman referral discount subsidy for job assignment #${jobAssignmentId}`,
+        jobAssignmentId,
+        status: 'completed'
+      });
+    }
 
     return true;
   }

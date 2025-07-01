@@ -21,6 +21,50 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
   const [showAfterPreview, setShowAfterPreview] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [referralCode, setReferralCode] = useState('');
+  const [referralDiscount, setReferralDiscount] = useState(0);
+  const [referralMessage, setReferralMessage] = useState('');
+  const [isValidatingReferral, setIsValidatingReferral] = useState(false);
+
+  // Harvey Norman referral validation mutation
+  const validateReferralMutation = useMutation({
+    mutationFn: async (code: string) => {
+      const totalPrice = calculateTotalPrice(bookingData);
+      const response = await apiRequest('POST', '/api/harvey-norman/validate', {
+        referralCode: code,
+        bookingAmount: totalPrice
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        setReferralDiscount(data.discountAmount);
+        setReferralMessage(`✓ ${data.discountPercentage}% discount applied! Save €${data.discountAmount.toFixed(2)} from ${data.salesStaffName} at Harvey Norman ${data.salesStaffStore}`);
+        updateBookingData({ 
+          referralCode: referralCode,
+          referralDiscount: data.discountAmount,
+          referralCodeId: data.referralCodeId
+        });
+      } else {
+        setReferralDiscount(0);
+        setReferralMessage(data.message || 'Invalid referral code');
+        updateBookingData({ 
+          referralCode: '',
+          referralDiscount: 0,
+          referralCodeId: null
+        });
+      }
+    },
+    onError: (error) => {
+      setReferralDiscount(0);
+      setReferralMessage('Error validating referral code');
+      updateBookingData({ 
+        referralCode: '',
+        referralDiscount: 0,
+        referralCodeId: null
+      });
+    }
+  });
 
   // AI Preview generation mutation for final step
   const aiPreviewMutation = useMutation({

@@ -20,6 +20,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification } from "./gmailService";
 import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
+import { harveyNormanReferralService } from "./harvestNormanReferralService";
 
 // Email notification service with Gmail integration
 async function sendNotificationEmail(to: string, subject: string, content: string, html?: string) {
@@ -1017,6 +1018,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching referral earnings:", error);
       res.status(500).json({ message: "Failed to fetch referral earnings" });
+    }
+  });
+
+  // Harvey Norman Sales Staff Referral Routes
+  app.post("/api/harvey-norman/create-code", async (req, res) => {
+    try {
+      const { salesStaffName, salesStaffStore, customCode } = req.body;
+      
+      if (!salesStaffName || !salesStaffStore) {
+        return res.status(400).json({ message: "Sales staff name and store required" });
+      }
+      
+      const newCode = await harveyNormanReferralService.createSalesStaffCode(
+        salesStaffName,
+        salesStaffStore,
+        customCode
+      );
+      
+      res.json(newCode);
+    } catch (error) {
+      console.error("Error creating Harvey Norman referral code:", error);
+      res.status(500).json({ message: "Failed to create referral code" });
+    }
+  });
+
+  app.post("/api/harvey-norman/validate", async (req, res) => {
+    try {
+      const { referralCode, bookingAmount } = req.body;
+      
+      if (!referralCode || !bookingAmount) {
+        return res.status(400).json({ message: "Referral code and booking amount required" });
+      }
+      
+      const result = await harveyNormanReferralService.validateAndCalculateDiscount(
+        referralCode,
+        parseFloat(bookingAmount)
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error validating Harvey Norman referral code:", error);
+      res.status(500).json({ message: "Failed to validate referral code" });
+    }
+  });
+
+  app.get("/api/harvey-norman/codes", async (req, res) => {
+    try {
+      const codes = await harveyNormanReferralService.getAllSalesStaffCodes();
+      res.json(codes);
+    } catch (error) {
+      console.error("Error fetching Harvey Norman referral codes:", error);
+      res.status(500).json({ message: "Failed to fetch referral codes" });
+    }
+  });
+
+  app.post("/api/harvey-norman/deactivate/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await harveyNormanReferralService.deactivateSalesStaffCode(parseInt(id));
+      
+      if (success) {
+        res.json({ message: "Referral code deactivated successfully" });
+      } else {
+        res.status(404).json({ message: "Referral code not found" });
+      }
+    } catch (error) {
+      console.error("Error deactivating Harvey Norman referral code:", error);
+      res.status(500).json({ message: "Failed to deactivate referral code" });
     }
   });
 

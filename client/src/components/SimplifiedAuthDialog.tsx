@@ -160,17 +160,33 @@ export default function SimplifiedAuthDialog({
                   <Label htmlFor="invoice">Invoice Number</Label>
                   <Input
                     id="invoice"
-                    placeholder="HN-CRK-2576597"
+                    placeholder="Enter your Harvey Norman invoice number"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
                     className="mt-1"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Format: HN-[STORE]-[NUMBER] (e.g., HN-CRK-2576597 for Carrickmines)
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Store codes: BLA, CRK, CAS, DRO, FON, GAL, KIN, LIM, LIT, NAA, RAT, SLI, SWO, TAL, TRA, WAT
-                  </p>
+                  <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
+                    <p className="font-medium mb-2">Format: HN-[STORE]-[NUMBER]</p>
+                    <p className="mb-1">Store codes:</p>
+                    <div className="grid grid-cols-4 gap-1 text-xs">
+                      <span>BLA (Blanchardstown)</span>
+                      <span>CRK (Carrickmines)</span>
+                      <span>CAS (Castlebar)</span>
+                      <span>DRO (Drogheda)</span>
+                      <span>FON (Fonthill)</span>
+                      <span>GAL (Galway)</span>
+                      <span>KIN (Kinsale Road)</span>
+                      <span>LIM (Limerick)</span>
+                      <span>LIT (Little Island)</span>
+                      <span>NAA (Naas)</span>
+                      <span>RAT (Rathfarnham)</span>
+                      <span>SLI (Sligo)</span>
+                      <span>SWO (Swords)</span>
+                      <span>TAL (Tallaght)</span>
+                      <span>TRA (Tralee)</span>
+                      <span>WAT (Waterford)</span>
+                    </div>
+                  </div>
                 </div>
                 <Button 
                   onClick={handleInvoiceLogin}

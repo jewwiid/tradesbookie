@@ -2311,25 +2311,26 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Lead payments endpoint for tracking installer wallet transactions
   app.get("/api/admin/lead-payments", isAdmin, async (req, res) => {
     try {
-      // Get all installer transactions (wallet debits for lead fees)
-      const leadTransactions = await db
-        .select({
-          id: installerTransactions.id,
-          installerId: installerTransactions.installerId,
-          amount: installerTransactions.amount,
-          description: installerTransactions.description,
-          type: installerTransactions.type,
-          status: installerTransactions.status,
-          createdAt: installerTransactions.createdAt,
-          // Join with installers to get business name
-          installerName: installers.businessName
+      // Get all installer transactions including:
+      // 1. Lead fee payments (debits when installers claim leads)
+      // 2. Credit top-ups (credits when installers add funds via Stripe)
+      // 3. Earnings (credits when installers complete jobs)
+      
+      const transactions = await storage.getAllInstallerTransactions();
+      
+      // Enhance with installer business names
+      const enhancedTransactions = await Promise.all(
+        transactions.map(async (transaction) => {
+          const installer = await storage.getInstaller(transaction.installerId);
+          return {
+            ...transaction,
+            installerName: installer?.businessName || `Installer #${transaction.installerId}`
+          };
         })
-        .from(installerTransactions)
-        .leftJoin(installers, eq(installerTransactions.installerId, installers.id))
-        .orderBy(desc(installerTransactions.createdAt));
+      );
 
       res.json({
-        transactions: leadTransactions
+        transactions: enhancedTransactions
       });
     } catch (error) {
       console.error('Error fetching lead payments:', error);

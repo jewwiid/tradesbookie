@@ -583,39 +583,51 @@ I'm interested in learning more about this TV and discussing purchase options. P
           )}
 
           {/* Harvey Norman Guarantee Section */}
-          <Card className="mb-6 border-orange-300 bg-gradient-to-r from-orange-100 to-red-100">
-            <CardContent className="p-6 text-center">
-              <div className="mb-4">
-                <h3 className="text-2xl font-bold text-orange-800 mb-2">🏆 Harvey Norman Price Guarantee</h3>
-                <p className="text-orange-700 font-medium">
+          <Card className="mb-6 border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-amber-50 shadow-lg">
+            <CardContent className="p-8">
+              <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-500 rounded-full mb-4">
+                  <Trophy className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-3xl font-bold text-orange-800 mb-2">Harvey Norman Price Guarantee</h3>
+                <p className="text-orange-700 font-medium text-lg">
                   Book an in-store consultation and we guarantee you'll save money
                 </p>
               </div>
               
-              <div className="grid md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white rounded-lg p-4 border border-orange-200">
-                  <div className="text-orange-600 text-3xl mb-2">💰</div>
-                  <h4 className="font-semibold text-gray-800">Best Price Match</h4>
-                  <p className="text-sm text-gray-600">We'll beat any competitor's price by €10</p>
+              <div className="grid md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white rounded-xl p-6 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                    <span className="text-white text-2xl font-bold">€</span>
+                  </div>
+                  <h4 className="font-bold text-gray-800 text-lg mb-2 text-center">Best Price Match</h4>
+                  <p className="text-gray-600 text-center">We'll beat any competitor's price by €10</p>
                 </div>
-                <div className="bg-white rounded-lg p-4 border border-orange-200">
-                  <div className="text-orange-600 text-3xl mb-2">🎯</div>
-                  <h4 className="font-semibold text-gray-800">Expert Guidance</h4>
-                  <p className="text-sm text-gray-600">Personal consultation with TV specialists</p>
+                <div className="bg-white rounded-xl p-6 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                    <span className="text-white text-2xl">🎯</span>
+                  </div>
+                  <h4 className="font-bold text-gray-800 text-lg mb-2 text-center">Expert Guidance</h4>
+                  <p className="text-gray-600 text-center">Personal consultation with TV specialists</p>
                 </div>
-                <div className="bg-white rounded-lg p-4 border border-orange-200">
-                  <div className="text-orange-600 text-3xl mb-2">📦</div>
-                  <h4 className="font-semibold text-gray-800">Installation Bundle</h4>
-                  <p className="text-sm text-gray-600">Professional setup + mounting service</p>
+                <div className="bg-white rounded-xl p-6 border-2 border-orange-100 shadow-md hover:shadow-lg transition-shadow">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                    <span className="text-white text-2xl">📦</span>
+                  </div>
+                  <h4 className="font-bold text-gray-800 text-lg mb-2 text-center">Installation Bundle</h4>
+                  <p className="text-gray-600 text-center">Professional setup + mounting service</p>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg p-4 border-2 border-orange-300 mb-4">
-                <p className="text-lg font-bold text-orange-800 mb-2">
-                  Exclusive Offer: Save up to €200 + Free Installation Quote
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-6 text-center text-white mb-4">
+                <p className="text-2xl font-bold mb-2">
+                  Exclusive Offer: Save up to €100 + Free Installation Quote
                 </p>
-                <p className="text-sm text-gray-700">
+                <p className="text-orange-100 text-sm mb-1">
                   Valid when you book through tradesbook.ie and mention this recommendation
+                </p>
+                <p className="text-orange-100 text-xs italic">
+                  *Savings up to €100 depending on product price and availability
                 </p>
               </div>
             </CardContent>
@@ -630,7 +642,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
               >
                 <div className="text-center">
                   <div>🏆 Book Harvey Norman Consultation</div>
-                  <div className="text-sm opacity-90">Guaranteed Best Price + €200 Savings</div>
+                  <div className="text-sm opacity-90">Guaranteed Best Price + Up to €100 Savings</div>
                 </div>
               </Button>
               <Button 

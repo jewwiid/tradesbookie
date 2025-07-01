@@ -14,7 +14,8 @@ import {
   DialogDescription, 
   DialogFooter, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -1523,7 +1524,11 @@ function ReferralManagement() {
   const [referralReward, setReferralReward] = useState(25);
   const [referralDiscount, setReferralDiscount] = useState(10);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [editingCode, setEditingCode] = useState<any>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: referralStats } = useQuery({
     queryKey: ['/api/referrals/stats'],
@@ -1535,13 +1540,16 @@ function ReferralManagement() {
     queryFn: () => fetch('/api/referrals/codes').then(r => r.json())
   });
 
+  // Fetch detailed referral usage for earnings tracking
+  const { data: referralUsage } = useQuery({
+    queryKey: ['/api/referrals/usage'],
+    queryFn: () => fetch('/api/referrals/usage').then(r => r.json())
+  });
+
   const updateReferralSettings = useMutation({
     mutationFn: async (settings: { reward: number; discount: number }) => {
-      const response = await apiRequest('/api/referrals/settings', {
-        method: 'PUT',
-        body: settings
-      });
-      return response;
+      const response = await apiRequest('PUT', '/api/referrals/settings', settings);
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -1557,6 +1565,78 @@ function ReferralManagement() {
         variant: "destructive"
       });
       setIsUpdating(false);
+    }
+  });
+
+  // Edit referral code mutation
+  const editReferralCodeMutation = useMutation({
+    mutationFn: async (data: { id: number; code: string; discountPercentage: number; isActive: boolean }) => {
+      const response = await apiRequest('PUT', `/api/referrals/codes/${data.id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/codes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/stats'] });
+      toast({
+        title: "Success",
+        description: "Referral code updated successfully"
+      });
+      setShowEditDialog(false);
+      setEditingCode(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update referral code",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Create new referral code mutation
+  const createReferralCodeMutation = useMutation({
+    mutationFn: async (data: { code: string; referralType: string; discountPercentage: number; salesStaffName?: string; salesStaffStore?: string }) => {
+      const response = await apiRequest('POST', '/api/referrals/codes', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/codes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/stats'] });
+      toast({
+        title: "Success",
+        description: "Referral code created successfully"
+      });
+      setShowCreateDialog(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create referral code",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete referral code mutation
+  const deleteReferralCodeMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/referrals/codes/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/codes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/referrals/stats'] });
+      toast({
+        title: "Success",
+        description: "Referral code deleted successfully"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete referral code",
+        variant: "destructive"
+      });
     }
   });
 
@@ -1695,10 +1775,33 @@ function ReferralManagement() {
       {/* Active Referral Codes */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Users className="w-5 h-5 mr-2" />
-            Active Referral Codes
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center">
+              <Users className="w-5 h-5 mr-2" />
+              Active Referral Codes
+            </CardTitle>
+            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Code
+                </Button>
+              </DialogTrigger>
+              <DialogContent aria-describedby="create-referral-description">
+                <DialogHeader>
+                  <DialogTitle>Create New Referral Code</DialogTitle>
+                  <DialogDescription id="create-referral-description">
+                    Create a new referral code for tracking client earnings and discounts.
+                  </DialogDescription>
+                </DialogHeader>
+                <ReferralCodeForm
+                  onSubmit={(data) => createReferralCodeMutation.mutate(data)}
+                  onCancel={() => setShowCreateDialog(false)}
+                  isLoading={createReferralCodeMutation.isPending}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -1706,20 +1809,34 @@ function ReferralManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Referral Code</TableHead>
+                  <TableHead>Type</TableHead>
                   <TableHead>Referrer</TableHead>
+                  <TableHead>Discount %</TableHead>
                   <TableHead>Uses</TableHead>
                   <TableHead>Earnings</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {referralCodes?.map((code: any) => (
                   <TableRow key={code.id}>
                     <TableCell className="font-mono">{code.code}</TableCell>
-                    <TableCell>{code.referrerName || 'Unknown'}</TableCell>
+                    <TableCell>
+                      <Badge variant={code.referralType === 'sales_staff' ? 'outline' : 'default'}>
+                        {code.referralType === 'sales_staff' ? 'Staff' : 'Customer'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {code.referralType === 'sales_staff' 
+                        ? `${code.salesStaffName} (${code.salesStaffStore})`
+                        : (code.referrerName || 'Customer')
+                      }
+                    </TableCell>
+                    <TableCell>{parseFloat(code.discountPercentage || "0").toFixed(1)}%</TableCell>
                     <TableCell>{code.totalReferrals}</TableCell>
-                    <TableCell>€{code.totalEarnings}</TableCell>
+                    <TableCell>€{parseFloat(code.totalEarnings || "0").toFixed(2)}</TableCell>
                     <TableCell>
                       {new Date(code.createdAt).toLocaleDateString()}
                     </TableCell>
@@ -1728,13 +1845,101 @@ function ReferralManagement() {
                         {code.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingCode(code);
+                            setShowEditDialog(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            if (confirm('Are you sure you want to delete this referral code?')) {
+                              deleteReferralCodeMutation.mutate(code.id);
+                            }
+                          }}
+                          disabled={deleteReferralCodeMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            
+            {/* Usage Tracking Section */}
+            {referralUsage && referralUsage.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-lg font-semibold mb-4">Recent Referral Usage</h3>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code Used</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Booking ID</TableHead>
+                      <TableHead>Discount Applied</TableHead>
+                      <TableHead>Reward Amount</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {referralUsage.slice(0, 10).map((usage: any) => (
+                      <TableRow key={usage.id}>
+                        <TableCell className="font-mono">{usage.referralCode}</TableCell>
+                        <TableCell>{usage.customerEmail || 'Guest'}</TableCell>
+                        <TableCell>#{usage.bookingId}</TableCell>
+                        <TableCell>€{parseFloat(usage.discountAmount || "0").toFixed(2)}</TableCell>
+                        <TableCell>€{parseFloat(usage.rewardAmount || "0").toFixed(2)}</TableCell>
+                        <TableCell>
+                          {new Date(usage.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={usage.status === 'completed' ? 'default' : 'secondary'}>
+                            {usage.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent aria-describedby="edit-referral-description">
+          <DialogHeader>
+            <DialogTitle>Edit Referral Code</DialogTitle>
+            <DialogDescription id="edit-referral-description">
+              Modify referral code settings and track earnings accurately.
+            </DialogDescription>
+          </DialogHeader>
+          {editingCode && (
+            <ReferralCodeForm
+              code={editingCode}
+              onSubmit={(data) => editReferralCodeMutation.mutate({ id: editingCode.id, ...data })}
+              onCancel={() => {
+                setShowEditDialog(false);
+                setEditingCode(null);
+              }}
+              isLoading={editReferralCodeMutation.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

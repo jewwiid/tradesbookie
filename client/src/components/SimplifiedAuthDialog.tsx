@@ -144,7 +144,7 @@ export default function SimplifiedAuthDialog({
             <TabsTrigger value="oauth" className="text-xs">Full Account</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="invoice" className="space-y-4">
+          <TabsContent value="invoice" className="space-y-4 min-h-[300px]">
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-2">
@@ -183,7 +183,7 @@ export default function SimplifiedAuthDialog({
             </Card>
           </TabsContent>
 
-          <TabsContent value="guest" className="space-y-4">
+          <TabsContent value="guest" className="space-y-4 min-h-[300px]">
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-2">
@@ -253,7 +253,7 @@ export default function SimplifiedAuthDialog({
             </Card>
           </TabsContent>
 
-          <TabsContent value="account" className="space-y-4">
+          <TabsContent value="oauth" className="space-y-4 min-h-[300px]">
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-2">

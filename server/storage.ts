@@ -586,6 +586,87 @@ export class DatabaseStorage implements IStorage {
       .where(eq(consultationBookings.customerEmail, email))
       .orderBy(desc(consultationBookings.createdAt));
   }
+
+  // Lead pricing operations
+  async getLeadPricing(serviceType: string): Promise<LeadPricing | undefined> {
+    const [pricing] = await db.select().from(leadPricing)
+      .where(eq(leadPricing.serviceType, serviceType));
+    return pricing;
+  }
+
+  async createLeadPricing(pricing: InsertLeadPricing): Promise<LeadPricing> {
+    const [newPricing] = await db.insert(leadPricing)
+      .values(pricing)
+      .returning();
+    return newPricing;
+  }
+
+  async getAllLeadPricing(): Promise<LeadPricing[]> {
+    return await db.select().from(leadPricing)
+      .orderBy(leadPricing.serviceType);
+  }
+
+  async updateLeadPricing(id: number, pricing: Partial<InsertLeadPricing>): Promise<void> {
+    await db.update(leadPricing)
+      .set({ ...pricing, updatedAt: new Date() })
+      .where(eq(leadPricing.id, id));
+  }
+
+  // Installer wallet operations
+  async getInstallerWallet(installerId: number): Promise<InstallerWallet | undefined> {
+    const [wallet] = await db.select().from(installerWallets)
+      .where(eq(installerWallets.installerId, installerId));
+    return wallet;
+  }
+
+  async createInstallerWallet(wallet: InsertInstallerWallet): Promise<InstallerWallet> {
+    const [newWallet] = await db.insert(installerWallets)
+      .values(wallet)
+      .returning();
+    return newWallet;
+  }
+
+  async updateInstallerWalletBalance(installerId: number, amount: number): Promise<void> {
+    await db.update(installerWallets)
+      .set({ 
+        balance: amount.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(installerWallets.installerId, installerId));
+  }
+
+  async addInstallerTransaction(transaction: InsertInstallerTransaction): Promise<InstallerTransaction> {
+    const [newTransaction] = await db.insert(installerTransactions)
+      .values(transaction)
+      .returning();
+    return newTransaction;
+  }
+
+  async getInstallerTransactions(installerId: number): Promise<InstallerTransaction[]> {
+    return await db.select().from(installerTransactions)
+      .where(eq(installerTransactions.installerId, installerId))
+      .orderBy(desc(installerTransactions.createdAt));
+  }
+
+  // Lead payment operations
+  async updateJobAssignmentLeadFee(jobId: number, leadFee: number, paymentIntentId: string, status: string): Promise<void> {
+    await db.update(jobAssignments)
+      .set({
+        leadFee: leadFee.toString(),
+        leadPaymentIntentId: paymentIntentId,
+        leadFeeStatus: status
+      })
+      .where(eq(jobAssignments.id, jobId));
+  }
+
+  async markLeadFeePaid(jobId: number): Promise<void> {
+    await db.update(jobAssignments)
+      .set({
+        leadFeeStatus: 'paid',
+        leadPaidDate: new Date()
+      })
+      .where(eq(jobAssignments.id, jobId));
+  }
 }
 
 export const storage = new DatabaseStorage();

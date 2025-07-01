@@ -2801,6 +2801,191 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // ====================== INSTALLER WALLET ENDPOINTS ======================
+  
+  // Get installer wallet balance and transaction history
+  app.get("/api/installer/:installerId/wallet", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      
+      // Get or create wallet
+      let wallet = await storage.getInstallerWallet(installerId);
+      if (!wallet) {
+        wallet = await storage.createInstallerWallet({
+          installerId,
+          balance: "0.00",
+          totalSpent: "0.00",
+          totalEarned: "0.00"
+        });
+      }
+      
+      // Get recent transactions
+      const transactions = await storage.getInstallerTransactions(installerId);
+      
+      res.json({
+        wallet,
+        transactions: transactions.slice(0, 10) // Last 10 transactions
+      });
+    } catch (error) {
+      console.error("Error fetching installer wallet:", error);
+      res.status(500).json({ message: "Failed to fetch wallet information" });
+    }
+  });
+
+  // Add credits to installer wallet
+  app.post("/api/installer/:installerId/wallet/add-credits", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      const { amount, paymentIntentId } = req.body;
+      
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+      
+      // Get current wallet
+      let wallet = await storage.getInstallerWallet(installerId);
+      if (!wallet) {
+        wallet = await storage.createInstallerWallet({
+          installerId,
+          balance: "0.00",
+          totalSpent: "0.00",
+          totalEarned: "0.00"
+        });
+      }
+      
+      // Calculate new balance
+      const currentBalance = parseFloat(wallet.balance);
+      const newBalance = currentBalance + amount;
+      
+      // Update wallet balance
+      await storage.updateInstallerWalletBalance(installerId, newBalance);
+      
+      // Add transaction record
+      await storage.addInstallerTransaction({
+        installerId,
+        type: "credit_purchase",
+        amount: amount.toString(),
+        description: `Added €${amount} credits to wallet`,
+        paymentIntentId,
+        status: "completed"
+      });
+      
+      res.json({ success: true, newBalance });
+    } catch (error) {
+      console.error("Error adding credits:", error);
+      res.status(500).json({ message: "Failed to add credits" });
+    }
+  });
+
+  // Purchase lead access (installer pays to accept job)
+  app.post("/api/installer/:installerId/purchase-lead", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      const { bookingId, leadFee } = req.body;
+      
+      if (!bookingId || !leadFee || leadFee <= 0) {
+        return res.status(400).json({ message: "Invalid booking or lead fee" });
+      }
+      
+      // Check wallet balance
+      const wallet = await storage.getInstallerWallet(installerId);
+      if (!wallet) {
+        return res.status(400).json({ message: "Wallet not found" });
+      }
+      
+      const currentBalance = parseFloat(wallet.balance);
+      if (currentBalance < leadFee) {
+        return res.status(400).json({ 
+          message: "Insufficient balance", 
+          required: leadFee,
+          available: currentBalance 
+        });
+      }
+      
+      // Create job assignment
+      const jobAssignment = await storage.createJobAssignment({
+        bookingId,
+        installerId,
+        status: "accepted",
+        acceptedDate: new Date(),
+        leadFee: leadFee.toString(),
+        leadFeeStatus: "paid",
+        leadPaidDate: new Date()
+      });
+      
+      // Deduct lead fee from wallet
+      const newBalance = currentBalance - leadFee;
+      await storage.updateInstallerWalletBalance(installerId, newBalance);
+      
+      // Update total spent
+      const totalSpent = parseFloat(wallet.totalSpent) + leadFee;
+      await storage.updateInstallerWalletBalance(installerId, newBalance);
+      
+      // Add transaction record
+      await storage.addInstallerTransaction({
+        installerId,
+        type: "lead_purchase",
+        amount: (-leadFee).toString(),
+        description: `Purchased lead access for booking #${bookingId}`,
+        jobAssignmentId: jobAssignment.id,
+        status: "completed"
+      });
+      
+      // Update booking status
+      await storage.updateBookingStatus(bookingId, "assigned");
+      
+      res.json({ 
+        success: true, 
+        jobAssignment,
+        newBalance,
+        message: "Lead purchased successfully" 
+      });
+    } catch (error) {
+      console.error("Error purchasing lead:", error);
+      res.status(500).json({ message: "Failed to purchase lead" });
+    }
+  });
+
+  // Get available leads for installer
+  app.get("/api/installer/:installerId/available-leads", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      
+      // Get all pending bookings (not yet assigned)
+      const allBookings = await storage.getAllBookings();
+      const availableBookings = allBookings.filter(booking => 
+        booking.status === "pending" || booking.status === "confirmed"
+      );
+      
+      // Get installer's existing jobs to avoid duplicates
+      const installerJobs = await storage.getInstallerJobs(installerId);
+      const installerBookingIds = installerJobs.map(job => job.bookingId);
+      
+      // Filter out bookings already assigned to this installer
+      const availableLeads = availableBookings.filter(booking => 
+        !installerBookingIds.includes(booking.id)
+      );
+      
+      // Add lead fees from pricing
+      const leadsWithFees = availableLeads.map(booking => {
+        const leadFee = getLeadFee(booking.serviceType);
+        const estimatedEarnings = parseFloat(booking.estimatedTotal) - leadFee;
+        
+        return {
+          ...booking,
+          leadFee,
+          estimatedEarnings,
+          profitMargin: estimatedEarnings / parseFloat(booking.estimatedTotal) * 100
+        };
+      });
+      
+      res.json(leadsWithFees);
+    } catch (error) {
+      console.error("Error fetching available leads:", error);
+      res.status(500).json({ message: "Failed to fetch available leads" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

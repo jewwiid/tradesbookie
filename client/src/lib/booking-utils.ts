@@ -16,6 +16,7 @@ export interface BookingData {
       priceImpact: "none" | "low" | "medium" | "high";
     };
   };
+  photoStorageConsent?: boolean;
 
   // Step 2: TV Size
   tvSize: string;

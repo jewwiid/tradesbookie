@@ -874,9 +874,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         earning: booking.installerEarnings?.toString(), // Fallback for compatibility
         status: booking.status === 'pending' ? 'new' : booking.status,
         difficulty: booking.difficulty,
-        roomPhoto: booking.roomPhoto,
-        originalImage: booking.roomPhoto, // Fallback for compatibility
+        roomPhoto: booking.photoStorageConsent ? booking.roomPhotoUrl : null,
+        originalImage: booking.photoStorageConsent ? booking.roomPhotoUrl : null, // Fallback for compatibility
         aiPreview: booking.aiPreviewUrl,
+        roomAnalysis: booking.roomAnalysis, // Always show analysis text for installer preparation
+        photoStorageConsent: booking.photoStorageConsent,
         customerEmail: booking.customerEmail,
         customerPhone: booking.customerPhone,
         notes: booking.notes,

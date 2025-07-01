@@ -6,7 +6,7 @@ import { CloudUpload, Camera, CheckCircle, X, RotateCcw, Info } from "lucide-rea
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { BookingData } from "@/lib/booking-utils";
+import { BookingData } from "@/lib/booking-store";
 
 interface PhotoUploadProps {
   bookingData: BookingData;

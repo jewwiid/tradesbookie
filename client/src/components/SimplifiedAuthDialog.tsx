@@ -137,11 +137,11 @@ export default function SimplifiedAuthDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'invoice' | 'guest' | 'oauth')} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="invoice" className="text-xs">Harvey Norman</TabsTrigger>
             <TabsTrigger value="guest" className="text-xs">Quick Start</TabsTrigger>
-            <TabsTrigger value="account" className="text-xs">Full Account</TabsTrigger>
+            <TabsTrigger value="oauth" className="text-xs">Full Account</TabsTrigger>
           </TabsList>
 
           <TabsContent value="invoice" className="space-y-4">
@@ -289,7 +289,7 @@ export default function SimplifiedAuthDialog({
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => onOpenChange(false)}
+            onClick={() => onClose()}
             className="text-muted-foreground"
           >
             I'll sign in later

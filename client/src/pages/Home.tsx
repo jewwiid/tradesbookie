@@ -14,6 +14,7 @@ import SimplifiedAuthDialog from "@/components/SimplifiedAuthDialog";
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authDialogTab, setAuthDialogTab] = useState<'invoice' | 'guest' | 'oauth'>('invoice');
 
   // Fetch dynamic pricing from backend
   const { data: apiServiceTiers, isLoading } = useQuery({
@@ -484,8 +485,8 @@ export default function Home() {
       
       {/* Simplified Authentication Dialog */}
       <SimplifiedAuthDialog
-        open={authDialogOpen}
-        onOpenChange={setAuthDialogOpen}
+        isOpen={authDialogOpen}
+        onClose={() => setAuthDialogOpen(false)}
         onSuccess={() => {
           setAuthDialogOpen(false);
         }}

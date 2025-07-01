@@ -200,7 +200,7 @@ export default function HomePage() {
                   <p className="text-gray-600 mb-4">Basic table setup for TVs up to 43"</p>
                   
                   <div className="text-center mb-4">
-                    <div className="text-2xl font-bold text-blue-600 mb-1">€60</div>
+                    <div className="text-2xl font-bold text-blue-600 mb-1">From €60</div>
                     <div className="text-sm text-gray-500">Estimated cost</div>
                   </div>
                   
@@ -224,7 +224,7 @@ export default function HomePage() {
                   <p className="text-gray-600 mb-4">Wall mounting for most TV sizes</p>
                   
                   <div className="text-center mb-4">
-                    <div className="text-2xl font-bold text-amber-600 mb-1">€120</div>
+                    <div className="text-2xl font-bold text-amber-600 mb-1">From €120</div>
                     <div className="text-sm text-gray-500">Estimated cost</div>
                   </div>
                   
@@ -251,7 +251,7 @@ export default function HomePage() {
                   <p className="text-gray-600 mb-4">Premium installation with extras</p>
                   
                   <div className="text-center mb-4">
-                    <div className="text-2xl font-bold text-gray-600 mb-1">€180</div>
+                    <div className="text-2xl font-bold text-gray-600 mb-1">From €180</div>
                     <div className="text-sm text-gray-500">Estimated cost</div>
                   </div>
                   
@@ -275,7 +275,7 @@ export default function HomePage() {
                   <p className="text-gray-600 mb-4">Ultimate installation experience</p>
                   
                   <div className="text-center mb-4">
-                    <div className="text-2xl font-bold text-yellow-600 mb-1">€380</div>
+                    <div className="text-2xl font-bold text-yellow-600 mb-1">From €380</div>
                     <div className="text-sm text-gray-500">Estimated cost</div>
                   </div>
                   

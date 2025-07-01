@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { Euro, Plus, Edit, Trash2, Settings, Save, X } from "lucide-react";
@@ -387,6 +387,9 @@ export default function PricingManagement() {
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
                     <DialogTitle>Create New Pricing Configuration</DialogTitle>
+                    <DialogDescription>
+                      Configure pricing for our lead generation marketplace. Customer Price is shown as an estimate - customers pay installers directly. Lead Fee is what installers pay us to access leads.
+                    </DialogDescription>
                   </DialogHeader>
                   <PricingForm
                     onSubmit={handleCreatePricing}
@@ -504,6 +507,9 @@ export default function PricingManagement() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Pricing Configuration</DialogTitle>
+            <DialogDescription>
+              Update pricing for our lead generation marketplace. Customer Price is shown as an estimate - customers pay installers directly. Lead Fee is what installers pay us to access leads.
+            </DialogDescription>
           </DialogHeader>
           {editingPricing && (
             <PricingForm

@@ -114,10 +114,10 @@ export default function PhotoUpload({ onNext }: PhotoUploadProps) {
           </Button>
           <Button 
             onClick={onNext} 
-            disabled={!data.photo && !isUploading}
+            disabled={isUploading}
             className="btn-primary"
           >
-            {isUploading ? 'Processing...' : 'Continue'}
+            {isUploading ? 'Processing...' : data.photo ? 'Continue' : 'Continue without photo'}
           </Button>
         </div>
       </CardContent>

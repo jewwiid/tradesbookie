@@ -519,10 +519,10 @@ I'm interested in learning more about this TV and discussing purchase options. P
                             </div>
                           </div>
 
-                          {tv.keyFeatures && tv.keyFeatures.length > 0 && (
+                          {tv.keyFeatures && (
                             <div className="mb-3">
                               <div className="flex flex-wrap gap-1">
-                                {tv.keyFeatures.map((feature, idx) => (
+                                {(Array.isArray(tv.keyFeatures) ? tv.keyFeatures : [tv.keyFeatures]).map((feature, idx) => (
                                   <Badge key={idx} variant="outline" className="text-xs">
                                     {feature}
                                   </Badge>

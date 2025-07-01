@@ -1703,6 +1703,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Harvey Norman sample data initialization
+  app.post('/api/harvey-norman/initialize-samples', async (req, res) => {
+    try {
+      const { harveyNormanInvoiceService } = await import('./harveyNormanInvoiceService');
+      await harveyNormanInvoiceService.createSampleInvoices();
+      res.json({ success: true, message: 'Sample invoices initialized' });
+    } catch (error) {
+      console.error('Error initializing sample invoices:', error);
+      res.status(500).json({ error: 'Failed to initialize sample invoices' });
+    }
+  });
+
   // Harvey Norman Invoice Authentication API
   app.post('/api/auth/invoice-login', async (req, res) => {
     try {

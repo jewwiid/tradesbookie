@@ -114,7 +114,37 @@ export const SERVICE_TIERS: Record<string, ServiceTier> = {
   }
 };
 
-export function getServiceTiersForTvSize(tvSize: number): ServiceTier[] {
+export async function getServiceTiersForTvSize(tvSize: number): Promise<ServiceTier[]> {
+  try {
+    // Import here to avoid circular dependency
+    const { pricingManagementService } = await import("./pricingManagementService");
+    
+    // Try to get pricing from database first
+    const dbPricing = await pricingManagementService.getPricingByCategory('service');
+    
+    if (dbPricing && dbPricing.length > 0) {
+      // Convert database pricing to ServiceTier format
+      const dynamicTiers: ServiceTier[] = dbPricing.map(pricing => ({
+        key: pricing.itemKey,
+        name: pricing.name,
+        description: pricing.description || '',
+        category: 'service',
+        minTvSize: pricing.minTvSize || 0,
+        maxTvSize: pricing.maxTvSize || null,
+        customerEstimate: pricing.customerPrice,
+        leadFee: pricing.leadFee
+      }));
+      
+      // Filter by TV size
+      return dynamicTiers.filter((tier) => {
+        return tvSize >= tier.minTvSize && (tier.maxTvSize === null || tvSize <= tier.maxTvSize);
+      });
+    }
+  } catch (error) {
+    console.log("Falling back to hardcoded pricing due to database error:", error);
+  }
+  
+  // Fallback to hardcoded SERVICE_TIERS if database unavailable
   return Object.values(SERVICE_TIERS).filter((tier) => {
     return tvSize >= tier.minTvSize && (tier.maxTvSize === null || tvSize <= tier.maxTvSize);
   });

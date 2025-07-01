@@ -72,14 +72,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let serviceTiers;
       if (tvSize) {
         // Filter by TV size and return with dynamic pricing
-        serviceTiers = getServiceTiersForTvSize(tvSize).map((tier, index) => ({
+        const tiers = await getServiceTiersForTvSize(tvSize);
+        serviceTiers = tiers.map((tier, index) => ({
           id: index + 1,
           key: tier.key,
           name: tier.name,
           description: tier.description,
           category: tier.category,
-          basePrice: tier.installerEarnings,
-          customerPrice: tier.customerPrice,
+          basePrice: tier.customerEstimate, // Use customerEstimate for basePrice
+          customerPrice: tier.customerEstimate,
+          leadFee: tier.leadFee,
+          installerEarnings: tier.customerEstimate - tier.leadFee,
           minTvSize: tier.minTvSize,
           maxTvSize: tier.maxTvSize
         }));

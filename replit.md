@@ -368,6 +368,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Implemented 10% customer discount system with installer subsidy structure maintaining platform revenue**
 - July 1, 2025: **Fixed database schema issues for referral_codes table to support sales staff codes with nullable user_id**
 - July 1, 2025: **Tested complete Harvey Norman referral flow: code creation, validation, discount application, and admin management**
+- July 1, 2025: **Fixed duplicate admin buttons in navigation - kept only right-aligned admin button for clean UI**
+- July 1, 2025: **Enhanced service selection cards - detailed descriptions now display as inline bullet points for better readability**
 
 ## User Preferences
 

@@ -55,12 +55,6 @@ export default function Navigation() {
                     </Link>
                   </>
                 )}
-                {isAuthenticated && isAdmin && (
-                  <Link href="/admin-dashboard" className="text-gray-700 hover:text-primary transition-colors flex items-center text-sm">
-                    <Shield className="h-4 w-4 mr-1" />
-                    Admin
-                  </Link>
-                )}
               </div>
 
               {/* Right Side - CTA and Auth */}
@@ -82,7 +76,7 @@ export default function Navigation() {
                       Welcome, {user?.firstName || user?.email}
                     </span>
                     {isAdmin && (
-                      <Link href="/admin">
+                      <Link href="/admin-dashboard">
                         <Button variant="outline" size="sm">
                           <Shield className="w-4 h-4 mr-1" />
                           Admin
@@ -170,7 +164,7 @@ export default function Navigation() {
                     )}
                     {isAuthenticated && isAdmin && (
                       <Link 
-                        href="/admin" 
+                        href="/admin-dashboard" 
                         className="flex items-center py-2 text-gray-700 hover:text-primary"
                         onClick={() => setMobileMenuOpen(false)}
                       >

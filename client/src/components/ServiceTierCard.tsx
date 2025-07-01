@@ -80,9 +80,22 @@ export default function ServiceTierCard({ name, description, detailedDescription
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-2">
                 <div className="p-3 bg-white/80 rounded-lg mb-4">
-                  <p className="text-sm text-gray-700 text-left leading-relaxed">
-                    {detailedDescription}
-                  </p>
+                  <div className="text-sm text-gray-700 text-left leading-relaxed">
+                    {detailedDescription.split('\n').map((line, index) => {
+                      if (line.trim().startsWith('•')) {
+                        return (
+                          <span key={index} className="inline-block mr-4 mb-1">
+                            {line.trim()}
+                          </span>
+                        );
+                      }
+                      return line.trim() ? (
+                        <span key={index} className="inline-block mr-4 mb-1">
+                          {line.trim()}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
                 </div>
               </CollapsibleContent>
             </Collapsible>

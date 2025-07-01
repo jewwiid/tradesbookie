@@ -166,7 +166,8 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
         </div>
 
         {/* Wall Mount Question - appears after mount type is selected */}
-        {bookingData.mountType && (
+        {/* Force show for debugging */}
+        {true && (
           <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Do you need a wall mount?</h3>
             <p className="text-gray-600 mb-6">
@@ -206,7 +207,8 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
         )}
 
         {/* Wall Mount Options Selection */}
-        {needsWallMount === true && (
+        {/* Force show for debugging */}
+        {true && (
           <div className="mt-8">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Choose Your Wall Mount</h3>
             <p className="text-gray-600 mb-6">Select the wall mount that best fits your TV and viewing needs</p>

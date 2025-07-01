@@ -125,25 +125,16 @@ export class HarveyNormanInvoiceService {
   async createSampleInvoices(): Promise<void> {
     const sampleInvoices = [
       {
-        invoiceNumber: '2576597',
-        customerEmail: 'jude.okun@gmail.com',
-        customerName: 'Jude Okun',
-        purchaseDate: new Date('2025-05-05'),
-        tvModel: 'SILKN DUAL LED MASK',
-        tvSize: 'N/A',
-        purchaseAmount: '224.50'
-      },
-      {
-        invoiceNumber: '2345678',
+        invoiceNumber: 'HN-2025-001234',
         customerEmail: 'john.smith@email.com',
         customerName: 'John Smith',
-        purchaseDate: new Date('2025-06-18'),
+        purchaseDate: new Date('2025-06-15'),
         tvModel: 'Samsung 55" QLED',
         tvSize: '55"',
         purchaseAmount: '899.99'
       },
       {
-        invoiceNumber: '3456789',
+        invoiceNumber: 'HN-2025-005678',
         customerEmail: 'mary.jones@email.com',
         customerName: 'Mary Jones',
         purchaseDate: new Date('2025-06-20'),
@@ -152,7 +143,7 @@ export class HarveyNormanInvoiceService {
         purchaseAmount: '1299.99'
       },
       {
-        invoiceNumber: '4567890',
+        invoiceNumber: 'HN-2025-009876',
         customerEmail: 'david.brown@email.com',
         customerName: 'David Brown',
         purchaseDate: new Date('2025-06-25'),
@@ -184,8 +175,8 @@ export class HarveyNormanInvoiceService {
    * Validate invoice format
    */
   isValidInvoiceFormat(invoiceNumber: string): boolean {
-    // Harvey Norman invoice format: Simple 7-digit number (e.g., 2576597)
-    const regex = /^\d{7}$/;
+    // Harvey Norman invoice format: HN-YYYY-NNNNNN or HN-STORE-YYYY-NNNNNN
+    const regex = /^HN-(\d{4}-\d{6}|[A-Z]{3,4}-\d{4}-\d{6})$/;
     return regex.test(invoiceNumber);
   }
 }

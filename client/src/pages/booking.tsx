@@ -76,6 +76,7 @@ export default function Booking() {
       case 4:
         return <WallType onNext={nextStep} onBack={prevStep} />;
       case 5:
+        console.log("🔴 STEP 5 CASE REACHED - Loading MountTypeSelectionNew");
         return <MountTypeSelectionNew onNext={nextStep} onBack={prevStep} />;
       case 6:
         return <Addons onNext={nextStep} onBack={prevStep} />;

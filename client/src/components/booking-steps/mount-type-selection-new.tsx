@@ -76,7 +76,7 @@ export default function MountTypeSelectionNew({ onNext, onBack }: MountTypeSelec
     
     if (!needed) {
       // Clear wall mount selection if not needed
-      updateBookingData({ wallMountOption: null });
+      updateBookingData({ wallMountOption: undefined });
     }
   };
 

@@ -291,8 +291,189 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Harvey Norman Sales Staff Referral Management */}
+          <div className="lg:col-span-3 mt-8">
+            <HarveyNormanReferralManagement />
+          </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function HarveyNormanReferralManagement() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [newCode, setNewCode] = useState({
+    salesStaffName: '',
+    salesStaffStore: '',
+    customCode: ''
+  });
+
+  const { data: referralCodes = [] } = useQuery({
+    queryKey: ["/api/harvey-norman/codes"],
+  });
+
+  const createCodeMutation = useMutation({
+    mutationFn: async (data: { salesStaffName: string; salesStaffStore: string; customCode?: string }) => {
+      const response = await apiRequest('POST', '/api/harvey-norman/create-code', data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/harvey-norman/codes"] });
+      setNewCode({ salesStaffName: '', salesStaffStore: '', customCode: '' });
+      toast({
+        title: "Referral Code Created",
+        description: "Harvey Norman sales staff code created successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Creation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deactivateCodeMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('POST', `/api/harvey-norman/deactivate/${id}`, {});
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/harvey-norman/codes"] });
+      toast({
+        title: "Code Deactivated",
+        description: "Referral code has been deactivated.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Deactivation Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleCreateCode = () => {
+    if (!newCode.salesStaffName.trim() || !newCode.salesStaffStore.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please enter sales staff name and store location.",
+        variant: "destructive",
+      });
+      return;
+    }
+    createCodeMutation.mutate(newCode);
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Badge className="mr-3 bg-blue-600">Harvey Norman</Badge>
+          Sales Staff Referral Management
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Create New Code */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Create New Sales Staff Code</h3>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="staffName">Sales Staff Name</Label>
+                <Input
+                  id="staffName"
+                  value={newCode.salesStaffName}
+                  onChange={(e) => setNewCode(prev => ({ ...prev, salesStaffName: e.target.value }))}
+                  placeholder="e.g., John Smith"
+                />
+              </div>
+              <div>
+                <Label htmlFor="staffStore">Store Location</Label>
+                <Input
+                  id="staffStore"
+                  value={newCode.salesStaffStore}
+                  onChange={(e) => setNewCode(prev => ({ ...prev, salesStaffStore: e.target.value }))}
+                  placeholder="e.g., Carrickmines, Santry, etc."
+                />
+              </div>
+              <div>
+                <Label htmlFor="customCode">Custom Code (Optional)</Label>
+                <Input
+                  id="customCode"
+                  value={newCode.customCode}
+                  onChange={(e) => setNewCode(prev => ({ ...prev, customCode: e.target.value.toUpperCase() }))}
+                  placeholder="Leave blank for auto-generation"
+                />
+              </div>
+              <Button 
+                onClick={handleCreateCode}
+                disabled={createCodeMutation.isPending}
+                className="w-full"
+              >
+                {createCodeMutation.isPending ? 'Creating...' : 'Create Referral Code'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Active Codes */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Active Referral Codes</h3>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {referralCodes.length === 0 ? (
+                <p className="text-muted-foreground text-sm">No referral codes created yet.</p>
+              ) : (
+                referralCodes.map((code: any) => (
+                  <div key={code.id} className="border rounded-lg p-4 bg-gray-50">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-mono text-lg font-bold text-blue-600">{code.referralCode}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {code.salesStaffName} • {code.salesStaffStore}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          10% customer discount • Created {new Date(code.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={code.isActive ? "default" : "secondary"}>
+                          {code.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                        {code.isActive && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => deactivateCodeMutation.mutate(code.id)}
+                            disabled={deactivateCodeMutation.isPending}
+                          >
+                            Deactivate
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Information Panel */}
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 className="font-medium text-blue-900 mb-2">How Harvey Norman Referrals Work</h4>
+          <div className="text-sm text-blue-800 space-y-1">
+            <p>• Sales staff provide unique codes to customers for 10% discounts</p>
+            <p>• Customers save money, Harvey Norman builds relationships</p>
+            <p>• Installers pay the full lead fee plus 10% subsidy when claiming discounted leads</p>
+            <p>• Platform revenue remains consistent while supporting retail partnerships</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

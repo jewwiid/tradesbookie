@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +33,9 @@ export default function LoginModals({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center">Customer Access</DialogTitle>
-            <p className="text-gray-600 text-center">Enter your booking details or scan your QR code</p>
+            <DialogDescription className="text-gray-600 text-center">
+              Enter your booking details or scan your QR code
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -61,7 +63,9 @@ export default function LoginModals({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center">Admin Login</DialogTitle>
-            <p className="text-gray-600 text-center">Access the admin dashboard</p>
+            <DialogDescription className="text-gray-600 text-center">
+              Access the admin dashboard
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

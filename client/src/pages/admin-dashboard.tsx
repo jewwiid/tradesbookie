@@ -2051,13 +2051,48 @@ function FeeManagement() {
           ))}
         </div>
 
+        {/* Addon Services Section */}
+        <div className="border-t pt-6">
+          <h4 className="font-medium text-gray-900 mb-4">Addon Services Lead Fees</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="border rounded-lg p-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Cable Concealment</span>
+                <span className="text-sm text-green-600 font-medium">€5</span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Customer Price: €35 | Installer Margin: 86%
+              </div>
+            </div>
+            <div className="border rounded-lg p-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Soundbar Mounting</span>
+                <span className="text-sm text-green-600 font-medium">€7</span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Customer Price: €45 | Installer Margin: 84%
+              </div>
+            </div>
+            <div className="border rounded-lg p-4 space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">Additional Devices</span>
+                <span className="text-sm text-green-600 font-medium">€3</span>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Customer Price: €25 | Installer Margin: 88%
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
           <h4 className="font-medium text-amber-900 mb-2">Lead Fee Benefits</h4>
           <ul className="text-sm text-amber-800 space-y-1">
             <li>• Predictable platform revenue vs. variable commissions</li>
-            <li>• Installers keep 80-91% of customer payment</li>
+            <li>• Installers keep 80-91% of customer payment (base + addons)</li>
             <li>• No payment processing fees for platform</li>
-            <li>• Simplified pricing structure</li>
+            <li>• Simplified pricing structure for all services</li>
+            <li>• Additional addon revenue streams with minimal fees</li>
           </ul>
         </div>
       </CardContent>

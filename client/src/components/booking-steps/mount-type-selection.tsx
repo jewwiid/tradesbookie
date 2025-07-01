@@ -68,10 +68,13 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
   // Debug logging
   console.log('Mount Type Selection - Debug:', {
     needsWallMount,
+    selectedMountType: bookingData.mountType,
     wallMountPricingData: wallMountPricing,
     isLoadingPricing,
     error,
-    availableWallMounts: getAvailableWallMounts()
+    availableWallMounts: getAvailableWallMounts(),
+    shouldShowWallMountQuestion: !!bookingData.mountType,
+    shouldShowWallMountOptions: needsWallMount === true
   });
 
   const getIcon = (iconName: string) => {

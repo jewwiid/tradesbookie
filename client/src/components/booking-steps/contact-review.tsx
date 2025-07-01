@@ -80,7 +80,7 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
             <User className="w-8 h-8 text-white" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Contact Details</h2>
-          <p className="text-lg text-gray-600">Almost done! Please provide your contact information.</p>
+          <p className="text-lg text-gray-600">Almost done! Your request will be sent to local installers.</p>
         </div>
 
         {/* Booking Summary */}
@@ -107,8 +107,11 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
             )}
             <div className="border-t pt-2 mt-4">
               <div className="flex justify-between font-semibold">
-                <span>Total:</span>
+                <span>Estimated Total:</span>
                 <span className="text-green-600">€{bookingData.total.toFixed(2)}</span>
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                Pay installer directly • Cash • Card • Bank Transfer
               </div>
             </div>
           </div>
@@ -211,7 +214,7 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
             disabled={isSubmitting}
             className="bg-green-600 hover:bg-green-700 text-white px-8"
           >
-            {isSubmitting ? 'Submitting...' : 'Complete Booking'}
+            {isSubmitting ? 'Submitting...' : 'Submit Request'}
           </Button>
         </div>
       </CardContent>

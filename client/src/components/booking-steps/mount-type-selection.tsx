@@ -178,6 +178,16 @@ export default function MountTypeSelection() {
                 </div>
               </button>
             </div>
+            
+            {/* Skip Wall Mount Option */}
+            <div className="text-center mt-4">
+              <button
+                onClick={() => handleWallMountSelect(false)}
+                className="text-sm text-gray-500 hover:text-gray-700 underline"
+              >
+                Skip this question - decide later
+              </button>
+            </div>
           </div>
         )}
 

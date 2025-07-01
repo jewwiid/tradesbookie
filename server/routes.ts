@@ -2308,21 +2308,113 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Admin System Metrics
-  app.get("/api/admin/system-metrics", isAdmin, async (req, res) => {
+  // Platform Insights - Real Lead Generation Metrics
+  app.get("/api/admin/platform-insights", isAdmin, async (req, res) => {
     try {
-      const metrics = {
-        uptime: process.uptime() > 3600 ? `${Math.floor(process.uptime() / 3600)}h ${Math.floor((process.uptime() % 3600) / 60)}m` : `${Math.floor(process.uptime() / 60)}m`,
-        activeUsers: Math.floor(Math.random() * 50) + 10,
-        dailySignups: Math.floor(Math.random() * 10) + 2,
-        errorRate: Math.random() * 2,
-        averageResponseTime: Math.floor(Math.random() * 100) + 50
+      // Get all bookings for lead analysis
+      const allBookings = await storage.getAllBookings();
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      
+      // Filter bookings by current month
+      const monthlyBookings = allBookings.filter(booking => {
+        if (!booking.createdAt) return false;
+        const bookingDate = new Date(booking.createdAt);
+        return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
+      });
+
+      // Calculate real lead revenue from actual bookings
+      const serviceTiers = [
+        { id: 1, key: "table-top-small", name: "Table Top Small", leadFee: 12 },
+        { id: 2, key: "bronze-wall-mount", name: "Bronze Wall Mount", leadFee: 20 },
+        { id: 3, key: "silver-premium", name: "Silver Premium", leadFee: 25 },
+        { id: 4, key: "gold-premium-large", name: "Gold Premium Large", leadFee: 35 }
+      ];
+      
+      const leadRevenueByService: Record<string, { leadFee: number; count: number; revenue: number }> = {};
+      
+      // Initialize service tracking
+      serviceTiers.forEach((tier: any) => {
+        leadRevenueByService[tier.key] = {
+          leadFee: tier.leadFee || 0,
+          count: 0,
+          revenue: 0
+        };
+      });
+
+      // Count actual bookings per service type
+      monthlyBookings.forEach(booking => {
+        const serviceKey = booking.serviceType;
+        if (leadRevenueByService[serviceKey]) {
+          leadRevenueByService[serviceKey].count += 1;
+          leadRevenueByService[serviceKey].revenue += leadRevenueByService[serviceKey].leadFee;
+        }
+      });
+
+      // Calculate total monthly lead revenue
+      const totalMonthlyLeadRevenue = Object.values(leadRevenueByService)
+        .reduce((sum, service) => sum + service.revenue, 0);
+
+      // Calculate average lead value from actual service tiers
+      const averageLeadValue = serviceTiers.length > 0 
+        ? serviceTiers.reduce((sum: number, tier: any) => sum + (tier.leadFee || 0), 0) / serviceTiers.length
+        : 0;
+
+      // Calculate lead conversion rate (completed vs total bookings)
+      const completedBookings = allBookings.filter(b => b.status === 'completed').length;
+      const leadConversionRate = allBookings.length > 0 
+        ? ((completedBookings / allBookings.length) * 100)
+        : 0;
+
+      // Calculate installer retention (active installers vs total)
+      const allInstallers = await storage.getAllInstallers();
+      const activeInstallers = allInstallers.filter(installer => installer.isActive).length;
+      const installerRetentionRate = allInstallers.length > 0 
+        ? ((activeInstallers / allInstallers.length) * 100)
+        : 0;
+
+      // Calculate addon revenue
+      const bookingsWithAddons = monthlyBookings.filter(booking => 
+        booking.addons && booking.addons.length > 0
+      );
+      
+      const addonRevenue = bookingsWithAddons.reduce((sum, booking) => {
+        // Addon lead fees: Cable Concealment €5, Soundbar €7, Additional Devices €3
+        const addonFees = {
+          'cable-concealment': 5,
+          'soundbar-mounting': 7,
+          'additional-devices': 3
+        };
+        
+        if (booking.addons && typeof booking.addons === 'string') {
+          const bookingAddonRevenue = booking.addons.split(',').reduce((addonSum: number, addon: string) => {
+            const cleanAddon = addon.trim().toLowerCase().replace(' ', '-');
+            return addonSum + (addonFees[cleanAddon as keyof typeof addonFees] || 0);
+          }, 0);
+          return sum + bookingAddonRevenue;
+        }
+        return sum;
+      }, 0);
+
+      const insights = {
+        monthlyLeadRevenue: totalMonthlyLeadRevenue,
+        averageLeadValue: Math.round(averageLeadValue * 100) / 100,
+        leadConversionRate: Math.round(leadConversionRate * 10) / 10,
+        installerRetentionRate: Math.round(installerRetentionRate * 10) / 10,
+        totalBookings: allBookings.length,
+        monthlyBookings: monthlyBookings.length,
+        completedBookings,
+        activeInstallers,
+        totalInstallers: allInstallers.length,
+        addonRevenue,
+        annualRevenueProjection: (totalMonthlyLeadRevenue + addonRevenue) * 12,
+        serviceBreakdown: leadRevenueByService
       };
 
-      res.json(metrics);
+      res.json(insights);
     } catch (error) {
-      console.error("Error fetching system metrics:", error);
-      res.status(500).json({ message: "Failed to fetch system metrics" });
+      console.error("Error fetching platform insights:", error);
+      res.status(500).json({ message: "Failed to fetch platform insights" });
     }
   });
 

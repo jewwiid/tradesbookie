@@ -948,14 +948,9 @@ function BookingManagement() {
 
 // Platform Insights Component
 function SystemMetrics() {
-  const { data: metrics } = useQuery({
-    queryKey: ['/api/analytics/metrics'],
-    queryFn: () => fetch('/api/analytics/metrics').then(r => r.json())
-  });
-
-  const { data: stats } = useQuery({
-    queryKey: ['/api/admin/stats'],
-    queryFn: () => fetch('/api/admin/stats').then(r => r.json())
+  const { data: insights } = useQuery({
+    queryKey: ['/api/admin/platform-insights'],
+    queryFn: () => fetch('/api/admin/platform-insights').then(r => r.json())
   });
 
   const { data: serviceTiers } = useQuery({
@@ -963,19 +958,11 @@ function SystemMetrics() {
     queryFn: () => fetch('/api/service-tiers').then(r => r.json())
   });
 
-  // Calculate platform insights
-  const totalLeadRevenue = serviceTiers?.reduce((sum: number, tier: any) => {
-    const estimatedMonthlyLeads = Math.floor(Math.random() * 20) + 5; // Simulated leads per service
-    return sum + (tier.leadFee * estimatedMonthlyLeads);
-  }, 0) || 0;
-
-  const averageLeadValue = serviceTiers?.reduce((sum: number, tier: any) => sum + tier.leadFee, 0) / (serviceTiers?.length || 1) || 0;
-  
-  const leadConversionRate = stats?.activeBookings && stats?.totalBookings 
-    ? ((stats.activeBookings / stats.totalBookings) * 100).toFixed(1)
-    : "85.2";
-
-  const installerRetentionRate = "92.4"; // High retention due to profitable margins
+  // Use real data from API instead of simulated values
+  const totalLeadRevenue = insights?.monthlyLeadRevenue || 0;
+  const averageLeadValue = insights?.averageLeadValue || 0;
+  const leadConversionRate = insights?.leadConversionRate?.toFixed(1) || "0.0";
+  const installerRetentionRate = insights?.installerRetentionRate?.toFixed(1) || "0.0";
 
   const insightCards = [
     { 
@@ -1039,25 +1026,46 @@ function SystemMetrics() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {serviceTiers?.map((tier: any) => {
-              const estimatedMonthlyLeads = Math.floor(Math.random() * 20) + 5;
-              const monthlyRevenue = tier.leadFee * estimatedMonthlyLeads;
+              const serviceData = insights?.serviceBreakdown?.[tier.key];
+              const monthlyLeads = serviceData?.count || 0;
+              const monthlyRevenue = serviceData?.revenue || 0;
               
               return (
                 <div key={tier.id} className="flex justify-between items-center p-4 border rounded-lg">
                   <div>
                     <h4 className="font-medium">{tier.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      €{tier.leadFee} × ~{estimatedMonthlyLeads} leads/month
+                      €{tier.leadFee} × {monthlyLeads} leads this month
                     </p>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-bold text-green-600">€{monthlyRevenue}</div>
-                    <div className="text-xs text-muted-foreground">Monthly Est.</div>
+                    <div className="text-xs text-muted-foreground">
+                      {monthlyLeads > 0 ? 'Actual Revenue' : 'No Leads Yet'}
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
+          
+          {/* Addon Revenue */}
+          {insights?.addonRevenue > 0 && (
+            <div className="mt-4 p-4 border rounded-lg bg-blue-50">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h4 className="font-medium">Addon Services Revenue</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Cable concealment, soundbar mounting, additional devices
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-blue-600">€{insights.addonRevenue}</div>
+                  <div className="text-xs text-muted-foreground">This Month</div>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -1082,9 +1090,11 @@ function SystemMetrics() {
               <div className="text-xs text-gray-500">Competitive pricing for marketplace access</div>
             </div>
             <div className="text-center p-4 border rounded-lg">
-              <div className="text-2xl font-bold text-purple-600 mb-2">€{(totalLeadRevenue * 12).toFixed(0)}K</div>
+              <div className="text-2xl font-bold text-purple-600 mb-2">
+                €{insights?.annualRevenueProjection ? Math.round(insights.annualRevenueProjection / 1000) : 0}K
+              </div>
               <div className="text-sm font-medium text-gray-600">Annual Revenue Est.</div>
-              <div className="text-xs text-gray-500">Projected yearly platform revenue</div>
+              <div className="text-xs text-gray-500">Based on current monthly trends</div>
             </div>
           </div>
         </CardContent>

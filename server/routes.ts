@@ -2137,6 +2137,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       // Get all users from the users table
       const allUsers = await storage.getAllUsers();
+      console.log('Admin users - Found users in database:', allUsers.length);
+      allUsers.forEach(user => {
+        console.log('User:', user.id, user.email, user.firstName, user.lastName);
+      });
       const bookings = await storage.getAllBookings();
       
       // Create a map of user booking statistics

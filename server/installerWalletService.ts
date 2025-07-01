@@ -68,7 +68,69 @@ export class InstallerWalletService {
     });
   }
 
-  // Charge for lead access
+  // Calculate complete lead fee including base service, addons, and referral adjustments
+  async calculateCompleteLeadFee(booking: any): Promise<{
+    baseFee: number;
+    addonFees: number;
+    subsidyAmount: number;
+    totalFee: number;
+    breakdown: string[];
+  }> {
+    // Base service lead fees
+    const serviceLeadFees: Record<string, number> = {
+      'table-top-small': 12,
+      'table-top-large': 15,
+      'bronze': 20,
+      'silver': 25,
+      'silver-large': 30,
+      'gold': 30,
+      'gold-large': 35
+    };
+
+    // Addon lead fees
+    const addonLeadFees: Record<string, number> = {
+      'cable-concealment': 5,
+      'soundbar-mounting': 7,
+      'additional-devices': 3
+    };
+
+    const baseFee = serviceLeadFees[booking.serviceType] || 20;
+    const breakdown: string[] = [`Base service: €${baseFee}`];
+    
+    // Calculate addon fees
+    let addonFees = 0;
+    if (booking.addons && typeof booking.addons === 'string' && booking.addons.length > 0) {
+      const addons = booking.addons.split(',').map(a => a.trim().toLowerCase().replace(/\s+/g, '-'));
+      addons.forEach(addon => {
+        const fee = addonLeadFees[addon] || 0;
+        if (fee > 0) {
+          addonFees += fee;
+          breakdown.push(`${addon}: €${fee}`);
+        }
+      });
+    }
+
+    // Calculate referral subsidy (Harvey Norman sales staff codes)
+    let subsidyAmount = 0;
+    if (booking.referralDiscount && parseFloat(booking.referralDiscount) > 0) {
+      // Harvey Norman referral: 10% customer discount subsidized by installer
+      const customerDiscount = parseFloat(booking.referralDiscount);
+      subsidyAmount = Math.round(customerDiscount * 100) / 100; // Round to 2 decimal places
+      breakdown.push(`Harvey Norman subsidy: €${subsidyAmount}`);
+    }
+
+    const totalFee = baseFee + addonFees + subsidyAmount;
+
+    return {
+      baseFee,
+      addonFees,
+      subsidyAmount,
+      totalFee,
+      breakdown
+    };
+  }
+
+  // Charge for lead access with complete fee calculation
   async chargeLeadFee(installerId: number, jobAssignmentId: number, leadFee: number, subsidyAmount: number = 0): Promise<boolean> {
     const wallet = await this.getOrCreateWallet(installerId);
     const currentBalance = parseFloat(wallet.balance);
@@ -87,11 +149,11 @@ export class InstallerWalletService {
       })
       .where(eq(installerWallets.installerId, installerId));
 
-    // Record lead fee transaction
+    // Record base lead fee transaction
     await this.addTransaction({
       installerId,
       type: 'lead_purchase',
-      amount: leadFee.toFixed(2),
+      amount: `-${leadFee.toFixed(2)}`,
       description: `Lead access fee for job assignment #${jobAssignmentId}`,
       jobAssignmentId,
       status: 'completed'
@@ -102,8 +164,77 @@ export class InstallerWalletService {
       await this.addTransaction({
         installerId,
         type: 'referral_subsidy',
-        amount: subsidyAmount.toFixed(2),
+        amount: `-${subsidyAmount.toFixed(2)}`,
         description: `Harvey Norman referral discount subsidy for job assignment #${jobAssignmentId}`,
+        jobAssignmentId,
+        status: 'completed'
+      });
+    }
+
+    return true;
+  }
+
+  // Enhanced lead fee charging with complete breakdown
+  async chargeCompleteLeadFee(installerId: number, jobAssignmentId: number, booking: any): Promise<boolean> {
+    const feeCalculation = await this.calculateCompleteLeadFee(booking);
+    const wallet = await this.getOrCreateWallet(installerId);
+    const currentBalance = parseFloat(wallet.balance);
+    
+    if (currentBalance < feeCalculation.totalFee) {
+      return false; // Insufficient balance
+    }
+
+    // Deduct total fee from wallet
+    await db.update(installerWallets)
+      .set({ 
+        balance: (currentBalance - feeCalculation.totalFee).toFixed(2),
+        totalSpent: (parseFloat(wallet.totalSpent) + feeCalculation.totalFee).toFixed(2),
+        updatedAt: new Date()
+      })
+      .where(eq(installerWallets.installerId, installerId));
+
+    // Record base service fee transaction
+    await this.addTransaction({
+      installerId,
+      type: 'lead_purchase',
+      amount: `-${feeCalculation.baseFee.toFixed(2)}`,
+      description: `Lead fee: ${booking.serviceType} - Job #${jobAssignmentId}`,
+      jobAssignmentId,
+      status: 'completed'
+    });
+
+    // Record addon fee transactions separately
+    if (feeCalculation.addonFees > 0 && booking.addons) {
+      const addons = booking.addons.split(',').map((a: string) => a.trim());
+      const addonLeadFees: Record<string, number> = {
+        'cable-concealment': 5,
+        'soundbar-mounting': 7,
+        'additional-devices': 3
+      };
+
+      for (const addon of addons) {
+        const addonKey = addon.toLowerCase().replace(/\s+/g, '-');
+        const fee = addonLeadFees[addonKey];
+        if (fee && fee > 0) {
+          await this.addTransaction({
+            installerId,
+            type: 'addon_fee',
+            amount: `-${fee.toFixed(2)}`,
+            description: `Addon fee: ${addon} - Job #${jobAssignmentId}`,
+            jobAssignmentId,
+            status: 'completed'
+          });
+        }
+      }
+    }
+
+    // Record referral subsidy transaction if applicable
+    if (feeCalculation.subsidyAmount > 0) {
+      await this.addTransaction({
+        installerId,
+        type: 'referral_subsidy',
+        amount: `-${feeCalculation.subsidyAmount.toFixed(2)}`,
+        description: `Harvey Norman referral subsidy - Job #${jobAssignmentId}`,
         jobAssignmentId,
         status: 'completed'
       });

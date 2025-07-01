@@ -1755,16 +1755,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await harveyNormanInvoiceService.loginWithInvoice(invoiceNumber);
       
       if (result.success && result.user) {
-        // Set session data for invoice-authenticated user
-        (req.session as any).userId = result.user.id;
-        (req.session as any).isAuthenticated = true;
-        (req.session as any).authMethod = 'invoice';
-        
-        res.json({
-          success: true,
-          user: result.user,
-          message: result.message,
-          isNewRegistration: result.isNewRegistration
+        // Establish proper Passport session for invoice-authenticated user
+        req.login(result.user, (err) => {
+          if (err) {
+            console.error('Session login error:', err);
+            return res.status(500).json({ error: 'Failed to establish session' });
+          }
+          
+          // Set additional session data
+          (req.session as any).userId = result.user.id;
+          (req.session as any).isAuthenticated = true;
+          (req.session as any).authMethod = 'invoice';
+          
+          res.json({
+            success: true,
+            user: result.user,
+            message: result.message,
+            isNewRegistration: result.isNewRegistration
+          });
         });
       } else {
         res.status(401).json({ error: result.message });
@@ -1804,21 +1812,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.upsertUser(userData);
       }
 
-      // Set session for guest user
-      (req.session as any).userId = user.id;
-      (req.session as any).isAuthenticated = true;
-      (req.session as any).authMethod = 'guest';
+      // Establish proper Passport session for guest user
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Guest session login error:', err);
+          return res.status(500).json({ error: 'Failed to establish guest session' });
+        }
+        
+        // Set additional session data
+        (req.session as any).userId = user.id;
+        (req.session as any).isAuthenticated = true;
+        (req.session as any).authMethod = 'guest';
 
-      res.json({
-        success: true,
-        user: {
-          id: user.id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role
-        },
-        message: "Guest account created successfully. You can proceed with booking."
+        res.json({
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role
+          },
+          message: "Guest account created successfully. You can proceed with booking."
+        });
       });
     } catch (error) {
       console.error("Guest booking error:", error);

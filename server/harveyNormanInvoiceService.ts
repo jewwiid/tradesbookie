@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 export interface InvoiceLoginResult {
   success: boolean;
   user?: {
-    id: string;
+    id: number;
     email: string;
     firstName: string | null;
     lastName: string | null;

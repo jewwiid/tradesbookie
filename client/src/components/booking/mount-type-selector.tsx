@@ -16,6 +16,7 @@ interface WallMountPricing {
   key: string;
   name: string;
   description: string | null;
+  mountType: string;
   price: number;
   isActive: boolean;
   displayOrder: number;
@@ -78,9 +79,18 @@ export default function MountTypeSelector({ bookingData, updateBookingData }: Mo
   const getAvailableWallMounts = () => {
     if (!wallMountPricing) return [];
     
-    // Return all active wall mount options from database
-    // The database handles the filtering by active status
-    return wallMountPricing;
+    // Map our mount type values to database values
+    const mountTypeMapping: { [key: string]: string } = {
+      'fixed': 'Fixed',
+      'tilting': 'Tilting', 
+      'full-motion': 'Full Motion'
+    };
+    
+    // Filter wall mounts based on selected mount type
+    const selectedMountTypeDB = mountTypeMapping[bookingData.mountType];
+    if (!selectedMountTypeDB) return wallMountPricing; // Return all if no mount type selected
+    
+    return wallMountPricing.filter(mount => mount.mountType === selectedMountTypeDB);
   };
 
   return (

@@ -1983,61 +1983,83 @@ function ReferralManagement() {
   );
 }
 
-// Fee Management Component  
+// Lead Pricing Management Component  
 function FeeManagement() {
-  const [feeStructures, setFeeStructures] = useState({
-    'table-top-small': 15,
-    'table-top-large': 15,
-    'bronze': 15,
-    'silver': 15,
-    'silver-large': 15,
-    'gold': 20,
-    'platinum': 25
+  const { data: serviceTiers } = useQuery({
+    queryKey: ['/api/service-tiers'],
+    queryFn: () => fetch('/api/service-tiers').then(r => r.json())
   });
 
   const { toast } = useToast();
-
-  const handleFeeUpdate = (serviceType: string, newFee: number) => {
-    setFeeStructures(prev => ({
-      ...prev,
-      [serviceType]: newFee
-    }));
-    toast({ title: "Fee structure updated" });
-  };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <Percent className="w-5 h-5 mr-2" />
-          Fee Management
+          <DollarSign className="w-5 h-5 mr-2" />
+          Lead Pricing Management
         </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Manage lead fees charged to installers and customer pricing estimates
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-medium text-blue-900 mb-3">Current Lead Generation Model</h4>
+          <div className="space-y-2 text-sm text-blue-800">
+            <div className="flex justify-between items-center">
+              <span>Revenue Source:</span>
+              <span className="font-medium">Fixed Lead Fees</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Customer Payment:</span>
+              <span className="font-medium">Direct to Installer</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Payment Methods:</span>
+              <span className="font-medium">Cash • Card • Bank Transfer</span>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Object.entries(feeStructures).map(([serviceType, fee]) => (
-            <div key={serviceType} className="space-y-2">
-              <Label className="text-sm font-medium capitalize">
-                {serviceType.replace('-', ' ')} Commission (%)
-              </Label>
-              <div className="flex items-center space-x-2">
-                <Input
-                  type="number"
-                  value={fee}
-                  onChange={(e) => handleFeeUpdate(serviceType, parseInt(e.target.value))}
-                  className="w-20"
-                  min="5"
-                  max="50"
-                />
-                <span className="text-sm text-gray-500">%</span>
+          {serviceTiers?.map((tier: any) => (
+            <div key={tier.id} className="border rounded-lg p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h5 className="font-medium">{tier.name}</h5>
+                  <p className="text-xs text-muted-foreground">{tier.description}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-green-600">€{tier.leadFee}</div>
+                  <div className="text-xs text-muted-foreground">Lead Fee</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div className="text-muted-foreground">Customer Estimate</div>
+                  <div className="font-medium">€{tier.customerPrice}</div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground">Installer Margin</div>
+                  <div className="font-medium text-green-600">
+                    {Math.round(((tier.customerPrice - tier.leadFee) / tier.customerPrice) * 100)}%
+                  </div>
+                </div>
               </div>
             </div>
           ))}
         </div>
-        <Button className="w-full">
-          <Save className="w-4 h-4 mr-2" />
-          Save Fee Changes
-        </Button>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <h4 className="font-medium text-amber-900 mb-2">Lead Fee Benefits</h4>
+          <ul className="text-sm text-amber-800 space-y-1">
+            <li>• Predictable platform revenue vs. variable commissions</li>
+            <li>• Installers keep 80-91% of customer payment</li>
+            <li>• No payment processing fees for platform</li>
+            <li>• Simplified pricing structure</li>
+          </ul>
+        </div>
       </CardContent>
     </Card>
   );

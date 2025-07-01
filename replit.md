@@ -375,6 +375,9 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Fixed admin users management - endpoint now properly queries users table instead of building from incomplete booking data**
 - July 1, 2025: **Restored missing 'soniceccko' user record in database with correct registration details (ID: 44041296, June 19, 2025)**
 - July 1, 2025: **Updated admin user management interface to replace "Total Spent" with "Lead Requests" reflecting lead generation business model**
+- July 1, 2025: **Transformed admin dashboard "Fee Management" to "Lead Pricing Management" reflecting lead generation business model instead of commission-based structure**
+- July 1, 2025: **Updated pricing display to show fixed lead fees (€12-€35), customer estimates (€60-€380), and installer profit margins (80-91%) rather than commission percentages**
+- July 1, 2025: **Added clear business model explanation: Fixed lead fees as revenue source, customers pay installers directly via cash/card/transfer, predictable platform revenue**
 
 ## User Preferences
 

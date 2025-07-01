@@ -125,31 +125,31 @@ export class HarveyNormanInvoiceService {
   async createSampleInvoices(): Promise<void> {
     const sampleInvoices = [
       {
-        invoiceNumber: 'HN-DUB-2576597',
-        customerEmail: 'jude.okun@gmail.com',
-        customerName: 'Jude Okun',
-        purchaseDate: new Date('2025-05-05'),
-        tvModel: 'SILKN DUAL LED MASK',
-        tvSize: 'N/A',
-        purchaseAmount: '224.50'
+        invoiceNumber: 'HN-2025-001234',
+        customerEmail: 'john.smith@email.com',
+        customerName: 'John Smith',
+        purchaseDate: new Date('2025-06-15'),
+        tvModel: 'Samsung 55" QLED',
+        tvSize: '55"',
+        purchaseAmount: '899.99'
       },
       {
-        invoiceNumber: 'HN-DUB-2876543',
+        invoiceNumber: 'HN-2025-005678',
         customerEmail: 'mary.jones@email.com',
         customerName: 'Mary Jones',
         purchaseDate: new Date('2025-06-20'),
-        tvModel: 'LG 65" OLED C4',
+        tvModel: 'LG 65" OLED',
         tvSize: '65"',
         purchaseAmount: '1299.99'
       },
       {
-        invoiceNumber: 'HN-DUB-3456789',
+        invoiceNumber: 'HN-2025-009876',
         customerEmail: 'david.brown@email.com',
         customerName: 'David Brown',
         purchaseDate: new Date('2025-06-25'),
-        tvModel: 'Samsung 43" QLED Q60D',
+        tvModel: 'Sony 43" LED',
         tvSize: '43"',
-        purchaseAmount: '599.99'
+        purchaseAmount: '549.99'
       }
     ];
 
@@ -175,8 +175,8 @@ export class HarveyNormanInvoiceService {
    * Validate invoice format
    */
   isValidInvoiceFormat(invoiceNumber: string): boolean {
-    // Harvey Norman invoice format: HN-DUB-XXXXXXX (where X is invoice number)
-    const regex = /^HN-DUB-\d{7}$/;
+    // Harvey Norman invoice format: HN-YYYY-NNNNNN or HN-STORE-YYYY-NNNNNN
+    const regex = /^HN-(\d{4}-\d{6}|[A-Z]{3,4}-\d{4}-\d{6})$/;
     return regex.test(invoiceNumber);
   }
 }

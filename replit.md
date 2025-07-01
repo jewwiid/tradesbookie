@@ -370,6 +370,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 1, 2025: **Tested complete Harvey Norman referral flow: code creation, validation, discount application, and admin management**
 - July 1, 2025: **Fixed duplicate admin buttons in navigation - kept only right-aligned admin button for clean UI**
 - July 1, 2025: **Enhanced service selection cards - detailed descriptions now display as inline bullet points for better readability**
+- July 1, 2025: **Fixed admin dashboard revenue analytics - replaced "€null" values with accurate platform revenue calculations using lead fees (€12-€35)**
+- July 1, 2025: **Added legacy service type mapping for "Premium Wall Mount" to "silver" tier ensuring backward compatibility with existing bookings**
+- July 1, 2025: **Fixed admin users management - endpoint now properly queries users table instead of building from incomplete booking data**
+- July 1, 2025: **Restored missing 'soniceccko' user record in database with correct registration details (ID: 44041296, June 19, 2025)**
+- July 1, 2025: **Updated admin user management interface to replace "Total Spent" with "Lead Requests" reflecting lead generation business model**
 
 ## User Preferences
 

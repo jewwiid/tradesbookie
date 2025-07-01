@@ -237,8 +237,7 @@ function UserManagement() {
               <TableHead>User</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Joined</TableHead>
-              <TableHead>Bookings</TableHead>
-              <TableHead>Total Spent</TableHead>
+              <TableHead>Lead Requests</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -262,7 +261,6 @@ function UserManagement() {
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>{user.bookingCount}</TableCell>
-                <TableCell>€{user.totalSpent}</TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm">

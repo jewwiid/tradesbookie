@@ -12,25 +12,28 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 interface SimplifiedAuthDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
   onSuccess: (user: any) => void;
   title?: string;
   description?: string;
+  defaultTab?: 'invoice' | 'guest' | 'oauth';
 }
 
 export default function SimplifiedAuthDialog({ 
-  open, 
-  onOpenChange, 
+  isOpen, 
+  onClose, 
   onSuccess, 
   title = "Quick Sign In",
-  description = "Choose your preferred way to sign in or continue as guest"
+  description = "Choose your preferred way to sign in or continue as guest",
+  defaultTab = 'invoice'
 }: SimplifiedAuthDialogProps) {
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const { toast } = useToast();
 
   // Harvey Norman Invoice Login
@@ -49,7 +52,7 @@ export default function SimplifiedAuthDialog({
         description: data.message,
       });
       onSuccess(data.user);
-      onOpenChange(false);
+      onClose();
     },
     onError: (error: Error) => {
       toast({
@@ -76,7 +79,7 @@ export default function SimplifiedAuthDialog({
         description: data.message,
       });
       onSuccess(data.user);
-      onOpenChange(false);
+      onClose();
     },
     onError: (error: Error) => {
       toast({
@@ -125,7 +128,7 @@ export default function SimplifiedAuthDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center">{title}</DialogTitle>
@@ -134,7 +137,7 @@ export default function SimplifiedAuthDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="invoice" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="invoice" className="text-xs">Harvey Norman</TabsTrigger>
             <TabsTrigger value="guest" className="text-xs">Quick Start</TabsTrigger>

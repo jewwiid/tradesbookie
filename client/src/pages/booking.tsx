@@ -18,6 +18,7 @@ import ContactReview from '@/components/booking-steps/contact-review';
 const TOTAL_STEPS = 8;
 
 export default function Booking() {
+  console.log("🟢 BOOKING COMPONENT LOADED");
   const { bookingData, nextStep, prevStep, resetBooking } = useBooking();
   const { toast } = useToast();
 

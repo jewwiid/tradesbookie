@@ -617,22 +617,6 @@ I'm interested in learning more about this TV and discussing purchase options. P
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-4">
-              {/* Product Image */}
-              <div className="w-full max-w-md mx-auto bg-white rounded-lg shadow-sm p-6">
-                <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
-                  <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-2 bg-orange-600 rounded-lg flex items-center justify-center">
-                      <Tv className="w-8 h-8 text-white" />
-                    </div>
-                    <p className="text-sm text-gray-600 font-semibold">{recommendation.model}</p>
-                    <p className="text-xs text-gray-500">{recommendation.type}</p>
-                  </div>
-                </div>
-                <Badge variant="outline" className="text-green-600 border-green-600 text-lg px-4 py-2">
-                  {recommendation.priceRange}
-                </Badge>
-              </div>
-              
               <div className="bg-white rounded-lg p-4 border-2 border-orange-200">
                 <h4 className="font-bold text-orange-800 mb-2">🎯 Guaranteed Best Price at Harvey Norman</h4>
                 <p className="text-sm text-gray-700 mb-3">

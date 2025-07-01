@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Tv, Zap, Eye, Gamepad2, DollarSign, ArrowLeft, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
+import { Tv, Zap, Eye, Gamepad2, DollarSign, ArrowLeft, ArrowRight, Sparkles, Loader2, Trophy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
@@ -413,80 +413,97 @@ I'm interested in learning more about this TV and discussing purchase options. P
             <p className="text-gray-600">Based on your preferences, here's our AI recommendation</p>
           </div>
 
-          <Card className="mb-6">
-            <CardHeader className="text-center">
-              <div className="flex items-center justify-center mb-4">
-                <Sparkles className="w-8 h-8 text-yellow-500 mr-2" />
-                <CardTitle className="text-2xl">{recommendation.type}</CardTitle>
+          {/* Main Recommendation - Prominent Display */}
+          <Card className="mb-8 border-2 border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-xl">
+            <CardHeader className="text-center bg-blue-600 text-white rounded-t-lg">
+              <div className="flex items-center justify-center mb-2">
+                <Trophy className="w-6 h-6 mr-2" />
+                <span className="text-sm font-medium">OUR TOP RECOMMENDATION</span>
+              </div>
+              <CardTitle className="text-3xl font-bold mb-2">{recommendation.model}</CardTitle>
+              <div className="flex items-center justify-center gap-2">
+                <Sparkles className="w-5 h-5 text-yellow-300" />
+                <span className="text-xl">{recommendation.type}</span>
+                <Sparkles className="w-5 h-5 text-yellow-300" />
+              </div>
+              <div className="mt-3">
+                <Badge variant="secondary" className="bg-white text-blue-600 text-lg px-4 py-1 font-bold">
+                  {recommendation.priceRange}
+                </Badge>
                 {recommendation.realTimeData && (
-                  <Badge variant="outline" className="ml-3 text-green-600 border-green-600">
+                  <Badge variant="outline" className="ml-2 bg-green-100 text-green-700 border-green-300">
                     Live Market Data
                   </Badge>
                 )}
               </div>
-              <CardDescription className="text-lg font-medium">{recommendation.model}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">Why This TV Is Perfect For You</h3>
-                <ul className="space-y-1">
+            <CardContent className="space-y-6 bg-white">
+              <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                <h3 className="font-bold text-blue-900 mb-3 text-lg">Why This TV Is Perfect For You</h3>
+                <ul className="space-y-2">
                   {recommendation.reasons.map((reason, index) => (
                     <li key={index} className="flex items-start">
-                      <span className="text-green-500 mr-2">•</span>
-                      <span className="text-gray-700">{reason}</span>
+                      <span className="text-blue-600 mr-3 font-bold">✓</span>
+                      <span className="text-blue-800 font-medium">{reason}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Key Advantages</h3>
-                  <ul className="space-y-1">
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h3 className="font-bold text-green-900 mb-3 flex items-center">
+                    <span className="text-green-600 mr-2">👍</span>
+                    Key Advantages
+                  </h3>
+                  <ul className="space-y-2">
                     {recommendation.pros.map((pro, index) => (
                       <li key={index} className="flex items-start">
-                        <span className="text-blue-500 mr-2">✓</span>
-                        <span className="text-gray-700 text-sm">{pro}</span>
+                        <span className="text-green-600 mr-2 font-bold">+</span>
+                        <span className="text-green-800">{pro}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
 
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Considerations</h3>
-                  <ul className="space-y-1">
+                <div className="bg-amber-50 p-4 rounded-lg">
+                  <h3 className="font-bold text-amber-900 mb-3 flex items-center">
+                    <span className="text-amber-600 mr-2">⚠️</span>
+                    Important Considerations
+                  </h3>
+                  <ul className="space-y-2">
                     {recommendation.cons.map((con, index) => (
                       <li key={index} className="flex items-start">
-                        <span className="text-amber-500 mr-2">⚠</span>
-                        <span className="text-gray-700 text-sm">{con}</span>
+                        <span className="text-amber-600 mr-2">•</span>
+                        <span className="text-amber-800">{con}</span>
                       </li>
                     ))}
                   </ul>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-4">
-                <div>
-                  <Badge variant="outline" className="text-green-600 border-green-600">
-                    {recommendation.priceRange}
-                  </Badge>
-                </div>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-bold text-gray-900 mb-2">Perfect For:</h4>
                 <div className="flex flex-wrap gap-2">
                   {recommendation.bestFor.map((feature, index) => (
-                    <Badge key={index} variant="secondary">
+                    <Badge key={index} variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
                       {feature}
                     </Badge>
                   ))}
                 </div>
               </div>
 
-              {/* Current TV Models Available */}
-              {recommendation.currentModels && recommendation.currentModels.length > 0 && (
-                <div className="mt-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    Alternative TV Models Available
-                  </h3>
+            </CardContent>
+          </Card>
+
+          {/* Alternatives Section - Clearly Separated */}
+          {recommendation.currentModels && recommendation.currentModels.length > 0 && (
+            <div className="mb-8">
+              <div className="text-center mb-6">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">Alternative Options</h2>
+                <p className="text-gray-600">Other TVs you might consider in your budget range</p>
+                <div className="mt-4 w-24 h-1 bg-gradient-to-r from-purple-500 to-blue-500 mx-auto rounded-full"></div>
+              </div>
                   <div className="grid gap-4">
                     {recommendation.currentModels.map((tv, index) => (
                       <Card key={index} className="border-2 border-blue-200 bg-blue-50/30">
@@ -561,15 +578,9 @@ I'm interested in learning more about this TV and discussing purchase options. P
                         </CardContent>
                       </Card>
                     ))}
-                  </div>
-                </div>
-              )}
-
-
-            </CardContent>
-          </Card>
-
-
+              </div>
+            </div>
+          )}
 
           {/* Harvey Norman Guarantee Section */}
           <Card className="mb-6 border-orange-300 bg-gradient-to-r from-orange-100 to-red-100">

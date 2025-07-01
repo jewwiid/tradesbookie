@@ -9,6 +9,8 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { BookingData, calculateTotalPrice } from "@/lib/booking-utils";
+import { useAuth } from "@/hooks/useAuth";
+import SimplifiedAuthDialog from "@/components/SimplifiedAuthDialog";
 
 interface ContactFormProps {
   bookingData: BookingData;
@@ -25,6 +27,8 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
   const [referralDiscount, setReferralDiscount] = useState(0);
   const [referralMessage, setReferralMessage] = useState('');
   const [isValidatingReferral, setIsValidatingReferral] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   // Harvey Norman referral validation mutation
   const validateReferralMutation = useMutation({

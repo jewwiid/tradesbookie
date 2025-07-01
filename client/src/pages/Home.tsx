@@ -1,16 +1,19 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import ServiceTierCard from "@/components/ServiceTierCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building } from "lucide-react";
+import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building, Receipt, User, Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Footer from "@/components/Footer";
+import SimplifiedAuthDialog from "@/components/SimplifiedAuthDialog";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
 
   // Fetch dynamic pricing from backend
   const { data: apiServiceTiers, isLoading } = useQuery({
@@ -283,6 +286,85 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Simplified Authentication Section */}
+      <section className="py-16 bg-gradient-to-br from-emerald-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Book Faster Than Ever
+            </h2>
+            <p className="text-xl text-gray-600">
+              New flexible authentication options to reduce booking friction
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Receipt className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Harvey Norman Invoice</h3>
+                <p className="text-gray-600 mb-6">
+                  Enter your Harvey Norman receipt number to book instantly. No account needed.
+                </p>
+                <Button 
+                  onClick={() => setAuthDialogOpen(true)}
+                  className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600"
+                >
+                  Use Invoice Number
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Zap className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Quick Guest Booking</h3>
+                <p className="text-gray-600 mb-6">
+                  Skip registration. Just provide your email for booking updates.
+                </p>
+                <Button 
+                  onClick={() => setAuthDialogOpen(true)}
+                  className="w-full bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600"
+                >
+                  Book as Guest
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <User className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Full Account</h3>
+                <p className="text-gray-600 mb-6">
+                  Create an account for booking history, dashboard access, and more.
+                </p>
+                <Button 
+                  onClick={() => setAuthDialogOpen(true)}
+                  className="w-full bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600"
+                >
+                  Create Account
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="text-center mt-12">
+            <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200">
+              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+              <span className="text-sm font-medium text-gray-700">
+                All options include email updates and booking tracking
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* How It Works Section */}
       <section className="py-16 bg-gradient-to-br from-purple-50 to-indigo-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -399,6 +481,17 @@ export default function Home() {
 
       {/* Footer */}
       <Footer />
+      
+      {/* Simplified Authentication Dialog */}
+      <SimplifiedAuthDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        onSuccess={() => {
+          setAuthDialogOpen(false);
+        }}
+        title="Get Started"
+        description="Choose how you'd like to book your TV installation"
+      />
     </div>
   );
 }

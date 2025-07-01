@@ -225,6 +225,17 @@ export default function Navigation() {
           </div>
         </div>
       </nav>
+
+      {/* Simplified Authentication Dialog */}
+      <SimplifiedAuthDialog 
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        onSuccess={(user) => {
+          console.log('User authenticated:', user);
+          // Refresh the page to update auth state
+          window.location.reload();
+        }}
+      />
     </>
   );
 }

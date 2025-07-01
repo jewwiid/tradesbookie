@@ -1717,7 +1717,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate invoice format first
       if (!harveyNormanInvoiceService.isValidInvoiceFormat(invoiceNumber)) {
         return res.status(400).json({ 
-          error: "Invalid invoice format. Please enter your Harvey Norman invoice number (format: HN-YYYY-NNNNNN)" 
+          error: "Invalid invoice format. Please enter your 7-digit Harvey Norman invoice number (e.g., 2576597)" 
         });
       }
 

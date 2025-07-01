@@ -125,16 +125,25 @@ export class HarveyNormanInvoiceService {
   async createSampleInvoices(): Promise<void> {
     const sampleInvoices = [
       {
-        invoiceNumber: 'HN-2025-001234',
+        invoiceNumber: '2576597',
+        customerEmail: 'jude.okun@gmail.com',
+        customerName: 'Jude Okun',
+        purchaseDate: new Date('2025-05-05'),
+        tvModel: 'SILKN DUAL LED MASK',
+        tvSize: 'N/A',
+        purchaseAmount: '224.50'
+      },
+      {
+        invoiceNumber: '2345678',
         customerEmail: 'john.smith@email.com',
         customerName: 'John Smith',
-        purchaseDate: new Date('2025-06-15'),
+        purchaseDate: new Date('2025-06-18'),
         tvModel: 'Samsung 55" QLED',
         tvSize: '55"',
         purchaseAmount: '899.99'
       },
       {
-        invoiceNumber: 'HN-2025-005678',
+        invoiceNumber: '3456789',
         customerEmail: 'mary.jones@email.com',
         customerName: 'Mary Jones',
         purchaseDate: new Date('2025-06-20'),
@@ -143,7 +152,7 @@ export class HarveyNormanInvoiceService {
         purchaseAmount: '1299.99'
       },
       {
-        invoiceNumber: 'HN-2025-009876',
+        invoiceNumber: '4567890',
         customerEmail: 'david.brown@email.com',
         customerName: 'David Brown',
         purchaseDate: new Date('2025-06-25'),

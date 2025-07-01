@@ -29,8 +29,28 @@ export const users = pgTable("users", {
   emailVerified: boolean("is_email_verified").default(false),
   emailVerificationToken: varchar("email_verification_token"),
   emailVerificationExpires: timestamp("verification_token_expires"),
+  
+  // Harvey Norman invoice-based authentication
+  harveyNormanInvoiceNumber: varchar("harvey_norman_invoice"),
+  invoiceVerified: boolean("invoice_verified").default(false),
+  registrationMethod: varchar("registration_method").default("oauth"), // oauth, invoice, guest
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Harvey Norman invoice lookup table for simplified customer login
+export const harveyNormanInvoices = pgTable("harvey_norman_invoices", {
+  id: serial("id").primaryKey(),
+  invoiceNumber: varchar("invoice_number").unique().notNull(),
+  customerEmail: varchar("customer_email").notNull(),
+  customerName: varchar("customer_name").notNull(),
+  purchaseDate: timestamp("purchase_date").notNull(),
+  tvModel: varchar("tv_model"),
+  tvSize: varchar("tv_size"),
+  purchaseAmount: decimal("purchase_amount", { precision: 8, scale: 2 }),
+  isUsedForRegistration: boolean("is_used_for_registration").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Installers table
@@ -386,6 +406,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
 });
 
+export const insertHarveyNormanInvoiceSchema = createInsertSchema(harveyNormanInvoices).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertInstallerSchema = createInsertSchema(installers).omit({
   id: true,
   createdAt: true,
@@ -459,6 +484,9 @@ export const insertPricingConfigSchema = createInsertSchema(pricingConfig).omit(
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+export type HarveyNormanInvoice = typeof harveyNormanInvoices.$inferSelect;
+export type InsertHarveyNormanInvoice = z.infer<typeof insertHarveyNormanInvoiceSchema>;
 
 export type Installer = typeof installers.$inferSelect;
 export type InsertInstaller = z.infer<typeof insertInstallerSchema>;

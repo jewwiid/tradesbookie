@@ -191,7 +191,7 @@ export default function MountTypeSelector({ bookingData, updateBookingData }: Mo
                     </div>
                     <div className="text-right">
                       <div className="text-lg font-bold text-gray-900">
-                        €{mount.price.toFixed(0)}
+                        €{Number(mount.price).toFixed(0)}
                       </div>
                     </div>
                   </div>

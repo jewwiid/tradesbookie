@@ -653,62 +653,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/admin/stats", async (req, res) => {
-    try {
-      const bookings = await storage.getAllBookings();
-      const currentMonth = new Date().getMonth();
-      const currentYear = new Date().getFullYear();
-      
-      const monthlyBookings = bookings.filter(booking => {
-        if (!booking.createdAt) return false;
-        const bookingDate = new Date(booking.createdAt);
-        return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
-      });
 
-      const totalRevenue = bookings.reduce((sum, booking) => sum + parseFloat(booking.totalPrice), 0);
-      const totalAppFees = bookings.reduce((sum, booking) => sum + parseFloat(booking.appFee), 0);
-      
-      // Payment statistics
-      const paymentsWithStatus = bookings.filter(b => b.paymentIntentId);
-      const successfulPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'succeeded');
-      const pendingPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'pending' || b.paymentStatus === 'processing');
-      const failedPayments = paymentsWithStatus.filter(b => b.paymentStatus === 'failed');
-      const totalPaidAmount = successfulPayments.reduce((sum, b) => sum + parseFloat(b.paidAmount || '0'), 0);
-      
-      // Solar enquiry statistics
-      const solarEnquiries = await storage.getAllSolarEnquiries();
-      const newSolarEnquiries = solarEnquiries.filter(e => {
-        if (!e.createdAt) return false;
-        const enquiryDate = new Date(e.createdAt);
-        return enquiryDate.getMonth() === currentMonth && enquiryDate.getFullYear() === currentYear;
-      });
-      const convertedSolarLeads = solarEnquiries.filter(e => e.status === 'converted');
-      
-      res.json({
-        totalBookings: bookings.length,
-        monthlyBookings: monthlyBookings.length,
-        revenue: totalRevenue,
-        appFees: totalAppFees,
-        totalUsers: 0, // Will be populated from user data
-        totalInstallers: 0, // Will be populated from installer data
-        activeBookings: bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length,
-        completedBookings: bookings.filter(b => b.status === 'completed').length,
-        avgBookingValue: bookings.length > 0 ? totalRevenue / bookings.length : 0,
-        topServiceType: 'Standard Installation', // Most common service type
-        totalPayments: paymentsWithStatus.length,
-        successfulPayments: successfulPayments.length,
-        pendingPayments: pendingPayments.length,
-        failedPayments: failedPayments.length,
-        totalPaidAmount: totalPaidAmount,
-        totalSolarEnquiries: solarEnquiries.length,
-        newSolarEnquiries: newSolarEnquiries.length,
-        convertedSolarLeads: convertedSolarLeads.length
-      });
-    } catch (error) {
-      console.error("Error fetching admin stats:", error);
-      res.status(500).json({ message: "Failed to fetch stats" });
-    }
-  });
 
   // ====================== ADD-ONS ENDPOINT ======================
   

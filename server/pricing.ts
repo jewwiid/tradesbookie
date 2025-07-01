@@ -172,8 +172,29 @@ export function calculateBookingPricing(
   };
 }
 
+// Map legacy service type names to current service tier keys
+const LEGACY_SERVICE_TYPE_MAPPING: Record<string, string> = {
+  'Premium Wall Mount': 'silver',
+  'Standard Installation': 'bronze',
+  'Basic Wall Mount': 'bronze',
+  'Advanced Wall Mount': 'gold',
+  'Table Mount': 'table-top-small',
+  'Table Mount Large': 'table-top-large',
+  'Bronze Wall Mount': 'bronze',
+  'Silver Wall Mount': 'silver',
+  'Gold Wall Mount': 'gold'
+};
+
 export function getLeadFee(serviceType: string): number {
-  const serviceTier = SERVICE_TIERS[serviceType];
+  // First try direct match with current service tier keys
+  let serviceTier = SERVICE_TIERS[serviceType];
+  
+  // If no direct match, try legacy mapping
+  if (!serviceTier && LEGACY_SERVICE_TYPE_MAPPING[serviceType]) {
+    const mappedKey = LEGACY_SERVICE_TYPE_MAPPING[serviceType];
+    serviceTier = SERVICE_TIERS[mappedKey];
+  }
+  
   return serviceTier ? serviceTier.leadFee : 15; // Default €15 lead fee
 }
 

@@ -198,7 +198,7 @@ export default function PricingManagement() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Fetch all pricing configurations
-  const { data: allPricing = [], isLoading } = useQuery({
+  const { data: allPricing = [], isLoading } = useQuery<PricingItem[]>({
     queryKey: ["/api/admin/pricing"],
   });
 

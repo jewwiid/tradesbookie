@@ -231,7 +231,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="font-medium text-gray-700">Updated Total:</span>
-              <span className="text-xl font-bold text-indigo-600">€{data.totalPrice.toFixed(2)}</span>
+              <span className="text-xl font-bold text-indigo-600">€{bookingData.total.toFixed(2)}</span>
             </div>
           </div>
         )}
@@ -244,7 +244,7 @@ export default function MountTypeSelection({ onNext, onBack }: MountTypeSelectio
           </Button>
           <Button 
             onClick={onNext} 
-            disabled={!data.mountType || (needsWallMount === true && !selectedWallMount)}
+            disabled={!bookingData.mountType || (needsWallMount === true && !selectedWallMount)}
             className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
           >
             Continue

@@ -83,7 +83,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           <span className="font-semibold text-green-800">Ireland Installation Map</span>
         </div>
         <div className="text-sm text-gray-600 mt-1">
-          {requests.length} active requests
+          {availableRequests.length} active requests
         </div>
       </div>
 
@@ -125,7 +125,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
         />
         
         {/* Plot request markers on the map */}
-        {requests.map((request, index) => {
+        {availableRequests.map((request, index) => {
           const x = 80 + (index % 6) * 20;
           const y = 80 + Math.floor(index / 6) * 25;
           const color = request.urgency === 'emergency' ? '#ef4444' : 
@@ -287,13 +287,6 @@ export default function InstallerDashboard() {
     emergencyCallout: false,
     weekendAvailable: false
   });
-  const [stats, setStats] = useState<InstallerStats>({
-    monthlyJobs: 24,
-    earnings: 2850,
-    rating: 4.9,
-    activeRequests: 0
-  });
-
   // Get current installer profile
   const { data: installerProfile, isLoading: profileLoading } = useQuery({
     queryKey: ["/api/installers/profile"],
@@ -307,6 +300,40 @@ export default function InstallerDashboard() {
     enabled: !!installerProfile?.id,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  // Fetch past leads for monthly stats calculation
+  const { data: pastLeads = [] } = useQuery({
+    queryKey: [`/api/installer/${installerProfile?.id}/past-leads`],
+    enabled: !!installerProfile?.id,
+    refetchInterval: 30000
+  });
+
+  // Fetch reviews for rating calculation
+  const { data: reviewStats } = useQuery({
+    queryKey: [`/api/installer/${installerProfile?.id}/reviews`],
+    enabled: !!installerProfile?.id,
+    refetchInterval: 30000
+  });
+
+  // Calculate real stats from actual data
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  const monthlyLeads = pastLeads.filter((lead: any) => {
+    const leadDate = new Date(lead.createdAt);
+    return leadDate.getMonth() === currentMonth && leadDate.getFullYear() === currentYear;
+  });
+
+  const monthlyEarnings = monthlyLeads.reduce((total: number, lead: any) => {
+    return total + (parseFloat(lead.estimatedPrice) || 0);
+  }, 0);
+
+  const stats: InstallerStats = {
+    monthlyJobs: monthlyLeads.length,
+    earnings: monthlyEarnings,
+    rating: reviewStats?.averageRating || 0,
+    activeRequests: availableRequests.length
+  };
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
@@ -542,7 +569,7 @@ export default function InstallerDashboard() {
   // Update stats to reflect current requests
   const currentStats = {
     ...stats,
-    activeRequests: requests.length
+    activeRequests: availableRequests.length
   };
 
   const handleAcceptRequest = (requestId: number) => {
@@ -703,7 +730,7 @@ export default function InstallerDashboard() {
                 {/* Map */}
                 <div className="lg:col-span-2">
                   <IrelandMap 
-                    requests={requests}
+                    requests={availableRequests}
                     onRequestSelect={setSelectedRequest}
                     selectedRequest={selectedRequest || undefined}
                   />
@@ -731,7 +758,7 @@ export default function InstallerDashboard() {
         ) : (
           /* List View */
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {requests.map((request: ClientRequest) => (
+            {availableRequests.map((request: ClientRequest) => (
               <RequestCard
                 key={request.id}
                 request={request}
@@ -744,7 +771,7 @@ export default function InstallerDashboard() {
         )}
 
             {/* No Requests State */}
-            {requests.length === 0 && !requestsLoading && (
+            {availableRequests.length === 0 && !requestsLoading && (
               <Card className="p-12 text-center">
                 <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No Active Requests</h3>

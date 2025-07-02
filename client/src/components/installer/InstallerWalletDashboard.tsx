@@ -78,27 +78,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
     },
   });
 
-  // Purchase lead mutation
-  const purchaseLeadMutation = useMutation({
-    mutationFn: async ({ bookingId, leadFee }: { bookingId: number; leadFee: number }) => {
-      return apiRequest(`/api/installer/${installerId}/purchase-lead`, 'POST', { bookingId, leadFee });
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/wallet`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/available-leads`] });
-      toast({
-        title: "Lead Purchased!",
-        description: "You can now contact the customer directly",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Purchase Failed",
-        description: error.message || "Insufficient balance or error occurred",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const handleAddCredits = () => {
     const amount = parseFloat(creditAmount);
@@ -107,21 +87,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
     }
   };
 
-  const handlePurchaseLead = (lead: AvailableLead) => {
-    if (parseFloat(walletData?.wallet.balance || '0') < lead.leadFee) {
-      toast({
-        title: "Insufficient Balance",
-        description: `You need €${lead.leadFee} to purchase this lead`,
-        variant: "destructive",
-      });
-      return;
-    }
 
-    purchaseLeadMutation.mutate({
-      bookingId: lead.id,
-      leadFee: lead.leadFee,
-    });
-  };
 
   const formatCurrency = (amount: string | number) => {
     return `€${parseFloat(amount.toString()).toFixed(2)}`;

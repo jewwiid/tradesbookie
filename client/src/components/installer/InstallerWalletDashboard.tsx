@@ -206,8 +206,8 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
                 </Button>
               </div>
               
-              <div className="grid grid-cols-3 gap-2">
-                {['50', '100', '200'].map((amount) => (
+              <div className="grid grid-cols-4 gap-2">
+                {['10', '25', '50', '100'].map((amount) => (
                   <Button
                     key={amount}
                     variant="outline"

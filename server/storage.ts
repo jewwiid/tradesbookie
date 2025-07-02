@@ -2,7 +2,7 @@ import {
   users, bookings, installers, jobAssignments, reviews, solarEnquiries,
   referralSettings, referralCodes, referralUsage, consultationBookings,
   leadPricing, wallMountPricing, installerWallets, installerTransactions,
-  declinedRequests,
+  scheduleNegotiations, declinedRequests,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -15,6 +15,7 @@ import {
   type ConsultationBooking, type InsertConsultationBooking,
   type LeadPricing, type InsertLeadPricing,
   type WallMountPricing, type InsertWallMountPricing,
+  type ScheduleNegotiation, type InsertScheduleNegotiation,
   type InstallerWallet, type InsertInstallerWallet,
   type InstallerTransaction, type InsertInstallerTransaction
 } from "@shared/schema";
@@ -906,6 +907,57 @@ export class DatabaseStorage implements IStorage {
       .where(eq(declinedRequests.installerId, installerId));
     
     return declined.map(item => item.bookingId);
+  }
+
+  // Schedule negotiation operations
+  async createScheduleNegotiation(negotiation: InsertScheduleNegotiation): Promise<ScheduleNegotiation> {
+    const [newNegotiation] = await db.insert(scheduleNegotiations)
+      .values(negotiation)
+      .returning();
+    return newNegotiation;
+  }
+
+  async getBookingScheduleNegotiations(bookingId: number): Promise<ScheduleNegotiation[]> {
+    return await db.select()
+      .from(scheduleNegotiations)
+      .where(eq(scheduleNegotiations.bookingId, bookingId))
+      .orderBy(desc(scheduleNegotiations.createdAt));
+  }
+
+  async getInstallerScheduleNegotiations(installerId: number): Promise<ScheduleNegotiation[]> {
+    return await db.select()
+      .from(scheduleNegotiations)
+      .where(eq(scheduleNegotiations.installerId, installerId))
+      .orderBy(desc(scheduleNegotiations.createdAt));
+  }
+
+  async updateScheduleNegotiationStatus(id: number, status: string, responseMessage?: string): Promise<void> {
+    const updateData: any = {
+      status,
+      respondedAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    if (responseMessage) {
+      updateData.responseMessage = responseMessage;
+    }
+
+    await db.update(scheduleNegotiations)
+      .set(updateData)
+      .where(eq(scheduleNegotiations.id, id));
+  }
+
+  async getActiveScheduleNegotiation(bookingId: number): Promise<ScheduleNegotiation | undefined> {
+    const [negotiation] = await db.select()
+      .from(scheduleNegotiations)
+      .where(and(
+        eq(scheduleNegotiations.bookingId, bookingId),
+        eq(scheduleNegotiations.status, 'pending')
+      ))
+      .orderBy(desc(scheduleNegotiations.createdAt))
+      .limit(1);
+    
+    return negotiation;
   }
 }
 

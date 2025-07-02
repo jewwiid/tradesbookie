@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { insertBookingSchema, insertUserSchema, insertReviewSchema } from "@shared/schema";
+import { insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema } from "@shared/schema";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
 import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing, SERVICE_TIERS, getLeadFee } from "./pricing";
@@ -4916,6 +4916,125 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Find nearby installers error:", error);
       res.status(500).json({ error: "Failed to find nearby installers" });
+    }
+  });
+
+  // Schedule negotiation endpoints
+  app.post("/api/schedule-negotiations", async (req, res) => {
+    try {
+      const validatedData = insertScheduleNegotiationSchema.parse(req.body);
+      const negotiation = await storage.createScheduleNegotiation(validatedData);
+      
+      // Send email notification about new schedule proposal
+      if (validatedData.proposedBy === 'customer') {
+        // Notify installer about customer's schedule proposal
+        const booking = await storage.getBooking(validatedData.bookingId);
+        const installer = await storage.getInstaller(validatedData.installerId);
+        
+        if (booking && installer) {
+          try {
+            await sendScheduleProposalNotification(
+              installer.email,
+              booking,
+              negotiation
+            );
+          } catch (emailError) {
+            console.error("Failed to send schedule notification:", emailError);
+          }
+        }
+      } else if (validatedData.proposedBy === 'installer') {
+        // Notify customer about installer's schedule proposal
+        const booking = await storage.getBooking(validatedData.bookingId);
+        
+        if (booking && booking.contactEmail) {
+          try {
+            await sendScheduleProposalNotification(
+              booking.contactEmail,
+              booking,
+              negotiation
+            );
+          } catch (emailError) {
+            console.error("Failed to send schedule notification:", emailError);
+          }
+        }
+      }
+      
+      res.json(negotiation);
+    } catch (error) {
+      console.error("Schedule negotiation creation error:", error);
+      res.status(400).json({ error: "Failed to create schedule negotiation" });
+    }
+  });
+
+  app.get("/api/bookings/:bookingId/schedule-negotiations", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const negotiations = await storage.getBookingScheduleNegotiations(bookingId);
+      res.json(negotiations);
+    } catch (error) {
+      console.error("Get schedule negotiations error:", error);
+      res.status(500).json({ error: "Failed to get schedule negotiations" });
+    }
+  });
+
+  app.get("/api/installer/:installerId/schedule-negotiations", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      const negotiations = await storage.getInstallerScheduleNegotiations(installerId);
+      res.json(negotiations);
+    } catch (error) {
+      console.error("Get installer negotiations error:", error);
+      res.status(500).json({ error: "Failed to get installer negotiations" });
+    }
+  });
+
+  app.patch("/api/schedule-negotiations/:id", async (req, res) => {
+    try {
+      const negotiationId = parseInt(req.params.id);
+      const { status, responseMessage } = req.body;
+      
+      await storage.updateScheduleNegotiationStatus(negotiationId, status, responseMessage);
+      
+      // Send email notification about response
+      const negotiation = await storage.getBookingScheduleNegotiations(req.body.bookingId);
+      const latestNegotiation = negotiation[0]; // Most recent
+      
+      if (latestNegotiation) {
+        const booking = await storage.getBooking(latestNegotiation.bookingId);
+        
+        if (status === 'accepted') {
+          // Update booking with confirmed schedule
+          await storage.updateBooking(latestNegotiation.bookingId, {
+            scheduledDate: new Date(latestNegotiation.proposedDate),
+            status: 'scheduled'
+          });
+          
+          // Send confirmation emails to both parties
+          if (booking) {
+            try {
+              await sendScheduleConfirmationNotification(booking, latestNegotiation);
+            } catch (emailError) {
+              console.error("Failed to send confirmation notification:", emailError);
+            }
+          }
+        }
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Update schedule negotiation error:", error);
+      res.status(400).json({ error: "Failed to update schedule negotiation" });
+    }
+  });
+
+  app.get("/api/bookings/:bookingId/active-negotiation", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const negotiation = await storage.getActiveScheduleNegotiation(bookingId);
+      res.json(negotiation || null);
+    } catch (error) {
+      console.error("Get active negotiation error:", error);
+      res.status(500).json({ error: "Failed to get active negotiation" });
     }
   });
 

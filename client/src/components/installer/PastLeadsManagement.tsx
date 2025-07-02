@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
@@ -66,6 +67,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   const [selectedLead, setSelectedLead] = useState<PastLead | null>(null);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
+  const [updateMessage, setUpdateMessage] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -77,10 +79,11 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
 
   // Update status mutation
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ leadId, status }: { leadId: number; status: string }) => {
+    mutationFn: async ({ leadId, status, message }: { leadId: number; status: string; message?: string }) => {
       return apiRequest('POST', `/api/installer/${installerId}/update-lead-status`, { 
         leadId, 
-        status 
+        status,
+        message 
       });
     },
     onSuccess: (data: any) => {
@@ -105,7 +108,8 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     if (selectedLead && newStatus) {
       updateStatusMutation.mutate({
         leadId: selectedLead.id,
-        status: newStatus
+        status: newStatus,
+        message: updateMessage.trim() || undefined
       });
     }
   };
@@ -113,6 +117,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   const openUpdateDialog = (lead: PastLead) => {
     setSelectedLead(lead);
     setNewStatus(lead.status);
+    setUpdateMessage('');
     setShowUpdateDialog(true);
   };
 

@@ -3665,7 +3665,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
       
       // Find booking by QR code
-      const booking = await storage.getBookingByQR(qrCode);
+      const booking = await storage.getBookingByQrCode(qrCode);
       if (!booking) {
         return res.status(404).json({ message: "Installation request not found" });
       }

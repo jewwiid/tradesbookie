@@ -37,19 +37,7 @@ interface WalletData {
   }>;
 }
 
-interface AvailableLead {
-  id: number;
-  address: string;
-  serviceType: string;
-  estimatedTotal: string;
-  leadFee: number;
-  estimatedEarnings: number;
-  profitMargin: number;
-  tvSize: string;
-  wallType: string;
-  mountType: string;
-  createdAt: string;
-}
+
 
 interface InstallerWalletDashboardProps {
   installerId: number;
@@ -66,11 +54,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Fetch available leads
-  const { data: availableLeads = [], isLoading: leadsLoading } = useQuery<AvailableLead[]>({
-    queryKey: [`/api/installer/${installerId}/available-leads`],
-    refetchInterval: 30000,
-  });
+
 
   // Add credits mutation
   const addCreditsMutation = useMutation({
@@ -143,25 +127,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
     return `€${parseFloat(amount.toString()).toFixed(2)}`;
   };
 
-  const getServiceTypeDisplay = (serviceType: string) => {
-    const types: Record<string, string> = {
-      'table-top-small': 'Table Mount (Small)',
-      'table-top-large': 'Table Mount (Large)',
-      'bronze': 'Bronze Wall Mount',
-      'silver': 'Silver Wall Mount',
-      'silver-large': 'Silver Wall Mount (Large)',
-      'gold': 'Gold Premium Install',
-      'gold-large': 'Gold Premium (Large)',
-    };
-    return types[serviceType] || serviceType;
-  };
 
-  const getProfitMarginColor = (margin: number | null) => {
-    if (!margin) return 'text-gray-600';
-    if (margin >= 85) return 'text-green-600';
-    if (margin >= 80) return 'text-yellow-600';
-    return 'text-red-600';
-  };
 
   if (walletLoading) {
     return (
@@ -215,118 +181,13 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
         </Card>
       </div>
 
-      <Tabs defaultValue="leads" className="space-y-4">
+      <Tabs defaultValue="wallet" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="leads">Available Leads ({availableLeads.length})</TabsTrigger>
           <TabsTrigger value="wallet">Wallet Management</TabsTrigger>
           <TabsTrigger value="transactions">Transaction History</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="leads" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Available Installation Requests</CardTitle>
-              <CardDescription>
-                Purchase lead access to contact customers directly. You pay upfront, customer pays you directly.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {leadsLoading ? (
-                <div className="text-center py-4">Loading available leads...</div>
-              ) : availableLeads.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p>No leads available at the moment</p>
-                  <p className="text-sm">Check back soon for new installation requests</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {availableLeads.map((lead) => (
-                    <Card key={lead.id} className="border-l-4 border-l-blue-500">
-                      <CardContent className="pt-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline">{getServiceTypeDisplay(lead.serviceType)}</Badge>
-                              <Badge variant="secondary">{lead.tvSize}" TV</Badge>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                              <div>
-                                <p className="text-gray-500">Location</p>
-                                <p className="font-medium flex items-center">
-                                  <MapPin className="w-3 h-3 mr-1" />
-                                  {lead.address.split(',').slice(-2).join(', ')}
-                                </p>
-                              </div>
-                              
-                              <div>
-                                <p className="text-gray-500">Customer Estimate</p>
-                                <p className="font-medium text-green-600">
-                                  {formatCurrency(lead.estimatedTotal)}
-                                </p>
-                              </div>
-                              
-                              <div>
-                                <p className="text-gray-500">Your Profit</p>
-                                <p className="font-medium text-blue-600">
-                                  {formatCurrency(lead.estimatedEarnings)}
-                                </p>
-                              </div>
-                              
-                              <div>
-                                <p className="text-gray-500">Profit Margin</p>
-                                <p className={`font-medium ${getProfitMarginColor(lead.profitMargin)}`}>
-                                  {lead.profitMargin?.toFixed(1) || '0.0'}%
-                                </p>
-                              </div>
-                            </div>
 
-                            <div className="mt-3 text-xs text-gray-500 flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
-                              Requested {new Date(lead.createdAt).toLocaleDateString()}
-                            </div>
-                          </div>
-
-                          <div className="text-right ml-4">
-                            <div className="mb-2">
-                              <p className="text-sm text-gray-500">Lead Fee</p>
-                              <p className="text-xl font-bold text-red-600">
-                                {formatCurrency(lead.leadFee)}
-                              </p>
-                            </div>
-                            
-                            <Button
-                              onClick={() => handlePurchaseLead(lead)}
-                              disabled={purchaseLeadMutation.isPending || parseFloat(walletData?.wallet.balance || '0') < lead.leadFee}
-                              className="w-full"
-                            >
-                              {purchaseLeadMutation.isPending ? (
-                                <>
-                                  <Timer className="w-4 h-4 mr-2 animate-spin" />
-                                  Processing...
-                                </>
-                              ) : (
-                                <>
-                                  <Euro className="w-4 h-4 mr-2" />
-                                  Purchase Lead
-                                </>
-                              )}
-                            </Button>
-                            
-                            {parseFloat(walletData?.wallet.balance || '0') < lead.leadFee && (
-                              <p className="text-xs text-red-500 mt-1">Insufficient balance</p>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="wallet" className="space-y-4">
           <Card>

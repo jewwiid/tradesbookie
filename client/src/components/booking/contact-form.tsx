@@ -356,7 +356,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
           <div className="flex gap-3">
             <div className="flex-1">
               <Input
-                placeholder="Enter referral code (e.g., HNJOHNCRK)"
+                placeholder="Enter referral code (e.g., HNCKMDOUG)"
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
                 className="border-blue-200 focus:border-blue-400"

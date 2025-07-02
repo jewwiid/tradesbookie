@@ -212,41 +212,51 @@ export class HarveyNormanReferralService {
   }
 
   /**
-   * Generate a unique sales staff referral code in format HNNAMESTORE
+   * Generate a unique sales staff referral code in format HNSTORESTAFF
    */
   private generateSalesStaffCode(salesStaffName: string, salesStaffStore?: string): string {
+    // Get store abbreviation if store is provided
+    const storeCode = salesStaffStore ? this.storeAbbreviations[salesStaffStore] || 'UNK' : 'UNK';
+    
     const nameCode = salesStaffName
       .replace(/[^a-zA-Z]/g, '')
       .substring(0, 4)
       .toUpperCase();
     
-    // Get store abbreviation if store is provided
-    const storeCode = salesStaffStore ? this.storeAbbreviations[salesStaffStore] || 'UNK' : 'UNK';
-    
-    return `HN${nameCode}${storeCode}`;
+    return `HN${storeCode}${nameCode}`;
   }
 
   /**
    * Parse referral code to extract components (supports both old and new formats)
    */
   private parseReferralCode(code: string): { isValid: boolean; name?: string; store?: string } {
-    // New abbreviated format: HNNAMESTORE (no hyphens)
-    const newFormatMatch = code.match(/^HN([A-Z]{2,4})([A-Z]{3})$/);
+    // New format: HNSTORESTAFF (store first, then staff name)
+    const newFormatMatch = code.match(/^HN([A-Z]{3})([A-Z]{2,4})$/);
     if (newFormatMatch) {
       return {
         isValid: true,
-        name: newFormatMatch[1],
-        store: newFormatMatch[2]
+        store: newFormatMatch[1],
+        name: newFormatMatch[2]
       };
     }
 
-    // Legacy format with hyphens: HN-NAME-STORE (for backward compatibility)
-    const legacyFormatMatch = code.match(/^HN-([A-Z]{2,4})-([A-Z]{3})$/);
+    // Legacy format: HNNAMESTORE (name first, then store)
+    const legacyFormatMatch = code.match(/^HN([A-Z]{2,4})([A-Z]{3})$/);
     if (legacyFormatMatch) {
       return {
         isValid: true,
         name: legacyFormatMatch[1],
         store: legacyFormatMatch[2]
+      };
+    }
+
+    // Legacy format with hyphens: HN-NAME-STORE (for backward compatibility)
+    const legacyHyphenFormatMatch = code.match(/^HN-([A-Z]{2,4})-([A-Z]{3})$/);
+    if (legacyHyphenFormatMatch) {
+      return {
+        isValid: true,
+        name: legacyHyphenFormatMatch[1],
+        store: legacyHyphenFormatMatch[2]
       };
     }
 

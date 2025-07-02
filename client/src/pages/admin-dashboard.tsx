@@ -2766,12 +2766,18 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
     'Waterford': 'WAT'
   };
 
-  // Auto-generate code for Harvey Norman sales staff
+  // Auto-generate codes based on type
   React.useEffect(() => {
     if (referralType === 'sales_staff' && salesStaffName && salesStaffStore && !code) {
-      const nameCode = salesStaffName.replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
       const storeCode = storeAbbreviations[salesStaffStore] || 'UNK';
-      const generatedCode = `HN${nameCode}${storeCode}`;
+      const nameCode = salesStaffName.replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
+      const generatedCode = `HN${storeCode}${nameCode}`;
+      form.setValue('code', generatedCode);
+    } else if (referralType === 'customer' && !code) {
+      // Generate customer referral code without HN prefix
+      const timestamp = Date.now().toString(36).toUpperCase();
+      const randomChars = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const generatedCode = `TB${timestamp.slice(-4)}${randomChars}`;
       form.setValue('code', generatedCode);
     }
   }, [referralType, salesStaffName, salesStaffStore, code, form]);

@@ -45,33 +45,25 @@ interface InstallerStats {
 
 interface ClientRequest {
   id: number;
-  customerId: number;
-  tvSize: string;
-  serviceType: string;
   address: string;
-  county: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
-  totalPrice: string;
-  installerEarnings: string;
-  preferredDate?: string;
-  preferredTime?: string;
-  urgency: 'standard' | 'urgent' | 'emergency';
-  timePosted: string;
-  estimatedDuration: string;
-  customerRating: number;
+  serviceType: string;
+  tvSize: string;
+  wallType: string;
+  mountType: string;
+  addons: string[];
+  estimatedTotal: string;
+  leadFee: number;
+  estimatedEarnings: number;
+  profitMargin: number;
+  status: 'pending' | 'urgent' | 'accepted' | 'in_progress' | 'completed';
+  scheduledDate?: string;
+  createdAt: string;
+  qrCode: string;
+  notes?: string;
+  difficulty: string;
+  referralCode?: string;
+  referralDiscount?: string;
   distance?: number;
-  roomPhotoUrl?: string;
-  aiPreviewUrl?: string;
-  customerNotes?: string;
-  status: 'pending' | 'accepted' | 'in_progress' | 'completed';
-  customer: {
-    name: string;
-    phone: string;
-    email: string;
-  };
 }
 
 // Interactive Map Component for Ireland
@@ -187,8 +179,9 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
     }
   };
 
-  const urgencyInfo = getUrgencyInfo(request.urgency);
-  const timeAgo = new Date(request.timePosted).toLocaleTimeString();
+  const urgency = request.status === 'urgent' ? 'urgent' : 'standard';
+  const urgencyInfo = getUrgencyInfo(urgency);
+  const timeAgo = new Date(request.createdAt).toLocaleTimeString();
 
   return (
     <Card className={`${urgencyInfo.color} border-2 hover:shadow-lg transition-all duration-200`}>
@@ -206,8 +199,8 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
             )}
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-green-600">€{request.installerEarnings}</div>
-            <div className="text-sm text-gray-500">Est. {request.estimatedDuration}</div>
+            <div className="text-2xl font-bold text-green-600">€{request.estimatedEarnings}</div>
+            <div className="text-sm text-gray-500">Lead Fee: €{request.leadFee}</div>
           </div>
         </div>
 
@@ -235,13 +228,13 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
 
           <div className="flex items-center space-x-2 text-gray-600">
             <User className="w-4 h-4" />
-            <span className="text-sm">{request.customer.name}</span>
+            <span className="text-sm">Customer details available after lead purchase</span>
           </div>
         </div>
 
-        {request.customerNotes && (
+        {request.notes && (
           <div className="bg-gray-50 rounded-lg p-3 mb-4">
-            <p className="text-sm text-gray-700">"{request.customerNotes}"</p>
+            <p className="text-sm text-gray-700">"{request.notes}"</p>
           </div>
         )}
 

@@ -15,8 +15,10 @@ export default function InstallerRegistration() {
     businessName: "",
     email: "",
     phone: "",
-    address: "",
+    streetAddress: "",
+    town: "",
     county: "",
+    eircode: "",
     password: "",
     confirmPassword: ""
   });
@@ -44,8 +46,22 @@ export default function InstallerRegistration() {
       newErrors.phone = "Phone number is required";
     }
 
-    if (!formData.address) {
-      newErrors.address = "Address is required";
+    if (!formData.streetAddress) {
+      newErrors.streetAddress = "Street address is required";
+    }
+
+    if (!formData.town) {
+      newErrors.town = "Town is required";
+    }
+
+    if (!formData.eircode) {
+      newErrors.eircode = "Eircode is required";
+    } else {
+      // Validate Eircode format: 3 characters + space + 4 characters OR 7 characters without space
+      const eircodeRegex = /^[A-Z0-9]{3}\s?[A-Z0-9]{4}$/i;
+      if (!eircodeRegex.test(formData.eircode)) {
+        newErrors.eircode = "Invalid Eircode format (e.g., D02 X285 or D02X285)";
+      }
     }
 
     if (!formData.county) {
@@ -95,7 +111,7 @@ export default function InstallerRegistration() {
           businessName: formData.businessName,
           email: formData.email,
           phone: formData.phone,
-          address: formData.address,
+          address: `${formData.streetAddress}, ${formData.town}, ${formData.county}, ${formData.eircode}`,
           county: formData.county,
           password: formData.password,
         }),
@@ -269,42 +285,90 @@ export default function InstallerRegistration() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="address">Business Address</Label>
-              <Input
-                id="address"
-                type="text"
-                value={formData.address}
-                onChange={handleInputChange("address")}
-                className={errors.address ? "border-red-500" : ""}
-                placeholder="123 Main Street, Dublin 2"
-                disabled={isLoading}
-              />
-              {errors.address && (
-                <p className="text-sm text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.address}
-                </p>
-              )}
-            </div>
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Business Address</Label>
+              
+              <div className="space-y-2">
+                <Label htmlFor="streetAddress">Street Address</Label>
+                <Input
+                  id="streetAddress"
+                  type="text"
+                  value={formData.streetAddress}
+                  onChange={handleInputChange("streetAddress")}
+                  className={errors.streetAddress ? "border-red-500" : ""}
+                  placeholder="123 Main Street"
+                  disabled={isLoading}
+                />
+                {errors.streetAddress && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.streetAddress}
+                  </p>
+                )}
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="county">County</Label>
-              <Input
-                id="county"
-                type="text"
-                value={formData.county}
-                onChange={handleInputChange("county")}
-                className={errors.county ? "border-red-500" : ""}
-                placeholder="Dublin"
-                disabled={isLoading}
-              />
-              {errors.county && (
-                <p className="text-sm text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.county}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="town">Town/City</Label>
+                  <Input
+                    id="town"
+                    type="text"
+                    value={formData.town}
+                    onChange={handleInputChange("town")}
+                    className={errors.town ? "border-red-500" : ""}
+                    placeholder="Dublin"
+                    disabled={isLoading}
+                  />
+                  {errors.town && (
+                    <p className="text-sm text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.town}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="county">County</Label>
+                  <Input
+                    id="county"
+                    type="text"
+                    value={formData.county}
+                    onChange={handleInputChange("county")}
+                    className={errors.county ? "border-red-500" : ""}
+                    placeholder="Dublin"
+                    disabled={isLoading}
+                  />
+                  {errors.county && (
+                    <p className="text-sm text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.county}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="eircode">Eircode</Label>
+                <Input
+                  id="eircode"
+                  type="text"
+                  value={formData.eircode}
+                  onChange={handleInputChange("eircode")}
+                  className={errors.eircode ? "border-red-500" : ""}
+                  placeholder="D02 X285 or D02X285"
+                  disabled={isLoading}
+                  maxLength={8}
+                />
+                {errors.eircode && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.eircode}
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  3-character Routing Key + 4-character Unique Identifier
                 </p>
-              )}
+              </div>
             </div>
 
             <div className="space-y-2">

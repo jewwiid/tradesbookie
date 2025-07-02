@@ -42,8 +42,10 @@ export default function InstallerPending() {
     businessName: "",
     contactName: "",
     phone: "",
-    address: "",
+    streetAddress: "",
+    town: "",
     county: "",
+    eircode: "",
     vatNumber: "",
     insurance: "",
     maxTravelDistance: "",
@@ -59,35 +61,30 @@ export default function InstallerPending() {
   // Populate form when profile is loaded
   useEffect(() => {
     if (profile) {
+      // Parse existing address into components
+      const addressParts = profile.address ? profile.address.split(', ') : [];
+      const streetAddress = addressParts[0] || "";
+      const town = addressParts[1] || "";
+      const county = addressParts[2] || profile.county || "";
+      const eircode = addressParts[3] || "";
+
       setProfileForm({
         // Basic Information
         businessName: profile.businessName || "",
         contactName: profile.contactName || "",
         phone: profile.phone || "",
-        address: profile.address || "",
-        county: profile.county || "",
+        streetAddress,
+        town,
+        county,
+        eircode,
         
-        // Enhanced Information (will be populated from extended profile data)
-        bio: "",
-        yearsExperience: "",
-        certifications: "",
-        expertise: [],
-        serviceAreas: [profile.county].filter(Boolean),
-        emergencyCallout: false,
-        weekendAvailable: false,
-        insurance: "",
+        // Additional form fields
         vatNumber: "",
+        insurance: "",
         maxTravelDistance: "",
-        languages: [],
-        teamSize: "",
-        vehicleType: "",
-        responseTime: "",
-        
-        // Service capabilities
-        wallTypes: [],
-        mountTypes: [],
-        deviceTypes: [],
-        specialServices: []
+        yearsExperience: "",
+        emergencyCallout: false,
+        weekendAvailable: false
       });
     }
   }, [profile]);
@@ -119,16 +116,19 @@ export default function InstallerPending() {
   const handleProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Combine address components into single address string
+    const combinedAddress = `${profileForm.streetAddress}, ${profileForm.town}, ${profileForm.county}, ${profileForm.eircode}`;
+    
     // Only send basic info if rejected, enhanced info if approved
     const updateData = profile?.approvalStatus === 'rejected' 
       ? {
           businessName: profileForm.businessName,
           contactName: profileForm.contactName,
           phone: profileForm.phone,
-          address: profileForm.address,
+          address: combinedAddress,
           county: profileForm.county
         }
-      : profileForm; // Send all data for approved installers
+      : { ...profileForm, address: combinedAddress }; // Send all data for approved installers
     
     updateProfileMutation.mutate(updateData);
   };
@@ -434,16 +434,48 @@ export default function InstallerPending() {
                               </div>
                             </div>
                             
-                            <div>
-                              <Label htmlFor="address">Business Address *</Label>
-                              <Textarea
-                                id="address"
-                                value={profileForm.address}
-                                onChange={(e) => setProfileForm({...profileForm, address: e.target.value})}
-                                placeholder="Complete business address including street, city, and postal code"
-                                rows={3}
-                                required
-                              />
+                            <div className="space-y-4">
+                              <Label className="text-base font-medium">Business Address *</Label>
+                              
+                              <div>
+                                <Label htmlFor="streetAddress">Street Address</Label>
+                                <Input
+                                  id="streetAddress"
+                                  value={profileForm.streetAddress}
+                                  onChange={(e) => setProfileForm({...profileForm, streetAddress: e.target.value})}
+                                  placeholder="123 Main Street"
+                                  required
+                                />
+                              </div>
+
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="town">Town/City</Label>
+                                  <Input
+                                    id="town"
+                                    value={profileForm.town}
+                                    onChange={(e) => setProfileForm({...profileForm, town: e.target.value})}
+                                    placeholder="Dublin"
+                                    required
+                                  />
+                                </div>
+
+                                <div>
+                                  <Label htmlFor="eircode">Eircode</Label>
+                                  <Input
+                                    id="eircode"
+                                    value={profileForm.eircode}
+                                    onChange={(e) => setProfileForm({...profileForm, eircode: e.target.value})}
+                                    placeholder="D02 X285"
+                                    maxLength={8}
+                                    required
+                                  />
+                                </div>
+                              </div>
+                              
+                              <p className="text-xs text-muted-foreground">
+                                Eircode format: 3-character Routing Key + 4-character Unique Identifier (e.g., D02 X285 or D02X285)
+                              </p>
                             </div>
                             
                             {/* Service Coverage Section */}

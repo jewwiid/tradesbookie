@@ -64,17 +64,14 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
   // Create new proposal mutation
   const createProposalMutation = useMutation({
     mutationFn: async (proposal: any) => {
-      return apiRequest(`/api/schedule-negotiations`, {
-        method: 'POST',
-        body: JSON.stringify({
-          bookingId,
-          installerId,
-          proposedDate: proposal.date,
-          proposedTimeSlot: proposal.timeSlot,
-          proposalMessage: proposal.message,
-          proposedBy: isInstaller ? 'installer' : 'customer',
-          status: 'pending'
-        })
+      return apiRequest('POST', '/api/schedule-negotiations', {
+        bookingId,
+        installerId,
+        proposedDate: proposal.date,
+        proposedTimeSlot: proposal.timeSlot,
+        proposalMessage: proposal.message,
+        proposedBy: isInstaller ? 'installer' : 'customer',
+        status: 'pending'
       });
     },
     onSuccess: () => {
@@ -98,13 +95,10 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
   // Respond to proposal mutation
   const respondMutation = useMutation({
     mutationFn: async ({ negotiationId, status, message }: { negotiationId: number; status: string; message?: string }) => {
-      return apiRequest(`/api/schedule-negotiations/${negotiationId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          status,
-          responseMessage: message,
-          bookingId
-        })
+      return apiRequest('PATCH', `/api/schedule-negotiations/${negotiationId}`, {
+        status,
+        responseMessage: message,
+        bookingId
       });
     },
     onSuccess: () => {

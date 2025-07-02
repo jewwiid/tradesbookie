@@ -206,24 +206,30 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
 
         <div className="space-y-3 mb-4">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-gray-800">{request.tvSize}" TV Installation</span>
-            <div className="flex items-center space-x-1 text-yellow-500">
-              <Star className="w-4 h-4 fill-current" />
-              <span className="text-sm">{request.customerRating}</span>
+            <span className="font-semibold text-gray-800">{request.tvSize} TV Installation</span>
+            <div className="flex items-center space-x-1 text-green-600">
+              <span className="text-sm font-medium">{request.profitMargin.toFixed(1)}% margin</span>
             </div>
           </div>
           
           <div className="flex items-center space-x-2 text-gray-600">
             <MapPin className="w-4 h-4" />
-            <span className="text-sm">{request.address}, {request.county}</span>
+            <span className="text-sm">{request.address}</span>
           </div>
           
           <div className="flex items-center space-x-2 text-gray-600">
             <Clock className="w-4 h-4" />
             <span className="text-sm">Posted {timeAgo}</span>
-            {request.preferredDate && (
-              <span className="text-sm">• Preferred: {request.preferredDate}</span>
+            {request.scheduledDate && (
+              <span className="text-sm">• Scheduled: {new Date(request.scheduledDate).toLocaleDateString()}</span>
             )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-2">
+            <div><span className="font-medium">Wall:</span> {request.wallType}</div>
+            <div><span className="font-medium">Mount:</span> {request.mountType}</div>
+            <div><span className="font-medium">Difficulty:</span> {request.difficulty}</div>
+            <div><span className="font-medium">Total:</span> €{request.estimatedTotal}</div>
           </div>
 
           <div className="flex items-center space-x-2 text-gray-600">
@@ -244,14 +250,14 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
             className="flex-1 bg-green-600 hover:bg-green-700 text-white"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
-            Accept Job
+            Purchase Lead (€{request.leadFee})
           </Button>
           <Button 
             variant="outline"
             onClick={() => onDecline(request.id)}
             className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
           >
-            Decline
+            Skip
           </Button>
         </div>
       </CardContent>
@@ -367,7 +373,7 @@ export default function InstallerDashboard() {
       setStats(prev => ({
         ...prev,
         monthlyJobs: prev.monthlyJobs + 1,
-        earnings: prev.earnings + parseFloat(selectedRequest?.installerEarnings || "0")
+        earnings: prev.earnings + parseFloat(selectedRequest?.estimatedEarnings.toString() || "0")
       }));
       
       // Remove the accepted request from selected state

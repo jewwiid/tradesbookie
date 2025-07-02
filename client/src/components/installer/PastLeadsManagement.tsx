@@ -70,8 +70,27 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [updateMessage, setUpdateMessage] = useState('');
+  const [recentlyUpdatedLeads, setRecentlyUpdatedLeads] = useState<Set<number>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Function to check if a lead was recently updated
+  const isRecentlyUpdated = (leadId: number) => {
+    return recentlyUpdatedLeads.has(leadId);
+  };
+
+  // Function to mark a lead as recently updated
+  const markAsRecentlyUpdated = (leadId: number) => {
+    setRecentlyUpdatedLeads(prev => new Set(prev).add(leadId));
+    // Remove the indicator after 30 seconds
+    setTimeout(() => {
+      setRecentlyUpdatedLeads(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(leadId);
+        return newSet;
+      });
+    }, 30000);
+  };
 
   // Fetch past leads
   const { data: pastLeads = [], isLoading } = useQuery<PastLead[]>({
@@ -89,6 +108,11 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
       });
     },
     onSuccess: (data: any) => {
+      // Mark the lead as recently updated for visual feedback
+      if (selectedLead) {
+        markAsRecentlyUpdated(selectedLead.id);
+      }
+      
       // Invalidate both past leads and available leads queries
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/past-leads`] });
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/available-leads`] });
@@ -167,7 +191,11 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
               {pastLeads.map((lead) => (
-                <Card key={lead.id} className="border hover:shadow-lg transition-shadow">
+                <Card key={lead.id} className={`border hover:shadow-lg transition-all duration-300 ${
+                  isRecentlyUpdated(lead.id) 
+                    ? 'border-green-300 bg-green-50/30 shadow-md ring-1 ring-green-200' 
+                    : ''
+                }`}>
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                       <div>
@@ -177,9 +205,17 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                           {lead.address}
                         </p>
                       </div>
-                      <Badge className={statusColors[lead.status as keyof typeof statusColors]}>
-                        {statusLabels[lead.status as keyof typeof statusLabels]}
-                      </Badge>
+                      <div className="flex flex-col gap-1">
+                        <Badge className={statusColors[lead.status as keyof typeof statusColors]}>
+                          {statusLabels[lead.status as keyof typeof statusLabels]}
+                        </Badge>
+                        {isRecentlyUpdated(lead.id) && (
+                          <div className="flex items-center gap-1 text-xs text-green-600">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            Recently Updated
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   

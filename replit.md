@@ -464,6 +464,10 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Added automatic email notifications when admin approves or rejects installer applications**
 - July 2, 2025: **Created professional email templates for both approval (with score/feedback) and rejection scenarios**
 - July 2, 2025: **Integrated approval emails into admin dashboard workflow with Gmail API delivery confirmation**
+- July 2, 2025: **Fixed profile photo upload file size limit to 2MB with comprehensive validation**
+- July 2, 2025: **Added both client-side and server-side file size validation with immediate user feedback**
+- July 2, 2025: **Enhanced multer configuration with proper error handling for oversized files**
+- July 2, 2025: **Updated UI text across platform to consistently show 2MB limit instead of previous 10MB/5MB references**
 - July 2, 2025: **Enhanced admin dashboard installer review popup with comprehensive profile information display**
 - July 2, 2025: **Fixed responsive design issues for laptop screens - added proper scrolling and mobile optimization**
 - July 2, 2025: **Organized installer review interface into structured sections: Basic Information, Enhanced Profile Information, and Profile Completion Status**

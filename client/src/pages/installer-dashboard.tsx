@@ -351,9 +351,33 @@ export default function InstallerDashboard() {
   // Handle profile photo upload
   const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      profilePhotoMutation.mutate(file);
+    if (!file) return;
+
+    // Client-side file size validation (2MB = 2,097,152 bytes)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File Too Large",
+        description: "Please select an image smaller than 2MB",
+        variant: "destructive",
+      });
+      // Reset the input
+      e.target.value = '';
+      return;
     }
+
+    // Client-side file type validation
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please select an image file (JPG, PNG, WebP)",
+        variant: "destructive",
+      });
+      // Reset the input
+      e.target.value = '';
+      return;
+    }
+
+    profilePhotoMutation.mutate(file);
   };
   
   // Mutation to update availability status
@@ -1065,7 +1089,7 @@ export default function InstallerDashboard() {
                                     className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
                                   />
                                   <p className="text-xs text-gray-500">
-                                    Upload a professional photo (JPG, PNG, WebP • Max 5MB) to build trust with customers
+                                    Upload a professional photo (JPG, PNG, WebP • Max 2MB) to build trust with customers
                                   </p>
                                   {profilePhotoMutation.isPending && (
                                     <div className="flex items-center gap-2 text-sm text-primary">

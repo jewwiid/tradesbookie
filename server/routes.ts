@@ -164,7 +164,7 @@ async function sendNotificationSMS(to: string, message: string) {
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 2 * 1024 * 1024, // 2MB limit
   },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -776,7 +776,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Profile photo upload for installers
-  app.post("/api/installer/profile-photo", upload.single('profilePhoto'), async (req, res) => {
+  app.post("/api/installer/profile-photo", (req, res, next) => {
+    upload.single('profilePhoto')(req, res, (err) => {
+      if (err) {
+        if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({ 
+            message: "File too large. Maximum size allowed is 2MB" 
+          });
+        }
+        return res.status(400).json({ 
+          message: err.message || "File upload error" 
+        });
+      }
+      next();
+    });
+  }, async (req, res) => {
     try {
       // Check installer authentication
       if (!req.session.installerAuthenticated || !req.session.installerId) {
@@ -785,6 +799,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!req.file) {
         return res.status(400).json({ message: "No photo uploaded" });
+      }
+
+      // Additional file size validation (2MB = 2,097,152 bytes)
+      if (req.file.size > 2 * 1024 * 1024) {
+        return res.status(400).json({ 
+          message: "File too large. Maximum size allowed is 2MB" 
+        });
+      }
+
+      // Validate file type
+      if (!req.file.mimetype.startsWith('image/')) {
+        return res.status(400).json({ 
+          message: "Invalid file type. Only image files are allowed" 
+        });
       }
 
       const installerId = req.session.installerId;

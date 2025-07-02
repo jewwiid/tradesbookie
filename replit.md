@@ -488,6 +488,7 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Implemented proper cascade deletion for installers with foreign key constraint handling**
 - July 2, 2025: **Added comprehensive approval workflow logging and email notification system**
 - July 2, 2025: **Successfully verified end-to-end installer approval process with Gmail API integration**
+- July 2, 2025: **Fixed React hooks ordering error in installer dashboard preventing access after approval**
 
 ## User Preferences
 

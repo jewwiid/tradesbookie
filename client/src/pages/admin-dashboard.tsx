@@ -90,6 +90,7 @@ interface User {
   lastLogin?: string;
   bookingCount: number;
   totalSpent: number;
+  registrationMethod?: string;
 }
 
 interface Installer {
@@ -222,6 +223,7 @@ function UserManagement() {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -242,8 +244,15 @@ function UserManagement() {
   };
 
   const handleDeleteUser = (user: User) => {
-    if (confirm(`Are you sure you want to delete user ${user.email}?`)) {
-      deleteUserMutation.mutate(user.id);
+    setSelectedUser(user);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteUser = () => {
+    if (selectedUser) {
+      deleteUserMutation.mutate(selectedUser.id);
+      setShowDeleteDialog(false);
+      setSelectedUser(null);
     }
   };
 
@@ -274,6 +283,7 @@ function UserManagement() {
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>User Type</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead>Lead Requests</TableHead>
                 <TableHead>Actions</TableHead>
@@ -297,6 +307,19 @@ function UserManagement() {
                     </div>
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={
+                        user.registrationMethod === 'oauth' ? 'default' :
+                        user.registrationMethod === 'invoice' ? 'secondary' :
+                        user.registrationMethod === 'guest' ? 'outline' : 'default'
+                      }
+                    >
+                      {user.registrationMethod === 'oauth' ? 'OAuth' :
+                       user.registrationMethod === 'invoice' ? 'Invoice' :
+                       user.registrationMethod === 'guest' ? 'Guest' : 'OAuth'}
+                    </Badge>
+                  </TableCell>
                   <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell>{user.bookingCount}</TableCell>
                   <TableCell>
@@ -312,8 +335,9 @@ function UserManagement() {
                         variant="outline" 
                         size="sm"
                         onClick={() => handleDeleteUser(user)}
+                        disabled={deleteUserMutation.isPending}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {deleteUserMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                       </Button>
                     </div>
                   </TableCell>
@@ -375,6 +399,43 @@ function UserManagement() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* User Deletion Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md" aria-describedby="delete-user-description">
+          <DialogHeader>
+            <DialogTitle>Delete User</DialogTitle>
+            <DialogDescription id="delete-user-description">
+              Are you sure you want to permanently delete this user? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="py-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 className="font-medium text-red-800 mb-2">User to be deleted:</h4>
+                <div className="text-sm text-red-700">
+                  <p><strong>Name:</strong> {selectedUser.firstName ? `${selectedUser.firstName} ${selectedUser.lastName}` : 'Anonymous User'}</p>
+                  <p><strong>Email:</strong> {selectedUser.email}</p>
+                  <p><strong>Type:</strong> {selectedUser.registrationMethod || 'OAuth'}</p>
+                  <p><strong>Lead Requests:</strong> {selectedUser.bookingCount || 0}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDeleteUser}
+              disabled={deleteUserMutation.isPending}
+            >
+              {deleteUserMutation.isPending ? "Deleting..." : "Delete Permanently"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

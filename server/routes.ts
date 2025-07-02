@@ -2,7 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema } from "@shared/schema";
+import { 
+  insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
+  users, bookings, reviews, referralCodes, referralUsage
+} from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
 import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing, SERVICE_TIERS, getLeadFee } from "./pricing";
@@ -3445,7 +3450,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         createdAt: user.createdAt?.toISOString() || '',
         lastLogin: user.updatedAt?.toISOString() || '',
         bookingCount: userStats.get(user.id)?.bookingCount || 0,
-        totalSpent: userStats.get(user.id)?.totalSpent || 0
+        totalSpent: userStats.get(user.id)?.totalSpent || 0,
+        registrationMethod: user.registrationMethod || 'oauth'
       }));
 
       res.json(enhancedUsers);
@@ -3839,13 +3845,50 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Admin Actions - Delete User
-  app.delete("/api/admin/users/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.delete("/api/admin/users/:userId", isAdmin, async (req, res) => {
     try {
-      const userId = req.params.id;
+      const userId = parseInt(req.params.userId);
       
-      console.log(`Admin deleting user: ${userId}`);
+      console.log(`Admin attempting to delete user: ${userId}`);
       
-      res.json({ message: "User deleted successfully" });
+      // First, check if user exists
+      const user = await storage.getUserById(userId.toString());
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Delete related data first to avoid foreign key constraints
+      try {
+        // Delete user's bookings - set user_id to null rather than deleting bookings
+        await db.update(bookings)
+          .set({ userId: null })
+          .where(eq(bookings.userId, userId));
+        
+        // Delete user's reviews
+        await db.delete(reviews)
+          .where(eq(reviews.userId, userId.toString()));
+          
+        // Delete user's referral codes
+        await db.delete(referralCodes)
+          .where(eq(referralCodes.userId, userId.toString()));
+          
+        // Delete user's referral usage records
+        await db.delete(referralUsage)
+          .where(eq(referralUsage.userId, userId.toString()));
+          
+      } catch (cleanupError) {
+        console.log("Some related records cleanup failed (expected for new users):", cleanupError.message);
+      }
+      
+      // Finally delete the user
+      const success = await storage.deleteUser(userId);
+      
+      if (success) {
+        console.log(`✅ User successfully deleted: ${user.email} (ID: ${userId})`);
+        res.json({ message: "User deleted successfully" });
+      } else {
+        res.status(404).json({ message: "User not found or already deleted" });
+      }
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });

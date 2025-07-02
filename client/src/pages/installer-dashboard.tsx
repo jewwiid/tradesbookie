@@ -458,6 +458,11 @@ export default function InstallerDashboard() {
     );
   }
 
+  const handleProfileUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfileMutation.mutate(profileData);
+  };
+
   // Use real data from API
   const requests: ClientRequest[] = Array.isArray(availableRequests) ? availableRequests : [
     {

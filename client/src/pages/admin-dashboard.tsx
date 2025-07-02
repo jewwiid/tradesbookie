@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Dialog, 
@@ -919,9 +920,17 @@ function InstallerManagement() {
             {filteredInstallers?.map((installer) => (
               <TableRow key={installer.id}>
                 <TableCell>
-                  <div>
-                    <div className="font-medium">{installer.businessName}</div>
-                    <div className="text-sm text-gray-500">{installer.contactName}</div>
+                  <div className="flex items-center space-x-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={installer.profileImageUrl || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                        {installer.businessName.charAt(0)}{installer.contactName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-medium">{installer.businessName}</div>
+                      <div className="text-sm text-gray-500">{installer.contactName}</div>
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell>

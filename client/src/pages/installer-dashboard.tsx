@@ -302,6 +302,59 @@ export default function InstallerDashboard() {
       setIsOnline(installerProfile.isAvailable);
     }
   }, [installerProfile?.isAvailable]);
+
+  // Profile photo upload mutation
+  const profilePhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('File size must be less than 5MB');
+      }
+
+      // Validate file type
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        throw new Error('Only JPG, PNG, and WebP files are allowed');
+      }
+
+      const formData = new FormData();
+      formData.append('profilePhoto', file);
+      
+      const response = await fetch('/api/installer/profile-photo', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${errorText}`);
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Invalidate and refetch profile data
+      queryClient.invalidateQueries({ queryKey: ["/api/installers/profile"] });
+      toast({
+        title: "Profile photo updated!",
+        description: "Your professional photo has been uploaded successfully."
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle profile photo upload
+  const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      profilePhotoMutation.mutate(file);
+    }
+  };
   
   // Mutation to update availability status
   const availabilityMutation = useMutation({
@@ -989,17 +1042,38 @@ export default function InstallerDashboard() {
                             <div className="grid md:grid-cols-2 gap-4">
                               <div>
                                 <Label htmlFor="profileImage">Profile Photo</Label>
-                                <Input
-                                  id="profileImage"
-                                  type="file"
-                                  accept="image/*"
-                                  onChange={(e) => {
-                                    if (e.target.files?.[0]) {
-                                      toast({ title: "Profile photo upload", description: "Feature coming soon" });
-                                    }
-                                  }}
-                                />
-                                <p className="text-xs text-gray-500 mt-1">Upload a professional photo to build trust</p>
+                                <div className="space-y-3">
+                                  {installerProfile.profileImageUrl && (
+                                    <div className="flex items-center gap-3">
+                                      <img
+                                        src={installerProfile.profileImageUrl}
+                                        alt="Profile"
+                                        className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                                      />
+                                      <div className="text-sm text-gray-600">
+                                        <p>Current profile photo</p>
+                                        <p className="text-xs text-gray-500">Click below to change</p>
+                                      </div>
+                                    </div>
+                                  )}
+                                  <Input
+                                    id="profileImage"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp"
+                                    onChange={handleProfilePhotoUpload}
+                                    disabled={profilePhotoMutation.isPending}
+                                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                                  />
+                                  <p className="text-xs text-gray-500">
+                                    Upload a professional photo (JPG, PNG, WebP • Max 5MB) to build trust with customers
+                                  </p>
+                                  {profilePhotoMutation.isPending && (
+                                    <div className="flex items-center gap-2 text-sm text-primary">
+                                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                      Uploading photo...
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                               
                               <div>

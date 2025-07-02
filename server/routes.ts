@@ -775,6 +775,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile photo upload for installers
+  app.post("/api/installer/profile-photo", upload.single('profilePhoto'), async (req, res) => {
+    try {
+      // Check installer authentication
+      if (!req.session.installerAuthenticated || !req.session.installerId) {
+        return res.status(401).json({ message: "Installer not authenticated" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No photo uploaded" });
+      }
+
+      const installerId = req.session.installerId;
+
+      // Convert to base64 for storage
+      const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      
+      // Update installer profile with new photo
+      const updatedInstaller = await storage.updateInstaller(installerId, {
+        profileImageUrl: base64Image
+      });
+      
+      res.json({
+        success: true,
+        message: "Profile photo updated successfully",
+        profileImageUrl: base64Image
+      });
+    } catch (error) {
+      console.error("Error uploading profile photo:", error);
+      res.status(500).json({ message: "Failed to upload profile photo", error: String(error) });
+    }
+  });
+
   // Room analysis endpoint for testing
   app.post("/api/analyze-room", async (req, res) => {
     try {

@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
+import Navigation from "@/components/navigation";
 import { 
   Bolt, 
   Hammer, 
@@ -22,7 +23,7 @@ import {
   CheckCircle,
   User,
   LogOut,
-  Navigation,
+  Navigation as NavigationIcon,
   Zap,
   AlertCircle,
   DollarSign,
@@ -83,7 +84,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
       {/* Map Header */}
       <div className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-lg p-3">
         <div className="flex items-center space-x-2">
-          <Navigation className="w-5 h-5 text-green-600" />
+          <NavigationIcon className="w-5 h-5 text-green-600" />
           <span className="font-semibold text-green-800">Ireland Installation Map</span>
         </div>
         <div className="text-sm text-gray-600 mt-1">
@@ -506,15 +507,15 @@ export default function InstallerDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-      {/* Header */}
+      {/* Navigation */}
+      <Navigation />
+      
+      {/* Installer Dashboard Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <Bolt className="w-8 h-8 text-blue-600" />
-                <h1 className="text-xl font-bold text-gray-900">tradesbook.ie Pro</h1>
-              </Link>
+              <h1 className="text-xl font-bold text-gray-900">Installer Dashboard</h1>
               <Badge variant={isOnline ? "default" : "secondary"} className="flex items-center space-x-1">
                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                 <span>{isOnline ? 'Online' : 'Offline'}</span>
@@ -522,21 +523,15 @@ export default function InstallerDashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* Navigation Links */}
-              <div className="hidden md:flex items-center space-x-4">
-                <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
-                  <Home className="w-5 h-5" />
-                </Link>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setShowProfileDialog(true)}
-                  className="flex items-center space-x-1"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span className="hidden lg:inline">Profile</span>
-                </Button>
-              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowProfileDialog(true)}
+                className="flex items-center space-x-1"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="hidden lg:inline">Profile</span>
+              </Button>
               
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <span>Available for Jobs</span>

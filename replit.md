@@ -423,6 +423,10 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Fixed password authentication bug where login route used base64 encoding while storage expected bcrypt hashing**
 - July 2, 2025: **Updated demo account with proper bcrypt password hash and resolved authentication flow end-to-end**
 - July 2, 2025: **Installer authentication now works: email/password → profile creation → admin approval → platform access**
+- July 2, 2025: **Successfully implemented dual authentication architecture with complete OAuth/installer separation**
+- July 2, 2025: **OAuth routes now redirect installer requests to email/password registration, preventing authentication conflicts**
+- July 2, 2025: **Fixed OAuth callback handling to properly redirect installer signup attempts to dedicated registration pages**
+- July 2, 2025: **Verified end-to-end functionality: OAuth for customers/admins, email/password for installers**
 
 ## User Preferences
 

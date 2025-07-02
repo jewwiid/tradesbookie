@@ -50,6 +50,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -374,6 +376,149 @@ function UserManagement() {
         </Dialog>
       )}
     </>
+  );
+}
+
+// Installer Approval Form Component
+const approvalFormSchema = z.object({
+  score: z.array(z.number()).min(1, "Score is required"),
+  comments: z.string().optional(),
+});
+
+interface InstallerApprovalFormProps {
+  installer: any;
+  onApprove: (score: number, comments: string) => void;
+  onReject: (comments: string) => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}
+
+function InstallerApprovalForm({ installer, onApprove, onReject, onCancel, isLoading }: InstallerApprovalFormProps) {
+  const form = useForm<z.infer<typeof approvalFormSchema>>({
+    resolver: zodResolver(approvalFormSchema),
+    defaultValues: {
+      score: [7],
+      comments: "",
+    },
+  });
+
+  const handleApprove = (values: z.infer<typeof approvalFormSchema>) => {
+    onApprove(values.score[0], values.comments || "");
+  };
+
+  const handleReject = () => {
+    const comments = form.getValues("comments");
+    onReject(comments || "");
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Installer Summary */}
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <h3 className="font-semibold text-lg mb-3">{installer.businessName}</h3>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="font-medium">Contact:</span> {installer.contactName}
+          </div>
+          <div>
+            <span className="font-medium">Phone:</span> {installer.phone}
+          </div>
+          <div>
+            <span className="font-medium">Email:</span> {installer.email}
+          </div>
+          <div>
+            <span className="font-medium">Service Areas:</span> {installer.serviceAreas?.join(", ") || "Not specified"}
+          </div>
+          <div>
+            <span className="font-medium">Experience:</span> {installer.experience || "Not specified"}
+          </div>
+          <div>
+            <span className="font-medium">Certifications:</span> {installer.certifications?.join(", ") || "None listed"}
+          </div>
+        </div>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleApprove)} className="space-y-6">
+          {/* Admin Score */}
+          <FormField
+            control={form.control}
+            name="score"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-base font-semibold">
+                  Quality Score (1-10): {field.value[0]}/10
+                </FormLabel>
+                <FormControl>
+                  <div className="px-4 py-2">
+                    <Slider
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Poor (1)</span>
+                      <span>Average (5)</span>
+                      <span>Excellent (10)</span>
+                    </div>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Admin Comments */}
+          <FormField
+            control={form.control}
+            name="comments"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Review Comments</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Add notes about this installer's application, qualifications, or any concerns..."
+                    className="min-h-[100px]"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isLoading ? "Processing..." : "Approve Installer"}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleReject}
+              disabled={isLoading}
+            >
+              {isLoading ? "Processing..." : "Reject Application"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }
 

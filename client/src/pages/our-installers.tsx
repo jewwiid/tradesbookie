@@ -117,14 +117,87 @@ export default function OurInstallers() {
               ))}
             </div>
           ) : (
-            <div className="grid lg:grid-cols-1 gap-8 mb-12">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               {installers?.map((installer: any) => (
-                <Card key={installer.id} className="w-full max-w-4xl mx-auto">
-                  <CardContent className="p-0">
-                    <InstallerProfile 
-                      installer={installer} 
-                      showContactActions={true}
-                    />
+                <Card key={installer.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    {/* Profile Photo */}
+                    <div className="flex justify-center mb-4">
+                      {installer.profileImageUrl ? (
+                        <img
+                          src={installer.profileImageUrl}
+                          alt={`${installer.businessName} profile`}
+                          className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white text-lg font-semibold">
+                            {installer.contactName?.split(' ').map((n: string) => n[0]).join('') || 'TV'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Business Name */}
+                    <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                      {installer.businessName}
+                    </h3>
+
+                    {/* Contact Name (Protected) */}
+                    <p className="text-gray-600 text-center mb-4">
+                      {installer.contactName}
+                    </p>
+
+                    {/* Service Area */}
+                    <div className="flex items-center justify-center mb-3">
+                      <MapPin className="w-4 h-4 text-gray-500 mr-2" />
+                      <span className="text-gray-600 text-sm">{installer.serviceArea}</span>
+                    </div>
+
+                    {/* Rating */}
+                    <div className="flex items-center justify-center mb-3">
+                      <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                      <span className="text-gray-700 font-medium">4.9/5</span>
+                      <span className="text-gray-500 text-sm ml-1">(50+ reviews)</span>
+                    </div>
+
+                    {/* Insurance Status */}
+                    <div className="flex items-center justify-center mb-4">
+                      <Shield className="w-4 h-4 text-green-600 mr-2" />
+                      {installer.insurance ? (
+                        <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 text-xs">
+                          ✓ Insured
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200 text-xs">
+                          ⚠ Uninsured
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Protected Contact Notice */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <p className="text-blue-800 text-xs text-center font-medium">
+                        Contact details available after booking
+                      </p>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="space-y-2">
+                      <Button 
+                        className="w-full" 
+                        onClick={() => window.location.href = '/book-installation'}
+                      >
+                        Book Installation
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => window.location.href = '/book-installation'}
+                      >
+                        Request Quote
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

@@ -190,6 +190,28 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                       </div>
                     </div>
                     
+                    {/* Customer Contact Details - Available after purchase */}
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 space-y-2">
+                      <h4 className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Customer Contact Details
+                      </h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-center gap-2 text-green-700">
+                          <Mail className="w-3 h-3" />
+                          <a href={`mailto:${lead.customerEmail}`} className="hover:underline">
+                            {lead.customerEmail}
+                          </a>
+                        </div>
+                        <div className="flex items-center gap-2 text-green-700">
+                          <Phone className="w-3 h-3" />
+                          <a href={`tel:${lead.customerPhone}`} className="hover:underline">
+                            {lead.customerPhone}
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                    
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Clock className="w-3 h-3" />
                       <span>Purchased {new Date(lead.createdAt).toLocaleDateString()}</span>

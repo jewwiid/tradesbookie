@@ -94,10 +94,22 @@ const resetDemoLeads = async (installerId: number) => {
       }
     ];
 
-    const customerNames = [
-      "Sarah O'Brien", "Michael Walsh", "Emma Collins", "David Murphy", "Lisa Kelly",
-      "James O'Connor", "Rachel Byrne", "Kevin Doyle", "Mary Fitzgerald", "Tom Brady",
-      "Ciara Dunne", "Seán McCarthy", "Jennifer Ryan", "Conor Sullivan", "Aoife Quinn"
+    const customerProfiles = [
+      { name: "Sarah O'Brien", email: "sarah.obrien@example.com", phone: "+353 87 123 4567" },
+      { name: "Michael Walsh", email: "michael.walsh@example.com", phone: "+353 86 234 5678" },
+      { name: "Emma Collins", email: "emma.collins@example.com", phone: "+353 85 345 6789" },
+      { name: "David Murphy", email: "david.murphy@example.com", phone: "+353 87 456 7890" },
+      { name: "Lisa Kelly", email: "lisa.kelly@example.com", phone: "+353 86 567 8901" },
+      { name: "James O'Connor", email: "james.oconnor@example.com", phone: "+353 85 678 9012" },
+      { name: "Rachel Byrne", email: "rachel.byrne@example.com", phone: "+353 87 789 0123" },
+      { name: "Kevin Doyle", email: "kevin.doyle@example.com", phone: "+353 86 890 1234" },
+      { name: "Mary Fitzgerald", email: "mary.fitzgerald@example.com", phone: "+353 85 901 2345" },
+      { name: "Tom Brady", email: "tom.brady@example.com", phone: "+353 87 012 3456" },
+      { name: "Ciara Dunne", email: "ciara.dunne@example.com", phone: "+353 86 123 4567" },
+      { name: "Seán McCarthy", email: "sean.mccarthy@example.com", phone: "+353 85 234 5678" },
+      { name: "Jennifer Ryan", email: "jennifer.ryan@example.com", phone: "+353 87 345 6789" },
+      { name: "Conor Sullivan", email: "conor.sullivan@example.com", phone: "+353 86 456 7890" },
+      { name: "Aoife Quinn", email: "aoife.quinn@example.com", phone: "+353 85 567 8901" }
     ];
 
     const addonsOptions = [
@@ -122,7 +134,7 @@ const resetDemoLeads = async (installerId: number) => {
     
     for (let i = 0; i < selectedLeads.length; i++) {
       const template = selectedLeads[i];
-      const randomCustomer = customerNames[Math.floor(Math.random() * customerNames.length)];
+      const randomCustomer = customerProfiles[Math.floor(Math.random() * customerProfiles.length)];
       const randomAddons = addonsOptions[Math.floor(Math.random() * addonsOptions.length)];
       const createdAt = new Date(now.getTime() - Math.random() * 6 * 60 * 60 * 1000);
       
@@ -143,7 +155,10 @@ const resetDemoLeads = async (installerId: number) => {
         qrCode: `QR-DEMO-${Date.now()}-${i}`,
         notes: `Demo lead - ${template.difficulty} installation`,
         difficulty: template.difficulty,
-        distance: Math.floor(Math.random() * 30) + 5
+        distance: Math.floor(Math.random() * 30) + 5,
+        customerName: randomCustomer.name,
+        customerEmail: randomCustomer.email,
+        customerPhone: randomCustomer.phone
       };
 
       generatedLeads.push(mockLead);

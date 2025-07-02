@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tv, User, Clock } from "lucide-react";
+import { Tv, User, Clock, Search, QrCode } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface ProtectedBookingProps {
   children: React.ReactNode;
@@ -14,6 +16,8 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
   const { toast } = useToast();
   const [usageCount, setUsageCount] = useState(0);
   const [canProceed, setCanProceed] = useState(false);
+  const [, setLocation] = useLocation();
+  const [trackingCode, setTrackingCode] = useState("");
 
   useEffect(() => {
     // Check daily usage from localStorage
@@ -49,6 +53,20 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
     setCanProceed(true);
   };
 
+  const handleTrackBooking = () => {
+    if (!trackingCode.trim()) {
+      toast({
+        title: "Please enter a tracking code",
+        description: "Enter your QR code or booking reference to track your installation.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Redirect to booking tracker with the code
+    setLocation(`/booking-tracker?code=${encodeURIComponent(trackingCode)}`);
+  };
+
   // Show loading state
   if (isLoading) {
     return (
@@ -79,7 +97,7 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-3 gap-6">
           {/* Free Trial Option */}
           <Card className="relative">
             <CardHeader>
@@ -127,6 +145,57 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
                   </a>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Booking Tracker Option */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Search className="w-5 h-5 mr-2 text-blue-600" />
+                Track Installation
+              </CardTitle>
+              <CardDescription>
+                Check the status of your existing booking with QR code or reference
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <Input
+                  placeholder="Enter QR code or booking reference"
+                  value={trackingCode}
+                  onChange={(e) => setTrackingCode(e.target.value)}
+                  className="text-center"
+                />
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    Real-time installation status
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    Installer contact information
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    Booking details & schedule
+                  </li>
+                  <li className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    No account required
+                  </li>
+                </ul>
+              </div>
+              
+              <div className="pt-4">
+                <Button 
+                  onClick={handleTrackBooking}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <QrCode className="w-4 h-4 mr-2" />
+                  Track My Installation
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

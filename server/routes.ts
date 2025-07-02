@@ -320,43 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/installers/login", async (req, res) => {
-    try {
-      const { email, password } = req.body;
-      
-      // Validate input
-      if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required" });
-      }
-      
-      // Authenticate installer using bcrypt comparison
-      const installer = await storage.authenticateInstaller(email, password);
-      if (!installer) {
-        return res.status(401).json({ error: "Invalid email or password" });
-      }
-      
-      // Check approval status
-      if (installer.approvalStatus !== "approved") {
-        return res.status(403).json({ 
-          error: "Account pending approval", 
-          approvalStatus: installer.approvalStatus,
-          profileCompleted: installer.profileCompleted 
-        });
-      }
-      
-      // Return installer data (without password hash)
-      const { passwordHash: _, ...installerData } = installer;
-      res.json({
-        success: true,
-        installer: installerData,
-        message: "Login successful"
-      });
-      
-    } catch (error) {
-      console.error("Installer login error:", error);
-      res.status(500).json({ error: "Login failed" });
-    }
-  });
+
 
   // Get installer profile endpoint
   app.get("/api/installers/profile", async (req, res) => {
@@ -2077,7 +2041,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password } = req.body;
 
       // Demo account with specific email and restricted access
+      console.log(`Login attempt with email: "${email}", password: "${password}"`);
       if (email === "test@tradesbook.ie" && password === "demo123") {
+        console.log("Matched demo account condition!");
         let installer = await storage.getInstallerByEmail(email);
         
         // If demo installer doesn't exist, create one
@@ -2142,7 +2108,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: "Login successful!" 
         });
       } else {
-        res.status(401).json({ message: "Invalid credentials" });
+        // Regular authentication using bcrypt comparison
+        const installer = await storage.authenticateInstaller(email, password);
+        if (!installer) {
+          return res.status(401).json({ error: "Invalid email or password" });
+        }
+        
+        // Check approval status
+        if (installer.approvalStatus !== "approved") {
+          return res.status(403).json({ 
+            error: "Account pending approval", 
+            approvalStatus: installer.approvalStatus,
+            profileCompleted: installer.profileCompleted 
+          });
+        }
+        
+        // Return installer data (without password hash)
+        const { passwordHash: _, ...installerData } = installer;
+        res.json({
+          success: true,
+          installer: installerData,
+          message: "Login successful"
+        });
       }
     } catch (error) {
       console.error("Error logging in installer:", error);

@@ -717,7 +717,7 @@ function InstallerManagement() {
 
   const deleteInstallerMutation = useMutation({
     mutationFn: async (installerId: number) => {
-      const response = await apiRequest(`/api/admin/installers/${installerId}`, "DELETE");
+      const response = await apiRequest("DELETE", `/api/admin/installers/${installerId}`);
       return response;
     },
     onSuccess: () => {

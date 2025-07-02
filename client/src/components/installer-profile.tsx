@@ -26,6 +26,8 @@ interface InstallerProfileProps {
     bio?: string | null;
     yearsExperience?: number | null;
     profileImageUrl?: string | null;
+    insurance?: string | null;
+    certifications?: string | null;
   };
   showContactActions?: boolean;
 }
@@ -253,22 +255,36 @@ export default function InstallerProfile({ installer, showContactActions = true 
           </div>
         </div>
 
+        {/* Platform Protection Notice */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <Shield className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm">
+              <p className="text-blue-800 font-medium mb-1">Book through tradesbook.ie</p>
+              <p className="text-blue-700">
+                To ensure quality service, secure payments, and platform protection, all bookings must be made through our platform. 
+                Direct contact is only available after booking confirmation.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {showContactActions && (
           <div className="flex flex-col sm:flex-row gap-3 pt-4">
             <Button 
               className="flex-1 flex items-center gap-2" 
-              onClick={() => window.open(`tel:${installer.phone}`, '_self')}
+              onClick={() => window.location.href = '/book-installation'}
             >
               <Phone className="h-4 w-4" />
-              Call {installer.phone}
+              Book Installation
             </Button>
             <Button 
               variant="outline" 
               className="flex-1 flex items-center gap-2"
-              onClick={() => window.open(`mailto:${installer.email}`, '_self')}
+              onClick={() => window.location.href = '/book-installation'}
             >
               <Mail className="h-4 w-4" />
-              Email
+              Request Quote
             </Button>
             <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
               <DialogTrigger asChild>

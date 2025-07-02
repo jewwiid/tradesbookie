@@ -2409,7 +2409,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/installers", async (req, res) => {
     try {
       const installers = await storage.getAllInstallers();
-      res.json(installers);
+      
+      // Return only public-safe installer information (hide contact details)
+      const publicInstallers = installers
+        .filter(installer => installer.approvalStatus === 'approved')
+        .map(installer => ({
+          id: installer.id,
+          businessName: installer.businessName,
+          serviceArea: installer.serviceArea || installer.county,
+          bio: installer.bio,
+          yearsExperience: installer.yearsExperience,
+          expertise: installer.expertise,
+          profileImageUrl: installer.profileImageUrl,
+          insurance: installer.insurance,
+          certifications: installer.certifications,
+          // Hide contact details from public view
+          contactName: installer.contactName?.split(' ')[0] + " " + (installer.contactName?.split(' ')[1]?.[0] || '') + ".", // Show first name + last initial
+          email: "***@***.***", // Hidden
+          phone: "***-***-****", // Hidden
+          address: installer.county || "Ireland" // Only show county, not full address
+        }));
+      
+      res.json(publicInstallers);
     } catch (error) {
       console.error("Error fetching installers:", error);
       res.status(500).json({ message: "Failed to fetch installers" });

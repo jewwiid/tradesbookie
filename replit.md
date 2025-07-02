@@ -519,6 +519,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Implemented separate Role and Registration Type columns in user management table with color-coded badges**
 - July 2, 2025: **Enhanced user deletion confirmation dialog and user details dialog to show both role and registration method information**
 - July 2, 2025: **Added comprehensive user type filtering system allowing administrators to distinguish between customers, admins, and different registration methods**
+- July 2, 2025: **Implemented comprehensive contact information protection system to prevent platform revenue bypass**
+- July 2, 2025: **Protected installer API endpoint to hide personal contact details (phone, email, full address) from public view**
+- July 2, 2025: **Added platform protection notices encouraging bookings through tradesbook.ie instead of direct contact**
+- July 2, 2025: **Enhanced installer profile display to show only business information while protecting personal contact data**
+- July 2, 2025: **Fixed critical design flaw that allowed customers to contact installers directly without using platform booking system**
 
 ## User Preferences
 

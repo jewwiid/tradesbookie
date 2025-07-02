@@ -4649,12 +4649,26 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const codesWithUserData = await Promise.all(
         referralCodes.map(async (code) => {
           const user = await storage.getUserById(code.userId);
+          
+          // Determine the referrer name based on the referral type
+          let referrerName = 'Unknown User';
+          if (code.referralType === 'sales_staff') {
+            referrerName = code.salesStaffName ? `${code.salesStaffName} (${code.salesStaffStore})` : 'Sales Staff';
+          } else if (code.referralType === 'customer') {
+            if (user?.firstName && user?.lastName) {
+              referrerName = `${user.firstName} ${user.lastName}`;
+            } else if (user?.email) {
+              referrerName = user.email;
+            } else if (code.salesStaffName) {
+              // For customer codes created by admin, use the name provided
+              referrerName = code.salesStaffName;
+            }
+          }
+          
           return {
             id: code.id,
             referralCode: code.referralCode,
-            referrerName: user?.firstName && user?.lastName ? 
-              `${user.firstName} ${user.lastName}` : 
-              user?.email || 'Unknown User',
+            referrerName: referrerName,
             totalReferrals: code.totalReferrals,
             totalEarnings: parseFloat(code.totalEarnings.toString()),
             createdAt: code.createdAt?.toISOString() || new Date().toISOString(),

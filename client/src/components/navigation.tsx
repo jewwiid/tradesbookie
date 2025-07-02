@@ -78,61 +78,36 @@ export default function Navigation({ isInstallerContext = false }: NavigationPro
 
               {/* Right Side - CTA and Auth */}
               <div className="hidden md:flex items-center space-x-3">
-                {!isAdmin && (
+                {!isAdmin && !isInstallerContext && (
                   <>
-                    {isInstallerContext ? (
-                      <>
-                        <Link href="/installer-login">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-700 hover:text-primary font-medium"
-                          >
-                            Installer Login
-                          </Button>
-                        </Link>
-                        <Link href="/installer-registration">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="bg-primary hover:bg-primary/90 font-medium"
-                          >
-                            Join as Installer
-                          </Button>
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        <Link href="/installer-login">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-700 hover:text-primary font-medium"
-                          >
-                            Installer Login
-                          </Button>
-                        </Link>
-                        <Link href="/installer-registration">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-700 hover:text-primary font-medium"
-                          >
-                            Join as Installer
-                          </Button>
-                        </Link>
-                        <Link href="/booking">
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="bg-primary hover:bg-primary/90 font-medium"
-                          >
-                            <Tv className="w-4 h-4 mr-1" />
-                            Book Installation
-                          </Button>
-                        </Link>
-                      </>
-                    )}
+                    <Link href="/installer-login">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-700 hover:text-primary font-medium"
+                      >
+                        Installer Login
+                      </Button>
+                    </Link>
+                    <Link href="/installer-registration">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-700 hover:text-primary font-medium"
+                      >
+                        Join as Installer
+                      </Button>
+                    </Link>
+                    <Link href="/booking">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90 font-medium"
+                      >
+                        <Tv className="w-4 h-4 mr-1" />
+                        Book Installation
+                      </Button>
+                    </Link>
                   </>
                 )}
                 {isAuthenticated ? (
@@ -197,7 +172,7 @@ export default function Navigation({ isInstallerContext = false }: NavigationPro
 
                     {/* Navigation Links */}
                     <div className="flex-1 py-6">
-                      {!isAdmin && (
+                      {!isAdmin && !isInstallerContext && (
                         <div className="space-y-1 px-6">
                           <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">
                             Navigation
@@ -255,7 +230,7 @@ export default function Navigation({ isInstallerContext = false }: NavigationPro
                       )}
 
                       {/* Installer Section */}
-                      {!isAdmin && (
+                      {!isAdmin && !isInstallerContext && (
                         <>
                           <Separator className="my-6" />
                           <div className="space-y-1 px-6">
@@ -285,7 +260,7 @@ export default function Navigation({ isInstallerContext = false }: NavigationPro
 
                     {/* Footer Actions */}
                     <div className="border-t p-6 space-y-3">
-                      {!isAdmin && (
+                      {!isAdmin && !isInstallerContext && (
                         <Link 
                           href="/booking" 
                           className="w-full block"

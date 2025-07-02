@@ -19,7 +19,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-06-20",
 });
 
-import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification } from "./gmailService";
+import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification } from "./gmailService";
 import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
 import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { pricingManagementService } from "./pricingManagementService";

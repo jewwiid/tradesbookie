@@ -21,11 +21,13 @@ export function getInstallerNotificationEmail(installerEmail?: string): string {
   return EMAIL_CONFIG.INSTALLER_NOTIFICATIONS;
 }
 
-export function getValidFromEmail(serviceType: 'booking' | 'support' | 'job' | 'admin'): string {
+export function getValidFromEmail(serviceType: 'booking' | 'support' | 'job' | 'admin' | 'installer'): string {
   switch (serviceType) {
     case 'booking':
       return EMAIL_CONFIG.BOOKINGS;
     case 'job':
+      return EMAIL_CONFIG.INSTALLERS; // Use installer alias
+    case 'installer':
       return EMAIL_CONFIG.INSTALLERS; // Use installer alias
     case 'support':
       return EMAIL_CONFIG.SUPPORT;

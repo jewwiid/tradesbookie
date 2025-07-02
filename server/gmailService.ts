@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import QRCode from 'qrcode';
 import { getInstallerNotificationEmail, getValidFromEmail } from './emailConfig';
+import { storage } from './storage';
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -603,6 +604,178 @@ export async function sendStatusUpdateNotification(
     });
   } catch (error) {
     console.error('Error sending status update notification:', error);
+    return false;
+  }
+}
+
+export async function sendScheduleProposalNotification(
+  recipientEmail: string,
+  booking: any,
+  negotiation: any
+): Promise<boolean> {
+  try {
+    const proposedBy = negotiation.proposedBy === 'customer' ? 'Customer' : 'Installer';
+    const proposedDate = new Date(negotiation.proposedDate).toLocaleDateString('en-IE', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const trackingUrl = `https://tradesbook.ie/track/${booking.qrCode}`;
+    
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">📅 New Schedule Proposal</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">tradesbook.ie</p>
+        </div>
+
+        <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+          <div style="background-color: #e7f3ff; border: 1px solid #b6d7ff; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h2 style="color: #0056b3; margin: 0 0 10px 0; font-size: 18px;">📅 Schedule Proposal Details</h2>
+            <p style="color: #0056b3; margin: 0; font-size: 16px;">
+              <strong>Proposed Date:</strong> ${proposedDate}
+            </p>
+            <p style="color: #0056b3; margin: 10px 0 0 0; font-size: 14px;">
+              <strong>Time Slot:</strong> ${negotiation.proposedTimeSlot || 'To be discussed'}
+            </p>
+            <p style="color: #0056b3; margin: 10px 0 0 0; font-size: 14px;">
+              <strong>Proposed by:</strong> ${proposedBy}
+            </p>
+          </div>
+
+          ${negotiation.proposalMessage ? `
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 16px;">💬 Message</h3>
+              <p style="color: #856404; margin: 0; font-style: italic;">"${negotiation.proposalMessage}"</p>
+            </div>
+          ` : ''}
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 16px;">📋 Installation Details</h3>
+            <p style="color: #4a5568; margin: 5px 0;"><strong>Service:</strong> ${booking.serviceType}</p>
+            <p style="color: #4a5568; margin: 5px 0;"><strong>TV Size:</strong> ${booking.tvSize}</p>
+            <p style="color: #4a5568; margin: 5px 0;"><strong>Address:</strong> ${booking.address}</p>
+            <p style="color: #4a5568; margin: 5px 0;"><strong>Contact:</strong> ${booking.contactName}</p>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="${trackingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-bottom: 15px;">
+              Respond to Proposal
+            </a>
+            <p style="color: #718096; font-size: 14px; margin: 15px 0 0 0;">
+              Click above to accept, decline, or counter-propose a different time.
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2025 tradesbook.ie - Professional TV Installation Services</p>
+            <p style="margin: 5px 0 0 0;">This email was sent regarding your installation request #${booking.qrCode}</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return await sendGmailEmail({
+      to: recipientEmail,
+      subject: `📅 New Schedule Proposal for TV Installation - ${proposedDate}`,
+      html: htmlContent,
+      from: getValidFromEmail('booking')
+    });
+  } catch (error) {
+    console.error('Error sending schedule proposal notification:', error);
+    return false;
+  }
+}
+
+export async function sendScheduleConfirmationNotification(
+  booking: any,
+  negotiation: any
+): Promise<boolean> {
+  try {
+    const confirmedDate = new Date(negotiation.proposedDate).toLocaleDateString('en-IE', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const trackingUrl = `https://tradesbook.ie/track/${booking.qrCode}`;
+    
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">✅ Installation Scheduled!</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">tradesbook.ie</p>
+        </div>
+
+        <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+          <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h2 style="color: #155724; margin: 0 0 10px 0; font-size: 18px;">🎉 Schedule Confirmed</h2>
+            <p style="color: #155724; margin: 0; font-size: 16px;">
+              <strong>Installation Date:</strong> ${confirmedDate}
+            </p>
+            <p style="color: #155724; margin: 10px 0 0 0; font-size: 14px;">
+              <strong>Time Slot:</strong> ${negotiation.proposedTimeSlot || 'To be confirmed'}
+            </p>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 16px;">📋 Installation Details</h3>
+            <p style="color: #4a5568; margin: 5px 0;"><strong>Service:</strong> ${booking.serviceType}</p>
+            <p style="color: #4a5568; margin: 5px 0;"><strong>TV Size:</strong> ${booking.tvSize}</p>
+            <p style="color: #4a5568; margin: 5px 0;"><strong>Address:</strong> ${booking.address}</p>
+            <p style="color: #4a5568; margin: 5px 0;"><strong>Contact:</strong> ${booking.contactName}</p>
+            <p style="color: #4a5568; margin: 5px 0;"><strong>Phone:</strong> ${booking.contactPhone}</p>
+          </div>
+
+          <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 16px;">📝 Next Steps</h3>
+            <ul style="color: #856404; margin: 0; padding-left: 20px;">
+              <li>Both parties will receive confirmation details</li>
+              <li>Customer should prepare the installation area</li>
+              <li>Installer will arrive at the agreed time</li>
+              <li>Any changes should be communicated through the platform</li>
+            </ul>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="${trackingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-bottom: 15px;">
+              View Installation Details
+            </a>
+            <p style="color: #718096; font-size: 14px; margin: 15px 0 0 0;">
+              Click above to view full details and communicate with the other party if needed.
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2025 tradesbook.ie - Professional TV Installation Services</p>
+            <p style="margin: 5px 0 0 0;">This email was sent regarding your installation request #${booking.qrCode}</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Send to both customer and installer
+    const customerEmail = await sendGmailEmail({
+      to: booking.contactEmail,
+      subject: `✅ TV Installation Scheduled - ${confirmedDate}`,
+      html: htmlContent,
+      from: getValidFromEmail('booking')
+    });
+
+    const installer = await storage.getInstaller(booking.installerId);
+    const installerEmail = installer ? await sendGmailEmail({
+      to: installer.email,
+      subject: `✅ Installation Confirmed - ${confirmedDate}`,
+      html: htmlContent,
+      from: getValidFromEmail('installer')
+    }) : true;
+
+    return customerEmail && installerEmail;
+  } catch (error) {
+    console.error('Error sending schedule confirmation notification:', error);
     return false;
   }
 }

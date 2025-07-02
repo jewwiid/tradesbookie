@@ -62,6 +62,7 @@ export interface IStorage {
   getInstallerBookings(installerId: number): Promise<Booking[]>;
   getInstallerPurchasedLeads(installerId: number): Promise<Booking[]>;
   updateBooking(id: number, updates: Partial<InsertBooking>): Promise<void>;
+  deleteBooking(id: number): Promise<void>;
   updateBookingStatus(id: number, status: string): Promise<void>;
   updateBookingAiPreview(id: number, aiPreviewUrl: string): Promise<void>;
   updateBookingPayment(id: number, paymentIntentId: string, paymentStatus: string, paidAmount?: number): Promise<void>;
@@ -372,6 +373,10 @@ export class DatabaseStorage implements IStorage {
     await db.update(bookings)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(bookings.id, id));
+  }
+
+  async deleteBooking(id: number): Promise<void> {
+    await db.delete(bookings).where(eq(bookings.id, id));
   }
 
   async updateBookingStatus(id: number, status: string): Promise<void> {

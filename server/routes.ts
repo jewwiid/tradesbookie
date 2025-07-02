@@ -129,14 +129,23 @@ const resetDemoLeads = async (installerId: number) => {
     ];
 
     const addonsOptions = [
-      ["Cable Management"],
-      ["Soundbar Installation"],
-      ["Cable Management", "Soundbar Installation"], 
+      [{ name: "Cable Management", key: "cable_management", price: 20 }],
+      [{ name: "Soundbar Installation", key: "soundbar_installation", price: 30 }],
+      [
+        { name: "Cable Management", key: "cable_management", price: 20 },
+        { name: "Soundbar Installation", key: "soundbar_installation", price: 30 }
+      ], 
       [],
-      ["Wall Outlet Installation"],
-      ["Cable Management", "Wall Outlet Installation"],
-      ["Gaming Console Setup"],
-      ["Smart TV Setup", "Cable Management"]
+      [{ name: "Wall Outlet Installation", key: "wall_outlet_installation", price: 25 }],
+      [
+        { name: "Cable Management", key: "cable_management", price: 20 },
+        { name: "Wall Outlet Installation", key: "wall_outlet_installation", price: 25 }
+      ],
+      [{ name: "Gaming Console Setup", key: "gaming_console_setup", price: 15 }],
+      [
+        { name: "Smart TV Setup", key: "smart_tv_setup", price: 25 },
+        { name: "Cable Management", key: "cable_management", price: 20 }
+      ]
     ];
 
     // Select 2-5 random leads from templates
@@ -168,11 +177,13 @@ const resetDemoLeads = async (installerId: number) => {
         customerName: randomCustomer.name,
         customerEmail: randomCustomer.email,
         customerPhone: randomCustomer.phone,
+        contactName: randomCustomer.name,
+        contactEmail: randomCustomer.email,
+        contactPhone: randomCustomer.phone,
         addons: randomAddons,
         notes: `Demo lead - ${template.difficulty} installation`,
         difficulty: template.difficulty,
-        installerId: null, // Available for purchase
-        userId: null // Demo bookings don't have users
+        installerId: null // Available for purchase
       };
 
       try {

@@ -89,7 +89,13 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
       });
     },
     onSuccess: (data: any) => {
+      // Invalidate both past leads and available leads queries
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/past-leads`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/available-leads`] });
+      
+      // Force refetch immediately
+      queryClient.refetchQueries({ queryKey: [`/api/installer/${installerId}/past-leads`] });
+      
       toast({
         title: "Status Updated",
         description: `Lead status updated successfully. Customer has been notified.`,

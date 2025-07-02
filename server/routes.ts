@@ -3642,7 +3642,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           }
         ];
         
-        return res.json([...purchasedLeads, ...mockPurchasedLeads]);
+        // Apply any stored demo status updates to the mock data
+        const updatedMockLeads = mockPurchasedLeads.map(lead => {
+          if ((global as any).demoStatusUpdates && (global as any).demoStatusUpdates[lead.id]) {
+            const statusUpdate = (global as any).demoStatusUpdates[lead.id];
+            return {
+              ...lead,
+              status: statusUpdate.status,
+              customerNotes: statusUpdate.message || lead.customerNotes
+            };
+          }
+          return lead;
+        });
+        
+        return res.json([...purchasedLeads, ...updatedMockLeads]);
       }
       
       // For other installers, try to get from database
@@ -3693,6 +3706,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // since demo leads are generated dynamically and may have invalid date fields
       if (installerId === 2) {
         console.log(`Demo account status update: Lead ${leadId} status changed to ${status}`);
+        
+        // Store demo status updates in memory for persistence across requests
+        if (!(global as any).demoStatusUpdates) {
+          (global as any).demoStatusUpdates = {};
+        }
+        (global as any).demoStatusUpdates[leadId] = {
+          status: status,
+          message: message,
+          updatedAt: new Date().toISOString()
+        };
+        
         return res.json({ 
           success: true, 
           message: "Status updated successfully (demo mode)",

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tv, User, Clock, Search, QrCode } from "lucide-react";
 import { useLocation } from "wouter";
+import Navigation from "@/components/navigation";
 
 interface ProtectedBookingProps {
   children: React.ReactNode;
@@ -86,9 +87,11 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
 
   // If not authenticated, show guest booking option with limits
   return (
-    <div className="min-h-screen bg-gray-50 py-16">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      <div className="py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Book Your TV Installation
           </h1>
@@ -252,6 +255,7 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
               </div>
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
     </div>

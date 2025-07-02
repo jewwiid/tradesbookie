@@ -1916,7 +1916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get installer ID from session
       const session = req.session as any;
-      const installerId = session.installerProfile?.id;
+      const installerId = session.installerId;
       
       if (!installerId) {
         return res.status(401).json({ message: "Not authenticated" });
@@ -2105,6 +2105,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.resetInstallerWallet(installer.id);
         console.log(`Demo account wallet reset to €0.00 for installer ${installer.id}`);
 
+        // Set installer session data
+        (req.session as any).installerId = installer.id;
+        (req.session as any).installerAuthenticated = true;
+
         res.json({ 
           success: true, 
           installer: {
@@ -2136,6 +2140,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           installer = await storage.createInstaller(demoInstallerData);
         }
 
+        // Set installer session data
+        (req.session as any).installerId = installer.id;
+        (req.session as any).installerAuthenticated = true;
+        
         res.json({ 
           success: true, 
           installer: {
@@ -2159,6 +2167,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             profileCompleted: installer.profileCompleted 
           });
         }
+        
+        // Set installer session data
+        (req.session as any).installerId = installer.id;
+        (req.session as any).installerAuthenticated = true;
         
         // Return installer data (without password hash)
         const { passwordHash: _, ...installerData } = installer;

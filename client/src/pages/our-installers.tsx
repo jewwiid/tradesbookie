@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import InstallerProfile from "@/components/installer-profile";
-import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Clock, Eye } from "lucide-react";
+import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function OurInstallers() {
@@ -14,6 +14,29 @@ export default function OurInstallers() {
     queryKey: ["/api/installers"],
     retry: false,
   });
+
+  // Fetch reviews for all installers
+  const { data: allReviews = [] } = useQuery({
+    queryKey: ["/api/reviews"],
+    retry: false,
+  });
+
+  // Function to get review stats for an installer
+  const getInstallerReviewStats = (installerId: number) => {
+    const installerReviews = allReviews.filter((review: any) => review.installerId === installerId);
+    
+    if (installerReviews.length === 0) {
+      return { averageRating: 0, totalReviews: 0 };
+    }
+
+    const totalRating = installerReviews.reduce((sum: number, review: any) => sum + review.rating, 0);
+    const averageRating = (totalRating / installerReviews.length).toFixed(1);
+    
+    return { 
+      averageRating: parseFloat(averageRating), 
+      totalReviews: installerReviews.length 
+    };
+  };
 
   const qualifications = [
     "5+ years TV installation experience",
@@ -155,12 +178,25 @@ export default function OurInstallers() {
 
                     {/* Rating and Verification */}
                     <div className="flex items-center justify-center mb-6">
-                      <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                      <span className="text-gray-700 font-medium">4.9/5</span>
-                      <span className="text-gray-500 text-sm ml-1">(50+ reviews)</span>
-                      {installer.insurance && (
-                        <CheckCircle className="w-4 h-4 text-green-600 ml-2" />
-                      )}
+                      {(() => {
+                        const reviewStats = getInstallerReviewStats(installer.id);
+                        return (
+                          <>
+                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                            <span className="text-gray-700 font-medium">
+                              {reviewStats.totalReviews > 0 ? `${reviewStats.averageRating}/5` : 'No reviews'}
+                            </span>
+                            {reviewStats.totalReviews > 0 && (
+                              <span className="text-gray-500 text-sm ml-1">
+                                ({reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? 's' : ''})
+                              </span>
+                            )}
+                            {installer.insurance && (
+                              <CheckCircle className="w-4 h-4 text-green-600 ml-2" />
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
 
                     {/* Action Button */}

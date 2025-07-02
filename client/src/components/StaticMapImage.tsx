@@ -45,27 +45,21 @@ export default function StaticMapImage({
     queryFn: async () => {
       if (customerAddress) {
         // Use booking map endpoint for customer/installer scenario
-        return apiRequest('/api/maps/booking-map', {
-          method: 'POST',
-          body: JSON.stringify({
-            customerAddress,
-            installerLocation
-          }),
-          headers: { 'Content-Type': 'application/json' }
+        const response = await apiRequest('POST', '/api/maps/booking-map', {
+          customerAddress,
+          installerLocation
         });
+        return await response.json();
       } else {
         // Use regular static map endpoint
-        return apiRequest('/api/maps/static-map', {
-          method: 'POST',
-          body: JSON.stringify({
-            center,
-            zoom,
-            size,
-            markers,
-            mapType
-          }),
-          headers: { 'Content-Type': 'application/json' }
+        const response = await apiRequest('POST', '/api/maps/static-map', {
+          center,
+          zoom,
+          size,
+          markers,
+          mapType
         });
+        return await response.json();
       }
     },
     enabled: !!(center.lat && center.lng),

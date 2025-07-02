@@ -67,11 +67,8 @@ export default function GoogleMap({
   // Geocoding mutation
   const geocodeMutation = useMutation({
     mutationFn: async (address: string) => {
-      return apiRequest('/api/maps/geocode', {
-        method: 'POST',
-        body: JSON.stringify({ address }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const response = await apiRequest('POST', '/api/maps/geocode', { address });
+      return await response.json();
     },
     onSuccess: (data) => {
       setGeocodedLocation(data.coordinates);
@@ -101,11 +98,8 @@ export default function GoogleMap({
   // Distance calculation mutation
   const distanceMutation = useMutation({
     mutationFn: async ({ point1, point2 }: { point1: LocationCoordinates; point2: LocationCoordinates }) => {
-      return apiRequest('/api/maps/distance', {
-        method: 'POST',
-        body: JSON.stringify({ point1, point2 }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      const response = await apiRequest('POST', '/api/maps/distance', { point1, point2 });
+      return await response.json();
     }
   });
 

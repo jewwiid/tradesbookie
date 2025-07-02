@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - sets up passport and sessions
   await setupAuth(app);
 
-  // OAuth Login Route - with fallback for installers
+  // OAuth Login Route - supporting all roles including installer
   app.get("/api/login", (req, res, next) => {
     console.log("=== OAUTH LOGIN REQUEST START ===");
     console.log("Login request from hostname:", req.hostname);
@@ -69,12 +69,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Current user:", req.user);
     console.log("Is authenticated:", req.isAuthenticated ? req.isAuthenticated() : false);
     console.log("Session ID:", req.sessionID);
-    
-    // If installer role and OAuth is failing, redirect to installer login page
-    if (req.query.role === 'installer') {
-      console.log("Installer login requested - redirecting to installer login page");
-      return res.redirect('/installer-login?message=oauth_unavailable');
-    }
     
     try {
       // Store intended action and role in session

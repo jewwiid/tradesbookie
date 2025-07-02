@@ -183,7 +183,7 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Add test route to verify route registration
+  // Add test route to verify route registration  
   app.get("/api/auth/test", (req, res) => {
     console.log("Auth test route hit");
     res.json({ message: "Auth routes are working", hostname: req.hostname });
@@ -368,10 +368,20 @@ export async function setupAuth(app: Express) {
       
       console.log("Initiating OAuth authentication with strategy:", strategyName);
       
-      passport.authenticate(strategyName, {
+      const authenticator = passport.authenticate(strategyName, {
         prompt: "login",
         scope: ["openid", "email", "profile", "offline_access"],
-      })(req, res, next);
+      });
+      
+      console.log("Authenticator function created, calling it now...");
+      authenticator(req, res, (err: any) => {
+        if (err) {
+          console.error("OAuth authentication error:", err);
+          return res.status(500).json({ error: "OAuth authentication failed", details: err.message });
+        }
+        console.log("OAuth authentication completed successfully");
+        next();
+      });
     } catch (error) {
       console.error("OAuth login error:", error);
       return res.status(500).json({ error: "OAuth login failed", details: error.message });

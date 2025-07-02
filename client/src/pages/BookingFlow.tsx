@@ -7,6 +7,7 @@ import BookingStep from "@/components/BookingStep";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,6 +45,7 @@ interface BookingData {
     phone: string;
     address: string;
   };
+  customerNotes: string;
   basePrice: number;
   total: number;
 }
@@ -71,6 +73,7 @@ export default function BookingFlow() {
       phone: '',
       address: ''
     },
+    customerNotes: '',
     basePrice: 0,
     total: 0
   });
@@ -163,6 +166,7 @@ export default function BookingFlow() {
         scheduledDate: new Date(bookingData.date),
         scheduledTime: bookingData.time,
         address: bookingData.contact.address,
+        customerNotes: bookingData.customerNotes,
         basePrice: bookingData.basePrice.toFixed(2),
         addonsTotal: bookingData.addons.reduce((sum: number, addon: any) => sum + addon.price, 0).toFixed(2),
         totalPrice: bookingData.total.toFixed(2)
@@ -590,6 +594,22 @@ export default function BookingFlow() {
                   }))}
                 />
               </div>
+            </div>
+
+            {/* Customer Notes */}
+            <div className="mb-6">
+              <Label htmlFor="customerNotes">Additional Notes (Optional)</Label>
+              <Textarea
+                id="customerNotes"
+                value={bookingData.customerNotes}
+                onChange={(e) => setBookingData(prev => ({
+                  ...prev,
+                  customerNotes: e.target.value
+                }))}
+                placeholder="Any special instructions or requirements for the installer..."
+                className="mt-2"
+                rows={3}
+              />
             </div>
 
             {/* Booking Summary */}

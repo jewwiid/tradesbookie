@@ -3978,31 +3978,44 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       
-      // Get all pending bookings (not yet assigned)
+      // Get all unassigned bookings that can be purchased as leads
       const allBookings = await storage.getAllBookings();
       const availableBookings = allBookings.filter(booking => 
-        booking.status === "pending" || booking.status === "confirmed"
+        // Include pending, urgent status and ensure not assigned to any installer yet
+        (booking.status === "pending" || booking.status === "urgent" || booking.status === "confirmed") &&
+        !booking.installerId // Not assigned to any installer yet
       );
       
-      // Get installer's existing jobs to avoid duplicates
-      const installerJobs = await storage.getInstallerJobs(installerId);
-      const installerBookingIds = installerJobs.map(job => job.bookingId);
-      
-      // Filter out bookings already assigned to this installer
-      const availableLeads = availableBookings.filter(booking => 
-        !installerBookingIds.includes(booking.id)
-      );
-      
-      // Add lead fees from pricing
-      const leadsWithFees = availableLeads.map(booking => {
+      // Add lead fees and profit calculations
+      const leadsWithFees = availableBookings.map(booking => {
         const leadFee = getLeadFee(booking.serviceType);
-        const estimatedEarnings = parseFloat(booking.estimatedTotal) - leadFee;
+        const estimatedTotal = parseFloat(booking.estimatedTotal || booking.estimatedPrice || '0');
+        const estimatedEarnings = estimatedTotal - leadFee;
+        const profitMargin = estimatedTotal > 0 ? (estimatedEarnings / estimatedTotal * 100) : 0;
         
         return {
-          ...booking,
+          id: booking.id,
+          address: booking.address,
+          serviceType: booking.serviceType,
+          tvSize: booking.tvSize,
+          wallType: booking.wallType,
+          mountType: booking.mountType,
+          addons: booking.addons || [],
+          estimatedTotal: estimatedTotal.toFixed(2),
           leadFee,
-          estimatedEarnings,
-          profitMargin: estimatedEarnings / parseFloat(booking.estimatedTotal) * 100
+          estimatedEarnings: Math.max(0, estimatedEarnings),
+          profitMargin: Math.max(0, profitMargin),
+          status: booking.status,
+          scheduledDate: booking.scheduledDate,
+          createdAt: booking.createdAt,
+          qrCode: booking.qrCode,
+          notes: booking.customerNotes || booking.notes,
+          difficulty: booking.difficulty || 'moderate',
+          customerName: booking.customerName,
+          customerEmail: booking.customerEmail,
+          customerPhone: booking.customerPhone,
+          referralCode: booking.referralCode,
+          referralDiscount: booking.referralDiscount
         };
       });
       

@@ -302,7 +302,8 @@ export default function InstallerDashboard() {
 
   // Fetch available requests from API
   const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
-    queryKey: ['/api/installer/2/available-leads'],
+    queryKey: ['/api/installer', installerProfile?.id, 'available-leads'],
+    queryFn: () => fetch(`/api/installer/${installerProfile?.id}/available-leads`).then(res => res.json()),
     enabled: !!installerProfile?.id,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
@@ -336,7 +337,7 @@ export default function InstallerDashboard() {
   const acceptRequestMutation = useMutation({
     mutationFn: async (requestId: number) => {
       return apiRequest('POST', `/api/installer/accept-request/${requestId}`, {
-        installerId: installerProfile?.id || 2 // Use actual installer ID
+        installerId: installerProfile?.id
       });
     },
     onSuccess: (data: any, requestId) => {
@@ -345,7 +346,7 @@ export default function InstallerDashboard() {
         description: "Professional email sent to customer with your contact details. They will reach out within 24 hours to confirm scheduling.",
         duration: 6000,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/installer/2/available-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'available-leads'] });
       
       // Update local stats to reflect accepted job
       setStats(prev => ({
@@ -403,7 +404,7 @@ export default function InstallerDashboard() {
       });
       
       // Invalidate and refresh the available leads list
-      queryClient.invalidateQueries({ queryKey: ['/api/installer/2/available-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'available-leads'] });
       
       // Remove the declined request from selected state
       if (selectedRequest?.id === requestId) {
@@ -758,11 +759,11 @@ export default function InstallerDashboard() {
           </TabsContent>
 
           <TabsContent value="past-leads" className="space-y-6">
-            <PastLeadsManagement installerId={installerProfile?.id || 2} />
+            <PastLeadsManagement installerId={installerProfile?.id} />
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-6">
-            <InstallerReviews installerId={installerProfile?.id || 2} />
+            <InstallerReviews installerId={installerProfile?.id} />
           </TabsContent>
 
           <TabsContent value="wallet" className="space-y-6">

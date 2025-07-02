@@ -37,6 +37,7 @@ export interface IStorage {
   getInstaller(id: number): Promise<Installer | undefined>;
   getInstallerByEmail(email: string): Promise<Installer | undefined>;
   createInstaller(installer: InsertInstaller): Promise<Installer>;
+  updateInstaller(id: number, updates: Partial<InsertInstaller>): Promise<Installer>;
   getAllInstallers(): Promise<Installer[]>;
   updateInstallerApproval(installerId: number, approvalData: {
     approvalStatus: string;

@@ -1351,24 +1351,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const installerData = req.body;
       
-      // Check if installer already exists
+      // Check if installer already exists (for OAuth users who need profile completion)
       const existingInstaller = await storage.getInstallerByEmail(installerData.email);
       if (existingInstaller) {
-        return res.status(400).json({ message: "Installer already registered with this email" });
+        // For OAuth users, update existing profile instead of creating new one
+        const updatedInstaller = await storage.updateInstaller(existingInstaller.id, {
+          contactName: installerData.name,
+          businessName: installerData.businessName || installerData.name,
+          phone: installerData.phone,
+          address: installerData.address,
+          serviceArea: installerData.county,
+          expertise: installerData.specialties,
+          deviceTypes: installerData.deviceTypes,
+          bio: installerData.bio,
+          yearsExperience: parseInt(installerData.experience) || 1,
+          maxTravelDistance: parseInt(installerData.maxTravelDistance) || 50,
+          emergencyCallout: installerData.emergencyCallout || false,
+          weekendAvailable: installerData.weekendAvailable || false,
+          // Set approval status to pending when profile is completed
+          approvalStatus: 'pending',
+          isActive: false // Requires admin approval
+        });
+        
+        return res.json({ 
+          message: "Profile updated successfully. Awaiting admin approval.", 
+          installer: { id: updatedInstaller.id, email: updatedInstaller.email, name: updatedInstaller.contactName }
+        });
       }
       
-      // Create new installer with default password
+      // Create new installer for non-OAuth registrations
       const installer = await storage.createInstaller({
         contactName: installerData.name,
         businessName: installerData.businessName || installerData.name,
         email: installerData.email,
         phone: installerData.phone,
-        password: "demo123", // Default password for demo
-        isActive: true
+        address: installerData.address,
+        serviceArea: installerData.county,
+        expertise: installerData.specialties,
+        deviceTypes: installerData.deviceTypes,
+        bio: installerData.bio,
+        yearsExperience: parseInt(installerData.experience) || 1,
+        maxTravelDistance: parseInt(installerData.maxTravelDistance) || 50,
+        emergencyCallout: installerData.emergencyCallout || false,
+        weekendAvailable: installerData.weekendAvailable || false,
+        approvalStatus: 'pending',
+        isActive: false // Requires admin approval
       });
       
       res.json({ 
-        message: "Registration successful", 
+        message: "Registration successful. Awaiting admin approval.", 
         installer: { id: installer.id, email: installer.email, name: installer.contactName }
       });
     } catch (error) {

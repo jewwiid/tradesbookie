@@ -3582,82 +3582,6 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Get actual purchased leads from database
       const purchasedLeads = await storage.getInstallerPurchasedLeads(installerId);
       
-      // If no purchased leads exist, include mock data for demo purposes
-      if (purchasedLeads.length === 0 && installerId === 2) {
-        const mockPurchasedLeads = [
-          {
-            id: 101,
-            customerName: "Sarah O'Brien",
-            customerEmail: "sarah.obrien@email.ie",
-            customerPhone: "+353 86 123 4567",
-            address: "15 Grafton Street, Dublin 2, Ireland",
-            tvSize: "55 inch",
-            serviceType: "silver-premium",
-            wallType: "Drywall",
-            mountType: "Tilting Wall Mount",
-            addons: ["Cable Management"],
-            estimatedPrice: "155.00",
-            leadFee: "25",
-            status: "completed",
-            scheduledDate: new Date('2025-06-28'),
-            completedDate: new Date('2025-06-28'),
-            customerNotes: "Customer prefers evening installation after 6pm",
-            createdAt: new Date('2025-06-25').toISOString()
-          },
-          {
-            id: 102,
-            customerName: "Michael Walsh",
-            customerEmail: "m.walsh@gmail.com",
-            customerPhone: "+353 87 987 6543",
-            address: "42 Patrick Street, Cork, Ireland",
-            tvSize: "65 inch",
-            serviceType: "gold-premium-large",
-            wallType: "Brick",
-            mountType: "Full Motion Wall Mount",
-            addons: ["Cable Management", "Soundbar Installation"],
-            estimatedPrice: "312.00",
-            leadFee: "30",
-            status: "in-progress",
-            scheduledDate: new Date('2025-07-02'),
-            customerNotes: "Large installation, bring ladder",
-            createdAt: new Date('2025-06-30').toISOString()
-          },
-          {
-            id: 103,
-            customerName: "Emma Collins",
-            customerEmail: "emma.collins@outlook.ie",
-            customerPhone: "+353 85 456 7890",
-            address: "89 Henry Street, Galway, Ireland",
-            tvSize: "43 inch",
-            serviceType: "bronze-wall-mount",
-            wallType: "Plasterboard",
-            mountType: "Fixed Wall Mount",
-            addons: [],
-            estimatedPrice: "350.00",
-            leadFee: "30",
-            status: "scheduled",
-            scheduledDate: new Date('2025-07-03'),
-            customerNotes: "First floor apartment, easy access",
-            createdAt: new Date('2025-07-01').toISOString()
-          }
-        ];
-        
-        // Apply any stored demo status updates to the mock data
-        const updatedMockLeads = mockPurchasedLeads.map(lead => {
-          if ((global as any).demoStatusUpdates && (global as any).demoStatusUpdates[lead.id]) {
-            const statusUpdate = (global as any).demoStatusUpdates[lead.id];
-            return {
-              ...lead,
-              status: statusUpdate.status,
-              customerNotes: statusUpdate.message || lead.customerNotes
-            };
-          }
-          return lead;
-        });
-        
-        return res.json([...purchasedLeads, ...updatedMockLeads]);
-      }
-      
       // For other installers, try to get from database
       const allBookings = await storage.getAllBookings();
       const installerBookings = allBookings.filter(booking => 
@@ -3665,28 +3589,54 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       );
       
       // Transform bookings to past leads format
-      const pastLeads = installerBookings.map(booking => ({
-        id: booking.id,
-        customerName: booking.contactName || "Customer",
-        customerEmail: booking.contactEmail || "",
-        customerPhone: booking.contactPhone || "",
-        address: booking.address,
-        tvSize: booking.tvSize,
-        serviceType: booking.serviceType,
-        wallType: booking.wallType || "Drywall",
-        mountType: booking.mountType || "Fixed",
-        addons: booking.addons || [],
-        estimatedPrice: booking.estimatedPrice || booking.totalPrice || "0",
-        leadFee: getLeadFee(booking.serviceType).toString(),
-        status: booking.status,
-        scheduledDate: booking.scheduledDate,
-        completedDate: booking.completedDate,
-        customerNotes: booking.customerNotes || booking.notes,
-        createdAt: booking.createdAt || new Date().toISOString()
-      }));
+      const pastLeads = installerBookings.map(booking => {
+        let finalStatus = booking.status;
+        let finalNotes = booking.customerNotes || booking.notes;
+        
+        // For demo account, apply any cached status updates
+        if (installerId === 2 && (global as any).demoStatusUpdates && (global as any).demoStatusUpdates[booking.id]) {
+          const statusUpdate = (global as any).demoStatusUpdates[booking.id];
+          console.log(`Applying cached status update for lead ${booking.id}: ${booking.status} -> ${statusUpdate.status}`);
+          finalStatus = statusUpdate.status;
+          finalNotes = statusUpdate.message || finalNotes;
+        }
+        
+        return {
+          id: booking.id,
+          customerName: booking.contactName || "Customer",
+          customerEmail: booking.contactEmail || "",
+          customerPhone: booking.contactPhone || "",
+          address: booking.address,
+          tvSize: booking.tvSize,
+          serviceType: booking.serviceType,
+          wallType: booking.wallType || "Drywall",
+          mountType: booking.mountType || "Fixed",
+          addons: booking.addons || [],
+          estimatedPrice: booking.estimatedPrice || booking.totalPrice || "0",
+          leadFee: getLeadFee(booking.serviceType).toString(),
+          status: finalStatus,
+          scheduledDate: booking.scheduledDate,
+          completedDate: booking.completedDate,
+          customerNotes: finalNotes,
+          createdAt: booking.createdAt || new Date().toISOString()
+        };
+      });
       
-      // For other installers, return only real purchased leads
-      res.json(pastLeads);
+      // Apply status updates to purchased leads as well
+      const updatedPurchasedLeads = purchasedLeads.map(lead => {
+        if (installerId === 2 && (global as any).demoStatusUpdates && (global as any).demoStatusUpdates[lead.id]) {
+          const statusUpdate = (global as any).demoStatusUpdates[lead.id];
+          return {
+            ...lead,
+            status: statusUpdate.status,
+            customerNotes: statusUpdate.message || lead.customerNotes
+          };
+        }
+        return lead;
+      });
+      
+      // Return combined results with applied status updates
+      res.json([...updatedPurchasedLeads, ...pastLeads]);
     } catch (error) {
       console.error("Error fetching past leads:", error);
       res.status(500).json({ message: "Failed to fetch past leads" });
@@ -3716,6 +3666,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           message: message,
           updatedAt: new Date().toISOString()
         };
+        
+        console.log(`Stored demo status update for lead ${leadId}:`, (global as any).demoStatusUpdates[leadId]);
+        console.log('Current cache state:', Object.keys((global as any).demoStatusUpdates));
         
         return res.json({ 
           success: true, 

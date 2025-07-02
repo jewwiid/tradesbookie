@@ -3661,7 +3661,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Admin delete installer
-  app.delete("/api/admin/installers/:id", isAdmin, async (req, res) => {
+  app.delete("/api/admin/installers/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const installerId = parseInt(req.params.id);
       

@@ -717,15 +717,22 @@ function InstallerManagement() {
 
   const deleteInstallerMutation = useMutation({
     mutationFn: async (installerId: number) => {
-      await apiRequest(`/api/admin/installers/${installerId}`, "DELETE");
+      const response = await apiRequest(`/api/admin/installers/${installerId}`, "DELETE");
+      return response;
     },
     onSuccess: () => {
       toast({ title: "Installer deleted successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
       setShowDeleteDialog(false);
     },
-    onError: () => {
-      toast({ title: "Failed to delete installer", variant: "destructive" });
+    onError: (error: any) => {
+      console.error("Delete installer error:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to delete installer";
+      toast({ 
+        title: "Failed to delete installer", 
+        description: errorMessage,
+        variant: "destructive" 
+      });
     },
   });
 

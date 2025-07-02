@@ -183,6 +183,17 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Simple test route to verify route registration works
+  app.get("/api/auth-test", (req, res) => {
+    console.log("Auth test route hit successfully");
+    res.json({ 
+      message: "Route registration working",
+      hostname: req.hostname,
+      user: req.user || null,
+      isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false
+    });
+  });
+
 
 
   let config;
@@ -329,10 +340,16 @@ export async function setupAuth(app: Express) {
     }
   });
 
+  console.log("About to register OAuth routes...");
+
   // Separate sign-in and sign-up endpoints for clarity
   app.get("/api/login", (req, res, next) => {
+    console.log("=== OAUTH LOGIN REQUEST START ===");
     console.log("Login request from hostname:", req.hostname);
     console.log("Login query params:", req.query);
+    console.log("Current user:", req.user);
+    console.log("Is authenticated:", req.isAuthenticated ? req.isAuthenticated() : false);
+    console.log("Session ID:", req.sessionID);
     
     try {
       // Store intended action and role in session
@@ -382,6 +399,7 @@ export async function setupAuth(app: Express) {
       console.error("OAuth login error:", error);
       return res.status(500).json({ error: "OAuth login failed", details: error.message });
     }
+    console.log("=== OAUTH LOGIN REQUEST END ===");
   });
 
   // Separate sign-up endpoint

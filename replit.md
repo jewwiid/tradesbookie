@@ -490,6 +490,12 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Successfully verified end-to-end installer approval process with Gmail API integration**
 - July 2, 2025: **Fixed React hooks ordering error in installer dashboard preventing access after approval**
 - July 2, 2025: **Restored missing handleProfileUpdate function in installer dashboard for profile editing functionality**
+- July 2, 2025: **Completed comprehensive installer dashboard data isolation fix**
+- July 2, 2025: **Replaced hardcoded mock statistics (24 monthly jobs, €2850 earnings, 4.9 rating) with real installer-specific calculations**
+- July 2, 2025: **Dashboard now calculates monthly jobs from actual past leads, earnings from real booking data, and ratings from authentic review statistics**
+- July 2, 2025: **Fixed all component references from undefined 'requests' variable to proper 'availableRequests' data source**
+- July 2, 2025: **Corrected IrelandMap component scope issue - now properly uses 'requests' prop instead of accessing undefined 'availableRequests'**
+- July 2, 2025: **Each installer now sees authentic data: 0 monthly jobs, €0 earnings, 0 rating for installer 11 (accurate based on no activity)**
 
 ## User Preferences
 

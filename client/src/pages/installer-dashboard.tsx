@@ -83,7 +83,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           <span className="font-semibold text-green-800">Ireland Installation Map</span>
         </div>
         <div className="text-sm text-gray-600 mt-1">
-          {availableRequests.length} active requests
+          {requests.length} active requests
         </div>
       </div>
 

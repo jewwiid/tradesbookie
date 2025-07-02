@@ -11,6 +11,7 @@ import multer from "multer";
 import QRCode from "qrcode";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import passport from "passport";
+import "./types"; // Import session type extensions
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -322,9 +323,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get installer profile endpoint
   app.get("/api/installers/profile", async (req, res) => {
     try {
-      // For demo purposes, return demo installer profile
-      // In production, you would get this from the session or authentication
-      const installer = await storage.getInstaller(2); // Demo installer ID
+      // Check if installer is authenticated via session
+      if (!req.session.installerAuthenticated || !req.session.installerId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const installer = await storage.getInstaller(req.session.installerId);
       
       if (!installer) {
         return res.status(404).json({ error: "Installer not found" });
@@ -342,7 +346,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/installers/profile", async (req, res) => {
     try {
-      const { installerId, ...profileData } = req.body;
+      // Check if installer is authenticated via session
+      if (!req.session.installerAuthenticated || !req.session.installerId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      
+      const installerId = req.session.installerId;
       
       // Validate installer exists
       const installer = await storage.getInstaller(installerId);
@@ -351,7 +360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Update profile
-      const updatedInstaller = await storage.updateInstallerProfile(installerId, profileData);
+      const updatedInstaller = await storage.updateInstallerProfile(installerId, req.body);
       
       // Return updated installer data (without password hash)
       const { passwordHash: _, ...installerData } = updatedInstaller;

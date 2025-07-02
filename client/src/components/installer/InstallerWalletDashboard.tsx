@@ -59,7 +59,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
   // Add credits mutation
   const addCreditsMutation = useMutation({
     mutationFn: async (amount: number) => {
-      return apiRequest(`/api/installer/${installerId}/wallet/add-credits`, 'POST', { amount });
+      return apiRequest('POST', `/api/installer/${installerId}/wallet/add-credits`, { amount });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/wallet`] });

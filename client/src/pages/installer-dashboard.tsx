@@ -320,7 +320,7 @@ export default function InstallerDashboard() {
   // Profile update mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("/api/installers/profile", "POST", {
+      return await apiRequest("POST", "/api/installers/profile", {
         installerId: installerProfile?.id,
         ...data
       });
@@ -357,7 +357,7 @@ export default function InstallerDashboard() {
   // Accept request mutation
   const acceptRequestMutation = useMutation({
     mutationFn: async (requestId: number) => {
-      return apiRequest(`/api/installer/accept-request/${requestId}`, 'POST', {
+      return apiRequest('POST', `/api/installer/accept-request/${requestId}`, {
         installerId: 1 // Demo installer ID
       });
     },

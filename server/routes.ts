@@ -1909,15 +1909,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For demo account, check wallet balance and process purchase
       if (installer.email === "test@tradesbook.ie") {
-        // Get the demo lead to find the lead fee
-        const demoLeads = (global as any).demoLeadsCache?.[targetInstallerId] || [];
-        const demoLead = demoLeads.find((lead: any) => lead.id === requestId);
+        // Get the actual booking from database to find the lead fee
+        const booking = await storage.getBooking(requestId);
         
-        if (!demoLead) {
-          return res.status(404).json({ message: "Demo lead not found" });
+        if (!booking) {
+          return res.status(404).json({ message: "Booking not found" });
         }
         
-        const leadFee = demoLead.leadFee;
+        // Calculate lead fee based on service type
+        const leadFee = getLeadFee(booking.serviceType);
         
         // Check wallet balance
         const wallet = await storage.getInstallerWallet(targetInstallerId);

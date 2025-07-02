@@ -1914,8 +1914,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const requestId = parseInt(req.params.requestId);
       
-      // In a real app, you might want to track declined requests
-      // For now, we'll just return success
+      // Get installer ID from session
+      const session = req.session as any;
+      const installerId = session.installerProfile?.id;
+      
+      if (!installerId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      // For demo account (installer ID 2), remove from demo leads cache
+      if (installerId === 2 && (global as any).demoLeadsCache && (global as any).demoLeadsCache[installerId]) {
+        (global as any).demoLeadsCache[installerId] = (global as any).demoLeadsCache[installerId].filter((lead: any) => lead.id !== requestId);
+        console.log(`Removed lead ${requestId} from demo cache for installer ${installerId}`);
+      } else {
+        // For real installers, track declined requests in database
+        await storage.declineRequestForInstaller(installerId, requestId);
+      }
       
       res.json({ 
         message: "Request declined successfully"

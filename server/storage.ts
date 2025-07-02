@@ -2,6 +2,7 @@ import {
   users, bookings, installers, jobAssignments, reviews, solarEnquiries,
   referralSettings, referralCodes, referralUsage, consultationBookings,
   leadPricing, wallMountPricing, installerWallets, installerTransactions,
+  declinedRequests,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -130,6 +131,10 @@ export interface IStorage {
   // Lead payment operations
   updateJobAssignmentLeadFee(jobId: number, leadFee: number, paymentIntentId: string, status: string): Promise<void>;
   markLeadFeePaid(jobId: number): Promise<void>;
+
+  // Declined requests operations for proper state management
+  declineRequestForInstaller(installerId: number, bookingId: number): Promise<void>;
+  getDeclinedRequestsForInstaller(installerId: number): Promise<number[]>; // Returns array of booking IDs
 }
 
 export class DatabaseStorage implements IStorage {
@@ -853,6 +858,22 @@ export class DatabaseStorage implements IStorage {
         leadPaidDate: new Date()
       })
       .where(eq(jobAssignments.id, jobId));
+  }
+
+  // Declined requests operations for proper state management
+  async declineRequestForInstaller(installerId: number, bookingId: number): Promise<void> {
+    await db.insert(declinedRequests).values({
+      installerId,
+      bookingId
+    }).onConflictDoNothing(); // Avoid duplicate entries
+  }
+
+  async getDeclinedRequestsForInstaller(installerId: number): Promise<number[]> {
+    const declined = await db.select({ bookingId: declinedRequests.bookingId })
+      .from(declinedRequests)
+      .where(eq(declinedRequests.installerId, installerId));
+    
+    return declined.map(item => item.bookingId);
   }
 }
 

@@ -1894,27 +1894,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/installer/accept-request/:requestId", async (req, res) => {
     try {
       const requestId = parseInt(req.params.requestId);
-      const { installerId } = req.body; // In real app, this would come from authenticated session
+      const { installerId } = req.body;
+      
+      // Default to installer ID 2 if not provided (demo account)
+      const targetInstallerId = installerId || 2;
+      
+      console.log(`Accept request ${requestId} for installer ${targetInstallerId}`);
       
       // Check if this is the demo installer account
-      const installer = await storage.getInstaller(installerId || 2);
-      if (installer && installer.email === "test@tradesbook.ie") {
-        // For demo account, simulate the complete flow without payment
-        const booking = await storage.getBooking(requestId);
-        if (booking) {
-          // Mark booking as accepted and assigned to demo installer
-          await storage.updateBooking(requestId, {
-            status: 'accepted',
-            installerId: 2
-          });
-          
-          return res.json({
-            success: true,
-            message: "Demo lead accepted successfully",
-            booking: booking,
-            demo: true
+      const installer = await storage.getInstaller(targetInstallerId);
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      // For demo account, check wallet balance and process purchase
+      if (installer.email === "test@tradesbook.ie") {
+        // Get the demo lead to find the lead fee
+        const demoLeads = (global as any).demoLeadsCache?.[targetInstallerId] || [];
+        const demoLead = demoLeads.find((lead: any) => lead.id === requestId);
+        
+        if (!demoLead) {
+          return res.status(404).json({ message: "Demo lead not found" });
+        }
+        
+        const leadFee = demoLead.leadFee;
+        
+        // Check wallet balance
+        const wallet = await storage.getInstallerWallet(targetInstallerId);
+        if (!wallet) {
+          return res.status(400).json({ message: "Wallet not found" });
+        }
+        
+        const currentBalance = parseFloat(wallet.balance);
+        if (currentBalance < leadFee) {
+          return res.status(400).json({ 
+            message: "Insufficient wallet balance. Please add credits to purchase this lead.",
+            required: leadFee,
+            available: currentBalance 
           });
         }
+        
+        // Create job assignment for demo lead purchase
+        const jobAssignment = await storage.createJobAssignment({
+          bookingId: requestId,
+          installerId: targetInstallerId,
+          status: "accepted",
+          acceptedDate: new Date(),
+          leadFee: leadFee.toString(),
+          leadFeeStatus: "paid",
+          leadPaidDate: new Date()
+        });
+        
+        // Deduct lead fee from wallet
+        const newBalance = currentBalance - leadFee;
+        const totalSpent = parseFloat(wallet.totalSpent) + leadFee;
+        await storage.updateInstallerWalletBalance(targetInstallerId, newBalance);
+        await storage.updateInstallerWalletTotalSpent(targetInstallerId, totalSpent);
+        
+        // Add transaction record
+        await storage.addInstallerTransaction({
+          installerId: targetInstallerId,
+          type: "lead_purchase",
+          amount: (-leadFee).toString(),
+          description: `Purchased demo lead access for request #${requestId}`,
+          jobAssignmentId: jobAssignment.id,
+          status: "completed"
+        });
+        
+        return res.json({
+          success: true,
+          message: "Demo lead purchased successfully! Customer contact details are now available in your purchased leads.",
+          jobAssignment: jobAssignment,
+          newBalance: newBalance,
+          demo: true
+        });
       }
       
       // For real installers, redirect to purchase endpoint for lead-based model

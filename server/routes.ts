@@ -2041,9 +2041,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password } = req.body;
 
       // Demo account with specific email and restricted access
-      console.log(`Login attempt with email: "${email}", password: "${password}"`);
       if (email === "test@tradesbook.ie" && password === "demo123") {
-        console.log("Matched demo account condition!");
         let installer = await storage.getInstallerByEmail(email);
         
         // If demo installer doesn't exist, create one

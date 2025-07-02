@@ -2259,7 +2259,7 @@ function ReferralManagement() {
   });
 
   const updateReferralSettings = useMutation({
-    mutationFn: async (settings: { reward: number; globalDiscountPercentage: number }) => {
+    mutationFn: async (settings: { globalDiscountPercentage: number }) => {
       const response = await apiRequest('PUT', '/api/referrals/settings', settings);
       return response.json();
     },
@@ -2289,7 +2289,6 @@ function ReferralManagement() {
   const handleUpdateSettings = () => {
     setIsUpdating(true);
     updateReferralSettings.mutate({
-      reward: referralReward,
       globalDiscountPercentage: globalDiscountPercentage
     });
   };
@@ -2364,38 +2363,20 @@ function ReferralManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="referralReward">Referral Reward Amount (€)</Label>
-              <Input
-                id="referralReward"
-                type="number"
-                value={referralReward}
-                onChange={(e) => setReferralReward(Number(e.target.value))}
-                min="5"
-                max="100"
-                step="5"
-              />
-              <p className="text-sm text-gray-500">
-                Amount paid to referrer when referral makes first booking
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="globalDiscountPercentage">Global Discount Percentage (%)</Label>
-              <Input
-                id="globalDiscountPercentage"
-                type="number"
-                value={globalDiscountPercentage}
-                onChange={(e) => setGlobalDiscountPercentage(Number(e.target.value))}
-                min="5"
-                max="25"
-                step="5"
-              />
-              <p className="text-sm text-gray-500">
-                Unified discount percentage applied to all referral codes
-              </p>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="globalDiscountPercentage">Global Discount Percentage (%)</Label>
+            <Input
+              id="globalDiscountPercentage"
+              type="number"
+              value={globalDiscountPercentage}
+              onChange={(e) => setGlobalDiscountPercentage(Number(e.target.value))}
+              min="5"
+              max="25"
+              step="1"
+            />
+            <p className="text-sm text-gray-500">
+              Unified discount percentage applied to all referral codes
+            </p>
           </div>
 
           <Button 
@@ -2480,7 +2461,7 @@ function ReferralManagement() {
                         : (code.referrerName || 'Customer')
                       }
                     </TableCell>
-                    <TableCell>{parseFloat(code.discountPercentage || "0").toFixed(1)}%</TableCell>
+                    <TableCell>{globalDiscountPercentage}%</TableCell>
                     <TableCell>{code.totalReferrals}</TableCell>
                     <TableCell>€{parseFloat(code.totalEarnings || "0").toFixed(2)}</TableCell>
                     <TableCell>

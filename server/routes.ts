@@ -4719,15 +4719,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   app.put('/api/referrals/settings', async (req, res) => {
     try {
-      const { reward, globalDiscountPercentage } = req.body;
+      const { globalDiscountPercentage } = req.body;
       
-      if (!reward || !globalDiscountPercentage) {
-        return res.status(400).json({ error: "Reward amount and global discount percentage required" });
+      if (!globalDiscountPercentage) {
+        return res.status(400).json({ error: "Global discount percentage required" });
       }
 
       // Update referral settings in database
       const settings = await storage.updateReferralSettings({
-        referralReward: reward.toString(),
         globalDiscountPercentage: globalDiscountPercentage.toString(),
         isActive: true
       });

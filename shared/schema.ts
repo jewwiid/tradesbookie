@@ -59,17 +59,25 @@ export const harveyNormanInvoices = pgTable("harvey_norman_invoices", {
 // Installers table
 export const installers = pgTable("installers", {
   id: serial("id").primaryKey(),
-  businessName: text("business_name").notNull(),
-  contactName: text("contact_name").notNull(),
+  
+  // Authentication fields
   email: text("email").notNull().unique(),
-  phone: text("phone").notNull(),
+  passwordHash: text("password_hash").notNull(),
+  
+  // Basic business information
+  businessName: text("business_name"),
+  contactName: text("contact_name"),
+  phone: text("phone"),
   address: text("address"),
-  serviceArea: text("service_area").notNull().default("Dublin"),
+  serviceArea: text("service_area").default("Dublin"),
   expertise: jsonb("expertise").default([]), // TV types and services
   bio: text("bio"), // Short description
   yearsExperience: integer("years_experience").default(0),
   profileImageUrl: text("profile_image_url"),
   isActive: boolean("is_active").default(true),
+  
+  // Profile completion tracking
+  profileCompleted: boolean("profile_completed").default(false),
   
   // Approval and scoring system
   approvalStatus: varchar("approval_status").default("pending"), // pending, approved, rejected
@@ -426,6 +434,33 @@ export const insertHarveyNormanInvoiceSchema = createInsertSchema(harveyNormanIn
 export const insertInstallerSchema = createInsertSchema(installers).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
+  passwordHash: true, // Never expose password hash
+});
+
+// Installer authentication schemas
+export const installerRegisterSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const installerLoginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export const installerProfileSchema = insertInstallerSchema.omit({
+  email: true, // Email set during registration
+  approvalStatus: true,
+  adminScore: true,
+  adminComments: true,
+  reviewedBy: true,
+  reviewedAt: true,
+}).extend({
+  businessName: z.string().min(2, "Business name is required"),
+  contactName: z.string().min(2, "Contact name is required"),
+  phone: z.string().min(10, "Valid phone number is required"),
+  serviceArea: z.string().min(2, "Service area is required"),
 });
 
 export const insertBookingSchema = createInsertSchema(bookings).omit({
@@ -502,6 +537,9 @@ export type InsertHarveyNormanInvoice = z.infer<typeof insertHarveyNormanInvoice
 
 export type Installer = typeof installers.$inferSelect;
 export type InsertInstaller = z.infer<typeof insertInstallerSchema>;
+export type InstallerRegister = z.infer<typeof installerRegisterSchema>;
+export type InstallerLogin = z.infer<typeof installerLoginSchema>;
+export type InstallerProfile = z.infer<typeof installerProfileSchema>;
 
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;

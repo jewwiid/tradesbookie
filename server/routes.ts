@@ -137,6 +137,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple installer authentication routes
+  app.post("/api/installers/register", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      // Validate input
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+      
+      if (password.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
+      }
+      
+      // Check if email already exists
+      const existingInstaller = await storage.getInstallerByEmail(email);
+      if (existingInstaller) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
+      
+      // Simple password hashing (in production, use bcrypt)
+      const passwordHash = Buffer.from(password).toString('base64');
+      
+      // Create installer account
+      const installer = await storage.registerInstaller(email, passwordHash);
+      
+      // Return installer data (without password hash)
+      const { passwordHash: _, ...installerData } = installer;
+      res.status(201).json({
+        success: true,
+        installer: installerData,
+        message: "Registration successful. Please complete your profile and wait for admin approval."
+      });
+      
+    } catch (error) {
+      console.error("Installer registration error:", error);
+      res.status(500).json({ error: "Registration failed" });
+    }
+  });
+
+  app.post("/api/installers/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      // Validate input
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+      
+      // Simple password hashing (match registration method)
+      const passwordHash = Buffer.from(password).toString('base64');
+      
+      // Authenticate installer
+      const installer = await storage.authenticateInstaller(email, passwordHash);
+      if (!installer) {
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+      
+      // Check approval status
+      if (installer.approvalStatus !== "approved") {
+        return res.status(403).json({ 
+          error: "Account pending approval", 
+          approvalStatus: installer.approvalStatus,
+          profileCompleted: installer.profileCompleted 
+        });
+      }
+      
+      // Return installer data (without password hash)
+      const { passwordHash: _, ...installerData } = installer;
+      res.json({
+        success: true,
+        installer: installerData,
+        message: "Login successful"
+      });
+      
+    } catch (error) {
+      console.error("Installer login error:", error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+
+  app.post("/api/installers/profile", async (req, res) => {
+    try {
+      const { installerId, ...profileData } = req.body;
+      
+      // Validate installer exists
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ error: "Installer not found" });
+      }
+      
+      // Update profile
+      const updatedInstaller = await storage.updateInstallerProfile(installerId, profileData);
+      
+      // Return updated installer data (without password hash)
+      const { passwordHash: _, ...installerData } = updatedInstaller;
+      res.json({
+        success: true,
+        installer: installerData,
+        message: "Profile updated successfully"
+      });
+      
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ error: "Profile update failed" });
+    }
+  });
+
   // OAuth Signup Route - with temporary fallback for installer registration
   app.get("/api/signup", (req, res, next) => {
     console.log("=== OAUTH SIGNUP REQUEST START ===");
@@ -145,8 +253,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Temporary fallback for installer registration - redirect to profile setup
     if (req.query.role === 'installer') {
-      console.log("Installer signup detected, redirecting to profile setup");
-      return res.redirect("/installer-profile-setup");
+      console.log("Installer signup detected, redirecting to installer registration");
+      return res.redirect("/installer-registration");
     }
     
     try {

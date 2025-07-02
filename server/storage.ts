@@ -46,6 +46,11 @@ export interface IStorage {
     reviewedBy?: string;
     reviewedAt?: Date;
   }): Promise<void>;
+  
+  // Installer authentication
+  registerInstaller(email: string, passwordHash: string): Promise<Installer>;
+  authenticateInstaller(email: string, passwordHash: string): Promise<Installer | null>;
+  updateInstallerProfile(installerId: number, profileData: Partial<InsertInstaller>): Promise<Installer>;
 
   // Booking operations
   createBooking(booking: InsertBooking): Promise<Booking>;
@@ -253,6 +258,39 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(installers.id, installerId));
+  }
+
+  // Installer authentication methods
+  async registerInstaller(email: string, passwordHash: string): Promise<Installer> {
+    const [installer] = await db.insert(installers).values({
+      email,
+      passwordHash,
+      approvalStatus: "pending",
+      profileCompleted: false,
+      isActive: true
+    }).returning();
+    return installer;
+  }
+
+  async authenticateInstaller(email: string, passwordHash: string): Promise<Installer | null> {
+    const [installer] = await db.select().from(installers)
+      .where(and(
+        eq(installers.email, email),
+        eq(installers.passwordHash, passwordHash)
+      ));
+    return installer || null;
+  }
+
+  async updateInstallerProfile(installerId: number, profileData: Partial<InsertInstaller>): Promise<Installer> {
+    const [installer] = await db.update(installers)
+      .set({
+        ...profileData,
+        profileCompleted: true, // Mark profile as completed when updated
+        updatedAt: new Date()
+      })
+      .where(eq(installers.id, installerId))
+      .returning();
+    return installer;
   }
 
   // Booking operations

@@ -19,7 +19,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-06-20",
 });
 
-import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification } from "./gmailService";
+import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification } from "./gmailService";
 import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
 import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { pricingManagementService } from "./pricingManagementService";
@@ -3593,7 +3593,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/installer/:installerId/update-lead-status", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      const { leadId, status } = req.body;
+      const { leadId, status, message } = req.body;
       
       if (!leadId || !status) {
         return res.status(400).json({ message: "Lead ID and status are required" });
@@ -3622,16 +3622,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
       
       // Update the booking status
-      const updatedBooking = {
-        ...booking,
-        status: status,
-        updatedAt: new Date().toISOString()
-      };
+      await storage.updateBookingStatus(leadId, status);
       
-      await storage.updateBooking(leadId, updatedBooking);
-      
-      // Send customer notification email
-      console.log(`Sending status update notification to ${booking.customerEmail}: Status changed to ${status}`);
+      // Send customer notification email about status update
+      try {
+        await sendStatusUpdateNotification(
+          booking.customerEmail,
+          booking.customerName,
+          {
+            qrCode: booking.qrCode,
+            tvSize: booking.tvSize,
+            serviceType: booking.serviceType,
+            address: booking.address
+          },
+          status,
+          'installer',
+          message
+        );
+        console.log(`Sent status update notification to ${booking.customerEmail}: Status changed to ${status}`);
+      } catch (emailError) {
+        console.error("Failed to send status update notification:", emailError);
+      }
       
       res.json({ 
         success: true, 
@@ -3640,6 +3651,60 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       });
     } catch (error) {
       console.error("Error updating lead status:", error);
+      res.status(500).json({ message: "Failed to update lead status" });
+    }
+  });
+
+  // Customer status update endpoint (bidirectional status management)
+  app.post("/api/customer/update-lead-status", async (req, res) => {
+    try {
+      const { qrCode, status, message } = req.body;
+      
+      if (!qrCode || !status) {
+        return res.status(400).json({ message: "QR code and status are required" });
+      }
+      
+      // Find booking by QR code
+      const booking = await storage.getBookingByQR(qrCode);
+      if (!booking) {
+        return res.status(404).json({ message: "Installation request not found" });
+      }
+      
+      // Update the booking status
+      await storage.updateBookingStatus(booking.id, status);
+      
+      // If the booking has an assigned installer, notify them
+      if (booking.installerId) {
+        const installer = await storage.getInstaller(booking.installerId);
+        if (installer) {
+          try {
+            await sendStatusUpdateNotification(
+              installer.email,
+              installer.contactName,
+              {
+                qrCode: booking.qrCode,
+                tvSize: booking.tvSize,
+                serviceType: booking.serviceType,
+                address: booking.address
+              },
+              status,
+              'customer',
+              message
+            );
+            console.log(`Sent status update notification to installer ${installer.email}: Status changed to ${status}`);
+          } catch (emailError) {
+            console.error("Failed to send status update notification to installer:", emailError);
+          }
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Status updated successfully",
+        newStatus: status
+      });
+    } catch (error) {
+      console.error("Error updating customer lead status:", error);
       res.status(500).json({ message: "Failed to update lead status" });
     }
   });
@@ -4434,8 +4499,39 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         status: "completed"
       });
       
-      // Update booking status
-      await storage.updateBookingStatus(bookingId, "assigned");
+      // Update booking status to "installation_scheduled"
+      await storage.updateBookingStatus(bookingId, "installation_scheduled");
+      
+      // Get booking and installer details for email notification
+      const booking = await storage.getBooking(bookingId);
+      const installer = await storage.getInstaller(installerId);
+      
+      if (booking && installer) {
+        // Send email notification to customer
+        try {
+          await sendLeadPurchaseNotification(
+            booking.customerEmail,
+            booking.customerName,
+            {
+              qrCode: booking.qrCode,
+              tvSize: booking.tvSize,
+              serviceType: booking.serviceType,
+              wallType: booking.wallType,
+              address: booking.address
+            },
+            {
+              contactName: installer.contactName,
+              businessName: installer.businessName,
+              email: installer.email,
+              phone: installer.phone,
+              yearsExperience: installer.yearsExperience
+            }
+          );
+          console.log(`Sent lead purchase notification to ${booking.customerEmail}`);
+        } catch (emailError) {
+          console.error("Failed to send lead purchase notification:", emailError);
+        }
+      }
       
       res.json({ 
         success: true, 

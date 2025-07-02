@@ -377,3 +377,232 @@ export async function sendAdminNotification(subject: string, content: string, da
     from: 'system@tradesbook.ie'
   });
 }
+
+export async function sendLeadPurchaseNotification(
+  customerEmail: string,
+  customerName: string,
+  leadDetails: any,
+  installerDetails: any
+): Promise<boolean> {
+  try {
+    const trackingUrl = `https://tradesbook.ie/track/${leadDetails.qrCode}`;
+    const qrCodeDataURL = await generateQRCodeDataURL(trackingUrl);
+    
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">Your Installation Request Has Been Accepted!</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">tradesbook.ie</p>
+        </div>
+
+        <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+          <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h2 style="color: #155724; margin: 0 0 10px 0; font-size: 18px;">✅ Installer Assigned</h2>
+            <p style="color: #155724; margin: 0;">Your TV installation request has been accepted by a professional installer.</p>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #1a202c; margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+              📋 Installation Details
+            </h3>
+            <div style="display: grid; gap: 15px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">TV Size:</span>
+                <span style="color: #2d3748;">${leadDetails.tvSize}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">Service:</span>
+                <span style="color: #2d3748;">${leadDetails.serviceType}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">Wall Type:</span>
+                <span style="color: #2d3748;">${leadDetails.wallType}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">Address:</span>
+                <span style="color: #2d3748;">${leadDetails.address}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span style="font-weight: 600; color: #4a5568;">Status:</span>
+                <span style="color: #059669; font-weight: 600;">Installation Scheduled</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #1a202c; margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+              👨‍🔧 Your Installer
+            </h3>
+            <div style="display: grid; gap: 15px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">Name:</span>
+                <span style="color: #2d3748;">${installerDetails.contactName}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">Business:</span>
+                <span style="color: #2d3748;">${installerDetails.businessName}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">Email:</span>
+                <span style="color: #2d3748;">${installerDetails.email}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">Phone:</span>
+                <span style="color: #2d3748;">${installerDetails.phone}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span style="font-weight: 600; color: #4a5568;">Experience:</span>
+                <span style="color: #2d3748;">${installerDetails.yearsExperience} years</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 16px;">📞 Next Steps</h3>
+            <p style="color: #856404; margin: 0; line-height: 1.5;">
+              Your installer will contact you within 24 hours to schedule the installation. 
+              Please ensure you are available to discuss timing and answer any questions about your setup.
+            </p>
+          </div>
+
+          ${qrCodeDataURL ? `
+            <div style="text-align: center; margin-bottom: 25px;">
+              <h3 style="color: #1a202c; margin: 0 0 15px 0;">📱 Track Your Installation</h3>
+              <img src="${qrCodeDataURL}" alt="QR Code" style="max-width: 150px; height: auto; border: 2px solid #e2e8f0; border-radius: 8px; padding: 10px; background-color: white;" />
+              <p style="color: #718096; font-size: 14px; margin: 10px 0 0 0;">
+                Scan this QR code to track your installation progress
+              </p>
+              <p style="color: #718096; font-size: 12px; margin: 5px 0 0 0;">
+                Or visit: <a href="${trackingUrl}" style="color: #3182ce;">${trackingUrl}</a>
+              </p>
+            </div>
+          ` : ''}
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="${trackingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-bottom: 15px;">
+              View Installation Details
+            </a>
+            <p style="color: #718096; font-size: 14px; margin: 15px 0 0 0;">
+              You can update the status or communicate with your installer through the tracking page.
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2025 tradesbook.ie - Professional TV Installation Services</p>
+            <p style="margin: 5px 0 0 0;">This email was sent regarding your installation request #${leadDetails.qrCode}</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return await sendGmailEmail({
+      to: customerEmail,
+      subject: `🎯 Your TV Installation Has Been Scheduled! - tradesbook.ie`,
+      html: htmlContent,
+      from: getValidFromEmail('booking')
+    });
+  } catch (error) {
+    console.error('Error sending lead purchase notification:', error);
+    return false;
+  }
+}
+
+export async function sendStatusUpdateNotification(
+  recipientEmail: string,
+  recipientName: string,
+  leadDetails: any,
+  newStatus: string,
+  updatedBy: 'customer' | 'installer',
+  message?: string
+): Promise<boolean> {
+  try {
+    const trackingUrl = `https://tradesbook.ie/track/${leadDetails.qrCode}`;
+    const statusDisplayMap = {
+      'pending': 'Pending',
+      'installation_scheduled': 'Installation Scheduled',
+      'customer_confirmed': 'Customer Confirmed',
+      'work_in_progress': 'Work in Progress',
+      'completed': 'Completed',
+      'cancelled': 'Cancelled'
+    };
+
+    const statusDisplay = statusDisplayMap[newStatus as keyof typeof statusDisplayMap] || newStatus;
+    const updatedByDisplay = updatedBy === 'customer' ? 'Customer' : 'Installer';
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">Installation Status Update</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">tradesbook.ie</p>
+        </div>
+
+        <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+          <div style="background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h2 style="color: #0c5460; margin: 0 0 10px 0; font-size: 18px;">📋 Status Updated</h2>
+            <p style="color: #0c5460; margin: 0; font-size: 16px;">
+              <strong>New Status:</strong> ${statusDisplay}
+            </p>
+            <p style="color: #0c5460; margin: 10px 0 0 0; font-size: 14px;">
+              Updated by: ${updatedByDisplay}
+            </p>
+          </div>
+
+          ${message ? `
+            <div style="background-color: white; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <h3 style="color: #1a202c; margin: 0 0 15px 0; font-size: 16px;">💬 Message</h3>
+              <p style="color: #4a5568; margin: 0; line-height: 1.5;">${message}</p>
+            </div>
+          ` : ''}
+
+          <div style="background-color: white; border-radius: 8px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #1a202c; margin: 0 0 20px 0; font-size: 18px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+              📋 Installation Details
+            </h3>
+            <div style="display: grid; gap: 15px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">TV Size:</span>
+                <span style="color: #2d3748;">${leadDetails.tvSize}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">Service:</span>
+                <span style="color: #2d3748;">${leadDetails.serviceType}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+                <span style="font-weight: 600; color: #4a5568;">Address:</span>
+                <span style="color: #2d3748;">${leadDetails.address}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span style="font-weight: 600; color: #4a5568;">Current Status:</span>
+                <span style="color: #059669; font-weight: 600;">${statusDisplay}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="${trackingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-bottom: 15px;">
+              View Full Details
+            </a>
+            <p style="color: #718096; font-size: 14px; margin: 15px 0 0 0;">
+              Click above to view the complete installation details and communicate with the other party.
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2025 tradesbook.ie - Professional TV Installation Services</p>
+            <p style="margin: 5px 0 0 0;">This email was sent regarding your installation request #${leadDetails.qrCode}</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return await sendGmailEmail({
+      to: recipientEmail,
+      subject: `📋 Installation Status Update: ${statusDisplay} - tradesbook.ie`,
+      html: htmlContent,
+      from: getValidFromEmail('booking')
+    });
+  } catch (error) {
+    console.error('Error sending status update notification:', error);
+    return false;
+  }
+}

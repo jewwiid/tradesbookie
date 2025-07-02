@@ -699,7 +699,7 @@ function InstallerManagement() {
 
   const approveInstallerMutation = useMutation({
     mutationFn: async ({ installerId, score, comments }: { installerId: number; score: number; comments: string }) => {
-      await apiRequest(`/api/admin/installers/${installerId}/approve`, "PATCH", { 
+      await apiRequest("PATCH", `/api/admin/installers/${installerId}/approve`, { 
         approvalStatus: 'approved', 
         adminScore: score, 
         adminComments: comments 
@@ -717,7 +717,7 @@ function InstallerManagement() {
 
   const rejectInstallerMutation = useMutation({
     mutationFn: async ({ installerId, comments }: { installerId: number; comments: string }) => {
-      await apiRequest(`/api/admin/installers/${installerId}/reject`, "PATCH", { 
+      await apiRequest("PATCH", `/api/admin/installers/${installerId}/reject`, { 
         approvalStatus: 'rejected', 
         adminComments: comments 
       });

@@ -817,10 +817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawData.addons || []
       );
       
-      console.log('Pricing result:', pricing);
-      console.log('Service type:', rawData.serviceType);
-      console.log('User from req:', req.user);
-      console.log('Raw data before processing:', JSON.stringify(rawData, null, 2));
+
       
       // Set installerId to null for initial booking creation
       rawData.installerId = null;
@@ -841,7 +838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawData.contactPhone = rawData.contactPhone || '01-234-5678';
       }
       
-      console.log('Raw data after contact population:', JSON.stringify(rawData, null, 2));
+
       
       const bookingData = insertBookingSchema.parse(rawData);
       

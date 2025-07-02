@@ -300,44 +300,12 @@ export default function InstallerDashboard() {
     retry: false
   });
 
-  // Check approval status and redirect if needed
-  useEffect(() => {
-    if (installerProfile && installerProfile.approvalStatus !== "approved") {
-      // Redirect to pending page for non-approved installers
-      window.location.href = "/installer-pending";
-    }
-  }, [installerProfile]);
-
-  // Populate profile data when dialog is opened
-  useEffect(() => {
-    if (installerProfile && showProfileDialog) {
-      setProfileData({
-        name: installerProfile.contactName || "",
-        businessName: installerProfile.businessName || "",
-        email: installerProfile.email || "",
-        phone: installerProfile.phone || "",
-        serviceArea: installerProfile.serviceArea || "",
-        county: installerProfile.serviceArea || "",
-        bio: installerProfile.bio || "",
-        experience: installerProfile.yearsExperience?.toString() || "",
-        certifications: installerProfile.certifications || "",
-        emergencyCallout: installerProfile.emergencyCallout || false,
-        weekendAvailable: installerProfile.weekendAvailable || false
-      });
-    }
-  }, [installerProfile, showProfileDialog]);
-
-  // Show loading screen while checking approval status
-  if (profileLoading || (installerProfile && installerProfile.approvalStatus !== "approved")) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Checking account status...</p>
-        </div>
-      </div>
-    );
-  }
+  // Fetch available requests from API
+  const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
+    queryKey: ['/api/installer/2/available-leads'],
+    enabled: !!installerProfile?.id,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
@@ -362,18 +330,6 @@ export default function InstallerDashboard() {
         variant: "destructive",
       });
     },
-  });
-
-  const handleProfileUpdate = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateProfileMutation.mutate(profileData);
-  };
-
-  // Fetch available requests from API
-  const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
-    queryKey: ['/api/installer/2/available-leads'],
-    enabled: !!installerProfile?.id,
-    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Accept request mutation
@@ -462,6 +418,45 @@ export default function InstallerDashboard() {
       });
     }
   });
+
+  // Check approval status and redirect if needed
+  useEffect(() => {
+    if (installerProfile && installerProfile.approvalStatus !== "approved") {
+      // Redirect to pending page for non-approved installers
+      window.location.href = "/installer-pending";
+    }
+  }, [installerProfile]);
+
+  // Populate profile data when dialog is opened
+  useEffect(() => {
+    if (installerProfile && showProfileDialog) {
+      setProfileData({
+        name: installerProfile.contactName || "",
+        businessName: installerProfile.businessName || "",
+        email: installerProfile.email || "",
+        phone: installerProfile.phone || "",
+        serviceArea: installerProfile.serviceArea || "",
+        county: installerProfile.serviceArea || "",
+        bio: installerProfile.bio || "",
+        experience: installerProfile.yearsExperience?.toString() || "",
+        certifications: installerProfile.certifications || "",
+        emergencyCallout: installerProfile.emergencyCallout || false,
+        weekendAvailable: installerProfile.weekendAvailable || false
+      });
+    }
+  }, [installerProfile, showProfileDialog]);
+
+  // Show loading screen while checking approval status
+  if (profileLoading || (installerProfile && installerProfile.approvalStatus !== "approved")) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking account status...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Use real data from API
   const requests: ClientRequest[] = Array.isArray(availableRequests) ? availableRequests : [

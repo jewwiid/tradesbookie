@@ -440,6 +440,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Optimized system reuses existing demo leads by resetting status and installer assignment rather than creating new database entries**
 - July 2, 2025: **Fixed demo account status persistence issue where status updates weren't being applied to API responses**
 - July 2, 2025: **Status updates now persist correctly across requests with proper memory cache implementation**
+- July 2, 2025: **Performed major database cleanup - removed 43 unnecessary demo bookings (91% reduction from 47 to 4 bookings)**
+- July 2, 2025: **Optimized database efficiency by keeping only essential test bookings and current demo leads**
 
 ## User Preferences
 

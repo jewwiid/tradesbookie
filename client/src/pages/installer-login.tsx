@@ -123,6 +123,7 @@ export default function InstallerLogin() {
             </p>
             <Button 
               onClick={() => {
+                console.log("Initiating OAuth login for installer role");
                 window.location.href = '/api/login?role=installer';
               }}
               className="w-full bg-blue-600 hover:bg-blue-700 mb-2"

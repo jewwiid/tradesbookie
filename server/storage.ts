@@ -809,7 +809,7 @@ export class DatabaseStorage implements IStorage {
   async resetInstallerWallet(installerId: number): Promise<void> {
     await db.update(installerWallets)
       .set({ 
-        balance: "300.00",
+        balance: "0.00",
         totalSpent: "0.00",
         totalEarned: "0.00",
         updatedAt: new Date()

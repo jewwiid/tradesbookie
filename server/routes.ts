@@ -2089,7 +2089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Reset wallet for demo account
         await storage.resetInstallerWallet(installer.id);
-        console.log(`Demo account wallet reset to €300.00 for installer ${installer.id}`);
+        console.log(`Demo account wallet reset to €0.00 for installer ${installer.id}`);
 
         res.json({ 
           success: true, 

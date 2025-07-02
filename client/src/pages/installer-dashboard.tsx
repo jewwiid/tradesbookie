@@ -545,7 +545,7 @@ export default function InstallerDashboard() {
             {/* Map */}
             <div className="lg:col-span-2">
               <IrelandMap 
-                requests={mockRequests}
+                requests={requests}
                 onRequestSelect={setSelectedRequest}
                 selectedRequest={selectedRequest || undefined}
               />

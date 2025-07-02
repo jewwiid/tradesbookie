@@ -65,6 +65,7 @@ function Router() {
       <Route path="/installer-login" component={InstallerLogin} />
       <Route path="/installer-profile-setup" component={InstallerProfileSetup} />
       <Route path="/installer-dashboard/:id?" component={InstallerDashboard} />
+      <Route path="/installer/dashboard/:id?" component={InstallerDashboard} />
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin-dashboard" component={AdminDashboard} />

@@ -158,8 +158,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Use bcrypt to hash password
-      const { hash } = await import('bcrypt');
-      const passwordHash = await hash(password, 10);
+      const bcrypt = await import('bcrypt');
+      const passwordHash = await bcrypt.default.hash(password, 10);
       
       // Create installer account
       const installer = await storage.registerInstaller(email, passwordHash);

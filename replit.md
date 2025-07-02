@@ -418,6 +418,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Redesigned navigation component for better consistency across desktop and mobile views with improved visual hierarchy**
 - July 2, 2025: **Enhanced mobile navigation with organized sections (Navigation, For Installers), proper spacing, hover effects, and cleaner layout**
 - July 2, 2025: **Improved desktop navigation with better button styling, spacing, and visual consistency using proper hover states and icons**
+- July 2, 2025: **Completed transformation to simplified email/password authentication system for installers**
+- July 2, 2025: **Removed OAuth complexity and implemented secure bcrypt password hashing for installer registration and login**
+- July 2, 2025: **Fixed password authentication bug where login route used base64 encoding while storage expected bcrypt hashing**
+- July 2, 2025: **Updated demo account with proper bcrypt password hash and resolved authentication flow end-to-end**
+- July 2, 2025: **Installer authentication now works: email/password → profile creation → admin approval → platform access**
 
 ## User Preferences
 

@@ -819,15 +819,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Pricing result:', pricing);
       console.log('Service type:', rawData.serviceType);
+      console.log('User from req:', req.user);
+      console.log('Raw data before processing:', JSON.stringify(rawData, null, 2));
       
       // Set installerId to null for initial booking creation
       rawData.installerId = null;
       
       // Add calculated pricing to data as strings with null checks
-      rawData.basePrice = (pricing.estimatedPrice || 0).toFixed(2);
-      rawData.totalPrice = (pricing.totalEstimate || 0).toFixed(2);
-      rawData.appFee = (pricing.leadFee || 0).toFixed(2);
-      rawData.installerEarnings = (pricing.estimatedPrice || 0).toFixed(2);
+      rawData.estimatedPrice = (pricing.estimatedPrice || 0).toFixed(2);
+      rawData.estimatedTotal = (pricing.totalEstimate || 0).toFixed(2);
+      rawData.estimatedAddonsPrice = (pricing.addonsPrice || 0).toFixed(2);
+      
+      // Add contact information (get from authenticated user or request)
+      if (req.user) {
+        rawData.contactName = `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'Demo User';
+        rawData.contactEmail = req.user.email || 'demo@tradesbook.ie';
+        rawData.contactPhone = rawData.contactPhone || '01-234-5678'; // Default if not provided
+      } else {
+        rawData.contactName = rawData.contactName || 'Guest User';
+        rawData.contactEmail = rawData.contactEmail || 'guest@tradesbook.ie';
+        rawData.contactPhone = rawData.contactPhone || '01-234-5678';
+      }
+      
+      console.log('Raw data after contact population:', JSON.stringify(rawData, null, 2));
       
       const bookingData = insertBookingSchema.parse(rawData);
       
@@ -853,11 +867,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             address: bookingData.address,
             roomPhotoUrl: bookingData.roomPhotoUrl,
             aiPreviewUrl: bookingData.aiPreviewUrl,
-            basePrice: pricing.estimatedPrice.toString(),
-            addonTotal: pricing.addonsPrice.toString(),
-            totalPrice: pricing.totalEstimate.toString(),
-            appFee: pricing.leadFee.toString(),
-            installerEarning: pricing.estimatedPrice.toString(),
+            estimatedPrice: pricing.estimatedPrice.toString(),
+            estimatedAddonsPrice: pricing.addonsPrice.toString(),
+            estimatedTotal: pricing.totalEstimate.toString(),
+            leadFee: pricing.leadFee.toString(),
             status: 'pending',
             customerNotes: bookingData.customerNotes,
             createdAt: new Date().toISOString(),

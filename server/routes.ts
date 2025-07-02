@@ -281,10 +281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create installer account with full name information
       const fullName = `${firstName} ${lastName}`;
-      const installer = await storage.registerInstaller(email, passwordHash);
-      
-      // Update installer with additional details
-      const updatedInstaller = await storage.updateInstaller(installer.id, {
+      const installer = await storage.registerInstaller(email, passwordHash, {
         contactName: fullName,
         businessName: businessName,
         phone: phone,
@@ -292,8 +289,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         serviceArea: county
       });
       
-      // Return updated installer data (without password hash)
-      const { passwordHash: _, ...installerData } = updatedInstaller;
+      // Return installer data (without password hash)
+      const { passwordHash: _, ...installerData } = installer;
       res.status(201).json({
         success: true,
         installer: installerData,

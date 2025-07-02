@@ -281,12 +281,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Installer authentication methods
-  async registerInstaller(email: string, passwordHash: string): Promise<Installer> {
+  async registerInstaller(email: string, passwordHash: string, additionalData?: {
+    businessName?: string;
+    contactName?: string;
+    phone?: string;
+    address?: string;
+    serviceArea?: string;
+  }): Promise<Installer> {
     const [installer] = await db.insert(installers).values({
       email,
       passwordHash,
-      businessName: "TBD", // Default value, will be updated when profile is completed
-      contactName: "TBD", // Default value, will be updated when profile is completed
+      businessName: additionalData?.businessName || "TBD",
+      contactName: additionalData?.contactName || "TBD",
+      phone: additionalData?.phone || null,
+      address: additionalData?.address || null,
+      serviceArea: additionalData?.serviceArea || null,
       approvalStatus: "pending",
       profileCompleted: false,
       isActive: true

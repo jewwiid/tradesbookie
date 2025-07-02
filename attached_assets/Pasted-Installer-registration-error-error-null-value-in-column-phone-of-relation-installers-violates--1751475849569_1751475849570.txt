@@ -1,0 +1,76 @@
+Installer registration error: error: null value in column "phone" of relation "installers" violates not-null constraint
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.registerInstaller (/home/runner/workspace/server/storage.ts:285:25)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:284:25) {
+  length: 449,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (9, TBD, TBD, testinstaller@tradesbook.ie, null, null, null, null, null, null, null, null, null, t, 2025-07-02 17:03:38.686546, 2025-07-02 17:03:38.686546, pending, null, null, null, null, $2b$10$DHBGdPKuHWVGdf.vHIgfge6yNnomSr1kGJRUcvzgTT9R/BVvk5kN2, f).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'installers',
+  column: 'phone',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2006',
+  routine: 'ExecConstraints'
+}
+5:03:38 PM [express] POST /api/installers/register 500 in 525ms :: {"error":"Registration failed"}
+GET /api/auth/user - Session ID: -8yanmHiDTKafjoiyyw4iIheGFI0ATyS
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-07-09T17:03:40.674Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: true
+  }
+}
+5:03:40 PM [express] GET /api/auth/user 401 in 2ms :: {"message":"Unauthorized"}
+Installer registration error: error: null value in column "phone" of relation "installers" violates not-null constraint
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.registerInstaller (/home/runner/workspace/server/storage.ts:285:25)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:284:25) {
+  length: 450,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (10, TBD, TBD, testinstaller@tradesbook.ie, null, null, null, null, null, null, null, null, null, t, 2025-07-02 17:03:51.130085, 2025-07-02 17:03:51.130085, pending, null, null, null, null, $2b$10$JEqIMrb0Yu7AGM5fCbLpD.1mZwbyJ3Cx1.0tFcRurwM1xjl/7LQFm, f).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'installers',
+  column: 'phone',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2006',
+  routine: 'ExecConstraints'
+}
+5:03:51 PM [express] POST /api/installers/register 500 in 473ms :: {"error":"Registration failed"}
+GET /api/auth/user - Session ID: gFIkfJZ5uBFDS8FjTDKFc7_25G3cIx5x
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-07-09T17:03:51.938Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: true
+  }
+}
+5:03:51 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Unauthorized"}

@@ -62,7 +62,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - sets up passport and sessions
   await setupAuth(app);
 
-  // OAuth Login Route - supporting all roles including installer
+  // OAuth Login Route - for customers and admins only (installers use email/password)
   app.get("/api/login", (req, res, next) => {
     console.log("=== OAUTH LOGIN REQUEST START ===");
     console.log("Login request from hostname:", req.hostname);
@@ -70,6 +70,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Current user:", req.user);
     console.log("Is authenticated:", req.isAuthenticated ? req.isAuthenticated() : false);
     console.log("Session ID:", req.sessionID);
+    
+    // Redirect installers to their dedicated login page
+    if (req.query.role === 'installer') {
+      console.log("Installer login detected, redirecting to installer login page");
+      return res.redirect("/installer-login");
+    }
     
     try {
       // Store intended action and role in session
@@ -243,13 +249,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OAuth Signup Route - with temporary fallback for installer registration
+  // OAuth Signup Route - for customers and admins only (installers use email/password)
   app.get("/api/signup", (req, res, next) => {
     console.log("=== OAUTH SIGNUP REQUEST START ===");
     console.log("Signup request from hostname:", req.hostname);
     console.log("Signup query params:", req.query);
     
-    // Temporary fallback for installer registration - redirect to profile setup
+    // Redirect installers to their dedicated registration page
     if (req.query.role === 'installer') {
       console.log("Installer signup detected, redirecting to installer registration");
       return res.redirect("/installer-registration");

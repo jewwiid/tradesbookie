@@ -70,7 +70,7 @@ async function upsertUser(
   claims: any,
   intendedRole?: string,
   authAction?: string
-) {
+): Promise<{ user?: any; shouldRedirect?: string }> {
   const existingUser = await storage.getUser(claims["sub"]);
   
   const userData = {
@@ -101,10 +101,10 @@ async function upsertUser(
     const verificationToken = await generateVerificationToken();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
     
-    // Set role based on intended signup type
+    // Set role based on intended signup type (exclude installers - they use email/password)
     if (intendedRole === 'installer') {
-      userData.role = 'installer';
-      console.log("Creating new installer user via OAuth:", userData.email);
+      console.log("Installer OAuth signup blocked - redirecting to email/password registration");
+      return { shouldRedirect: "/installer-registration" };
     } else if (intendedRole === 'admin') {
       userData.role = 'admin';
       console.log("Creating new admin user via OAuth:", userData.email);
@@ -136,28 +136,8 @@ async function upsertUser(
       }
     );
     
-    // If this is an installer signup, create installer profile
-    if (intendedRole === 'installer') {
-      try {
-        const installerData = {
-          contactName: `${claims["first_name"]} ${claims["last_name"]}`.trim(),
-          businessName: `${claims["first_name"]} ${claims["last_name"]} TV Services`.trim(),
-          email: claims["email"],
-          phone: '', // Will be completed during profile setup
-          address: 'Ireland', // Default location
-          serviceArea: 'Greater Dublin Area', // Default service area
-          expertise: ['TV Mounting', 'Wall Installation'],
-          bio: 'Professional TV installer registered via OAuth',
-          yearsExperience: 1,
-          isActive: false // Requires profile completion
-        };
-        
-        await storage.createInstaller(installerData);
-        console.log("Created installer profile for OAuth user:", claims["email"]);
-      } catch (err) {
-        console.error("Failed to create installer profile:", err);
-      }
-    }
+    // Installer profiles are now created through email/password registration system
+    // OAuth is only for customers and admins
     
     // Send verification email for new OAuth users
     try {

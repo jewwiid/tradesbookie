@@ -2208,13 +2208,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (req.session as any).installerId = installer.id;
         (req.session as any).installerAuthenticated = true;
 
-        res.json({ 
-          success: true, 
-          installer: {
-            ...installer,
-            isDemoAccount: true
-          },
-          message: "Demo login successful! Limited access to protect customer privacy." 
+        // Save session before sending response
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ error: 'Failed to save session' });
+          }
+          
+          res.json({ 
+            success: true, 
+            installer: {
+              ...installer,
+              isDemoAccount: true
+            },
+            message: "Demo login successful! Limited access to protect customer privacy." 
+          });
         });
       }
       // Regular demo access for other emails (legacy support)
@@ -2243,13 +2251,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (req.session as any).installerId = installer.id;
         (req.session as any).installerAuthenticated = true;
         
-        res.json({ 
-          success: true, 
-          installer: {
-            ...installer,
-            isDemoAccount: false
-          },
-          message: "Login successful!" 
+        // Save session before sending response
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ error: 'Failed to save session' });
+          }
+          
+          res.json({ 
+            success: true, 
+            installer: {
+              ...installer,
+              isDemoAccount: false
+            },
+            message: "Login successful!" 
+          });
         });
       } else {
         // Regular authentication using bcrypt comparison
@@ -2258,25 +2274,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ error: "Invalid email or password" });
         }
         
-        // Check approval status
-        if (installer.approvalStatus !== "approved") {
-          return res.status(403).json({ 
-            error: "Account pending approval", 
-            approvalStatus: installer.approvalStatus,
-            profileCompleted: installer.profileCompleted 
-          });
-        }
-        
-        // Set installer session data
+        // Set installer session data regardless of approval status
         (req.session as any).installerId = installer.id;
         (req.session as any).installerAuthenticated = true;
         
-        // Return installer data (without password hash)
-        const { passwordHash: _, ...installerData } = installer;
-        res.json({
-          success: true,
-          installer: installerData,
-          message: "Login successful"
+        // Save session before sending response
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ error: 'Failed to save session' });
+          }
+          
+          // Return installer data (without password hash)
+          const { passwordHash: _, ...installerData } = installer;
+          res.json({
+            success: true,
+            installer: installerData,
+            message: "Login successful",
+            approvalStatus: installer.approvalStatus,
+            profileCompleted: installer.profileCompleted
+          });
         });
       }
     } catch (error) {
@@ -2292,6 +2309,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching installers:", error);
       res.status(500).json({ message: "Failed to fetch installers" });
+    }
+  });
+
+  // Check installer authentication status
+  app.get("/api/installer/auth/status", async (req, res) => {
+    try {
+      const installerId = (req.session as any)?.installerId;
+      const installerAuthenticated = (req.session as any)?.installerAuthenticated;
+      
+      if (!installerId || !installerAuthenticated) {
+        return res.status(401).json({ 
+          authenticated: false, 
+          message: "Not authenticated as installer" 
+        });
+      }
+      
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (!installer) {
+        return res.status(404).json({ 
+          authenticated: false, 
+          message: "Installer profile not found" 
+        });
+      }
+      
+      // Return authentication status with basic installer info
+      const { passwordHash: _, ...installerData } = installer;
+      res.json({
+        authenticated: true,
+        installer: installerData
+      });
+    } catch (error) {
+      console.error("Error checking installer auth status:", error);
+      res.status(500).json({ 
+        authenticated: false, 
+        message: "Failed to check authentication status" 
+      });
     }
   });
 

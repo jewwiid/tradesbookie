@@ -30,6 +30,25 @@ export default function InstallerPending() {
 
   const fetchProfile = async () => {
     try {
+      // First check authentication status
+      const authResponse = await fetch('/api/installer/auth/status', {
+        credentials: 'include'
+      });
+      
+      if (!authResponse.ok) {
+        console.log('Not authenticated, redirecting to login');
+        setLocation('/installer-login');
+        return;
+      }
+
+      const authData = await authResponse.json();
+      if (!authData.authenticated) {
+        console.log('Authentication failed, redirecting to login');
+        setLocation('/installer-login');
+        return;
+      }
+
+      // If authenticated, get full profile
       const response = await fetch('/api/installer/profile', {
         credentials: 'include'
       });
@@ -42,6 +61,7 @@ export default function InstallerPending() {
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setLocation('/installer-login');
     } finally {
       setLoading(false);
     }

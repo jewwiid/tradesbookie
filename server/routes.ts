@@ -3279,7 +3279,70 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       
-      // Get all bookings assigned to this installer
+      // For demo installer (ID: 2), return mock purchased leads data
+      if (installerId === 2) {
+        const mockPurchasedLeads = [
+          {
+            id: 101,
+            customerName: "Sarah O'Brien",
+            customerEmail: "sarah.obrien@email.ie",
+            customerPhone: "+353 86 123 4567",
+            address: "15 Grafton Street, Dublin 2, Ireland",
+            tvSize: "55 inch",
+            serviceType: "silver-premium",
+            wallType: "Drywall",
+            mountType: "Tilting Wall Mount",
+            addons: ["Cable Management"],
+            estimatedPrice: "155.00",
+            leadFee: "25",
+            status: "completed",
+            scheduledDate: new Date('2025-06-28'),
+            completedDate: new Date('2025-06-28'),
+            customerNotes: "Customer prefers evening installation after 6pm",
+            createdAt: new Date('2025-06-25').toISOString()
+          },
+          {
+            id: 102,
+            customerName: "Michael Walsh",
+            customerEmail: "m.walsh@gmail.com",
+            customerPhone: "+353 87 987 6543",
+            address: "42 Patrick Street, Cork, Ireland",
+            tvSize: "65 inch",
+            serviceType: "gold-premium-large",
+            wallType: "Brick",
+            mountType: "Full Motion Wall Mount",
+            addons: ["Cable Management", "Soundbar Installation"],
+            estimatedPrice: "312.00",
+            leadFee: "30",
+            status: "in-progress",
+            scheduledDate: new Date('2025-07-02'),
+            customerNotes: "Large installation, bring ladder",
+            createdAt: new Date('2025-06-30').toISOString()
+          },
+          {
+            id: 103,
+            customerName: "Emma Collins",
+            customerEmail: "emma.collins@outlook.ie",
+            customerPhone: "+353 85 456 7890",
+            address: "89 Henry Street, Galway, Ireland",
+            tvSize: "43 inch",
+            serviceType: "bronze-wall-mount",
+            wallType: "Plasterboard",
+            mountType: "Fixed Wall Mount",
+            addons: [],
+            estimatedPrice: "350.00",
+            leadFee: "30",
+            status: "scheduled",
+            scheduledDate: new Date('2025-07-03'),
+            customerNotes: "First floor apartment, easy access",
+            createdAt: new Date('2025-07-01').toISOString()
+          }
+        ];
+        
+        return res.json(mockPurchasedLeads);
+      }
+      
+      // For other installers, try to get from database
       const allBookings = await storage.getAllBookings();
       const installerBookings = allBookings.filter(booking => 
         booking.installerId === installerId
@@ -3361,7 +3424,69 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       
-      // Get reviews for this installer
+      // For demo installer (ID: 2), return mock review data
+      if (installerId === 2) {
+        const mockReviews = [
+          {
+            id: 201,
+            userId: "demo-customer-1",
+            installerId: 2,
+            bookingId: 101,
+            customerName: "Sarah O'Brien",
+            rating: 5,
+            title: "Excellent Professional Service",
+            comment: "Michael was punctual, professional, and did an excellent job mounting our 55-inch TV. Clean cable management and explained everything clearly. Highly recommend!",
+            serviceType: "silver-premium",
+            isVerified: true,
+            createdAt: new Date('2025-06-29').toISOString()
+          },
+          {
+            id: 202,
+            userId: "demo-customer-2",
+            installerId: 2,
+            bookingId: 102,
+            customerName: "David Murphy",
+            rating: 5,
+            title: "Perfect Wall Mount Installation",
+            comment: "Great work on our brick wall installation. Brought all the right tools and completed the job efficiently. Very happy with the full motion mount.",
+            serviceType: "gold-premium-large",
+            isVerified: true,
+            createdAt: new Date('2025-06-27').toISOString()
+          },
+          {
+            id: 203,
+            userId: "demo-customer-3",
+            installerId: 2,
+            bookingId: 103,
+            customerName: "Lisa Collins",
+            rating: 4,
+            title: "Good Service, Minor Delay",
+            comment: "Quality installation work, though arrived 30 minutes late. The final result looks great and all cables are hidden nicely.",
+            serviceType: "bronze-wall-mount",
+            isVerified: true,
+            createdAt: new Date('2025-06-25').toISOString()
+          }
+        ];
+        
+        const totalReviews = mockReviews.length;
+        const averageRating = mockReviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
+        
+        // Calculate rating distribution
+        const ratingCounts = [1, 2, 3, 4, 5].map(rating => ({
+          rating,
+          count: mockReviews.filter(r => r.rating === rating).length,
+          percentage: totalReviews > 0 ? (mockReviews.filter(r => r.rating === rating).length / totalReviews) * 100 : 0
+        }));
+        
+        return res.json({
+          totalReviews,
+          averageRating: Math.round(averageRating * 10) / 10,
+          ratingDistribution: ratingCounts,
+          recentReviews: mockReviews
+        });
+      }
+      
+      // For other installers, get reviews from database
       const reviews = await storage.getInstallerReviews(installerId);
       
       // Calculate review statistics

@@ -2297,6 +2297,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+
+
   app.get("/api/installers/:id/jobs", async (req, res) => {
     try {
       const jobs = await storage.getInstallerJobs(parseInt(req.params.id));

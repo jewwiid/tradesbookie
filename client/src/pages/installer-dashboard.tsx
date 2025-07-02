@@ -350,8 +350,8 @@ export default function InstallerDashboard() {
 
   // Fetch available requests from API
   const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
-    queryKey: ['/api/installer/available-requests'],
-    enabled: isOnline,
+    queryKey: ['/api/installer/2/available-leads'],
+    enabled: isOnline && !!installerProfile?.id,
     refetchInterval: 30000, // Refresh every 30 seconds when online
   });
 
@@ -368,7 +368,7 @@ export default function InstallerDashboard() {
         description: "Professional email sent to customer with your contact details. They will reach out within 24 hours to confirm scheduling.",
         duration: 6000,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/installer/available-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer/2/available-leads'] });
       
       // Update local stats to reflect accepted job
       setStats(prev => ({

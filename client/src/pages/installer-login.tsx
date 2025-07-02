@@ -17,25 +17,55 @@ export default function InstallerLogin() {
     password: ""
   });
 
+  const [pendingApproval, setPendingApproval] = useState<{ 
+    approvalStatus: string; 
+    profileCompleted: boolean 
+  } | null>(null);
+
   const loginMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("/api/installers/login", "POST", data);
+      const response = await fetch("/api/installers/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      
+      const responseData = await response.json();
+      
+      if (!response.ok) {
+        if (response.status === 403) {
+          // Account pending approval
+          setPendingApproval({
+            approvalStatus: responseData.approvalStatus,
+            profileCompleted: responseData.profileCompleted
+          });
+          throw new Error("Account pending approval");
+        }
+        throw new Error(responseData.error || "Login failed");
+      }
+      
+      return responseData;
     },
     onSuccess: (data: any) => {
       toast({
         title: "Login Successful",
         description: "Welcome back to your installer dashboard.",
       });
-      // Store installer ID in localStorage for session management
+      // Store installer data in localStorage for session management
+      localStorage.setItem("installer", JSON.stringify(data.installer));
       localStorage.setItem("installerId", data.installer.id.toString());
       setLocation(`/installer-dashboard/${data.installer.id}`);
     },
-    onError: (error) => {
-      toast({
-        title: "Login Failed",
-        description: "Please check your email and password.",
-        variant: "destructive",
-      });
+    onError: (error: any) => {
+      if (error.message !== "Account pending approval") {
+        toast({
+          title: "Login Failed",
+          description: error.message || "Please check your email and password.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
@@ -113,6 +143,42 @@ export default function InstallerLogin() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Approval Status Display */}
+        {pendingApproval && (
+          <Card className="border-orange-200 bg-orange-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <Lock className="w-6 h-6 text-orange-600" />
+                </div>
+              </div>
+              <div className="text-center">
+                <h3 className="font-semibold text-orange-900 mb-2">
+                  Account Pending Approval
+                </h3>
+                <p className="text-sm text-orange-700 mb-4">
+                  {!pendingApproval.profileCompleted 
+                    ? "Please complete your profile first, then wait for admin approval to access the dashboard."
+                    : "Your profile is complete. Please wait for admin approval to access the dashboard."
+                  }
+                </p>
+                <div className="space-y-2">
+                  {!pendingApproval.profileCompleted && (
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href="/installer-profile-setup">
+                        Complete Profile
+                      </Link>
+                    </Button>
+                  )}
+                  <p className="text-xs text-orange-600">
+                    Status: {pendingApproval.approvalStatus}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* OAuth Authentication */}
         <div className="text-center mb-6">

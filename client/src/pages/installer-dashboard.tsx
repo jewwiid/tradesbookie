@@ -550,7 +550,7 @@ export default function InstallerDashboard() {
             </TabsTrigger>
             <TabsTrigger value="past-leads" className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4" />
-              Past Leads
+              Purchased Leads
             </TabsTrigger>
             <TabsTrigger value="reviews" className="flex items-center gap-2">
               <Star className="w-4 h-4" />

@@ -40,7 +40,7 @@ interface PastLead {
   createdAt: string;
 }
 
-interface PastLeadsManagementProps {
+interface PurchasedLeadsManagementProps {
   installerId: number;
 }
 
@@ -62,7 +62,7 @@ const statusLabels = {
   'cancelled': 'Cancelled'
 };
 
-export default function PastLeadsManagement({ installerId }: PastLeadsManagementProps) {
+export default function PastLeadsManagement({ installerId }: PurchasedLeadsManagementProps) {
   const [selectedLead, setSelectedLead] = useState<PastLead | null>(null);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
@@ -130,7 +130,7 @@ export default function PastLeadsManagement({ installerId }: PastLeadsManagement
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-primary" />
-            Past Leads Management
+            Purchased Leads
           </CardTitle>
         </CardHeader>
         <CardContent>

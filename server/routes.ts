@@ -814,18 +814,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate pricing first to get required price fields
       const pricing = calculatePricing(
         rawData.serviceType || 'bronze',
-        rawData.addons || [],
-        rawData.installerId || null
+        rawData.addons || []
       );
+      
+      console.log('Pricing result:', pricing);
+      console.log('Service type:', rawData.serviceType);
       
       // Set installerId to null for initial booking creation
       rawData.installerId = null;
       
-      // Add calculated pricing to data as strings
-      rawData.basePrice = pricing.basePrice.toFixed(2);
-      rawData.totalPrice = pricing.totalPrice.toFixed(2);
-      rawData.appFee = pricing.appFee.toFixed(2);
-      rawData.installerEarnings = pricing.installerEarnings.toFixed(2);
+      // Add calculated pricing to data as strings with null checks
+      rawData.basePrice = (pricing.estimatedPrice || 0).toFixed(2);
+      rawData.totalPrice = (pricing.totalEstimate || 0).toFixed(2);
+      rawData.appFee = (pricing.leadFee || 0).toFixed(2);
+      rawData.installerEarnings = (pricing.estimatedPrice || 0).toFixed(2);
       
       const bookingData = insertBookingSchema.parse(rawData);
       
@@ -851,11 +853,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             address: bookingData.address,
             roomPhotoUrl: bookingData.roomPhotoUrl,
             aiPreviewUrl: bookingData.aiPreviewUrl,
-            basePrice: pricing.basePrice.toString(),
+            basePrice: pricing.estimatedPrice.toString(),
             addonTotal: pricing.addonsPrice.toString(),
-            totalPrice: pricing.totalPrice.toString(),
-            appFee: pricing.appFee.toString(),
-            installerEarning: pricing.installerEarnings.toString(),
+            totalPrice: pricing.totalEstimate.toString(),
+            appFee: pricing.leadFee.toString(),
+            installerEarning: pricing.estimatedPrice.toString(),
             status: 'pending',
             customerNotes: bookingData.customerNotes,
             createdAt: new Date().toISOString(),
@@ -889,8 +891,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             serviceType: bookingData.serviceType,
             tvSize: bookingData.tvSize,
             address: bookingData.address,
-            totalPrice: pricing.totalPrice,
-            installerEarnings: pricing.installerEarnings,
+            totalPrice: pricing.totalEstimate,
+            installerEarnings: pricing.estimatedPrice,
             difficulty: bookingData.difficulty || 'Standard'
           };
 

@@ -114,33 +114,53 @@ export default function InstallerLogin() {
           </CardContent>
         </Card>
 
-        {/* OAuth Login */}
+        {/* OAuth Authentication */}
         <div className="text-center mb-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">Sign In with OAuth</h3>
+            <h3 className="font-semibold text-blue-900 mb-2">OAuth Authentication</h3>
             <p className="text-blue-800 text-sm mb-3">
               Use your existing account from Google, GitHub, or other providers
             </p>
-            <Button 
-              onClick={() => {
-                console.log("Initiating OAuth login for installer role");
-                window.location.href = '/api/login?role=installer';
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 mb-2"
-            >
-              Sign In as Installer
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                onClick={() => {
+                  console.log("Initiating OAuth login for installer role");
+                  window.location.href = '/api/login?role=installer';
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                Sign In as Installer
+              </Button>
+              <Button 
+                onClick={() => {
+                  console.log("Initiating OAuth signup for installer role");
+                  window.location.href = '/api/signup?role=installer';
+                }}
+                variant="outline"
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+              >
+                Sign Up as New Installer
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Registration Link */}
         <div className="text-center">
-          <p className="text-gray-600">
-            Not registered yet?{" "}
-            <Link href="/installer-registration" className="text-primary hover:text-primary/80 font-medium">
-              Apply to become an installer
-            </Link>
-          </p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <p className="text-green-800 text-sm font-medium mb-1">
+              New Installer Registration Flow:
+            </p>
+            <p className="text-green-700 text-xs mb-2">
+              1. Click "Sign Up as New Installer" above → 2. Complete OAuth signup → 3. Verify email → 4. Complete installer profile
+            </p>
+            <p className="text-gray-600 text-xs">
+              Alternative:{" "}
+              <Link href="/installer-registration" className="text-primary hover:text-primary/80 font-medium">
+                Complete manual application form
+              </Link>
+            </p>
+          </div>
         </div>
 
         {/* Demo Access */}

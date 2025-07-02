@@ -413,9 +413,16 @@ export async function setupAuth(app: Express) {
             console.error("Session save error:", saveErr);
           }
           
-          // Redirect based on role
+          // Redirect based on role and auth action
           if (intendedRole === 'installer') {
-            return res.redirect('/installer-dashboard');
+            const authAction = (req.session as any)?.authAction;
+            if (authAction === 'signup') {
+              // New installer signup - redirect to profile completion
+              return res.redirect('/installer-profile-setup');
+            } else {
+              // Existing installer login - redirect to dashboard  
+              return res.redirect('/installer-dashboard');
+            }
           } else if (intendedRole === 'admin') {
             return res.redirect('/admin-dashboard');
           } else if (returnTo) {

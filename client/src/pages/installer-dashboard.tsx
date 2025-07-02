@@ -125,7 +125,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
         />
         
         {/* Plot request markers on the map */}
-        {availableRequests.map((request, index) => {
+        {requests.map((request, index) => {
           const x = 80 + (index % 6) * 20;
           const y = 80 + Math.floor(index / 6) * 25;
           const color = request.urgency === 'emergency' ? '#ef4444' : 

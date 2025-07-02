@@ -2399,13 +2399,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let allowedUpdates: any = {};
       
       if (currentInstaller.approvalStatus === 'rejected') {
-        // Rejected installers can update basic info only
+        // Rejected installers can update Essential Profile Information only
         allowedUpdates = {
           businessName: updateData.businessName,
           contactName: updateData.contactName,
           phone: updateData.phone,
           address: updateData.address,
           county: updateData.county,
+          vatNumber: updateData.vatNumber,
+          insurance: updateData.insurance,
+          maxTravelDistance: updateData.maxTravelDistance,
+          yearsExperience: updateData.yearsExperience ? parseInt(updateData.yearsExperience) : currentInstaller.yearsExperience,
+          emergencyCallout: updateData.emergencyCallout,
+          weekendAvailable: updateData.weekendAvailable,
           // Reset approval status to pending when resubmitting
           approvalStatus: 'pending',
           adminComments: null // Clear previous comments

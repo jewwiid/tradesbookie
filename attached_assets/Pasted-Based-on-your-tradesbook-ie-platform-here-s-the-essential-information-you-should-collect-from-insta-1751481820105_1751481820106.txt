@@ -1,0 +1,67 @@
+Based on your tradesbook.ie platform, here's the essential information you should collect from installers during signup:
+
+## **Essential Profile Information**
+
+### **Business Basics**
+- Full name/business name
+- Email address (for login/notifications)
+- Phone number (for customer contact)
+- Business address
+- VAT number (if applicable)
+- Public liability insurance details & expiry date
+
+### **Service Coverage**
+- Primary county/area of operation
+- Secondary coverage areas (willing to travel to)
+- Maximum travel distance from base
+- Emergency callout availability (yes/no)
+- Weekend/evening availability
+
+### **Skills & Experience**
+- Years of TV installation experience
+- Device types you install (Smart TVs, Gaming setups, Sound systems, etc.)
+- Wall types you work with (Plasterboard, Brick, Concrete, etc.)
+- Mount types you offer (Fixed, Tilt, Full Motion, Ceiling)
+- Special services (Cable concealment, Soundbar installation, Antenna setup)
+
+### **Business Operations**
+- Availability schedule (Days/hours you work)
+- Vehicle type (for equipment transport)
+- Team size (solo/crew)
+- Languages spoken
+
+## **Profile Enhancement (Optional but Valuable)**
+
+### **Credibility Builders**
+- Professional certifications/qualifications
+- Profile photo (builds trust)
+- Brief bio/experience summary
+- Specialties or unique selling points
+
+### **Customer Service**
+- Preferred communication method (call/text/email)
+- Response time commitment
+- Cleanup policy (do you clean up after installation?)
+
+### **Pricing Transparency**
+- Callout fee (if any)
+- Additional charges for difficult installations
+- Payment methods accepted
+
+## **Platform Integration**
+
+### **Technical Setup**
+- Notification preferences (email/SMS for new jobs)
+- Online/offline toggle default setting
+- Job acceptance radius
+
+Based on your platform's features, I'd recommend keeping the **initial signup simple** (just the essentials) and allowing installers to **enhance their profiles later** with additional details. This reduces signup friction while still collecting what you need for job matching.
+
+**Most Critical for Your Uber-Style System:**
+1. Service area coverage
+2. Phone number for instant contact
+3. Insurance verification
+4. Device/installation specialties
+5. Availability preferences
+
+Would you like me to design a step-by-step registration flow that collects this information in a user-friendly way?

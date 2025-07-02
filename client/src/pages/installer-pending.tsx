@@ -44,28 +44,12 @@ export default function InstallerPending() {
     phone: "",
     address: "",
     county: "",
-    
-    // Enhanced Information (editable when approved)
-    bio: "",
-    yearsExperience: "",
-    certifications: "",
-    expertise: [] as string[],
-    serviceAreas: [] as string[],
-    emergencyCallout: false,
-    weekendAvailable: false,
-    insurance: "",
     vatNumber: "",
+    insurance: "",
     maxTravelDistance: "",
-    languages: [] as string[],
-    teamSize: "",
-    vehicleType: "",
-    responseTime: "",
-    
-    // Service capabilities
-    wallTypes: [] as string[],
-    mountTypes: [] as string[],
-    deviceTypes: [] as string[],
-    specialServices: [] as string[]
+    yearsExperience: "",
+    emergencyCallout: false,
+    weekendAvailable: false
   });
 
   useEffect(() => {
@@ -427,6 +411,27 @@ export default function InstallerPending() {
                                   </SelectContent>
                                 </Select>
                               </div>
+                              
+                              <div>
+                                <Label htmlFor="vatNumber">VAT Number</Label>
+                                <Input
+                                  id="vatNumber"
+                                  value={profileForm.vatNumber}
+                                  onChange={(e) => setProfileForm({...profileForm, vatNumber: e.target.value})}
+                                  placeholder="IE1234567X (if applicable)"
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="insurance">Public Liability Insurance *</Label>
+                                <Input
+                                  id="insurance"
+                                  value={profileForm.insurance}
+                                  onChange={(e) => setProfileForm({...profileForm, insurance: e.target.value})}
+                                  placeholder="Insurance provider & policy details"
+                                  required
+                                />
+                              </div>
                             </div>
                             
                             <div>
@@ -439,6 +444,71 @@ export default function InstallerPending() {
                                 rows={3}
                                 required
                               />
+                            </div>
+                            
+                            {/* Service Coverage Section */}
+                            <div className="space-y-4 pt-4 border-t">
+                              <h4 className="font-medium text-gray-900">Service Coverage</h4>
+                              
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="maxTravelDistance">Maximum Travel Distance *</Label>
+                                  <Select 
+                                    value={profileForm.maxTravelDistance} 
+                                    onValueChange={(value) => setProfileForm({...profileForm, maxTravelDistance: value})}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select travel distance" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="10km">Within 10km</SelectItem>
+                                      <SelectItem value="25km">Within 25km</SelectItem>
+                                      <SelectItem value="50km">Within 50km</SelectItem>
+                                      <SelectItem value="county">County-wide</SelectItem>
+                                      <SelectItem value="regional">Regional (multi-county)</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                
+                                <div>
+                                  <Label htmlFor="yearsExperience">Years of Experience *</Label>
+                                  <Select 
+                                    value={profileForm.yearsExperience} 
+                                    onValueChange={(value) => setProfileForm({...profileForm, yearsExperience: value})}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select experience level" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="1">1 year</SelectItem>
+                                      <SelectItem value="2">2 years</SelectItem>
+                                      <SelectItem value="3-5">3-5 years</SelectItem>
+                                      <SelectItem value="5-10">5-10 years</SelectItem>
+                                      <SelectItem value="10+">10+ years</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              
+                              <div className="flex gap-4">
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id="emergencyCallout"
+                                    checked={profileForm.emergencyCallout}
+                                    onCheckedChange={(checked) => setProfileForm({...profileForm, emergencyCallout: !!checked})}
+                                  />
+                                  <Label htmlFor="emergencyCallout">Emergency callout available</Label>
+                                </div>
+                                
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id="weekendAvailable"
+                                    checked={profileForm.weekendAvailable}
+                                    onCheckedChange={(checked) => setProfileForm({...profileForm, weekendAvailable: !!checked})}
+                                  />
+                                  <Label htmlFor="weekendAvailable">Weekend availability</Label>
+                                </div>
+                              </div>
                             </div>
                           </div>
 

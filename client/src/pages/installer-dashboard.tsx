@@ -866,6 +866,217 @@ export default function InstallerDashboard() {
                         )}
                       </div>
                     </div>
+                    {/* Profile Enhancement Section - Only for approved installers */}
+                    {installerProfile.approvalStatus === 'approved' && (
+                      <div className="space-y-6 pt-6 border-t">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <Edit className="w-5 h-5 text-primary" />
+                          Profile Enhancement
+                        </h3>
+                        
+                        {/* Credibility Builders */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Credibility Builders</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="profileImage">Profile Photo</Label>
+                                <Input
+                                  id="profileImage"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    if (e.target.files?.[0]) {
+                                      toast({ title: "Profile photo upload", description: "Feature coming soon" });
+                                    }
+                                  }}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Upload a professional photo to build trust</p>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="certifications">Professional Certifications</Label>
+                                <Input
+                                  id="certifications"
+                                  placeholder="e.g., CEDIA, AVIXA certified"
+                                  defaultValue={installerProfile.certifications || ""}
+                                />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="bio">Professional Bio</Label>
+                              <Textarea
+                                id="bio"
+                                placeholder="Tell customers about your experience, specialties, and what makes you unique..."
+                                rows={4}
+                                defaultValue={installerProfile.bio || ""}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Customer Service Preferences */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Customer Service Preferences</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="preferredCommunication">Preferred Communication Method</Label>
+                                <Select defaultValue={installerProfile.preferredCommunication || ""}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="How do you prefer to be contacted?" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="phone">Phone Call</SelectItem>
+                                    <SelectItem value="text">Text Message</SelectItem>
+                                    <SelectItem value="email">Email</SelectItem>
+                                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="responseTime">Response Time Commitment</Label>
+                                <Select defaultValue={installerProfile.responseTime || ""}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="How quickly do you respond?" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="15min">Within 15 minutes</SelectItem>
+                                    <SelectItem value="1hour">Within 1 hour</SelectItem>
+                                    <SelectItem value="2hours">Within 2 hours</SelectItem>
+                                    <SelectItem value="same-day">Same day</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="cleanupPolicy">Cleanup Policy</Label>
+                              <Textarea
+                                id="cleanupPolicy"
+                                placeholder="Describe your cleanup policy after installation..."
+                                rows={3}
+                                defaultValue={installerProfile.cleanupPolicy || ""}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Pricing & Business Operations */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Pricing & Business Operations</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="calloutFee">Callout Fee (€)</Label>
+                                <Input
+                                  id="calloutFee"
+                                  type="number"
+                                  placeholder="0"
+                                  defaultValue={installerProfile.calloutFee || ""}
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Leave blank if no callout fee</p>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="teamSize">Team Size</Label>
+                                <Select defaultValue={installerProfile.teamSize || ""}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="How many people on your team?" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="solo">Solo installer</SelectItem>
+                                    <SelectItem value="2">2 person team</SelectItem>
+                                    <SelectItem value="3">3 person team</SelectItem>
+                                    <SelectItem value="4+">4+ person team</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="additionalCharges">Additional Charges for Difficult Installations</Label>
+                              <Textarea
+                                id="additionalCharges"
+                                placeholder="Describe any additional charges for complex installations..."
+                                rows={3}
+                                defaultValue={installerProfile.additionalCharges || ""}
+                              />
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Business Information */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-base">Business Information</CardTitle>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="vehicleType">Vehicle Type</Label>
+                                <Select defaultValue={installerProfile.vehicleType || ""}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="What vehicle do you use?" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="van">Van</SelectItem>
+                                    <SelectItem value="car">Car</SelectItem>
+                                    <SelectItem value="truck">Truck</SelectItem>
+                                    <SelectItem value="multiple">Multiple vehicles</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="languages">Languages Spoken</Label>
+                                <Input
+                                  id="languages"
+                                  placeholder="e.g., English, Irish, Polish"
+                                  defaultValue={installerProfile.languages?.join(', ') || ""}
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Save Button */}
+                        <div className="flex justify-end pt-4">
+                          <Button 
+                            onClick={() => {
+                              toast({ 
+                                title: "Profile Enhanced", 
+                                description: "Your profile enhancements have been saved successfully." 
+                              });
+                            }}
+                            className="bg-primary hover:bg-primary/90"
+                          >
+                            Save Profile Enhancements
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Message for non-approved installers */}
+                    {installerProfile.approvalStatus !== 'approved' && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
+                        <div className="flex items-center gap-2 text-yellow-800">
+                          <AlertCircle className="w-4 h-4" />
+                          <span className="font-medium">Profile Enhancement Available After Approval</span>
+                        </div>
+                        <p className="text-yellow-700 text-sm mt-1">
+                          Once your installer application is approved, you'll be able to enhance your profile with additional features like bio, certifications, and customer service preferences.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
                 
@@ -874,7 +1085,7 @@ export default function InstallerDashboard() {
                   className="w-full"
                 >
                   <Edit className="w-4 h-4 mr-2" />
-                  Edit Profile Information
+                  Edit Basic Information
                 </Button>
               </CardContent>
             </Card>

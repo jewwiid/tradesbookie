@@ -1361,13 +1361,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           phone: installerData.phone,
           address: installerData.address,
           serviceArea: installerData.county,
-          expertise: installerData.specialties,
-          deviceTypes: installerData.deviceTypes,
+          expertise: [...(installerData.specialties || []), ...(installerData.deviceTypes || [])], // Combine specialties and deviceTypes
           bio: installerData.bio,
           yearsExperience: parseInt(installerData.experience) || 1,
-          maxTravelDistance: parseInt(installerData.maxTravelDistance) || 50,
-          emergencyCallout: installerData.emergencyCallout || false,
-          weekendAvailable: installerData.weekendAvailable || false,
           // Set approval status to pending when profile is completed
           approvalStatus: 'pending',
           isActive: false // Requires admin approval
@@ -1387,13 +1383,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         phone: installerData.phone,
         address: installerData.address,
         serviceArea: installerData.county,
-        expertise: installerData.specialties,
-        deviceTypes: installerData.deviceTypes,
+        expertise: [...(installerData.specialties || []), ...(installerData.deviceTypes || [])], // Combine specialties and deviceTypes
         bio: installerData.bio,
         yearsExperience: parseInt(installerData.experience) || 1,
-        maxTravelDistance: parseInt(installerData.maxTravelDistance) || 50,
-        emergencyCallout: installerData.emergencyCallout || false,
-        weekendAvailable: installerData.weekendAvailable || false,
         approvalStatus: 'pending',
         isActive: false // Requires admin approval
       });
@@ -1405,6 +1397,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error registering installer:", error);
       res.status(500).json({ message: "Failed to register installer" });
+    }
+  });
+
+  // Installer profile update endpoint for OAuth users
+  app.post("/api/installers/profile/update", async (req, res) => {
+    try {
+      const installerData = req.body;
+      
+      if (!installerData.email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      // Find existing installer by email
+      const existingInstaller = await storage.getInstallerByEmail(installerData.email);
+      if (!existingInstaller) {
+        return res.status(404).json({ error: "Installer not found" });
+      }
+
+      // Update installer profile
+      const updatedInstaller = await storage.updateInstaller(existingInstaller.id, {
+        contactName: installerData.name,
+        businessName: installerData.businessName || installerData.name,
+        phone: installerData.phone,
+        address: installerData.address,
+        serviceArea: installerData.county,
+        expertise: [...(installerData.specialties || []), ...(installerData.deviceTypes || [])],
+        bio: installerData.bio,
+        yearsExperience: parseInt(installerData.experience) || 1,
+        approvalStatus: 'pending',
+        isActive: false // Requires admin approval
+      });
+
+      res.json({ 
+        message: "Profile updated successfully. Awaiting admin approval.", 
+        installer: { id: updatedInstaller.id, email: updatedInstaller.email, name: updatedInstaller.contactName }
+      });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ error: "Failed to update profile" });
     }
   });
 

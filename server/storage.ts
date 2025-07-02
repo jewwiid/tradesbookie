@@ -221,6 +221,17 @@ export class DatabaseStorage implements IStorage {
     return installer;
   }
 
+  async updateInstaller(id: number, updates: Partial<InsertInstaller>): Promise<Installer> {
+    const [installer] = await db.update(installers)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(installers.id, id))
+      .returning();
+    return installer;
+  }
+
   async getAllInstallers(): Promise<Installer[]> {
     return await db.select().from(installers);
   }

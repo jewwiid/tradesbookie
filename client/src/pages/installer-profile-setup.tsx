@@ -57,15 +57,20 @@ export default function InstallerProfileSetup() {
 
   const createInstallerMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Use update endpoint for OAuth users who already have an account
+      if (currentUser) {
+        return await apiRequest("/api/installers/profile/update", "POST", data);
+      }
+      // Use register endpoint for non-OAuth users
       return await apiRequest("/api/installers/register", "POST", data);
     },
     onSuccess: (data) => {
       toast({
         title: "Profile Setup Complete!",
-        description: "Welcome to the tradesbook.ie installer network. You can now access your dashboard.",
+        description: "Your installer profile has been submitted for admin approval.",
       });
-      // Redirect to installer dashboard with their ID
-      setLocation(`/installer-dashboard/${data.installer.id}`);
+      // Redirect to installer login page for approval status
+      setLocation("/installer-login");
     },
     onError: (error: any) => {
       toast({

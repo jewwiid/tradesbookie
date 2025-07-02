@@ -1962,6 +1962,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           installer = await storage.createInstaller(demoInstallerData);
         }
 
+        // Reset and regenerate mock leads for demo account on each login
+        await resetDemoLeads(installer.id);
+
         res.json({ 
           success: true, 
           installer: {

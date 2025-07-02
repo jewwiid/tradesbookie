@@ -426,6 +426,9 @@ export default function InstallerDashboard() {
         description: "Request removed from your list",
       });
       
+      // Invalidate and refresh the available leads list
+      queryClient.invalidateQueries({ queryKey: ['/api/installer/2/available-leads'] });
+      
       // Remove the declined request from selected state
       if (selectedRequest?.id === requestId) {
         setSelectedRequest(null);

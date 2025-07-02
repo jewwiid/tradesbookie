@@ -116,11 +116,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Use passport authenticate with explicit error handling
-      passport.authenticate(strategyName, { 
-        scope: "openid email profile offline_access",
-        prompt: "login"  // Force login screen for sign-in
-      })(req, res, next);
+      // Save session before OAuth redirect
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error before OAuth:", saveErr);
+          return res.status(500).json({ error: "Session save failed" });
+        }
+        
+        // Use passport authenticate with explicit error handling
+        const authenticator = passport.authenticate(strategyName, { 
+          scope: "openid email profile offline_access",
+          prompt: "login"  // Force login screen for sign-in
+        });
+        
+        console.log("About to call authenticator for login...");
+        authenticator(req, res, (err) => {
+          if (err) {
+            console.error("Authentication error:", err);
+            return res.status(401).json({ error: "Authentication failed", details: err.message });
+          }
+          console.log("Authentication middleware completed");
+        });
+      });
       
     } catch (error) {
       console.error("OAuth login setup error:", error);
@@ -165,10 +182,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log("Using OAuth strategy:", strategyName);
-      passport.authenticate(strategyName, { 
-        scope: "openid email profile offline_access",
-        prompt: "consent"  // Force consent screen for sign-up
-      })(req, res, next);
+      
+      // Save session before OAuth redirect
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error before OAuth:", saveErr);
+          return res.status(500).json({ error: "Session save failed" });
+        }
+        
+        const authenticator = passport.authenticate(strategyName, { 
+          scope: "openid email profile offline_access",
+          prompt: "consent"  // Force consent screen for sign-up
+        });
+        
+        console.log("About to call authenticator for signup...");
+        authenticator(req, res, (err) => {
+          if (err) {
+            console.error("Signup authentication error:", err);
+            return res.status(401).json({ error: "Authentication failed", details: err.message });
+          }
+          console.log("Signup authentication middleware completed");
+        });
+      });
       
     } catch (error) {
       console.error("OAuth signup error:", error);

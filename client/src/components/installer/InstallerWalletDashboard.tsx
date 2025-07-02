@@ -75,10 +75,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
   // Add credits mutation
   const addCreditsMutation = useMutation({
     mutationFn: async (amount: number) => {
-      return apiRequest(`/api/installer/${installerId}/wallet/add-credits`, {
-        method: 'POST',
-        body: JSON.stringify({ amount }),
-      });
+      return apiRequest(`/api/installer/${installerId}/wallet/add-credits`, 'POST', { amount });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/wallet`] });
@@ -100,10 +97,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
   // Purchase lead mutation
   const purchaseLeadMutation = useMutation({
     mutationFn: async ({ bookingId, leadFee }: { bookingId: number; leadFee: number }) => {
-      return apiRequest(`/api/installer/${installerId}/purchase-lead`, {
-        method: 'POST',
-        body: JSON.stringify({ bookingId, leadFee }),
-      });
+      return apiRequest(`/api/installer/${installerId}/purchase-lead`, 'POST', { bookingId, leadFee });
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/wallet`] });
@@ -162,7 +156,8 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
     return types[serviceType] || serviceType;
   };
 
-  const getProfitMarginColor = (margin: number) => {
+  const getProfitMarginColor = (margin: number | null) => {
+    if (!margin) return 'text-gray-600';
     if (margin >= 85) return 'text-green-600';
     if (margin >= 80) return 'text-yellow-600';
     return 'text-red-600';
@@ -282,7 +277,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
                               <div>
                                 <p className="text-gray-500">Profit Margin</p>
                                 <p className={`font-medium ${getProfitMarginColor(lead.profitMargin)}`}>
-                                  {lead.profitMargin.toFixed(1)}%
+                                  {lead.profitMargin?.toFixed(1) || '0.0'}%
                                 </p>
                               </div>
                             </div>

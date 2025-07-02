@@ -156,9 +156,14 @@ const resetDemoLeads = async (installerId: number) => {
         notes: `Demo lead - ${template.difficulty} installation`,
         difficulty: template.difficulty,
         distance: Math.floor(Math.random() * 30) + 5,
-        customerName: randomCustomer.name,
-        customerEmail: randomCustomer.email,
-        customerPhone: randomCustomer.phone
+        // Store real customer details for use after lead purchase
+        actualCustomerName: randomCustomer.name,
+        actualCustomerEmail: randomCustomer.email,
+        actualCustomerPhone: randomCustomer.phone,
+        // But hide them in the available leads display
+        customerName: "Customer details available after lead purchase",
+        customerEmail: null,
+        customerPhone: null
       };
 
       generatedLeads.push(mockLead);
@@ -4568,8 +4573,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Check if this is the demo account and if we have cached demo leads
       if (installerId === 2 && (global as any).demoLeadsCache && (global as any).demoLeadsCache[installerId]) {
         const demoLeads = (global as any).demoLeadsCache[installerId];
-        console.log(`Returning ${demoLeads.length} cached demo leads for installer ${installerId}`);
-        return res.json(demoLeads);
+        // Hide customer contact details in available leads to ensure platform usage
+        const protectedDemoLeads = demoLeads.map((lead: any) => ({
+          ...lead,
+          customerName: "Customer details available after lead purchase",
+          customerEmail: null,
+          customerPhone: null
+        }));
+        console.log(`Returning ${protectedDemoLeads.length} cached demo leads for installer ${installerId}`);
+        return res.json(protectedDemoLeads);
       }
       
       // Get declined requests for this installer to filter them out
@@ -4609,9 +4621,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           qrCode: booking.qrCode,
           notes: booking.customerNotes || booking.notes,
           difficulty: booking.difficulty || 'moderate',
-          customerName: booking.customerName,
-          customerEmail: booking.customerEmail,
-          customerPhone: booking.customerPhone,
+          // Customer contact details hidden until lead purchase
+          customerName: "Customer details available after lead purchase",
+          customerEmail: null, // Hidden until purchase
+          customerPhone: null, // Hidden until purchase
           referralCode: booking.referralCode,
           referralDiscount: booking.referralDiscount
         };

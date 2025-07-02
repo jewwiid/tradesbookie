@@ -186,14 +186,14 @@ export default function OurInstallers() {
                     <div className="space-y-2">
                       <Button 
                         className="w-full" 
-                        onClick={() => window.location.href = '/book-installation'}
+                        onClick={() => window.location.href = '/'}
                       >
                         Book Installation
                       </Button>
                       <Button 
                         variant="outline" 
                         className="w-full"
-                        onClick={() => window.location.href = '/book-installation'}
+                        onClick={() => window.location.href = '/'}
                       >
                         Request Quote
                       </Button>

@@ -831,6 +831,27 @@ export default function InstallerDashboard() {
                               {installerProfile.yearsExperience ? `${installerProfile.yearsExperience} years` : "Not specified"}
                             </p>
                           </div>
+                          
+                          <div className="border-l-4 border-gray-200 pl-4">
+                            <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide flex items-center gap-1">
+                              <Shield className="w-3 h-3" />
+                              Insurance Status
+                            </Label>
+                            <div className="flex items-center gap-2 mt-1">
+                              {installerProfile.insurance ? (
+                                <div>
+                                  <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                                    ✓ Insured
+                                  </Badge>
+                                  <p className="text-sm text-gray-600 mt-1">{installerProfile.insurance}</p>
+                                </div>
+                              ) : (
+                                <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">
+                                  ⚠ Uninsured
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

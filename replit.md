@@ -472,6 +472,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Added deleteInstaller method to storage interface and implemented DELETE API endpoint with proper authentication middleware**
 - July 2, 2025: **Fixed installer deletion parameter order issue in apiRequest function calls for proper DELETE request handling**
 - July 2, 2025: **Enhanced delete confirmation dialog with detailed installer information and comprehensive error handling**
+- July 2, 2025: **Made Public Liability Insurance field optional across all installer registration and profile forms**
+- July 2, 2025: **Implemented comprehensive "uninsured" badge system for installer profiles without insurance information**
+- July 2, 2025: **Added insurance status badges to installer dashboard, admin dashboard, and customer-facing installer profiles**
+- July 2, 2025: **Enhanced installer profile displays with clear visual indicators: green "✓ Insured" badge with insurance details, or red "⚠ Uninsured" badge when no insurance provided**
+- July 2, 2025: **Updated form validation to remove insurance requirements while maintaining clear messaging about optional nature of coverage**
 
 ## User Preferences
 

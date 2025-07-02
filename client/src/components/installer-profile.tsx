@@ -234,6 +234,23 @@ export default function InstallerProfile({ installer, showContactActions = true 
             <Award className="h-5 w-5 text-blue-500 flex-shrink-0" />
             <span>Professional TV Installer</span>
           </div>
+          <div className="flex items-center gap-3">
+            <Shield className="h-5 w-5 text-blue-500 flex-shrink-0" />
+            <div className="flex items-center gap-2">
+              {installer.insurance ? (
+                <div className="flex items-center gap-2">
+                  <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 text-xs">
+                    ✓ Insured
+                  </Badge>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{installer.insurance}</span>
+                </div>
+              ) : (
+                <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200 text-xs">
+                  ⚠ Uninsured
+                </Badge>
+              )}
+            </div>
+          </div>
         </div>
 
         {showContactActions && (

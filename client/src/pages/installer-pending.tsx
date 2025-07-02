@@ -423,14 +423,14 @@ export default function InstallerPending() {
                               </div>
                               
                               <div>
-                                <Label htmlFor="insurance">Public Liability Insurance *</Label>
+                                <Label htmlFor="insurance">Public Liability Insurance</Label>
                                 <Input
                                   id="insurance"
                                   value={profileForm.insurance}
                                   onChange={(e) => setProfileForm({...profileForm, insurance: e.target.value})}
-                                  placeholder="Insurance provider & policy details"
-                                  required
+                                  placeholder="Insurance provider & policy details (optional)"
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Leave blank if not insured - will display "uninsured" badge</p>
                               </div>
                             </div>
                             

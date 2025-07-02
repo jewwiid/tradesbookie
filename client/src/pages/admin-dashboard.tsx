@@ -472,6 +472,23 @@ function InstallerApprovalForm({ installer, onApprove, onReject, onCancel, isLoa
               <p className="text-gray-900">{installer.serviceArea || "Not specified"}</p>
             </div>
             <div>
+              <span className="font-medium text-gray-700">Insurance Status:</span>
+              <div className="flex items-center gap-2 mt-1">
+                {installer.insurance ? (
+                  <div>
+                    <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 text-xs">
+                      ✓ Insured
+                    </Badge>
+                    <p className="text-xs text-gray-600 mt-1">{installer.insurance}</p>
+                  </div>
+                ) : (
+                  <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200 text-xs">
+                    ⚠ Uninsured
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <div>
               <span className="font-medium text-gray-700">Years of Experience:</span>
               <p className="text-gray-900">{installer.yearsExperience ? `${installer.yearsExperience} years` : "Not specified"}</p>
             </div>

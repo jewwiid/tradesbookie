@@ -208,28 +208,7 @@ export async function setupAuth(app: Express) {
     console.log("Continuing with limited auth functionality...");
     
     // Don't throw error, continue with limited functionality
-    // throw error; // Don't continue with broken auth
-    
-    // Add a fallback route for OAuth that explains the issue
-    app.get("/api/login", (req, res) => {
-      console.log("OAuth login attempted but OIDC config failed");
-      res.status(503).json({ 
-        error: "OAuth authentication temporarily unavailable", 
-        message: "OIDC configuration failed during startup",
-        fallback: "Please use demo login with password 'demo123' or contact support"
-      });
-    });
-    
-    app.get("/api/signup", (req, res) => {
-      console.log("OAuth signup attempted but OIDC config failed");
-      res.status(503).json({ 
-        error: "OAuth registration temporarily unavailable", 
-        message: "OIDC configuration failed during startup",
-        fallback: "Please use demo login or contact support"
-      });
-    });
-    
-    console.log("Auth setup completed with fallback routes");
+    console.log("Auth setup failed but continuing without OAuth functionality");
     return; // Exit early if OIDC fails
   }
 

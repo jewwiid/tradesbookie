@@ -222,6 +222,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get installer profile endpoint
+  app.get("/api/installers/profile", async (req, res) => {
+    try {
+      // For demo purposes, return demo installer profile
+      // In production, you would get this from the session or authentication
+      const installer = await storage.getInstaller(2); // Demo installer ID
+      
+      if (!installer) {
+        return res.status(404).json({ error: "Installer not found" });
+      }
+      
+      // Return installer data (without password hash)
+      const { passwordHash: _, ...installerData } = installer;
+      res.json(installerData);
+      
+    } catch (error) {
+      console.error("Get profile error:", error);
+      res.status(500).json({ error: "Failed to get profile" });
+    }
+  });
+
   app.post("/api/installers/profile", async (req, res) => {
     try {
       const { installerId, ...profileData } = req.body;

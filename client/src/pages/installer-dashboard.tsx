@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -295,7 +295,27 @@ export default function InstallerDashboard() {
   const { data: installerProfile } = useQuery({
     queryKey: ["/api/installers/profile"],
     retry: false,
+    enabled: showProfileDialog
   });
+
+  // Populate profile data when dialog is opened
+  useEffect(() => {
+    if (installerProfile && showProfileDialog) {
+      setProfileData({
+        name: installerProfile.contactName || "",
+        businessName: installerProfile.businessName || "",
+        email: installerProfile.email || "",
+        phone: installerProfile.phone || "",
+        serviceArea: installerProfile.serviceArea || "",
+        county: installerProfile.serviceArea || "",
+        bio: installerProfile.bio || "",
+        experience: installerProfile.yearsExperience?.toString() || "",
+        certifications: installerProfile.certifications || "",
+        emergencyCallout: installerProfile.emergencyCallout || false,
+        weekendAvailable: installerProfile.weekendAvailable || false
+      });
+    }
+  }, [installerProfile, showProfileDialog]);
 
   // Profile update mutation
   const updateProfileMutation = useMutation({

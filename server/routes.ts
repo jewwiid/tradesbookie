@@ -3654,9 +3654,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Transform bookings to past leads format
       const pastLeads = installerBookings.map(booking => ({
         id: booking.id,
-        customerName: booking.customerName || "Customer",
-        customerEmail: booking.customerEmail || "",
-        customerPhone: booking.customerPhone || "",
+        customerName: booking.contactName || "Customer",
+        customerEmail: booking.contactEmail || "",
+        customerPhone: booking.contactPhone || "",
         address: booking.address,
         tvSize: booking.tvSize,
         serviceType: booking.serviceType,

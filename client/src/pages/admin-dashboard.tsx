@@ -91,6 +91,7 @@ interface User {
   bookingCount: number;
   totalSpent: number;
   registrationMethod?: string;
+  role?: string;
 }
 
 interface Installer {
@@ -283,7 +284,8 @@ function UserManagement() {
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>User Type</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Registration Type</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead>Lead Requests</TableHead>
                 <TableHead>Actions</TableHead>
@@ -309,15 +311,24 @@ function UserManagement() {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <Badge 
+                      variant={user.role === 'admin' ? 'destructive' : 'default'}
+                    >
+                      {user.role === 'admin' ? 'Admin' : 'Customer'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge 
                       variant={
                         user.registrationMethod === 'oauth' ? 'default' :
                         user.registrationMethod === 'invoice' ? 'secondary' :
-                        user.registrationMethod === 'guest' ? 'outline' : 'default'
+                        user.registrationMethod === 'guest' ? 'outline' : 
+                        user.registrationMethod === 'manual' ? 'outline' : 'default'
                       }
                     >
                       {user.registrationMethod === 'oauth' ? 'OAuth' :
                        user.registrationMethod === 'invoice' ? 'Invoice' :
-                       user.registrationMethod === 'guest' ? 'Guest' : 'OAuth'}
+                       user.registrationMethod === 'guest' ? 'Guest' :
+                       user.registrationMethod === 'manual' ? 'Manual' : 'OAuth'}
                     </Badge>
                   </TableCell>
                   <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
@@ -377,6 +388,15 @@ function UserManagement() {
                 <p className="text-sm capitalize">{selectedUser.role || 'customer'}</p>
               </div>
               <div>
+                <h4 className="font-medium text-sm text-gray-500">Registration Type</h4>
+                <p className="text-sm">
+                  {selectedUser.registrationMethod === 'oauth' ? 'OAuth' :
+                   selectedUser.registrationMethod === 'invoice' ? 'Invoice' :
+                   selectedUser.registrationMethod === 'guest' ? 'Guest' :
+                   selectedUser.registrationMethod === 'manual' ? 'Manual' : 'OAuth'}
+                </p>
+              </div>
+              <div>
                 <h4 className="font-medium text-sm text-gray-500">Joined</h4>
                 <p className="text-sm">{new Date(selectedUser.createdAt).toLocaleDateString()}</p>
               </div>
@@ -416,7 +436,13 @@ function UserManagement() {
                 <div className="text-sm text-red-700">
                   <p><strong>Name:</strong> {selectedUser.firstName ? `${selectedUser.firstName} ${selectedUser.lastName}` : 'Anonymous User'}</p>
                   <p><strong>Email:</strong> {selectedUser.email}</p>
-                  <p><strong>Type:</strong> {selectedUser.registrationMethod || 'OAuth'}</p>
+                  <p><strong>Role:</strong> {selectedUser.role === 'admin' ? 'Admin' : 'Customer'}</p>
+                  <p><strong>Registration Type:</strong> {
+                    selectedUser.registrationMethod === 'oauth' ? 'OAuth' :
+                    selectedUser.registrationMethod === 'invoice' ? 'Invoice' :
+                    selectedUser.registrationMethod === 'guest' ? 'Guest' :
+                    selectedUser.registrationMethod === 'manual' ? 'Manual' : 'OAuth'
+                  }</p>
                   <p><strong>Lead Requests:</strong> {selectedUser.bookingCount || 0}</p>
                 </div>
               </div>

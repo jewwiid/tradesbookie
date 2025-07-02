@@ -510,6 +510,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Updated preset credit amounts to €5, €15, €35, €100 (lowered minimum from €10 to €5, added €100 for bulk purchases)**
 - July 2, 2025: **Fixed payment intent creation error by correcting storage method from getInstallerProfile to getInstaller**
 - July 2, 2025: **Verified end-to-end credit payment system working with Stripe integration and webhook processing**
+- July 2, 2025: **Enhanced admin dashboard user management interface to display both user roles (Customer/Admin) and registration types (OAuth/Invoice/Guest/Manual)**
+- July 2, 2025: **Updated backend API to include role field in user data response for comprehensive user differentiation**
+- July 2, 2025: **Implemented separate Role and Registration Type columns in user management table with color-coded badges**
+- July 2, 2025: **Enhanced user deletion confirmation dialog and user details dialog to show both role and registration method information**
+- July 2, 2025: **Added comprehensive user type filtering system allowing administrators to distinguish between customers, admins, and different registration methods**
 
 ## User Preferences
 

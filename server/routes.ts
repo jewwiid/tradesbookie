@@ -3451,7 +3451,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         lastLogin: user.updatedAt?.toISOString() || '',
         bookingCount: userStats.get(user.id)?.bookingCount || 0,
         totalSpent: userStats.get(user.id)?.totalSpent || 0,
-        registrationMethod: user.registrationMethod || 'oauth'
+        registrationMethod: user.registrationMethod || 'oauth',
+        role: user.role || 'customer'
       }));
 
       res.json(enhancedUsers);

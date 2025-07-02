@@ -205,6 +205,7 @@ export default function MapsDemo() {
             </CardHeader>
             <CardContent>
               <StaticMapImage
+                center={{ lat: 53.3498, lng: -6.2603 }}
                 customerAddress={demoAddress}
                 installerLocation={{ lat: 53.3441, lng: -6.2675 }}
                 alt="Booking location with installer"

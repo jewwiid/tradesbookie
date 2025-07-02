@@ -147,12 +147,9 @@ export function useStaticMapUrl(options: {
   return useQuery({
     queryKey: ['static-map-url', options],
     queryFn: async () => {
-      const response = await apiRequest('/api/maps/static-map', {
-        method: 'POST',
-        body: JSON.stringify(options),
-        headers: { 'Content-Type': 'application/json' }
-      });
-      return response.mapUrl;
+      const response = await apiRequest('POST', '/api/maps/static-map', options);
+      const data = await response.json();
+      return data.mapUrl;
     },
     enabled: !!(options.center.lat && options.center.lng),
     staleTime: 5 * 60 * 1000,
@@ -164,15 +161,12 @@ export function useBookingMapUrl(customerAddress: string, installerLocation?: Lo
   return useQuery({
     queryKey: ['booking-map-url', customerAddress, installerLocation],
     queryFn: async () => {
-      const response = await apiRequest('/api/maps/booking-map', {
-        method: 'POST',
-        body: JSON.stringify({
-          customerAddress,
-          installerLocation
-        }),
-        headers: { 'Content-Type': 'application/json' }
+      const response = await apiRequest('POST', '/api/maps/booking-map', {
+        customerAddress,
+        installerLocation
       });
-      return response.mapUrl;
+      const data = await response.json();
+      return data.mapUrl;
     },
     enabled: !!customerAddress,
     staleTime: 5 * 60 * 1000,

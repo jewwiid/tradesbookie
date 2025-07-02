@@ -2295,27 +2295,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Test email endpoint for debugging
-  app.post("/api/test-email", async (req, res) => {
-    try {
-      const { email, name, businessName } = req.body;
-      
-      if (!email || !name || !businessName) {
-        return res.status(400).json({ error: "Email, name, and businessName are required" });
-      }
-      
-      console.log(`Testing email send to: ${email}`);
-      const result = await sendInstallerWelcomeEmail(email, name, businessName);
-      
-      res.json({ 
-        success: result, 
-        message: result ? "Email sent successfully" : "Email failed to send" 
-      });
-    } catch (error) {
-      console.error("Test email error:", error);
-      res.status(500).json({ error: "Email test failed", details: error.message });
-    }
-  });
+
 
   app.get("/api/installers/:id/jobs", async (req, res) => {
     try {

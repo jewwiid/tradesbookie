@@ -496,6 +496,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Fixed all component references from undefined 'requests' variable to proper 'availableRequests' data source**
 - July 2, 2025: **Corrected IrelandMap component scope issue - now properly uses 'requests' prop instead of accessing undefined 'availableRequests'**
 - July 2, 2025: **Each installer now sees authentic data: 0 monthly jobs, €0 earnings, 0 rating for installer 11 (accurate based on no activity)**
+- July 2, 2025: **Completed separation of demo and real data systems for installer dashboard**
+- July 2, 2025: **Removed demo bookings from database that were showing to all installers (Emma Collins, Michael Walsh @example.com)**
+- July 2, 2025: **Demo account (installer ID 2) still receives demo leads for testing, all other installers see only real customer requests**
+- July 2, 2025: **Fixed data isolation: Non-demo installers now see authentic customer requests (Michael Walsh urgent 75" Gold service in Galway)**
+- July 2, 2025: **Database cleanup: Removed 4 fake demo bookings and related foreign key constraints for proper data segregation**
 
 ## User Preferences
 

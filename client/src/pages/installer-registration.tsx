@@ -107,8 +107,13 @@ export default function InstallerRegistration() {
         setSuccess(true);
         toast({
           title: "Registration Successful",
-          description: "Your account has been created. Please complete your profile next.",
+          description: "Your account has been created. Redirecting to login page...",
         });
+        
+        // Redirect to installer login page after 2 seconds
+        setTimeout(() => {
+          window.location.href = '/installer-login';
+        }, 2000);
       } else {
         toast({
           title: "Registration Failed",
@@ -148,20 +153,24 @@ export default function InstallerRegistration() {
             <Alert>
               <Shield className="h-4 w-4" />
               <AlertDescription>
-                Your installer account has been created successfully. You can now complete your profile and submit it for admin approval.
+                Your installer account has been created successfully! Please sign in to access your dashboard and wait for admin approval.
               </AlertDescription>
             </Alert>
             
-            <div className="space-y-2">
-              <Button asChild className="w-full">
-                <Link href="/installer-profile-setup">
-                  Complete Profile Setup
-                </Link>
-              </Button>
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p><strong>Next steps:</strong></p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Sign in with your email and password</li>
+                  <li>Complete your installer profile</li>
+                  <li>Wait for admin approval (typically 24-48 hours)</li>
+                  <li>Start receiving job leads!</li>
+                </ol>
+              </div>
               
-              <Button variant="outline" asChild className="w-full">
+              <Button asChild className="w-full">
                 <Link href="/installer-login">
-                  Go to Login
+                  Sign In Now
                 </Link>
               </Button>
             </div>

@@ -49,17 +49,36 @@ export default function InstallerLogin() {
       return responseData;
     },
     onSuccess: (data: any) => {
-      toast({
-        title: "Login Successful",
-        description: "Welcome back to your installer dashboard.",
-      });
       // Store installer data in localStorage for session management
       localStorage.setItem("installer", JSON.stringify(data.installer));
       localStorage.setItem("installerId", data.installer.id.toString());
-      setLocation(`/installer-dashboard/${data.installer.id}`);
+      
+      // Check approval status and redirect accordingly
+      if (data.installer.approvalStatus === "approved") {
+        toast({
+          title: "Login Successful",
+          description: "Welcome back to your installer dashboard.",
+        });
+        setLocation(`/installer-dashboard/${data.installer.id}`);
+      } else {
+        // Redirect to pending page regardless of specific status
+        toast({
+          title: "Login Successful",
+          description: "Redirecting to your application status page.",
+        });
+        setLocation("/installer-pending");
+      }
     },
     onError: (error: any) => {
-      if (error.message !== "Account pending approval") {
+      if (error.message === "Account pending approval") {
+        // Redirect to pending page for approval status
+        toast({
+          title: "Application Under Review",
+          description: "Your installer application is being reviewed by our admin team.",
+          variant: "default",
+        });
+        setLocation("/installer-pending");
+      } else {
         toast({
           title: "Login Failed",
           description: error.message || "Please check your email and password.",

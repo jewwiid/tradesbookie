@@ -49,6 +49,7 @@ export interface IStorage {
     reviewedBy?: string;
     reviewedAt?: Date;
   }): Promise<void>;
+  updateInstallerApprovalStatus(installerId: number, status: string, comments?: string): Promise<void>;
   
   // Installer authentication
   registerInstaller(email: string, passwordHash: string): Promise<Installer>;
@@ -275,6 +276,17 @@ export class DatabaseStorage implements IStorage {
         adminComments: approvalData.adminComments,
         reviewedBy: approvalData.reviewedBy,
         reviewedAt: approvalData.reviewedAt,
+        updatedAt: new Date()
+      })
+      .where(eq(installers.id, installerId));
+  }
+
+  async updateInstallerApprovalStatus(installerId: number, status: string, comments?: string): Promise<void> {
+    await db.update(installers)
+      .set({
+        approvalStatus: status,
+        adminComments: comments,
+        reviewedAt: new Date(),
         updatedAt: new Date()
       })
       .where(eq(installers.id, installerId));

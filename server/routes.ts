@@ -2295,6 +2295,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get current installer's profile
+  app.get("/api/installer/profile", async (req, res) => {
+    try {
+      const installerId = (req.session as any)?.installerId;
+      
+      if (!installerId) {
+        return res.status(401).json({ message: "Not authenticated as installer" });
+      }
+      
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (!installer) {
+        return res.status(404).json({ message: "Installer profile not found" });
+      }
+      
+      // Return profile without password hash
+      const { passwordHash: _, ...profileData } = installer;
+      res.json(profileData);
+    } catch (error) {
+      console.error("Error fetching installer profile:", error);
+      res.status(500).json({ message: "Failed to fetch installer profile" });
+    }
+  });
+
+  // Admin approve installer 
+  app.patch("/api/admin/installers/:installerId/approve", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user || req.user.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const installerId = parseInt(req.params.installerId);
+      const { adminComments, adminScore } = req.body;
+      
+      if (!installerId) {
+        return res.status(400).json({ message: "Installer ID is required" });
+      }
+
+      // Update installer status to approved
+      await storage.updateInstallerApprovalStatus(installerId, "approved", adminComments);
+      
+      // Get installer details for email
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (installer) {
+        // Send approval email
+        await sendInstallerApprovalEmail(
+          installer.email,
+          installer.contactName,
+          installer.businessName,
+          adminScore,
+          adminComments
+        );
+      }
+
+      res.json({ success: true, message: "Installer approved successfully" });
+    } catch (error) {
+      console.error("Error approving installer:", error);
+      res.status(500).json({ message: "Failed to approve installer" });
+    }
+  });
+
+  // Admin reject installer
+  app.patch("/api/admin/installers/:installerId/reject", async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user || req.user.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const installerId = parseInt(req.params.installerId);
+      const { adminComments } = req.body;
+      
+      if (!installerId) {
+        return res.status(400).json({ message: "Installer ID is required" });
+      }
+
+      // Update installer status to rejected
+      await storage.updateInstallerApprovalStatus(installerId, "rejected", adminComments);
+      
+      // Get installer details for email
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (installer) {
+        // Send rejection email
+        await sendInstallerRejectionEmail(
+          installer.email,
+          installer.contactName,
+          installer.businessName,
+          adminComments
+        );
+      }
+
+      res.json({ success: true, message: "Installer rejected successfully" });
+    } catch (error) {
+      console.error("Error rejecting installer:", error);
+      res.status(500).json({ message: "Failed to reject installer" });
+    }
+  });
+
   // Test endpoint for approval/rejection emails
   app.post("/api/test-installer-email", async (req, res) => {
     try {

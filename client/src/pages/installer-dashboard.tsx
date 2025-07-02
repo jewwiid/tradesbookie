@@ -295,10 +295,30 @@ export default function InstallerDashboard() {
   });
 
   // Get current installer profile
-  const { data: installerProfile } = useQuery({
+  const { data: installerProfile, isLoading: profileLoading } = useQuery({
     queryKey: ["/api/installers/profile"],
     retry: false
   });
+
+  // Check approval status and redirect if needed
+  useEffect(() => {
+    if (installerProfile && installerProfile.approvalStatus !== "approved") {
+      // Redirect to pending page for non-approved installers
+      window.location.href = "/installer-pending";
+    }
+  }, [installerProfile]);
+
+  // Show loading screen while checking approval status
+  if (profileLoading || (installerProfile && installerProfile.approvalStatus !== "approved")) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking account status...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Populate profile data when dialog is opened
   useEffect(() => {

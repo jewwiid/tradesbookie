@@ -780,95 +780,7 @@ export async function sendScheduleConfirmationNotification(
   }
 }
 
-export async function sendInstallerApprovalEmail(installerEmail: string, installerName: string, businessName: string, adminScore?: number, adminComments?: string): Promise<boolean> {
-  try {
-    console.log(`Sending installer approval email to: ${installerEmail}`);
-    
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
-        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="margin: 0; font-size: 24px;">🎉 Application Approved!</h1>
-          <p style="margin: 10px 0 0 0; opacity: 0.9;">Welcome to tradesbook.ie</p>
-        </div>
 
-        <div style="padding: 30px; background-color: #f0fdf4; border-radius: 0 0 8px 8px;">
-          <div style="background-color: #dcfce7; border: 1px solid #bbf7d0; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-            <h2 style="color: #16a34a; margin: 0 0 15px 0; font-size: 20px;">✅ Congratulations ${installerName}!</h2>
-            <p style="color: #16a34a; margin: 0; font-size: 16px; line-height: 1.5;">
-              Your installer application for <strong>${businessName}</strong> has been approved by our admin team. 
-              You can now start receiving installation leads and growing your business with tradesbook.ie.
-            </p>
-          </div>
-
-          ${adminScore ? `
-            <div style="background-color: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-              <h3 style="color: #ea580c; margin: 0 0 10px 0; font-size: 16px;">📊 Application Score</h3>
-              <p style="color: #ea580c; margin: 0; font-size: 18px; font-weight: bold;">
-                ${adminScore}/10 - Excellent Profile
-              </p>
-            </div>
-          ` : ''}
-
-          ${adminComments ? `
-            <div style="background-color: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-              <h3 style="color: #d97706; margin: 0 0 10px 0; font-size: 16px;">💬 Admin Feedback</h3>
-              <p style="color: #d97706; margin: 0; font-style: italic;">"${adminComments}"</p>
-            </div>
-          ` : ''}
-
-          <div style="background-color: white; border-radius: 8px; padding: 25px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3 style="color: #2d3748; margin: 0 0 20px 0; font-size: 18px;">🚀 Next Steps</h3>
-            
-            <div style="margin-bottom: 15px;">
-              <h4 style="color: #4a5568; margin: 0 0 8px 0; font-size: 16px;">1. Access Your Dashboard</h4>
-              <p style="color: #718096; margin: 0; line-height: 1.4;">
-                Login to your installer dashboard to view available leads and manage your profile.
-              </p>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-              <h4 style="color: #4a5568; margin: 0 0 8px 0; font-size: 16px;">2. Purchase Your First Lead</h4>
-              <p style="color: #718096; margin: 0; line-height: 1.4;">
-                Lead fees range from €12-€35 depending on service complexity. You pay only when you purchase customer contact details.
-              </p>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-              <h4 style="color: #4a5568; margin: 0 0 8px 0; font-size: 16px;">3. Direct Customer Payment</h4>
-              <p style="color: #718096; margin: 0; line-height: 1.4;">
-                Customers pay you directly via cash, card, or bank transfer. No platform commissions on your earnings.
-              </p>
-            </div>
-          </div>
-
-          <div style="background-color: white; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <a href="https://tradesbook.ie/installer-login" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-bottom: 15px; font-size: 16px;">
-              Access Installer Dashboard
-            </a>
-            <p style="color: #718096; font-size: 14px; margin: 15px 0 0 0;">
-              Start earning with professional TV installation leads today!
-            </p>
-          </div>
-
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px; text-align: center;">
-            <p style="margin: 0;">© 2025 tradesbook.ie - Professional TV Installation Services</p>
-            <p style="margin: 5px 0 0 0;">Questions? Contact us at installer@tradesbook.ie</p>
-          </div>
-        </div>
-      </div>
-    `;
-
-    return await sendGmailEmail({
-      to: installerEmail,
-      subject: "🎉 Application Approved - Start Earning with tradesbook.ie",
-      html: htmlContent,
-      from: getValidFromEmail('installer')
-    });
-  } catch (error) {
-    console.error('Error sending installer approval email:', error);
-    return false;
-  }
-}
 
 export async function sendInstallerRejectionEmail(installerEmail: string, installerName: string, businessName: string, adminComments?: string): Promise<boolean> {
   try {
@@ -940,6 +852,85 @@ export async function sendInstallerRejectionEmail(installerEmail: string, instal
     });
   } catch (error) {
     console.error('Error sending installer rejection email:', error);
+    return false;
+  }
+}
+
+export async function sendInstallerApprovalEmail(
+  installerEmail: string, 
+  installerName: string, 
+  businessName: string,
+  adminScore?: number,
+  adminComments?: string
+): Promise<boolean> {
+  try {
+    console.log(`Sending installer approval email to: ${installerEmail}`);
+    
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 28px;">🎉 Application Approved!</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 16px;">Welcome to tradesbook.ie</p>
+        </div>
+
+        <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+          <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h2 style="color: #155724; margin: 0 0 10px 0; font-size: 20px;">🎯 Congratulations!</h2>
+            <p style="color: #155724; margin: 0; font-size: 16px;">
+              ${installerName}, your installer application for <strong>${businessName}</strong> has been approved and you can now access the platform.
+            </p>
+          </div>
+
+          ${adminScore ? `
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 16px;">📊 Application Score</h3>
+              <p style="color: #856404; margin: 0; font-size: 18px; font-weight: bold;">${adminScore}/10</p>
+            </div>
+          ` : ''}
+
+          ${adminComments ? `
+            <div style="background-color: #e7f3ff; border: 1px solid #b6d7ff; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <h3 style="color: #0056b3; margin: 0 0 10px 0; font-size: 16px;">💬 Admin Feedback</h3>
+              <p style="color: #0056b3; margin: 0; font-style: italic;">"${adminComments}"</p>
+            </div>
+          ` : ''}
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 18px;">🚀 Getting Started</h3>
+            <ol style="color: #4a5568; padding-left: 20px;">
+              <li style="margin-bottom: 10px;">Log into your installer dashboard using your registered email and password</li>
+              <li style="margin-bottom: 10px;">Browse available installation requests in your service area</li>
+              <li style="margin-bottom: 10px;">Purchase leads that match your expertise and availability</li>
+              <li style="margin-bottom: 10px;">Contact customers directly after purchasing their contact details</li>
+              <li>Complete installations and build your reputation with customer reviews</li>
+            </ol>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="https://tradesbook.ie/installer-login" style="display: inline-block; background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; margin-bottom: 15px;">
+              Access Dashboard Now
+            </a>
+            <p style="color: #718096; font-size: 14px; margin: 15px 0 0 0;">
+              Start earning with installation requests immediately!
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2025 tradesbook.ie - Professional TV Installation Services</p>
+            <p style="margin: 5px 0 0 0;">Welcome to Ireland's leading TV installation platform</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return await sendGmailEmail({
+      to: installerEmail,
+      subject: "🎉 Application Approved - Welcome to tradesbook.ie!",
+      html: htmlContent,
+      from: getValidFromEmail('installer')
+    });
+  } catch (error) {
+    console.error('Error sending installer approval email:', error);
     return false;
   }
 }

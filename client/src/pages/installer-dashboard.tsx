@@ -383,23 +383,28 @@ export default function InstallerDashboard() {
         setSelectedRequest(null);
       }
     },
-    onError: async (error: any) => {
+    onError: (error: any) => {
       let errorMessage = "Failed to accept request";
       
-      // Parse error response for user-friendly messages
-      if (error instanceof Response) {
+      // Parse error message that comes in format "400: {json}"
+      if (error.message && typeof error.message === 'string') {
         try {
-          const errorData = await error.json();
-          if (errorData.message === "Lead purchase required") {
-            errorMessage = "Insufficient wallet balance. Please add credits to purchase this lead.";
-          } else if (errorData.message) {
-            errorMessage = errorData.message;
+          // Extract JSON from error message (format: "400: {json}")
+          const jsonMatch = error.message.match(/\d+:\s*(\{.*\})/);
+          if (jsonMatch) {
+            const errorData = JSON.parse(jsonMatch[1]);
+            if (errorData.message === "Lead purchase required") {
+              errorMessage = "Insufficient wallet balance. Please add credits to purchase this lead.";
+            } else if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } else {
+            errorMessage = error.message;
           }
         } catch (e) {
-          // Use default message if JSON parsing fails
+          // Use error message as is if JSON parsing fails
+          errorMessage = error.message;
         }
-      } else if (error.message) {
-        errorMessage = error.message;
       }
       
       toast({

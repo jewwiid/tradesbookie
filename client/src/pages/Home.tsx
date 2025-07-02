@@ -5,6 +5,7 @@ import ServiceTierCard from "@/components/ServiceTierCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building, Receipt, User, Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -454,9 +455,12 @@ export default function Home() {
               {installers.map((installer: any) => (
                 <Card key={installer.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6 text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Wrench className="w-8 h-8 text-white" />
-                    </div>
+                    <Avatar className="w-16 h-16 mx-auto mb-4">
+                      <AvatarImage src={installer.profileImageUrl || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white">
+                        <Wrench className="w-8 h-8" />
+                      </AvatarFallback>
+                    </Avatar>
                     <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       {installer.name || installer.businessName}
                     </h3>

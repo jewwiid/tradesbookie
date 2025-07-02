@@ -2449,7 +2449,7 @@ function ReferralManagement() {
               <TableBody>
                 {referralCodes?.map((code: any) => (
                   <TableRow key={code.id}>
-                    <TableCell className="font-mono">{code.code}</TableCell>
+                    <TableCell className="font-mono">{code.referralCode}</TableCell>
                     <TableCell>
                       <Badge variant={code.referralType === 'sales_staff' ? 'outline' : 'default'}>
                         {code.referralType === 'sales_staff' ? 'Staff' : 'Customer'}

@@ -25,9 +25,25 @@ import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { pricingManagementService } from "./pricingManagementService";
 import { getWebsiteMetrics } from "./analyticsService";
 
-// Function to reset and generate varied mock leads for demo account
+// Function to reset and generate varied demo leads for demo account (creates actual database bookings)
 const resetDemoLeads = async (installerId: number) => {
   try {
+    // First, remove any existing demo bookings for this installer
+    const existingBookings = await storage.getAllBookings();
+    const demoBookings = existingBookings.filter(booking => 
+      booking.qrCode && booking.qrCode.includes('QR-DEMO') && 
+      (booking.installerId === null || booking.installerId === installerId)
+    );
+    
+    // Clean up old demo bookings
+    for (const booking of demoBookings) {
+      try {
+        await storage.deleteBooking(booking.id);
+      } catch (error) {
+        console.log(`Could not delete old demo booking ${booking.id}, skipping...`);
+      }
+    }
+    
     const leadTemplates = [
       {
         address: "15 Grafton Street, Dublin 2, Ireland",
@@ -130,7 +146,7 @@ const resetDemoLeads = async (installerId: number) => {
       .slice(0, numberOfLeads);
 
     const now = new Date();
-    const generatedLeads = [];
+    const generatedBookingIds = [];
     
     for (let i = 0; i < selectedLeads.length; i++) {
       const template = selectedLeads[i];
@@ -138,43 +154,37 @@ const resetDemoLeads = async (installerId: number) => {
       const randomAddons = addonsOptions[Math.floor(Math.random() * addonsOptions.length)];
       const createdAt = new Date(now.getTime() - Math.random() * 6 * 60 * 60 * 1000);
       
-      const mockLead = {
-        id: 3000 + i + Math.floor(Math.random() * 1000),
+      // Create actual database booking
+      const bookingData = {
         address: template.address,
-        serviceType: template.serviceType,
         tvSize: template.tvSize,
+        serviceType: template.serviceType,
         wallType: template.wallType,
         mountType: "Fixed Wall Mount",
-        addons: randomAddons,
+        estimatedPrice: template.estimatedEarnings.toString(),
         estimatedTotal: template.estimatedEarnings.toString(),
-        leadFee: template.leadFee,
-        estimatedEarnings: template.estimatedEarnings,
-        profitMargin: Math.round(((template.estimatedEarnings - template.leadFee) / template.estimatedEarnings) * 100),
-        status: 'pending' as const,
-        createdAt: createdAt.toISOString(),
+        status: 'pending',
         qrCode: `QR-DEMO-${Date.now()}-${i}`,
+        customerName: randomCustomer.name,
+        customerEmail: randomCustomer.email,
+        customerPhone: randomCustomer.phone,
+        addons: randomAddons,
         notes: `Demo lead - ${template.difficulty} installation`,
         difficulty: template.difficulty,
-        distance: Math.floor(Math.random() * 30) + 5,
-        // Store real customer details for use after lead purchase
-        actualCustomerName: randomCustomer.name,
-        actualCustomerEmail: randomCustomer.email,
-        actualCustomerPhone: randomCustomer.phone,
-        // But hide them in the available leads display
-        customerName: "Customer details available after lead purchase",
-        customerEmail: null,
-        customerPhone: null
+        installerId: null, // Available for purchase
+        userId: null // Demo bookings don't have users
       };
 
-      generatedLeads.push(mockLead);
+      try {
+        const createdBooking = await storage.createBooking(bookingData);
+        generatedBookingIds.push(createdBooking.id);
+      } catch (error) {
+        console.error(`Error creating demo booking ${i}:`, error);
+      }
     }
 
-    // Store leads in global cache for demo account
-    (global as any).demoLeadsCache = (global as any).demoLeadsCache || {};
-    (global as any).demoLeadsCache[installerId] = generatedLeads;
-
-    console.log(`Successfully reset ${numberOfLeads} fresh demo leads for installer ${installerId}`);
-    return generatedLeads;
+    console.log(`Successfully reset ${generatedBookingIds.length} fresh demo leads for installer ${installerId}: ${generatedBookingIds.join(', ')}`);
+    return generatedBookingIds;
   } catch (error) {
     console.error("Error resetting demo leads:", error);
     return [];

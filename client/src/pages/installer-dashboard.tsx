@@ -360,7 +360,7 @@ export default function InstallerDashboard() {
   const acceptRequestMutation = useMutation({
     mutationFn: async (requestId: number) => {
       return apiRequest('POST', `/api/installer/accept-request/${requestId}`, {
-        installerId: 1 // Demo installer ID
+        installerId: installerProfile?.id || 2 // Use actual installer ID
       });
     },
     onSuccess: (data: any, requestId) => {

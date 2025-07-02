@@ -1692,13 +1692,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Installer not found" });
       }
 
-      // Prevent demo accounts from actually purchasing leads
+      // Handle demo account special case - simulate purchase without payment
       if (installer.email === "test@tradesbook.ie") {
-        return res.status(403).json({ 
-          message: "Demo account cannot purchase leads",
-          demoRestriction: true,
-          upgradeMessage: "Create a real installer account to purchase leads and access customer contact information"
-        });
+        const booking = await storage.getBooking(requestId);
+        if (booking) {
+          // Mark booking as accepted and assigned to demo installer
+          await storage.updateBooking(requestId, {
+            status: 'accepted',
+            installerId: installerId
+          });
+          
+          return res.json({
+            success: true,
+            message: "Demo lead purchased successfully",
+            booking: booking,
+            demo: true,
+            demoMessage: "This is a demo purchase - no actual payment processed"
+          });
+        } else {
+          return res.status(404).json({ message: "Booking not found" });
+        }
       }
 
       // Get the booking
@@ -1763,7 +1776,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requestId = parseInt(req.params.requestId);
       const { installerId } = req.body; // In real app, this would come from authenticated session
       
-      // Redirect to purchase endpoint for lead-based model
+      // Check if this is the demo installer account
+      const installer = await storage.getInstaller(installerId || 2);
+      if (installer && installer.email === "test@tradesbook.ie") {
+        // For demo account, simulate the complete flow without payment
+        const booking = await storage.getBooking(requestId);
+        if (booking) {
+          // Mark booking as accepted and assigned to demo installer
+          await storage.updateBooking(requestId, {
+            status: 'accepted',
+            installerId: 2
+          });
+          
+          return res.json({
+            success: true,
+            message: "Demo lead accepted successfully",
+            booking: booking,
+            demo: true
+          });
+        }
+      }
+      
+      // For real installers, redirect to purchase endpoint for lead-based model
       return res.status(400).json({ 
         message: "Lead purchase required",
         redirectTo: `/api/installer/purchase-lead/${requestId}`,

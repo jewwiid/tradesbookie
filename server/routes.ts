@@ -1366,38 +1366,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Uber-style installer request management endpoints
   app.get("/api/installer/available-requests", async (req, res) => {
     try {
+      const { installerId } = req.query;
+      
+      // Check if installer is demo account
+      let isDemoAccount = false;
+      if (installerId) {
+        const installer = await storage.getInstaller(parseInt(installerId as string));
+        isDemoAccount = installer?.email === "test@tradesbook.ie";
+      }
+
       // Get all open bookings that haven't been assigned to an installer
       const bookings = await storage.getAllBookings();
       const availableRequests = bookings.filter(booking => 
         booking.status === 'open' && !booking.installerId
       );
 
-      // Transform bookings into client requests format
-      const requests = availableRequests.map(booking => ({
-        id: booking.id,
-        customerId: booking.userId || 0,
-        tvSize: booking.tvSize,
-        serviceType: booking.serviceType,
-        address: booking.address,
-        county: "Dublin", // Default for demo
-        coordinates: { lat: 53.3498, lng: -6.2603 }, // Default Dublin coordinates
-        totalPrice: booking.totalPrice,
-        installerEarnings: (parseFloat(booking.totalPrice) * 0.75).toFixed(0), // 75% commission
-        preferredDate: booking.scheduledDate,
-        preferredTime: "14:00", // Default time
-        urgency: "standard", // Default urgency
-        timePosted: booking.createdAt?.toISOString() || new Date().toISOString(),
-        estimatedDuration: "2 hours", // Default duration
-        customerRating: 4.8, // Default rating
-        distance: Math.floor(Math.random() * 20) + 5, // Random distance 5-25km
-        customerNotes: booking.customerNotes,
-        status: "pending",
-        customer: {
-          name: booking.contactName || "Customer",
-          phone: booking.contactPhone || "+353 85 000 0000",
-          email: booking.contactEmail || "customer@example.com"
+      // Transform bookings with lead access protection
+      const requests = availableRequests.map(booking => {
+        // Base information available to all installers
+        const baseInfo = {
+          id: booking.id,
+          customerId: booking.userId || 0,
+          tvSize: booking.tvSize,
+          serviceType: booking.serviceType,
+          totalPrice: booking.totalPrice,
+          installerEarnings: (parseFloat(booking.totalPrice) * 0.75).toFixed(0), // 75% commission  
+          preferredDate: booking.scheduledDate,
+          preferredTime: "14:00", // Default time
+          urgency: "standard", // Default urgency
+          timePosted: booking.createdAt?.toISOString() || new Date().toISOString(),
+          estimatedDuration: "2 hours", // Default duration
+          customerRating: 4.8, // Default rating
+          distance: Math.floor(Math.random() * 20) + 5, // Random distance 5-25km
+          status: "pending",
+          leadFee: 25, // Lead fee required to access full details
+          isPurchasable: true,
+          coordinates: { lat: 53.3498, lng: -6.2603 } // Default Dublin coordinates
+        };
+
+        // For demo accounts, hide sensitive customer information 
+        if (isDemoAccount) {
+          return {
+            ...baseInfo,
+            address: booking.address ? `${booking.address.split(',').slice(-2).join(',').trim()}` : 'Dublin, Ireland', // Only show city/county
+            county: "Dublin", 
+            customerNotes: "Purchase lead to view full details and contact information",
+            customer: {
+              name: "Customer Name Hidden",
+              phone: "Purchase lead to view",
+              email: "Purchase lead to view"
+            },
+            demoRestricted: true,
+            requiresPayment: true,
+            restrictionReason: "Demo account - Customer contact details protected"
+          };
         }
-      }));
+
+        // For regular installers, also hide contact details until lead is purchased
+        return {
+          ...baseInfo,
+          address: booking.address ? `${booking.address.split(',').slice(-2).join(',').trim()}` : 'Dublin, Ireland', // Only show city/county initially
+          county: "Dublin",
+          customerNotes: "Purchase lead to view full details and contact information", 
+          customer: {
+            name: "Purchase lead to view",
+            phone: "Purchase lead to view", 
+            email: "Purchase lead to view"
+          },
+          demoRestricted: false,
+          requiresPayment: true,
+          restrictionReason: "Lead purchase required to access customer contact details"
+        };
+      });
 
       res.json(requests);
     } catch (error) {
@@ -1406,85 +1446,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // New endpoint for purchasing leads (with demo account protection)
+  app.post("/api/installer/purchase-lead/:requestId", async (req, res) => {
+    try {
+      const requestId = parseInt(req.params.requestId);
+      const { installerId } = req.body;
+      
+      // Check if installer is demo account
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+
+      // Prevent demo accounts from actually purchasing leads
+      if (installer.email === "test@tradesbook.ie") {
+        return res.status(403).json({ 
+          message: "Demo account cannot purchase leads",
+          demoRestriction: true,
+          upgradeMessage: "Create a real installer account to purchase leads and access customer contact information"
+        });
+      }
+
+      // Get the booking
+      const booking = await storage.getBooking(requestId);
+      if (!booking) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+
+      if (booking.installerId) {
+        return res.status(400).json({ message: "Lead already purchased by another installer" });
+      }
+
+      // In a real implementation, this would integrate with payment processing
+      // For now, we'll simulate the lead purchase and assignment
+      
+      // Assign the lead to the installer
+      await storage.updateBooking(requestId, { installerId });
+      await storage.updateBookingStatus(requestId, "assigned");
+
+      // Create job assignment
+      const jobAssignment = await storage.createJobAssignment({
+        bookingId: requestId,
+        installerId,
+        status: "purchased"
+      });
+
+      // Return full lead details after purchase
+      res.json({
+        success: true,
+        message: "Lead purchased successfully",
+        leadDetails: {
+          id: booking.id,
+          customerName: booking.contactName,
+          customerEmail: booking.contactEmail,
+          customerPhone: booking.contactPhone,
+          fullAddress: booking.address,
+          serviceDetails: {
+            tvSize: booking.tvSize,
+            serviceType: booking.serviceType,
+            wallType: booking.wallType,
+            mountType: booking.mountType,
+            addons: {
+              cableConcealment: booking.cableConcealment,
+              soundBarInstallation: booking.soundBarInstallation
+            }
+          },
+          customerNotes: booking.customerNotes,
+          scheduledDate: booking.scheduledDate,
+          totalPrice: booking.totalPrice,
+          jobAssignmentId: jobAssignment.id
+        }
+      });
+
+    } catch (error) {
+      console.error("Error purchasing lead:", error);
+      res.status(500).json({ message: "Failed to purchase lead" });
+    }
+  });
+
   app.post("/api/installer/accept-request/:requestId", async (req, res) => {
     try {
       const requestId = parseInt(req.params.requestId);
       const { installerId } = req.body; // In real app, this would come from authenticated session
       
-      // Get the booking
-      const booking = await storage.getBooking(requestId);
-      if (!booking) {
-        return res.status(404).json({ message: "Request not found" });
-      }
-
-      if (booking.installerId) {
-        return res.status(400).json({ message: "Request already assigned to an installer" });
-      }
-
-      // Create job assignment to show installer interest (multiple installers can accept)
-      const jobAssignment = await storage.createJobAssignment({
-        bookingId: requestId,
-        installerId: installerId || 1,
-        status: "accepted"
+      // Redirect to purchase endpoint for lead-based model
+      return res.status(400).json({ 
+        message: "Lead purchase required",
+        redirectTo: `/api/installer/purchase-lead/${requestId}`,
+        requiresPayment: true
       });
 
-      // Update booking status to show installer assigned
-      await storage.updateBookingStatus(requestId, "assigned");
-
-      // Send professional email notification to customer with payment link
-      if (booking.contactEmail) {
-        await sendGmailEmail({
-          to: booking.contactEmail,
-          subject: `TV Installation Confirmed - Payment Required - ${booking.qrCode}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: #667eea; color: white; padding: 20px; text-align: center;">
-                <h1>Installer Assigned!</h1>
-                <p>Your TV installation request has been accepted and confirmed</p>
-              </div>
-              
-              <div style="padding: 20px; background: #f8f9fa;">
-                <h2>Next Steps</h2>
-                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #2196f3;">
-                  <h3 style="margin: 0 0 10px 0; color: #1976d2;">⚡ Payment Required</h3>
-                  <p style="margin: 0;">Now that your installer is confirmed, please complete your payment to secure your booking.</p>
-                  <div style="text-align: center; margin: 15px 0;">
-                    <a href="${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co` : 'http://localhost:5000'}/checkout?bookingId=${booking.id}" 
-                       style="background: #4caf50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
-                      Complete Payment - €${booking.totalPrice}
-                    </a>
-                  </div>
-                </div>
-                
-                <div style="background: white; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                  <h3>Booking Details</h3>
-                  <p><strong>Reference:</strong> ${booking.qrCode}</p>
-                  <p><strong>Service:</strong> ${booking.serviceType}</p>
-                  <p><strong>TV Size:</strong> ${booking.tvSize}"</p>
-                  <p><strong>Address:</strong> ${booking.address}</p>
-                  <p><strong>Total Amount:</strong> €${booking.totalPrice}</p>
-                </div>
-                
-                <p><strong>Questions?</strong> Contact us at <a href="mailto:support@tradesbook.ie">support@tradesbook.ie</a></p>
-              </div>
-            </div>
-          `,
-          from: 'bookings@tradesbook.ie',
-          replyTo: 'support@tradesbook.ie'
-        });
-      }
-
-      res.json({ 
-        message: "Request accepted successfully",
-        jobAssignment,
-        notifications: {
-          emailSent: true,
-          smsSent: true
-        }
-      });
     } catch (error) {
-      console.error("Error accepting request:", error);
-      res.status(500).json({ message: "Failed to accept request" });
+      console.error("Error processing request:", error);
+      res.status(500).json({ message: "Failed to process request" });
     }
   });
 
@@ -1618,8 +1672,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = req.body;
 
-      // For demo purposes, accept any email with password "demo123"
-      if (password === "demo123") {
+      // Demo account with specific email and restricted access
+      if (email === "test@tradesbook.ie" && password === "demo123") {
+        let installer = await storage.getInstallerByEmail(email);
+        
+        // If demo installer doesn't exist, create one
+        if (!installer) {
+          const demoInstallerData = {
+            businessName: "Demo TV Services",
+            contactName: "Demo Installer",
+            email: "test@tradesbook.ie",
+            phone: "(555) 123-4567",
+            address: "Dublin, Ireland",
+            serviceArea: "Dublin",
+            expertise: ["Wall Mounting", "Cable Management", "LED TVs"],
+            bio: "Demo installer account for exploring the platform.",
+            yearsExperience: 5,
+            isActive: true,
+            isDemoAccount: true // Flag to identify demo accounts
+          };
+          installer = await storage.createInstaller(demoInstallerData);
+        }
+
+        res.json({ 
+          success: true, 
+          installer: {
+            ...installer,
+            isDemoAccount: true
+          },
+          message: "Demo login successful! Limited access to protect customer privacy." 
+        });
+      }
+      // Regular demo access for other emails (legacy support)
+      else if (password === "demo123") {
         let installer = await storage.getInstallerByEmail(email);
         
         // If installer doesn't exist, create a demo installer
@@ -1634,14 +1719,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             expertise: ["Wall Mounting", "Cable Management", "LED TVs"],
             bio: "Professional TV installer with years of experience.",
             yearsExperience: 5,
-            isActive: true
+            isActive: true,
+            isDemoAccount: false
           };
           installer = await storage.createInstaller(demoInstallerData);
         }
 
         res.json({ 
           success: true, 
-          installer,
+          installer: {
+            ...installer,
+            isDemoAccount: false
+          },
           message: "Login successful!" 
         });
       } else {

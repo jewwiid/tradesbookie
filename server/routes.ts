@@ -58,20 +58,18 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
+  // Test routes registered BEFORE setupAuth
+  app.get("/api/before-auth-test", (req, res) => {
+    console.log("Before auth test route hit successfully");
+    res.json({ 
+      message: "Route registration working BEFORE auth",
+      hostname: req.hostname,
+      timestamp: new Date().toISOString()
+    });
+  });
 
   // Auth middleware
   await setupAuth(app);
-
-  // Simple test route to verify route registration works
-  app.get("/api/auth-test", (req, res) => {
-    console.log("Auth test route hit successfully in routes.ts");
-    res.json({ 
-      message: "Route registration working from routes.ts",
-      hostname: req.hostname,
-      user: req.user || null,
-      isAuthenticated: req.isAuthenticated ? req.isAuthenticated() : false
-    });
-  });
 
   // Health check
   app.get("/api/health", (req, res) => {

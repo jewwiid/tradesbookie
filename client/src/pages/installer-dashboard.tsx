@@ -14,6 +14,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
+import InstallerWalletDashboard from "@/components/installer/InstallerWalletDashboard";
 import { 
   Bolt, 
   Hammer, 
@@ -522,16 +523,6 @@ export default function InstallerDashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowProfileDialog(true)}
-                className="flex items-center space-x-1"
-              >
-                <Settings className="w-4 h-4" />
-                <span className="hidden lg:inline">Profile</span>
-              </Button>
-              
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <span>Available for Jobs</span>
                 <Switch 
@@ -550,103 +541,120 @@ export default function InstallerDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Zap className="w-8 h-8 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Active Requests</p>
-                  <p className="text-3xl font-bold text-gray-900">{currentStats.activeRequests}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="requests" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="requests" className="flex items-center gap-2">
+              <NavigationIcon className="w-4 h-4" />
+              Lead Requests
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4" />
+              Wallet & Credits
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Profile Settings
+            </TabsTrigger>
+          </TabsList>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Hammer className="w-8 h-8 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Monthly Jobs</p>
-                  <p className="text-3xl font-bold text-gray-900">{currentStats.monthlyJobs}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <TabsContent value="requests" className="space-y-6">
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <Zap className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Active Requests</p>
+                      <p className="text-3xl font-bold text-gray-900">{currentStats.activeRequests}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <DollarSign className="w-8 h-8 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Monthly Earnings</p>
-                  <p className="text-3xl font-bold text-gray-900">€{currentStats.earnings}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <Hammer className="w-8 h-8 text-green-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Monthly Jobs</p>
+                      <p className="text-3xl font-bold text-gray-900">{currentStats.monthlyJobs}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <Star className="w-8 h-8 text-yellow-500" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Rating</p>
-                  <p className="text-3xl font-bold text-gray-900">{currentStats.rating}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <DollarSign className="w-8 h-8 text-green-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Monthly Earnings</p>
+                      <p className="text-3xl font-bold text-gray-900">€{currentStats.earnings}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-        {/* View Toggle */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Available Installation Requests
-          </h2>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant={viewMode === 'map' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('map')}
-            >
-              <NavigationIcon className="w-4 h-4 mr-2" />
-              Map View
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              List View
-            </Button>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        {viewMode === 'map' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Map */}
-            <div className="lg:col-span-2">
-              <IrelandMap 
-                requests={requests}
-                onRequestSelect={setSelectedRequest}
-                selectedRequest={selectedRequest || undefined}
-              />
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <Star className="w-8 h-8 text-yellow-500" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Rating</p>
+                      <p className="text-3xl font-bold text-gray-900">{currentStats.rating}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-            
-            {/* Selected Request Details */}
-            <div className="space-y-4">
+
+            {/* View Toggle */}
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Available Installation Requests
+              </h2>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant={viewMode === 'map' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('map')}
+                >
+                  <NavigationIcon className="w-4 h-4 mr-2" />
+                  Map View
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  List View
+                </Button>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            {viewMode === 'map' ? (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Map */}
+                <div className="lg:col-span-2">
+                  <IrelandMap 
+                    requests={requests}
+                    onRequestSelect={setSelectedRequest}
+                    selectedRequest={selectedRequest || undefined}
+                  />
+                </div>
+                
+                {/* Selected Request Details */}
+                <div className="space-y-4">
               {selectedRequest ? (
                 <RequestCard
                   request={selectedRequest}
@@ -679,19 +687,47 @@ export default function InstallerDashboard() {
           </div>
         )}
 
-        {/* No Requests State */}
-        {requests.length === 0 && !requestsLoading && (
-          <Card className="p-12 text-center">
-            <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Active Requests</h3>
-            <p className="text-gray-500 mb-6">
-              Turn on "Available for Jobs" to start receiving installation requests
-            </p>
-            <Button onClick={() => setIsOnline(true)} disabled={isOnline}>
-              Go Online
-            </Button>
-          </Card>
-        )}
+            {/* No Requests State */}
+            {requests.length === 0 && !requestsLoading && (
+              <Card className="p-12 text-center">
+                <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Active Requests</h3>
+                <p className="text-gray-500 mb-6">
+                  Turn on "Available for Jobs" to start receiving installation requests
+                </p>
+                <Button onClick={() => setIsOnline(true)} disabled={isOnline}>
+                  Go Online
+                </Button>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="wallet" className="space-y-6">
+            {installerProfile && (
+              <InstallerWalletDashboard installerId={installerProfile.id} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="profile" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-primary" />
+                  Profile Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => setShowProfileDialog(true)}
+                  className="w-full"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile Information
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Profile Management Dialog */}

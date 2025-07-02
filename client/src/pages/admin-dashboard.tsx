@@ -2138,7 +2138,7 @@ function SolarEnquiryManagement() {
 // Referral Management Component
 function ReferralManagement() {
   const [referralReward, setReferralReward] = useState(25);
-  const [referralDiscount, setReferralDiscount] = useState(10);
+  const [globalDiscountPercentage, setGlobalDiscountPercentage] = useState(10);
   const [isUpdating, setIsUpdating] = useState(false);
   const [editingCode, setEditingCode] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -2155,6 +2155,19 @@ function ReferralManagement() {
     queryKey: ['/api/referrals/codes'],
     queryFn: () => fetch('/api/referrals/codes').then(r => r.json())
   });
+
+  const { data: referralSettings } = useQuery({
+    queryKey: ['/api/referrals/settings'],
+    queryFn: () => fetch('/api/referrals/settings').then(r => r.json())
+  });
+
+  // Update local state when settings are loaded
+  React.useEffect(() => {
+    if (referralSettings) {
+      setReferralReward(referralSettings.referralReward);
+      setGlobalDiscountPercentage(referralSettings.globalDiscountPercentage);
+    }
+  }, [referralSettings]);
 
   // Fetch detailed referral usage for earnings tracking
   const { data: referralUsage } = useQuery({
@@ -2246,7 +2259,7 @@ function ReferralManagement() {
   });
 
   const updateReferralSettings = useMutation({
-    mutationFn: async (settings: { reward: number; discount: number }) => {
+    mutationFn: async (settings: { reward: number; globalDiscountPercentage: number }) => {
       const response = await apiRequest('PUT', '/api/referrals/settings', settings);
       return response.json();
     },
@@ -2277,7 +2290,7 @@ function ReferralManagement() {
     setIsUpdating(true);
     updateReferralSettings.mutate({
       reward: referralReward,
-      discount: referralDiscount
+      globalDiscountPercentage: globalDiscountPercentage
     });
   };
 
@@ -2369,18 +2382,18 @@ function ReferralManagement() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="referralDiscount">Customer Discount (%)</Label>
+              <Label htmlFor="globalDiscountPercentage">Global Discount Percentage (%)</Label>
               <Input
-                id="referralDiscount"
+                id="globalDiscountPercentage"
                 type="number"
-                value={referralDiscount}
-                onChange={(e) => setReferralDiscount(Number(e.target.value))}
+                value={globalDiscountPercentage}
+                onChange={(e) => setGlobalDiscountPercentage(Number(e.target.value))}
                 min="5"
                 max="25"
                 step="5"
               />
               <p className="text-sm text-gray-500">
-                Discount given to new customers using referral codes
+                Unified discount percentage applied to all referral codes
               </p>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { db } from './db.js';
-import { referralCodes, referralUsage, bookings } from '@shared/schema.js';
+import { referralCodes, referralUsage, bookings, referralSettings } from '@shared/schema.js';
 import { eq, and } from 'drizzle-orm';
 
 export interface SalesStaffReferralCode {
@@ -7,7 +7,6 @@ export interface SalesStaffReferralCode {
   referralCode: string;
   salesStaffName: string;
   salesStaffStore: string;
-  discountPercentage: number;
   isActive: boolean;
 }
 
@@ -59,7 +58,6 @@ export class HarveyNormanReferralService {
       referralType: 'sales_staff',
       salesStaffName,
       salesStaffStore,
-      discountPercentage: '10.00', // 10% discount for sales staff codes
       userId: null, // Sales staff codes don't have user IDs
       totalReferrals: 0,
       totalEarnings: '0.00',
@@ -71,7 +69,6 @@ export class HarveyNormanReferralService {
       referralCode: newCode.referralCode,
       salesStaffName: newCode.salesStaffName!,
       salesStaffStore: newCode.salesStaffStore!,
-      discountPercentage: parseFloat(newCode.discountPercentage),
       isActive: newCode.isActive,
     };
   }
@@ -102,8 +99,12 @@ export class HarveyNormanReferralService {
         };
       }
 
-      // Calculate discount
-      const discountPercentage = parseFloat(code.discountPercentage);
+      // Get global discount percentage from settings
+      const [settings] = await db.select()
+        .from(referralSettings)
+        .limit(1);
+
+      const discountPercentage = settings ? parseFloat(settings.globalDiscountPercentage) : 10;
       const discountAmount = Math.round((bookingAmount * discountPercentage / 100) * 100) / 100;
       
       // For sales staff codes, the installer subsidizes the full discount
@@ -118,7 +119,7 @@ export class HarveyNormanReferralService {
         salesStaffName: code.salesStaffName || undefined,
         salesStaffStore: code.salesStaffStore || undefined,
         message: code.referralType === 'sales_staff' 
-          ? `10% discount applied (subsidized by installer)`
+          ? `${discountPercentage}% discount applied (subsidized by installer)`
           : `${discountPercentage}% discount applied`
       };
     } catch (error) {
@@ -196,7 +197,6 @@ export class HarveyNormanReferralService {
       referralCode: code.referralCode,
       salesStaffName: code.salesStaffName!,
       salesStaffStore: code.salesStaffStore!,
-      discountPercentage: parseFloat(code.discountPercentage),
       isActive: code.isActive,
     }));
   }

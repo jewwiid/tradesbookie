@@ -1426,7 +1426,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         referralType: referralType,
         salesStaffName: salesStaffName || null,
         salesStaffStore: salesStaffStore || null,
-        discountPercentage: discountPercentage.toString(),
         totalReferrals: 0,
         totalEarnings: "0.00",
         isActive: isActive !== undefined ? isActive : true
@@ -4702,14 +4701,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         // Return default settings if none exist
         return res.json({
           referralReward: 25,
-          refereeDiscount: 10,
+          globalDiscountPercentage: 10,
           isActive: true
         });
       }
       
       res.json({
         referralReward: parseFloat(settings.referralReward),
-        refereeDiscount: parseFloat(settings.refereeDiscount),
+        globalDiscountPercentage: parseFloat(settings.globalDiscountPercentage),
         isActive: settings.isActive
       });
     } catch (error) {
@@ -4720,16 +4719,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   app.put('/api/referrals/settings', async (req, res) => {
     try {
-      const { reward, discount } = req.body;
+      const { reward, globalDiscountPercentage } = req.body;
       
-      if (!reward || !discount) {
-        return res.status(400).json({ error: "Reward and discount amounts required" });
+      if (!reward || !globalDiscountPercentage) {
+        return res.status(400).json({ error: "Reward amount and global discount percentage required" });
       }
 
       // Update referral settings in database
       const settings = await storage.updateReferralSettings({
-        rewardAmount: reward,
-        discountPercentage: discount
+        referralReward: reward.toString(),
+        globalDiscountPercentage: globalDiscountPercentage.toString(),
+        isActive: true
       });
       
       res.json({ success: true, settings });

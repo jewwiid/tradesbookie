@@ -1034,33 +1034,35 @@ function InstallerManagement() {
 
       {/* Approval Review Dialog */}
       <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
-        <DialogContent className="max-w-2xl" aria-describedby="installer-approval-description">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-hidden flex flex-col" aria-describedby="installer-approval-description">
           <DialogHeader>
             <DialogTitle>Review Installer Application</DialogTitle>
             <DialogDescription id="installer-approval-description">
               Score and approve or reject this installer's application
             </DialogDescription>
           </DialogHeader>
-          {selectedInstaller && (
-            <InstallerApprovalForm 
-              installer={selectedInstaller} 
-              onApprove={(score, comments) => {
-                approveInstallerMutation.mutate({ 
-                  installerId: selectedInstaller.id, 
-                  score, 
-                  comments 
-                });
-              }}
-              onReject={(comments) => {
-                rejectInstallerMutation.mutate({ 
-                  installerId: selectedInstaller.id, 
-                  comments 
-                });
-              }}
-              onCancel={() => setShowApprovalDialog(false)}
-              isLoading={approveInstallerMutation.isPending || rejectInstallerMutation.isPending}
-            />
-          )}
+          <div className="flex-1 overflow-y-auto min-h-0">
+            {selectedInstaller && (
+              <InstallerApprovalForm 
+                installer={selectedInstaller} 
+                onApprove={(score, comments) => {
+                  approveInstallerMutation.mutate({ 
+                    installerId: selectedInstaller.id, 
+                    score, 
+                    comments 
+                  });
+                }}
+                onReject={(comments) => {
+                  rejectInstallerMutation.mutate({ 
+                    installerId: selectedInstaller.id, 
+                    comments 
+                  });
+                }}
+                onCancel={() => setShowApprovalDialog(false)}
+                isLoading={approveInstallerMutation.isPending || rejectInstallerMutation.isPending}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </Card>

@@ -2197,7 +2197,10 @@ function ReferralManagement() {
         body: JSON.stringify({
           code: data.code,
           discountPercentage: data.discountPercentage,
-          isActive: data.isActive
+          isActive: data.isActive,
+          referralType: data.referralType,
+          salesStaffName: data.salesStaffName,
+          salesStaffStore: data.salesStaffStore
         })
       });
       if (!response.ok) throw new Error('Failed to update referral code');

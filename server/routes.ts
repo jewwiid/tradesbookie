@@ -1442,17 +1442,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/referrals/codes/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const { code, discountPercentage, isActive } = req.body;
+      const { code, discountPercentage, isActive, referralType, salesStaffName, salesStaffStore } = req.body;
       
       if (!code || discountPercentage === undefined) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
-      const updatedCode = await storage.updateReferralCode(parseInt(id), {
+      const updateData: any = {
         referralCode: code,
         discountPercentage: discountPercentage.toString(),
         isActive: isActive
-      });
+      };
+
+      // Add type-specific fields if provided
+      if (referralType !== undefined) {
+        updateData.referralType = referralType;
+      }
+      if (salesStaffName !== undefined) {
+        updateData.salesStaffName = salesStaffName;
+      }
+      if (salesStaffStore !== undefined) {
+        updateData.salesStaffStore = salesStaffStore;
+      }
+
+      const updatedCode = await storage.updateReferralCode(parseInt(id), updateData);
 
       if (!updatedCode) {
         return res.status(404).json({ message: "Referral code not found" });

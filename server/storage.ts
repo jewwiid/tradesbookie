@@ -673,7 +673,14 @@ export class DatabaseStorage implements IStorage {
     return referralCode;
   }
 
-  async updateReferralCode(id: number, updates: { referralCode?: string; discountPercentage?: string; isActive?: boolean }): Promise<ReferralCode | undefined> {
+  async updateReferralCode(id: number, updates: { 
+    referralCode?: string; 
+    discountPercentage?: string; 
+    isActive?: boolean;
+    referralType?: string;
+    salesStaffName?: string;
+    salesStaffStore?: string;
+  }): Promise<ReferralCode | undefined> {
     const [updated] = await db.update(referralCodes)
       .set({
         ...updates,

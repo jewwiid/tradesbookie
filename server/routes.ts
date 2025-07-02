@@ -186,11 +186,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Email and password are required" });
       }
       
-      // Simple password hashing (match registration method)
-      const passwordHash = Buffer.from(password).toString('base64');
-      
-      // Authenticate installer
-      const installer = await storage.authenticateInstaller(email, passwordHash);
+      // Authenticate installer using bcrypt comparison
+      const installer = await storage.authenticateInstaller(email, password);
       if (!installer) {
         return res.status(401).json({ error: "Invalid email or password" });
       }

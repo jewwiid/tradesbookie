@@ -272,13 +272,19 @@ export class DatabaseStorage implements IStorage {
     return installer;
   }
 
-  async authenticateInstaller(email: string, passwordHash: string): Promise<Installer | null> {
+  async authenticateInstaller(email: string, password: string): Promise<Installer | null> {
     const [installer] = await db.select().from(installers)
-      .where(and(
-        eq(installers.email, email),
-        eq(installers.passwordHash, passwordHash)
-      ));
-    return installer || null;
+      .where(eq(installers.email, email));
+    
+    if (!installer || !installer.passwordHash) {
+      return null;
+    }
+    
+    // Use bcrypt to verify password
+    const bcrypt = require('bcrypt');
+    const isValidPassword = await bcrypt.compare(password, installer.passwordHash);
+    
+    return isValidPassword ? installer : null;
   }
 
   async updateInstallerProfile(installerId: number, profileData: Partial<InsertInstaller>): Promise<Installer> {

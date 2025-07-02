@@ -72,6 +72,7 @@ export interface IStorage {
   // Job assignment operations
   createJobAssignment(assignment: InsertJobAssignment): Promise<JobAssignment>;
   getInstallerJobs(installerId: number): Promise<JobAssignment[]>;
+  getInstallerJobAssignments(installerId: number): Promise<JobAssignment[]>;
   updateJobStatus(id: number, status: string): Promise<void>;
 
   // Review operations
@@ -418,6 +419,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInstallerJobs(installerId: number): Promise<JobAssignment[]> {
+    return await db.select().from(jobAssignments)
+      .where(eq(jobAssignments.installerId, installerId))
+      .orderBy(desc(jobAssignments.assignedDate));
+  }
+
+  async getInstallerJobAssignments(installerId: number): Promise<JobAssignment[]> {
     return await db.select().from(jobAssignments)
       .where(eq(jobAssignments.installerId, installerId))
       .orderBy(desc(jobAssignments.assignedDate));

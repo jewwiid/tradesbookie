@@ -295,8 +295,7 @@ export default function InstallerDashboard() {
   // Get current installer profile
   const { data: installerProfile } = useQuery({
     queryKey: ["/api/installers/profile"],
-    retry: false,
-    enabled: showProfileDialog
+    retry: false
   });
 
   // Populate profile data when dialog is opened

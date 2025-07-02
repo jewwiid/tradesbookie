@@ -9,9 +9,10 @@ import SimplifiedAuthDialog from './SimplifiedAuthDialog';
 
 interface NavigationProps {
   isInstallerContext?: boolean;
+  installerProfile?: any;
 }
 
-export default function Navigation({ isInstallerContext = false }: NavigationProps) {
+export default function Navigation({ isInstallerContext = false, installerProfile }: NavigationProps) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
@@ -24,6 +25,9 @@ export default function Navigation({ isInstallerContext = false }: NavigationPro
                   user?.email === 'admin@tradesbook.ie' || 
                   user?.email === 'jude.okun@gmail.com' || 
                   user?.id === '42442296';
+
+  // Check if installer is authenticated
+  const isInstallerAuthenticated = !!installerProfile;
 
   return (
     <>
@@ -110,7 +114,23 @@ export default function Navigation({ isInstallerContext = false }: NavigationPro
                     </Link>
                   </>
                 )}
-                {isAuthenticated ? (
+                {isInstallerAuthenticated ? (
+                  <div className="flex items-center space-x-3">
+                    <div className="text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
+                      {installerProfile?.contactName || installerProfile?.email?.split('@')[0]}
+                    </div>
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      className="font-medium"
+                      onClick={() => {
+                        window.location.href = '/installer-login';
+                      }}
+                    >
+                      Logout
+                    </Button>
+                  </div>
+                ) : isAuthenticated ? (
                   <div className="flex items-center space-x-3">
                     <div className="text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
                       Welcome, {user?.firstName || user?.email?.split('@')[0]}
@@ -134,7 +154,7 @@ export default function Navigation({ isInstallerContext = false }: NavigationPro
                       Logout
                     </Button>
                   </div>
-                ) : (
+                ) : !isInstallerContext ? (
                   <div className="flex items-center space-x-2">
                     <Button 
                       variant="outline"
@@ -146,7 +166,7 @@ export default function Navigation({ isInstallerContext = false }: NavigationPro
                       Quick Sign In
                     </Button>
                   </div>
-                )}
+                ) : null}
               </div>
 
               {/* Mobile menu trigger */}

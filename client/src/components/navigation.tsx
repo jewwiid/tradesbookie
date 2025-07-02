@@ -46,63 +46,32 @@ export default function Navigation({ isInstallerContext = false }: NavigationPro
             <div className="flex justify-between items-center h-14">
               {/* Desktop Navigation Links */}
               <div className="hidden md:flex items-center justify-start flex-1">
-                {!isAdmin && (
+                {!isAdmin && !isInstallerContext && (
                   <div className="flex items-center space-x-6">
-                    {isInstallerContext ? (
-                      <>
-                        <Link 
-                          href="/how-it-works" 
-                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                        >
-                          How it Works
-                        </Link>
-                        <Link 
-                          href="/pricing" 
-                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                        >
-                          Pricing
-                        </Link>
-                        <Link 
-                          href="/our-installers" 
-                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                        >
-                          Our Installers
-                        </Link>
-                        <Link 
-                          href="/installation-tracker" 
-                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                        >
-                          Installation Map
-                        </Link>
-                      </>
-                    ) : (
-                      <>
-                        <Link 
-                          href="/how-it-works" 
-                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                        >
-                          How it Works
-                        </Link>
-                        <Link 
-                          href="/pricing" 
-                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                        >
-                          Pricing
-                        </Link>
-                        <Link 
-                          href="/our-installers" 
-                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                        >
-                          Our Installers
-                        </Link>
-                        <Link 
-                          href="/installation-tracker" 
-                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                        >
-                          Installation Map
-                        </Link>
-                      </>
-                    )}
+                    <Link 
+                      href="/how-it-works" 
+                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                    >
+                      How it Works
+                    </Link>
+                    <Link 
+                      href="/pricing" 
+                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                    >
+                      Pricing
+                    </Link>
+                    <Link 
+                      href="/our-installers" 
+                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                    >
+                      Our Installers
+                    </Link>
+                    <Link 
+                      href="/installation-tracker" 
+                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                    >
+                      Installation Map
+                    </Link>
                   </div>
                 )}
               </div>

@@ -91,8 +91,8 @@ async function upsertUser(
   if (existingUser && authAction === 'signup') {
     // User tried to signup but already exists - proceed with login
     console.log("Existing user attempting signup, proceeding with login:", userData.email);
-    await storage.upsertUser(userData);
-    return;
+    const user = await storage.upsertUser(userData);
+    return { user };
   }
 
   if (!existingUser) {
@@ -150,10 +150,20 @@ async function upsertUser(
     } catch (err) {
       console.error("Failed to send verification email to new OAuth user:", err);
     }
+
+    const user = await storage.upsertUser({
+      ...userData,
+      emailVerified: false,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: expiresAt,
+    });
+    
+    return { user };
   } else {
     // Existing user - just update their info
     console.log("Updating existing user via OAuth:", userData.email);
-    await storage.upsertUser(userData);
+    const user = await storage.upsertUser(userData);
+    return { user };
   }
 }
 
@@ -209,11 +219,17 @@ export async function setupAuth(app: Express) {
       console.log("Intended role for user:", intendedRole);
       console.log("Auth action:", authAction);
       
-      await upsertUser(claims, intendedRole, authAction);
+      const upsertResult = await upsertUser(claims, intendedRole, authAction);
+      
+      // Handle installer redirect
+      if (upsertResult.shouldRedirect) {
+        return verified(null, false, { message: upsertResult.shouldRedirect });
+      }
+      
       console.log("User upserted successfully");
       
       // Get the actual user from database after upsert
-      const dbUser = await storage.getUserByEmail(String(claims?.email || ''));
+      const dbUser = upsertResult.user || await storage.getUserByEmail(String(claims?.email || ''));
       if (!dbUser) {
         throw new Error("Failed to retrieve user after upsert");
       }
@@ -361,6 +377,13 @@ export async function setupAuth(app: Express) {
       
       if (!user) {
         console.error("No user returned from authentication:", info);
+        
+        // Check if this is an installer redirect
+        if (info && info.message && info.message.startsWith('/installer')) {
+          console.log("Redirecting installer to registration page:", info.message);
+          return res.redirect(info.message);
+        }
+        
         return res.redirect("/?error=auth_no_user");
       }
       

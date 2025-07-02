@@ -3725,6 +3725,86 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // ====================== EMAIL TEST ENDPOINT ======================
+  
+  // Test Gmail functionality
+  app.post("/api/test-email", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { to, subject, message } = req.body;
+      
+      if (!to || !subject || !message) {
+        return res.status(400).json({ error: "Missing required fields: to, subject, message" });
+      }
+      
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>${subject}</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+            .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Gmail Service Test</h1>
+              <p>tradesbook.ie Email System</p>
+            </div>
+            
+            <div class="content">
+              <h3>Email Test Message</h3>
+              <p>${message}</p>
+              
+              <div style="background: #e9ecef; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p><strong>System Status:</strong> Gmail integration is working correctly</p>
+                <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+                <p><strong>Environment:</strong> ${process.env.NODE_ENV || 'development'}</p>
+              </div>
+              
+              <div class="footer">
+                <p>This is a test email from tradesbook.ie Gmail service</p>
+                <p>Admin Dashboard: <a href="https://tradesbook.ie/admin">https://tradesbook.ie/admin</a></p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      const emailSent = await sendGmailEmail({
+        to,
+        subject: `[TEST] ${subject}`,
+        html,
+        from: 'admin@tradesbook.ie',
+        replyTo: 'support@tradesbook.ie'
+      });
+      
+      if (emailSent) {
+        res.json({ 
+          success: true, 
+          message: "Test email sent successfully",
+          details: {
+            to,
+            subject,
+            from: 'admin@tradesbook.ie',
+            timestamp: new Date().toISOString()
+          }
+        });
+      } else {
+        res.status(500).json({ error: "Failed to send test email" });
+      }
+    } catch (error) {
+      console.error("Error sending test email:", error);
+      res.status(500).json({ error: "Failed to send test email" });
+    }
+  });
+
   // ====================== STRIPE CONFIGURATION ENDPOINT ======================
   
   // Get Stripe publishable key for frontend

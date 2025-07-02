@@ -183,11 +183,7 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Add test route to verify route registration  
-  app.get("/api/auth/test", (req, res) => {
-    console.log("Auth test route hit");
-    res.json({ message: "Auth routes are working", hostname: req.hostname });
-  });
+
 
   let config;
   try {

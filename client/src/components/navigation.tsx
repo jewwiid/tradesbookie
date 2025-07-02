@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X } from 'lucide-react';
 import SimplifiedAuthDialog from './SimplifiedAuthDialog';
@@ -176,7 +176,11 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[320px] p-0">
+                <SheetContent side="right" className="w-[320px] p-0" aria-describedby="mobile-menu-description">
+                  <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                  <SheetDescription id="mobile-menu-description" className="sr-only">
+                    Main navigation menu for mobile devices
+                  </SheetDescription>
                   <div className="flex flex-col h-full">
                     {/* Header */}
                     <div className="flex items-center justify-between p-6 border-b">

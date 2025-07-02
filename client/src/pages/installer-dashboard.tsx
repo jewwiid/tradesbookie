@@ -717,18 +717,19 @@ export default function InstallerDashboard() {
       {/* Installer Dashboard Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-gray-900">Installer Dashboard</h1>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 sm:py-0 sm:h-16 gap-3 sm:gap-0">
+            <div className="flex items-center space-x-3">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900">Installer Dashboard</h1>
               <Badge variant={isOnline ? "default" : "secondary"} className="flex items-center space-x-1">
                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                <span>{isOnline ? 'Online' : 'Offline'}</span>
+                <span className="text-xs sm:text-sm">{isOnline ? 'Online' : 'Offline'}</span>
               </Badge>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span>Available for Jobs</span>
+            <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                <span className="hidden sm:inline">Available for Jobs</span>
+                <span className="sm:hidden">Available</span>
                 <Switch 
                   checked={isOnline} 
                   onCheckedChange={handleAvailabilityToggle}
@@ -739,6 +740,7 @@ export default function InstallerDashboard() {
               
               <Button variant="ghost" size="sm" onClick={() => window.location.href = '/installer-login'}>
                 <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline ml-2">Logout</span>
               </Button>
             </div>
           </div>
@@ -747,26 +749,31 @@ export default function InstallerDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs defaultValue="requests" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
-            <TabsTrigger value="requests" className="flex items-center gap-2">
-              <NavigationIcon className="w-4 h-4" />
-              Lead Requests
+          {/* Mobile-first responsive tabs */}
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-6 h-auto p-1">
+            <TabsTrigger value="requests" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <NavigationIcon className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Lead Requests</span>
+              <span className="sm:hidden">Leads</span>
             </TabsTrigger>
-            <TabsTrigger value="past-leads" className="flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Purchased Leads
+            <TabsTrigger value="past-leads" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Purchased Leads</span>
+              <span className="sm:hidden">Purchased</span>
             </TabsTrigger>
-            <TabsTrigger value="reviews" className="flex items-center gap-2">
-              <Star className="w-4 h-4" />
-              Reviews
+            <TabsTrigger value="reviews" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <Star className="w-4 h-4 flex-shrink-0" />
+              <span>Reviews</span>
             </TabsTrigger>
-            <TabsTrigger value="wallet" className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4" />
-              Wallet & Credits
+            <TabsTrigger value="wallet" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <DollarSign className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline">Wallet & Credits</span>
+              <span className="lg:hidden">Wallet</span>
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Profile Settings
+            <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <Settings className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline">Profile Settings</span>
+              <span className="lg:hidden">Profile</span>
             </TabsTrigger>
           </TabsList>
 

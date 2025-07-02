@@ -442,6 +442,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Status updates now persist correctly across requests with proper memory cache implementation**
 - July 2, 2025: **Performed major database cleanup - removed 43 unnecessary demo bookings (91% reduction from 47 to 4 bookings)**
 - July 2, 2025: **Optimized database efficiency by keeping only essential test bookings and current demo leads**
+- July 2, 2025: **Fixed schedule proposal API call errors - corrected apiRequest parameter order and date conversion issues**
+- July 2, 2025: **Schedule negotiation system now properly converts date strings to Date objects for Zod validation**
 
 ## User Preferences
 

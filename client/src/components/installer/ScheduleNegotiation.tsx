@@ -67,7 +67,7 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
       return apiRequest('POST', '/api/schedule-negotiations', {
         bookingId,
         installerId,
-        proposedDate: proposal.date,
+        proposedDate: new Date(proposal.date),
         proposedTimeSlot: proposal.timeSlot,
         proposalMessage: proposal.message,
         proposedBy: isInstaller ? 'installer' : 'customer',

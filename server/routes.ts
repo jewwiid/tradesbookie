@@ -19,7 +19,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-06-20",
 });
 
-import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification } from "./gmailService";
+import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail } from "./gmailService";
 import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
 import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { pricingManagementService } from "./pricingManagementService";
@@ -288,6 +288,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: address,
         serviceArea: county
       });
+      
+      // Send welcome email to the installer
+      try {
+        console.log(`Attempting to send welcome email to: ${email}`);
+        const emailResult = await sendInstallerWelcomeEmail(email, fullName, businessName);
+        if (emailResult) {
+          console.log(`✅ Welcome email sent successfully to new installer: ${email}`);
+        } else {
+          console.log(`❌ Welcome email failed to send to: ${email}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Failed to send welcome email to installer:', emailError);
+        // Don't fail registration if email fails
+      }
       
       // Return installer data (without password hash)
       const { passwordHash: _, ...installerData } = installer;
@@ -2278,6 +2292,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching installers:", error);
       res.status(500).json({ message: "Failed to fetch installers" });
+    }
+  });
+
+  // Test email endpoint for debugging
+  app.post("/api/test-email", async (req, res) => {
+    try {
+      const { email, name, businessName } = req.body;
+      
+      if (!email || !name || !businessName) {
+        return res.status(400).json({ error: "Email, name, and businessName are required" });
+      }
+      
+      console.log(`Testing email send to: ${email}`);
+      const result = await sendInstallerWelcomeEmail(email, name, businessName);
+      
+      res.json({ 
+        success: result, 
+        message: result ? "Email sent successfully" : "Email failed to send" 
+      });
+    } catch (error) {
+      console.error("Test email error:", error);
+      res.status(500).json({ error: "Email test failed", details: error.message });
     }
   });
 

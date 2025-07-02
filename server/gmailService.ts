@@ -779,3 +779,121 @@ export async function sendScheduleConfirmationNotification(
     return false;
   }
 }
+
+export async function sendInstallerWelcomeEmail(installerEmail: string, installerName: string, businessName: string): Promise<boolean> {
+  try {
+    console.log(`Sending installer welcome email to: ${installerEmail}`);
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Welcome to tradesbook.ie - Installer Registration Confirmed</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+            .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
+            .welcome-card { background: white; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea; }
+            .steps-list { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .step-item { padding: 12px 0; border-bottom: 1px solid #eee; display: flex; align-items: flex-start; }
+            .step-number { background: #667eea; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: 15px; flex-shrink: 0; }
+            .step-content { flex: 1; }
+            .step-title { font-weight: bold; color: #333; margin-bottom: 4px; }
+            .step-desc { color: #666; font-size: 14px; }
+            .highlight-box { background: #e3f2fd; border: 1px solid #2196f3; padding: 15px; border-radius: 6px; margin: 15px 0; }
+            .button { display: inline-block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0; }
+            .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🎉 Welcome to tradesbook.ie!</h1>
+              <p>Your installer account has been created successfully</p>
+            </div>
+            
+            <div class="content">
+              <div class="welcome-card">
+                <h2>Hello ${installerName}!</h2>
+                <p>Thank you for registering <strong>${businessName}</strong> with tradesbook.ie. Your installer account has been created and is now pending admin approval.</p>
+              </div>
+
+              <div class="highlight-box">
+                <strong>⏰ Approval Timeline:</strong> Your account will be reviewed and approved within 24-48 hours. You'll receive another email once you're approved to start receiving job leads.
+              </div>
+
+              <div class="steps-list">
+                <h3>Next Steps:</h3>
+                
+                <div class="step-item">
+                  <div class="step-number">1</div>
+                  <div class="step-content">
+                    <div class="step-title">Sign In & Complete Profile</div>
+                    <div class="step-desc">Use your email and password to sign in and complete your installer profile with service areas and specialties.</div>
+                  </div>
+                </div>
+
+                <div class="step-item">
+                  <div class="step-number">2</div>
+                  <div class="step-content">
+                    <div class="step-title">Wait for Admin Approval</div>
+                    <div class="step-desc">Our team will review your registration and approve your account within 24-48 hours.</div>
+                  </div>
+                </div>
+
+                <div class="step-item">
+                  <div class="step-number">3</div>
+                  <div class="step-content">
+                    <div class="step-title">Start Receiving Job Leads</div>
+                    <div class="step-desc">Once approved, you'll receive real-time job notifications and can purchase leads for €12-€35 per job.</div>
+                  </div>
+                </div>
+
+                <div class="step-item">
+                  <div class="step-number">4</div>
+                  <div class="step-content">
+                    <div class="step-title">Earn Your Full Rate</div>
+                    <div class="step-desc">Customers pay you directly (cash, card, or bank transfer) for the full installation amount.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="https://tradesbook.ie/installer-login" class="button">Sign In to Your Dashboard</a>
+              </div>
+
+              <div class="highlight-box">
+                <strong>📧 Need Help?</strong> If you have any questions about the registration process or platform features, please contact us at <a href="mailto:installer@tradesbook.ie">installer@tradesbook.ie</a>
+              </div>
+            </div>
+
+            <div class="footer">
+              <p>© 2025 tradesbook.ie - Professional TV Installation Platform</p>
+              <p>This email was sent to confirm your installer registration for ${businessName}</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const success = await sendGmailEmail({
+      to: installerEmail,
+      subject: '🎉 Welcome to tradesbook.ie - Registration Confirmed',
+      html: htmlContent,
+      from: getValidFromEmail('installer'),
+      replyTo: 'installer@tradesbook.ie'
+    });
+
+    if (success) {
+      console.log(`Installer welcome email sent successfully to: ${installerEmail}`);
+    }
+
+    return success;
+  } catch (error) {
+    console.error('Error sending installer welcome email:', error);
+    return false;
+  }
+}

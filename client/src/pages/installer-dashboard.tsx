@@ -621,7 +621,7 @@ export default function InstallerDashboard() {
               size="sm"
               onClick={() => setViewMode('map')}
             >
-              <Navigation className="w-4 h-4 mr-2" />
+              <NavigationIcon className="w-4 h-4 mr-2" />
               Map View
             </Button>
             <Button

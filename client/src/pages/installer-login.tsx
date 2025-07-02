@@ -214,10 +214,15 @@ export default function InstallerLogin() {
         {/* Registration Link */}
         <div className="text-center">
           <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <p className="text-green-800 text-sm font-medium mb-1">
-              New Installer Registration Flow:
+            <p className="text-green-800 text-sm font-medium mb-2">
+              New to our platform?
             </p>
-            <p className="text-green-700 text-xs mb-2">
+            <Button asChild variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-50">
+              <Link href="/installer-registration">
+                Create New Installer Account
+              </Link>
+            </Button>
+            <p className="text-green-600 text-xs mt-2">
               1. Click "Sign Up as New Installer" above → 2. Complete OAuth signup → 3. Verify email → 4. Complete installer profile
             </p>
             <p className="text-gray-600 text-xs">

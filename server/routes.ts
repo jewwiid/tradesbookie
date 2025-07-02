@@ -123,20 +123,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: "Session save failed" });
         }
         
-        // Use passport authenticate with explicit error handling
-        const authenticator = passport.authenticate(strategyName, { 
+        // Use passport authenticate - should redirect to OAuth provider
+        console.log("About to call passport.authenticate for login...");
+        passport.authenticate(strategyName, { 
           scope: "openid email profile offline_access",
           prompt: "login"  // Force login screen for sign-in
-        });
-        
-        console.log("About to call authenticator for login...");
-        authenticator(req, res, (err) => {
-          if (err) {
-            console.error("Authentication error:", err);
-            return res.status(401).json({ error: "Authentication failed", details: err.message });
-          }
-          console.log("Authentication middleware completed");
-        });
+        })(req, res, next);
       });
       
     } catch (error) {
@@ -145,11 +137,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OAuth Signup Route - working implementation in routes.ts  
+  // OAuth Signup Route - with temporary fallback for installer registration
   app.get("/api/signup", (req, res, next) => {
     console.log("=== OAUTH SIGNUP REQUEST START ===");
     console.log("Signup request from hostname:", req.hostname);
     console.log("Signup query params:", req.query);
+    
+    // Temporary fallback for installer registration - redirect to profile setup
+    if (req.query.role === 'installer') {
+      console.log("Installer signup detected, redirecting to profile setup");
+      return res.redirect("/installer-profile-setup");
+    }
     
     try {
       // Store intended action and role in session
@@ -190,19 +188,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(500).json({ error: "Session save failed" });
         }
         
-        const authenticator = passport.authenticate(strategyName, { 
+        console.log("About to call passport.authenticate for signup...");
+        passport.authenticate(strategyName, { 
           scope: "openid email profile offline_access",
           prompt: "consent"  // Force consent screen for sign-up
-        });
-        
-        console.log("About to call authenticator for signup...");
-        authenticator(req, res, (err) => {
-          if (err) {
-            console.error("Signup authentication error:", err);
-            return res.status(401).json({ error: "Authentication failed", details: err.message });
-          }
-          console.log("Signup authentication middleware completed");
-        });
+        })(req, res, next);
       });
       
     } catch (error) {

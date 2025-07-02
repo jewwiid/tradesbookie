@@ -4862,13 +4862,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Schedule negotiation endpoints
   app.post("/api/schedule-negotiations", async (req, res) => {
     try {
-      // Convert date string to Date object before validation
-      const requestData = {
-        ...req.body,
-        proposedDate: new Date(req.body.proposedDate)
-      };
-      
-      const validatedData = insertScheduleNegotiationSchema.parse(requestData);
+      const validatedData = insertScheduleNegotiationSchema.parse(req.body);
       const negotiation = await storage.createScheduleNegotiation(validatedData);
       
       // Send email notification about new schedule proposal

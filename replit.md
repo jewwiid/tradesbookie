@@ -445,6 +445,7 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Fixed schedule proposal API call errors - corrected apiRequest parameter order and date conversion issues**
 - July 2, 2025: **Schedule negotiation system now properly converts date strings to Date objects for Zod validation**
 - July 2, 2025: **Resolved JSON serialization date issue by handling date conversion on backend before Zod validation**
+- July 2, 2025: **Fixed Zod schema for schedule negotiations - accepts both string and Date types with automatic transformation**
 
 ## User Preferences
 

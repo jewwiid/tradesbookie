@@ -603,6 +603,13 @@ export const insertScheduleNegotiationSchema = createInsertSchema(scheduleNegoti
   updatedAt: true,
   proposedAt: true,
   respondedAt: true,
+}).extend({
+  proposedDate: z.union([z.string(), z.date()]).transform((val) => {
+    if (typeof val === 'string') {
+      return new Date(val);
+    }
+    return val;
+  }),
 });
 
 // Types

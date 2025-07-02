@@ -5019,7 +5019,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
 
       // Get installer details
-      const installer = await storage.getInstallerProfile(installerId);
+      const installer = await storage.getInstaller(installerId);
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }

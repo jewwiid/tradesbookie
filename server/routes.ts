@@ -10,6 +10,7 @@ import { z } from "zod";
 import multer from "multer";
 import QRCode from "qrcode";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import passport from "passport";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -103,7 +104,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Using OAuth strategy:", strategyName);
       
       // Check if strategy is registered
-      const passport = require('passport');
       const availableStrategies = Object.keys((passport as any)._strategies || {});
       console.log("Available strategies:", availableStrategies);
       
@@ -120,18 +120,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       passport.authenticate(strategyName, { 
         scope: "openid email profile offline_access",
         prompt: "login"  // Force login screen for sign-in
-      }, (err: any, user: any, info: any) => {
-        if (err) {
-          console.error("Passport authentication error:", err);
-          return res.status(500).json({ error: "Authentication failed", details: err.message });
-        }
-        if (!user) {
-          console.error("No user returned from authentication:", info);
-          return res.status(500).json({ error: "Authentication incomplete", info });
-        }
-        // This shouldn't happen in the login flow, but handle it
-        console.log("Direct authentication success (unusual for OAuth flow)");
-        return res.redirect("/?auth=success");
       })(req, res, next);
       
     } catch (error) {
@@ -177,7 +165,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log("Using OAuth strategy:", strategyName);
-      const passport = require('passport');
       passport.authenticate(strategyName, { 
         scope: "openid email profile offline_access",
         prompt: "consent"  // Force consent screen for sign-up

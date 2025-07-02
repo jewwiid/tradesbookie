@@ -134,10 +134,10 @@ export default function SimplifiedAuthDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" aria-describedby="simplified-auth-description">
         <DialogHeader>
           <DialogTitle className="text-center">{title}</DialogTitle>
-          <DialogDescription className="text-center">
+          <DialogDescription id="simplified-auth-description" className="text-center">
             {description}
           </DialogDescription>
         </DialogHeader>

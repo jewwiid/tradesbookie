@@ -2194,7 +2194,11 @@ function ReferralManagement() {
       const response = await fetch(`/api/referrals/codes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+          code: data.code,
+          discountPercentage: data.discountPercentage,
+          isActive: data.isActive
+        })
       });
       if (!response.ok) throw new Error('Failed to update referral code');
       return response.json();
@@ -2260,30 +2264,7 @@ function ReferralManagement() {
     }
   });
 
-  // Edit referral code mutation
-  const editReferralCodeMutation = useMutation({
-    mutationFn: async (data: { id: number; code: string; discountPercentage: number; isActive: boolean }) => {
-      const response = await apiRequest('PUT', `/api/referrals/codes/${data.id}`, data);
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/referrals/codes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/referrals/stats'] });
-      toast({
-        title: "Success",
-        description: "Referral code updated successfully"
-      });
-      setShowEditDialog(false);
-      setEditingCode(null);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update referral code",
-        variant: "destructive"
-      });
-    }
-  });
+
 
 
 
@@ -2579,12 +2560,12 @@ function ReferralManagement() {
           {editingCode && (
             <ReferralCodeForm
               code={editingCode}
-              onSubmit={(data) => editReferralCodeMutation.mutate({ id: editingCode.id, ...data })}
+              onSubmit={(data) => updateReferralCodeMutation.mutate({ id: editingCode.id, data })}
               onCancel={() => {
                 setShowEditDialog(false);
                 setEditingCode(null);
               }}
-              isLoading={editReferralCodeMutation.isPending}
+              isLoading={updateReferralCodeMutation.isPending}
             />
           )}
         </DialogContent>
@@ -2733,14 +2714,28 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
   const form = useForm<ReferralCodeFormData>({
     resolver: zodResolver(referralCodeSchema),
     defaultValues: {
-      code: code?.code || "",
-      referralType: code?.referralType || "customer",
+      code: code?.referralCode || code?.code || "",
+      referralType: code?.referralType || "customer", 
       discountPercentage: parseFloat(code?.discountPercentage || "10"),
       salesStaffName: code?.salesStaffName || "",
       salesStaffStore: code?.salesStaffStore || "",
       isActive: code?.isActive ?? true
     }
   });
+
+  // Reset form when code prop changes (for editing)
+  React.useEffect(() => {
+    if (code) {
+      form.reset({
+        code: code?.referralCode || code?.code || "",
+        referralType: code?.referralType || "customer",
+        discountPercentage: parseFloat(code?.discountPercentage || "10"),
+        salesStaffName: code?.salesStaffName || "",
+        salesStaffStore: code?.salesStaffStore || "",
+        isActive: code?.isActive ?? true
+      });
+    }
+  }, [code, form]);
 
   const referralType = form.watch("referralType");
   const salesStaffName = form.watch("salesStaffName");

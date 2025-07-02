@@ -58,18 +58,109 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
-  // Test routes registered BEFORE setupAuth
-  app.get("/api/before-auth-test", (req, res) => {
-    console.log("Before auth test route hit successfully");
-    res.json({ 
-      message: "Route registration working BEFORE auth",
-      hostname: req.hostname,
-      timestamp: new Date().toISOString()
-    });
+  // Auth middleware - sets up passport and sessions
+  await setupAuth(app);
+
+  // OAuth Login Route - working implementation in routes.ts
+  app.get("/api/login", (req, res, next) => {
+    console.log("=== OAUTH LOGIN REQUEST START ===");
+    console.log("Login request from hostname:", req.hostname);
+    console.log("Login query params:", req.query);
+    console.log("Current user:", req.user);
+    console.log("Is authenticated:", req.isAuthenticated ? req.isAuthenticated() : false);
+    console.log("Session ID:", req.sessionID);
+    
+    try {
+      // Store intended action and role in session
+      (req.session as any).authAction = 'login';
+      (req.session as any).intendedRole = req.query.role || 'customer';
+      
+      // Store return URL if provided
+      if (req.query.returnTo) {
+        (req.session as any).returnTo = req.query.returnTo as string;
+      }
+      
+      // Determine strategy based on hostname
+      function getStrategyName(hostname: string): string | null {
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'replitauth:localhost';
+        } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+          return `replitauth:${hostname}`;
+        } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
+          return 'replitauth:tradesbook.ie';
+        } else {
+          const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+          return registeredDomain ? `replitauth:${registeredDomain}` : null;
+        }
+      }
+      
+      const strategyName = getStrategyName(req.hostname);
+      if (!strategyName) {
+        console.error("No OAuth strategy found for hostname:", req.hostname);
+        return res.status(400).json({ error: "OAuth not configured for this domain" });
+      }
+      
+      console.log("Using OAuth strategy:", strategyName);
+      const passport = require('passport');
+      passport.authenticate(strategyName, { 
+        scope: "openid email profile offline_access",
+        prompt: "login"  // Force login screen for sign-in
+      })(req, res, next);
+      
+    } catch (error) {
+      console.error("OAuth login error:", error);
+      res.status(500).json({ error: "OAuth login failed" });
+    }
   });
 
-  // Auth middleware
-  await setupAuth(app);
+  // OAuth Signup Route - working implementation in routes.ts  
+  app.get("/api/signup", (req, res, next) => {
+    console.log("=== OAUTH SIGNUP REQUEST START ===");
+    console.log("Signup request from hostname:", req.hostname);
+    console.log("Signup query params:", req.query);
+    
+    try {
+      // Store intended action and role in session
+      (req.session as any).authAction = 'signup';
+      (req.session as any).intendedRole = req.query.role || 'customer';
+      
+      // Store return URL if provided
+      if (req.query.returnTo) {
+        (req.session as any).returnTo = req.query.returnTo as string;
+      }
+      
+      // Determine strategy based on hostname
+      function getStrategyName(hostname: string): string | null {
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'replitauth:localhost';
+        } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+          return `replitauth:${hostname}`;
+        } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
+          return 'replitauth:tradesbook.ie';
+        } else {
+          const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+          return registeredDomain ? `replitauth:${registeredDomain}` : null;
+        }
+      }
+      
+      const strategyName = getStrategyName(req.hostname);
+      if (!strategyName) {
+        console.error("No OAuth strategy found for hostname:", req.hostname);
+        return res.status(400).json({ error: "OAuth not configured for this domain" });
+      }
+      
+      console.log("Using OAuth strategy:", strategyName);
+      const passport = require('passport');
+      passport.authenticate(strategyName, { 
+        scope: "openid email profile offline_access",
+        prompt: "consent"  // Force consent screen for sign-up
+      })(req, res, next);
+      
+    } catch (error) {
+      console.error("OAuth signup error:", error);
+      res.status(500).json({ error: "OAuth signup failed" });
+    }
+  });
 
   // Health check
   app.get("/api/health", (req, res) => {

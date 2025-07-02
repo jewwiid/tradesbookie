@@ -37,7 +37,7 @@ const LEAD_FEES: Record<string, number> = {
   'silver': 25,
   'silver-large': 30,
   'gold': 30,
-  'gold-large': 35
+  'gold-large': 30
 };
 
 // Service tiers with new pricing model

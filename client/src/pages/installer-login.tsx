@@ -180,37 +180,6 @@ export default function InstallerLogin() {
           </Card>
         )}
 
-        {/* OAuth Authentication */}
-        <div className="text-center mb-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="font-semibold text-blue-900 mb-2">OAuth Authentication</h3>
-            <p className="text-blue-800 text-sm mb-3">
-              Use your existing account from Google, GitHub, or other providers
-            </p>
-            <div className="space-y-2">
-              <Button 
-                onClick={() => {
-                  console.log("Initiating OAuth login for installer role");
-                  window.location.href = '/api/login?role=installer';
-                }}
-                className="w-full bg-blue-600 hover:bg-blue-700"
-              >
-                Sign In as Installer
-              </Button>
-              <Button 
-                onClick={() => {
-                  console.log("Initiating OAuth signup for installer role");
-                  window.location.href = '/api/signup?role=installer';
-                }}
-                variant="outline"
-                className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
-              >
-                Sign Up as New Installer
-              </Button>
-            </div>
-          </div>
-        </div>
-
         {/* Registration Link */}
         <div className="text-center">
           <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -223,22 +192,16 @@ export default function InstallerLogin() {
               </Link>
             </Button>
             <p className="text-green-600 text-xs mt-2">
-              1. Click "Sign Up as New Installer" above → 2. Complete OAuth signup → 3. Verify email → 4. Complete installer profile
-            </p>
-            <p className="text-gray-600 text-xs">
-              Alternative:{" "}
-              <Link href="/installer-registration" className="text-primary hover:text-primary/80 font-medium">
-                Complete manual application form
-              </Link>
+              Create account → Complete profile → Wait for admin approval
             </p>
           </div>
         </div>
 
         {/* Demo Access */}
         <div className="text-center">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-800 text-sm">
-              <strong>Demo Access:</strong> Use any email with password "demo123" to explore the installer dashboard
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <p className="text-gray-600 text-sm">
+              <strong>Demo Access:</strong> Use email "test@tradesbook.ie" with password "demo123" to explore the installer dashboard
             </p>
           </div>
         </div>

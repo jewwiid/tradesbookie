@@ -551,6 +551,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Demo user login endpoint for testing booking creation
+  app.post("/api/demo-login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      // Check for demo user credentials
+      if (email === 'demo@tradesbook.ie' && password === '3UBg3nXAFLM48hQ>') {
+        const demoUser = await storage.getUserByEmail(email);
+        
+        if (demoUser) {
+          // Set up session for demo user
+          req.session.passport = { user: demoUser.id };
+          (req.session as any).user = demoUser;
+          
+          res.json({
+            success: true,
+            user: {
+              id: demoUser.id,
+              email: demoUser.email,
+              firstName: demoUser.firstName,
+              lastName: demoUser.lastName,
+              role: demoUser.role
+            },
+            message: "Demo user authenticated successfully"
+          });
+        } else {
+          res.status(404).json({ error: "Demo user not found" });
+        }
+      } else {
+        res.status(401).json({ error: "Invalid demo credentials" });
+      }
+    } catch (error) {
+      console.error("Demo login error:", error);
+      res.status(500).json({ error: "Demo login failed" });
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {

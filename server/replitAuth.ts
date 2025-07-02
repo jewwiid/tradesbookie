@@ -322,6 +322,8 @@ export async function setupAuth(app: Express) {
   passport.use(localhostStrategy);
   console.log(`Registered OAuth strategy for localhost with callback: http://localhost:5000/api/callback`);
 
+  console.log("OAuth strategies registered successfully, setting up passport serialization...");
+
   passport.serializeUser((user: any, cb) => {
     console.log("Serializing user:", { id: user.id, email: user.email, role: user.role });
     // Store only the user ID in the session

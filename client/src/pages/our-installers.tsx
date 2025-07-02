@@ -161,14 +161,9 @@ export default function OurInstallers() {
                     </div>
 
                     {/* Business Name */}
-                    <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                    <h3 className="text-xl font-bold text-gray-900 text-center mb-4">
                       {installer.businessName}
                     </h3>
-
-                    {/* Contact Name (Protected) */}
-                    <p className="text-gray-600 text-center mb-4">
-                      {installer.contactName}
-                    </p>
 
                     {/* Service Area */}
                     <div className="flex items-center justify-center mb-3">

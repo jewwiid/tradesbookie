@@ -99,6 +99,11 @@ export const bookings = pgTable("bookings", {
   installerId: integer("installer_id").references(() => installers.id),
   qrCode: text("qr_code").unique(),
   
+  // Customer contact information
+  contactName: text("contact_name").notNull(),
+  contactPhone: text("contact_phone").notNull(),
+  contactEmail: text("contact_email").notNull(),
+  
   // Booking details
   tvSize: text("tv_size").notNull(),
   serviceType: text("service_type").notNull(),

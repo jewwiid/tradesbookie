@@ -174,15 +174,11 @@ const resetDemoLeads = async (installerId: number) => {
         estimatedTotal: template.estimatedEarnings.toString(),
         status: 'pending',
         qrCode: `QR-DEMO-${Date.now()}-${i}`,
-        customerName: randomCustomer.name,
-        customerEmail: randomCustomer.email,
-        customerPhone: randomCustomer.phone,
         contactName: randomCustomer.name,
         contactEmail: randomCustomer.email,
         contactPhone: randomCustomer.phone,
         addons: randomAddons,
-        notes: `Demo lead - ${template.difficulty} installation`,
-        difficulty: template.difficulty,
+        customerNotes: `Demo lead - ${template.difficulty} installation`,
         installerId: null // Available for purchase
       };
 

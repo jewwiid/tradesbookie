@@ -531,9 +531,6 @@ export default function InstallerDashboard() {
                   onCheckedChange={setIsOnline}
                   className="data-[state=checked]:bg-green-600"
                 />
-                <span className="text-xs text-gray-400">
-                  (Lets customers know you're ready for work)
-                </span>
               </div>
               
               <Button variant="ghost" size="sm" onClick={() => window.location.href = '/installer-login'}>

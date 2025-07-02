@@ -4111,6 +4111,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.status(400).json({ message: "Invalid amount" });
       }
       
+      // For demo installer (ID: 2), allow credit simulation without payment processing
+      const isDemoInstaller = installerId === 2;
+      
       // Get current wallet
       let wallet = await storage.getInstallerWallet(installerId);
       if (!wallet) {
@@ -4134,12 +4137,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         installerId,
         type: "credit_purchase",
         amount: amount.toString(),
-        description: `Added €${amount} credits to wallet`,
-        paymentIntentId,
+        description: isDemoInstaller 
+          ? `Demo: Added €${amount} credits to wallet (simulation)`
+          : `Added €${amount} credits to wallet`,
+        paymentIntentId: paymentIntentId || (isDemoInstaller ? `demo-${Date.now()}` : null),
         status: "completed"
       });
       
-      res.json({ success: true, newBalance });
+      res.json({ 
+        success: true, 
+        newBalance,
+        message: isDemoInstaller 
+          ? `Successfully added €${amount} demo credits to your wallet` 
+          : `Successfully added €${amount} to your wallet`
+      });
     } catch (error) {
       console.error("Error adding credits:", error);
       res.status(500).json({ message: "Failed to add credits" });

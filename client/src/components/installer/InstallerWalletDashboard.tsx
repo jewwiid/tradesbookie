@@ -61,11 +61,12 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
     mutationFn: async (amount: number) => {
       return apiRequest('POST', `/api/installer/${installerId}/wallet/add-credits`, { amount });
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/wallet`] });
+      const isDemoAccount = installerId === 2;
       toast({
-        title: "Credits Added",
-        description: `€${creditAmount} has been added to your wallet`,
+        title: isDemoAccount ? "Demo Credits Added" : "Credits Added",
+        description: response.message || `€${creditAmount} has been added to your wallet`,
       });
       setCreditAmount('50');
     },
@@ -160,7 +161,10 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
             <CardHeader>
               <CardTitle>Add Credits</CardTitle>
               <CardDescription>
-                Top up your wallet to purchase lead access. Credits never expire.
+                {installerId === 2 
+                  ? "Demo Account: Simulate adding credits to test lead purchasing functionality. No real payment required."
+                  : "Top up your wallet to purchase lead access. Credits never expire."
+                }
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">

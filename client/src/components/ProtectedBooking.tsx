@@ -97,8 +97,65 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
           </p>
         </div>
 
-        {/* Top Row - 2x2 Grid */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {/* Top Row - Full Width Tracking */}
+        <div className="mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-center">
+                <Search className="w-5 h-5 mr-2 text-blue-600" />
+                Track Installation
+              </CardTitle>
+              <CardDescription className="text-center">
+                Check the status of your existing booking with QR code or reference
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-4 items-center">
+                <div className="flex-1">
+                  <Input
+                    placeholder="Enter QR code or booking reference"
+                    value={trackingCode}
+                    onChange={(e) => setTrackingCode(e.target.value)}
+                    className="text-center"
+                  />
+                </div>
+                <Button 
+                  onClick={handleTrackBooking}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+                >
+                  <QrCode className="w-4 h-4 mr-2" />
+                  Track My Installation
+                </Button>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    Real-time installation status
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    Installer contact information
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    Booking details & schedule
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
+                    No account required
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Bottom Row - 2x2 Grid */}
+        <div className="grid md:grid-cols-2 gap-6">
           {/* Free Trial Option */}
           <Card className="relative">
             <CardHeader>
@@ -192,63 +249,6 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
                   <User className="w-4 h-4 mr-2" />
                   Create Account / Sign In
                 </a>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Bottom Row - Full Width Tracking */}
-        <div className="max-w-2xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-center">
-                <Search className="w-5 h-5 mr-2 text-blue-600" />
-                Track Installation
-              </CardTitle>
-              <CardDescription className="text-center">
-                Check the status of your existing booking with QR code or reference
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Enter QR code or booking reference"
-                    value={trackingCode}
-                    onChange={(e) => setTrackingCode(e.target.value)}
-                    className="text-center"
-                  />
-                </div>
-                <Button 
-                  onClick={handleTrackBooking}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8"
-                >
-                  <QrCode className="w-4 h-4 mr-2" />
-                  Track My Installation
-                </Button>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    Real-time installation status
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    Installer contact information
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    Booking details & schedule
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    No account required
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>

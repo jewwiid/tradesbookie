@@ -10,6 +10,9 @@ import { Loader2, Shield, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function InstallerRegistration() {
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    businessName: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -21,6 +24,18 @@ export default function InstallerRegistration() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
+    if (!formData.firstName) {
+      newErrors.firstName = "First name is required";
+    }
+
+    if (!formData.lastName) {
+      newErrors.lastName = "Last name is required";
+    }
+
+    if (!formData.businessName) {
+      newErrors.businessName = "Business name is required";
+    }
 
     if (!formData.email) {
       newErrors.email = "Email is required";
@@ -60,6 +75,9 @@ export default function InstallerRegistration() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          businessName: formData.businessName,
           email: formData.email,
           password: formData.password,
         }),
@@ -146,6 +164,65 @@ export default function InstallerRegistration() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  value={formData.firstName}
+                  onChange={handleInputChange("firstName")}
+                  className={errors.firstName ? "border-red-500" : ""}
+                  placeholder="John"
+                  disabled={isLoading}
+                />
+                {errors.firstName && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.firstName}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  value={formData.lastName}
+                  onChange={handleInputChange("lastName")}
+                  className={errors.lastName ? "border-red-500" : ""}
+                  placeholder="Smith"
+                  disabled={isLoading}
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.lastName}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="businessName">Business Name</Label>
+              <Input
+                id="businessName"
+                type="text"
+                value={formData.businessName}
+                onChange={handleInputChange("businessName")}
+                className={errors.businessName ? "border-red-500" : ""}
+                placeholder="e.g. Smith TV Installation Services"
+                disabled={isLoading}
+              />
+              {errors.businessName && (
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.businessName}
+                </p>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <Input

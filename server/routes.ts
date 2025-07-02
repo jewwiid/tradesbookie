@@ -258,11 +258,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Simple installer authentication routes
   app.post("/api/installers/register", async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { firstName, lastName, businessName, email, password } = req.body;
       
       // Validate input
-      if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required" });
+      if (!firstName || !lastName || !businessName || !email || !password) {
+        return res.status(400).json({ error: "All fields are required" });
       }
       
       if (password.length < 6) {

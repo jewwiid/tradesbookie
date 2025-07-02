@@ -44,7 +44,7 @@ interface InstallerWalletDashboardProps {
 }
 
 export default function InstallerWalletDashboard({ installerId }: InstallerWalletDashboardProps) {
-  const [creditAmount, setCreditAmount] = useState('50');
+  const [creditAmount, setCreditAmount] = useState('35');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -76,7 +76,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
           title: "Demo Credits Added",
           description: response.message || `€${creditAmount} has been added to your wallet`,
         });
-        setCreditAmount('50');
+        setCreditAmount('35');
       }
     },
     onError: (error: any) => {
@@ -184,13 +184,13 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
                     placeholder="Amount"
                     value={creditAmount}
                     onChange={(e) => setCreditAmount(e.target.value)}
-                    min="10"
+                    min="5"
                     max="500"
                   />
                 </div>
                 <Button
                   onClick={handleAddCredits}
-                  disabled={addCreditsMutation.isPending || !creditAmount || parseFloat(creditAmount) < 10}
+                  disabled={addCreditsMutation.isPending || !creditAmount || parseFloat(creditAmount) < 5}
                 >
                   {addCreditsMutation.isPending ? (
                     <>
@@ -207,7 +207,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
               </div>
               
               <div className="grid grid-cols-4 gap-2">
-                {['10', '25', '50', '100'].map((amount) => (
+                {['5', '15', '35', '75'].map((amount) => (
                   <Button
                     key={amount}
                     variant="outline"

@@ -507,7 +507,7 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Added Stripe webhook support for automatic credit addition upon successful payment**
 - July 2, 2025: **Fixed installer credit system - real installers now use Stripe checkout, demo account (ID: 2) uses simulation**
 - July 2, 2025: **Credit purchase flow: Amount selection → Stripe checkout → Payment confirmation → Automatic wallet credit addition**
-- July 2, 2025: **Updated preset credit amounts to €10, €25, €50, €100 (added €10 and €25, changed €200 to €100)**
+- July 2, 2025: **Updated preset credit amounts to €5, €15, €35, €75 (lowered minimum from €10 to €5, adjusted range for better accessibility)**
 - July 2, 2025: **Fixed payment intent creation error by correcting storage method from getInstallerProfile to getInstaller**
 - July 2, 2025: **Verified end-to-end credit payment system working with Stripe integration and webhook processing**
 

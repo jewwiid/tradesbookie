@@ -5010,8 +5010,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const installerId = parseInt(req.params.installerId);
       const { amount } = req.body;
       
-      if (!amount || amount <= 0 || amount < 10) {
-        return res.status(400).json({ message: "Invalid amount. Minimum €10 required." });
+      if (!amount || amount <= 0 || amount < 5) {
+        return res.status(400).json({ message: "Invalid amount. Minimum €5 required." });
       }
       
       if (amount > 500) {

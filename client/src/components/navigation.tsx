@@ -49,7 +49,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-14">
               {/* Desktop Navigation Links */}
-              <div className="hidden lg:flex items-center justify-start flex-1">
+              <div className="hidden md:flex items-center justify-start flex-1">
                 {!isAdmin && !isInstallerContext && (
                   <div className="flex items-center space-x-6">
                     <Link 
@@ -80,40 +80,8 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                 )}
               </div>
 
-              {/* Medium Screen Navigation - Compact */}
-              <div className="hidden md:flex lg:hidden items-center justify-center flex-1">
-                {!isAdmin && !isInstallerContext && (
-                  <div className="flex items-center space-x-3">
-                    <Link 
-                      href="/how-it-works" 
-                      className="text-gray-700 hover:text-primary transition-colors text-xs font-medium px-1 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      How it Works
-                    </Link>
-                    <Link 
-                      href="/pricing" 
-                      className="text-gray-700 hover:text-primary transition-colors text-xs font-medium px-1 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      Pricing
-                    </Link>
-                    <Link 
-                      href="/our-installers" 
-                      className="text-gray-700 hover:text-primary transition-colors text-xs font-medium px-1 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      Our Installers
-                    </Link>
-                    <Link 
-                      href="/installation-tracker" 
-                      className="text-gray-700 hover:text-primary transition-colors text-xs font-medium px-1 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      Installation Map
-                    </Link>
-                  </div>
-                )}
-              </div>
-
               {/* Right Side - CTA and Auth */}
-              <div className="hidden lg:flex items-center space-x-3">
+              <div className="hidden md:flex items-center space-x-3">
                 {!isAdmin && !isInstallerContext && (
                   <>
                     <Link href="/installer-login">
@@ -141,42 +109,6 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                         className="bg-primary hover:bg-primary/90 font-medium"
                       >
                         <Tv className="w-4 h-4 mr-1" />
-                        Book Installation
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </div>
-
-              {/* Medium Screen Right Side - Compact */}
-              <div className="hidden md:flex lg:hidden items-center space-x-1">
-                {!isAdmin && !isInstallerContext && (
-                  <>
-                    <Link href="/installer-login">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-700 hover:text-primary font-medium text-xs px-2"
-                      >
-                        Installer Login
-                      </Button>
-                    </Link>
-                    <Link href="/installer-registration">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-700 hover:text-primary font-medium text-xs px-2"
-                      >
-                        Join as Installer
-                      </Button>
-                    </Link>
-                    <Link href="/booking">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="bg-primary hover:bg-primary/90 font-medium text-xs px-2"
-                      >
-                        <Tv className="w-3 h-3 mr-1" />
                         Book Installation
                       </Button>
                     </Link>
@@ -237,67 +169,10 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                 ) : null}
               </div>
 
-              {/* Complete Medium Screen Authentication */}
-              <div className="hidden md:flex lg:hidden items-center">
-                {isInstallerAuthenticated ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-full">
-                      {installerProfile?.contactName || installerProfile?.email?.split('@')[0]}
-                    </div>
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      className="font-medium text-xs"
-                      onClick={() => {
-                        window.location.href = '/installer-login';
-                      }}
-                    >
-                      Logout
-                    </Button>
-                  </div>
-                ) : isAuthenticated ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="text-xs text-gray-600 bg-gray-50 px-2 py-1 rounded-full">
-                      {user?.firstName || user?.email?.split('@')[0]}
-                    </div>
-                    {isAdmin && (
-                      <Link href="/admin-dashboard">
-                        <Button variant="outline" size="sm" className="font-medium text-xs">
-                          <Shield className="w-3 h-3 mr-1" />
-                          Admin
-                        </Button>
-                      </Link>
-                    )}
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      className="font-medium text-xs"
-                      onClick={() => {
-                        window.location.href = '/api/logout';
-                      }}
-                    >
-                      Logout
-                    </Button>
-                  </div>
-                ) : !isInstallerContext ? (
-                  <div className="flex items-center">
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      className="font-medium text-xs"
-                      onClick={() => setAuthDialogOpen(true)}
-                    >
-                      <LogIn className="w-3 h-3 mr-1" />
-                      Quick Sign In
-                    </Button>
-                  </div>
-                ) : null}
-              </div>
-
               {/* Mobile menu trigger */}
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden">
+                  <Button variant="ghost" size="icon" className="md:hidden">
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>

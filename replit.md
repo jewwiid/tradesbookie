@@ -430,6 +430,9 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Modified installer dashboard to always show available jobs regardless of online status**
 - July 2, 2025: **Updated online toggle to serve as availability indicator for platform statistics only**
 - July 2, 2025: **Jobs now visible at all times with clarified messaging about online status purpose**
+- July 2, 2025: **Enhanced demo account credit simulation system for testing lead purchasing functionality**
+- July 2, 2025: **Added special handling for installer ID 2 to allow credit addition without payment processing**
+- July 2, 2025: **Updated wallet management interface with demo-specific messaging and successful credit simulation**
 
 ## User Preferences
 

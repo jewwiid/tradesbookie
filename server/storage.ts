@@ -76,6 +76,13 @@ export interface IStorage {
   getInstallerJobAssignments(installerId: number): Promise<JobAssignment[]>;
   updateJobStatus(id: number, status: string): Promise<void>;
 
+  // Schedule negotiation operations
+  createScheduleNegotiation(negotiation: InsertScheduleNegotiation): Promise<ScheduleNegotiation>;
+  getBookingScheduleNegotiations(bookingId: number): Promise<ScheduleNegotiation[]>;
+  getInstallerScheduleNegotiations(installerId: number): Promise<ScheduleNegotiation[]>;
+  updateScheduleNegotiationStatus(id: number, status: string, responseMessage?: string): Promise<void>;
+  getActiveScheduleNegotiation(bookingId: number): Promise<ScheduleNegotiation | undefined>;
+
   // Review operations
   createReview(review: InsertReview): Promise<Review>;
   getInstallerReviews(installerId: number): Promise<Review[]>;

@@ -367,6 +367,7 @@ export const installersRelations = relations(installers, ({ one, many }) => ({
   wallet: one(installerWallets),
   transactions: many(installerTransactions),
   declinedRequests: many(declinedRequests),
+  scheduleNegotiations: many(scheduleNegotiations),
 }));
 
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
@@ -380,6 +381,7 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
   }),
   jobAssignments: many(jobAssignments),
   declinedRequests: many(declinedRequests),
+  scheduleNegotiations: many(scheduleNegotiations),
 }));
 
 // Removed: feeStructuresRelations no longer needed
@@ -595,6 +597,14 @@ export const insertPricingConfigSchema = createInsertSchema(pricingConfig).omit(
   updatedAt: true,
 });
 
+export const insertScheduleNegotiationSchema = createInsertSchema(scheduleNegotiations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  proposedAt: true,
+  respondedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -627,6 +637,9 @@ export type InsertLeadPricing = z.infer<typeof insertLeadPricingSchema>;
 
 export type WallMountPricing = typeof wallMountPricing.$inferSelect;
 export type InsertWallMountPricing = z.infer<typeof insertWallMountPricingSchema>;
+
+export type ScheduleNegotiation = typeof scheduleNegotiations.$inferSelect;
+export type InsertScheduleNegotiation = z.infer<typeof insertScheduleNegotiationSchema>;
 
 export type InstallerWallet = typeof installerWallets.$inferSelect;
 export type InsertInstallerWallet = z.infer<typeof insertInstallerWalletSchema>;

@@ -61,7 +61,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware - sets up passport and sessions
   await setupAuth(app);
 
-  // OAuth Login Route - working implementation in routes.ts
+  // OAuth Login Route - with fallback for installers
   app.get("/api/login", (req, res, next) => {
     console.log("=== OAUTH LOGIN REQUEST START ===");
     console.log("Login request from hostname:", req.hostname);
@@ -69,6 +69,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Current user:", req.user);
     console.log("Is authenticated:", req.isAuthenticated ? req.isAuthenticated() : false);
     console.log("Session ID:", req.sessionID);
+    
+    // If installer role and OAuth is failing, redirect to installer login page
+    if (req.query.role === 'installer') {
+      console.log("Installer login requested - redirecting to installer login page");
+      return res.redirect('/installer-login?message=oauth_unavailable');
+    }
     
     try {
       // Store intended action and role in session
@@ -101,15 +107,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log("Using OAuth strategy:", strategyName);
+      
+      // Check if strategy is registered
       const passport = require('passport');
+      const availableStrategies = Object.keys((passport as any)._strategies || {});
+      console.log("Available strategies:", availableStrategies);
+      
+      if (!availableStrategies.includes(strategyName)) {
+        console.error(`Strategy ${strategyName} not found!`);
+        return res.status(500).json({ 
+          error: "OAuth strategy not available", 
+          strategy: strategyName,
+          available: availableStrategies 
+        });
+      }
+      
+      // Use passport authenticate with explicit error handling
       passport.authenticate(strategyName, { 
         scope: "openid email profile offline_access",
         prompt: "login"  // Force login screen for sign-in
+      }, (err: any, user: any, info: any) => {
+        if (err) {
+          console.error("Passport authentication error:", err);
+          return res.status(500).json({ error: "Authentication failed", details: err.message });
+        }
+        if (!user) {
+          console.error("No user returned from authentication:", info);
+          return res.status(500).json({ error: "Authentication incomplete", info });
+        }
+        // This shouldn't happen in the login flow, but handle it
+        console.log("Direct authentication success (unusual for OAuth flow)");
+        return res.redirect("/?auth=success");
       })(req, res, next);
       
     } catch (error) {
-      console.error("OAuth login error:", error);
-      res.status(500).json({ error: "OAuth login failed" });
+      console.error("OAuth login setup error:", error);
+      res.status(500).json({ error: "OAuth login failed", details: error.message });
     }
   });
 

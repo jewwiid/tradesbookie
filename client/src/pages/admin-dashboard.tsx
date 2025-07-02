@@ -413,30 +413,158 @@ function InstallerApprovalForm({ installer, onApprove, onReject, onCancel, isLoa
 
   return (
     <div className="space-y-6">
-      {/* Installer Summary */}
-      <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="font-semibold text-lg mb-3">{installer.businessName}</h3>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+      {/* Installer Summary Header */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
+        <div className="flex items-start justify-between">
           <div>
-            <span className="font-medium">Contact:</span> {installer.contactName}
+            <h3 className="font-bold text-xl text-gray-900 mb-2">{installer.businessName}</h3>
+            <p className="text-blue-700 font-medium">{installer.contactName}</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Applied on {new Date(installer.createdAt || '').toLocaleDateString()}
+            </p>
           </div>
-          <div>
-            <span className="font-medium">Phone:</span> {installer.phone}
-          </div>
-          <div>
-            <span className="font-medium">Email:</span> {installer.email}
-          </div>
-          <div>
-            <span className="font-medium">Service Areas:</span> {installer.serviceAreas?.join(", ") || "Not specified"}
-          </div>
-          <div>
-            <span className="font-medium">Experience:</span> {installer.experience || "Not specified"}
-          </div>
-          <div>
-            <span className="font-medium">Certifications:</span> {installer.certifications?.join(", ") || "None listed"}
+          <div className="text-right">
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+              installer.approvalStatus === 'approved' ? 'bg-green-100 text-green-800' :
+              installer.approvalStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+              'bg-yellow-100 text-yellow-800'
+            }`}>
+              {installer.approvalStatus?.charAt(0).toUpperCase() + installer.approvalStatus?.slice(1) || 'Pending'}
+            </span>
+            {installer.profileCompleted && (
+              <div className="text-green-600 text-xs mt-1 flex items-center gap-1">
+                <UserCheck className="w-3 h-3" />
+                Profile Complete
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Basic Information */}
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+          <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+            <UserCheck className="w-4 h-4" />
+            Basic Information
+          </h4>
+        </div>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="font-medium text-gray-700">Contact Name:</span>
+              <p className="text-gray-900">{installer.contactName || "Not provided"}</p>
+            </div>
+            <div>
+              <span className="font-medium text-gray-700">Email:</span>
+              <p className="text-gray-900">{installer.email}</p>
+            </div>
+            <div>
+              <span className="font-medium text-gray-700">Phone:</span>
+              <p className="text-gray-900">{installer.phone || "Not provided"}</p>
+            </div>
+            <div>
+              <span className="font-medium text-gray-700">Business Address:</span>
+              <p className="text-gray-900">{installer.address || "Not provided"}</p>
+            </div>
+            <div>
+              <span className="font-medium text-gray-700">Primary Service Area:</span>
+              <p className="text-gray-900">{installer.serviceArea || "Not specified"}</p>
+            </div>
+            <div>
+              <span className="font-medium text-gray-700">Years of Experience:</span>
+              <p className="text-gray-900">{installer.yearsExperience ? `${installer.yearsExperience} years` : "Not specified"}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Enhanced Profile Information */}
+      {installer.profileCompleted && (
+        <div className="bg-white border border-gray-200 rounded-lg">
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Enhanced Profile Information
+            </h4>
+          </div>
+          <div className="p-6 space-y-4">
+            {/* Expertise and Specialties */}
+            <div>
+              <span className="font-medium text-gray-700">Technical Expertise:</span>
+              <div className="mt-2">
+                {installer.expertise && Array.isArray(installer.expertise) && installer.expertise.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {installer.expertise.map((skill: string, index: number) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm">No specialties specified</p>
+                )}
+              </div>
+            </div>
+
+            {/* Professional Bio */}
+            {installer.bio && (
+              <div>
+                <span className="font-medium text-gray-700">Professional Bio:</span>
+                <p className="text-gray-900 mt-1 text-sm leading-relaxed">{installer.bio}</p>
+              </div>
+            )}
+
+            {/* Account Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-gray-700">Account Status:</span>
+                <p className={`mt-1 ${installer.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                  {installer.isActive ? 'Active' : 'Inactive'}
+                </p>
+              </div>
+              <div>
+                <span className="font-medium text-gray-700">Profile Image:</span>
+                <p className="text-gray-900 mt-1">
+                  {installer.profileImageUrl ? 'Uploaded' : 'Not provided'}
+                </p>
+              </div>
+            </div>
+
+            {/* Previous Review Information */}
+            {installer.adminScore && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <h5 className="font-medium text-amber-800 mb-2">Previous Review</h5>
+                <div className="text-sm text-amber-700">
+                  <p>Score: {installer.adminScore}/10</p>
+                  {installer.adminComments && <p className="mt-1">Comments: {installer.adminComments}</p>}
+                  {installer.reviewedBy && installer.reviewedAt && (
+                    <p className="mt-1">
+                      Reviewed by {installer.reviewedBy} on {new Date(installer.reviewedAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Profile Completion Status */}
+      {!installer.profileCompleted && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-yellow-800">
+            <AlertTriangle className="w-4 h-4" />
+            <span className="font-medium">Incomplete Profile</span>
+          </div>
+          <p className="text-yellow-700 text-sm mt-1">
+            This installer has not completed their enhanced profile setup. Basic information only is available for review.
+          </p>
+        </div>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleApprove)} className="space-y-6">

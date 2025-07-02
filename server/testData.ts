@@ -183,6 +183,149 @@ export async function createTestInstallationData() {
         console.log(`Request ${request.qrCode} may already exist, skipping...`);
       }
     }
+
+    // Create past leads for demo installer (ID: 2)
+    const pastLeads = [
+      {
+        userId: "demo-customer-1",
+        customerName: "Sarah O'Brien",
+        customerEmail: "sarah.obrien@email.ie",
+        customerPhone: "+353 86 123 4567",
+        tvSize: "55 inch",
+        serviceType: "silver-premium",
+        wallType: "Drywall",
+        mountType: "Tilting Wall Mount",
+        addons: [{ name: "Cable Management", key: "cable-management", price: 25 }],
+        address: "15 Grafton Street, Dublin 2, Ireland",
+        estimatedPrice: "180.00",
+        estimatedTotal: "180.00",
+        notes: "Customer prefers evening installation after 6pm",
+        difficulty: "easy",
+        status: "completed",
+        scheduledDate: new Date('2025-06-28'),
+        completedDate: new Date('2025-06-28'),
+        qrCode: "QR-PAST-001",
+        installerId: 2,
+        referralCode: null,
+        referralDiscount: null,
+        createdAt: new Date('2025-06-25').toISOString()
+      },
+      {
+        userId: "demo-customer-2", 
+        customerName: "Michael Walsh",
+        customerEmail: "m.walsh@gmail.com",
+        customerPhone: "+353 87 987 6543",
+        tvSize: "65 inch",
+        serviceType: "gold-premium-large",
+        wallType: "Brick",
+        mountType: "Full Motion Wall Mount",
+        addons: [
+          { name: "Cable Management", key: "cable-management", price: 25 },
+          { name: "Soundbar Installation", key: "soundbar-installation", price: 45 }
+        ],
+        address: "42 Patrick Street, Cork, Ireland",
+        estimatedPrice: "380.00",
+        estimatedTotal: "380.00",
+        notes: "Large TV, customer has all equipment ready",
+        difficulty: "moderate",
+        status: "in-progress",
+        scheduledDate: new Date('2025-07-02'),
+        qrCode: "QR-PAST-002",
+        installerId: 2,
+        referralCode: null,
+        referralDiscount: null,
+        createdAt: new Date('2025-06-30').toISOString()
+      },
+      {
+        userId: "demo-customer-3",
+        customerName: "Emma Kelly",
+        customerEmail: "emma.kelly@outlook.com", 
+        customerPhone: "+353 85 555 1234",
+        tvSize: "43 inch",
+        serviceType: "bronze-wall-mount",
+        wallType: "Drywall",
+        mountType: "Fixed Wall Mount",
+        addons: [],
+        address: "78 O'Connell Street, Limerick, Ireland",
+        estimatedPrice: "120.00",
+        estimatedTotal: "120.00",
+        notes: "First floor apartment, easy access",
+        difficulty: "easy",
+        status: "scheduled",
+        scheduledDate: new Date('2025-07-03'),
+        qrCode: "QR-PAST-003",
+        installerId: 2,
+        referralCode: null,
+        referralDiscount: null,
+        createdAt: new Date('2025-07-01').toISOString()
+      }
+    ];
+
+    // Create past leads for demo installer
+    for (const lead of pastLeads) {
+      try {
+        await storage.createBooking(lead);
+        console.log(`Created past lead: ${lead.qrCode} - ${lead.customerName} (${lead.status})`);
+      } catch (error) {
+        console.log(`Past lead ${lead.qrCode} may already exist, skipping...`);
+      }
+    }
+
+    // Create sample reviews for demo installer (ID: 2)
+    const sampleReviews = [
+      {
+        userId: "demo-customer-1",
+        installerId: 2,
+        bookingId: 1,
+        customerName: "Sarah O'Brien",
+        rating: 5,
+        title: "Excellent Professional Service",
+        comment: "Amazing work! The installer was punctual, professional, and did a perfect job mounting my 55\" TV. Cable management was neat and tidy. Highly recommend!",
+        isVerified: true,
+        serviceType: "silver-premium",
+        tvSize: "55 inch",
+        completedDate: new Date('2025-06-28').toISOString(),
+        createdAt: new Date('2025-06-29').toISOString()
+      },
+      {
+        userId: "demo-customer-4",
+        installerId: 2,
+        bookingId: 2,
+        customerName: "David Murphy",
+        rating: 4,
+        title: "Great Job, Quick Service",
+        comment: "Very satisfied with the installation. The technician was knowledgeable and completed the work efficiently. Only minor issue was running slightly late, but he called ahead to let me know.",
+        isVerified: true,
+        serviceType: "bronze-wall-mount",
+        tvSize: "43 inch",
+        completedDate: new Date('2025-06-25').toISOString(),
+        createdAt: new Date('2025-06-26').toISOString()
+      },
+      {
+        userId: "demo-customer-5",
+        installerId: 2,
+        bookingId: 3,
+        customerName: "Lisa Collins",
+        rating: 5,
+        title: "Perfect Installation",
+        comment: "Couldn't be happier with the service. The installer explained everything clearly, worked cleanly, and the final result looks fantastic. Will definitely use again!",
+        isVerified: true,
+        serviceType: "gold-premium-large",
+        tvSize: "65 inch",
+        completedDate: new Date('2025-06-20').toISOString(),
+        createdAt: new Date('2025-06-21').toISOString()
+      }
+    ];
+
+    // Create sample reviews
+    for (const review of sampleReviews) {
+      try {
+        await storage.createReview(review);
+        console.log(`Created review: ${review.customerName} - ${review.rating}/5 stars`);
+      } catch (error) {
+        console.log(`Review from ${review.customerName} may already exist, skipping...`);
+      }
+    }
     
     console.log("Test installation data creation completed");
   } catch (error) {

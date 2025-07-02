@@ -3274,6 +3274,123 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Past leads management endpoints
+  app.get("/api/installer/:installerId/past-leads", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      
+      // Get all bookings assigned to this installer
+      const allBookings = await storage.getAllBookings();
+      const installerBookings = allBookings.filter(booking => 
+        booking.installerId === installerId
+      );
+      
+      // Transform bookings to past leads format
+      const pastLeads = installerBookings.map(booking => ({
+        id: booking.id,
+        customerName: booking.customerName || "Customer",
+        customerEmail: booking.customerEmail || "",
+        customerPhone: booking.customerPhone || "",
+        address: booking.address,
+        tvSize: booking.tvSize,
+        serviceType: booking.serviceType,
+        wallType: booking.wallType || "Drywall",
+        mountType: booking.mountType || "Fixed",
+        addons: booking.addons || [],
+        estimatedPrice: booking.estimatedPrice || booking.totalPrice || "0",
+        leadFee: getLeadFee(booking.serviceType).toString(),
+        status: booking.status,
+        scheduledDate: booking.scheduledDate,
+        completedDate: booking.completedDate,
+        customerNotes: booking.customerNotes || booking.notes,
+        createdAt: booking.createdAt || new Date().toISOString()
+      }));
+      
+      res.json(pastLeads);
+    } catch (error) {
+      console.error("Error fetching past leads:", error);
+      res.status(500).json({ message: "Failed to fetch past leads" });
+    }
+  });
+
+  app.post("/api/installer/:installerId/update-lead-status", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      const { leadId, status } = req.body;
+      
+      if (!leadId || !status) {
+        return res.status(400).json({ message: "Lead ID and status are required" });
+      }
+      
+      // Get the booking
+      const booking = await storage.getBooking(leadId);
+      if (!booking) {
+        return res.status(404).json({ message: "Lead not found" });
+      }
+      
+      // Verify installer owns this lead
+      if (booking.installerId !== installerId) {
+        return res.status(403).json({ message: "Unauthorized to update this lead" });
+      }
+      
+      // Update the booking status
+      const updatedBooking = {
+        ...booking,
+        status: status,
+        updatedAt: new Date().toISOString()
+      };
+      
+      await storage.updateBooking(leadId, updatedBooking);
+      
+      // Send customer notification email (mock for now)
+      console.log(`Sending status update notification to ${booking.customerEmail}: Status changed to ${status}`);
+      
+      res.json({ 
+        success: true, 
+        message: "Status updated successfully",
+        newStatus: status
+      });
+    } catch (error) {
+      console.error("Error updating lead status:", error);
+      res.status(500).json({ message: "Failed to update lead status" });
+    }
+  });
+
+  // Reviews endpoint for installer dashboard
+  app.get("/api/installer/:installerId/reviews", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      
+      // Get reviews for this installer
+      const reviews = await storage.getInstallerReviews(installerId);
+      
+      // Calculate review statistics
+      const totalReviews = reviews.length;
+      const averageRating = totalReviews > 0 
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+        : 0;
+      
+      // Calculate rating distribution
+      const ratingCounts = [1, 2, 3, 4, 5].map(rating => ({
+        rating,
+        count: reviews.filter(r => r.rating === rating).length,
+        percentage: totalReviews > 0 ? (reviews.filter(r => r.rating === rating).length / totalReviews) * 100 : 0
+      }));
+      
+      const reviewStats = {
+        totalReviews,
+        averageRating,
+        ratingDistribution: ratingCounts,
+        recentReviews: reviews.slice(0, 10) // Show 10 most recent reviews
+      };
+      
+      res.json(reviewStats);
+    } catch (error) {
+      console.error("Error fetching installer reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
   app.get("/api/installers/:id/rating", async (req, res) => {
     try {
       const installerId = parseInt(req.params.id);

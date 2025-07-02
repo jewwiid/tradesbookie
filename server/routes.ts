@@ -4438,12 +4438,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.json(demoLeads);
       }
       
+      // Get declined requests for this installer to filter them out
+      const declinedRequestIds = await storage.getDeclinedRequestsForInstaller(installerId);
+      
       // Get all unassigned bookings that can be purchased as leads
       const allBookings = await storage.getAllBookings();
       const availableBookings = allBookings.filter(booking => 
         // Include pending, urgent status and ensure not assigned to any installer yet
         (booking.status === "pending" || booking.status === "urgent" || booking.status === "confirmed") &&
-        !booking.installerId // Not assigned to any installer yet
+        !booking.installerId && // Not assigned to any installer yet
+        !declinedRequestIds.includes(booking.id) // Not declined by this installer
       );
       
       // Add lead fees and profit calculations

@@ -311,6 +311,14 @@ export const pricingConfig = pgTable("pricing_config", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Declined requests table to track which installers have declined which requests
+export const declinedRequests = pgTable("declined_requests", {
+  id: serial("id").primaryKey(),
+  installerId: integer("installer_id").notNull().references(() => installers.id),
+  bookingId: integer("booking_id").notNull().references(() => bookings.id),
+  declinedAt: timestamp("declined_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -323,6 +331,7 @@ export const installersRelations = relations(installers, ({ one, many }) => ({
   reviews: many(reviews),
   wallet: one(installerWallets),
   transactions: many(installerTransactions),
+  declinedRequests: many(declinedRequests),
 }));
 
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
@@ -335,6 +344,7 @@ export const bookingsRelations = relations(bookings, ({ one, many }) => ({
     references: [installers.id],
   }),
   jobAssignments: many(jobAssignments),
+  declinedRequests: many(declinedRequests),
 }));
 
 // Removed: feeStructuresRelations no longer needed
@@ -393,6 +403,17 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   }),
   booking: one(bookings, {
     fields: [reviews.bookingId],
+    references: [bookings.id],
+  }),
+}));
+
+export const declinedRequestsRelations = relations(declinedRequests, ({ one }) => ({
+  installer: one(installers, {
+    fields: [declinedRequests.installerId],
+    references: [installers.id],
+  }),
+  booking: one(bookings, {
+    fields: [declinedRequests.bookingId],
     references: [bookings.id],
   }),
 }));

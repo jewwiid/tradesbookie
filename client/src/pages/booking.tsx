@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { X, ArrowLeft, Camera, User, Receipt, Star } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { X, ArrowLeft, Camera, User, Receipt, Star, Search, QrCode } from 'lucide-react';
 import { useBooking } from '@/hooks/use-booking';
 import { useToast } from '@/hooks/use-toast';
 import SimplifiedAuthDialog from '@/components/SimplifiedAuthDialog';
@@ -24,6 +26,8 @@ export default function Booking() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [authDialogTab, setAuthDialogTab] = useState<'invoice' | 'guest' | 'oauth'>('invoice');
   const [currentUser, setCurrentUser] = useState(null);
+  const [trackingCode, setTrackingCode] = useState('');
+  const [, setLocation] = useLocation();
 
   // Check authentication status
   const { data: authUser, isLoading: authLoading } = useQuery({
@@ -60,6 +64,18 @@ export default function Booking() {
     if (confirm('Are you sure you want to exit? Your progress will be lost.')) {
       resetBooking();
       window.location.href = '/';
+    }
+  };
+
+  const handleTrackBooking = () => {
+    if (trackingCode.trim()) {
+      setLocation(`/booking-tracker?code=${encodeURIComponent(trackingCode.trim())}`);
+    } else {
+      toast({
+        title: "Please enter a tracking code",
+        description: "Enter your QR code or booking reference to track your installation",
+        variant: "destructive"
+      });
     }
   };
 
@@ -127,7 +143,7 @@ export default function Booking() {
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {/* Free AI Preview Card */}
               <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
                 <div className="flex items-center mb-6">
@@ -158,6 +174,50 @@ export default function Booking() {
                 <p className="text-xs text-gray-500 text-center">
                   Visual AI generation only - full booking requires sign in
                 </p>
+              </div>
+
+              {/* Track Existing Booking Card */}
+              <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
+                <div className="flex items-center mb-6">
+                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mr-4">
+                    <Search className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-gray-900">Track Installation</h2>
+                </div>
+                
+                <p className="text-gray-600 mb-6">
+                  Check the status of your existing booking or installation
+                </p>
+
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <Label htmlFor="tracking-code" className="text-sm font-medium text-gray-700">
+                      QR Code or Booking Reference
+                    </Label>
+                    <Input
+                      id="tracking-code"
+                      type="text"
+                      placeholder="e.g., QR-REQ-001 or BK-ABC123"
+                      value={trackingCode}
+                      onChange={(e) => setTrackingCode(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="bg-orange-50 rounded-lg p-3">
+                    <p className="text-xs text-orange-700">
+                      Find your code in booking confirmation emails or receipts
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleTrackBooking}
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg"
+                  disabled={!trackingCode.trim()}
+                >
+                  <QrCode className="w-4 h-4 mr-2" />
+                  Track Installation
+                </Button>
               </div>
 
               {/* Full Access Card */}

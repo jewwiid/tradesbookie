@@ -32,6 +32,7 @@ import ReferralPage from "@/pages/referral-page";
 import BookingConfirmation from "@/pages/booking-confirmation";
 import VerifyEmail from "@/pages/verify-email";
 import MapsDemo from "@/pages/maps-demo";
+import DemoLogin from "@/pages/demo-login";
 
 function Router() {
   return (
@@ -53,6 +54,7 @@ function Router() {
       <Route path="/refer" component={ReferralPage} />
       <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/maps-demo" component={MapsDemo} />
+      <Route path="/demo-login" component={DemoLogin} />
       
       {/* Protected routes - limited guest access then authentication required */}
       <Route path="/booking">

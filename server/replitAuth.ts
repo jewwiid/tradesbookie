@@ -183,15 +183,47 @@ export async function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Add test route to verify route registration
+  app.get("/api/auth/test", (req, res) => {
+    console.log("Auth test route hit");
+    res.json({ message: "Auth routes are working", hostname: req.hostname });
+  });
+
   let config;
   try {
+    console.log("Attempting to load OIDC config...");
     config = await getOidcConfig();
     console.log("OIDC config loaded successfully");
   } catch (error) {
     console.error("Failed to get OIDC config:", error);
     console.error("REPL_ID:", process.env.REPL_ID);
     console.error("ISSUER_URL:", process.env.ISSUER_URL || "https://replit.com/oidc");
-    throw error; // Don't continue with broken auth
+    console.log("Continuing with limited auth functionality...");
+    
+    // Don't throw error, continue with limited functionality
+    // throw error; // Don't continue with broken auth
+    
+    // Add a fallback route for OAuth that explains the issue
+    app.get("/api/login", (req, res) => {
+      console.log("OAuth login attempted but OIDC config failed");
+      res.status(503).json({ 
+        error: "OAuth authentication temporarily unavailable", 
+        message: "OIDC configuration failed during startup",
+        fallback: "Please use demo login with password 'demo123' or contact support"
+      });
+    });
+    
+    app.get("/api/signup", (req, res) => {
+      console.log("OAuth signup attempted but OIDC config failed");
+      res.status(503).json({ 
+        error: "OAuth registration temporarily unavailable", 
+        message: "OIDC configuration failed during startup",
+        fallback: "Please use demo login or contact support"
+      });
+    });
+    
+    console.log("Auth setup completed with fallback routes");
+    return; // Exit early if OIDC fails
   }
 
   const verify: VerifyFunction = async (
@@ -306,27 +338,44 @@ export async function setupAuth(app: Express) {
     console.log("Login request from hostname:", req.hostname);
     console.log("Login query params:", req.query);
     
-    // Store intended action and role in session
-    (req.session as any).authAction = 'login';
-    (req.session as any).intendedRole = req.query.role || 'customer';
-    
-    // Store return URL if provided
-    if (req.query.returnTo) {
-      (req.session as any).returnTo = req.query.returnTo as string;
+    try {
+      // Store intended action and role in session
+      (req.session as any).authAction = 'login';
+      (req.session as any).intendedRole = req.query.role || 'customer';
+      
+      // Store return URL if provided
+      if (req.query.returnTo) {
+        (req.session as any).returnTo = req.query.returnTo as string;
+      }
+      
+      console.log("User attempting to LOGIN as:", req.query.role || 'customer');
+      
+      // Determine strategy and initiate OAuth
+      const strategyName = getStrategyName(req.hostname);
+      console.log("Determined strategy name:", strategyName);
+      
+      if (!strategyName) {
+        console.error("No OAuth strategy found for hostname:", req.hostname);
+        return res.status(500).json({ error: "OAuth strategy not configured for this domain" });
+      }
+      
+      // Check if strategy exists
+      if (!(passport as any)._strategies[strategyName]) {
+        console.error(`OAuth strategy ${strategyName} not found!`);
+        console.error("Available strategies:", Object.keys((passport as any)._strategies || {}));
+        return res.status(500).json({ error: `OAuth strategy ${strategyName} not registered` });
+      }
+      
+      console.log("Initiating OAuth authentication with strategy:", strategyName);
+      
+      passport.authenticate(strategyName, {
+        prompt: "login",
+        scope: ["openid", "email", "profile", "offline_access"],
+      })(req, res, next);
+    } catch (error) {
+      console.error("OAuth login error:", error);
+      return res.status(500).json({ error: "OAuth login failed", details: error.message });
     }
-    
-    console.log("User attempting to LOGIN as:", req.query.role || 'customer');
-    
-    // Determine strategy and initiate OAuth
-    const strategyName = getStrategyName(req.hostname);
-    if (!strategyName) {
-      return res.status(500).json({ error: "OAuth strategy not configured for this domain" });
-    }
-    
-    passport.authenticate(strategyName, {
-      prompt: "login",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
   });
 
   // Separate sign-up endpoint

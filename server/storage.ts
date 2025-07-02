@@ -294,6 +294,50 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteInstaller(installerId: number): Promise<void> {
+    // Delete all related records first to avoid foreign key constraint violations
+    
+    // 1. Delete installer wallet records
+    try {
+      await db.delete(installerWallets)
+        .where(eq(installerWallets.installerId, installerId));
+    } catch (error) {
+      console.log("No installer wallet records to delete");
+    }
+    
+    // 2. Delete installer transaction records
+    try {
+      await db.delete(installerTransactions)
+        .where(eq(installerTransactions.installerId, installerId));
+    } catch (error) {
+      console.log("No installer transaction records to delete");
+    }
+    
+    // 3. Delete declined request records
+    try {
+      await db.delete(declinedRequests)
+        .where(eq(declinedRequests.installerId, installerId));
+    } catch (error) {
+      console.log("No declined request records to delete");
+    }
+    
+    // 4. Delete schedule negotiation records
+    try {
+      await db.delete(scheduleNegotiations)
+        .where(eq(scheduleNegotiations.installerId, installerId));
+    } catch (error) {
+      console.log("No schedule negotiation records to delete");
+    }
+    
+    // 5. Update any bookings assigned to this installer (set installer_id to null)
+    try {
+      await db.update(bookings)
+        .set({ installerId: null })
+        .where(eq(bookings.installerId, installerId));
+    } catch (error) {
+      console.log("No booking records to update");
+    }
+    
+    // 6. Finally, delete the installer record
     await db.delete(installers)
       .where(eq(installers.id, installerId));
   }

@@ -3758,8 +3758,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.id);
       
-      if (!installerId) {
-        return res.status(400).json({ message: "Installer ID is required" });
+      if (!installerId || isNaN(installerId)) {
+        return res.status(400).json({ message: "Valid installer ID is required" });
       }
 
       // Get installer details before deleting for logging
@@ -3770,13 +3770,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.status(404).json({ message: "Installer not found" });
       }
 
-      // Delete the installer
+      console.log(`Starting deletion process for installer ID ${installerId}: ${installer.businessName} (${installer.email})`);
+
+      // Delete the installer and all related records
       await storage.deleteInstaller(installerId);
       
-      console.log(`Installer deleted: ${installer.businessName} (${installer.email})`);
+      // Verify deletion was successful
+      const installerAfterDeletion = await storage.getInstaller(installerId);
+      if (installerAfterDeletion) {
+        throw new Error("Installer deletion failed - record still exists");
+      }
+      
+      console.log(`✅ Installer successfully deleted: ${installer.businessName} (${installer.email})`);
       
       res.json({ 
-        message: "Installer deleted successfully",
+        message: "Installer permanently deleted from database",
         deletedInstaller: {
           id: installerId,
           businessName: installer.businessName,
@@ -3784,8 +3792,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         }
       });
     } catch (error) {
-      console.error("Error deleting installer:", error);
-      res.status(500).json({ message: "Failed to delete installer" });
+      console.error("❌ Error deleting installer:", error);
+      res.status(500).json({ 
+        message: "Failed to delete installer", 
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -2743,6 +2743,38 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
   });
 
   const referralType = form.watch("referralType");
+  const salesStaffName = form.watch("salesStaffName");
+  const salesStaffStore = form.watch("salesStaffStore");
+
+  // Store abbreviations mapping
+  const storeAbbreviations: { [key: string]: string } = {
+    'Blanchardstown': 'BLA',
+    'Carrickmines': 'CRK',
+    'Castlebar': 'CAS',
+    'Drogheda': 'DRO',
+    'Fonthill': 'FON',
+    'Galway': 'GAL',
+    'Kinsale Road': 'KIN',
+    'Limerick': 'LIM',
+    'Little Island': 'LIT',
+    'Naas': 'NAA',
+    'Rathfarnham': 'RAT',
+    'Sligo': 'SLI',
+    'Swords': 'SWO',
+    'Tallaght': 'TAL',
+    'Tralee': 'TRA',
+    'Waterford': 'WAT'
+  };
+
+  // Auto-generate code for Harvey Norman sales staff
+  React.useEffect(() => {
+    if (referralType === 'sales_staff' && salesStaffName && salesStaffStore && !code) {
+      const nameCode = salesStaffName.replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
+      const storeCode = storeAbbreviations[salesStaffStore] || 'UNK';
+      const generatedCode = `HN${nameCode}${storeCode}`;
+      form.setValue('code', generatedCode);
+    }
+  }, [referralType, salesStaffName, salesStaffStore, code, form]);
 
   const handleSubmit = (data: ReferralCodeFormData) => {
     onSubmit(data);
@@ -2809,9 +2841,31 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Store Location</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Carrickmines" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Harvey Norman store" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Blanchardstown">Blanchardstown (BLA)</SelectItem>
+                      <SelectItem value="Carrickmines">Carrickmines (CRK)</SelectItem>
+                      <SelectItem value="Castlebar">Castlebar (CAS)</SelectItem>
+                      <SelectItem value="Drogheda">Drogheda (DRO)</SelectItem>
+                      <SelectItem value="Fonthill">Fonthill (FON)</SelectItem>
+                      <SelectItem value="Galway">Galway (GAL)</SelectItem>
+                      <SelectItem value="Kinsale Road">Kinsale Road (KIN)</SelectItem>
+                      <SelectItem value="Limerick">Limerick (LIM)</SelectItem>
+                      <SelectItem value="Little Island">Little Island (LIT)</SelectItem>
+                      <SelectItem value="Naas">Naas (NAA)</SelectItem>
+                      <SelectItem value="Rathfarnham">Rathfarnham (RAT)</SelectItem>
+                      <SelectItem value="Sligo">Sligo (SLI)</SelectItem>
+                      <SelectItem value="Swords">Swords (SWO)</SelectItem>
+                      <SelectItem value="Tallaght">Tallaght (TAL)</SelectItem>
+                      <SelectItem value="Tralee">Tralee (TRA)</SelectItem>
+                      <SelectItem value="Waterford">Waterford (WAT)</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

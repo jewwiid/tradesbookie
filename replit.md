@@ -477,6 +477,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Added insurance status badges to installer dashboard, admin dashboard, and customer-facing installer profiles**
 - July 2, 2025: **Enhanced installer profile displays with clear visual indicators: green "✓ Insured" badge with insurance details, or red "⚠ Uninsured" badge when no insurance provided**
 - July 2, 2025: **Updated form validation to remove insurance requirements while maintaining clear messaging about optional nature of coverage**
+- July 2, 2025: **Fixed Harvey Norman referral code formatting to use abbreviated format without hyphens**
+- July 2, 2025: **Updated referral code generation from "HN-JOHN-CARRICKMINES" to "HNJOHNCRK" for cleaner display**
+- July 2, 2025: **Added store abbreviation dropdown in admin dashboard for consistent code generation**
+- July 2, 2025: **Updated customer-facing placeholder from "HN-JOHN-CRK" to "HNJOHNCRK" for clarity**
+- July 2, 2025: **Enhanced referral code parsing to support both new abbreviated format and legacy hyphenated format for backward compatibility**
 
 ## User Preferences
 

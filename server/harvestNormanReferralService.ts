@@ -23,6 +23,26 @@ export interface ReferralDiscountResult {
 }
 
 export class HarveyNormanReferralService {
+  // Harvey Norman store code mapping
+  private readonly storeAbbreviations: { [key: string]: string } = {
+    'Blanchardstown': 'BLA',
+    'Carrickmines': 'CRK',
+    'Castlebar': 'CAS',
+    'Drogheda': 'DRO',
+    'Fonthill': 'FON',
+    'Galway': 'GAL',
+    'Kinsale Road': 'KIN',
+    'Limerick': 'LIM',
+    'Little Island': 'LIT',
+    'Naas': 'NAA',
+    'Rathfarnham': 'RAT',
+    'Sligo': 'SLI',
+    'Swords': 'SWO',
+    'Tallaght': 'TAL',
+    'Tralee': 'TRA',
+    'Waterford': 'WAT'
+  };
+
   /**
    * Create a new sales staff referral code for Harvey Norman
    */
@@ -32,7 +52,7 @@ export class HarveyNormanReferralService {
     customCode?: string
   ): Promise<SalesStaffReferralCode> {
     // Generate unique code if not provided
-    const referralCode = customCode || this.generateSalesStaffCode(salesStaffName);
+    const referralCode = customCode || this.generateSalesStaffCode(salesStaffName, salesStaffStore);
     
     const [newCode] = await db.insert(referralCodes).values({
       referralCode,
@@ -192,16 +212,45 @@ export class HarveyNormanReferralService {
   }
 
   /**
-   * Generate a unique sales staff referral code
+   * Generate a unique sales staff referral code in format HNNAMESTORE
    */
-  private generateSalesStaffCode(salesStaffName: string): string {
+  private generateSalesStaffCode(salesStaffName: string, salesStaffStore?: string): string {
     const nameCode = salesStaffName
       .replace(/[^a-zA-Z]/g, '')
       .substring(0, 4)
       .toUpperCase();
     
-    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `HN${nameCode}${randomNum}`;
+    // Get store abbreviation if store is provided
+    const storeCode = salesStaffStore ? this.storeAbbreviations[salesStaffStore] || 'UNK' : 'UNK';
+    
+    return `HN${nameCode}${storeCode}`;
+  }
+
+  /**
+   * Parse referral code to extract components (supports both old and new formats)
+   */
+  private parseReferralCode(code: string): { isValid: boolean; name?: string; store?: string } {
+    // New abbreviated format: HNNAMESTORE (no hyphens)
+    const newFormatMatch = code.match(/^HN([A-Z]{2,4})([A-Z]{3})$/);
+    if (newFormatMatch) {
+      return {
+        isValid: true,
+        name: newFormatMatch[1],
+        store: newFormatMatch[2]
+      };
+    }
+
+    // Legacy format with hyphens: HN-NAME-STORE (for backward compatibility)
+    const legacyFormatMatch = code.match(/^HN-([A-Z]{2,4})-([A-Z]{3})$/);
+    if (legacyFormatMatch) {
+      return {
+        isValid: true,
+        name: legacyFormatMatch[1],
+        store: legacyFormatMatch[2]
+      };
+    }
+
+    return { isValid: false };
   }
 
   /**

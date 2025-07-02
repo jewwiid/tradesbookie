@@ -1,0 +1,51 @@
+GET /api/auth/user - Session ID: W7jDzLl22ojOF0IkGnMnE_CJ6h86Fez6
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-07-09T16:59:18.690Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: true
+  }
+}
+4:59:18 PM [express] GET /api/auth/user 401 in 2ms :: {"message":"Unauthorized"}
+Installer registration error: error: null value in column "phone" of relation "installers" violates not-null constraint
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.registerInstaller (/home/runner/workspace/server/storage.ts:285:25)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:284:25) {
+  length: 449,
+  severity: 'ERROR',
+  code: '23502',
+  detail: 'Failing row contains (8, TBD, TBD, testinstaller@tradesbook.ie, null, null, null, null, null, null, null, null, null, t, 2025-07-02 16:59:25.653711, 2025-07-02 16:59:25.653711, pending, null, null, null, null, $2b$10$6j4mJ.duDJfu1xW1d5Y7dusc5i0IwnJC0ou73zW6Uyu3RACjPDIAW, f).',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'installers',
+  column: 'phone',
+  dataType: undefined,
+  constraint: undefined,
+  file: 'execMain.c',
+  line: '2006',
+  routine: 'ExecConstraints'
+}
+4:59:25 PM [express] POST /api/installers/register 500 in 474ms :: {"error":"Registration failed"}
+GET /api/auth/user - Session ID: dV2NrTX7zoYf4Xseak8ioJeyoOr4kVzR
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-07-09T16:59:26.737Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: true
+  }
+}
+4:59:26 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Unauthorized"}

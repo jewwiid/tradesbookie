@@ -14,6 +14,9 @@ export default function InstallerRegistration() {
     lastName: "",
     businessName: "",
     email: "",
+    phone: "",
+    address: "",
+    county: "",
     password: "",
     confirmPassword: ""
   });
@@ -35,6 +38,18 @@ export default function InstallerRegistration() {
 
     if (!formData.businessName) {
       newErrors.businessName = "Business name is required";
+    }
+
+    if (!formData.phone) {
+      newErrors.phone = "Phone number is required";
+    }
+
+    if (!formData.address) {
+      newErrors.address = "Address is required";
+    }
+
+    if (!formData.county) {
+      newErrors.county = "County is required";
     }
 
     if (!formData.email) {
@@ -79,6 +94,9 @@ export default function InstallerRegistration() {
           lastName: formData.lastName,
           businessName: formData.businessName,
           email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          county: formData.county,
           password: formData.password,
         }),
       });
@@ -219,6 +237,63 @@ export default function InstallerRegistration() {
                 <p className="text-sm text-red-500 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
                   {errors.businessName}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleInputChange("phone")}
+                className={errors.phone ? "border-red-500" : ""}
+                placeholder="087 123 4567"
+                disabled={isLoading}
+              />
+              {errors.phone && (
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.phone}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address">Business Address</Label>
+              <Input
+                id="address"
+                type="text"
+                value={formData.address}
+                onChange={handleInputChange("address")}
+                className={errors.address ? "border-red-500" : ""}
+                placeholder="123 Main Street, Dublin 2"
+                disabled={isLoading}
+              />
+              {errors.address && (
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.address}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="county">County</Label>
+              <Input
+                id="county"
+                type="text"
+                value={formData.county}
+                onChange={handleInputChange("county")}
+                className={errors.county ? "border-red-500" : ""}
+                placeholder="Dublin"
+                disabled={isLoading}
+              />
+              {errors.county && (
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.county}
                 </p>
               )}
             </div>

@@ -258,10 +258,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Simple installer authentication routes
   app.post("/api/installers/register", async (req, res) => {
     try {
-      const { firstName, lastName, businessName, email, password } = req.body;
+      const { firstName, lastName, businessName, email, phone, address, county, password } = req.body;
       
       // Validate input
-      if (!firstName || !lastName || !businessName || !email || !password) {
+      if (!firstName || !lastName || !businessName || !email || !phone || !address || !county || !password) {
         return res.status(400).json({ error: "All fields are required" });
       }
       
@@ -286,7 +286,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update installer with additional details
       const updatedInstaller = await storage.updateInstaller(installer.id, {
         contactName: fullName,
-        businessName: businessName
+        businessName: businessName,
+        phone: phone,
+        address: address,
+        serviceArea: county
       });
       
       // Return updated installer data (without password hash)

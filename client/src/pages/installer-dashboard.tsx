@@ -15,6 +15,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import InstallerWalletDashboard from "@/components/installer/InstallerWalletDashboard";
+import PastLeadsManagement from "@/components/installer/PastLeadsManagement";
+import InstallerReviews from "@/components/installer/InstallerReviews";
 import { 
   Bolt, 
   Hammer, 
@@ -541,10 +543,18 @@ export default function InstallerDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs defaultValue="requests" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="requests" className="flex items-center gap-2">
               <NavigationIcon className="w-4 h-4" />
               Lead Requests
+            </TabsTrigger>
+            <TabsTrigger value="past-leads" className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Past Leads
+            </TabsTrigger>
+            <TabsTrigger value="reviews" className="flex items-center gap-2">
+              <Star className="w-4 h-4" />
+              Reviews
             </TabsTrigger>
             <TabsTrigger value="wallet" className="flex items-center gap-2">
               <DollarSign className="w-4 h-4" />
@@ -699,6 +709,14 @@ export default function InstallerDashboard() {
                 </Button>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="past-leads" className="space-y-6">
+            <PastLeadsManagement installerId={installerProfile?.id || 2} />
+          </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-6">
+            <InstallerReviews installerId={installerProfile?.id || 2} />
           </TabsContent>
 
           <TabsContent value="wallet" className="space-y-6">

@@ -481,6 +481,20 @@ function InstallerManagement() {
           <Shield className="w-5 h-5 mr-2" />
           Installer Management
         </CardTitle>
+        <div className="flex items-center space-x-4 mt-4">
+          <Label htmlFor="status-filter">Filter by Status:</Label>
+          <Select value={filterStatus} onValueChange={(value: any) => setFilterStatus(value)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Installers</SelectItem>
+              <SelectItem value="pending">Pending Approval</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
         <Table>
@@ -492,12 +506,13 @@ function InstallerManagement() {
               <TableHead>Jobs</TableHead>
               <TableHead>Rating</TableHead>
               <TableHead>Earnings</TableHead>
+              <TableHead>Approval</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {installers?.map((installer) => (
+            {filteredInstallers?.map((installer) => (
               <TableRow key={installer.id}>
                 <TableCell>
                   <div>
@@ -526,12 +541,41 @@ function InstallerManagement() {
                 </TableCell>
                 <TableCell>€{installer.totalEarnings}</TableCell>
                 <TableCell>
+                  <div className="flex flex-col space-y-1">
+                    <Badge variant={
+                      installer.approvalStatus === 'approved' ? "default" : 
+                      installer.approvalStatus === 'rejected' ? "destructive" : 
+                      "secondary"
+                    }>
+                      {installer.approvalStatus === 'approved' ? "Approved" : 
+                       installer.approvalStatus === 'rejected' ? "Rejected" : 
+                       "Pending"}
+                    </Badge>
+                    {installer.adminScore && (
+                      <div className="text-xs text-gray-500">
+                        Score: {installer.adminScore}/10
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
                   <Badge variant={installer.isActive ? "default" : "secondary"}>
                     {installer.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
+                    {installer.approvalStatus === 'pending' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleApprovalReview(installer)}
+                        title="Review approval request"
+                        className="bg-yellow-50 border-yellow-200 hover:bg-yellow-100"
+                      >
+                        <Target className="w-4 h-4 text-yellow-600" />
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -711,6 +755,38 @@ function InstallerManagement() {
                 </Button>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Approval Review Dialog */}
+      <Dialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <DialogContent className="max-w-2xl" aria-describedby="installer-approval-description">
+          <DialogHeader>
+            <DialogTitle>Review Installer Application</DialogTitle>
+            <DialogDescription id="installer-approval-description">
+              Score and approve or reject this installer's application
+            </DialogDescription>
+          </DialogHeader>
+          {selectedInstaller && (
+            <InstallerApprovalForm 
+              installer={selectedInstaller} 
+              onApprove={(score, comments) => {
+                approveInstallerMutation.mutate({ 
+                  installerId: selectedInstaller.id, 
+                  score, 
+                  comments 
+                });
+              }}
+              onReject={(comments) => {
+                rejectInstallerMutation.mutate({ 
+                  installerId: selectedInstaller.id, 
+                  comments 
+                });
+              }}
+              onCancel={() => setShowApprovalDialog(false)}
+              isLoading={approveInstallerMutation.isPending || rejectInstallerMutation.isPending}
+            />
           )}
         </DialogContent>
       </Dialog>

@@ -221,7 +221,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllInstallers(): Promise<Installer[]> {
-    return await db.select().from(installers).where(eq(installers.isActive, true));
+    return await db.select().from(installers);
+  }
+
+  async updateInstallerApproval(installerId: number, approvalData: {
+    approvalStatus: string;
+    adminScore?: number;
+    adminComments?: string;
+    reviewedBy?: string;
+    reviewedAt?: Date;
+  }): Promise<void> {
+    await db.update(installers)
+      .set({
+        approvalStatus: approvalData.approvalStatus,
+        adminScore: approvalData.adminScore,
+        adminComments: approvalData.adminComments,
+        reviewedBy: approvalData.reviewedBy,
+        reviewedAt: approvalData.reviewedAt,
+        updatedAt: new Date()
+      })
+      .where(eq(installers.id, installerId));
   }
 
   // Booking operations

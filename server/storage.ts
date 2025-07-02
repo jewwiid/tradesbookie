@@ -38,6 +38,13 @@ export interface IStorage {
   getInstallerByEmail(email: string): Promise<Installer | undefined>;
   createInstaller(installer: InsertInstaller): Promise<Installer>;
   getAllInstallers(): Promise<Installer[]>;
+  updateInstallerApproval(installerId: number, approvalData: {
+    approvalStatus: string;
+    adminScore?: number;
+    adminComments?: string;
+    reviewedBy?: string;
+    reviewedAt?: Date;
+  }): Promise<void>;
 
   // Booking operations
   createBooking(booking: InsertBooking): Promise<Booking>;

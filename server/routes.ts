@@ -2811,6 +2811,48 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Admin installer approval endpoints
+  app.patch("/api/admin/installers/:id/approve", isAdmin, async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const { approvalStatus, adminScore, adminComments } = req.body;
+      const adminUserId = (req.user as any)?.id;
+      
+      await storage.updateInstallerApproval(installerId, {
+        approvalStatus: 'approved',
+        adminScore,
+        adminComments,
+        reviewedBy: adminUserId?.toString(),
+        reviewedAt: new Date()
+      });
+      
+      res.json({ message: "Installer approved successfully" });
+    } catch (error) {
+      console.error("Error approving installer:", error);
+      res.status(500).json({ message: "Failed to approve installer" });
+    }
+  });
+
+  app.patch("/api/admin/installers/:id/reject", isAdmin, async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const { approvalStatus, adminComments } = req.body;
+      const adminUserId = (req.user as any)?.id;
+      
+      await storage.updateInstallerApproval(installerId, {
+        approvalStatus: 'rejected',
+        adminComments,
+        reviewedBy: adminUserId?.toString(),
+        reviewedAt: new Date()
+      });
+      
+      res.json({ message: "Installer rejected successfully" });
+    } catch (error) {
+      console.error("Error rejecting installer:", error);
+      res.status(500).json({ message: "Failed to reject installer" });
+    }
+  });
+
   // Admin Actions - Update Booking Status
   app.patch("/api/admin/bookings/:id/status", isAuthenticated, isAdmin, async (req, res) => {
     try {

@@ -59,6 +59,7 @@ export interface IStorage {
   getBookingByQrCode(qrCode: string): Promise<Booking | undefined>;
   getUserBookings(userId: string): Promise<Booking[]>;
   getInstallerBookings(installerId: number): Promise<Booking[]>;
+  getInstallerPurchasedLeads(installerId: number): Promise<Booking[]>;
   updateBooking(id: number, updates: Partial<InsertBooking>): Promise<void>;
   updateBookingStatus(id: number, status: string): Promise<void>;
   updateBookingAiPreview(id: number, aiPreviewUrl: string): Promise<void>;
@@ -329,6 +330,19 @@ export class DatabaseStorage implements IStorage {
   async getInstallerBookings(installerId: number): Promise<Booking[]> {
     return await db.select().from(bookings)
       .where(eq(bookings.installerId, installerId))
+      .orderBy(desc(bookings.createdAt));
+  }
+
+  async getInstallerPurchasedLeads(installerId: number): Promise<Booking[]> {
+    return await db.select().from(bookings)
+      .where(and(
+        eq(bookings.installerId, installerId),
+        or(
+          eq(bookings.status, 'accepted'),
+          eq(bookings.status, 'in-progress'),
+          eq(bookings.status, 'completed')
+        )
+      ))
       .orderBy(desc(bookings.createdAt));
   }
 

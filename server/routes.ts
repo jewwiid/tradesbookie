@@ -3313,8 +3313,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       
-      // For demo installer (ID: 2), return mock purchased leads data
-      if (installerId === 2) {
+      // Get actual purchased leads from database
+      const purchasedLeads = await storage.getInstallerPurchasedLeads(installerId);
+      
+      // If no purchased leads exist, include mock data for demo purposes
+      if (purchasedLeads.length === 0 && installerId === 2) {
         const mockPurchasedLeads = [
           {
             id: 101,
@@ -3373,8 +3376,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           }
         ];
         
-        return res.json(mockPurchasedLeads);
+        return res.json([...purchasedLeads, ...mockPurchasedLeads]);
       }
+      
+      // For other installers, return only real purchased leads
+      res.json(purchasedLeads);
       
       // For other installers, try to get from database
       const allBookings = await storage.getAllBookings();

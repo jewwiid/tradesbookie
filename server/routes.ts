@@ -2375,6 +2375,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update installer profile based on approval status
+  app.patch("/api/installer/profile/:installerId", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      const updateData = req.body;
+      
+      // Verify installer authentication
+      const sessionInstallerId = (req.session as any)?.installerId;
+      if (!sessionInstallerId || sessionInstallerId !== installerId) {
+        return res.status(401).json({ message: "Unauthorized: Can only update your own profile" });
+      }
+
+      // Get current installer profile
+      const installers = await storage.getAllInstallers();
+      const currentInstaller = installers.find(i => i.id === installerId);
+      
+      if (!currentInstaller) {
+        return res.status(404).json({ message: "Installer profile not found" });
+      }
+
+      // Determine what fields can be updated based on approval status
+      let allowedUpdates: any = {};
+      
+      if (currentInstaller.approvalStatus === 'rejected') {
+        // Rejected installers can update basic info only
+        allowedUpdates = {
+          businessName: updateData.businessName,
+          contactName: updateData.contactName,
+          phone: updateData.phone,
+          address: updateData.address,
+          county: updateData.county,
+          // Reset approval status to pending when resubmitting
+          approvalStatus: 'pending',
+          adminComments: null // Clear previous comments
+        };
+      } else if (currentInstaller.approvalStatus === 'approved') {
+        // Approved installers can update enhanced profile information
+        allowedUpdates = {
+          businessName: updateData.businessName,
+          contactName: updateData.contactName,
+          phone: updateData.phone,
+          address: updateData.address,
+          county: updateData.county,
+          bio: updateData.bio,
+          yearsExperience: updateData.yearsExperience ? parseInt(updateData.yearsExperience) : currentInstaller.yearsExperience,
+          certifications: updateData.certifications,
+          expertise: updateData.expertise || currentInstaller.expertise,
+          serviceAreas: updateData.serviceAreas || currentInstaller.serviceAreas,
+          emergencyCallout: updateData.emergencyCallout,
+          weekendAvailable: updateData.weekendAvailable,
+          insurance: updateData.insurance,
+          vatNumber: updateData.vatNumber,
+          maxTravelDistance: updateData.maxTravelDistance,
+          languages: updateData.languages || currentInstaller.languages,
+          teamSize: updateData.teamSize,
+          vehicleType: updateData.vehicleType,
+          responseTime: updateData.responseTime,
+          wallTypes: updateData.wallTypes || currentInstaller.wallTypes,
+          mountTypes: updateData.mountTypes || currentInstaller.mountTypes,
+          deviceTypes: updateData.deviceTypes || currentInstaller.deviceTypes,
+          specialServices: updateData.specialServices || currentInstaller.specialServices
+        };
+      } else {
+        // Pending installers cannot update their profile
+        return res.status(403).json({ 
+          message: "Profile cannot be updated while application is pending review" 
+        });
+      }
+
+      // Remove undefined values
+      Object.keys(allowedUpdates).forEach(key => 
+        allowedUpdates[key] === undefined && delete allowedUpdates[key]
+      );
+
+      // Update the installer profile
+      const updatedInstaller = await storage.updateInstaller(installerId, allowedUpdates);
+      
+      // Return updated profile without password hash
+      const { passwordHash: _, ...profileData } = updatedInstaller;
+      
+      res.json({
+        success: true,
+        message: currentInstaller.approvalStatus === 'rejected' 
+          ? "Profile updated and resubmitted for review"
+          : "Profile updated successfully",
+        installer: profileData
+      });
+      
+    } catch (error) {
+      console.error("Error updating installer profile:", error);
+      res.status(500).json({ message: "Failed to update installer profile" });
+    }
+  });
+
   // Admin approve installer 
   app.patch("/api/admin/installers/:installerId/approve", async (req, res) => {
     try {

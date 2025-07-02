@@ -2,7 +2,16 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone, MapPin, User, Building, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Clock, CheckCircle, XCircle, AlertCircle, Mail, Phone, MapPin, User, Building, FileText, Edit, Shield, Wrench, Star } from "lucide-react";
 import { useLocation } from "wouter";
 
 interface InstallerProfile {
@@ -21,12 +30,133 @@ interface InstallerProfile {
 
 export default function InstallerPending() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [profile, setProfile] = useState<InstallerProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  
+  // Enhanced profile form state
+  const [profileForm, setProfileForm] = useState({
+    // Basic Information (editable when rejected)
+    businessName: "",
+    contactName: "",
+    phone: "",
+    address: "",
+    county: "",
+    
+    // Enhanced Information (editable when approved)
+    bio: "",
+    yearsExperience: "",
+    certifications: "",
+    expertise: [] as string[],
+    serviceAreas: [] as string[],
+    emergencyCallout: false,
+    weekendAvailable: false,
+    insurance: "",
+    vatNumber: "",
+    maxTravelDistance: "",
+    languages: [] as string[],
+    teamSize: "",
+    vehicleType: "",
+    responseTime: "",
+    
+    // Service capabilities
+    wallTypes: [] as string[],
+    mountTypes: [] as string[],
+    deviceTypes: [] as string[],
+    specialServices: [] as string[]
+  });
 
   useEffect(() => {
     fetchProfile();
   }, []);
+
+  // Populate form when profile is loaded
+  useEffect(() => {
+    if (profile) {
+      setProfileForm({
+        // Basic Information
+        businessName: profile.businessName || "",
+        contactName: profile.contactName || "",
+        phone: profile.phone || "",
+        address: profile.address || "",
+        county: profile.county || "",
+        
+        // Enhanced Information (will be populated from extended profile data)
+        bio: "",
+        yearsExperience: "",
+        certifications: "",
+        expertise: [],
+        serviceAreas: [profile.county].filter(Boolean),
+        emergencyCallout: false,
+        weekendAvailable: false,
+        insurance: "",
+        vatNumber: "",
+        maxTravelDistance: "",
+        languages: [],
+        teamSize: "",
+        vehicleType: "",
+        responseTime: "",
+        
+        // Service capabilities
+        wallTypes: [],
+        mountTypes: [],
+        deviceTypes: [],
+        specialServices: []
+      });
+    }
+  }, [profile]);
+
+  // Profile update mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("PATCH", `/api/installer/profile/${profile?.id}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Profile Updated Successfully",
+        description: "Your profile has been updated and resubmitted for review.",
+      });
+      setShowEditDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/installer/profile"] });
+      // Refresh the profile data
+      fetchProfile();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleProfileUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Only send basic info if rejected, enhanced info if approved
+    const updateData = profile?.approvalStatus === 'rejected' 
+      ? {
+          businessName: profileForm.businessName,
+          contactName: profileForm.contactName,
+          phone: profileForm.phone,
+          address: profileForm.address,
+          county: profileForm.county
+        }
+      : profileForm; // Send all data for approved installers
+    
+    updateProfileMutation.mutate(updateData);
+  };
+
+  const handleArrayFieldChange = (field: string, value: string, checked: boolean) => {
+    setProfileForm(prev => ({
+      ...prev,
+      [field]: checked 
+        ? [...(prev[field as keyof typeof prev] as string[]), value]
+        : (prev[field as keyof typeof prev] as string[]).filter(item => item !== value)
+    }));
+  };
 
   const fetchProfile = async () => {
     try {
@@ -209,6 +339,128 @@ export default function InstallerPending() {
                       <li>• If approved, you'll get immediate access to your dashboard</li>
                       <li>• If not approved, you'll receive feedback for future applications</li>
                     </ul>
+                  </div>
+                )}
+
+                {profile.approvalStatus === 'rejected' && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 className="font-medium text-orange-900 mb-2 flex items-center">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Update Your Profile
+                    </h4>
+                    <p className="text-sm text-orange-800 mb-3">
+                      You can now update your profile information based on the admin feedback and resubmit for review.
+                    </p>
+                    <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                      <DialogTrigger asChild>
+                        <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit Profile & Resubmit
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center space-x-2">
+                            <Edit className="w-5 h-5" />
+                            <span>Update Your Profile</span>
+                          </DialogTitle>
+                          <DialogDescription>
+                            Update your basic information and resubmit for admin review. Enhanced profile features will be available after approval.
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <form onSubmit={handleProfileUpdate} className="space-y-6">
+                          {/* Basic Information Section */}
+                          <div className="space-y-4">
+                            <div className="flex items-center space-x-2 pb-2 border-b">
+                              <Building className="w-5 h-5 text-primary" />
+                              <h3 className="text-lg font-semibold">Basic Information</h3>
+                            </div>
+                            
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="businessName">Business Name *</Label>
+                                <Input
+                                  id="businessName"
+                                  value={profileForm.businessName}
+                                  onChange={(e) => setProfileForm({...profileForm, businessName: e.target.value})}
+                                  placeholder="Your business or company name"
+                                  required
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="contactName">Contact Person *</Label>
+                                <Input
+                                  id="contactName"
+                                  value={profileForm.contactName}
+                                  onChange={(e) => setProfileForm({...profileForm, contactName: e.target.value})}
+                                  placeholder="Your full name"
+                                  required
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="phone">Phone Number *</Label>
+                                <Input
+                                  id="phone"
+                                  value={profileForm.phone}
+                                  onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                                  placeholder="+353 XX XXX XXXX"
+                                  required
+                                />
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="county">Primary County *</Label>
+                                <Select 
+                                  value={profileForm.county} 
+                                  onValueChange={(value) => setProfileForm({...profileForm, county: value})}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select your primary county" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {["Dublin", "Cork", "Galway", "Limerick", "Waterford", "Kerry", "Clare", "Mayo", "Donegal", "Wicklow", "Meath", "Kildare", "Wexford", "Kilkenny", "Laois", "Offaly", "Westmeath", "Longford", "Louth", "Monaghan", "Cavan", "Sligo", "Leitrim", "Roscommon", "Tipperary", "Carlow"].map(county => (
+                                      <SelectItem key={county} value={county}>{county}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="address">Business Address *</Label>
+                              <Textarea
+                                id="address"
+                                value={profileForm.address}
+                                onChange={(e) => setProfileForm({...profileForm, address: e.target.value})}
+                                placeholder="Complete business address including street, city, and postal code"
+                                rows={3}
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end space-x-4 pt-4 border-t">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              onClick={() => setShowEditDialog(false)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button 
+                              type="submit" 
+                              disabled={updateProfileMutation.isPending}
+                              className="bg-primary hover:bg-primary/90"
+                            >
+                              {updateProfileMutation.isPending ? "Updating..." : "Update & Resubmit"}
+                            </Button>
+                          </div>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 )}
               </div>

@@ -3379,9 +3379,6 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.json([...purchasedLeads, ...mockPurchasedLeads]);
       }
       
-      // For other installers, return only real purchased leads
-      res.json(purchasedLeads);
-      
       // For other installers, try to get from database
       const allBookings = await storage.getAllBookings();
       const installerBookings = allBookings.filter(booking => 
@@ -3409,6 +3406,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         createdAt: booking.createdAt || new Date().toISOString()
       }));
       
+      // For other installers, return only real purchased leads
       res.json(pastLeads);
     } catch (error) {
       console.error("Error fetching past leads:", error);

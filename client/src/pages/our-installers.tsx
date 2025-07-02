@@ -3,10 +3,9 @@ import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import InstallerProfile from "@/components/installer-profile";
-import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock, Eye } from "lucide-react";
+import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Clock, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function OurInstallers() {
@@ -154,32 +153,14 @@ export default function OurInstallers() {
                       <span className="text-gray-600 text-sm">{installer.serviceArea}</span>
                     </div>
 
-                    {/* Rating */}
-                    <div className="flex items-center justify-center mb-3">
+                    {/* Rating and Verification */}
+                    <div className="flex items-center justify-center mb-6">
                       <Star className="w-4 h-4 text-yellow-500 mr-1" />
                       <span className="text-gray-700 font-medium">4.9/5</span>
                       <span className="text-gray-500 text-sm ml-1">(50+ reviews)</span>
-                    </div>
-
-                    {/* Insurance Status */}
-                    <div className="flex items-center justify-center mb-4">
-                      <Shield className="w-4 h-4 text-green-600 mr-2" />
-                      {installer.insurance ? (
-                        <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 text-xs">
-                          ✓ Insured
-                        </Badge>
-                      ) : (
-                        <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200 text-xs">
-                          ⚠ Uninsured
-                        </Badge>
+                      {installer.insurance && (
+                        <CheckCircle className="w-4 h-4 text-green-600 ml-2" />
                       )}
-                    </div>
-
-                    {/* Protected Contact Notice */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                      <p className="text-blue-800 text-xs text-center font-medium">
-                        Contact details available after booking
-                      </p>
                     </div>
 
                     {/* Action Button */}

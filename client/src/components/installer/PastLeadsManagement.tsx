@@ -255,6 +255,22 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                 </Select>
               </div>
               
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Message to Customer (Optional)
+                </label>
+                <Textarea
+                  value={updateMessage}
+                  onChange={(e) => setUpdateMessage(e.target.value)}
+                  placeholder="Add a personal message about this status update (e.g., estimated completion time, next steps, etc.)"
+                  rows={3}
+                  className="resize-none"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This message will be included in the email notification to the customer
+                </p>
+              </div>
+              
               <div className="bg-blue-50 p-3 rounded">
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5" />

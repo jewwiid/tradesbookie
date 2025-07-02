@@ -395,7 +395,7 @@ export default function InstallerDashboard() {
   // Decline request mutation
   const declineRequestMutation = useMutation({
     mutationFn: async (requestId: number) => {
-      return apiRequest(`/api/installer/decline-request/${requestId}`, 'POST');
+      return apiRequest('POST', `/api/installer/decline-request/${requestId}`);
     },
     onSuccess: (data, requestId) => {
       toast({

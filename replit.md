@@ -435,9 +435,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Updated wallet management interface with demo-specific messaging and successful credit simulation**
 - July 2, 2025: **Implemented comprehensive fresh mock lead generation system for demo account**
 - July 2, 2025: **Fixed duplicate login routes causing demo account authentication bypass**
-- July 2, 2025: **Added automatic mock lead reset functionality - generates 2-5 fresh leads each demo login**
-- July 2, 2025: **Mock leads include randomized locations (Dublin, Cork, Galway, Limerick, Waterford), service types, pricing, addons, difficulty levels, and distances**
-- July 2, 2025: **Each demo session provides unique QR codes, timestamps, and realistic customer scenarios for comprehensive platform simulation**
+- July 2, 2025: **Implemented optimized demo lead management system with efficient database usage**
+- July 2, 2025: **Fixed demo leads to exactly 3 consistent leads (QR-DEMO-001, QR-DEMO-002, QR-DEMO-003) instead of creating new random leads**
+- July 2, 2025: **Optimized system reuses existing demo leads by resetting status and installer assignment rather than creating new database entries**
+- July 2, 2025: **Fixed demo account status persistence issue where status updates weren't being applied to API responses**
+- July 2, 2025: **Status updates now persist correctly across requests with proper memory cache implementation**
 
 ## User Preferences
 

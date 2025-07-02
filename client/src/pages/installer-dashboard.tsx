@@ -715,7 +715,51 @@ export default function InstallerDashboard() {
                   Profile Settings
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
+                {/* Current Profile Information Display */}
+                {installerProfile && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Contact Name</Label>
+                        <p className="text-sm text-gray-900">{installerProfile.contactName || "Not provided"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Business Name</Label>
+                        <p className="text-sm text-gray-900">{installerProfile.businessName || "Not provided"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Email</Label>
+                        <p className="text-sm text-gray-900">{installerProfile.email || "Not provided"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Phone</Label>
+                        <p className="text-sm text-gray-900">{installerProfile.phone || "Not provided"}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Service Area</Label>
+                        <p className="text-sm text-gray-900">{installerProfile.serviceArea || "Not specified"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Years Experience</Label>
+                        <p className="text-sm text-gray-900">{installerProfile.yearsExperience || "Not specified"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Bio</Label>
+                        <p className="text-sm text-gray-900">{installerProfile.bio || "No bio provided"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">Status</Label>
+                        <Badge variant={installerProfile.approvalStatus === 'approved' ? 'default' : 'secondary'}>
+                          {installerProfile.approvalStatus || 'Pending'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <Button 
                   onClick={() => setShowProfileDialog(true)}
                   className="w-full"

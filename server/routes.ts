@@ -25,6 +25,142 @@ import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { pricingManagementService } from "./pricingManagementService";
 import { getWebsiteMetrics } from "./analyticsService";
 
+// Function to reset and generate varied mock leads for demo account
+const resetDemoLeads = async (installerId: number) => {
+  try {
+    const leadTemplates = [
+      {
+        address: "15 Grafton Street, Dublin 2, Ireland",
+        tvSize: "55 inch",
+        serviceType: "silver-premium",
+        wallType: "Drywall",
+        difficulty: "Easy",
+        estimatedEarnings: 155,
+        leadFee: 25
+      },
+      {
+        address: "42 Patrick Street, Cork, Ireland", 
+        tvSize: "65 inch",
+        serviceType: "gold-premium-large",
+        wallType: "Brick",
+        difficulty: "Difficult",
+        estimatedEarnings: 345,
+        leadFee: 35
+      },
+      {
+        address: "89 Henry Street, Galway, Ireland",
+        tvSize: "43 inch", 
+        serviceType: "bronze-wall-mount",
+        wallType: "Plasterboard",
+        difficulty: "Moderate",
+        estimatedEarnings: 100,
+        leadFee: 20
+      },
+      {
+        address: "27 O'Connell Street, Limerick, Ireland",
+        tvSize: "75 inch",
+        serviceType: "gold-premium-large", 
+        wallType: "Stone",
+        difficulty: "Expert",
+        estimatedEarnings: 380,
+        leadFee: 35
+      },
+      {
+        address: "156 Barrack Street, Waterford, Ireland",
+        tvSize: "32 inch",
+        serviceType: "table-top-small",
+        wallType: "N/A",
+        difficulty: "Easy",
+        estimatedEarnings: 48,
+        leadFee: 12
+      },
+      {
+        address: "78 Shop Street, Galway, Ireland",
+        tvSize: "50 inch",
+        serviceType: "bronze-wall-mount",
+        wallType: "Concrete",
+        difficulty: "Difficult",
+        estimatedEarnings: 95,
+        leadFee: 20
+      },
+      {
+        address: "23 Eyre Square, Galway, Ireland",
+        tvSize: "85 inch",
+        serviceType: "gold-premium-large",
+        wallType: "Drywall",
+        difficulty: "Expert",
+        estimatedEarnings: 380,
+        leadFee: 35
+      }
+    ];
+
+    const customerNames = [
+      "Sarah O'Brien", "Michael Walsh", "Emma Collins", "David Murphy", "Lisa Kelly",
+      "James O'Connor", "Rachel Byrne", "Kevin Doyle", "Mary Fitzgerald", "Tom Brady",
+      "Ciara Dunne", "Seán McCarthy", "Jennifer Ryan", "Conor Sullivan", "Aoife Quinn"
+    ];
+
+    const addonsOptions = [
+      ["Cable Management"],
+      ["Soundbar Installation"],
+      ["Cable Management", "Soundbar Installation"], 
+      [],
+      ["Wall Outlet Installation"],
+      ["Cable Management", "Wall Outlet Installation"],
+      ["Gaming Console Setup"],
+      ["Smart TV Setup", "Cable Management"]
+    ];
+
+    // Select 2-5 random leads from templates
+    const numberOfLeads = Math.floor(Math.random() * 4) + 2;
+    const selectedLeads = leadTemplates
+      .sort(() => Math.random() - 0.5)
+      .slice(0, numberOfLeads);
+
+    const now = new Date();
+    const generatedLeads = [];
+    
+    for (let i = 0; i < selectedLeads.length; i++) {
+      const template = selectedLeads[i];
+      const randomCustomer = customerNames[Math.floor(Math.random() * customerNames.length)];
+      const randomAddons = addonsOptions[Math.floor(Math.random() * addonsOptions.length)];
+      const createdAt = new Date(now.getTime() - Math.random() * 6 * 60 * 60 * 1000);
+      
+      const mockLead = {
+        id: 3000 + i + Math.floor(Math.random() * 1000),
+        address: template.address,
+        serviceType: template.serviceType,
+        tvSize: template.tvSize,
+        wallType: template.wallType,
+        mountType: "Fixed Wall Mount",
+        addons: randomAddons,
+        estimatedTotal: template.estimatedEarnings.toString(),
+        leadFee: template.leadFee,
+        estimatedEarnings: template.estimatedEarnings,
+        profitMargin: Math.round(((template.estimatedEarnings - template.leadFee) / template.estimatedEarnings) * 100),
+        status: 'pending' as const,
+        createdAt: createdAt.toISOString(),
+        qrCode: `QR-DEMO-${Date.now()}-${i}`,
+        notes: `Demo lead - ${template.difficulty} installation`,
+        difficulty: template.difficulty,
+        distance: Math.floor(Math.random() * 30) + 5
+      };
+
+      generatedLeads.push(mockLead);
+    }
+
+    // Store leads in global cache for demo account
+    (global as any).demoLeadsCache = (global as any).demoLeadsCache || {};
+    (global as any).demoLeadsCache[installerId] = generatedLeads;
+
+    console.log(`Successfully reset ${numberOfLeads} fresh demo leads for installer ${installerId}`);
+    return generatedLeads;
+  } catch (error) {
+    console.error("Error resetting demo leads:", error);
+    return [];
+  }
+};
+
 // Email notification service with Gmail integration
 async function sendNotificationEmail(to: string, subject: string, content: string, html?: string) {
   return await sendGmailEmail({
@@ -1963,6 +2099,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         // Reset and regenerate mock leads for demo account on each login
+        console.log(`Demo account login detected - resetting leads for installer ${installer.id}`);
         await resetDemoLeads(installer.id);
 
         res.json({ 
@@ -4271,6 +4408,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/installer/:installerId/available-leads", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
+      
+      // Check if this is the demo account and if we have cached demo leads
+      if (installerId === 2 && (global as any).demoLeadsCache && (global as any).demoLeadsCache[installerId]) {
+        const demoLeads = (global as any).demoLeadsCache[installerId];
+        console.log(`Returning ${demoLeads.length} cached demo leads for installer ${installerId}`);
+        return res.json(demoLeads);
+      }
       
       // Get all unassigned bookings that can be purchased as leads
       const allBookings = await storage.getAllBookings();

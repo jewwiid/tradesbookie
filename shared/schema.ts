@@ -202,6 +202,36 @@ export const wallMountPricing = pgTable("wall_mount_pricing", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Schedule negotiations table for mutual agreement on installation dates/times
+export const scheduleNegotiations = pgTable("schedule_negotiations", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").notNull().references(() => bookings.id),
+  installerId: integer("installer_id").notNull().references(() => installers.id),
+  
+  // Proposed schedule details
+  proposedDate: timestamp("proposed_date").notNull(),
+  proposedTimeSlot: varchar("proposed_time_slot").notNull(), // 'morning', 'afternoon', 'evening', 'specific-time'
+  proposedStartTime: varchar("proposed_start_time"), // e.g., '09:00', '14:30'
+  proposedEndTime: varchar("proposed_end_time"), // e.g., '11:00', '16:30'
+  
+  // Who made this proposal
+  proposedBy: varchar("proposed_by").notNull(), // 'customer' or 'installer'
+  
+  // Negotiation status
+  status: varchar("status").notNull().default('pending'), // 'pending', 'accepted', 'rejected', 'counter_proposed'
+  
+  // Messages and notes
+  proposalMessage: text("proposal_message"), // Optional message with the proposal
+  responseMessage: text("response_message"), // Response message when accepting/rejecting
+  
+  // Timestamps
+  proposedAt: timestamp("proposed_at").defaultNow(),
+  respondedAt: timestamp("responded_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Installer wallet/credits system
 export const installerWallets = pgTable("installer_wallets", {
   id: serial("id").primaryKey(),
@@ -372,6 +402,17 @@ export const leadPricingRelations = relations(leadPricing, ({ one }) => ({
 
 export const wallMountPricingRelations = relations(wallMountPricing, ({ one }) => ({
   // No direct relations needed currently
+}));
+
+export const scheduleNegotiationsRelations = relations(scheduleNegotiations, ({ one }) => ({
+  booking: one(bookings, {
+    fields: [scheduleNegotiations.bookingId],
+    references: [bookings.id],
+  }),
+  installer: one(installers, {
+    fields: [scheduleNegotiations.installerId],
+    references: [installers.id],
+  }),
 }));
 
 export const installerWalletsRelations = relations(installerWallets, ({ one, many }) => ({

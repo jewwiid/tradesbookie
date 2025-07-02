@@ -3661,19 +3661,38 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Admin installer approval endpoints
   app.patch("/api/admin/installers/:id/approve", isAuthenticated, isAdmin, async (req, res) => {
     try {
+      console.log("🔄 Starting installer approval process");
+      console.log("Request params:", req.params);
+      console.log("Request body:", req.body);
+      console.log("User:", req.user);
+      
       const installerId = parseInt(req.params.id);
       const { approvalStatus, adminScore, adminComments } = req.body;
       const adminUserId = (req.user as any)?.id;
       
+      console.log(`📋 Processing approval for installer ID: ${installerId}`);
+      console.log(`👤 Admin user ID: ${adminUserId}`);
+      console.log(`⭐ Score: ${adminScore}, Comments: ${adminComments}`);
+      
+      if (!installerId || isNaN(installerId)) {
+        console.log("❌ Invalid installer ID");
+        return res.status(400).json({ message: "Valid installer ID is required" });
+      }
+      
       // Get installer details before updating
+      console.log("📝 Fetching installer details...");
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
       
       if (!installer) {
+        console.log("❌ Installer not found");
         return res.status(404).json({ message: "Installer not found" });
       }
       
+      console.log(`✅ Found installer: ${installer.businessName} (${installer.email})`);
+      
       // Update approval status
+      console.log("💾 Updating installer approval status...");
       await storage.updateInstallerApproval(installerId, {
         approvalStatus: 'approved',
         adminScore,
@@ -3681,9 +3700,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         reviewedBy: adminUserId?.toString(),
         reviewedAt: new Date()
       });
+      console.log("✅ Database update completed");
       
       // Send approval email
-      console.log(`Sending approval email to installer: ${installer.email}`);
+      console.log(`📧 Sending approval email to installer: ${installer.email}`);
       const emailSent = await sendInstallerApprovalEmail(
         installer.email, 
         installer.contactName || 'Installer',
@@ -3691,6 +3711,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         adminScore,
         adminComments
       );
+      console.log(`📧 Email sent status: ${emailSent}`);
+      
+      console.log("🎉 Installer approval process completed successfully");
       
       res.json({ 
         message: "Installer approved successfully",
@@ -3702,8 +3725,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         }
       });
     } catch (error) {
-      console.error("Error approving installer:", error);
-      res.status(500).json({ message: "Failed to approve installer" });
+      console.error("❌ Error approving installer:", error);
+      console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ 
+        message: "Failed to approve installer",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

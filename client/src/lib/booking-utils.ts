@@ -50,6 +50,10 @@ export interface BookingData {
     email: string;
     phone: string;
     address: string;
+    streetAddress?: string;
+    town?: string;
+    county?: string;
+    eircode?: string;
   };
 
   // Harvey Norman Referral

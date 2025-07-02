@@ -164,7 +164,9 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
 
   const handleComplete = () => {
     if (!bookingData.contact?.name || !bookingData.contact?.email || 
-        !bookingData.contact?.phone || !bookingData.contact?.address) {
+        !bookingData.contact?.phone || !bookingData.contact?.streetAddress ||
+        !bookingData.contact?.town || !bookingData.contact?.county || 
+        !bookingData.contact?.eircode) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -173,7 +175,17 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       return;
     }
 
-    createBookingMutation.mutate(bookingData);
+    // Combine address components before creating booking
+    const combinedAddress = `${bookingData.contact.streetAddress}, ${bookingData.contact.town}, ${bookingData.contact.county}, ${bookingData.contact.eircode}`;
+    const bookingDataWithAddress = {
+      ...bookingData,
+      contact: {
+        ...bookingData.contact,
+        address: combinedAddress
+      }
+    };
+
+    createBookingMutation.mutate(bookingDataWithAddress);
   };
 
   const totalPrice = calculateTotalPrice(bookingData);
@@ -262,18 +274,69 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
             required
           />
         </div>
-        <div>
-          <Label htmlFor="address" className="block text-sm font-medium text-foreground mb-2">
-            Address *
+        <div className="md:col-span-2">
+          <Label className="block text-sm font-medium text-foreground mb-4">
+            Installation Address *
           </Label>
-          <Input
-            id="address"
-            type="text"
-            value={bookingData.contact?.address || ''}
-            onChange={(e) => handleInputChange('address', e.target.value)}
-            placeholder="123 Main Street, Dublin"
-            required
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="streetAddress" className="block text-sm text-muted-foreground mb-1">
+                Street Address
+              </Label>
+              <Input
+                id="streetAddress"
+                type="text"
+                value={bookingData.contact?.streetAddress || ''}
+                onChange={(e) => handleInputChange('streetAddress', e.target.value)}
+                placeholder="123 Main Street"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="town" className="block text-sm text-muted-foreground mb-1">
+                Town/City
+              </Label>
+              <Input
+                id="town"
+                type="text"
+                value={bookingData.contact?.town || ''}
+                onChange={(e) => handleInputChange('town', e.target.value)}
+                placeholder="Dublin"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="county" className="block text-sm text-muted-foreground mb-1">
+                County
+              </Label>
+              <Input
+                id="county"
+                type="text"
+                value={bookingData.contact?.county || ''}
+                onChange={(e) => handleInputChange('county', e.target.value)}
+                placeholder="County Dublin"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="eircode" className="block text-sm text-muted-foreground mb-1">
+                Eircode
+              </Label>
+              <Input
+                id="eircode"
+                type="text"
+                value={bookingData.contact?.eircode || ''}
+                onChange={(e) => handleInputChange('eircode', e.target.value.toUpperCase())}
+                placeholder="D02 X285"
+                pattern="[A-Z]\d{2}\s?[A-Z0-9]{4}"
+                title="Eircode format: 3-character Routing Key + 4-character Unique Identifier (e.g., D02 X285)"
+                required
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Format: D02 X285 or D02X285
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

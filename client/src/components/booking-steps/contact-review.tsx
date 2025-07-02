@@ -19,6 +19,10 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
     customerEmail: bookingData.customerEmail || '',
     customerPhone: bookingData.customerPhone || '',
     address: bookingData.address || '',
+    streetAddress: bookingData.streetAddress || '',
+    town: bookingData.town || '',
+    county: bookingData.county || '',
+    eircode: bookingData.eircode || '',
     customerNotes: bookingData.customerNotes || ''
   });
 
@@ -45,8 +49,22 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
       newErrors.customerPhone = 'Phone number is required';
     }
 
-    if (!formData.address.trim()) {
-      newErrors.address = 'Address is required';
+    if (!formData.streetAddress.trim()) {
+      newErrors.streetAddress = 'Street address is required';
+    }
+
+    if (!formData.town.trim()) {
+      newErrors.town = 'Town/City is required';
+    }
+
+    if (!formData.county.trim()) {
+      newErrors.county = 'County is required';
+    }
+
+    if (!formData.eircode.trim()) {
+      newErrors.eircode = 'Eircode is required';
+    } else if (!/^[A-Z]\d{2}\s?[A-Z0-9]{4}$/i.test(formData.eircode)) {
+      newErrors.eircode = 'Invalid Eircode format (e.g., D02 X285)';
     }
 
     setErrors(newErrors);
@@ -62,6 +80,17 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
+
+    // Combine address components into single address string for storage
+    const combinedAddress = `${formData.streetAddress}, ${formData.town}, ${formData.county}, ${formData.eircode}`;
+    
+    // Update the address in the form data before submitting
+    const updatedFormData = {
+      ...formData,
+      address: combinedAddress
+    };
+
+    updateBookingData(updatedFormData);
 
     const result = await submitBooking();
     if (result.success) {
@@ -173,20 +202,74 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
           </div>
 
           <div>
-            <Label htmlFor="address" className="text-base font-medium">
+            <Label className="text-base font-medium">
               <MapPin className="w-4 h-4 inline mr-2" />
               Installation Address
             </Label>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              placeholder="Enter the full installation address"
-              className={`mt-2 ${errors.address ? 'border-red-500' : ''}`}
-            />
-            {errors.address && (
-              <p className="text-red-500 text-sm mt-1">{errors.address}</p>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <div>
+                <Input
+                  id="streetAddress"
+                  value={formData.streetAddress}
+                  onChange={(e) => handleInputChange('streetAddress', e.target.value)}
+                  placeholder="123 Main Street"
+                  className={`${errors.streetAddress ? 'border-red-500' : ''}`}
+                />
+                {errors.streetAddress && (
+                  <p className="text-red-500 text-sm mt-1">{errors.streetAddress}</p>
+                )}
+                <Label htmlFor="streetAddress" className="text-xs text-muted-foreground mt-1">
+                  Street Address
+                </Label>
+              </div>
+              <div>
+                <Input
+                  id="town"
+                  value={formData.town}
+                  onChange={(e) => handleInputChange('town', e.target.value)}
+                  placeholder="Dublin"
+                  className={`${errors.town ? 'border-red-500' : ''}`}
+                />
+                {errors.town && (
+                  <p className="text-red-500 text-sm mt-1">{errors.town}</p>
+                )}
+                <Label htmlFor="town" className="text-xs text-muted-foreground mt-1">
+                  Town/City
+                </Label>
+              </div>
+              <div>
+                <Input
+                  id="county"
+                  value={formData.county}
+                  onChange={(e) => handleInputChange('county', e.target.value)}
+                  placeholder="County Dublin"
+                  className={`${errors.county ? 'border-red-500' : ''}`}
+                />
+                {errors.county && (
+                  <p className="text-red-500 text-sm mt-1">{errors.county}</p>
+                )}
+                <Label htmlFor="county" className="text-xs text-muted-foreground mt-1">
+                  County
+                </Label>
+              </div>
+              <div>
+                <Input
+                  id="eircode"
+                  value={formData.eircode}
+                  onChange={(e) => handleInputChange('eircode', e.target.value.toUpperCase())}
+                  placeholder="D02 X285"
+                  pattern="[A-Z]\d{2}\s?[A-Z0-9]{4}"
+                  title="Eircode format: 3-character Routing Key + 4-character Unique Identifier (e.g., D02 X285)"
+                  className={`${errors.eircode ? 'border-red-500' : ''}`}
+                />
+                {errors.eircode && (
+                  <p className="text-red-500 text-sm mt-1">{errors.eircode}</p>
+                )}
+                <Label htmlFor="eircode" className="text-xs text-muted-foreground mt-1">
+                  Eircode (e.g., D02 X285)
+                </Label>
+              </div>
+            </div>
           </div>
 
           <div>

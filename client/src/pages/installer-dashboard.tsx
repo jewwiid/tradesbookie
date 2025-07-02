@@ -508,7 +508,7 @@ export default function InstallerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
       {/* Navigation */}
-      <Navigation />
+      <Navigation isInstallerContext={true} />
       
       {/* Installer Dashboard Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">

@@ -7,7 +7,11 @@ import { Separator } from '@/components/ui/separator';
 import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X } from 'lucide-react';
 import SimplifiedAuthDialog from './SimplifiedAuthDialog';
 
-export default function Navigation() {
+interface NavigationProps {
+  isInstallerContext?: boolean;
+}
+
+export default function Navigation({ isInstallerContext = false }: NavigationProps) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
@@ -44,30 +48,61 @@ export default function Navigation() {
               <div className="hidden md:flex items-center justify-start flex-1">
                 {!isAdmin && (
                   <div className="flex items-center space-x-6">
-                    <Link 
-                      href="/how-it-works" 
-                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      How it Works
-                    </Link>
-                    <Link 
-                      href="/pricing" 
-                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      Pricing
-                    </Link>
-                    <Link 
-                      href="/our-installers" 
-                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      Our Installers
-                    </Link>
-                    <Link 
-                      href="/installation-tracker" 
-                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      Installation Map
-                    </Link>
+                    {isInstallerContext ? (
+                      <>
+                        <Link 
+                          href="/how-it-works" 
+                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                        >
+                          How it Works
+                        </Link>
+                        <Link 
+                          href="/pricing" 
+                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                        >
+                          Pricing
+                        </Link>
+                        <Link 
+                          href="/our-installers" 
+                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                        >
+                          Our Installers
+                        </Link>
+                        <Link 
+                          href="/installation-tracker" 
+                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                        >
+                          Installation Map
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link 
+                          href="/how-it-works" 
+                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                        >
+                          How it Works
+                        </Link>
+                        <Link 
+                          href="/pricing" 
+                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                        >
+                          Pricing
+                        </Link>
+                        <Link 
+                          href="/our-installers" 
+                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                        >
+                          Our Installers
+                        </Link>
+                        <Link 
+                          href="/installation-tracker" 
+                          className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                        >
+                          Installation Map
+                        </Link>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -76,34 +111,59 @@ export default function Navigation() {
               <div className="hidden md:flex items-center space-x-3">
                 {!isAdmin && (
                   <>
-                    <Link href="/installer-login">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-700 hover:text-primary font-medium"
-                      >
-                        Installer Login
-                      </Button>
-                    </Link>
-                    <Link href="/installer-registration">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-700 hover:text-primary font-medium"
-                      >
-                        Join as Installer
-                      </Button>
-                    </Link>
-                    <Link href="/booking">
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="bg-primary hover:bg-primary/90 font-medium"
-                      >
-                        <Tv className="w-4 h-4 mr-1" />
-                        Book Installation
-                      </Button>
-                    </Link>
+                    {isInstallerContext ? (
+                      <>
+                        <Link href="/installer-login">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-700 hover:text-primary font-medium"
+                          >
+                            Installer Login
+                          </Button>
+                        </Link>
+                        <Link href="/installer-registration">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 font-medium"
+                          >
+                            Join as Installer
+                          </Button>
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link href="/installer-login">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-700 hover:text-primary font-medium"
+                          >
+                            Installer Login
+                          </Button>
+                        </Link>
+                        <Link href="/installer-registration">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-gray-700 hover:text-primary font-medium"
+                          >
+                            Join as Installer
+                          </Button>
+                        </Link>
+                        <Link href="/booking">
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 font-medium"
+                          >
+                            <Tv className="w-4 h-4 mr-1" />
+                            Book Installation
+                          </Button>
+                        </Link>
+                      </>
+                    )}
                   </>
                 )}
                 {isAuthenticated ? (

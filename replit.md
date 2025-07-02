@@ -446,6 +446,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Schedule negotiation system now properly converts date strings to Date objects for Zod validation**
 - July 2, 2025: **Resolved JSON serialization date issue by handling date conversion on backend before Zod validation**
 - July 2, 2025: **Fixed Zod schema for schedule negotiations - accepts both string and Date types with automatic transformation**
+- July 2, 2025: **Fixed demo lead duplication issue - disabled automatic creation of new demo bookings on login to prevent database bloat**
+- July 2, 2025: **Cleaned up database - removed duplicate QR-DEMO-001 booking, system now maintains exactly 3 consistent demo leads**
 
 ## User Preferences
 

@@ -110,32 +110,8 @@ const resetDemoLeads = async (installerId: number) => {
           console.error(`Error resetting existing demo lead ${leadTemplate.qrCode}:`, error);
         }
       } else {
-        // Create new demo lead if it doesn't exist
-        const bookingData = {
-          address: leadTemplate.address,
-          tvSize: leadTemplate.tvSize,
-          serviceType: leadTemplate.serviceType,
-          wallType: leadTemplate.wallType,
-          mountType: "Fixed Wall Mount",
-          estimatedPrice: leadTemplate.estimatedEarnings.toString(),
-          estimatedTotal: leadTemplate.estimatedEarnings.toString(),
-          status: 'pending',
-          qrCode: leadTemplate.qrCode,
-          contactName: leadTemplate.customerName,
-          contactEmail: leadTemplate.customerEmail,
-          contactPhone: leadTemplate.customerPhone,
-          addons: leadTemplate.addons,
-          customerNotes: `Demo lead - ${leadTemplate.difficulty} installation`,
-          installerId: null // Available for purchase
-        };
-
-        try {
-          const createdBooking = await storage.createBooking(bookingData);
-          processedIds.push(createdBooking.id);
-          console.log(`Created new demo lead ${leadTemplate.qrCode} (ID: ${createdBooking.id})`);
-        } catch (error) {
-          console.error(`Error creating demo lead ${leadTemplate.qrCode}:`, error);
-        }
+        // Demo lead doesn't exist - this is expected after database cleanup
+        console.log(`Demo lead ${leadTemplate.qrCode} not found - this is normal after database cleanup`);
       }
     }
 

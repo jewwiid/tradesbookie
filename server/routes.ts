@@ -1232,12 +1232,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const paymentIntent = event.data.object;
         console.log('Payment succeeded:', paymentIntent.id);
         
-        // Update booking status if metadata contains bookingId
+        // Handle booking payments
         if (paymentIntent.metadata.bookingId) {
           await storage.updateBookingStatus(
             parseInt(paymentIntent.metadata.bookingId), 
             'paid'
           );
+        }
+        
+        // Handle credit purchases
+        if (paymentIntent.metadata.service === 'credit_purchase' && paymentIntent.metadata.installerId) {
+          const installerId = parseInt(paymentIntent.metadata.installerId);
+          const creditAmount = parseFloat(paymentIntent.metadata.creditAmount);
+          
+          // Get current wallet
+          let wallet = await storage.getInstallerWallet(installerId);
+          if (!wallet) {
+            wallet = await storage.createInstallerWallet({
+              installerId,
+              balance: "0.00",
+              totalSpent: "0.00",
+              totalEarned: "0.00"
+            });
+          }
+          
+          // Calculate new balance
+          const currentBalance = parseFloat(wallet.balance);
+          const newBalance = currentBalance + creditAmount;
+          
+          // Update wallet balance
+          await storage.updateInstallerWalletBalance(installerId, newBalance);
+          
+          // Add transaction record
+          await storage.addInstallerTransaction({
+            installerId,
+            type: "credit_purchase",
+            amount: creditAmount.toString(),
+            description: `Added €${creditAmount} credits to wallet via Stripe`,
+            paymentIntentId: paymentIntent.id,
+            status: "completed"
+          });
+          
+          console.log(`Added €${creditAmount} credits to installer ${installerId} wallet via webhook`);
         }
         break;
       
@@ -4968,18 +5004,66 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Add credits to installer wallet
-  app.post("/api/installer/:installerId/wallet/add-credits", async (req, res) => {
+  // Create payment intent for credit purchase
+  app.post("/api/installer/:installerId/wallet/create-payment-intent", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      const { amount, paymentIntentId } = req.body;
+      const { amount } = req.body;
+      
+      if (!amount || amount <= 0 || amount < 10) {
+        return res.status(400).json({ message: "Invalid amount. Minimum €10 required." });
+      }
+      
+      if (amount > 500) {
+        return res.status(400).json({ message: "Maximum €500 per transaction." });
+      }
+
+      // Get installer details
+      const installer = await storage.getInstallerProfile(installerId);
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "eur",
+        metadata: {
+          installerId: installerId.toString(),
+          installerEmail: installer.email,
+          creditAmount: amount.toString(),
+          service: "credit_purchase"
+        },
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error: any) {
+      console.error("Error creating credit payment intent:", error);
+      res.status(500).json({ 
+        message: "Error creating payment intent: " + error.message 
+      });
+    }
+  });
+
+  // Add credits to installer wallet (for demo account simulation only)
+  app.post("/api/installer/:installerId/wallet/add-credits-demo", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      const { amount } = req.body;
+      
+      // Only allow demo installer (ID: 2) to use this endpoint
+      if (installerId !== 2) {
+        return res.status(403).json({ message: "Demo credit simulation only available for demo account" });
+      }
       
       if (!amount || amount <= 0) {
         return res.status(400).json({ message: "Invalid amount" });
       }
-      
-      // For demo installer (ID: 2), allow credit simulation without payment processing
-      const isDemoInstaller = installerId === 2;
       
       // Get current wallet
       let wallet = await storage.getInstallerWallet(installerId);
@@ -5004,23 +5088,90 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         installerId,
         type: "credit_purchase",
         amount: amount.toString(),
-        description: isDemoInstaller 
-          ? `Demo: Added €${amount} credits to wallet (simulation)`
-          : `Added €${amount} credits to wallet`,
-        paymentIntentId: paymentIntentId || (isDemoInstaller ? `demo-${Date.now()}` : null),
+        description: `Demo: Added €${amount} credits to wallet (simulation)`,
+        paymentIntentId: `demo-${Date.now()}`,
         status: "completed"
       });
       
       res.json({ 
         success: true, 
         newBalance,
-        message: isDemoInstaller 
-          ? `Successfully added €${amount} demo credits to your wallet` 
-          : `Successfully added €${amount} to your wallet`
+        message: `Successfully added €${amount} demo credits to your wallet`
       });
     } catch (error) {
       console.error("Error adding credits:", error);
       res.status(500).json({ message: "Failed to add credits" });
+    }
+  });
+
+  // Confirm credit purchase payment
+  app.post("/api/installer/:installerId/wallet/confirm-payment", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      const { paymentIntentId } = req.body;
+
+      if (!paymentIntentId) {
+        return res.status(400).json({ message: "Payment intent ID required" });
+      }
+
+      // Retrieve payment intent from Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      if (paymentIntent.status === 'succeeded') {
+        const creditAmount = parseFloat(paymentIntent.metadata.creditAmount);
+        
+        // Get current wallet
+        let wallet = await storage.getInstallerWallet(installerId);
+        if (!wallet) {
+          wallet = await storage.createInstallerWallet({
+            installerId,
+            balance: "0.00",
+            totalSpent: "0.00",
+            totalEarned: "0.00"
+          });
+        }
+        
+        // Calculate new balance
+        const currentBalance = parseFloat(wallet.balance);
+        const newBalance = currentBalance + creditAmount;
+        
+        // Update wallet balance
+        await storage.updateInstallerWalletBalance(installerId, newBalance);
+        
+        // Add transaction record
+        await storage.addInstallerTransaction({
+          installerId,
+          type: "credit_purchase",
+          amount: creditAmount.toString(),
+          description: `Added €${creditAmount} credits to wallet`,
+          paymentIntentId: paymentIntentId,
+          status: "completed"
+        });
+
+        res.json({
+          success: true,
+          newBalance,
+          creditAmount,
+          message: `Successfully added €${creditAmount} to your wallet`,
+          paymentIntent: {
+            id: paymentIntent.id,
+            amount: paymentIntent.amount / 100,
+            currency: paymentIntent.currency,
+            status: paymentIntent.status
+          }
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "Payment not completed",
+          status: paymentIntent.status
+        });
+      }
+    } catch (error: any) {
+      console.error("Error confirming credit payment:", error);
+      res.status(500).json({ 
+        message: "Error confirming payment: " + error.message 
+      });
     }
   });
 

@@ -34,6 +34,7 @@ import BookingConfirmation from "@/pages/booking-confirmation";
 import VerifyEmail from "@/pages/verify-email";
 import MapsDemo from "@/pages/maps-demo";
 import DemoLogin from "@/pages/demo-login";
+import CreditCheckout from "@/pages/credit-checkout";
 
 function Router() {
   return (
@@ -75,6 +76,7 @@ function Router() {
       <Route path="/admin-dashboard" component={AdminDashboard} />
       <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/checkout/:bookingId?" component={Checkout} />
+      <Route path="/credit-checkout" component={CreditCheckout} />
       <Route path="/booking-success/:bookingId?" component={BookingSuccess} />
       
       <Route component={NotFound} />

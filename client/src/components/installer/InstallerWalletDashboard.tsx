@@ -56,24 +56,33 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
 
 
 
-  // Add credits mutation
+  // Add credits mutation (demo account only)
   const addCreditsMutation = useMutation({
     mutationFn: async (amount: number) => {
-      return apiRequest('POST', `/api/installer/${installerId}/wallet/add-credits`, { amount });
+      if (installerId === 2) {
+        // Demo account - use simulation endpoint
+        return apiRequest('POST', `/api/installer/${installerId}/wallet/add-credits-demo`, { amount });
+      } else {
+        // Real installer - redirect to Stripe checkout
+        const currentUrl = window.location.origin;
+        window.location.href = `/credit-checkout?installerId=${installerId}&amount=${amount}`;
+        return Promise.resolve({ success: true });
+      }
     },
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/wallet`] });
-      const isDemoAccount = installerId === 2;
-      toast({
-        title: isDemoAccount ? "Demo Credits Added" : "Credits Added",
-        description: response.message || `€${creditAmount} has been added to your wallet`,
-      });
-      setCreditAmount('50');
+      if (installerId === 2) {
+        queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/wallet`] });
+        toast({
+          title: "Demo Credits Added",
+          description: response.message || `€${creditAmount} has been added to your wallet`,
+        });
+        setCreditAmount('50');
+      }
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to add credits",
+        description: error.message || "Failed to add credits",
         variant: "destructive",
       });
     },
@@ -186,12 +195,12 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
                   {addCreditsMutation.isPending ? (
                     <>
                       <Timer className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
+                      {installerId === 2 ? "Processing..." : "Redirecting..."}
                     </>
                   ) : (
                     <>
                       <Plus className="w-4 h-4 mr-2" />
-                      Add €{creditAmount}
+                      {installerId === 2 ? `Add €${creditAmount}` : `Pay €${creditAmount}`}
                     </>
                   )}
                 </Button>

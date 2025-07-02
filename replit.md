@@ -501,6 +501,12 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **Demo account (installer ID 2) still receives demo leads for testing, all other installers see only real customer requests**
 - July 2, 2025: **Fixed data isolation: Non-demo installers now see authentic customer requests (Michael Walsh urgent 75" Gold service in Galway)**
 - July 2, 2025: **Database cleanup: Removed 4 fake demo bookings and related foreign key constraints for proper data segregation**
+- July 2, 2025: **Implemented comprehensive Stripe-integrated credit payment system for installers**
+- July 2, 2025: **Created dedicated credit checkout page with Stripe Elements integration for secure payment processing**
+- July 2, 2025: **Enhanced installer wallet system with real payment processing (demo account continues with simulation)**
+- July 2, 2025: **Added Stripe webhook support for automatic credit addition upon successful payment**
+- July 2, 2025: **Fixed installer credit system - real installers now use Stripe checkout, demo account (ID: 2) uses simulation**
+- July 2, 2025: **Credit purchase flow: Amount selection → Stripe checkout → Payment confirmation → Automatic wallet credit addition**
 
 ## User Preferences
 

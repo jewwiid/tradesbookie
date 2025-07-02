@@ -67,6 +67,7 @@ const statusLabels = {
 export default function PastLeadsManagement({ installerId }: PurchasedLeadsManagementProps) {
   const [selectedLead, setSelectedLead] = useState<PastLead | null>(null);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [updateMessage, setUpdateMessage] = useState('');
   const { toast } = useToast();
@@ -120,6 +121,11 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     setNewStatus(lead.status);
     setUpdateMessage('');
     setShowUpdateDialog(true);
+  };
+
+  const openScheduleDialog = (lead: PastLead) => {
+    setSelectedLead(lead);
+    setShowScheduleDialog(true);
   };
 
   if (isLoading) {
@@ -225,14 +231,26 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                       </div>
                     )}
                     
-                    <div className="pt-2 border-t">
-                      <Button
-                        onClick={() => openUpdateDialog(lead)}
-                        className="w-full"
-                        size="sm"
-                      >
-                        Update Status
-                      </Button>
+                    <div className="pt-2 border-t space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => openUpdateDialog(lead)}
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
+                          <Hammer className="w-3 h-3" />
+                          Update
+                        </Button>
+                        <Button
+                          onClick={() => openScheduleDialog(lead)}
+                          size="sm"
+                          className="flex items-center gap-1"
+                        >
+                          <Calendar className="w-3 h-3" />
+                          Schedule
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -321,6 +339,27 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                 </Button>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Negotiation Dialog */}
+      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="schedule-dialog-description">
+          <DialogHeader>
+            <DialogTitle>Schedule Installation</DialogTitle>
+            <DialogDescription id="schedule-dialog-description">
+              Coordinate installation timing with {selectedLead?.customerName}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedLead && (
+            <ScheduleNegotiation
+              bookingId={selectedLead.id}
+              installerId={installerId}
+              customerName={selectedLead.customerName}
+              isInstaller={true}
+            />
           )}
         </DialogContent>
       </Dialog>

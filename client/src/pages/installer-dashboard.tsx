@@ -352,8 +352,8 @@ export default function InstallerDashboard() {
   // Fetch available requests from API
   const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
     queryKey: ['/api/installer/2/available-leads'],
-    enabled: isOnline && !!installerProfile?.id,
-    refetchInterval: 30000, // Refresh every 30 seconds when online
+    enabled: !!installerProfile?.id,
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Accept request mutation
@@ -531,6 +531,9 @@ export default function InstallerDashboard() {
                   onCheckedChange={setIsOnline}
                   className="data-[state=checked]:bg-green-600"
                 />
+                <span className="text-xs text-gray-400">
+                  (Lets customers know you're ready for work)
+                </span>
               </div>
               
               <Button variant="ghost" size="sm" onClick={() => window.location.href = '/installer-login'}>
@@ -702,10 +705,10 @@ export default function InstallerDashboard() {
                 <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No Active Requests</h3>
                 <p className="text-gray-500 mb-6">
-                  Turn on "Available for Jobs" to start receiving installation requests
+                  No new installation requests at the moment. Check back shortly or turn on "Available for Jobs" to let customers know you're ready for work.
                 </p>
-                <Button onClick={() => setIsOnline(true)} disabled={isOnline}>
-                  Go Online
+                <Button onClick={() => setIsOnline(true)} disabled={isOnline} variant={isOnline ? "secondary" : "default"}>
+                  {isOnline ? "You're Available" : "Mark Available"}
                 </Button>
               </Card>
             )}

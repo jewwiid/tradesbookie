@@ -427,6 +427,9 @@ The application now includes a robust fallback system. When the database is unav
 - July 2, 2025: **OAuth routes now redirect installer requests to email/password registration, preventing authentication conflicts**
 - July 2, 2025: **Fixed OAuth callback handling to properly redirect installer signup attempts to dedicated registration pages**
 - July 2, 2025: **Verified end-to-end functionality: OAuth for customers/admins, email/password for installers**
+- July 2, 2025: **Modified installer dashboard to always show available jobs regardless of online status**
+- July 2, 2025: **Updated online toggle to serve as availability indicator for platform statistics only**
+- July 2, 2025: **Jobs now visible at all times with clarified messaging about online status purpose**
 
 ## User Preferences
 

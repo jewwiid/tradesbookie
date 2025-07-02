@@ -19,7 +19,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-06-20",
 });
 
-import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail } from "./gmailService";
+import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail, sendInstallerApprovalEmail, sendInstallerRejectionEmail } from "./gmailService";
 import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
 import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { pricingManagementService } from "./pricingManagementService";
@@ -2295,6 +2295,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test endpoint for approval/rejection emails
+  app.post("/api/test-installer-email", async (req, res) => {
+    try {
+      const { email, action, score, comments } = req.body;
+      
+      if (!email || !action) {
+        return res.status(400).json({ error: "Email and action are required" });
+      }
+      
+      // Find the installer
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.email === email);
+      
+      if (!installer) {
+        return res.status(404).json({ error: "Installer not found" });
+      }
+      
+      let result = false;
+      let emailType = '';
+      
+      if (action === 'approve') {
+        console.log(`Sending TEST approval email to: ${email}`);
+        result = await sendInstallerApprovalEmail(
+          email, 
+          installer.contactName || 'Installer',
+          installer.businessName,
+          score,
+          comments
+        );
+        emailType = 'approval';
+      } else if (action === 'reject') {
+        console.log(`Sending TEST rejection email to: ${email}`);
+        result = await sendInstallerRejectionEmail(
+          email, 
+          installer.contactName || 'Installer',
+          installer.businessName,
+          comments
+        );
+        emailType = 'rejection';
+      } else {
+        return res.status(400).json({ error: "Action must be 'approve' or 'reject'" });
+      }
+      
+      res.json({ 
+        success: result, 
+        message: `${emailType} email ${result ? 'sent successfully' : 'failed to send'}`,
+        installer: {
+          email: installer.email,
+          name: installer.contactName,
+          business: installer.businessName
+        },
+        emailType,
+        testData: { score, comments }
+      });
+    } catch (error) {
+      console.error("Test email error:", error);
+      res.status(500).json({ error: "Failed to send test email", details: error.message });
+    }
+  });
+
 
 
 
@@ -3351,6 +3411,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const { approvalStatus, adminScore, adminComments } = req.body;
       const adminUserId = (req.user as any)?.id;
       
+      // Get installer details before updating
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      // Update approval status
       await storage.updateInstallerApproval(installerId, {
         approvalStatus: 'approved',
         adminScore,
@@ -3359,7 +3428,25 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         reviewedAt: new Date()
       });
       
-      res.json({ message: "Installer approved successfully" });
+      // Send approval email
+      console.log(`Sending approval email to installer: ${installer.email}`);
+      const emailSent = await sendInstallerApprovalEmail(
+        installer.email, 
+        installer.contactName || 'Installer',
+        installer.businessName,
+        adminScore,
+        adminComments
+      );
+      
+      res.json({ 
+        message: "Installer approved successfully",
+        emailSent,
+        installer: {
+          email: installer.email,
+          name: installer.contactName,
+          business: installer.businessName
+        }
+      });
     } catch (error) {
       console.error("Error approving installer:", error);
       res.status(500).json({ message: "Failed to approve installer" });
@@ -3372,6 +3459,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const { approvalStatus, adminComments } = req.body;
       const adminUserId = (req.user as any)?.id;
       
+      // Get installer details before updating
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      // Update rejection status
       await storage.updateInstallerApproval(installerId, {
         approvalStatus: 'rejected',
         adminComments,
@@ -3379,7 +3475,24 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         reviewedAt: new Date()
       });
       
-      res.json({ message: "Installer rejected successfully" });
+      // Send rejection email
+      console.log(`Sending rejection email to installer: ${installer.email}`);
+      const emailSent = await sendInstallerRejectionEmail(
+        installer.email, 
+        installer.contactName || 'Installer',
+        installer.businessName,
+        adminComments
+      );
+      
+      res.json({ 
+        message: "Installer rejected",
+        emailSent,
+        installer: {
+          email: installer.email,
+          name: installer.contactName,
+          business: installer.businessName
+        }
+      });
     } catch (error) {
       console.error("Error rejecting installer:", error);
       res.status(500).json({ message: "Failed to reject installer" });

@@ -70,7 +70,16 @@ export const installers = pgTable("installers", {
   yearsExperience: integer("years_experience").default(0),
   profileImageUrl: text("profile_image_url"),
   isActive: boolean("is_active").default(true),
+  
+  // Approval and scoring system
+  approvalStatus: varchar("approval_status").default("pending"), // pending, approved, rejected
+  adminScore: integer("admin_score"), // 1-10 rating from admin review
+  adminComments: text("admin_comments"), // Admin review notes
+  reviewedBy: varchar("reviewed_by"), // Admin user ID who reviewed
+  reviewedAt: timestamp("reviewed_at"), // When review was completed
+  
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Removed: feeStructures table no longer needed in lead generation model

@@ -103,6 +103,12 @@ interface Installer {
   completedJobs: number;
   rating: number;
   totalEarnings: number;
+  // Approval system fields
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
+  adminScore?: number;
+  adminComments?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
 }
 
 interface SolarEnquiry {
@@ -376,6 +382,8 @@ function InstallerManagement() {
   const [selectedInstaller, setSelectedInstaller] = useState<Installer | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   const { data: installers, isLoading } = useQuery<Installer[]>({
     queryKey: ["/api/admin/installers"],
@@ -398,6 +406,41 @@ function InstallerManagement() {
     },
   });
 
+  const approveInstallerMutation = useMutation({
+    mutationFn: async ({ installerId, score, comments }: { installerId: number; score: number; comments: string }) => {
+      await apiRequest(`/api/admin/installers/${installerId}/approve`, "PATCH", { 
+        approvalStatus: 'approved', 
+        adminScore: score, 
+        adminComments: comments 
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Installer approved successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+      setShowApprovalDialog(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to approve installer", variant: "destructive" });
+    },
+  });
+
+  const rejectInstallerMutation = useMutation({
+    mutationFn: async ({ installerId, comments }: { installerId: number; comments: string }) => {
+      await apiRequest(`/api/admin/installers/${installerId}/reject`, "PATCH", { 
+        approvalStatus: 'rejected', 
+        adminComments: comments 
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Installer rejected" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+      setShowApprovalDialog(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to reject installer", variant: "destructive" });
+    },
+  });
+
   const handleViewInstaller = (installer: Installer) => {
     setSelectedInstaller(installer);
     setShowViewDialog(true);
@@ -407,6 +450,17 @@ function InstallerManagement() {
     setSelectedInstaller(installer);
     setShowEditDialog(true);
   };
+
+  const handleApprovalReview = (installer: Installer) => {
+    setSelectedInstaller(installer);
+    setShowApprovalDialog(true);
+  };
+
+  // Filter installers based on approval status
+  const filteredInstallers = installers?.filter(installer => {
+    if (filterStatus === 'all') return true;
+    return installer.approvalStatus === filterStatus;
+  }) || [];
 
   if (isLoading) {
     return (

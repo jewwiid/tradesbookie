@@ -715,46 +715,91 @@ export default function InstallerDashboard() {
                   Profile Settings
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 {/* Current Profile Information Display */}
                 {installerProfile && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div className="space-y-3">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Contact Name</Label>
-                        <p className="text-sm text-gray-900">{installerProfile.contactName || "Not provided"}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Business Name</Label>
-                        <p className="text-sm text-gray-900">{installerProfile.businessName || "Not provided"}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Email</Label>
-                        <p className="text-sm text-gray-900">{installerProfile.email || "Not provided"}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Phone</Label>
-                        <p className="text-sm text-gray-900">{installerProfile.phone || "Not provided"}</p>
+                  <div className="space-y-6">
+                    {/* Basic Information Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <User className="w-5 h-5 text-primary" />
+                        Basic Information
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div className="border-l-4 border-primary pl-4">
+                            <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Contact Name</Label>
+                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.contactName || "Not provided"}</p>
+                          </div>
+                          <div className="border-l-4 border-gray-200 pl-4">
+                            <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Business Name</Label>
+                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.businessName || "Not provided"}</p>
+                          </div>
+                          <div className="border-l-4 border-gray-200 pl-4">
+                            <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              Email
+                            </Label>
+                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.email || "Not provided"}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="border-l-4 border-gray-200 pl-4">
+                            <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide flex items-center gap-1">
+                              <Phone className="w-3 h-3" />
+                              Phone
+                            </Label>
+                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.phone || "Not provided"}</p>
+                          </div>
+                          <div className="border-l-4 border-gray-200 pl-4">
+                            <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              Service Area
+                            </Label>
+                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.serviceArea || "Not specified"}</p>
+                          </div>
+                          <div className="border-l-4 border-gray-200 pl-4">
+                            <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              Experience
+                            </Label>
+                            <p className="text-base font-medium text-gray-900 mt-1">
+                              {installerProfile.yearsExperience ? `${installerProfile.yearsExperience} years` : "Not specified"}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Service Area</Label>
-                        <p className="text-sm text-gray-900">{installerProfile.serviceArea || "Not specified"}</p>
+
+                    {/* Bio Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <User className="w-5 h-5 text-primary" />
+                        About
+                      </h3>
+                      <div className="bg-gray-50 p-4 rounded-lg border">
+                        <p className="text-gray-700 leading-relaxed">
+                          {installerProfile.bio || "No bio provided yet. Add a bio to help customers learn more about your experience and services."}
+                        </p>
                       </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Years Experience</Label>
-                        <p className="text-sm text-gray-900">{installerProfile.yearsExperience || "Not specified"}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Bio</Label>
-                        <p className="text-sm text-gray-900">{installerProfile.bio || "No bio provided"}</p>
-                      </div>
-                      <div>
-                        <Label className="text-sm font-medium text-gray-600">Status</Label>
-                        <Badge variant={installerProfile.approvalStatus === 'approved' ? 'default' : 'secondary'}>
-                          {installerProfile.approvalStatus || 'Pending'}
+                    </div>
+
+                    {/* Status Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-primary" />
+                        Account Status
+                      </h3>
+                      <div className="flex items-center gap-3">
+                        <Badge 
+                          variant={installerProfile.approvalStatus === 'approved' ? 'default' : 'secondary'}
+                          className="px-3 py-1 text-sm font-medium"
+                        >
+                          {installerProfile.approvalStatus === 'approved' ? '✓ Approved' : 'Pending Approval'}
                         </Badge>
+                        {installerProfile.approvalStatus !== 'approved' && (
+                          <span className="text-sm text-gray-600">Your profile is under review by our team</span>
+                        )}
                       </div>
                     </div>
                   </div>

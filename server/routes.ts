@@ -718,7 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const lastName = nameParts.slice(1).join(' ') || '';
       
       const user = await storage.createUser({
-        id: String(Date.now()), // Generate unique ID
+        id: Date.now(), // Generate unique integer ID
         email: email,
         firstName: firstName,
         lastName: lastName,
@@ -5386,6 +5386,92 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Error fetching available leads:", error);
       res.status(500).json({ message: "Failed to fetch available leads" });
+    }
+  });
+
+  // ====================== BOOKING TRACKER API ENDPOINT ======================
+  
+  // Public booking tracker - allows users to track bookings without authentication
+  app.get("/api/booking-tracker", async (req, res) => {
+    try {
+      const { code } = req.query;
+      
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ message: "Tracking code is required" });
+      }
+      
+      // Search for booking by QR code, booking ID, or Harvey Norman invoice
+      const bookings = await storage.getAllBookings();
+      let booking = null;
+      
+      // Try to find booking by QR code first
+      booking = bookings.find(b => b.qrCode === code);
+      
+      // If not found by QR code, try booking ID
+      if (!booking) {
+        const bookingId = parseInt(code);
+        if (!isNaN(bookingId)) {
+          booking = bookings.find(b => b.id === bookingId);
+        }
+      }
+      
+      // If not found, try Harvey Norman invoice format
+      if (!booking && code.startsWith('HN-')) {
+        // Find user by Harvey Norman invoice
+        const users = await storage.getAllUsers();
+        const user = users.find(u => u.harveyNormanInvoiceNumber === code);
+        if (user) {
+          booking = bookings.find(b => b.userId === user.id);
+        }
+      }
+      
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Get installer information if assigned
+      let installerInfo = null;
+      if (booking.installerId) {
+        try {
+          const installer = await storage.getInstaller(booking.installerId);
+          if (installer) {
+            installerInfo = {
+              name: installer.contactName || installer.businessName,
+              phone: installer.phone
+            };
+          }
+        } catch (error) {
+          console.log("Could not fetch installer info:", error);
+        }
+      }
+      
+      // Format response with booking details
+      const response = {
+        id: booking.id,
+        qrCode: booking.qrCode,
+        status: booking.status,
+        contactName: booking.contactName,
+        contactEmail: booking.contactEmail,
+        contactPhone: booking.contactPhone,
+        address: booking.address,
+        tvSize: booking.tvSize,
+        serviceType: booking.serviceType,
+        wallType: booking.wallType,
+        mountType: booking.mountType,
+        addons: booking.addons ? JSON.parse(booking.addons) : [],
+        estimatedTotal: booking.estimatedTotal,
+        scheduledDate: booking.scheduledDate,
+        createdAt: booking.createdAt,
+        installerName: installerInfo?.name,
+        installerPhone: installerInfo?.phone,
+        difficulty: booking.difficulty || 'moderate',
+        notes: booking.customerNotes || booking.specialRequests
+      };
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Error fetching booking details:", error);
+      res.status(500).json({ message: "Failed to fetch booking details" });
     }
   });
 

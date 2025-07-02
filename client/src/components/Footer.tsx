@@ -49,6 +49,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/booking-tracker" className="text-gray-300 hover:text-white transition-colors">
+                  Track Installation
+                </Link>
+              </li>
+              <li>
                 <Link href="/installation-tracker" className="text-gray-300 hover:text-white transition-colors">
                   Installation Tracker
                 </Link>

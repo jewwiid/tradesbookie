@@ -273,17 +273,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async authenticateInstaller(email: string, password: string): Promise<Installer | null> {
+    console.log('Authenticating installer:', email);
     const [installer] = await db.select().from(installers)
       .where(eq(installers.email, email));
     
+    console.log('Found installer:', installer ? 'yes' : 'no');
     if (!installer || !installer.passwordHash) {
+      console.log('No installer or no password hash');
       return null;
     }
     
+    console.log('Password hash exists, comparing...');
     // Use bcrypt to verify password
-    const bcrypt = require('bcrypt');
-    const isValidPassword = await bcrypt.compare(password, installer.passwordHash);
+    const { compare } = await import('bcrypt');
+    const isValidPassword = await compare(password, installer.passwordHash);
     
+    console.log('Password validation result:', isValidPassword);
     return isValidPassword ? installer : null;
   }
 

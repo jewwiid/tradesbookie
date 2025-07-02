@@ -157,8 +157,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Email already registered" });
       }
       
-      // Simple password hashing (in production, use bcrypt)
-      const passwordHash = Buffer.from(password).toString('base64');
+      // Use bcrypt to hash password
+      const { hash } = await import('bcrypt');
+      const passwordHash = await hash(password, 10);
       
       // Create installer account
       const installer = await storage.registerInstaller(email, passwordHash);

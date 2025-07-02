@@ -1325,26 +1325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/referral/settings", async (req, res) => {
-    try {
-      const { referralReward, refereeDiscount, isActive } = req.body;
-      
-      if (!referralReward || !refereeDiscount) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
-      
-      const settings = await storage.updateReferralSettings({
-        referralReward: referralReward.toString(),
-        refereeDiscount: refereeDiscount.toString(),
-        isActive: isActive
-      });
-      
-      res.json(settings);
-    } catch (error) {
-      console.error("Error updating referral settings:", error);
-      res.status(500).json({ message: "Failed to update referral settings" });
-    }
-  });
+
 
   app.post("/api/referral/generate", async (req, res) => {
     try {
@@ -4700,14 +4681,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (!settings) {
         // Return default settings if none exist
         return res.json({
-          referralReward: 25,
           globalDiscountPercentage: 10,
           isActive: true
         });
       }
       
       res.json({
-        referralReward: parseFloat(settings.referralReward),
         globalDiscountPercentage: parseFloat(settings.globalDiscountPercentage),
         isActive: settings.isActive
       });

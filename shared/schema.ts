@@ -292,7 +292,6 @@ export const solarEnquiries = pgTable("solar_enquiries", {
 
 export const referralSettings = pgTable("referral_settings", {
   id: serial("id").primaryKey(),
-  referralReward: decimal("referral_reward", { precision: 8, scale: 2 }).notNull().default("25.00"), // Amount in euros for customer referrals
   globalDiscountPercentage: decimal("global_discount_percentage", { precision: 5, scale: 2 }).notNull().default("10.00"), // Global discount percentage for all referral codes
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),

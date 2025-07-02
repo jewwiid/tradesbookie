@@ -4651,7 +4651,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           const user = await storage.getUserById(code.userId);
           return {
             id: code.id,
-            code: code.referralCode,
+            referralCode: code.referralCode,
             referrerName: user?.firstName && user?.lastName ? 
               `${user.firstName} ${user.lastName}` : 
               user?.email || 'Unknown User',

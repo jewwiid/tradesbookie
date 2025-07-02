@@ -3659,7 +3659,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Admin installer approval endpoints
-  app.patch("/api/admin/installers/:id/approve", isAdmin, async (req, res) => {
+  app.patch("/api/admin/installers/:id/approve", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const installerId = parseInt(req.params.id);
       const { approvalStatus, adminScore, adminComments } = req.body;
@@ -3707,7 +3707,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  app.patch("/api/admin/installers/:id/reject", isAdmin, async (req, res) => {
+  app.patch("/api/admin/installers/:id/reject", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const installerId = parseInt(req.params.id);
       const { approvalStatus, adminComments } = req.body;

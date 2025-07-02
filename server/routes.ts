@@ -2065,6 +2065,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Reset and regenerate mock leads for demo account on each login
         console.log(`Demo account login detected - resetting leads for installer ${installer.id}`);
         await resetDemoLeads(installer.id);
+        
+        // Reset wallet for demo account
+        await storage.resetInstallerWallet(installer.id);
+        console.log(`Demo account wallet reset to €300.00 for installer ${installer.id}`);
 
         res.json({ 
           success: true, 
@@ -4356,13 +4360,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         leadPaidDate: new Date()
       });
       
-      // Deduct lead fee from wallet
+      // Deduct lead fee from wallet and update total spent
       const newBalance = currentBalance - leadFee;
-      await storage.updateInstallerWalletBalance(installerId, newBalance);
-      
-      // Update total spent
       const totalSpent = parseFloat(wallet.totalSpent) + leadFee;
       await storage.updateInstallerWalletBalance(installerId, newBalance);
+      await storage.updateInstallerWalletTotalSpent(installerId, totalSpent);
       
       // Add transaction record
       await storage.addInstallerTransaction({

@@ -120,6 +120,9 @@ export interface IStorage {
   getInstallerWallet(installerId: number): Promise<InstallerWallet | undefined>;
   createInstallerWallet(wallet: InsertInstallerWallet): Promise<InstallerWallet>;
   updateInstallerWalletBalance(installerId: number, amount: number): Promise<void>;
+  updateInstallerWalletTotalSpent(installerId: number, amount: number): Promise<void>;
+  updateInstallerWalletTotalEarned(installerId: number, amount: number): Promise<void>;
+  resetInstallerWallet(installerId: number): Promise<void>;
   addInstallerTransaction(transaction: InsertInstallerTransaction): Promise<InstallerTransaction>;
   getInstallerTransactions(installerId: number): Promise<InstallerTransaction[]>;
   getAllInstallerTransactions(): Promise<InstallerTransaction[]>;
@@ -780,6 +783,35 @@ export class DatabaseStorage implements IStorage {
     await db.update(installerWallets)
       .set({ 
         balance: amount.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(installerWallets.installerId, installerId));
+  }
+
+  async updateInstallerWalletTotalSpent(installerId: number, amount: number): Promise<void> {
+    await db.update(installerWallets)
+      .set({ 
+        totalSpent: amount.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(installerWallets.installerId, installerId));
+  }
+
+  async updateInstallerWalletTotalEarned(installerId: number, amount: number): Promise<void> {
+    await db.update(installerWallets)
+      .set({ 
+        totalEarned: amount.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(installerWallets.installerId, installerId));
+  }
+
+  async resetInstallerWallet(installerId: number): Promise<void> {
+    await db.update(installerWallets)
+      .set({ 
+        balance: "300.00",
+        totalSpent: "0.00",
+        totalEarned: "0.00",
         updatedAt: new Date()
       })
       .where(eq(installerWallets.installerId, installerId));

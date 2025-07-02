@@ -342,16 +342,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInstallerPurchasedLeads(installerId: number): Promise<Booking[]> {
-    return await db.select().from(bookings)
-      .where(and(
-        eq(bookings.installerId, installerId),
-        or(
-          eq(bookings.status, 'accepted'),
-          eq(bookings.status, 'in-progress'),
-          eq(bookings.status, 'completed')
-        )
-      ))
-      .orderBy(desc(bookings.createdAt));
+    // Get purchased leads from job assignments table
+    const purchasedJobs = await db.select({
+      booking: bookings,
+      jobAssignment: jobAssignments
+    })
+    .from(jobAssignments)
+    .innerJoin(bookings, eq(jobAssignments.bookingId, bookings.id))
+    .where(and(
+      eq(jobAssignments.installerId, installerId),
+      eq(jobAssignments.leadFeeStatus, 'paid')
+    ))
+    .orderBy(desc(jobAssignments.assignedDate));
+
+    // Return bookings with job assignment info merged
+    return purchasedJobs.map(row => ({
+      ...row.booking,
+      jobAssignmentId: row.jobAssignment.id,
+      leadFee: row.jobAssignment.leadFee,
+      assignedDate: row.jobAssignment.assignedDate,
+      acceptedDate: row.jobAssignment.acceptedDate,
+      completedDate: row.jobAssignment.completedDate,
+      leadFeeStatus: row.jobAssignment.leadFeeStatus
+    }));
   }
 
   async updateBooking(id: number, updates: Partial<InsertBooking>): Promise<void> {

@@ -285,6 +285,8 @@ export class DatabaseStorage implements IStorage {
     const [installer] = await db.insert(installers).values({
       email,
       passwordHash,
+      businessName: "TBD", // Default value, will be updated when profile is completed
+      contactName: "TBD", // Default value, will be updated when profile is completed
       approvalStatus: "pending",
       profileCompleted: false,
       isActive: true

@@ -50,6 +50,7 @@ export interface IStorage {
     reviewedAt?: Date;
   }): Promise<void>;
   updateInstallerApprovalStatus(installerId: number, status: string, comments?: string): Promise<void>;
+  deleteInstaller(installerId: number): Promise<void>;
   
   // Installer authentication
   registerInstaller(email: string, passwordHash: string): Promise<Installer>;
@@ -289,6 +290,11 @@ export class DatabaseStorage implements IStorage {
         reviewedAt: new Date(),
         updatedAt: new Date()
       })
+      .where(eq(installers.id, installerId));
+  }
+
+  async deleteInstaller(installerId: number): Promise<void> {
+    await db.delete(installers)
       .where(eq(installers.id, installerId));
   }
 

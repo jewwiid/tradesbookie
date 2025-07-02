@@ -656,6 +656,7 @@ function InstallerManagement() {
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
 
   const { data: installers, isLoading } = useQuery<Installer[]>({
@@ -714,6 +715,20 @@ function InstallerManagement() {
     },
   });
 
+  const deleteInstallerMutation = useMutation({
+    mutationFn: async (installerId: number) => {
+      await apiRequest(`/api/admin/installers/${installerId}`, "DELETE");
+    },
+    onSuccess: () => {
+      toast({ title: "Installer deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+      setShowDeleteDialog(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to delete installer", variant: "destructive" });
+    },
+  });
+
   const handleViewInstaller = (installer: Installer) => {
     setSelectedInstaller(installer);
     setShowViewDialog(true);
@@ -727,6 +742,11 @@ function InstallerManagement() {
   const handleApprovalReview = (installer: Installer) => {
     setSelectedInstaller(installer);
     setShowApprovalDialog(true);
+  };
+
+  const handleDeleteInstaller = (installer: Installer) => {
+    setSelectedInstaller(installer);
+    setShowDeleteDialog(true);
   };
 
   // Filter installers based on approval status
@@ -867,6 +887,15 @@ function InstallerManagement() {
                       title="View installer details"
                     >
                       <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDeleteInstaller(installer)}
+                      title="Delete installer permanently"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                     <Button 
                       variant="outline" 
@@ -1063,6 +1092,42 @@ function InstallerManagement() {
               />
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent aria-describedby="delete-installer-description">
+          <DialogHeader>
+            <DialogTitle>Delete Installer</DialogTitle>
+            <DialogDescription id="delete-installer-description">
+              Are you sure you want to permanently delete this installer? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedInstaller && (
+            <div className="py-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 className="font-medium text-red-800 mb-2">Installer to be deleted:</h4>
+                <div className="text-sm text-red-700">
+                  <p><strong>Business:</strong> {selectedInstaller.businessName}</p>
+                  <p><strong>Contact:</strong> {selectedInstaller.contactName}</p>
+                  <p><strong>Email:</strong> {selectedInstaller.email}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => selectedInstaller && deleteInstallerMutation.mutate(selectedInstaller.id)}
+              disabled={deleteInstallerMutation.isPending}
+            >
+              {deleteInstallerMutation.isPending ? "Deleting..." : "Delete Permanently"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Card>

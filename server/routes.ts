@@ -2454,6 +2454,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+
+
   // Test endpoint for approval/rejection emails
   app.post("/api/test-installer-email", async (req, res) => {
     try {
@@ -3655,6 +3657,42 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Error rejecting installer:", error);
       res.status(500).json({ message: "Failed to reject installer" });
+    }
+  });
+
+  // Admin delete installer
+  app.delete("/api/admin/installers/:id", isAdmin, async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      
+      if (!installerId) {
+        return res.status(400).json({ message: "Installer ID is required" });
+      }
+
+      // Get installer details before deleting for logging
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+
+      // Delete the installer
+      await storage.deleteInstaller(installerId);
+      
+      console.log(`Installer deleted: ${installer.businessName} (${installer.email})`);
+      
+      res.json({ 
+        message: "Installer deleted successfully",
+        deletedInstaller: {
+          id: installerId,
+          businessName: installer.businessName,
+          email: installer.email
+        }
+      });
+    } catch (error) {
+      console.error("Error deleting installer:", error);
+      res.status(500).json({ message: "Failed to delete installer" });
     }
   });
 

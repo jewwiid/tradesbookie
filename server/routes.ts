@@ -279,11 +279,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bcrypt = await import('bcrypt');
       const passwordHash = await bcrypt.default.hash(password, 10);
       
-      // Create installer account
+      // Create installer account with full name information
+      const fullName = `${firstName} ${lastName}`;
       const installer = await storage.registerInstaller(email, passwordHash);
       
-      // Return installer data (without password hash)
-      const { passwordHash: _, ...installerData } = installer;
+      // Update installer with additional details
+      const updatedInstaller = await storage.updateInstaller(installer.id, {
+        contactName: fullName,
+        businessName: businessName
+      });
+      
+      // Return updated installer data (without password hash)
+      const { passwordHash: _, ...installerData } = updatedInstaller;
       res.status(201).json({
         success: true,
         installer: installerData,

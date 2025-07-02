@@ -65,7 +65,7 @@ export const installers = pgTable("installers", {
   passwordHash: text("password_hash").notNull(),
   
   // Basic business information
-  businessName: text("business_name"),
+  businessName: text("business_name").notNull(),
   contactName: text("contact_name"),
   phone: text("phone"),
   address: text("address"),

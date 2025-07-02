@@ -30,10 +30,10 @@ export default function LoginModals({
     <>
       {/* Customer Login Modal */}
       <Dialog open={showCustomerLogin} onOpenChange={setShowCustomerLogin}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby="customer-login-description">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center">Customer Access</DialogTitle>
-            <DialogDescription className="text-gray-600 text-center">
+            <DialogDescription id="customer-login-description" className="text-gray-600 text-center">
               Enter your booking details or scan your QR code
             </DialogDescription>
           </DialogHeader>
@@ -60,10 +60,10 @@ export default function LoginModals({
 
       {/* Admin Login Modal */}
       <Dialog open={showAdminLogin} onOpenChange={setShowAdminLogin}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" aria-describedby="admin-login-description">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center">Admin Login</DialogTitle>
-            <DialogDescription className="text-gray-600 text-center">
+            <DialogDescription id="admin-login-description" className="text-gray-600 text-center">
               Access the admin dashboard
             </DialogDescription>
           </DialogHeader>

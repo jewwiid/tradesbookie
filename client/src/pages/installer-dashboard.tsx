@@ -383,10 +383,28 @@ export default function InstallerDashboard() {
         setSelectedRequest(null);
       }
     },
-    onError: (error: any) => {
+    onError: async (error: any) => {
+      let errorMessage = "Failed to accept request";
+      
+      // Parse error response for user-friendly messages
+      if (error instanceof Response) {
+        try {
+          const errorData = await error.json();
+          if (errorData.message === "Lead purchase required") {
+            errorMessage = "Insufficient wallet balance. Please add credits to purchase this lead.";
+          } else if (errorData.message) {
+            errorMessage = errorData.message;
+          }
+        } catch (e) {
+          // Use default message if JSON parsing fails
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
-        description: error.message || "Failed to accept request",
+        title: "Unable to Accept Request",
+        description: errorMessage,
         variant: "destructive",
       });
     }

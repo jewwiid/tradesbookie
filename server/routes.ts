@@ -28,170 +28,133 @@ import { getWebsiteMetrics } from "./analyticsService";
 // Function to reset and generate varied demo leads for demo account (creates actual database bookings)
 const resetDemoLeads = async (installerId: number) => {
   try {
-    // First, remove any existing demo bookings for this installer
-    const existingBookings = await storage.getAllBookings();
-    const demoBookings = existingBookings.filter(booking => 
-      booking.qrCode && booking.qrCode.includes('QR-DEMO') && 
-      (booking.installerId === null || booking.installerId === installerId)
-    );
-    
-    // Clean up old demo bookings
-    for (const booking of demoBookings) {
-      try {
-        await storage.deleteBooking(booking.id);
-      } catch (error) {
-        console.log(`Could not delete old demo booking ${booking.id}, skipping...`);
-      }
+    // Clear any existing status cache for demo account
+    if ((global as any).demoStatusUpdates) {
+      delete (global as any).demoStatusUpdates;
+      console.log('Cleared demo status cache for fresh session');
     }
     
-    const leadTemplates = [
+    // Get existing demo bookings
+    const existingBookings = await storage.getAllBookings();
+    const demoBookings = existingBookings.filter(booking => 
+      booking.qrCode && booking.qrCode.includes('QR-DEMO')
+    );
+    
+    // Fixed set of 3 demo leads for consistency
+    const fixedDemoLeads = [
       {
+        qrCode: "QR-DEMO-001",
         address: "15 Grafton Street, Dublin 2, Ireland",
         tvSize: "55 inch",
         serviceType: "silver-premium",
         wallType: "Drywall",
         difficulty: "Easy",
         estimatedEarnings: 155,
-        leadFee: 25
+        leadFee: 25,
+        customerName: "Sarah O'Brien",
+        customerEmail: "sarah.obrien@example.com",
+        customerPhone: "+353 87 123 4567",
+        addons: [{ name: "Cable Management", key: "cable_management", price: 20 }]
       },
       {
+        qrCode: "QR-DEMO-002",
         address: "42 Patrick Street, Cork, Ireland", 
         tvSize: "65 inch",
         serviceType: "gold-premium-large",
         wallType: "Brick",
         difficulty: "Difficult",
         estimatedEarnings: 345,
-        leadFee: 35
+        leadFee: 35,
+        customerName: "Michael Walsh",
+        customerEmail: "michael.walsh@example.com",
+        customerPhone: "+353 86 234 5678",
+        addons: [
+          { name: "Cable Management", key: "cable_management", price: 20 },
+          { name: "Soundbar Installation", key: "soundbar_installation", price: 30 }
+        ]
       },
       {
+        qrCode: "QR-DEMO-003",
         address: "89 Henry Street, Galway, Ireland",
         tvSize: "43 inch", 
         serviceType: "bronze-wall-mount",
         wallType: "Plasterboard",
         difficulty: "Moderate",
         estimatedEarnings: 100,
-        leadFee: 20
-      },
-      {
-        address: "27 O'Connell Street, Limerick, Ireland",
-        tvSize: "75 inch",
-        serviceType: "gold-premium-large", 
-        wallType: "Stone",
-        difficulty: "Expert",
-        estimatedEarnings: 380,
-        leadFee: 35
-      },
-      {
-        address: "156 Barrack Street, Waterford, Ireland",
-        tvSize: "32 inch",
-        serviceType: "table-top-small",
-        wallType: "N/A",
-        difficulty: "Easy",
-        estimatedEarnings: 48,
-        leadFee: 12
-      },
-      {
-        address: "78 Shop Street, Galway, Ireland",
-        tvSize: "50 inch",
-        serviceType: "bronze-wall-mount",
-        wallType: "Concrete",
-        difficulty: "Difficult",
-        estimatedEarnings: 95,
-        leadFee: 20
-      },
-      {
-        address: "23 Eyre Square, Galway, Ireland",
-        tvSize: "85 inch",
-        serviceType: "gold-premium-large",
-        wallType: "Drywall",
-        difficulty: "Expert",
-        estimatedEarnings: 380,
-        leadFee: 35
+        leadFee: 20,
+        customerName: "Emma Collins",
+        customerEmail: "emma.collins@example.com",
+        customerPhone: "+353 85 345 6789",
+        addons: []
       }
     ];
 
-    const customerProfiles = [
-      { name: "Sarah O'Brien", email: "sarah.obrien@example.com", phone: "+353 87 123 4567" },
-      { name: "Michael Walsh", email: "michael.walsh@example.com", phone: "+353 86 234 5678" },
-      { name: "Emma Collins", email: "emma.collins@example.com", phone: "+353 85 345 6789" },
-      { name: "David Murphy", email: "david.murphy@example.com", phone: "+353 87 456 7890" },
-      { name: "Lisa Kelly", email: "lisa.kelly@example.com", phone: "+353 86 567 8901" },
-      { name: "James O'Connor", email: "james.oconnor@example.com", phone: "+353 85 678 9012" },
-      { name: "Rachel Byrne", email: "rachel.byrne@example.com", phone: "+353 87 789 0123" },
-      { name: "Kevin Doyle", email: "kevin.doyle@example.com", phone: "+353 86 890 1234" },
-      { name: "Mary Fitzgerald", email: "mary.fitzgerald@example.com", phone: "+353 85 901 2345" },
-      { name: "Tom Brady", email: "tom.brady@example.com", phone: "+353 87 012 3456" },
-      { name: "Ciara Dunne", email: "ciara.dunne@example.com", phone: "+353 86 123 4567" },
-      { name: "Seán McCarthy", email: "sean.mccarthy@example.com", phone: "+353 85 234 5678" },
-      { name: "Jennifer Ryan", email: "jennifer.ryan@example.com", phone: "+353 87 345 6789" },
-      { name: "Conor Sullivan", email: "conor.sullivan@example.com", phone: "+353 86 456 7890" },
-      { name: "Aoife Quinn", email: "aoife.quinn@example.com", phone: "+353 85 567 8901" }
-    ];
-
-    const addonsOptions = [
-      [{ name: "Cable Management", key: "cable_management", price: 20 }],
-      [{ name: "Soundbar Installation", key: "soundbar_installation", price: 30 }],
-      [
-        { name: "Cable Management", key: "cable_management", price: 20 },
-        { name: "Soundbar Installation", key: "soundbar_installation", price: 30 }
-      ], 
-      [],
-      [{ name: "Wall Outlet Installation", key: "wall_outlet_installation", price: 25 }],
-      [
-        { name: "Cable Management", key: "cable_management", price: 20 },
-        { name: "Wall Outlet Installation", key: "wall_outlet_installation", price: 25 }
-      ],
-      [{ name: "Gaming Console Setup", key: "gaming_console_setup", price: 15 }],
-      [
-        { name: "Smart TV Setup", key: "smart_tv_setup", price: 25 },
-        { name: "Cable Management", key: "cable_management", price: 20 }
-      ]
-    ];
-
-    // Select 2-5 random leads from templates
-    const numberOfLeads = Math.floor(Math.random() * 4) + 2;
-    const selectedLeads = leadTemplates
-      .sort(() => Math.random() - 0.5)
-      .slice(0, numberOfLeads);
-
-    const now = new Date();
-    const generatedBookingIds = [];
+    const processedIds = [];
     
-    for (let i = 0; i < selectedLeads.length; i++) {
-      const template = selectedLeads[i];
-      const randomCustomer = customerProfiles[Math.floor(Math.random() * customerProfiles.length)];
-      const randomAddons = addonsOptions[Math.floor(Math.random() * addonsOptions.length)];
-      const createdAt = new Date(now.getTime() - Math.random() * 6 * 60 * 60 * 1000);
+    // Process each fixed demo lead
+    for (const leadTemplate of fixedDemoLeads) {
+      const existingLead = demoBookings.find(booking => booking.qrCode === leadTemplate.qrCode);
       
-      // Create actual database booking
-      const bookingData = {
-        address: template.address,
-        tvSize: template.tvSize,
-        serviceType: template.serviceType,
-        wallType: template.wallType,
-        mountType: "Fixed Wall Mount",
-        estimatedPrice: template.estimatedEarnings.toString(),
-        estimatedTotal: template.estimatedEarnings.toString(),
-        status: 'pending',
-        qrCode: `QR-DEMO-${Date.now()}-${i}`,
-        contactName: randomCustomer.name,
-        contactEmail: randomCustomer.email,
-        contactPhone: randomCustomer.phone,
-        addons: randomAddons,
-        customerNotes: `Demo lead - ${template.difficulty} installation`,
-        installerId: null // Available for purchase
-      };
+      if (existingLead) {
+        // Reset existing lead to available status
+        try {
+          await storage.updateBookingStatus(existingLead.id, 'pending');
+          // Reset installer assignment to make it available again
+          await storage.updateBooking(existingLead.id, { 
+            installerId: null,
+            status: 'pending'
+          });
+          processedIds.push(existingLead.id);
+          console.log(`Reset existing demo lead ${leadTemplate.qrCode} (ID: ${existingLead.id}) to available status`);
+        } catch (error) {
+          console.error(`Error resetting existing demo lead ${leadTemplate.qrCode}:`, error);
+        }
+      } else {
+        // Create new demo lead if it doesn't exist
+        const bookingData = {
+          address: leadTemplate.address,
+          tvSize: leadTemplate.tvSize,
+          serviceType: leadTemplate.serviceType,
+          wallType: leadTemplate.wallType,
+          mountType: "Fixed Wall Mount",
+          estimatedPrice: leadTemplate.estimatedEarnings.toString(),
+          estimatedTotal: leadTemplate.estimatedEarnings.toString(),
+          status: 'pending',
+          qrCode: leadTemplate.qrCode,
+          contactName: leadTemplate.customerName,
+          contactEmail: leadTemplate.customerEmail,
+          contactPhone: leadTemplate.customerPhone,
+          addons: leadTemplate.addons,
+          customerNotes: `Demo lead - ${leadTemplate.difficulty} installation`,
+          installerId: null // Available for purchase
+        };
 
-      try {
-        const createdBooking = await storage.createBooking(bookingData);
-        generatedBookingIds.push(createdBooking.id);
-      } catch (error) {
-        console.error(`Error creating demo booking ${i}:`, error);
+        try {
+          const createdBooking = await storage.createBooking(bookingData);
+          processedIds.push(createdBooking.id);
+          console.log(`Created new demo lead ${leadTemplate.qrCode} (ID: ${createdBooking.id})`);
+        } catch (error) {
+          console.error(`Error creating demo lead ${leadTemplate.qrCode}:`, error);
+        }
       }
     }
 
-    console.log(`Successfully reset ${generatedBookingIds.length} fresh demo leads for installer ${installerId}: ${generatedBookingIds.join(', ')}`);
-    return generatedBookingIds;
+    // Clean up any old demo bookings that aren't part of our fixed set
+    const extraDemoBookings = demoBookings.filter(booking => 
+      !fixedDemoLeads.some(lead => lead.qrCode === booking.qrCode)
+    );
+    
+    for (const extraBooking of extraDemoBookings) {
+      try {
+        await storage.deleteBooking(extraBooking.id);
+        console.log(`Deleted old demo booking ${extraBooking.qrCode} (ID: ${extraBooking.id})`);
+      } catch (error) {
+        console.log(`Could not delete old demo booking ${extraBooking.id}, skipping...`);
+      }
+    }
+
+    console.log(`Successfully processed ${processedIds.length} demo leads for installer ${installerId}: ${processedIds.join(', ')}`);
+    return processedIds;
   } catch (error) {
     console.error("Error resetting demo leads:", error);
     return [];

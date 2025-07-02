@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { Link } from "wouter";
 import { 
   Bolt, 
   Hammer, 
@@ -18,7 +25,13 @@ import {
   Navigation,
   Zap,
   AlertCircle,
-  DollarSign
+  DollarSign,
+  Settings,
+  Home,
+  Mail,
+  Phone,
+  Shield,
+  Edit
 } from "lucide-react";
 
 interface InstallerStats {
@@ -257,12 +270,62 @@ export default function InstallerDashboard() {
   const [isOnline, setIsOnline] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: "",
+    businessName: "",
+    email: "",
+    phone: "",
+    serviceArea: "",
+    county: "",
+    bio: "",
+    experience: "",
+    certifications: "",
+    emergencyCallout: false,
+    weekendAvailable: false
+  });
   const [stats, setStats] = useState<InstallerStats>({
     monthlyJobs: 24,
     earnings: 2850,
     rating: 4.9,
     activeRequests: 0
   });
+
+  // Get current installer profile
+  const { data: installerProfile } = useQuery({
+    queryKey: ["/api/installers/profile"],
+    retry: false,
+  });
+
+  // Profile update mutation
+  const updateProfileMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("/api/installers/profile", "POST", {
+        installerId: installerProfile?.id,
+        ...data
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+      setShowProfileDialog(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/installers/profile"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleProfileUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateProfileMutation.mutate(profileData);
+  };
 
   // Fetch available requests from API
   const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
@@ -428,10 +491,10 @@ export default function InstallerDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+              <Link href="/" className="flex items-center space-x-2">
                 <Bolt className="w-8 h-8 text-blue-600" />
                 <h1 className="text-xl font-bold text-gray-900">tradesbook.ie Pro</h1>
-              </div>
+              </Link>
               <Badge variant={isOnline ? "default" : "secondary"} className="flex items-center space-x-1">
                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                 <span>{isOnline ? 'Online' : 'Offline'}</span>
@@ -439,6 +502,22 @@ export default function InstallerDashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
+              {/* Navigation Links */}
+              <div className="hidden md:flex items-center space-x-4">
+                <Link href="/" className="text-gray-600 hover:text-gray-900 transition-colors">
+                  <Home className="w-5 h-5" />
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowProfileDialog(true)}
+                  className="flex items-center space-x-1"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden lg:inline">Profile</span>
+                </Button>
+              </div>
+              
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <span>Available for Jobs</span>
                 <Switch 
@@ -447,7 +526,8 @@ export default function InstallerDashboard() {
                   className="data-[state=checked]:bg-green-600"
                 />
               </div>
-              <Button variant="ghost" size="sm">
+              
+              <Button variant="ghost" size="sm" onClick={() => window.location.href = '/installer-login'}>
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
@@ -599,6 +679,226 @@ export default function InstallerDashboard() {
           </Card>
         )}
       </div>
+
+      {/* Profile Management Dialog */}
+      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="profile-dialog-description">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Settings className="w-5 h-5 text-primary" />
+              Profile Management
+            </DialogTitle>
+            <DialogDescription id="profile-dialog-description">
+              Update your installer profile information and settings
+            </DialogDescription>
+          </DialogHeader>
+
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="basic">Basic Info</TabsTrigger>
+              <TabsTrigger value="services">Services</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+            </TabsList>
+
+            <form onSubmit={handleProfileUpdate} className="space-y-6 mt-4">
+              <TabsContent value="basic" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name">Full Name *</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      required
+                      value={profileData.name}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="John Smith"
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="businessName">Business Name *</Label>
+                    <Input
+                      id="businessName"
+                      type="text"
+                      required
+                      value={profileData.businessName}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, businessName: e.target.value }))}
+                      placeholder="Dublin TV Solutions"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      required
+                      value={profileData.email}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="john@example.com"
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="phone">Phone Number *</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      required
+                      value={profileData.phone}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="+353 87 123 4567"
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="bio">Professional Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={profileData.bio}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
+                    placeholder="Tell customers about your experience and expertise..."
+                    rows={4}
+                    className="mt-1"
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="services" className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="county">Primary Service Area *</Label>
+                    <Select value={profileData.county} onValueChange={(value) => setProfileData(prev => ({ ...prev, county: value, serviceArea: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select county" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Dublin">Dublin</SelectItem>
+                        <SelectItem value="Cork">Cork</SelectItem>
+                        <SelectItem value="Galway">Galway</SelectItem>
+                        <SelectItem value="Limerick">Limerick</SelectItem>
+                        <SelectItem value="Waterford">Waterford</SelectItem>
+                        <SelectItem value="Kilkenny">Kilkenny</SelectItem>
+                        <SelectItem value="Wexford">Wexford</SelectItem>
+                        <SelectItem value="Carlow">Carlow</SelectItem>
+                        <SelectItem value="Kildare">Kildare</SelectItem>
+                        <SelectItem value="Meath">Meath</SelectItem>
+                        <SelectItem value="Wicklow">Wicklow</SelectItem>
+                        <SelectItem value="Laois">Laois</SelectItem>
+                        <SelectItem value="Offaly">Offaly</SelectItem>
+                        <SelectItem value="Westmeath">Westmeath</SelectItem>
+                        <SelectItem value="Longford">Longford</SelectItem>
+                        <SelectItem value="Louth">Louth</SelectItem>
+                        <SelectItem value="Cavan">Cavan</SelectItem>
+                        <SelectItem value="Monaghan">Monaghan</SelectItem>
+                        <SelectItem value="Donegal">Donegal</SelectItem>
+                        <SelectItem value="Sligo">Sligo</SelectItem>
+                        <SelectItem value="Leitrim">Leitrim</SelectItem>
+                        <SelectItem value="Roscommon">Roscommon</SelectItem>
+                        <SelectItem value="Mayo">Mayo</SelectItem>
+                        <SelectItem value="Clare">Clare</SelectItem>
+                        <SelectItem value="Kerry">Kerry</SelectItem>
+                        <SelectItem value="Tipperary">Tipperary</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="experience">Years of Experience *</Label>
+                    <Select value={profileData.experience} onValueChange={(value) => setProfileData(prev => ({ ...prev, experience: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select experience" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 year</SelectItem>
+                        <SelectItem value="2">2 years</SelectItem>
+                        <SelectItem value="3">3 years</SelectItem>
+                        <SelectItem value="4">4 years</SelectItem>
+                        <SelectItem value="5">5 years</SelectItem>
+                        <SelectItem value="10">10+ years</SelectItem>
+                        <SelectItem value="15">15+ years</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="certifications">Certifications & Qualifications</Label>
+                  <Textarea
+                    id="certifications"
+                    value={profileData.certifications}
+                    onChange={(e) => setProfileData(prev => ({ ...prev, certifications: e.target.value }))}
+                    placeholder="List any relevant certifications, licenses, or qualifications..."
+                    rows={3}
+                    className="mt-1"
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="settings" className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <AlertCircle className="w-4 h-4 text-orange-500" />
+                        <span className="font-medium">Emergency Callouts</span>
+                      </div>
+                      <p className="text-sm text-gray-500">Available for urgent emergency installations</p>
+                    </div>
+                    <Switch
+                      checked={profileData.emergencyCallout}
+                      onCheckedChange={(checked) => setProfileData(prev => ({ ...prev, emergencyCallout: checked }))}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4 text-blue-500" />
+                        <span className="font-medium">Weekend Availability</span>
+                      </div>
+                      <p className="text-sm text-gray-500">Available for weekend installations</p>
+                    </div>
+                    <Switch
+                      checked={profileData.weekendAvailable}
+                      onCheckedChange={(checked) => setProfileData(prev => ({ ...prev, weekendAvailable: checked }))}
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowProfileDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updateProfileMutation.isPending}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  {updateProfileMutation.isPending ? (
+                    "Updating..."
+                  ) : (
+                    <>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Update Profile
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -2377,6 +2377,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Toggle installer availability status
+  app.post("/api/installer/availability", async (req, res) => {
+    try {
+      const installerId = (req.session as any)?.installerId;
+      
+      if (!installerId) {
+        return res.status(401).json({ message: "Not authenticated as installer" });
+      }
+      
+      const { isAvailable } = req.body;
+      
+      if (typeof isAvailable !== 'boolean') {
+        return res.status(400).json({ message: "isAvailable must be a boolean" });
+      }
+      
+      await storage.updateInstallerAvailability(installerId, isAvailable);
+      
+      res.json({ 
+        success: true, 
+        isAvailable,
+        message: `Availability ${isAvailable ? 'enabled' : 'disabled'} successfully` 
+      });
+    } catch (error) {
+      console.error("Error updating installer availability:", error);
+      res.status(500).json({ message: "Failed to update availability status" });
+    }
+  });
+
   // Update installer profile based on approval status
   app.patch("/api/installer/profile/:installerId", async (req, res) => {
     try {

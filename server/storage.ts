@@ -56,6 +56,7 @@ export interface IStorage {
   registerInstaller(email: string, passwordHash: string): Promise<Installer>;
   authenticateInstaller(email: string, passwordHash: string): Promise<Installer | null>;
   updateInstallerProfile(installerId: number, profileData: Partial<InsertInstaller>): Promise<Installer>;
+  updateInstallerAvailability(installerId: number, isAvailable: boolean): Promise<void>;
 
   // Booking operations
   createBooking(booking: InsertBooking): Promise<Booking>;
@@ -389,6 +390,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(installers.id, installerId))
       .returning();
     return installer;
+  }
+
+  async updateInstallerAvailability(installerId: number, isAvailable: boolean): Promise<void> {
+    await db.update(installers)
+      .set({
+        isAvailable,
+        updatedAt: new Date()
+      })
+      .where(eq(installers.id, installerId));
   }
 
   // Booking operations

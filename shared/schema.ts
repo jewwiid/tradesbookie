@@ -75,6 +75,7 @@ export const installers = pgTable("installers", {
   yearsExperience: integer("years_experience").default(0),
   profileImageUrl: text("profile_image_url"),
   isActive: boolean("is_active").default(true),
+  isAvailable: boolean("is_available").default(false),
   
   // Profile completion tracking
   profileCompleted: boolean("profile_completed").default(false),

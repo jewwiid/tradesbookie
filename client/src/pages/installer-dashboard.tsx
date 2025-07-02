@@ -270,7 +270,6 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
 export default function InstallerDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isOnline, setIsOnline] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -287,11 +286,64 @@ export default function InstallerDashboard() {
     emergencyCallout: false,
     weekendAvailable: false
   });
+  
   // Get current installer profile
   const { data: installerProfile, isLoading: profileLoading } = useQuery({
     queryKey: ["/api/installers/profile"],
     retry: false
   });
+  
+  // Initialize availability status from database
+  const [isOnline, setIsOnline] = useState(installerProfile?.isAvailable || false);
+  
+  // Update local state when profile loads
+  useEffect(() => {
+    if (installerProfile?.isAvailable !== undefined) {
+      setIsOnline(installerProfile.isAvailable);
+    }
+  }, [installerProfile?.isAvailable]);
+  
+  // Mutation to update availability status
+  const availabilityMutation = useMutation({
+    mutationFn: async (isAvailable: boolean) => {
+      const response = await fetch('/api/installer/availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ isAvailable })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update availability status');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Update local state
+      setIsOnline(data.isAvailable);
+      // Refresh profile data to stay in sync
+      queryClient.invalidateQueries({ queryKey: ["/api/installers/profile"] });
+      
+      toast({
+        title: "Availability Updated",
+        description: data.message,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update availability status",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handler for availability toggle
+  const handleAvailabilityToggle = (checked: boolean) => {
+    availabilityMutation.mutate(checked);
+  };
 
   // Fetch available requests from API
   const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
@@ -602,7 +654,8 @@ export default function InstallerDashboard() {
                 <span>Available for Jobs</span>
                 <Switch 
                   checked={isOnline} 
-                  onCheckedChange={setIsOnline}
+                  onCheckedChange={handleAvailabilityToggle}
+                  disabled={availabilityMutation.isPending}
                   className="data-[state=checked]:bg-green-600"
                 />
               </div>
@@ -778,7 +831,11 @@ export default function InstallerDashboard() {
                 <p className="text-gray-500 mb-6">
                   No new installation requests at the moment. Check back shortly or turn on "Available for Jobs" to let customers know you're ready for work.
                 </p>
-                <Button onClick={() => setIsOnline(true)} disabled={isOnline} variant={isOnline ? "secondary" : "default"}>
+                <Button 
+                  onClick={() => handleAvailabilityToggle(true)} 
+                  disabled={isOnline || availabilityMutation.isPending} 
+                  variant={isOnline ? "secondary" : "default"}
+                >
                   {isOnline ? "You're Available" : "Mark Available"}
                 </Button>
               </Card>

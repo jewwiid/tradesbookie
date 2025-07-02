@@ -4678,7 +4678,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             totalReferrals: code.totalReferrals,
             totalEarnings: parseFloat(code.totalEarnings.toString()),
             createdAt: code.createdAt?.toISOString() || new Date().toISOString(),
-            isActive: code.isActive
+            isActive: code.isActive,
+            referralType: code.referralType || 'customer',
+            salesStaffName: code.salesStaffName,
+            salesStaffStore: code.salesStaffStore,
+            discountPercentage: code.discountPercentage || '10'
           };
         })
       );

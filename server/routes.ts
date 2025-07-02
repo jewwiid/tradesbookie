@@ -1956,7 +1956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       await storage.updateJobStatus(jobId, status);
       
-      // If job is completed, also update the booking status
+      // If job is completed, also update the booking status and earnings
       if (status === "completed") {
         const jobs = await storage.getInstallerJobs(1); // Demo installer ID
         const job = jobs.find(j => j.id === jobId);
@@ -1964,13 +1964,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (job) {
           await storage.updateBookingStatus(job.bookingId, "completed");
           
+          // Calculate earnings (installer keeps customer payment minus lead fee)
+          const estimatedEarnings = 150.00; // Average job earnings
+          
+          // Update total earned in wallet
+          const wallet = await storage.getInstallerWallet(1); // Demo installer ID
+          if (wallet) {
+            const currentEarned = parseFloat(wallet.totalEarned);
+            const newTotalEarned = currentEarned + estimatedEarnings;
+            await storage.updateInstallerWalletTotalEarned(1, newTotalEarned);
+          }
+          
+          // Create earnings transaction record
+          await storage.addInstallerTransaction({
+            installerId: 1, // Demo installer ID
+            type: "completion",
+            amount: estimatedEarnings.toString(),
+            description: `Job completion earnings for booking #${job.bookingId}`,
+            jobAssignmentId: jobId,
+            status: "completed"
+          });
+          
           // Send completion notification to customer
           const booking = await storage.getBooking(job.bookingId);
           if (booking) {
             await sendNotificationEmail(
               booking.customerEmail,
               "TV Installation Completed",
-              `Your TV installation has been completed successfully! Thank you for choosing SmartTVMount. Reference: ${booking.qrCode}`
+              `Your TV installation has been completed successfully! Thank you for choosing tradesbook.ie. Reference: ${booking.qrCode}`
             );
           }
         }

@@ -1167,7 +1167,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/bookings", async (req, res) => {
     try {
       const bookings = await storage.getAllBookings();
-      res.json(bookings);
+      
+      // Enhance bookings with installer information and fix price field mapping
+      const enhancedBookings = await Promise.all(
+        bookings.map(async (booking) => {
+          let installerInfo = null;
+          
+          // Fetch installer details if booking is assigned
+          if (booking.installerId) {
+            try {
+              const installer = await storage.getInstaller(booking.installerId);
+              if (installer) {
+                installerInfo = {
+                  id: installer.id,
+                  name: installer.contactName || installer.businessName,
+                  businessName: installer.businessName,
+                  email: installer.email,
+                  phone: installer.phone
+                };
+              }
+            } catch (error) {
+              console.error(`Error fetching installer ${booking.installerId}:`, error);
+            }
+          }
+          
+          // Calculate lead fee (app fee) for the booking
+          const getLeadFee = (serviceType: string): number => {
+            const serviceTierMap: { [key: string]: number } = {
+              'table-top-small': 12,
+              'bronze': 20,
+              'silver': 25,
+              'gold': 35
+            };
+            return serviceTierMap[serviceType] || 20; // Default to bronze fee
+          };
+          
+          const leadFee = getLeadFee(booking.serviceType);
+          
+          // Map database fields to expected frontend fields and add installer info
+          return {
+            ...booking,
+            // Fix price field mapping
+            totalPrice: booking.estimatedPrice,
+            estimatedTotal: booking.estimatedPrice,
+            // Add app fee (lead fee) calculation
+            appFee: leadFee,
+            leadFee: leadFee,
+            // Add installer information
+            installer: installerInfo,
+            installerName: installerInfo?.name || null,
+            installerBusiness: installerInfo?.businessName || null
+          };
+        })
+      );
+      
+      res.json(enhancedBookings);
     } catch (error) {
       console.error("Error fetching all bookings:", error);
       res.status(500).json({ message: "Failed to fetch bookings" });

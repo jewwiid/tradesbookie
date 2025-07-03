@@ -565,6 +565,7 @@ The application now includes a robust fallback system. When the database is unav
 - July 3, 2025: **Fixed critical installer dashboard visibility issue - bookings now properly appear in available leads**
 - July 3, 2025: **Updated available-leads endpoint to include "open" status bookings alongside "pending", "urgent", and "confirmed" statuses**
 - July 3, 2025: **Resolved booking discovery problem where new bookings with "open" status weren't visible to installers for lead purchase**
+- July 3, 2025: **Completed admin email verification management system - administrators can now send re-verification emails to unverified customers directly from User Management tab with proper status indicators and error handling**
 
 ## User Preferences
 

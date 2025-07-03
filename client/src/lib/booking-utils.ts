@@ -46,10 +46,10 @@ export interface BookingData {
 
   // Step 8: Contact
   contact?: {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
     streetAddress?: string;
     town?: string;
     county?: string;

@@ -116,21 +116,32 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       });
       const user = await userResponse.json();
 
-      // Then create booking
+      // Then create booking with proper schema mapping
       const bookingResponse = await apiRequest('POST', '/api/bookings', {
-        userId: user.id,
-        installerId: 1, // Default installer for demo
-        tvSize: data.tvSize,
-        serviceType: data.serviceType,
+        userId: user.id.toString(),
+        contactName: data.contact.name,
+        contactPhone: data.contact.phone,
+        contactEmail: data.contact.email,
+        tvSize: data.tvSize.toString(),
+        serviceType: data.serviceType || 'bronze',
         wallType: data.wallType,
         mountType: data.mountType,
+        needsWallMount: data.needsWallMount || false,
+        wallMountOption: data.wallMountOption || null,
         addons: data.addons || [],
-        preferredDate: data.preferredDate,
-        preferredTime: data.preferredTime,
+        preferredDate: data.preferredDate || null,
+        preferredTime: data.preferredTime || null,
         address: data.contact.address,
         roomPhotoUrl: data.roomPhotoBase64 ? `data:image/jpeg;base64,${data.roomPhotoBase64}` : null,
-        aiPreviewUrl: data.aiPreviewUrl,
-        customerNotes: data.customerNotes
+        aiPreviewUrl: data.aiPreviewUrl || null,
+        roomAnalysis: data.roomAnalysis || null,
+        photoStorageConsent: data.photoStorageConsent || false,
+        estimatedPrice: data.totalPrice ? data.totalPrice.toFixed(2) : "0.00",
+        estimatedAddonsPrice: data.addonTotal ? data.addonTotal.toFixed(2) : "0.00",
+        estimatedTotal: data.totalPrice ? data.totalPrice.toFixed(2) : "0.00",
+        customerNotes: data.customerNotes || null,
+        referralCode: data.referralCode || null,
+        referralDiscount: data.referralDiscount || 0
       });
       
       return bookingResponse.json();
@@ -156,7 +167,14 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
   const handleInputChange = (field: string, value: string) => {
     updateBookingData({
       contact: {
-        ...bookingData.contact,
+        name: bookingData.contact?.name || '',
+        email: bookingData.contact?.email || '',
+        phone: bookingData.contact?.phone || '',
+        address: bookingData.contact?.address || '',
+        streetAddress: bookingData.contact?.streetAddress || '',
+        town: bookingData.contact?.town || '',
+        county: bookingData.contact?.county || '',
+        eircode: bookingData.contact?.eircode || '',
         [field]: value
       }
     });
@@ -175,13 +193,31 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       return;
     }
 
+    // Ensure all required contact fields are defined
+    const contact = bookingData.contact;
+    if (!contact.name || !contact.email || !contact.phone || 
+        !contact.streetAddress || !contact.town || !contact.county || !contact.eircode) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Combine address components before creating booking
-    const combinedAddress = `${bookingData.contact.streetAddress}, ${bookingData.contact.town}, ${bookingData.contact.county}, ${bookingData.contact.eircode}`;
+    const combinedAddress = `${contact.streetAddress}, ${contact.town}, ${contact.county}, ${contact.eircode}`;
     const bookingDataWithAddress = {
       ...bookingData,
       contact: {
-        ...bookingData.contact,
-        address: combinedAddress
+        name: contact.name,
+        email: contact.email,
+        phone: contact.phone,
+        address: combinedAddress,
+        streetAddress: contact.streetAddress,
+        town: contact.town,
+        county: contact.county,
+        eircode: contact.eircode
       }
     };
 

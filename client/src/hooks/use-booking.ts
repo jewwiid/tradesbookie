@@ -93,28 +93,35 @@ export const useBooking = () => {
         userId = userData.id;
       }
 
-      // Prepare booking data
+      // Ensure userId is defined
+      if (!userId) {
+        throw new Error('Failed to create or get user ID');
+      }
+
+      // Prepare booking data to match backend schema
       const bookingPayload = {
-        userId,
-        serviceTierId: bookingData.serviceTierId,
-        tvSize: bookingData.tvSize,
+        userId: userId.toString(),
+        contactName: bookingData.customerName,
+        contactPhone: bookingData.customerPhone,
+        contactEmail: bookingData.customerEmail,
+        tvSize: bookingData.tvSize.toString(),
+        serviceType: bookingData.serviceTierId ? `tier_${bookingData.serviceTierId}` : 'bronze',
         wallType: bookingData.wallType,
         mountType: bookingData.mountType,
-        needsWallMount: bookingData.needsWallMount,
-        wallMountOption: bookingData.wallMountOption,
-        selectedAddons: bookingData.selectedAddons,
-        scheduledDate: new Date(bookingData.scheduledDate).toISOString(),
-        scheduledTime: bookingData.scheduledTime,
+        needsWallMount: bookingData.needsWallMount || false,
+        wallMountOption: bookingData.wallMountOption || null,
+        addons: bookingData.selectedAddons || [],
+        preferredDate: bookingData.scheduledDate ? new Date(bookingData.scheduledDate).toISOString() : null,
+        preferredTime: bookingData.scheduledTime || null,
         address: bookingData.address,
         customerNotes: bookingData.customerNotes || '',
         roomPhotoUrl: bookingData.roomPhotoUrl || '',
         aiPreviewUrl: bookingData.aiPreviewUrl || '',
         roomAnalysis: bookingData.roomAnalysis || '',
         photoStorageConsent: bookingData.photoStorageConsent || false,
-        subtotal: bookingData.subtotal.toFixed(2),
-        addonTotal: bookingData.addonTotal.toFixed(2),
-        total: bookingData.total.toFixed(2),
-        status: 'pending',
+        estimatedPrice: bookingData.subtotal.toFixed(2),
+        estimatedAddonsPrice: bookingData.addonTotal.toFixed(2),
+        estimatedTotal: bookingData.total.toFixed(2),
       };
 
       const response = await apiRequest('POST', '/api/bookings', bookingPayload);

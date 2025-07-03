@@ -1415,33 +1415,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Transform bookings to include all client selection details for installers
       const enhancedBookings = allBookings.map(booking => ({
         id: booking.id,
-        customerName: booking.customerName,
-        customer: booking.customerName, // Fallback for compatibility
-        serviceTier: booking.serviceTier,
-        service: `${booking.serviceTier} - ${booking.tvSize}" TV`, // Fallback for compatibility
+        customerName: booking.contactName,
+        customer: booking.contactName, // Fallback for compatibility
+        serviceTier: booking.serviceType,
+        service: `${booking.serviceType} - ${booking.tvSize}" TV`, // Fallback for compatibility
         tvSize: booking.tvSize,
         wallType: booking.wallType,
         mountType: booking.mountType,
-        wallMount: booking.wallMount,
-        addons: booking.addons ? JSON.parse(booking.addons) : [],
+        wallMount: booking.wallMountOption,
+        addons: (() => {
+          try {
+            if (!booking.addons) return [];
+            if (typeof booking.addons === 'string') {
+              return booking.addons.trim() === '' ? [] : JSON.parse(booking.addons);
+            }
+            return Array.isArray(booking.addons) ? booking.addons : [];
+          } catch (e) {
+            console.error('Error parsing addons for booking', booking.id, ':', e);
+            return [];
+          }
+        })(),
         address: booking.address,
         preferredDate: booking.preferredDate,
         date: booking.preferredDate, // Fallback for compatibility
-        installerEarnings: booking.installerEarnings,
-        earning: booking.installerEarnings?.toString(), // Fallback for compatibility
+        installerEarnings: booking.estimatedPrice, // Use estimated price as earnings base
+        earning: booking.estimatedPrice?.toString(), // Fallback for compatibility
         status: booking.status === 'pending' ? 'new' : booking.status,
-        difficulty: booking.difficulty,
+        difficulty: booking.roomAnalysis ? 'Standard' : 'Unknown', // Derive from room analysis
         roomPhoto: booking.photoStorageConsent ? booking.roomPhotoUrl : null,
         originalImage: booking.photoStorageConsent ? booking.roomPhotoUrl : null, // Fallback for compatibility
         aiPreview: booking.aiPreviewUrl,
         roomAnalysis: booking.roomAnalysis, // Always show analysis text for installer preparation
         photoStorageConsent: booking.photoStorageConsent,
-        customerEmail: booking.customerEmail,
-        customerPhone: booking.customerPhone,
-        notes: booking.notes,
+        customerEmail: booking.contactEmail,
+        customerPhone: booking.contactPhone,
+        notes: booking.customerNotes,
         qrCode: booking.qrCode,
         createdAt: booking.createdAt,
-        totalPrice: booking.totalPrice
+        totalPrice: booking.estimatedTotal
       }));
 
       res.json(enhancedBookings);

@@ -934,7 +934,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawData.contactPhone = rawData.contactPhone || '01-234-5678';
       }
       
-
+      // Fix roomAnalysis field - convert null to empty string
+      if (rawData.roomAnalysis === null || rawData.roomAnalysis === undefined) {
+        rawData.roomAnalysis = '';
+      }
+      
+      // Fix referralDiscount field - convert number to string
+      if (typeof rawData.referralDiscount === 'number') {
+        rawData.referralDiscount = rawData.referralDiscount.toFixed(2);
+      } else if (rawData.referralDiscount === null || rawData.referralDiscount === undefined) {
+        rawData.referralDiscount = '0.00';
+      }
       
       const bookingData = insertBookingSchema.parse(rawData);
       

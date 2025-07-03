@@ -47,7 +47,10 @@ import {
   AlertTriangle,
   Plus,
   Target,
-  Mail
+  Mail,
+  XCircle,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -2824,6 +2827,466 @@ function ReferralManagement() {
   );
 }
 
+// Lead Fee Transactions Management Component with Pagination
+function TransactionManagement() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTransactions, setSelectedTransactions] = useState<number[]>([]);
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [bulkDeleteDays, setBulkDeleteDays] = useState<number>(30);
+  
+  const { data: leadPayments, isLoading, refetch } = useQuery({
+    queryKey: ["/api/admin/lead-payments", currentPage],
+    queryFn: () => fetch(`/api/admin/lead-payments?page=${currentPage}&limit=25`).then(r => r.json()),
+    retry: false,
+  });
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const deleteTransactionMutation = useMutation({
+    mutationFn: async (transactionId: number) => {
+      const response = await fetch(`/api/admin/lead-payments/${transactionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to delete transaction');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Transaction Deleted",
+        description: "Transaction has been permanently removed from the database.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/lead-payments"] });
+      refetch();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (data: { transactionIds?: number[]; olderThanDays?: number }) => {
+      const response = await fetch('/api/admin/lead-payments/bulk', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to bulk delete transactions');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Bulk Delete Successful",
+        description: `Successfully deleted ${data.deletedCount} transaction(s).`,
+      });
+      setSelectedTransactions([]);
+      setShowBulkDelete(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/lead-payments"] });
+      refetch();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Bulk Delete Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteTransaction = (transactionId: number) => {
+    if (confirm('Are you sure you want to delete this transaction? This action cannot be undone.')) {
+      deleteTransactionMutation.mutate(transactionId);
+    }
+  };
+
+  const handleBulkDeleteSelected = () => {
+    if (selectedTransactions.length === 0) {
+      toast({
+        title: "No Transactions Selected",
+        description: "Please select transactions to delete.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (confirm(`Are you sure you want to delete ${selectedTransactions.length} selected transaction(s)? This action cannot be undone.`)) {
+      bulkDeleteMutation.mutate({ transactionIds: selectedTransactions });
+    }
+  };
+
+  const handleBulkDeleteByDate = () => {
+    if (confirm(`Are you sure you want to delete all transactions older than ${bulkDeleteDays} days? This action cannot be undone.`)) {
+      bulkDeleteMutation.mutate({ olderThanDays: bulkDeleteDays });
+    }
+  };
+
+  const toggleTransactionSelection = (transactionId: number) => {
+    setSelectedTransactions(prev =>
+      prev.includes(transactionId)
+        ? prev.filter(id => id !== transactionId)
+        : [...prev, transactionId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    const allTransactionIds = transactions.map((t: any) => t.id);
+    setSelectedTransactions(prev =>
+      prev.length === allTransactionIds.length ? [] : allTransactionIds
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-4 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const transactions = leadPayments?.transactions || [];
+  const pagination = leadPayments?.pagination || {};
+  const successfulPayments = transactions.filter((t: any) => t.status === 'completed' && t.type === 'lead_fee');
+  const pendingPayments = transactions.filter((t: any) => t.status === 'pending' && t.type === 'lead_fee');
+  const failedPayments = transactions.filter((t: any) => t.status === 'failed' && t.type === 'lead_fee');
+
+  const totalLeadRevenue = successfulPayments.reduce((sum: number, t: any) => sum + Math.abs(parseFloat(t.amount || '0')), 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Lead Fee Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+        <Card>
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Paid Lead Fees</p>
+                <p className="text-lg sm:text-2xl font-bold text-green-600">{successfulPayments.length}</p>
+              </div>
+              <UserCheck className="h-5 w-5 sm:h-8 sm:w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Pending Fees</p>
+                <p className="text-lg sm:text-2xl font-bold text-yellow-600">{pendingPayments.length}</p>
+              </div>
+              <Clock className="h-5 w-5 sm:h-8 sm:w-8 text-yellow-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Failed Payments</p>
+                <p className="text-lg sm:text-2xl font-bold text-red-600">{failedPayments.length}</p>
+              </div>
+              <XCircle className="h-5 w-5 sm:h-8 sm:w-8 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-3 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Total Revenue</p>
+                <p className="text-lg sm:text-2xl font-bold text-blue-600">€{totalLeadRevenue.toFixed(2)}</p>
+              </div>
+              <DollarSign className="h-5 w-5 sm:h-8 sm:w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Management Controls */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center">
+              <DollarSign className="w-5 h-5 mr-2" />
+              Lead Fee Transactions
+            </CardTitle>
+            <div className="flex gap-2">
+              {selectedTransactions.length > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDeleteSelected}
+                  disabled={bulkDeleteMutation.isPending}
+                >
+                  <Trash2 className="w-4 h-4 mr-1" />
+                  Delete Selected ({selectedTransactions.length})
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowBulkDelete(!showBulkDelete)}
+              >
+                <Settings className="w-4 h-4 mr-1" />
+                Bulk Actions
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-2 sm:p-6">
+          {/* Bulk Delete Controls */}
+          {showBulkDelete && (
+            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <h4 className="font-medium text-yellow-900 mb-3">Database Cleanup</h4>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-yellow-800 mb-2">
+                    Delete transactions older than:
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={bulkDeleteDays}
+                      onChange={(e) => setBulkDeleteDays(parseInt(e.target.value))}
+                      className="border rounded px-3 py-1 w-20"
+                      min="1"
+                    />
+                    <span className="text-sm text-yellow-700 self-center">days</span>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleBulkDeleteByDate}
+                      disabled={bulkDeleteMutation.isPending}
+                    >
+                      Delete Old Records
+                    </Button>
+                  </div>
+                </div>
+                <div className="text-sm text-yellow-700">
+                  <p>⚠️ This will permanently delete old transaction records to keep database clean.</p>
+                  <p>Use carefully - this action cannot be undone.</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
+                    <input
+                      type="checkbox"
+                      checked={selectedTransactions.length === transactions.length && transactions.length > 0}
+                      onChange={toggleSelectAll}
+                      className="rounded"
+                    />
+                  </TableHead>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Installer</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="w-16">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((transaction: any) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedTransactions.includes(transaction.id)}
+                        onChange={() => toggleTransactionSelection(transaction.id)}
+                        className="rounded"
+                      />
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">#{transaction.id}</TableCell>
+                    <TableCell className="text-sm">
+                      {new Date(transaction.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {transaction.installerName || `Installer #${transaction.installerId}`}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          transaction.type === 'lead_fee' ? 'secondary' :
+                          transaction.type === 'credit_purchase' ? 'default' :
+                          'outline'
+                        }
+                      >
+                        {transaction.type?.replace('_', ' ') || 'Unknown'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className={`font-medium ${
+                      parseFloat(transaction.amount || '0') < 0 ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      €{Math.abs(parseFloat(transaction.amount || '0')).toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={
+                          transaction.status === 'completed' ? 'default' :
+                          transaction.status === 'pending' ? 'secondary' :
+                          'destructive'
+                        }
+                      >
+                        {transaction.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">{transaction.description}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteTransaction(transaction.id)}
+                        disabled={deleteTransactionMutation.isPending}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="block md:hidden space-y-3">
+            {transactions.map((transaction: any) => (
+              <div key={transaction.id} className="bg-gray-50 p-3 rounded-lg border">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedTransactions.includes(transaction.id)}
+                      onChange={() => toggleTransactionSelection(transaction.id)}
+                      className="rounded"
+                    />
+                    <span className="text-sm font-medium">#{transaction.id}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Badge 
+                      variant={
+                        transaction.status === 'completed' ? 'default' :
+                        transaction.status === 'pending' ? 'secondary' :
+                        'destructive'
+                      }
+                    >
+                      {transaction.status}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteTransaction(transaction.id)}
+                      disabled={deleteTransactionMutation.isPending}
+                      className="text-red-600 hover:text-red-700 h-6 w-6 p-0"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-gray-500">Amount:</span>
+                    <div className={`font-medium ${
+                      parseFloat(transaction.amount || '0') < 0 ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      €{Math.abs(parseFloat(transaction.amount || '0')).toFixed(2)}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-gray-500">Date:</span>
+                    <div className="font-medium">
+                      {new Date(transaction.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs">
+                  <span className="text-gray-500">Installer:</span>
+                  <div className="font-medium">{transaction.installerName || `Installer #${transaction.installerId}`}</div>
+                </div>
+                <div className="mt-1 text-xs text-gray-600">{transaction.description}</div>
+              </div>
+            ))}
+          </div>
+          
+          {transactions.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No lead fee transactions found
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {pagination.totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Showing page {pagination.currentPage} of {pagination.totalPages} 
+                ({pagination.totalTransactions} total transactions)
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={pagination.currentPage <= 1}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                  disabled={pagination.currentPage >= pagination.totalPages}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // Lead Pricing Management Component  
 function FeeManagement() {
   const { data: serviceTiers } = useQuery({
@@ -3330,7 +3793,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="payments" className="space-y-6">
-            <PaymentManagement />
+            <TransactionManagement />
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">

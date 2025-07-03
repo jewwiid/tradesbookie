@@ -141,6 +141,7 @@ export interface IStorage {
   addInstallerTransaction(transaction: InsertInstallerTransaction): Promise<InstallerTransaction>;
   getInstallerTransactions(installerId: number): Promise<InstallerTransaction[]>;
   getAllInstallerTransactions(): Promise<InstallerTransaction[]>;
+  deleteInstallerTransaction(transactionId: number): Promise<void>;
 
   // Lead payment operations
   updateJobAssignmentLeadFee(jobId: number, leadFee: number, paymentIntentId: string, status: string): Promise<void>;
@@ -970,6 +971,11 @@ export class DatabaseStorage implements IStorage {
   async getAllInstallerTransactions(): Promise<InstallerTransaction[]> {
     return await db.select().from(installerTransactions)
       .orderBy(desc(installerTransactions.createdAt));
+  }
+
+  async deleteInstallerTransaction(transactionId: number): Promise<void> {
+    await db.delete(installerTransactions)
+      .where(eq(installerTransactions.id, transactionId));
   }
 
   // Lead payment operations

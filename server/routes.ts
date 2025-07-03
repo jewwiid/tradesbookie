@@ -3756,19 +3756,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Lead payments endpoint for tracking installer wallet transactions
+  // Lead payments endpoint for tracking installer wallet transactions with pagination
   app.get("/api/admin/lead-payments", isAdmin, async (req, res) => {
     try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 25;
+      const offset = (page - 1) * limit;
+      
       // Get all installer transactions including:
       // 1. Lead fee payments (debits when installers claim leads)
       // 2. Credit top-ups (credits when installers add funds via Stripe)
       // 3. Earnings (credits when installers complete jobs)
       
-      const transactions = await storage.getAllInstallerTransactions();
+      const allTransactions = await storage.getAllInstallerTransactions();
+      
+      // Sort by creation date (newest first)
+      const sortedTransactions = allTransactions.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      // Apply pagination
+      const paginatedTransactions = sortedTransactions.slice(offset, offset + limit);
       
       // Enhance with installer business names
       const enhancedTransactions = await Promise.all(
-        transactions.map(async (transaction) => {
+        paginatedTransactions.map(async (transaction) => {
           const installer = await storage.getInstaller(transaction.installerId);
           return {
             ...transaction,
@@ -3778,11 +3790,97 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       );
 
       res.json({
-        transactions: enhancedTransactions
+        transactions: enhancedTransactions,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(allTransactions.length / limit),
+          totalTransactions: allTransactions.length,
+          limit
+        }
       });
     } catch (error) {
       console.error('Error fetching lead payments:', error);
       res.status(500).json({ error: 'Failed to fetch lead payments' });
+    }
+  });
+
+  // Delete transaction endpoint for admin
+  app.delete("/api/admin/lead-payments/:id", isAdmin, async (req, res) => {
+    try {
+      const transactionId = parseInt(req.params.id);
+      
+      if (!transactionId || isNaN(transactionId)) {
+        return res.status(400).json({ message: "Valid transaction ID is required" });
+      }
+      
+      // Delete the transaction
+      await storage.deleteInstallerTransaction(transactionId);
+      
+      res.json({ 
+        success: true, 
+        message: "Transaction deleted successfully" 
+      });
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      res.status(500).json({ 
+        error: 'Failed to delete transaction',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Bulk delete transactions endpoint for admin
+  app.delete("/api/admin/lead-payments/bulk", isAdmin, async (req, res) => {
+    try {
+      const { transactionIds, olderThanDays } = req.body;
+      
+      let deletedCount = 0;
+      
+      if (transactionIds && Array.isArray(transactionIds)) {
+        // Delete specific transactions by IDs
+        for (const id of transactionIds) {
+          try {
+            await storage.deleteInstallerTransaction(parseInt(id));
+            deletedCount++;
+          } catch (error) {
+            console.error(`Failed to delete transaction ${id}:`, error);
+          }
+        }
+      } else if (olderThanDays && typeof olderThanDays === 'number') {
+        // Delete transactions older than specified days
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
+        
+        const allTransactions = await storage.getAllInstallerTransactions();
+        const oldTransactions = allTransactions.filter(t => 
+          new Date(t.createdAt) < cutoffDate
+        );
+        
+        for (const transaction of oldTransactions) {
+          try {
+            await storage.deleteInstallerTransaction(transaction.id);
+            deletedCount++;
+          } catch (error) {
+            console.error(`Failed to delete transaction ${transaction.id}:`, error);
+          }
+        }
+      } else {
+        return res.status(400).json({ 
+          message: "Either transactionIds array or olderThanDays number is required" 
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Successfully deleted ${deletedCount} transaction(s)`,
+        deletedCount 
+      });
+    } catch (error) {
+      console.error('Error bulk deleting transactions:', error);
+      res.status(500).json({ 
+        error: 'Failed to bulk delete transactions',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

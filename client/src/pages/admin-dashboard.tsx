@@ -1859,22 +1859,28 @@ function PaymentManagement() {
   }
 
   const transactions = leadPayments?.transactions || [];
-  const successfulPayments = transactions.filter((t: any) => t.status === 'completed' && t.type === 'lead_fee');
-  const pendingPayments = transactions.filter((t: any) => t.status === 'pending' && t.type === 'lead_fee');
-  const failedPayments = transactions.filter((t: any) => t.status === 'failed' && t.type === 'lead_fee');
+  
+  // Platform revenue includes both credit purchases and lead fees from verified installers
+  const creditPurchases = transactions.filter((t: any) => t.status === 'completed' && t.type === 'credit_purchase');
+  const leadFeePaid = transactions.filter((t: any) => t.status === 'completed' && t.type === 'lead_fee');
+  const pendingPayments = transactions.filter((t: any) => t.status === 'pending' && (t.type === 'lead_fee' || t.type === 'credit_purchase'));
+  const failedPayments = transactions.filter((t: any) => t.status === 'failed' && (t.type === 'lead_fee' || t.type === 'credit_purchase'));
 
-  const totalLeadRevenue = successfulPayments.reduce((sum: number, t: any) => sum + Math.abs(parseFloat(t.amount || '0')), 0);
+  // Calculate total platform revenue (credit purchases + lead fees)
+  const totalCreditRevenue = creditPurchases.reduce((sum: number, t: any) => sum + Math.abs(parseFloat(t.amount || '0')), 0);
+  const totalLeadFeeRevenue = leadFeePaid.reduce((sum: number, t: any) => sum + Math.abs(parseFloat(t.amount || '0')), 0);
+  const totalPlatformRevenue = totalCreditRevenue + totalLeadFeeRevenue;
 
   return (
     <div className="space-y-6">
-      {/* Lead Fee Summary Cards */}
+      {/* Platform Revenue Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
         <Card>
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Paid Lead Fees</p>
-                <p className="text-lg sm:text-2xl font-bold text-green-600">{successfulPayments.length}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Credit Purchases</p>
+                <p className="text-lg sm:text-2xl font-bold text-green-600">{creditPurchases.length}</p>
               </div>
               <UserCheck className="h-5 w-5 sm:h-8 sm:w-8 text-green-600" />
             </div>
@@ -1885,10 +1891,10 @@ function PaymentManagement() {
           <CardContent className="p-3 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Pending Fees</p>
-                <p className="text-lg sm:text-2xl font-bold text-yellow-600">{pendingPayments.length}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600">Lead Fees Paid</p>
+                <p className="text-lg sm:text-2xl font-bold text-purple-600">{leadFeePaid.length}</p>
               </div>
-              <Clock className="h-5 w-5 sm:h-8 sm:w-8 text-yellow-600" />
+              <Clock className="h-5 w-5 sm:h-8 sm:w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -1910,7 +1916,7 @@ function PaymentManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs sm:text-sm font-medium text-gray-600">Platform Revenue</p>
-                <p className="text-lg sm:text-2xl font-bold text-emerald-600">€{totalLeadRevenue.toFixed(2)}</p>
+                <p className="text-lg sm:text-2xl font-bold text-emerald-600">€{totalPlatformRevenue.toFixed(2)}</p>
               </div>
               <Euro className="h-5 w-5 sm:h-8 sm:w-8 text-emerald-600" />
             </div>

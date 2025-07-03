@@ -3770,8 +3770,22 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       const allTransactions = await storage.getAllInstallerTransactions();
       
+      // Filter out demo account transactions (installer ID 2 = test@tradesbook.ie)
+      // Only include transactions from verified, non-demo installers
+      const realTransactions = [];
+      for (const transaction of allTransactions) {
+        const installer = await storage.getInstaller(transaction.installerId);
+        // Exclude demo account and unverified installers
+        if (installer && 
+            installer.id !== 2 && 
+            installer.email !== "test@tradesbook.ie" && 
+            installer.approvalStatus === 'approved') {
+          realTransactions.push(transaction);
+        }
+      }
+      
       // Sort by creation date (newest first)
-      const sortedTransactions = allTransactions.sort((a, b) => 
+      const sortedTransactions = realTransactions.sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       
@@ -3784,7 +3798,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           const installer = await storage.getInstaller(transaction.installerId);
           return {
             ...transaction,
-            installerName: installer?.businessName || `Installer #${transaction.installerId}`
+            installerName: installer?.businessName || `Installer #${transaction.installerId}`,
+            installerVerified: installer?.approvalStatus === 'approved'
           };
         })
       );
@@ -3793,8 +3808,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         transactions: enhancedTransactions,
         pagination: {
           currentPage: page,
-          totalPages: Math.ceil(allTransactions.length / limit),
-          totalTransactions: allTransactions.length,
+          totalPages: Math.ceil(realTransactions.length / limit),
+          totalTransactions: realTransactions.length,
           limit
         }
       });

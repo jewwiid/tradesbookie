@@ -1276,7 +1276,7 @@ function BookingManagement() {
 
   const updateBookingStatusMutation = useMutation({
     mutationFn: async ({ bookingId, status }: { bookingId: number; status: string }) => {
-      await apiRequest(`/api/admin/bookings/${bookingId}/status`, "PATCH", { status });
+      await apiRequest("PATCH", `/api/admin/bookings/${bookingId}/status`, { status });
     },
     onSuccess: () => {
       toast({ title: "Booking status updated" });
@@ -1294,7 +1294,7 @@ function BookingManagement() {
 
   const deleteBookingMutation = useMutation({
     mutationFn: async (bookingId: number) => {
-      await apiRequest(`/api/admin/bookings/${bookingId}`, "DELETE");
+      await apiRequest("DELETE", `/api/admin/bookings/${bookingId}`);
     },
     onSuccess: () => {
       toast({ title: "Booking deleted successfully" });
@@ -1314,7 +1314,7 @@ function BookingManagement() {
   // Fetch booking permissions when selecting a booking
   const { data: assignmentStatus } = useQuery({
     queryKey: ["/api/admin/bookings", selectedBooking?.id, "assignment-status"],
-    queryFn: () => apiRequest(`/api/admin/bookings/${selectedBooking.id}/assignment-status`, "GET"),
+    queryFn: () => apiRequest("GET", `/api/admin/bookings/${selectedBooking.id}/assignment-status`),
     enabled: !!selectedBooking,
   });
 

@@ -2785,8 +2785,24 @@ function SolarEnquiryManagement() {
 
   const [selectedEnquiry, setSelectedEnquiry] = useState<SolarEnquiry | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showEditStatus, setShowEditStatus] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editingEnquiry, setEditingEnquiry] = useState<SolarEnquiry | null>(null);
+  const [newStatus, setNewStatus] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const availableStatuses = [
+    { value: 'new', label: 'New', color: 'bg-blue-100 text-blue-800' },
+    { value: 'contacted', label: 'Contacted', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'qualified', label: 'Qualified', color: 'bg-green-100 text-green-800' },
+    { value: 'site_survey', label: 'Site Survey Scheduled', color: 'bg-purple-100 text-purple-800' },
+    { value: 'quoted', label: 'Quote Provided', color: 'bg-indigo-100 text-indigo-800' },
+    { value: 'converted', label: 'Converted/Sale', color: 'bg-emerald-100 text-emerald-800' },
+    { value: 'not_interested', label: 'Not Interested', color: 'bg-red-100 text-red-800' },
+    { value: 'lost', label: 'Lost to Competitor', color: 'bg-gray-100 text-gray-800' },
+    { value: 'follow_up', label: 'Follow Up Required', color: 'bg-orange-100 text-orange-800' }
+  ];
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
@@ -2794,6 +2810,8 @@ function SolarEnquiryManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/solar-enquiries"] });
+      setShowEditStatus(false);
+      setEditingEnquiry(null);
       toast({
         title: "Status Updated",
         description: "Solar enquiry status has been updated successfully.",
@@ -2808,21 +2826,31 @@ function SolarEnquiryManagement() {
     },
   });
 
+  const deleteEnquiryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("DELETE", `/api/solar-enquiries/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/solar-enquiries"] });
+      setShowDeleteConfirm(false);
+      setEditingEnquiry(null);
+      toast({
+        title: "Lead Deleted",
+        description: "Solar enquiry has been permanently deleted from the database.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete enquiry.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new':
-        return 'bg-blue-100 text-blue-800';
-      case 'contacted':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'qualified':
-        return 'bg-green-100 text-green-800';
-      case 'converted':
-        return 'bg-emerald-100 text-emerald-800';
-      case 'not_interested':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+    const statusObj = availableStatuses.find(s => s.value === status);
+    return statusObj ? statusObj.color : 'bg-gray-100 text-gray-800';
   };
 
   if (isLoading) {
@@ -2944,21 +2972,30 @@ function SolarEnquiryManagement() {
                     <Eye className="w-4 h-4 mr-1" />
                     View
                   </Button>
-                  <Select
-                    value={enquiry.status}
-                    onValueChange={(value) => updateStatusMutation.mutate({ id: enquiry.id, status: value })}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditingEnquiry(enquiry);
+                      setNewStatus(enquiry.status);
+                      setShowEditStatus(true);
+                    }}
                   >
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="new">New</SelectItem>
-                      <SelectItem value="contacted">Contacted</SelectItem>
-                      <SelectItem value="qualified">Qualified</SelectItem>
-                      <SelectItem value="converted">Converted</SelectItem>
-                      <SelectItem value="not_interested">Not Interested</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit Status
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => {
+                      setEditingEnquiry(enquiry);
+                      setShowDeleteConfirm(true);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                  </Button>
                 </div>
               </div>
             ))}
@@ -3015,36 +3052,48 @@ function SolarEnquiryManagement() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={enquiry.status}
-                        onValueChange={(value) => updateStatusMutation.mutate({ id: enquiry.id, status: value })}
-                      >
-                        <SelectTrigger className="w-36">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="new">New</SelectItem>
-                          <SelectItem value="contacted">Contacted</SelectItem>
-                          <SelectItem value="qualified">Qualified</SelectItem>
-                          <SelectItem value="converted">Converted</SelectItem>
-                          <SelectItem value="not_interested">Not Interested</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Badge className={getStatusColor(enquiry.status)}>
+                        {availableStatuses.find(s => s.value === enquiry.status)?.label || enquiry.status.replace('_', ' ')}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-sm">
                       {new Date(enquiry.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedEnquiry(enquiry);
-                          setShowDetails(true);
-                        }}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedEnquiry(enquiry);
+                            setShowDetails(true);
+                          }}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingEnquiry(enquiry);
+                            setNewStatus(enquiry.status);
+                            setShowEditStatus(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => {
+                            setEditingEnquiry(enquiry);
+                            setShowDeleteConfirm(true);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -3125,6 +3174,140 @@ function SolarEnquiryManagement() {
                   <p className="text-sm bg-gray-50 p-3 rounded-lg">{selectedEnquiry.additionalInfo}</p>
                 </div>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Edit Dialog */}
+      <Dialog open={showEditStatus} onOpenChange={setShowEditStatus}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Lead Status</DialogTitle>
+            <DialogDescription>
+              Update the status of this solar enquiry to track the lead progression
+            </DialogDescription>
+          </DialogHeader>
+          {editingEnquiry && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Customer</label>
+                <p className="font-medium">{editingEnquiry.firstName} {editingEnquiry.lastName}</p>
+                <p className="text-sm text-gray-600">{editingEnquiry.email}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Current Status</label>
+                <Badge className={getStatusColor(editingEnquiry.status)}>
+                  {availableStatuses.find(s => s.value === editingEnquiry.status)?.label || editingEnquiry.status.replace('_', ' ')}
+                </Badge>
+              </div>
+              <div>
+                <label className="text-sm font-medium">New Status</label>
+                <Select value={newStatus} onValueChange={setNewStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select new status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableStatuses.map(status => (
+                      <SelectItem key={status.value} value={status.value}>
+                        <div className="flex items-center space-x-2">
+                          <Badge className={status.color} variant="outline">
+                            {status.label}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEditStatus(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (newStatus && editingEnquiry) {
+                      updateStatusMutation.mutate({ id: editingEnquiry.id, status: newStatus });
+                    }
+                  }}
+                  disabled={!newStatus || updateStatusMutation.isPending}
+                >
+                  {updateStatusMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Update Status'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Solar Lead</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. The lead will be permanently removed from the database.
+            </DialogDescription>
+          </DialogHeader>
+          {editingEnquiry && (
+            <div className="space-y-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 text-red-800">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="font-medium">Warning: Permanent Deletion</span>
+                </div>
+                <p className="text-red-700 text-sm mt-2">
+                  You are about to permanently delete this solar enquiry. This action cannot be undone and all data will be lost.
+                </p>
+              </div>
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium mb-2">Lead to be deleted:</h4>
+                <div className="text-sm space-y-1">
+                  <p><span className="font-medium">Customer:</span> {editingEnquiry.firstName} {editingEnquiry.lastName}</p>
+                  <p><span className="font-medium">Email:</span> {editingEnquiry.email}</p>
+                  <p><span className="font-medium">Status:</span> {availableStatuses.find(s => s.value === editingEnquiry.status)?.label || editingEnquiry.status.replace('_', ' ')}</p>
+                  <p><span className="font-medium">Created:</span> {new Date(editingEnquiry.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    if (editingEnquiry) {
+                      deleteEnquiryMutation.mutate(editingEnquiry.id);
+                    }
+                  }}
+                  disabled={deleteEnquiryMutation.isPending}
+                >
+                  {deleteEnquiryMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Permanently
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>

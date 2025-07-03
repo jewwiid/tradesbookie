@@ -3388,6 +3388,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/solar-enquiries/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      await storage.deleteSolarEnquiry(parseInt(id));
+      res.json({ message: "Solar enquiry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting solar enquiry:", error);
+      res.status(500).json({ message: "Failed to delete solar enquiry" });
+    }
+  });
+
   // Public analytics endpoints - no authentication required for transparency
   app.get('/api/analytics/website-metrics', async (req, res) => {
     try {

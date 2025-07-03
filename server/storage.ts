@@ -100,6 +100,7 @@ export interface IStorage {
   createSolarEnquiry(enquiry: InsertSolarEnquiry): Promise<SolarEnquiry>;
   getAllSolarEnquiries(): Promise<SolarEnquiry[]>;
   updateSolarEnquiryStatus(id: number, status: string): Promise<void>;
+  deleteSolarEnquiry(id: number): Promise<void>;
 
   // Referral operations
   getReferralSettings(): Promise<ReferralSettings | undefined>;
@@ -650,6 +651,12 @@ export class DatabaseStorage implements IStorage {
         status, 
         updatedAt: new Date() 
       })
+      .where(eq(solarEnquiries.id, id));
+  }
+
+  async deleteSolarEnquiry(id: number): Promise<void> {
+    await db
+      .delete(solarEnquiries)
       .where(eq(solarEnquiries.id, id));
   }
 

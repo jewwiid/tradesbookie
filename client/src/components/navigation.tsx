@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
+import { useInstallerAuth } from '@/hooks/useInstallerAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X } from 'lucide-react';
+import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X, Wrench } from 'lucide-react';
 import SimplifiedAuthDialog from './SimplifiedAuthDialog';
 
 interface NavigationProps {
@@ -12,11 +13,12 @@ interface NavigationProps {
   installerProfile?: any;
 }
 
-export default function Navigation({ isInstallerContext = false, installerProfile }: NavigationProps) {
+export default function Navigation({ isInstallerContext = false, installerProfile: propInstallerProfile }: NavigationProps) {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
+  const { installerProfile: globalInstallerProfile, isInstallerAuthenticated } = useInstallerAuth();
 
   const isHome = location === '/';
   
@@ -26,8 +28,9 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                   user?.email === 'jude.okun@gmail.com' || 
                   user?.id === '42442296';
 
-  // Check if installer is authenticated
-  const isInstallerAuthenticated = !!installerProfile;
+  // Use either the prop installer profile or the global one
+  const currentInstallerProfile = propInstallerProfile || globalInstallerProfile;
+  const currentlyInstallerAuthenticated = !!propInstallerProfile || isInstallerAuthenticated;
 
   return (
     <>
@@ -82,7 +85,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
 
               {/* Right Side - CTA and Auth */}
               <div className="hidden md:flex items-center space-x-3">
-                {!isAdmin && !isInstallerContext && (
+                {!isAdmin && !currentlyInstallerAuthenticated && (
                   <>
                     <Link href="/installer-login">
                       <Button
@@ -114,17 +117,47 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                     </Link>
                   </>
                 )}
-                {isInstallerAuthenticated ? (
+                {currentlyInstallerAuthenticated ? (
                   <div className="flex items-center space-x-3">
-                    <div className="text-xs text-gray-600 bg-gray-50 px-3 py-1 rounded-full">
-                      {installerProfile?.contactName || installerProfile?.email?.split('@')[0]}
+                    <div className="text-xs text-gray-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                      <Wrench className="w-3 h-3 inline mr-1" />
+                      {currentInstallerProfile?.contactName || currentInstallerProfile?.email?.split('@')[0]}
                     </div>
+                    <Link href="/installer-dashboard">
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        className="font-medium"
+                      >
+                        <Settings className="w-4 h-4 mr-1" />
+                        Dashboard
+                      </Button>
+                    </Link>
                     <Button 
                       variant="outline"
                       size="sm"
                       className="font-medium"
-                      onClick={() => {
-                        window.location.href = '/installer-login';
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/installers/logout', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                          });
+                          if (response.ok) {
+                            // Clear localStorage and redirect
+                            localStorage.removeItem('installer');
+                            localStorage.removeItem('installerId');
+                            window.location.href = '/installer-login';
+                          }
+                        } catch (error) {
+                          console.error('Logout error:', error);
+                          // Fallback: still clear localStorage and redirect
+                          localStorage.removeItem('installer');
+                          localStorage.removeItem('installerId');
+                          window.location.href = '/installer-login';
+                        }
                       }}
                     >
                       Logout
@@ -196,7 +229,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
 
                     {/* Navigation Links */}
                     <div className="flex-1 py-6">
-                      {!isAdmin && !isInstallerContext && (
+                      {!isAdmin && !currentlyInstallerAuthenticated && (
                         <div className="space-y-1 px-6">
                           <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">
                             Navigation
@@ -253,8 +286,33 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                         </div>
                       )}
 
-                      {/* Installer Section */}
-                      {!isAdmin && !isInstallerContext && (
+                      {/* Installer Dashboard Section */}
+                      {currentlyInstallerAuthenticated && (
+                        <div className="space-y-1 px-6">
+                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">
+                            Installer Dashboard
+                          </div>
+                          <Link 
+                            href="/installer-dashboard" 
+                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <Settings className="h-5 w-5 mr-3" />
+                            Dashboard
+                          </Link>
+                          <Link 
+                            href="/" 
+                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <Home className="h-5 w-5 mr-3" />
+                            Home
+                          </Link>
+                        </div>
+                      )}
+
+                      {/* Installer Section for non-authenticated */}
+                      {!isAdmin && !currentlyInstallerAuthenticated && (
                         <>
                           <Separator className="my-6" />
                           <div className="space-y-1 px-6">
@@ -284,7 +342,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
 
                     {/* Footer Actions */}
                     <div className="border-t p-6 space-y-3">
-                      {!isAdmin && !isInstallerContext && (
+                      {!isAdmin && !currentlyInstallerAuthenticated && (
                         <Link 
                           href="/booking" 
                           className="w-full block"
@@ -297,7 +355,44 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                         </Link>
                       )}
                       
-                      {isAuthenticated ? (
+                      {currentlyInstallerAuthenticated ? (
+                        <div className="space-y-3">
+                          <div className="text-center text-sm text-gray-600 bg-blue-50 p-2 rounded-md border border-blue-200">
+                            <Wrench className="w-4 h-4 inline mr-1" />
+                            {currentInstallerProfile?.contactName || currentInstallerProfile?.email?.split('@')[0]}
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            className="w-full justify-center"
+                            onClick={async () => {
+                              setMobileMenuOpen(false);
+                              try {
+                                const response = await fetch('/api/installers/logout', {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                  },
+                                });
+                                if (response.ok) {
+                                  // Clear localStorage and redirect
+                                  localStorage.removeItem('installer');
+                                  localStorage.removeItem('installerId');
+                                  window.location.href = '/installer-login';
+                                }
+                              } catch (error) {
+                                console.error('Logout error:', error);
+                                // Fallback: still clear localStorage and redirect
+                                localStorage.removeItem('installer');
+                                localStorage.removeItem('installerId');
+                                window.location.href = '/installer-login';
+                              }
+                            }}
+                          >
+                            <User className="h-5 w-5 mr-2" />
+                            Logout
+                          </Button>
+                        </div>
+                      ) : isAuthenticated ? (
                         <div className="space-y-3">
                           <div className="text-center text-sm text-gray-600">
                             Welcome, {user?.firstName || user?.email?.split('@')[0]}

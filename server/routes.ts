@@ -2406,6 +2406,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Installer logout endpoint
+  app.post("/api/installers/logout", async (req, res) => {
+    try {
+      // Clear installer session data
+      delete (req.session as any).installerId;
+      delete (req.session as any).installerAuthenticated;
+      
+      // Destroy the session
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Session destruction error:', err);
+          return res.status(500).json({ error: 'Failed to logout' });
+        }
+        
+        res.json({ 
+          success: true, 
+          message: "Logged out successfully" 
+        });
+      });
+    } catch (error) {
+      console.error("Error logging out installer:", error);
+      res.status(500).json({ message: "Logout failed. Please try again." });
+    }
+  });
+
   app.get("/api/installers", async (req, res) => {
     try {
       const installers = await storage.getAllInstallers();

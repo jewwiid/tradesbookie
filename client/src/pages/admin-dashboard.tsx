@@ -2247,9 +2247,17 @@ function ReferralManagement() {
     queryFn: () => fetch('/api/referrals/stats').then(r => r.json())
   });
 
-  const { data: referralCodes } = useQuery({
+  const { data: referralCodes, error: referralCodesError } = useQuery({
     queryKey: ['/api/referrals/codes'],
-    queryFn: () => fetch('/api/referrals/codes').then(r => r.json())
+    queryFn: async () => {
+      const response = await fetch('/api/referrals/codes');
+      if (!response.ok) {
+        throw new Error('Failed to fetch referral codes');
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
+    retry: 1
   });
 
   const { data: referralSettings } = useQuery({
@@ -2543,7 +2551,19 @@ function ReferralManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {referralCodes?.map((code: any) => (
+                {referralCodesError ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-red-500">
+                      Failed to load referral codes. Please refresh the page.
+                    </TableCell>
+                  </TableRow>
+                ) : (referralCodes || []).length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-gray-500">
+                      No referral codes found
+                    </TableCell>
+                  </TableRow>
+                ) : (referralCodes || []).map((code: any) => (
                   <TableRow key={code.id}>
                     <TableCell className="font-mono">{code.referralCode}</TableCell>
                     <TableCell>

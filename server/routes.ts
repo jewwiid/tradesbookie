@@ -4833,7 +4833,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Get user details for each referral code
       const codesWithUserData = await Promise.all(
         referralCodes.map(async (code) => {
-          const user = await storage.getUserById(code.userId);
+          // Only fetch user if userId is valid and not null
+          const user = code.userId && !isNaN(Number(code.userId)) 
+            ? await storage.getUserById(code.userId) 
+            : null;
           
           // Determine the referrer name based on the referral type
           let referrerName = 'Unknown User';

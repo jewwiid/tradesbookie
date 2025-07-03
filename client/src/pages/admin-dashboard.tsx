@@ -1261,11 +1261,14 @@ function BookingManagement() {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editStatus, setEditStatus] = useState("");
+  const [bookingPermissions, setBookingPermissions] = useState<any>({});
 
   const { data: bookings, isLoading } = useQuery<Booking[]>({
     queryKey: ["/api/admin/bookings"],
     retry: false,
+    refetchInterval: 30000, // Auto-refresh every 30 seconds for real-time sync
   });
 
   const { toast } = useToast();
@@ -1278,10 +1281,41 @@ function BookingManagement() {
     onSuccess: () => {
       toast({ title: "Booking status updated" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings/status-sync"] });
     },
-    onError: () => {
-      toast({ title: "Failed to update booking status", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update booking status", 
+        description: error.message || "Status update failed",
+        variant: "destructive" 
+      });
     },
+  });
+
+  const deleteBookingMutation = useMutation({
+    mutationFn: async (bookingId: number) => {
+      await apiRequest(`/api/admin/bookings/${bookingId}`, "DELETE");
+    },
+    onSuccess: () => {
+      toast({ title: "Booking deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/bookings"] });
+      setIsDeleteDialogOpen(false);
+      setSelectedBooking(null);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to delete booking", 
+        description: error.message || "Deletion failed",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Fetch booking permissions when selecting a booking
+  const { data: assignmentStatus } = useQuery({
+    queryKey: ["/api/admin/bookings", selectedBooking?.id, "assignment-status"],
+    queryFn: () => apiRequest(`/api/admin/bookings/${selectedBooking.id}/assignment-status`, "GET"),
+    enabled: !!selectedBooking,
   });
 
   if (isLoading) {
@@ -1317,6 +1351,11 @@ function BookingManagement() {
     setIsEditDialogOpen(true);
   };
 
+  const handleDeleteBooking = (booking: any) => {
+    setSelectedBooking(booking);
+    setIsDeleteDialogOpen(true);
+  };
+
   const handleStatusUpdate = () => {
     if (selectedBooking) {
       updateBookingStatusMutation.mutate({
@@ -1325,6 +1364,20 @@ function BookingManagement() {
       });
       setIsEditDialogOpen(false);
     }
+  };
+
+  const confirmDeleteBooking = () => {
+    if (selectedBooking) {
+      deleteBookingMutation.mutate(selectedBooking.id);
+    }
+  };
+
+  const canModifyBooking = (booking: any) => {
+    return !booking.installerId || ['open', 'pending', 'confirmed'].includes(booking.status);
+  };
+
+  const canDeleteBooking = (booking: any) => {
+    return !booking.installerId && !['installer_accepted', 'in_progress', 'completed'].includes(booking.status);
   };
 
   return (
@@ -1404,8 +1457,19 @@ function BookingManagement() {
                         variant="outline" 
                         size="sm"
                         onClick={() => handleEditBooking(booking)}
+                        disabled={!canModifyBooking(booking)}
+                        title={!canModifyBooking(booking) ? "Cannot edit - booking assigned to installer" : "Edit booking status"}
                       >
                         <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleDeleteBooking(booking)}
+                        disabled={!canDeleteBooking(booking)}
+                        title={!canDeleteBooking(booking) ? "Cannot delete - booking assigned or in progress" : "Delete booking"}
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -1528,6 +1592,77 @@ function BookingManagement() {
                     </>
                   ) : (
                     'Update Status'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Booking Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent aria-describedby="booking-delete-description">
+          <DialogHeader>
+            <DialogTitle>Delete Booking</DialogTitle>
+            <DialogDescription id="booking-delete-description">
+              Are you sure you want to permanently delete this booking? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="space-y-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 text-red-800">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="font-medium">Warning: Permanent Deletion</span>
+                </div>
+                <p className="text-sm text-red-700 mt-2">
+                  This will permanently remove booking {selectedBooking.qrCode} from the database.
+                  The customer will be notified via email about the cancellation.
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Booking Details:</h4>
+                <div className="text-sm space-y-1">
+                  <p><strong>Customer:</strong> {selectedBooking.contactName}</p>
+                  <p><strong>Service:</strong> {selectedBooking.serviceType}</p>
+                  <p><strong>Status:</strong> {selectedBooking.status}</p>
+                  <p><strong>QR Code:</strong> {selectedBooking.qrCode}</p>
+                </div>
+              </div>
+
+              {!canDeleteBooking(selectedBooking) && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 text-yellow-800">
+                    <AlertTriangle className="w-5 h-5" />
+                    <span className="font-medium">Cannot Delete</span>
+                  </div>
+                  <p className="text-sm text-yellow-700 mt-2">
+                    This booking cannot be deleted because it has been assigned to an installer or is in progress.
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={confirmDeleteBooking}
+                  disabled={deleteBookingMutation.isPending || !canDeleteBooking(selectedBooking)}
+                >
+                  {deleteBookingMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Booking
+                    </>
                   )}
                 </Button>
               </div>

@@ -3997,18 +3997,156 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Admin Actions - Update Booking Status
+  // Admin Actions - Update Booking Status with cross-dashboard sync
   app.patch("/api/admin/bookings/:id/status", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);
       const { status } = req.body;
       
+      // Get booking details before update for notification
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Check if booking is already assigned to installer (restrict admin power for assigned bookings)
+      if (booking.installerId && !['open', 'pending', 'confirmed'].includes(booking.status)) {
+        return res.status(400).json({ 
+          message: "Cannot modify booking status once assigned to installer and in progress" 
+        });
+      }
+      
       await storage.updateBookingStatus(bookingId, status);
+      
+      // Send real-time notifications for status changes
+      if (booking.customerEmail) {
+        await sendStatusUpdateNotification(booking.customerEmail, booking.qrCode || '', status);
+      }
+      
+      // If booking has an assigned installer, notify them too
+      if (booking.installerId) {
+        const installer = await storage.getInstaller(booking.installerId);
+        if (installer?.email) {
+          await sendStatusUpdateNotification(installer.email, booking.qrCode || '', status);
+        }
+      }
       
       res.json({ message: "Booking status updated successfully" });
     } catch (error) {
       console.error("Error updating booking status:", error);
       res.status(500).json({ message: "Failed to update booking status" });
+    }
+  });
+
+  // Admin Actions - Delete Booking (only for unassigned bookings)
+  app.delete("/api/admin/bookings/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      
+      // Get booking details to check if it can be deleted
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Only allow deletion if booking is not assigned or accepted by installer
+      if (booking.installerId || ['installer_accepted', 'in_progress', 'completed'].includes(booking.status)) {
+        return res.status(400).json({ 
+          message: "Cannot delete booking that has been assigned to or accepted by an installer" 
+        });
+      }
+      
+      // Delete related records first to avoid foreign key constraints
+      await db.delete(reviews).where(eq(reviews.bookingId, bookingId));
+      
+      // Delete the booking
+      await storage.deleteBooking(bookingId);
+      
+      // Notify customer about cancellation
+      if (booking.customerEmail) {
+        await sendGmailEmail(
+          booking.customerEmail,
+          'Booking Cancelled - tradesbook.ie',
+          `Your TV installation booking (${booking.qrCode}) has been cancelled by our admin team. If you have any questions, please contact our support team.`
+        );
+      }
+      
+      res.json({ message: "Booking deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting booking:", error);
+      res.status(500).json({ message: "Failed to delete booking" });
+    }
+  });
+
+  // Get booking assignment status (for checking if booking can be modified)
+  app.get("/api/admin/bookings/:id/assignment-status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const booking = await storage.getBooking(bookingId);
+      
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      const canModify = !booking.installerId || ['open', 'pending', 'confirmed'].includes(booking.status);
+      const canDelete = !booking.installerId && !['installer_accepted', 'in_progress', 'completed'].includes(booking.status);
+      
+      res.json({
+        canModify,
+        canDelete,
+        status: booking.status,
+        installerId: booking.installerId,
+        assignedInstaller: booking.installerId ? await storage.getInstaller(booking.installerId) : null
+      });
+    } catch (error) {
+      console.error("Error checking booking assignment status:", error);
+      res.status(500).json({ message: "Failed to check booking status" });
+    }
+  });
+
+  // Real-time booking status sync endpoint for cross-dashboard updates
+  app.get("/api/bookings/:id/status", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const booking = await storage.getBooking(bookingId);
+      
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Return current booking status with timestamp for real-time sync
+      res.json({
+        id: booking.id,
+        status: booking.status,
+        lastUpdated: booking.updatedAt,
+        installerId: booking.installerId,
+        customerEmail: booking.customerEmail,
+        qrCode: booking.qrCode
+      });
+    } catch (error) {
+      console.error("Error fetching booking status:", error);
+      res.status(500).json({ message: "Failed to fetch booking status" });
+    }
+  });
+
+  // Bulk booking status sync for dashboard real-time updates
+  app.get("/api/bookings/status-sync", async (req, res) => {
+    try {
+      const bookings = await storage.getAllBookings();
+      
+      // Return essential status information for all bookings
+      const statusData = bookings.map(booking => ({
+        id: booking.id,
+        status: booking.status,
+        lastUpdated: booking.updatedAt,
+        installerId: booking.installerId,
+        qrCode: booking.qrCode
+      }));
+      
+      res.json(statusData);
+    } catch (error) {
+      console.error("Error syncing booking statuses:", error);
+      res.status(500).json({ message: "Failed to sync booking statuses" });
     }
   });
 

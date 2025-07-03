@@ -46,8 +46,10 @@ import {
   DollarSign,
   AlertTriangle,
   Plus,
-  Target
+  Target,
+  Mail
 } from "lucide-react";
+import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
@@ -3123,7 +3125,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-1 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-1 h-auto p-1">
             <TabsTrigger value="overview" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
               <BarChart3 className="w-4 h-4 md:w-4 md:h-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -3169,6 +3171,11 @@ export default function AdminDashboard() {
               <Euro className="w-4 h-4 md:w-4 md:h-4" />
               <span>Pricing</span>
             </TabsTrigger>
+            <TabsTrigger value="emails" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Mail className="w-4 h-4 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Email Templates</span>
+              <span className="sm:hidden">Emails</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -3210,6 +3217,10 @@ export default function AdminDashboard() {
           <TabsContent value="pricing" className="space-y-6">
             <PricingManagement />
             <WallMountPricingManagement />
+          </TabsContent>
+
+          <TabsContent value="emails" className="space-y-6">
+            <EmailTemplateManagement />
           </TabsContent>
         </Tabs>
       </div>

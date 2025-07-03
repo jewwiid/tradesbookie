@@ -5699,6 +5699,108 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // ====================== EMAIL TEMPLATE MANAGEMENT ROUTES ======================
+
+  // Get all email templates (admin only)
+  app.get("/api/admin/email-templates", isAdmin, async (req, res) => {
+    try {
+      const templates = await storage.getAllEmailTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching email templates:", error);
+      res.status(500).json({ message: "Failed to fetch email templates" });
+    }
+  });
+
+  // Get specific email template (admin only)
+  app.get("/api/admin/email-templates/:templateKey", isAdmin, async (req, res) => {
+    try {
+      const template = await storage.getEmailTemplate(req.params.templateKey);
+      if (!template) {
+        return res.status(404).json({ message: "Email template not found" });
+      }
+      res.json(template);
+    } catch (error) {
+      console.error("Error fetching email template:", error);
+      res.status(500).json({ message: "Failed to fetch email template" });
+    }
+  });
+
+  // Create email template (admin only)
+  app.post("/api/admin/email-templates", isAdmin, async (req, res) => {
+    try {
+      const { templateKey, templateName, fromEmail, replyToEmail, subject, htmlContent, textContent, shortcodes } = req.body;
+      
+      if (!templateKey || !templateName || !fromEmail || !subject || !htmlContent) {
+        return res.status(400).json({ 
+          message: "Template key, name, from email, subject, and HTML content are required" 
+        });
+      }
+
+      const template = await storage.createEmailTemplate({
+        templateKey,
+        templateName,
+        fromEmail,
+        replyToEmail: replyToEmail || null,
+        subject,
+        htmlContent,
+        textContent: textContent || null,
+        shortcodes: shortcodes || [],
+        isActive: true
+      });
+
+      res.json(template);
+    } catch (error) {
+      console.error("Error creating email template:", error);
+      if (error.code === '23505') {
+        res.status(400).json({ message: "Email template with this key already exists" });
+      } else {
+        res.status(500).json({ message: "Failed to create email template" });
+      }
+    }
+  });
+
+  // Update email template (admin only)
+  app.put("/api/admin/email-templates/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { templateName, fromEmail, replyToEmail, subject, htmlContent, textContent, shortcodes, isActive } = req.body;
+      
+      const template = await storage.updateEmailTemplate(id, {
+        templateName,
+        fromEmail,
+        replyToEmail,
+        subject,
+        htmlContent,
+        textContent,
+        shortcodes,
+        isActive
+      });
+
+      res.json(template);
+    } catch (error) {
+      console.error("Error updating email template:", error);
+      res.status(500).json({ message: "Failed to update email template" });
+    }
+  });
+
+  // Delete email template (admin only)
+  app.delete("/api/admin/email-templates/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteEmailTemplate(id);
+      
+      if (success) {
+        res.json({ message: "Email template deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Email template not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting email template:", error);
+      res.status(500).json({ message: "Failed to delete email template" });
+    }
+  });
+
   // Google Maps API Routes
   app.post("/api/maps/geocode", async (req, res) => {
     try {

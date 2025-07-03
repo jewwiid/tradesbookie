@@ -2,7 +2,7 @@ import {
   users, bookings, installers, jobAssignments, reviews, solarEnquiries,
   referralSettings, referralCodes, referralUsage, consultationBookings,
   leadPricing, wallMountPricing, installerWallets, installerTransactions,
-  scheduleNegotiations, declinedRequests,
+  scheduleNegotiations, declinedRequests, emailTemplates,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -17,7 +17,8 @@ import {
   type WallMountPricing, type InsertWallMountPricing,
   type ScheduleNegotiation, type InsertScheduleNegotiation,
   type InstallerWallet, type InsertInstallerWallet,
-  type InstallerTransaction, type InsertInstallerTransaction
+  type InstallerTransaction, type InsertInstallerTransaction,
+  type EmailTemplate, type InsertEmailTemplate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -148,6 +149,13 @@ export interface IStorage {
   // Declined requests operations for proper state management
   declineRequestForInstaller(installerId: number, bookingId: number): Promise<void>;
   getDeclinedRequestsForInstaller(installerId: number): Promise<number[]>; // Returns array of booking IDs
+
+  // Email template operations
+  getEmailTemplate(templateKey: string): Promise<EmailTemplate | undefined>;
+  getAllEmailTemplates(): Promise<EmailTemplate[]>;
+  createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
+  updateEmailTemplate(id: number, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate>;
+  deleteEmailTemplate(id: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1048,6 +1056,46 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
     
     return negotiation;
+  }
+
+  // Email template operations
+  async getEmailTemplate(templateKey: string): Promise<EmailTemplate | undefined> {
+    const [template] = await db.select()
+      .from(emailTemplates)
+      .where(eq(emailTemplates.templateKey, templateKey))
+      .limit(1);
+    
+    return template;
+  }
+
+  async getAllEmailTemplates(): Promise<EmailTemplate[]> {
+    return await db.select()
+      .from(emailTemplates)
+      .orderBy(emailTemplates.templateName);
+  }
+
+  async createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate> {
+    const [newTemplate] = await db.insert(emailTemplates)
+      .values(template)
+      .returning();
+    
+    return newTemplate;
+  }
+
+  async updateEmailTemplate(id: number, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate> {
+    const [updatedTemplate] = await db.update(emailTemplates)
+      .set({ ...template, updatedAt: new Date() })
+      .where(eq(emailTemplates.id, id))
+      .returning();
+    
+    return updatedTemplate;
+  }
+
+  async deleteEmailTemplate(id: number): Promise<boolean> {
+    const result = await db.delete(emailTemplates)
+      .where(eq(emailTemplates.id, id));
+    
+    return result.rowCount > 0;
   }
 }
 

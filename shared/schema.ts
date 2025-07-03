@@ -709,3 +709,28 @@ export const insertConsultationBookingSchema = createInsertSchema(consultationBo
 
 export type ConsultationBooking = typeof consultationBookings.$inferSelect;
 export type InsertConsultationBooking = z.infer<typeof insertConsultationBookingSchema>;
+
+// Email templates table for admin customization
+export const emailTemplates = pgTable("email_templates", {
+  id: serial("id").primaryKey(),
+  templateKey: varchar("template_key", { length: 100 }).notNull().unique(), // e.g. "booking_confirmation", "installer_notification"
+  templateName: varchar("template_name", { length: 255 }).notNull(), // Human-readable name
+  fromEmail: varchar("from_email", { length: 255 }).notNull(), // Sender email address
+  replyToEmail: varchar("reply_to_email", { length: 255 }), // Optional reply-to address
+  subject: text("subject").notNull(), // Subject line with shortcode support
+  htmlContent: text("html_content").notNull(), // HTML content with shortcode support
+  textContent: text("text_content"), // Optional plain text version
+  shortcodes: jsonb("shortcodes").default([]), // Available shortcodes for this template
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;

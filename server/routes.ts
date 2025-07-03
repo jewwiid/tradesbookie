@@ -4373,6 +4373,47 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Admin Actions - Update User Profile
+  app.patch("/api/admin/users/:userId", isAdmin, async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { firstName, lastName, email } = req.body;
+      
+      console.log(`Admin attempting to update user: ${userId}`);
+      
+      // Validate required fields
+      if (!email || email.trim() === '') {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      // Check if user exists
+      const user = await storage.getUserById(userId.toString());
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update user profile
+      const updatedUser = await storage.updateUser(userId.toString(), {
+        firstName: firstName?.trim() || null,
+        lastName: lastName?.trim() || null,
+        email: email.trim()
+      });
+      
+      if (updatedUser) {
+        console.log(`✅ User profile updated successfully: ${email} (ID: ${userId})`);
+        res.json({ 
+          message: "User profile updated successfully",
+          user: updatedUser
+        });
+      } else {
+        res.status(404).json({ message: "User not found or update failed" });
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
+
   // Admin Actions - Delete User
   app.delete("/api/admin/users/:userId", isAdmin, async (req, res) => {
     try {

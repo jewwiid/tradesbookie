@@ -233,6 +233,12 @@ function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editUserData, setEditUserData] = useState({
+    firstName: '',
+    lastName: '',
+    email: ''
+  });
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -266,9 +272,44 @@ function UserManagement() {
     },
   });
 
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: { userId: string; firstName: string; lastName: string; email: string }) => {
+      return await apiRequest("PATCH", `/api/admin/users/${data.userId}`, {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email
+      });
+    },
+    onSuccess: () => {
+      toast({ 
+        title: "User profile updated successfully", 
+        description: "The user's profile information has been saved." 
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setShowEditDialog(false);
+    },
+    onError: () => {
+      toast({ 
+        title: "Failed to update user profile", 
+        description: "Please try again or contact support.",
+        variant: "destructive" 
+      });
+    },
+  });
+
   const handleViewUser = (user: User) => {
     setSelectedUser(user);
     setShowUserDialog(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setEditUserData({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || ''
+    });
+    setShowEditDialog(true);
   };
 
   const handleDeleteUser = (user: User) => {
@@ -291,6 +332,17 @@ function UserManagement() {
       deleteUserMutation.mutate(selectedUser.id);
       setShowDeleteDialog(false);
       setSelectedUser(null);
+    }
+  };
+
+  const handleSubmitEdit = () => {
+    if (selectedUser) {
+      updateUserMutation.mutate({
+        userId: selectedUser.id,
+        firstName: editUserData.firstName,
+        lastName: editUserData.lastName,
+        email: editUserData.email
+      });
     }
   };
 
@@ -384,8 +436,17 @@ function UserManagement() {
                         variant="outline" 
                         size="sm"
                         onClick={() => handleViewUser(user)}
+                        title="View user details"
                       >
                         <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditUser(user)}
+                        title="Edit user profile"
+                      >
+                        <Edit className="w-4 h-4" />
                       </Button>
                       {!user.emailVerified && (
                         <Button 
@@ -485,6 +546,66 @@ function UserManagement() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* User Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-md" aria-describedby="edit-user-description">
+          <DialogHeader>
+            <DialogTitle>Edit User Profile</DialogTitle>
+            <DialogDescription id="edit-user-description">
+              Update user information for customer support purposes.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                value={editUserData.firstName}
+                onChange={(e) => setEditUserData(prev => ({ ...prev, firstName: e.target.value }))}
+                placeholder="Enter first name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                value={editUserData.lastName}
+                onChange={(e) => setEditUserData(prev => ({ ...prev, lastName: e.target.value }))}
+                placeholder="Enter last name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={editUserData.email}
+                onChange={(e) => setEditUserData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Enter email address"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitEdit}
+              disabled={updateUserMutation.isPending}
+            >
+              {updateUserMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* User Deletion Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

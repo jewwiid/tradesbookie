@@ -1411,9 +1411,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get all bookings with complete details including client selections
       const allBookings = await storage.getAllBookings();
+      console.log('Total bookings retrieved:', allBookings.length);
       
       // Transform bookings to include all client selection details for installers
-      const enhancedBookings = allBookings.map(booking => ({
+      const enhancedBookings = allBookings.map((booking, index) => {
+        console.log(`Processing booking ${index + 1}/${allBookings.length}:`, booking.id);
+        return {
         id: booking.id,
         customerName: booking.contactName,
         customer: booking.contactName, // Fallback for compatibility
@@ -1423,18 +1426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         wallType: booking.wallType,
         mountType: booking.mountType,
         wallMount: booking.wallMountOption,
-        addons: (() => {
-          try {
-            if (!booking.addons) return [];
-            if (typeof booking.addons === 'string') {
-              return booking.addons.trim() === '' ? [] : JSON.parse(booking.addons);
-            }
-            return Array.isArray(booking.addons) ? booking.addons : [];
-          } catch (e) {
-            console.error('Error parsing addons for booking', booking.id, ':', e);
-            return [];
-          }
-        })(),
+        addons: Array.isArray(booking.addons) ? booking.addons : [],
         address: booking.address,
         preferredDate: booking.preferredDate,
         date: booking.preferredDate, // Fallback for compatibility
@@ -1453,7 +1445,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         qrCode: booking.qrCode,
         createdAt: booking.createdAt,
         totalPrice: booking.estimatedTotal
-      }));
+        };
+      });
 
       res.json(enhancedBookings);
     } catch (error) {
@@ -5670,8 +5663,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Get all unassigned bookings that can be purchased as leads
       const allBookings = await storage.getAllBookings();
       const availableBookings = allBookings.filter(booking => 
-        // Include pending, urgent status and ensure not assigned to any installer yet
-        (booking.status === "pending" || booking.status === "urgent" || booking.status === "confirmed") &&
+        // Include open, pending, urgent, confirmed status and ensure not assigned to any installer yet
+        (booking.status === "open" || booking.status === "pending" || booking.status === "urgent" || booking.status === "confirmed") &&
         !booking.installerId && // Not assigned to any installer yet
         !declinedRequestIds.includes(booking.id) // Not declined by this installer
       );

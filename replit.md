@@ -562,6 +562,9 @@ The application now includes a robust fallback system. When the database is unav
 - July 3, 2025: **Redesigned installer notification emails with lead generation focus - emphasizes paid lead opportunities, earnings breakdown, and first-come-first-served urgency**
 - July 3, 2025: **Added comprehensive lead fee calculations and profit margins to installer email notifications**
 - July 3, 2025: **Enhanced email subject lines and content to clearly communicate lead purchase opportunities to approved installers**
+- July 3, 2025: **Fixed critical installer dashboard visibility issue - bookings now properly appear in available leads**
+- July 3, 2025: **Updated available-leads endpoint to include "open" status bookings alongside "pending", "urgent", and "confirmed" statuses**
+- July 3, 2025: **Resolved booking discovery problem where new bookings with "open" status weren't visible to installers for lead purchase**
 
 ## User Preferences
 

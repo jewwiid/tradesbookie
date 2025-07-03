@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, MapPin, Phone, Mail, Package, CreditCard, User } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import Navigation from '@/components/navigation';
 
 interface BookingDetails {
   id: number;
@@ -81,8 +82,10 @@ export default function BookingTracker() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
+    <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Track Your Installation</h1>
         <p className="text-gray-600">Enter your QR code or booking reference to view your installation details and status</p>
       </div>
@@ -299,6 +302,7 @@ export default function BookingTracker() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

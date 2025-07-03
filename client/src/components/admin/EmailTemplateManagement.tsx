@@ -290,20 +290,22 @@ export default function EmailTemplateManagement() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="h-5 w-5" />
-              Email Template Management
-            </CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Customize email templates with shortcodes and manage sender settings
-            </p>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1">
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Email Template Management
+              </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Customize email templates with shortcodes and manage sender settings
+              </p>
+            </div>
+            <Button onClick={handleCreate} className="flex items-center gap-2 w-full sm:w-auto">
+              <Plus className="h-4 w-4" />
+              Create Template
+            </Button>
           </div>
-          <Button onClick={handleCreate} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Create Template
-          </Button>
         </CardHeader>
         <CardContent>
           {templates.length === 0 ? (
@@ -323,31 +325,31 @@ export default function EmailTemplateManagement() {
               {templates.map((template: EmailTemplate) => (
                 <Card key={template.id} className="border">
                   <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-medium">{template.templateName}</h3>
-                          <Badge variant={template.isActive ? "default" : "secondary"}>
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                          <h3 className="font-medium text-sm sm:text-base break-words">{template.templateName}</h3>
+                          <Badge variant={template.isActive ? "default" : "secondary"} className="w-fit">
                             {template.isActive ? "Active" : "Inactive"}
                           </Badge>
                         </div>
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <p><strong>Key:</strong> {template.templateKey}</p>
-                          <p><strong>From:</strong> {template.fromEmail}</p>
-                          <p><strong>Subject:</strong> {template.subject}</p>
+                        <div className="space-y-1 text-xs sm:text-sm text-muted-foreground">
+                          <p className="break-words"><strong>Key:</strong> {template.templateKey}</p>
+                          <p className="break-words"><strong>From:</strong> {template.fromEmail}</p>
+                          <p className="break-words"><strong>Subject:</strong> {template.subject}</p>
                           {template.replyToEmail && (
-                            <p><strong>Reply-To:</strong> {template.replyToEmail}</p>
+                            <p className="break-words"><strong>Reply-To:</strong> {template.replyToEmail}</p>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handlePreview(template)}
-                          className="flex items-center gap-1"
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                           Preview
                         </Button>
                         <Button
@@ -355,12 +357,12 @@ export default function EmailTemplateManagement() {
                           size="sm"
                           onClick={() => handleTestEmail(template)}
                           disabled={testingTemplate === template.id}
-                          className="flex items-center gap-1"
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm"
                         >
                           {testingTemplate === template.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                           ) : (
-                            <Send className="h-4 w-4" />
+                            <Send className="h-3 w-3 sm:h-4 sm:w-4" />
                           )}
                           {testingTemplate === template.id ? 'Sending...' : 'Test'}
                         </Button>
@@ -368,18 +370,18 @@ export default function EmailTemplateManagement() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleEdit(template)}
-                          className="flex items-center gap-1"
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                           Edit
                         </Button>
                         <Button
                           variant="destructive"
                           size="sm"
                           onClick={() => deleteMutation.mutate(template.id)}
-                          className="flex items-center gap-1"
+                          className="flex items-center justify-center gap-1 text-xs sm:text-sm"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           Delete
                         </Button>
                       </div>
@@ -403,10 +405,10 @@ export default function EmailTemplateManagement() {
         <CardContent>
           <div className="grid gap-3">
             {DEFAULT_EMAIL_TEMPLATES.map((suggestion) => (
-              <div key={suggestion.templateKey} className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <h4 className="font-medium">{suggestion.templateName}</h4>
-                  <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+              <div key={suggestion.templateKey} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-lg">
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm sm:text-base break-words">{suggestion.templateName}</h4>
+                  <p className="text-xs sm:text-sm text-muted-foreground break-words">{suggestion.description}</p>
                 </div>
                 <Button
                   variant="outline"
@@ -419,6 +421,7 @@ export default function EmailTemplateManagement() {
                     });
                     setShowCreateDialog(true);
                   }}
+                  className="w-full sm:w-auto text-xs sm:text-sm"
                 >
                   Create
                 </Button>
@@ -437,7 +440,7 @@ export default function EmailTemplateManagement() {
           resetForm();
         }
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
           <DialogHeader>
             <DialogTitle>
               {selectedTemplate ? "Edit Email Template" : "Create Email Template"}
@@ -450,79 +453,84 @@ export default function EmailTemplateManagement() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Form Section */}
             <div className="lg:col-span-2 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="templateKey">Template Key</Label>
+                  <Label htmlFor="templateKey" className="text-sm">Template Key</Label>
                   <Input
                     id="templateKey"
                     value={formData.templateKey}
                     onChange={(e) => setFormData({...formData, templateKey: e.target.value})}
                     placeholder="e.g., booking_confirmation"
                     disabled={!!selectedTemplate}
+                    className="text-sm"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="templateName">Template Name</Label>
+                  <Label htmlFor="templateName" className="text-sm">Template Name</Label>
                   <Input
                     id="templateName"
                     value={formData.templateName}
                     onChange={(e) => setFormData({...formData, templateName: e.target.value})}
                     placeholder="e.g., Booking Confirmation"
+                    className="text-sm"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="fromEmail">From Email</Label>
+                  <Label htmlFor="fromEmail" className="text-sm">From Email</Label>
                   <Input
                     id="fromEmail"
                     value={formData.fromEmail}
                     onChange={(e) => setFormData({...formData, fromEmail: e.target.value})}
                     placeholder="noreply@tradesbook.ie"
+                    className="text-sm"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="replyToEmail">Reply-To Email (Optional)</Label>
+                  <Label htmlFor="replyToEmail" className="text-sm">Reply-To Email (Optional)</Label>
                   <Input
                     id="replyToEmail"
                     value={formData.replyToEmail}
                     onChange={(e) => setFormData({...formData, replyToEmail: e.target.value})}
                     placeholder="support@tradesbook.ie"
+                    className="text-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="subject">Subject Line</Label>
+                <Label htmlFor="subject" className="text-sm">Subject Line</Label>
                 <Input
                   id="subject"
                   value={formData.subject}
                   onChange={(e) => setFormData({...formData, subject: e.target.value})}
                   placeholder="e.g., Booking Confirmation - {{bookingId}}"
+                  className="text-sm"
                 />
               </div>
 
               <div>
-                <Label htmlFor="htmlContent">HTML Content</Label>
+                <Label htmlFor="htmlContent" className="text-sm">HTML Content</Label>
                 <Textarea
                   id="htmlContent"
                   name="htmlContent"
                   value={formData.htmlContent}
                   onChange={(e) => setFormData({...formData, htmlContent: e.target.value})}
                   placeholder="Enter your HTML email template..."
-                  className="min-h-[300px] font-mono text-sm"
+                  className="min-h-[200px] sm:min-h-[300px] font-mono text-xs sm:text-sm"
                 />
               </div>
 
               <div>
-                <Label htmlFor="textContent">Text Content (Optional)</Label>
+                <Label htmlFor="textContent" className="text-sm">Text Content (Optional)</Label>
                 <Textarea
                   id="textContent"
                   value={formData.textContent}
                   onChange={(e) => setFormData({...formData, textContent: e.target.value})}
                   placeholder="Plain text version of your email..."
-                  className="min-h-[100px]"
+                  className="min-h-[80px] sm:min-h-[100px] text-xs sm:text-sm"
                 />
               </div>
 
@@ -539,15 +547,15 @@ export default function EmailTemplateManagement() {
             {/* Shortcodes Section */}
             <div className="space-y-4">
               <div>
-                <h3 className="font-medium mb-3 flex items-center gap-2">
+                <h3 className="font-medium mb-3 flex items-center gap-2 text-sm sm:text-base">
                   <Code className="h-4 w-4" />
                   Available Shortcodes
                 </h3>
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                <div className="space-y-2 max-h-[300px] sm:max-h-[400px] overflow-y-auto">
                   {AVAILABLE_SHORTCODES.map((shortcode) => (
                     <div key={shortcode.code} className="p-2 border rounded cursor-pointer hover:bg-muted"
                          onClick={() => insertShortcode(shortcode.code)}>
-                      <code className="text-sm font-mono text-primary">{shortcode.code}</code>
+                      <code className="text-xs sm:text-sm font-mono text-primary">{shortcode.code}</code>
                       <p className="text-xs text-muted-foreground mt-1">{shortcode.description}</p>
                     </div>
                   ))}
@@ -559,18 +567,19 @@ export default function EmailTemplateManagement() {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t">
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-4 border-t">
             <Button variant="outline" onClick={() => {
               setShowCreateDialog(false);
               setShowEditDialog(false);
               setSelectedTemplate(null);
               resetForm();
-            }}>
+            }} className="w-full sm:w-auto">
               Cancel
             </Button>
             <Button 
               onClick={handleSubmit} 
               disabled={createMutation.isPending || updateMutation.isPending}
+              className="w-full sm:w-auto"
             >
               {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Template"}
             </Button>
@@ -580,26 +589,26 @@ export default function EmailTemplateManagement() {
 
       {/* Preview Dialog */}
       <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="max-w-4xl max-h-[90vh] w-[95vw] sm:w-full">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
+            <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
               Email Preview
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs sm:text-sm">
               Preview how the email will look with sample data
             </DialogDescription>
           </DialogHeader>
           
           <div className="border rounded-lg overflow-hidden">
             <div 
-              className="p-4 min-h-[400px] max-h-[500px] overflow-y-auto"
+              className="p-2 sm:p-4 min-h-[300px] sm:min-h-[400px] max-h-[400px] sm:max-h-[500px] overflow-y-auto text-xs sm:text-sm"
               dangerouslySetInnerHTML={{ __html: previewData }}
             />
           </div>
           
           <div className="flex justify-end">
-            <Button onClick={() => setShowPreviewDialog(false)}>
+            <Button onClick={() => setShowPreviewDialog(false)} className="w-full sm:w-auto text-sm">
               Close Preview
             </Button>
           </div>

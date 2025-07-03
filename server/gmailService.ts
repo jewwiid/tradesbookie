@@ -334,6 +334,44 @@ export async function sendInstallerNotification(installerEmail: string, installe
 }
 
 export async function sendAdminNotification(subject: string, content: string, data?: any): Promise<boolean> {
+  // Format booking data if provided
+  let formattedDataSection = '';
+  if (data) {
+    formattedDataSection = `
+      <div class="booking-details">
+        <h3>Booking Details</h3>
+        <div class="detail-row">
+          <span class="detail-label">Booking ID:</span>
+          <span>${data.qrCode || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Service Type:</span>
+          <span>${data.serviceType || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">TV Size:</span>
+          <span>${data.tvSize || 'N/A'}"</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Address:</span>
+          <span>${data.address || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Total Price:</span>
+          <span>€${data.totalPrice || data.estimatedTotal || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Installer Earnings:</span>
+          <span>€${data.installerEarnings || data.estimatedPrice || 'N/A'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Difficulty:</span>
+          <span>${data.difficulty || 'Standard'}</span>
+        </div>
+      </div>
+    `;
+  }
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -345,7 +383,9 @@ export async function sendAdminNotification(subject: string, content: string, da
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background: #343a46; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
         .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
-        .data-section { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; white-space: pre-wrap; font-family: monospace; font-size: 12px; }
+        .booking-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+        .detail-label { font-weight: bold; color: #666; }
         .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }
       </style>
     </head>
@@ -359,7 +399,7 @@ export async function sendAdminNotification(subject: string, content: string, da
         <div class="content">
           <div style="white-space: pre-wrap;">${content}</div>
           
-          ${data ? `<div class="data-section">${JSON.stringify(data, null, 2)}</div>` : ''}
+          ${formattedDataSection}
           
           <div class="footer">
             <p>Admin Dashboard: <a href="https://tradesbook.ie/admin">https://tradesbook.ie/admin</a></p>

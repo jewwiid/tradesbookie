@@ -545,6 +545,10 @@ The application now includes a robust fallback system. When the database is unav
 - July 3, 2025: **Added complete email template CRUD operations with preview functionality and test email capabilities**
 - July 3, 2025: **Enhanced admin dashboard with professional email template management interface using shortcodes for dynamic content**
 - July 3, 2025: **Email templates now support customizable sender addresses, reply-to fields, and comprehensive shortcode system for personalization**
+- July 3, 2025: **Fixed booking submission schema mismatch between frontend and backend causing validation errors**
+- July 3, 2025: **Updated frontend booking payload to match database schema (contactName, serviceType, estimatedPrice instead of serviceTierId, subtotal)**
+- July 3, 2025: **Resolved TypeScript validation errors in contact form and booking submission hooks**
+- July 3, 2025: **Fixed admin notification email format - replaced raw JSON data display with properly formatted booking details**
 
 ## User Preferences
 

@@ -530,6 +530,10 @@ The application now includes a robust fallback system. When the database is unav
 - July 3, 2025: **Added proper installer logout endpoints with session destruction and localStorage cleanup**
 - July 3, 2025: **Fixed OAuth authentication system for admin/customer users with proper session persistence**
 - July 3, 2025: **Implemented dual authentication architecture: OAuth for customers/admins, email/password for installers**
+- July 3, 2025: **Fixed hardcoded Dublin TV Solutions installer auto-creation issue**
+- July 3, 2025: **Added ENABLE_DEMO_DATA environment variable to control demo installer creation**
+- July 3, 2025: **Resolved referral codes crash in admin dashboard with proper error handling**
+- July 3, 2025: **Enhanced admin dashboard with safe array handling and user-friendly error messages**
 
 ## User Preferences
 

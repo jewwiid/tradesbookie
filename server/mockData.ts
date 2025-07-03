@@ -2,25 +2,30 @@ import { storage } from "./storage";
 
 export async function createMockProfiles() {
   try {
-    // Check if installer already exists
-    const existingInstaller = await storage.getInstallerByEmail("installer@demo.com");
-    
-    if (!existingInstaller) {
-      // Create mock installer profile
-      const mockInstaller = await storage.createInstaller({
-        email: "installer@demo.com",
-        phone: "+353851234567",
-        businessName: "Dublin TV Solutions",
-        contactName: "Michael O'Connor",
-        address: "15 Grafton Street, Dublin 2, Ireland",
-        isActive: true
-      });
-      console.log("Mock installer created:", mockInstaller.email);
-    } else {
-      console.log("Mock installer already exists");
-    }
+    // Only create demo installer if ENABLE_DEMO_DATA environment variable is set to 'true'
+    if (process.env.ENABLE_DEMO_DATA === 'true') {
+      // Check if installer already exists
+      const existingInstaller = await storage.getInstallerByEmail("installer@demo.com");
+      
+      if (!existingInstaller) {
+        // Create mock installer profile
+        const mockInstaller = await storage.createInstaller({
+          email: "installer@demo.com",
+          phone: "+353851234567",
+          businessName: "Dublin TV Solutions",
+          contactName: "Michael O'Connor",
+          address: "15 Grafton Street, Dublin 2, Ireland",
+          isActive: true
+        });
+        console.log("Mock installer created:", mockInstaller.email);
+      } else {
+        console.log("Mock installer already exists");
+      }
 
-    console.log("Mock credentials available for testing authentication");
+      console.log("Mock credentials available for testing authentication");
+    } else {
+      console.log("Demo data creation skipped (ENABLE_DEMO_DATA not set to 'true')");
+    }
   } catch (error) {
     console.error("Error creating mock profiles:", error);
   }

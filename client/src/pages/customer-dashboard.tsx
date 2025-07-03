@@ -1,22 +1,104 @@
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star } from 'lucide-react';
-import { Link } from 'wouter';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw } from 'lucide-react';
+import { Link, useLocation } from 'wouter';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+
+interface User {
+  id: number;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  role: string;
+  emailVerified?: boolean;
+  registrationMethod?: string;
+}
+
+interface Booking {
+  id: number;
+  qrCode: string;
+  address: string;
+  tvSize: string;
+  serviceType: string;
+  estimatedPrice: string;
+  status: string;
+  contactName: string;
+  createdAt?: string;
+}
 
 export default function CustomerDashboard() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState('');
+  const [sendingVerification, setSendingVerification] = useState(false);
+  const [showGuestUpgradeDialog, setShowGuestUpgradeDialog] = useState(false);
+
   // Get current user
-  const { data: user, isLoading: userLoading } = useQuery({
+  const { data: user, isLoading: userLoading, error: userError } = useQuery<User>({
     queryKey: ['/api/auth/user'],
     retry: false,
   });
 
-  // Get user's bookings
-  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
+  // Get user's bookings only if user exists
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
     queryKey: ['/api/customer/bookings'],
     enabled: !!user,
   });
+
+  const handleResendVerification = async () => {
+    if (!verificationEmail) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address to resend verification.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSendingVerification(true);
+    try {
+      const response = await apiRequest('POST', '/api/auth/send-verification', { email: verificationEmail }) as { message?: string };
+      
+      if (response.message) {
+        toast({
+          title: "Verification email sent",
+          description: response.message
+        });
+        setShowVerificationDialog(false);
+        setVerificationEmail('');
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to send verification",
+        description: "Please try again or contact support.",
+        variant: "destructive"
+      });
+    } finally {
+      setSendingVerification(false);
+    }
+  };
+
+  const handleSignUp = () => {
+    setLocation('/api/signup?returnTo=/customer-dashboard');
+  };
+
+  const handleSignIn = () => {
+    setLocation('/api/login?returnTo=/customer-dashboard');
+  };
+
+  const handleUpgradeAccount = () => {
+    setShowGuestUpgradeDialog(false);
+    setLocation('/api/signup?returnTo=/customer-dashboard');
+  };
 
   if (userLoading) {
     return (
@@ -29,30 +111,456 @@ export default function CustomerDashboard() {
     );
   }
 
-  if (!user) {
+  // Handle different user states
+  if (userError || !user) {
+    // User is not authenticated - show authentication options
     return (
-      <div className="min-h-screen gradient-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h1>
-          <p className="text-gray-600 mb-6">You need to be signed in to view your dashboard</p>
-          <Link href="/">
-            <Button>Go to Homepage</Button>
-          </Link>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Tv className="h-8 w-8 text-primary mr-3" />
+                <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
+              </div>
+              <Button variant="ghost" onClick={() => setLocation('/')}>
+                <Home className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <AlertTriangle className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Required</h2>
+            <p className="text-gray-600">Sign in to access your customer dashboard and view your bookings.</p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Sign In Card */}
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <LogIn className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                <CardTitle>Sign In</CardTitle>
+                <CardDescription>
+                  Access your existing account and view your bookings
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium mb-2">Sign in if you have:</p>
+                  <ul className="space-y-1">
+                    <li>• Existing bookings</li>
+                    <li>• A verified email account</li>
+                    <li>• Harvey Norman invoice</li>
+                  </ul>
+                </div>
+                <Button onClick={handleSignIn} className="w-full">
+                  Sign In to Dashboard
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Sign Up Card */}
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader className="text-center">
+                <UserPlus className="h-12 w-12 text-green-600 mx-auto mb-4" />
+                <CardTitle>Create Account</CardTitle>
+                <CardDescription>
+                  New customer? Create an account to get started
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium mb-2">Sign up to get:</p>
+                  <ul className="space-y-1">
+                    <li>• Full booking history</li>
+                    <li>• Email notifications</li>
+                    <li>• Priority support</li>
+                  </ul>
+                </div>
+                <Button onClick={handleSignUp} className="w-full" variant="outline">
+                  Create New Account
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Track Booking Alternative */}
+          <Card className="mt-6">
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <QrCode className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <h3 className="font-semibold mb-2">Track Your Booking</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Have a QR code or booking ID? Track your installation without signing in.
+                </p>
+                <Button onClick={() => setLocation('/booking-tracker')} variant="outline">
+                  Track Booking
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
 
+  // User is authenticated but email not verified
+  if (user.emailVerified === false) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Tv className="h-8 w-8 text-primary mr-3" />
+                <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
+              </div>
+              <Button variant="ghost" onClick={() => setLocation('/')}>
+                <Home className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center mb-8">
+            <Mail className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Email Verification Required</h2>
+            <p className="text-gray-600">Please verify your email address to access your full dashboard.</p>
+          </div>
+
+          <Card className="max-w-md mx-auto">
+            <CardContent className="pt-6">
+              <Alert className="mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Your email <strong>{user.email}</strong> needs to be verified to access all features.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Check your email inbox for a verification link, or click below to send a new one.
+                </p>
+                
+                <Button 
+                  onClick={() => setShowVerificationDialog(true)} 
+                  className="w-full"
+                  variant="outline"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Resend Verification Email
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Verification Dialog */}
+        <Dialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Resend Verification Email</DialogTitle>
+              <DialogDescription>
+                Enter your email address to receive a new verification link.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="verification-email">Email Address</Label>
+                <Input
+                  id="verification-email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={verificationEmail}
+                  onChange={(e) => setVerificationEmail(e.target.value)}
+                />
+              </div>
+              <div className="flex space-x-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setShowVerificationDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1"
+                  onClick={handleResendVerification}
+                  disabled={sendingVerification}
+                >
+                  {sendingVerification && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                  Send Verification
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
+  // Guest user - show upgrade prompt
+  if (user.registrationMethod === 'guest') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Tv className="h-8 w-8 text-primary mr-3" />
+                <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
+              </div>
+              <Button variant="ghost" onClick={() => setLocation('/')}>
+                <Home className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <Alert className="mb-6">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Guest Access:</strong> You're viewing a limited dashboard. 
+              <button 
+                onClick={() => setShowGuestUpgradeDialog(true)}
+                className="ml-1 text-blue-600 hover:underline"
+              >
+                Upgrade to full account
+              </button> for complete access.
+            </AlertDescription>
+          </Alert>
+
+          {/* Show bookings for guest user */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Your Bookings</h2>
+              <Button onClick={() => setLocation('/booking')} className="gradient-bg">
+                <Calendar className="w-4 h-4 mr-2" />
+                Book Installation
+              </Button>
+            </div>
+
+            {bookingsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading your bookings...</p>
+              </div>
+            ) : bookings.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6 text-center">
+                  <Tv className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2">No Bookings Yet</h3>
+                  <p className="text-gray-600 mb-4">
+                    Start by booking your first TV installation.
+                  </p>
+                  <Button onClick={() => setLocation('/booking')} className="gradient-bg">
+                    Book Your First Installation
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6">
+                {bookings.map((booking) => (
+                  <BookingCard key={booking.id} booking={booking} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Guest Upgrade Dialog */}
+        <Dialog open={showGuestUpgradeDialog} onOpenChange={setShowGuestUpgradeDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Upgrade to Full Account</DialogTitle>
+              <DialogDescription>
+                Get the complete tradesbook.ie experience with a full account.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Guest Access</h4>
+                  <ul className="text-gray-600 space-y-1">
+                    <li>• Limited bookings</li>
+                    <li>• Basic tracking</li>
+                    <li>• No email notifications</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Full Account</h4>
+                  <ul className="text-green-600 space-y-1">
+                    <li>• Unlimited bookings</li>
+                    <li>• Complete history</li>
+                    <li>• Email notifications</li>
+                    <li>• Priority support</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => setShowGuestUpgradeDialog(false)}
+                >
+                  Continue as Guest
+                </Button>
+                <Button 
+                  className="flex-1"
+                  onClick={handleUpgradeAccount}
+                >
+                  Upgrade Account
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
+  // Full authenticated user - show complete dashboard
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Tv className="h-8 w-8 text-primary mr-3" />
+              <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">Welcome, {user.firstName || user.email}</span>
+              <Button variant="ghost" onClick={() => setLocation('/')}>
+                <Home className="w-5 h-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Welcome Banner */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Welcome to your Dashboard</h2>
+              <p className="text-blue-100">
+                Manage your TV installation bookings and track your requests.
+              </p>
+            </div>
+            <div className="hidden md:block">
+              <User className="h-16 w-16 text-blue-200" />
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <Calendar className="h-8 w-8 text-blue-500 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Total Bookings</p>
+                  <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <CheckCircle className="h-8 w-8 text-green-500 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Completed</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {bookings.filter(b => b.status === 'completed').length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center">
+                <Clock className="h-8 w-8 text-orange-500 mr-3" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">In Progress</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {bookings.filter(b => ['open', 'confirmed', 'in-progress'].includes(b.status)).length}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Bookings Section */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Your Bookings</h2>
+            <Button onClick={() => setLocation('/booking')} className="gradient-bg">
+              <Calendar className="w-4 h-4 mr-2" />
+              Book Installation
+            </Button>
+          </div>
+
+          {bookingsLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading your bookings...</p>
+            </div>
+          ) : bookings.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <Tv className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">No Bookings Yet</h3>
+                <p className="text-gray-600 mb-4">
+                  Start by booking your first TV installation.
+                </p>
+                <Button onClick={() => setLocation('/booking')} className="gradient-bg">
+                  Book Your First Installation
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-6">
+              {bookings.map((booking) => (
+                <BookingCard key={booking.id} booking={booking} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Booking Card Component
+function BookingCard({ booking }: { booking: Booking }) {
+  const [, setLocation] = useLocation();
+
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'confirmed':
-        return 'bg-blue-100 text-blue-800';
-      case 'in-progress':
-        return 'bg-purple-100 text-purple-800';
+    switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800';
+      case 'confirmed':
+      case 'in-progress':
+        return 'bg-blue-100 text-blue-800';
+      case 'open':
+        return 'bg-yellow-100 text-yellow-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
@@ -60,197 +568,77 @@ export default function CustomerDashboard() {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'open':
+        return 'Request Submitted';
+      case 'confirmed':
+        return 'Installer Assigned';
+      case 'in-progress':
+        return 'Installation in Progress';
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-600" />;
+        return 'Completed';
+      case 'cancelled':
+        return 'Cancelled';
       default:
-        return <AlertCircle className="w-4 h-4 text-blue-600" />;
+        return status;
     }
   };
 
   return (
-    <div className="min-h-screen gradient-background">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.firstName || user.email}!
-          </h1>
-          <p className="text-gray-600">
-            Manage your TV installation requests and track progress
-          </p>
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardContent className="pt-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-lg text-gray-900">
+              {booking.tvSize}" TV Installation
+            </h3>
+            <p className="text-sm text-gray-600">{booking.address}</p>
+          </div>
+          <Badge className={getStatusColor(booking.status)}>
+            {getStatusText(booking.status)}
+          </Badge>
         </div>
 
-        {/* User Info Card */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="w-5 h-5 mr-2" />
-              Account Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="flex items-center">
-                <Mail className="w-4 h-4 mr-2 text-gray-500" />
-                <span>{user.email}</span>
-              </div>
-              {user.phone && (
-                <div className="flex items-center">
-                  <Phone className="w-4 h-4 mr-2 text-gray-500" />
-                  <span>{user.phone}</span>
-                </div>
-              )}
-              <div>
-                <span className="text-sm text-gray-500">Registration Method: </span>
-                <Badge variant="outline" className="capitalize">
-                  {user.registrationMethod || 'OAuth'}
-                </Badge>
-              </div>
-              {user.harveyNormanInvoiceNumber && (
-                <div>
-                  <span className="text-sm text-gray-500">Harvey Norman Invoice: </span>
-                  <span className="font-mono text-sm">{user.harveyNormanInvoiceNumber}</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div className="flex items-center">
+            <Tv className="h-4 w-4 text-gray-400 mr-2" />
+            <span className="text-sm text-gray-600">{booking.serviceType}</span>
+          </div>
+          <div className="flex items-center">
+            <Euro className="h-4 w-4 text-gray-400 mr-2" />
+            <span className="text-sm text-gray-600">€{booking.estimatedPrice}</span>
+          </div>
+          <div className="flex items-center">
+            <Clock className="h-4 w-4 text-gray-400 mr-2" />
+            <span className="text-sm text-gray-600">
+              {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString() : 'N/A'}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <User className="h-4 w-4 text-gray-400 mr-2" />
+            <span className="text-sm text-gray-600">{booking.contactName}</span>
+          </div>
+        </div>
 
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <Star className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="font-semibold mb-2">New Installation</h3>
-              <p className="text-sm text-gray-600 mb-4">Book a new TV installation with AI preview</p>
-              <Link href="/booking">
-                <Button className="w-full">Book Now</Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="font-semibold mb-2">My Bookings</h3>
-              <p className="text-sm text-gray-600 mb-4">View and manage your requests</p>
-              <Button variant="outline" className="w-full">
-                {bookings.length} Active Request{bookings.length !== 1 ? 's' : ''}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            {booking.qrCode && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation(`/track/${booking.qrCode}`)}
+              >
+                <QrCode className="w-4 h-4 mr-2" />
+                Track
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6 text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <User className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold mb-2">Support</h3>
-              <p className="text-sm text-gray-600 mb-4">Get help with your installations</p>
-              <Button variant="outline" className="w-full">Contact Support</Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Bookings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Installation Requests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {bookingsLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading your requests...</p>
-              </div>
-            ) : bookings.length === 0 ? (
-              <div className="text-center py-8">
-                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No installation requests yet</h3>
-                <p className="text-gray-600 mb-4">
-                  Ready to mount your TV? Create your first installation request with our AI preview system.
-                </p>
-                <Link href="/booking">
-                  <Button>Book Your First Installation</Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {bookings.map((booking: any) => (
-                  <Card key={booking.id} className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <h3 className="font-semibold text-lg">{booking.tvSize}" TV Installation</h3>
-                          <p className="text-gray-600">{booking.serviceType} • {booking.wallType} Wall</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {getStatusIcon(booking.status)}
-                          <Badge className={getStatusColor(booking.status)}>
-                            {booking.status === 'pending' ? 'Request Submitted' : booking.status}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-4 mb-4">
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                          <span className="text-sm">{booking.address}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Clock className="w-4 h-4 mr-2 text-gray-500" />
-                          <span className="text-sm">
-                            {booking.scheduledDate ? 
-                              new Date(booking.scheduledDate).toLocaleDateString() : 
-                              'Flexible scheduling'
-                            }
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                        <h4 className="font-medium text-blue-900 mb-2">Lead Generation Model</h4>
-                        <p className="text-sm text-blue-800">
-                          Your installation request is live on our platform. Local installers can view and 
-                          accept your request. You'll pay the installer directly using:
-                        </p>
-                        <div className="flex items-center mt-2 text-sm text-blue-800">
-                          <span className="font-medium">Cash • Card • Bank Transfer</span>
-                        </div>
-                      </div>
-
-                      {booking.estimatedTotal && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-gray-600">Estimated Cost:</span>
-                          <span className="font-semibold">From €{booking.estimatedTotal}</span>
-                        </div>
-                      )}
-
-                      {booking.qrCode && (
-                        <div className="mt-4 pt-4 border-t">
-                          <Button variant="outline" size="sm">
-                            <Link href={`/track/${booking.qrCode}`}>
-                              Track Installation
-                            </Link>
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          </div>
+          <div className="text-xs text-gray-500">
+            ID: {booking.qrCode || booking.id}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

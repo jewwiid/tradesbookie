@@ -32,6 +32,8 @@ export interface BookingData {
   addonTotal: number;
   total: number;
   appFee: number;
+  referralCode?: string;
+  referralDiscount?: number;
 }
 
 const initialBookingData: BookingData = {
@@ -125,6 +127,7 @@ export const useBooking = () => {
         referralCode: bookingData.referralCode || null,
         referralDiscount: bookingData.referralDiscount ? bookingData.referralDiscount.toFixed(2) : "0.00",
       };
+
 
       const response = await apiRequest('POST', '/api/bookings', bookingPayload);
       const result = await response.json();

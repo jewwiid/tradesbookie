@@ -549,6 +549,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 3, 2025: **Updated frontend booking payload to match database schema (contactName, serviceType, estimatedPrice instead of serviceTierId, subtotal)**
 - July 3, 2025: **Resolved TypeScript validation errors in contact form and booking submission hooks**
 - July 3, 2025: **Fixed admin notification email format - replaced raw JSON data display with properly formatted booking details**
+- July 3, 2025: **Resolved critical booking validation errors preventing submission: fixed roomAnalysis object-to-string conversion and added missing referralDiscount field handling**
+- July 3, 2025: **Updated Drizzle schema validation to properly handle roomAnalysis and referralDiscount field types with correct string formatting**
 
 ## User Preferences
 

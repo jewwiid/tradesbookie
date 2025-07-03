@@ -6814,6 +6814,188 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // OAuth authentication middleware
+  function requireAuth(req: Request, res: Response, next: NextFunction) {
+    if (!req.user) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+    next();
+  }
+
+  // Installer authentication middleware
+  function requireInstallerAuth(req: Request, res: Response, next: NextFunction) {
+    const installerUser = (req as any).installerUser;
+    if (!installerUser) {
+      return res.status(401).json({ error: 'Installer authentication required' });
+    }
+    next();
+  }
+
+  // Fraud Prevention API Endpoints
+  
+  // Customer verification endpoints
+  app.post('/api/fraud-prevention/verify-phone/:bookingId', async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const { phoneNumber } = req.body;
+      
+      const { fraudPreventionService } = await import('./fraudPreventionService');
+      const result = await fraudPreventionService.initiatePhoneVerification(
+        parseInt(bookingId), 
+        phoneNumber
+      );
+      
+      if (result.success) {
+        res.json({ 
+          success: true, 
+          message: 'Verification code sent to your phone',
+          // Only include code in development
+          ...(process.env.NODE_ENV === 'development' && { verificationCode: result.verificationCode })
+        });
+      } else {
+        res.status(500).json({ error: 'Failed to send verification code' });
+      }
+    } catch (error) {
+      console.error('Error initiating phone verification:', error);
+      res.status(500).json({ error: 'Failed to initiate verification' });
+    }
+  });
+
+  app.post('/api/fraud-prevention/confirm-phone/:bookingId', async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const { code } = req.body;
+      
+      const { fraudPreventionService } = await import('./fraudPreventionService');
+      const verified = await fraudPreventionService.verifyPhoneCode(
+        parseInt(bookingId), 
+        code
+      );
+      
+      if (verified) {
+        res.json({ success: true, message: 'Phone number verified successfully' });
+      } else {
+        res.status(400).json({ error: 'Invalid verification code' });
+      }
+    } catch (error) {
+      console.error('Error confirming phone verification:', error);
+      res.status(500).json({ error: 'Failed to verify code' });
+    }
+  });
+
+  // Quality assessment endpoint
+  app.get('/api/fraud-prevention/assess-quality/:bookingId', async (req, res) => {
+    try {
+      const { bookingId } = req.params;
+      const userId = req.user?.id;
+      
+      const { fraudPreventionService } = await import('./fraudPreventionService');
+      const assessment = await fraudPreventionService.assessCustomerQuality(
+        parseInt(bookingId), 
+        userId
+      );
+      
+      res.json(assessment);
+    } catch (error) {
+      console.error('Error assessing quality:', error);
+      res.status(500).json({ error: 'Failed to assess quality' });
+    }
+  });
+
+  // Lead refund endpoints for installers
+  app.post('/api/fraud-prevention/request-refund', requireInstallerAuth, async (req, res) => {
+    try {
+      const installer = req.installerUser;
+      const { bookingId, reason, evidence, installerNotes } = req.body;
+      
+      if (!installer) {
+        return res.status(401).json({ error: 'Installer authentication required' });
+      }
+      
+      const { fraudPreventionService } = await import('./fraudPreventionService');
+      const result = await fraudPreventionService.processLeadRefund(
+        installer.id,
+        parseInt(bookingId),
+        { reason, evidence, installerNotes }
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error requesting refund:', error);
+      res.status(500).json({ error: 'Failed to process refund request' });
+    }
+  });
+
+  app.get('/api/fraud-prevention/refund-eligibility/:bookingId', requireInstallerAuth, async (req, res) => {
+    try {
+      const installer = req.installerUser;
+      const { bookingId } = req.params;
+      const { reason } = req.query;
+      
+      if (!installer) {
+        return res.status(401).json({ error: 'Installer authentication required' });
+      }
+      
+      const { fraudPreventionService } = await import('./fraudPreventionService');
+      const eligibility = await fraudPreventionService.assessRefundEligibility(
+        installer.id,
+        parseInt(bookingId),
+        reason as string
+      );
+      
+      res.json(eligibility);
+    } catch (error) {
+      console.error('Error checking refund eligibility:', error);
+      res.status(500).json({ error: 'Failed to check eligibility' });
+    }
+  });
+
+  // Admin fraud prevention endpoints
+  app.get('/api/admin/fraud-prevention/refund-requests', requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const { status } = req.query;
+      const { fraudPreventionService } = await import('./fraudPreventionService');
+      const requests = await fraudPreventionService.getRefundRequests(status as string);
+      
+      res.json(requests);
+    } catch (error) {
+      console.error('Error getting refund requests:', error);
+      res.status(500).json({ error: 'Failed to get refund requests' });
+    }
+  });
+
+  app.post('/api/admin/fraud-prevention/approve-refund/:refundId', requireAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user || user.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const { refundId } = req.params;
+      const { adminNotes } = req.body;
+      
+      const { fraudPreventionService } = await import('./fraudPreventionService');
+      const success = await fraudPreventionService.approveRefund(
+        parseInt(refundId),
+        adminNotes
+      );
+      
+      if (success) {
+        res.json({ success: true, message: 'Refund approved and processed' });
+      } else {
+        res.status(400).json({ error: 'Failed to approve refund' });
+      }
+    } catch (error) {
+      console.error('Error approving refund:', error);
+      res.status(500).json({ error: 'Failed to approve refund' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

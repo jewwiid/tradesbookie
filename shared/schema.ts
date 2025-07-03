@@ -354,6 +354,156 @@ export const declinedRequests = pgTable("declined_requests", {
   declinedAt: timestamp("declined_at").defaultNow(),
 });
 
+// Lead Quality Tracking - Prevents false leads and manipulation
+export const leadQualityTracking = pgTable("lead_quality_tracking", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  installerId: integer("installer_id").references(() => installers.id),
+  
+  // Customer verification checks
+  phoneVerified: boolean("phone_verified").default(false),
+  phoneVerificationDate: timestamp("phone_verification_date"),
+  emailVerified: boolean("email_verified").default(false),
+  emailVerificationDate: timestamp("email_verification_date"),
+  
+  // Customer responsiveness tracking
+  initialContactMade: boolean("initial_contact_made").default(false),
+  initialContactDate: timestamp("initial_contact_date"),
+  customerResponded: boolean("customer_responded").default(false),
+  customerResponseDate: timestamp("customer_response_date"),
+  responseTimeHours: integer("response_time_hours"), // How long customer took to respond
+  
+  // Quality scoring
+  qualityScore: integer("quality_score").default(0), // 0-100 quality rating
+  riskLevel: text("risk_level").default("unknown"), // low, medium, high, verified
+  
+  // Fraud prevention flags
+  suspiciousActivity: boolean("suspicious_activity").default(false),
+  multipleBookingsSameDetails: boolean("multiple_bookings_same_details").default(false),
+  rapidCancellation: boolean("rapid_cancellation").default(false),
+  offPlatformNegotiation: boolean("off_platform_negotiation").default(false),
+  
+  // Installer behavior tracking
+  installerContacted: boolean("installer_contacted").default(false),
+  installerContactDate: timestamp("installer_contact_date"),
+  installerResponseReceived: boolean("installer_response_received").default(false),
+  installerGhosted: boolean("installer_ghosted").default(false),
+  
+  // Completion tracking
+  meetingScheduled: boolean("meeting_scheduled").default(false),
+  meetingCompleted: boolean("meeting_completed").default(false),
+  jobCompleted: boolean("job_completed").default(false),
+  
+  // Admin review
+  adminReviewed: boolean("admin_reviewed").default(false),
+  adminNotes: text("admin_notes"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Customer Verification System - Enhanced verification to prevent fake bookings
+export const customerVerification = pgTable("customer_verification", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  
+  // Phone verification
+  phoneNumber: text("phone_number").notNull(),
+  phoneVerificationCode: text("phone_verification_code"),
+  phoneVerified: boolean("phone_verified").default(false),
+  phoneVerificationAttempts: integer("phone_verification_attempts").default(0),
+  phoneVerificationDate: timestamp("phone_verification_date"),
+  
+  // Identity verification
+  identityVerified: boolean("identity_verified").default(false),
+  identityVerificationMethod: text("identity_verification_method"), // sms, email, invoice, manual
+  
+  // Risk assessment
+  ipAddress: text("ip_address"),
+  deviceFingerprint: text("device_fingerprint"),
+  locationConsistent: boolean("location_consistent").default(true),
+  historicalBookings: integer("historical_bookings").default(0),
+  previousCancellations: integer("previous_cancellations").default(0),
+  
+  // Verification status
+  verificationLevel: text("verification_level").default("basic"), // basic, standard, premium, verified
+  trustScore: integer("trust_score").default(50), // 0-100 trust rating
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Anti-Manipulation System - Prevents off-platform negotiations and booking abuse
+export const antiManipulation = pgTable("anti_manipulation", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  installerId: integer("installer_id").references(() => installers.id),
+  
+  // Communication monitoring flags
+  suspiciousContactPattern: boolean("suspicious_contact_pattern").default(false),
+  rapidBookingCancellation: boolean("rapid_booking_cancellation").default(false),
+  priceDiscrepancyReported: boolean("price_discrepancy_reported").default(false),
+  offPlatformContactSuspected: boolean("off_platform_contact_suspected").default(false),
+  
+  // Behavioral analysis
+  unusualTimeToContact: boolean("unusual_time_to_contact").default(false),
+  suspiciousLocationChange: boolean("suspicious_location_change").default(false),
+  multipleAccountsDetected: boolean("multiple_accounts_detected").default(false),
+  
+  // QR code abuse prevention
+  qrCodeShared: boolean("qr_code_shared").default(false),
+  qrCodeAccessedMultipleTimes: integer("qr_code_accessed_multiple_times").default(0),
+  qrCodeAccessLocations: jsonb("qr_code_access_locations").default([]),
+  
+  // Customer-installer collusion detection
+  suspiciousNegotiation: boolean("suspicious_negotiation").default(false),
+  rapidStatusChanges: integer("rapid_status_changes").default(0),
+  inconsistentPaymentMethod: boolean("inconsistent_payment_method").default(false),
+  
+  // Administrative actions
+  flaggedForReview: boolean("flagged_for_review").default(false),
+  adminActionTaken: text("admin_action_taken"),
+  reviewNotes: text("review_notes"),
+  resolved: boolean("resolved").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Lead Refund System - Protects installers from false leads
+export const leadRefunds = pgTable("lead_refunds", {
+  id: serial("id").primaryKey(),
+  installerId: integer("installer_id").references(() => installers.id),
+  bookingId: integer("booking_id").references(() => bookings.id),
+  originalLeadFee: decimal("original_lead_fee", { precision: 8, scale: 2 }).notNull(),
+  
+  // Refund reason
+  refundReason: text("refund_reason").notNull(), // customer_unresponsive, fake_booking, customer_ghosted, technical_issue
+  refundAmount: decimal("refund_amount", { precision: 8, scale: 2 }).notNull(),
+  refundType: text("refund_type").default("credit"), // credit, stripe_refund, manual
+  
+  // Evidence and documentation
+  evidenceProvided: text("evidence_provided"),
+  installerNotes: text("installer_notes"),
+  adminNotes: text("admin_notes"),
+  communicationLogs: jsonb("communication_logs").default([]),
+  
+  // Processing
+  requestedDate: timestamp("requested_date").defaultNow(),
+  reviewedDate: timestamp("reviewed_date"),
+  processedDate: timestamp("processed_date"),
+  status: text("status").default("pending"), // pending, approved, denied, processed
+  reviewedBy: text("reviewed_by"), // Admin who reviewed the refund
+  
+  // Fraud prevention
+  automaticApproval: boolean("automatic_approval").default(false), // System automatically approved based on criteria
+  fraudCheckPassed: boolean("fraud_check_passed").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -462,6 +612,50 @@ export const declinedRequestsRelations = relations(declinedRequests, ({ one }) =
   }),
   booking: one(bookings, {
     fields: [declinedRequests.bookingId],
+    references: [bookings.id],
+  }),
+}));
+
+export const leadQualityTrackingRelations = relations(leadQualityTracking, ({ one }) => ({
+  booking: one(bookings, {
+    fields: [leadQualityTracking.bookingId],
+    references: [bookings.id],
+  }),
+  installer: one(installers, {
+    fields: [leadQualityTracking.installerId],
+    references: [installers.id],
+  }),
+}));
+
+export const customerVerificationRelations = relations(customerVerification, ({ one }) => ({
+  user: one(users, {
+    fields: [customerVerification.userId],
+    references: [users.id],
+  }),
+  booking: one(bookings, {
+    fields: [customerVerification.bookingId],
+    references: [bookings.id],
+  }),
+}));
+
+export const antiManipulationRelations = relations(antiManipulation, ({ one }) => ({
+  booking: one(bookings, {
+    fields: [antiManipulation.bookingId],
+    references: [bookings.id],
+  }),
+  installer: one(installers, {
+    fields: [antiManipulation.installerId],
+    references: [installers.id],
+  }),
+}));
+
+export const leadRefundsRelations = relations(leadRefunds, ({ one }) => ({
+  installer: one(installers, {
+    fields: [leadRefunds.installerId],
+    references: [installers.id],
+  }),
+  booking: one(bookings, {
+    fields: [leadRefunds.bookingId],
     references: [bookings.id],
   }),
 }));

@@ -67,6 +67,7 @@ import { z } from "zod";
 import QRCode from "@/components/QRCode";
 import PricingManagement from "@/components/admin/PricingManagement";
 import WallMountPricingManagement from "@/components/admin/WallMountPricingManagement";
+import FraudPreventionDashboard from "@/components/FraudPreventionDashboard";
 
 interface AdminStats {
   totalBookings: number;
@@ -4492,7 +4493,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-10 gap-1 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-11 gap-1 h-auto p-1">
             <TabsTrigger value="overview" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
               <BarChart3 className="w-4 h-4 md:w-4 md:h-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -4542,6 +4543,11 @@ export default function AdminDashboard() {
               <Mail className="w-4 h-4 md:w-4 md:h-4" />
               <span className="hidden sm:inline">Email Templates</span>
               <span className="sm:hidden">Emails</span>
+            </TabsTrigger>
+            <TabsTrigger value="fraud-prevention" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Shield className="w-4 h-4 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Fraud Prevention</span>
+              <span className="sm:hidden">Security</span>
             </TabsTrigger>
             <TabsTrigger value="banned" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
               <Ban className="w-4 h-4 md:w-4 md:h-4" />
@@ -4593,6 +4599,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="emails" className="space-y-6">
             <EmailTemplateManagement />
+          </TabsContent>
+
+          <TabsContent value="fraud-prevention" className="space-y-6">
+            <FraudPreventionDashboard />
           </TabsContent>
 
           <TabsContent value="banned" className="space-y-6">

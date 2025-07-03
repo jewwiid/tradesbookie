@@ -1113,8 +1113,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           completedDate: jobAssignment.completedDate
         } : null,
         contact: {
-          name: booking.customerName,
-          phone: booking.customerPhone
+          name: booking.contactName,
+          phone: booking.contactPhone
         }
       };
       

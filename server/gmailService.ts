@@ -136,7 +136,7 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
   const subject = `Booking Confirmation - ${bookingDetails.qrCode}`;
   
   // Generate QR code image for email
-  const qrCodeURL = `${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : 'http://localhost:5000'}/track/${bookingDetails.qrCode}`;
+  const qrCodeURL = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${bookingDetails.qrCode}`;
   console.log('QR tracking URL:', qrCodeURL);
   const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
   console.log('QR code image generated for email:', qrCodeImage ? 'SUCCESS' : 'FAILED');
@@ -237,7 +237,7 @@ export async function sendInstallerNotification(installerEmail: string, installe
   const subject = `New Installation Request - ${bookingDetails.qrCode}`;
   
   // Generate QR code image for installer email
-  const qrCodeURL = `${process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.app` : 'http://localhost:5000'}/track/${bookingDetails.qrCode}`;
+  const qrCodeURL = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${bookingDetails.qrCode}`;
   const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
   
   const html = `

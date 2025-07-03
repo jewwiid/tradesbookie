@@ -63,7 +63,7 @@ export default function QRTracking() {
   const { qrCode } = useParams();
 
   const { data: booking, isLoading, error } = useQuery<BookingDetails>({
-    queryKey: ["/api/bookings/qr", qrCode],
+    queryKey: [`/api/bookings/qr/${qrCode}`],
     enabled: !!qrCode,
     refetchInterval: 30000, // Refresh every 30 seconds
   });

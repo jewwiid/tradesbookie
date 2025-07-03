@@ -1,0 +1,111 @@
+"f…
+Deserializing user ID: 42442296
+Deserialized user: { id: 42442296, email: 'jude.okun@gmail.com', role: 'admin' }
+Raw booking data before processing: {
+  "userId": "42442296",
+  "contactName": "Jude Okun",
+  "contactPhone": "+353851159264",
+  "contactEmail": "jude.okun@gmail.com",
+  "tvSize": "43",
+  "serviceType": "silver",
+  "wallType": "brick",
+  "mountType": "tilting",
+  "needsWallMount": false,
+  "wallMountOption": null,
+  "addons": [
+    {
+      "key": "soundbar-install",
+      "name": "Soundbar Installation",
+      "price": 39
+    }
+  ],
+  "preferredDate": "2025-07-04",
+  "preferredTime": "11:00",
+  "address": "17 The Walk, Carrickmines, Dublin, D18X704",
+  "roomPhotoUrl": null,
+  "aiPreviewUrl": null,
+  "roomAnalysis": null,
+  "photoStorageConsent": false,
+  "estimatedPrice": "0.00",
+  "estimatedAddonsPrice": "0.00",
+  "estimatedTotal": "0.00",
+  "customerNotes": null,
+  "referralCode": null,
+  "referralDiscount": 0
+}
+Raw data after processing: {
+  roomAnalysis: null,
+  roomAnalysisType: 'object',
+  referralDiscount: 0,
+  referralDiscountType: 'number'
+}
+QR tracking URL: https://workspace.replit.app/track/BK-hK75xZtKv3
+Generating QR code for: https://workspace.replit.app/track/BK-hK75xZtKv3
+QR code generated successfully, length: 2474
+QR code image generated for email: SUCCESS
+Gmail service: Checking OAuth token...
+Gmail service: Access token obtained successfully
+Gmail service: Sending email to jude.okun@gmail.com with subject "Booking Confirmation - BK-hK75xZtKv3"
+Gmail API response: {
+  id: '197d0b7118dd7c83',
+  threadId: '197d0b7118dd7c83',
+  labelIds: [ 'SENT' ]
+}
+Gmail verification: Could not verify message in sent items
+Generating QR code for: https://workspace.replit.app/track/BK-hK75xZtKv3
+QR code generated successfully, length: 2474
+Gmail service: Checking OAuth token...
+Gmail service: Access token obtained successfully
+Gmail service: Sending email to installer@tradesbook.ie with subject "New Installation Request - BK-hK75xZtKv3"
+Gmail API response: {
+  id: '197d0b71307578d6',
+  threadId: '197d0b71307578d6',
+  labelIds: [ 'SENT' ]
+}
+Gmail verification: Could not verify message in sent items
+Generating QR code for: https://workspace.replit.app/track/BK-hK75xZtKv3
+QR code generated successfully, length: 2474
+Gmail service: Checking OAuth token...
+Gmail service: Access token obtained successfully
+Gmail service: Sending email to installer@tradesbook.ie with subject "New Installation Request - BK-hK75xZtKv3"
+Gmail API response: {
+  id: '197d0b715b3419a9',
+  threadId: '197d0b715b3419a9',
+  labelIds: [ 'SENT' ]
+}
+Gmail verification: Could not verify message in sent items
+Generating QR code for: https://workspace.replit.app/track/BK-hK75xZtKv3
+QR code generated successfully, length: 2474
+Gmail service: Checking OAuth token...
+Gmail service: Access token obtained successfully
+Gmail service: Sending email to installer@tradesbook.ie with subject "New Installation Request - BK-hK75xZtKv3"
+Gmail API response: {
+  id: '197d0b7170e89395',
+  threadId: '197d0b7170e89395',
+  labelIds: [ 'SENT' ]
+}
+Gmail verification: Could not verify message in sent items
+Generating QR code for: https://workspace.replit.app/track/BK-hK75xZtKv3
+QR code generated successfully, length: 2474
+Gmail service: Checking OAuth token...
+Gmail service: Access token obtained successfully
+Gmail service: Sending email to installer@tradesbook.ie with subject "New Installation Request - BK-hK75xZtKv3"
+Gmail API response: {
+  id: '197d0b717acc108c',
+  threadId: '197d0b717acc108c',
+  labelIds: [ 'SENT' ]
+}
+Gmail verification: Could not verify message in sent items
+Gmail service: Checking OAuth token...
+Gmail service: Access token obtained successfully
+Gmail service: Sending email to admin@tradesbook.ie with subject "[tradesbook.ie] New Booking Created"
+Gmail API response: {
+  id: '197d0b71b9a2ffc6',
+  threadId: '197d0b71b9a2ffc6',
+  labelIds: [ 'SENT' ]
+}
+Gmail verification: Could not verify message in sent items
+2:35:50 PM [express] POST /api/bookings 200 in 3838ms :: {"booking":{"id":3696,"userId":42442296,"in…
+Deserializing user ID: 42442296
+Deserialized user: { id: 42442296, email: 'jude.okun@gmail.com', role: 'admin' }
+2:35:51 PM [express] GET /api/bookings 200 in 182ms

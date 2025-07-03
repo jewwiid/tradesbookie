@@ -19,7 +19,7 @@ export default function BookingConfirmation() {
   }, []);
 
   const { data: booking, isLoading, error } = useQuery({
-    queryKey: ['/api/bookings', bookingId],
+    queryKey: [`/api/bookings/${bookingId}`],
     enabled: !!bookingId,
   });
 

@@ -37,6 +37,7 @@ import DemoLogin from "@/pages/demo-login";
 import CreditCheckout from "@/pages/credit-checkout";
 import BookingTracker from "@/pages/booking-tracker";
 
+
 function Router() {
   return (
     <Switch>
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/review/:qrCode" component={ReviewPage} />
       <Route path="/refer" component={ReferralPage} />
       <Route path="/verify-email" component={VerifyEmail} />
+
       <Route path="/maps-demo" component={MapsDemo} />
       <Route path="/demo-login" component={DemoLogin} />
       

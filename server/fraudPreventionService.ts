@@ -1,4 +1,9 @@
 import { db } from './db';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-06-20',
+});
 import { 
   leadQualityTracking, 
   customerVerification, 
@@ -10,7 +15,7 @@ import {
   installerWallets,
   installerTransactions
 } from '../shared/schema';
-import { eq, and, count, gte, desc, sql } from 'drizzle-orm';
+import { eq, and, count, gte, desc, sql, avg } from 'drizzle-orm';
 
 export interface QualityAssessment {
   qualityScore: number;
@@ -546,6 +551,197 @@ export class FraudPreventionService {
     } catch (error) {
       console.error('Error approving refund:', error);
       return false;
+    }
+  }
+
+  // Stripe Integration Methods
+  async trackPaymentFraud(paymentIntentId: string, bookingId: number): Promise<void> {
+    try {
+      if (!paymentIntentId) return;
+
+      // Get payment intent from Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      // Analyze payment patterns for fraud indicators
+      const riskScore = this.calculatePaymentRiskScore(paymentIntent);
+      
+      if (riskScore > 0.7) {
+        await this.flagAntiManipulation(bookingId, undefined, 'high_risk_payment', true);
+        
+        // Update quality tracking
+        await this.updateQualityTracking(bookingId, {
+          qualityScore: Math.max(0, 50 - (riskScore * 50)),
+          riskLevel: 'high',
+          requiresVerification: true
+        });
+      }
+    } catch (error) {
+      console.error('Error tracking payment fraud:', error);
+    }
+  }
+
+  private calculatePaymentRiskScore(paymentIntent: any): number {
+    let riskScore = 0;
+
+    // Check for failed attempts
+    if (paymentIntent.charges?.data?.[0]?.outcome?.risk_level === 'highest') {
+      riskScore += 0.5;
+    }
+
+    // Check for disputed payments
+    if (paymentIntent.charges?.data?.[0]?.disputed) {
+      riskScore += 0.8;
+    }
+
+    // Check payment method risk
+    const paymentMethod = paymentIntent.charges?.data?.[0]?.payment_method_details;
+    if (paymentMethod?.card?.funding === 'prepaid') {
+      riskScore += 0.3;
+    }
+
+    return Math.min(riskScore, 1.0);
+  }
+
+  async processStripeRefund(refundId: number, amount: number): Promise<boolean> {
+    try {
+      const refundRecord = await db.select().from(leadRefunds).where(eq(leadRefunds.id, refundId)).limit(1);
+      
+      if (refundRecord.length === 0) return false;
+
+      const booking = await db.select().from(bookings).where(eq(bookings.id, refundRecord[0].bookingId)).limit(1);
+      
+      if (booking.length === 0 || !booking[0].paymentIntentId) return false;
+
+      // Create Stripe refund
+      const stripeRefund = await stripe.refunds.create({
+        payment_intent: booking[0].paymentIntentId,
+        amount: Math.round(amount * 100), // Convert to cents
+        reason: 'requested_by_customer',
+        metadata: {
+          refund_id: refundId.toString(),
+          booking_id: refundRecord[0].bookingId.toString()
+        }
+      });
+
+      // Update refund record with Stripe ID
+      await db.update(leadRefunds)
+        .set({
+          stripeRefundId: stripeRefund.id,
+          status: 'processed',
+          processedAt: new Date()
+        })
+        .where(eq(leadRefunds.id, refundId));
+
+      return true;
+    } catch (error) {
+      console.error('Error processing Stripe refund:', error);
+      return false;
+    }
+  }
+
+  // Real Data Analytics Methods
+  async getRealQualityMetrics(): Promise<any> {
+    try {
+      const totalBookings = await db.select({ count: count() }).from(bookings);
+      
+      const verifiedBookings = await db.select({ count: count() })
+        .from(leadQualityTracking)
+        .where(eq(leadQualityTracking.phoneVerified, true));
+      
+      const highRiskBookings = await db.select({ count: count() })
+        .from(leadQualityTracking)
+        .where(eq(leadQualityTracking.riskLevel, 'high'));
+      
+      const avgQualityScore = await db.select({ avg: avg(leadQualityTracking.qualityScore) })
+        .from(leadQualityTracking);
+      
+      const refundRequests = await db.select({ count: count() }).from(leadRefunds);
+      
+      const fraudDetections = await db.select({ count: count() })
+        .from(antiManipulation)
+        .where(eq(antiManipulation.flag, 'high_risk_payment'));
+
+      const totalCount = totalBookings[0]?.count || 0;
+      const refundCount = refundRequests[0]?.count || 0;
+      const refundRate = totalCount > 0 ? ((refundCount / totalCount) * 100).toFixed(1) : '0.0';
+
+      return {
+        totalBookings: totalCount,
+        verifiedBookings: verifiedBookings[0]?.count || 0,
+        highRiskBookings: highRiskBookings[0]?.count || 0,
+        averageQualityScore: parseFloat(avgQualityScore[0]?.avg || '0'),
+        refundRate: parseFloat(refundRate),
+        fraudDetections: fraudDetections[0]?.count || 0
+      };
+    } catch (error) {
+      console.error('Error getting real quality metrics:', error);
+      return {
+        totalBookings: 0,
+        verifiedBookings: 0,
+        highRiskBookings: 0,
+        averageQualityScore: 0,
+        refundRate: 0,
+        fraudDetections: 0
+      };
+    }
+  }
+
+  // Real-time monitoring for suspicious patterns
+  async monitorInstallationPatterns(installerId: number): Promise<any> {
+    try {
+      // Get installer's recent bookings
+      const recentBookings = await db.select()
+        .from(bookings)
+        .where(eq(bookings.installerId, installerId))
+        .orderBy(desc(bookings.createdAt))
+        .limit(20);
+
+      // Check for suspicious patterns
+      const suspiciousPatterns = {
+        rapidBookings: false,
+        highCancellationRate: false,
+        unusualPricing: false,
+        multipleRefunds: false
+      };
+
+      // Analyze booking patterns
+      if (recentBookings.length >= 5) {
+        const bookingTimes = recentBookings.map(b => new Date(b.createdAt!).getTime());
+        const timeGaps = [];
+        
+        for (let i = 1; i < bookingTimes.length; i++) {
+          timeGaps.push(bookingTimes[i-1] - bookingTimes[i]);
+        }
+        
+        const avgGap = timeGaps.reduce((a, b) => a + b, 0) / timeGaps.length;
+        const oneHour = 60 * 60 * 1000;
+        
+        if (avgGap < oneHour) {
+          suspiciousPatterns.rapidBookings = true;
+        }
+      }
+
+      // Check refund patterns
+      const refunds = await db.select({ count: count() })
+        .from(leadRefunds)
+        .where(eq(leadRefunds.installerId, installerId));
+      
+      if (refunds[0]?.count && refunds[0].count > 3) {
+        suspiciousPatterns.multipleRefunds = true;
+      }
+
+      return {
+        recentBookingsCount: recentBookings.length,
+        suspiciousPatterns,
+        riskLevel: Object.values(suspiciousPatterns).some(p => p) ? 'medium' : 'low'
+      };
+    } catch (error) {
+      console.error('Error monitoring installation patterns:', error);
+      return {
+        recentBookingsCount: 0,
+        suspiciousPatterns: {},
+        riskLevel: 'low'
+      };
     }
   }
 }

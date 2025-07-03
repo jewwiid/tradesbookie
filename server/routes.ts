@@ -28,6 +28,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail, sendInstallerApprovalEmail, sendInstallerRejectionEmail } from "./gmailService";
 import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
 import { harveyNormanReferralService } from "./harvestNormanReferralService";
+import { fraudPreventionService } from "./fraudPreventionService";
 import { pricingManagementService } from "./pricingManagementService";
 import { getWebsiteMetrics } from "./analyticsService";
 
@@ -6993,6 +6994,47 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error('Error approving refund:', error);
       res.status(500).json({ error: 'Failed to approve refund' });
+    }
+  });
+
+  // Admin middleware for fraud prevention
+  const requireAdmin = (req: any, res: any, next: any) => {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    next();
+  };
+
+  // Admin fraud prevention endpoints
+  app.get('/api/admin/fraud-prevention/quality-metrics', requireAdmin, async (req, res) => {
+    try {
+      const metrics = await fraudPreventionService.getRealQualityMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error fetching quality metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch quality metrics' });
+    }
+  });
+
+  app.get('/api/admin/fraud-prevention/refund-requests', requireAdmin, async (req, res) => {
+    try {
+      const { status } = req.query;
+      const refunds = await fraudPreventionService.getRefundRequests(status as string);
+      res.json(refunds);
+    } catch (error) {
+      console.error('Error fetching refund requests:', error);
+      res.status(500).json({ error: 'Failed to fetch refund requests' });
+    }
+  });
+
+  app.get('/api/admin/fraud-prevention/installer-patterns/:installerId', requireAdmin, async (req, res) => {
+    try {
+      const { installerId } = req.params;
+      const patterns = await fraudPreventionService.monitorInstallationPatterns(parseInt(installerId));
+      res.json(patterns);
+    } catch (error) {
+      console.error('Error monitoring installer patterns:', error);
+      res.status(500).json({ error: 'Failed to monitor patterns' });
     }
   });
 

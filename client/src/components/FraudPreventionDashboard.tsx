@@ -44,14 +44,23 @@ export default function FraudPreventionDashboard() {
     queryKey: ['/api/admin/fraud-prevention/refund-requests'],
   });
 
-  // Quality metrics would be fetched from a dedicated endpoint
-  const mockQualityMetrics: QualityMetrics = {
-    totalBookings: 157,
-    verifiedBookings: 134,
-    highRiskBookings: 12,
-    averageQualityScore: 78,
-    refundRate: 8.3,
-    fraudDetections: 5
+  // Fetch real quality metrics
+  const { data: qualityMetrics, isLoading: metricsLoading } = useQuery({
+    queryKey: ['/api/admin/fraud-prevention/quality-metrics'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/fraud-prevention/quality-metrics');
+      if (!response.ok) throw new Error('Failed to fetch quality metrics');
+      return response.json();
+    }
+  });
+
+  const mockQualityMetrics: QualityMetrics = qualityMetrics || {
+    totalBookings: 0,
+    verifiedBookings: 0,
+    highRiskBookings: 0,
+    averageQualityScore: 0,
+    refundRate: 0,
+    fraudDetections: 0
   };
 
   // Approve refund mutation

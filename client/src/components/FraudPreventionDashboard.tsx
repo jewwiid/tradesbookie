@@ -54,7 +54,22 @@ export default function FraudPreventionDashboard() {
     }
   });
 
-  const mockQualityMetrics: QualityMetrics = qualityMetrics || {
+  // Fetch anti-manipulation data
+  const { data: antiManipulationData } = useQuery({
+    queryKey: ['/api/admin/fraud-prevention/anti-manipulation'],
+  });
+
+  // Fetch customer verification data
+  const { data: customerVerificationData } = useQuery({
+    queryKey: ['/api/admin/fraud-prevention/customer-verification'],
+  });
+
+  // Fetch risk distribution data
+  const { data: riskDistributionData } = useQuery({
+    queryKey: ['/api/admin/fraud-prevention/risk-distribution'],
+  });
+
+  const realQualityMetrics: QualityMetrics = qualityMetrics || {
     totalBookings: 0,
     verifiedBookings: 0,
     highRiskBookings: 0,
@@ -143,12 +158,12 @@ export default function FraudPreventionDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Platform Trust Score</p>
-                <p className="text-2xl font-bold text-green-600">{mockQualityMetrics.averageQualityScore}%</p>
+                <p className="text-2xl font-bold text-green-600">{realQualityMetrics.averageQualityScore}%</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              {mockQualityMetrics.verifiedBookings} of {mockQualityMetrics.totalBookings} bookings verified
+              {realQualityMetrics.verifiedBookings} of {realQualityMetrics.totalBookings} bookings verified
             </p>
           </CardContent>
         </Card>
@@ -158,7 +173,7 @@ export default function FraudPreventionDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Refund Rate</p>
-                <p className="text-2xl font-bold text-yellow-600">{mockQualityMetrics.refundRate}%</p>
+                <p className="text-2xl font-bold text-yellow-600">{realQualityMetrics.refundRate}%</p>
               </div>
               <Euro className="h-8 w-8 text-yellow-600" />
             </div>
@@ -173,7 +188,7 @@ export default function FraudPreventionDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">High Risk Bookings</p>
-                <p className="text-2xl font-bold text-red-600">{mockQualityMetrics.highRiskBookings}</p>
+                <p className="text-2xl font-bold text-red-600">{realQualityMetrics.highRiskBookings}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-red-600" />
             </div>
@@ -373,28 +388,28 @@ export default function FraudPreventionDashboard() {
               <Card>
                 <CardContent className="p-4 text-center">
                   <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">3</p>
+                  <p className="text-2xl font-bold">{antiManipulationData?.rapidCancellations || 0}</p>
                   <p className="text-sm text-gray-600">Rapid Cancellations</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">2</p>
+                  <p className="text-2xl font-bold">{antiManipulationData?.priceDiscrepancies || 0}</p>
                   <p className="text-sm text-gray-600">Price Discrepancies</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <Users className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">1</p>
+                  <p className="text-2xl font-bold">{antiManipulationData?.qrCodeSharing || 0}</p>
                   <p className="text-sm text-gray-600">QR Code Sharing</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-2xl font-bold">{antiManipulationData?.flaggedForReview || 0}</p>
                   <p className="text-sm text-gray-600">Flagged for Review</p>
                 </CardContent>
               </Card>

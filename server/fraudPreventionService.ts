@@ -659,7 +659,7 @@ export class FraudPreventionService {
       
       const fraudDetections = await db.select({ count: count() })
         .from(antiManipulation)
-        .where(eq(antiManipulation.flag, 'high_risk_payment'));
+        .where(eq(antiManipulation.flagType, 'high_risk_payment'));
 
       const totalCount = totalBookings[0]?.count || 0;
       const refundCount = refundRequests[0]?.count || 0;
@@ -741,6 +741,127 @@ export class FraudPreventionService {
         recentBookingsCount: 0,
         suspiciousPatterns: {},
         riskLevel: 'low'
+      };
+    }
+  }
+
+  // Real-time Anti-Manipulation Data Methods
+  async getAntiManipulationData(): Promise<any> {
+    try {
+      // Get real anti-manipulation data from database
+      const rapidCancellations = await db.select({ count: count() })
+        .from(antiManipulation)
+        .where(eq(antiManipulation.flagType, 'rapid_cancellation'));
+        
+      const priceDiscrepancies = await db.select({ count: count() })
+        .from(antiManipulation)
+        .where(eq(antiManipulation.flagType, 'price_discrepancy'));
+        
+      const qrCodeSharing = await db.select({ count: count() })
+        .from(antiManipulation)
+        .where(eq(antiManipulation.flagType, 'qr_code_sharing'));
+        
+      const flaggedForReview = await db.select({ count: count() })
+        .from(antiManipulation)
+        .where(eq(antiManipulation.flagType, 'flagged_for_review'));
+
+      return {
+        rapidCancellations: rapidCancellations[0]?.count || 0,
+        priceDiscrepancies: priceDiscrepancies[0]?.count || 0,
+        qrCodeSharing: qrCodeSharing[0]?.count || 0,
+        flaggedForReview: flaggedForReview[0]?.count || 0
+      };
+    } catch (error) {
+      console.error('Error getting anti-manipulation data:', error);
+      return {
+        rapidCancellations: 0,
+        priceDiscrepancies: 0,
+        qrCodeSharing: 0,
+        flaggedForReview: 0
+      };
+    }
+  }
+
+  // Real Customer Verification Data
+  async getCustomerVerificationData(): Promise<any> {
+    try {
+      const totalCustomers = await db.select({ count: count() }).from(users);
+      
+      const phoneVerified = await db.select({ count: count() })
+        .from(customerVerification)
+        .where(eq(customerVerification.phoneVerified, true));
+        
+      const emailVerified = await db.select({ count: count() })
+        .from(customerVerification)
+        .where(eq(customerVerification.emailVerified, true));
+        
+      const identityVerified = await db.select({ count: count() })
+        .from(customerVerification)
+        .where(eq(customerVerification.identityVerified, true));
+
+      const total = totalCustomers[0]?.count || 1;
+
+      return {
+        phoneVerified: {
+          count: phoneVerified[0]?.count || 0,
+          percentage: Math.round(((phoneVerified[0]?.count || 0) / total) * 100)
+        },
+        emailVerified: {
+          count: emailVerified[0]?.count || 0,
+          percentage: Math.round(((emailVerified[0]?.count || 0) / total) * 100)
+        },
+        identityVerified: {
+          count: identityVerified[0]?.count || 0,
+          percentage: Math.round(((identityVerified[0]?.count || 0) / total) * 100)
+        }
+      };
+    } catch (error) {
+      console.error('Error getting customer verification data:', error);
+      return {
+        phoneVerified: { count: 0, percentage: 0 },
+        emailVerified: { count: 0, percentage: 0 },
+        identityVerified: { count: 0, percentage: 0 }
+      };
+    }
+  }
+
+  // Real Risk Distribution Analysis
+  async getRiskDistribution(): Promise<any> {
+    try {
+      const riskLevels = await db.select({ 
+        riskLevel: leadQualityTracking.riskLevel,
+        count: count() 
+      })
+      .from(leadQualityTracking)
+      .groupBy(leadQualityTracking.riskLevel);
+
+      const total = riskLevels.reduce((sum, level) => sum + (level.count || 0), 0) || 1;
+
+      const distribution = riskLevels.reduce((acc, level) => {
+        if (level.riskLevel) {
+          acc[level.riskLevel] = {
+            count: level.count || 0,
+            percentage: Math.round(((level.count || 0) / total) * 100)
+          };
+        }
+        return acc;
+      }, {} as any);
+
+      // Ensure all risk levels are represented
+      const defaultLevels = ['low', 'medium', 'high'];
+      defaultLevels.forEach(level => {
+        if (!distribution[level]) {
+          distribution[level] = { count: 0, percentage: 0 };
+        }
+      });
+
+      return distribution;
+    } catch (error) {
+      console.error('Error getting risk distribution:', error);
+      return {
+        low: { count: 0, percentage: 0 },
+        medium: { count: 0, percentage: 0 },
+        high: { count: 0, percentage: 0 }
       };
     }
   }

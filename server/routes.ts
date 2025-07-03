@@ -7016,6 +7016,36 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  app.get('/api/admin/fraud-prevention/anti-manipulation', requireAdmin, async (req, res) => {
+    try {
+      const data = await fraudPreventionService.getAntiManipulationData();
+      res.json(data);
+    } catch (error) {
+      console.error('Error fetching anti-manipulation data:', error);
+      res.status(500).json({ error: 'Failed to fetch anti-manipulation data' });
+    }
+  });
+
+  app.get('/api/admin/fraud-prevention/customer-verification', requireAdmin, async (req, res) => {
+    try {
+      const data = await fraudPreventionService.getCustomerVerificationData();
+      res.json(data);
+    } catch (error) {
+      console.error('Error fetching customer verification data:', error);
+      res.status(500).json({ error: 'Failed to fetch customer verification data' });
+    }
+  });
+
+  app.get('/api/admin/fraud-prevention/risk-distribution', requireAdmin, async (req, res) => {
+    try {
+      const data = await fraudPreventionService.getRiskDistribution();
+      res.json(data);
+    } catch (error) {
+      console.error('Error fetching risk distribution data:', error);
+      res.status(500).json({ error: 'Failed to fetch risk distribution data' });
+    }
+  });
+
   app.get('/api/admin/fraud-prevention/refund-requests', requireAdmin, async (req, res) => {
     try {
       const { status } = req.query;

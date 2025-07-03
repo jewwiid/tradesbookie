@@ -5801,6 +5801,99 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Test email template (admin only)
+  app.post("/api/admin/email-templates/:id/test", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const template = await storage.getEmailTemplateById(id);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Email template not found" });
+      }
+
+      // Get admin user email from session
+      const adminUser = req.user as { id: number; email: string; role: string };
+      const testEmail = adminUser.email;
+
+      // Replace shortcodes with sample test data
+      let testHtml = template.htmlContent;
+      let testSubject = template.subject;
+
+      const sampleData = {
+        "{{customerName}}": "Test Customer",
+        "{{customerEmail}}": "test@example.com",
+        "{{bookingId}}": "TEST-12345",
+        "{{qrCode}}": "TEST-12345",
+        "{{serviceType}}": "Premium Wall Mount",
+        "{{tvSize}}": "65",
+        "{{address}}": "123 Test Street, Dublin, Ireland",
+        "{{totalPrice}}": "€249",
+        "{{installerName}}": "Test Installer",
+        "{{installerEarnings}}": "€179",
+        "{{businessName}}": "Test Business Ltd",
+        "{{approvalScore}}": "9",
+        "{{adminComments}}": "Excellent application with all requirements met",
+        "{{scheduledDate}}": "March 15, 2025",
+        "{{proposedDate}}": "March 15, 2025",
+        "{{proposedTime}}": "2:00 PM",
+        "{{estimatedDuration}}": "2-3 hours",
+        "{{installerMessage}}": "Looking forward to completing your installation",
+        "{{newStatus}}": "In Progress",
+        "{{previousStatus}}": "Confirmed",
+        "{{updateTime}}": new Date().toLocaleString(),
+        "{{statusMessage}}": "Your installation is proceeding as scheduled",
+        "{{trackingUrl}}": "https://tradesbook.ie/track/TEST-12345",
+        "{{acceptUrl}}": "https://tradesbook.ie/accept/TEST-12345",
+        "{{proposeAlternativeUrl}}": "https://tradesbook.ie/propose/TEST-12345",
+        "{{currentDate}}": new Date().toLocaleDateString(),
+        "{{platformName}}": "tradesbook.ie",
+        "{{supportEmail}}": "support@tradesbook.ie"
+      };
+
+      // Replace shortcodes in both subject and content
+      Object.entries(sampleData).forEach(([shortcode, value]) => {
+        const regex = new RegExp(shortcode.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        testHtml = testHtml.replace(regex, value);
+        testSubject = testSubject.replace(regex, value);
+      });
+
+      // Import the email service
+      const { sendGmailEmail } = await import('./gmailService');
+
+      // Send test email
+      const success = await sendGmailEmail({
+        to: testEmail,
+        subject: `[TEST] ${testSubject}`,
+        html: `
+          <div style="background: #f0f8ff; padding: 20px; border: 2px solid #007bff; border-radius: 8px; margin-bottom: 20px;">
+            <h2 style="color: #007bff; margin: 0 0 10px 0;">📧 Test Email Template</h2>
+            <p style="margin: 0; color: #666;">This is a test email for template: <strong>${template.templateName}</strong></p>
+            <p style="margin: 5px 0 0 0; color: #666;">Template Key: <strong>${template.templateKey}</strong></p>
+          </div>
+          ${testHtml}
+          <div style="background: #f8f9fa; padding: 15px; border-top: 2px solid #ddd; margin-top: 30px; text-align: center; color: #666; font-size: 12px;">
+            <p style="margin: 0;">This is a test email sent from the tradesbook.ie admin dashboard</p>
+          </div>
+        `,
+        from: template.fromEmail,
+        replyTo: template.replyToEmail || 'support@tradesbook.ie'
+      });
+
+      if (success) {
+        res.json({ 
+          message: "Test email sent successfully",
+          sentTo: testEmail,
+          templateName: template.templateName 
+        });
+      } else {
+        res.status(500).json({ message: "Failed to send test email" });
+      }
+    } catch (error) {
+      console.error("Error sending test email:", error);
+      res.status(500).json({ message: "Failed to send test email" });
+    }
+  });
+
   // Google Maps API Routes
   app.post("/api/maps/geocode", async (req, res) => {
     try {

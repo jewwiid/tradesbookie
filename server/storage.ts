@@ -152,6 +152,7 @@ export interface IStorage {
 
   // Email template operations
   getEmailTemplate(templateKey: string): Promise<EmailTemplate | undefined>;
+  getEmailTemplateById(id: number): Promise<EmailTemplate | undefined>;
   getAllEmailTemplates(): Promise<EmailTemplate[]>;
   createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
   updateEmailTemplate(id: number, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate>;
@@ -1063,6 +1064,15 @@ export class DatabaseStorage implements IStorage {
     const [template] = await db.select()
       .from(emailTemplates)
       .where(eq(emailTemplates.templateKey, templateKey))
+      .limit(1);
+    
+    return template;
+  }
+
+  async getEmailTemplateById(id: number): Promise<EmailTemplate | undefined> {
+    const [template] = await db.select()
+      .from(emailTemplates)
+      .where(eq(emailTemplates.id, id))
       .limit(1);
     
     return template;

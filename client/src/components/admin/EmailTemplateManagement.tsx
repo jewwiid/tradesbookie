@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Mail, Edit, Trash2, Plus, Eye, Code, Send } from "lucide-react";
+import { Mail, Edit, Trash2, Plus, Eye, Code, Send, Loader2 } from "lucide-react";
 
 interface EmailTemplate {
   id: number;
@@ -88,6 +88,7 @@ export default function EmailTemplateManagement() {
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [previewData, setPreviewData] = useState<string>("");
+  const [testingTemplate, setTestingTemplate] = useState<number | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -157,6 +158,25 @@ export default function EmailTemplateManagement() {
     }
   });
 
+  const testEmailMutation = useMutation({
+    mutationFn: (templateId: number) => apiRequest("POST", `/api/admin/email-templates/${templateId}/test`),
+    onSuccess: () => {
+      toast({ 
+        title: "Test email sent successfully",
+        description: "Check your email inbox for the test message"
+      });
+      setTestingTemplate(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error sending test email",
+        description: error.message || "Failed to send test email",
+        variant: "destructive"
+      });
+      setTestingTemplate(null);
+    }
+  });
+
   const resetForm = () => {
     setFormData({
       templateKey: "",
@@ -220,6 +240,11 @@ export default function EmailTemplateManagement() {
 
     setPreviewData(previewHtml);
     setShowPreviewDialog(true);
+  };
+
+  const handleTestEmail = (template: EmailTemplate) => {
+    setTestingTemplate(template.id);
+    testEmailMutation.mutate(template.id);
   };
 
   const handleSubmit = () => {
@@ -324,6 +349,20 @@ export default function EmailTemplateManagement() {
                         >
                           <Eye className="h-4 w-4" />
                           Preview
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleTestEmail(template)}
+                          disabled={testingTemplate === template.id}
+                          className="flex items-center gap-1"
+                        >
+                          {testingTemplate === template.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Send className="h-4 w-4" />
+                          )}
+                          {testingTemplate === template.id ? 'Sending...' : 'Test'}
                         </Button>
                         <Button
                           variant="outline"

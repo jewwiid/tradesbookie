@@ -1209,10 +1209,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const bookings = await storage.getAllBookings();
       
-      // Enhance bookings with installer information and fix price field mapping
+      // Enhance bookings with installer and user information
       const enhancedBookings = await Promise.all(
         bookings.map(async (booking) => {
           let installerInfo = null;
+          let userInfo = null;
           
           // Fetch installer details if booking is assigned
           if (booking.installerId) {
@@ -1232,6 +1233,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           
+          // Fetch user details if booking has a userId (to show updated user info instead of booking contact info)
+          if (booking.userId) {
+            try {
+              const user = await storage.getUserById(booking.userId.toString());
+              if (user) {
+                userInfo = {
+                  id: user.id,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
+                  email: user.email,
+                  fullName: [user.firstName, user.lastName].filter(Boolean).join(' ') || null
+                };
+              }
+            } catch (error) {
+              console.error(`Error fetching user ${booking.userId}:`, error);
+            }
+          }
+          
           // Calculate lead fee (app fee) for the booking
           const getLeadFee = (serviceType: string): number => {
             const serviceTierMap: { [key: string]: number } = {
@@ -1245,7 +1264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           const leadFee = getLeadFee(booking.serviceType);
           
-          // Map database fields to expected frontend fields and add installer info
+          // Map database fields to expected frontend fields and add installer/user info
           return {
             ...booking,
             // Fix price field mapping
@@ -1257,7 +1276,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Add installer information
             installer: installerInfo,
             installerName: installerInfo?.name || null,
-            installerBusiness: installerInfo?.businessName || null
+            installerBusiness: installerInfo?.businessName || null,
+            // Add user information (prioritize current user data over booking contact data)
+            user: userInfo,
+            // Override contact information with user data if available (shows updated user info)
+            contactName: userInfo?.fullName || booking.contactName,
+            contactEmail: userInfo?.email || booking.contactEmail,
+            customerName: userInfo?.fullName || booking.contactName,
+            customerEmail: userInfo?.email || booking.contactEmail
           };
         })
       );

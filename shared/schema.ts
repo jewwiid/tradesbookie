@@ -736,3 +736,29 @@ export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit
 
 export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
+
+// Banned users table for user management and security
+export const bannedUsers = pgTable("banned_users", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  userType: varchar("user_type", { length: 50 }).notNull(), // customer, installer, admin
+  bannedBy: integer("banned_by").notNull(), // Admin user ID who banned this user
+  banReason: text("ban_reason").notNull(),
+  banType: varchar("ban_type", { length: 50 }).notNull().default("permanent"), // permanent, temporary
+  banExpiresAt: timestamp("ban_expires_at"), // For temporary bans
+  originalUserId: integer("original_user_id"), // Reference to original user ID if available
+  ipAddress: varchar("ip_address", { length: 45 }), // For IP-based blocking
+  additionalInfo: jsonb("additional_info"), // Store any additional ban context
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertBannedUserSchema = createInsertSchema(bannedUsers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type BannedUser = typeof bannedUsers.$inferSelect;
+export type InsertBannedUser = z.infer<typeof insertBannedUserSchema>;

@@ -2,7 +2,7 @@ import {
   users, bookings, installers, jobAssignments, reviews, solarEnquiries,
   referralSettings, referralCodes, referralUsage, consultationBookings,
   leadPricing, wallMountPricing, installerWallets, installerTransactions,
-  scheduleNegotiations, declinedRequests, emailTemplates,
+  scheduleNegotiations, declinedRequests, emailTemplates, bannedUsers,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -18,7 +18,8 @@ import {
   type ScheduleNegotiation, type InsertScheduleNegotiation,
   type InstallerWallet, type InsertInstallerWallet,
   type InstallerTransaction, type InsertInstallerTransaction,
-  type EmailTemplate, type InsertEmailTemplate
+  type EmailTemplate, type InsertEmailTemplate,
+  type BannedUser, type InsertBannedUser
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -158,6 +159,14 @@ export interface IStorage {
   createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
   updateEmailTemplate(id: number, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate>;
   deleteEmailTemplate(id: number): Promise<boolean>;
+
+  // Banned user operations
+  banUser(bannedUser: InsertBannedUser): Promise<BannedUser>;
+  unbanUser(email: string): Promise<void>;
+  isBanned(email: string): Promise<BannedUser | undefined>;
+  getAllBannedUsers(): Promise<BannedUser[]>;
+  updateBannedUser(id: number, updates: Partial<InsertBannedUser>): Promise<void>;
+  checkAndCleanExpiredBans(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1112,6 +1121,84 @@ export class DatabaseStorage implements IStorage {
       .where(eq(emailTemplates.id, id));
     
     return result.rowCount > 0;
+  }
+
+  // Banned user operations
+  async banUser(bannedUser: InsertBannedUser): Promise<BannedUser> {
+    const [newBannedUser] = await db.insert(bannedUsers)
+      .values(bannedUser)
+      .returning();
+    
+    return newBannedUser;
+  }
+
+  async unbanUser(email: string): Promise<void> {
+    await db.update(bannedUsers)
+      .set({ isActive: false })
+      .where(and(
+        eq(bannedUsers.email, email),
+        eq(bannedUsers.isActive, true)
+      ));
+  }
+
+  async isBanned(email: string): Promise<BannedUser | undefined> {
+    const [bannedUser] = await db.select()
+      .from(bannedUsers)
+      .where(and(
+        eq(bannedUsers.email, email),
+        eq(bannedUsers.isActive, true)
+      ))
+      .limit(1);
+    
+    // Check if temporary ban has expired
+    if (bannedUser && bannedUser.banType === 'temporary' && bannedUser.banExpiresAt) {
+      if (bannedUser.banExpiresAt <= new Date()) {
+        // Expire the ban
+        await this.unbanUser(email);
+        return undefined;
+      }
+    }
+    
+    return bannedUser;
+  }
+
+  async getAllBannedUsers(): Promise<BannedUser[]> {
+    const bannedUsersList = await db.select()
+      .from(bannedUsers)
+      .where(eq(bannedUsers.isActive, true))
+      .orderBy(desc(bannedUsers.createdAt));
+    
+    return bannedUsersList;
+  }
+
+  async updateBannedUser(id: number, updates: Partial<InsertBannedUser>): Promise<void> {
+    await db.update(bannedUsers)
+      .set(updates)
+      .where(eq(bannedUsers.id, id));
+  }
+
+  async checkAndCleanExpiredBans(): Promise<void> {
+    const now = new Date();
+    
+    // Find all expired temporary bans
+    const expiredBans = await db.select()
+      .from(bannedUsers)
+      .where(and(
+        eq(bannedUsers.isActive, true),
+        eq(bannedUsers.banType, 'temporary'),
+        db.sql`ban_expires_at <= ${now}`
+      ));
+    
+    // Deactivate expired bans
+    if (expiredBans.length > 0) {
+      await db.update(bannedUsers)
+        .set({ isActive: false })
+        .where(and(
+          eq(bannedUsers.isActive, true),
+          eq(bannedUsers.banType, 'temporary'),
+          db.sql`ban_expires_at <= ${now}`
+        ));
+    }
   }
 }
 

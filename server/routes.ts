@@ -4390,6 +4390,126 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // ====================== BANNED USER MANAGEMENT ======================
+  
+  // Get all banned users
+  app.get("/api/admin/banned-users", isAdmin, async (req, res) => {
+    try {
+      const bannedUsers = await storage.getAllBannedUsers();
+      res.json(bannedUsers);
+    } catch (error) {
+      console.error("Error fetching banned users:", error);
+      res.status(500).json({ message: "Failed to fetch banned users" });
+    }
+  });
+
+  // Ban a user or installer
+  app.post("/api/admin/ban-user", isAdmin, async (req, res) => {
+    try {
+      const adminUser = req.user as any;
+      const { email, userType, banReason, banType, banDuration, originalUserId } = req.body;
+
+      if (!email || !userType || !banReason || !banType) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Check if user is already banned
+      const existingBan = await storage.isBanned(email);
+      if (existingBan) {
+        return res.status(400).json({ message: "User is already banned" });
+      }
+
+      // Calculate ban expiration for temporary bans
+      let banExpiresAt: Date | null = null;
+      if (banType === 'temporary' && banDuration) {
+        banExpiresAt = new Date();
+        banExpiresAt.setHours(banExpiresAt.getHours() + banDuration);
+      }
+
+      const bannedUser = await storage.banUser({
+        email,
+        userType,
+        bannedBy: adminUser.id,
+        banReason,
+        banType,
+        banExpiresAt,
+        originalUserId: originalUserId || null,
+        ipAddress: req.ip || null,
+        additionalInfo: {
+          bannedByEmail: adminUser.email,
+          userAgent: req.get('user-agent')
+        }
+      });
+
+      console.log(`🚫 User banned: ${email} by admin ${adminUser.email}`);
+      res.json(bannedUser);
+    } catch (error) {
+      console.error("Error banning user:", error);
+      res.status(500).json({ message: "Failed to ban user" });
+    }
+  });
+
+  // Unban a user
+  app.post("/api/admin/unban-user", isAdmin, async (req, res) => {
+    try {
+      const { email } = req.body;
+      const adminUser = req.user as any;
+
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      // Check if user is actually banned
+      const bannedUser = await storage.isBanned(email);
+      if (!bannedUser) {
+        return res.status(400).json({ message: "User is not currently banned" });
+      }
+
+      await storage.unbanUser(email);
+      console.log(`✅ User unbanned: ${email} by admin ${adminUser.email}`);
+      res.json({ message: "User unbanned successfully" });
+    } catch (error) {
+      console.error("Error unbanning user:", error);
+      res.status(500).json({ message: "Failed to unban user" });
+    }
+  });
+
+  // Check if email is banned (public endpoint for registration/login)
+  app.get("/api/check-ban/:email", async (req, res) => {
+    try {
+      const { email } = req.params;
+      const bannedUser = await storage.isBanned(email);
+      
+      if (bannedUser) {
+        res.json({ 
+          banned: true, 
+          banType: bannedUser.banType,
+          banReason: bannedUser.banReason,
+          banExpiresAt: bannedUser.banExpiresAt 
+        });
+      } else {
+        res.json({ banned: false });
+      }
+    } catch (error) {
+      console.error("Error checking ban status:", error);
+      res.status(500).json({ message: "Failed to check ban status" });
+    }
+  });
+
+  // Update banned user details
+  app.patch("/api/admin/banned-users/:id", isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      await storage.updateBannedUser(parseInt(id), updates);
+      res.json({ message: "Banned user updated successfully" });
+    } catch (error) {
+      console.error("Error updating banned user:", error);
+      res.status(500).json({ message: "Failed to update banned user" });
+    }
+  });
+
   // ====================== EMAIL TEST ENDPOINT ======================
   
   // Test Gmail functionality

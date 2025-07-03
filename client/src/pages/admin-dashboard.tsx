@@ -50,7 +50,8 @@ import {
   Mail,
   XCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Ban
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -279,6 +280,12 @@ function UserManagement() {
     sendVerificationEmailMutation.mutate(user.email);
   };
 
+  const handleBanUserFromUsers = (user: User) => {
+    // Navigate to banned users tab and trigger ban dialog
+    const banEvent = new CustomEvent('openBanDialog', { detail: user });
+    window.dispatchEvent(banEvent);
+  };
+
   const confirmDeleteUser = () => {
     if (selectedUser) {
       deleteUserMutation.mutate(selectedUser.id);
@@ -390,6 +397,16 @@ function UserManagement() {
                           {sendVerificationEmailMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
                         </Button>
                       )}
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleBanUserFromUsers(user)}
+                        disabled={user.role === 'admin'}
+                        title={user.role === 'admin' ? "Cannot ban admin users" : "Ban user"}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Ban className="w-4 h-4" />
+                      </Button>
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -1717,6 +1734,288 @@ function BookingManagement() {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+// Banned Users Management Component
+function BannedUsersManagement() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [banReason, setBanReason] = useState("");
+  const [banType, setBanType] = useState<"user" | "installer">("user");
+  const [showBanDialog, setShowBanDialog] = useState(false);
+  const [showUnbanDialog, setShowUnbanDialog] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Listen for ban dialog triggers from other components
+  React.useEffect(() => {
+    const handleOpenBanDialog = (event: any) => {
+      const user = event.detail;
+      if (user) {
+        setSelectedUser(user);
+        setBanType(user.role === 'installer' ? 'installer' : 'user');
+        setShowBanDialog(true);
+      }
+    };
+
+    window.addEventListener('openBanDialog', handleOpenBanDialog);
+    return () => window.removeEventListener('openBanDialog', handleOpenBanDialog);
+  }, []);
+
+  // Fetch banned users
+  const { data: bannedUsers = [], isLoading: bannedUsersLoading } = useQuery({
+    queryKey: ['/api/admin/banned-users'],
+    queryFn: () => fetch('/api/admin/banned-users', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    }).then(r => r.json())
+  });
+
+  // Ban user mutation
+  const banMutation = useMutation({
+    mutationFn: async (data: { email: string; banType: string; reason: string }) => {
+      const response = await fetch('/api/admin/banned-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to ban user');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/banned-users'] });
+      setShowBanDialog(false);
+      setBanReason("");
+      setSelectedUser(null);
+    }
+  });
+
+  // Unban user mutation
+  const unbanMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/admin/banned-users/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to unban user');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/banned-users'] });
+      setShowUnbanDialog(false);
+      setSelectedUser(null);
+    }
+  });
+
+  const handleBanUser = (user: any) => {
+    setSelectedUser(user);
+    setBanType(user.role === 'installer' ? 'installer' : 'user');
+    setShowBanDialog(true);
+  };
+
+  const handleUnbanUser = (bannedUser: any) => {
+    setSelectedUser(bannedUser);
+    setShowUnbanDialog(true);
+  };
+
+  const submitBan = () => {
+    if (!selectedUser || !banReason.trim()) return;
+    
+    banMutation.mutate({
+      email: selectedUser.email,
+      banType,
+      reason: banReason.trim()
+    });
+  };
+
+  const submitUnban = () => {
+    if (!selectedUser) return;
+    unbanMutation.mutate(selectedUser.id);
+  };
+
+  if (bannedUsersLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin mr-2" />
+            <span>Loading banned users...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Banned Users Management</h2>
+          <p className="text-gray-600">Manage banned users and installers on the platform</p>
+        </div>
+      </div>
+
+      {/* Banned Users Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Ban className="w-5 h-5 mr-2 text-red-600" />
+            Banned Users ({bannedUsers.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {bannedUsers.length === 0 ? (
+            <div className="text-center py-8">
+              <Ban className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+              <p className="text-gray-500">No banned users found</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {bannedUsers.map((bannedUser: any) => (
+                <div key={bannedUser.id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium">{bannedUser.email}</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          bannedUser.banType === 'installer' 
+                            ? 'bg-orange-100 text-orange-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {bannedUser.banType === 'installer' ? 'Installer' : 'Customer'}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          bannedUser.isActive 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {bannedUser.isActive ? 'Active Ban' : 'Inactive'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        <strong>Reason:</strong> {bannedUser.reason}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Banned on {new Date(bannedUser.bannedAt).toLocaleDateString()} by Admin ID: {bannedUser.bannedBy}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      {bannedUser.isActive && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleUnbanUser(bannedUser)}
+                          className="text-green-600 hover:text-green-700"
+                        >
+                          <UserCheck className="w-4 h-4 mr-1" />
+                          Unban
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Ban User Dialog */}
+      <Dialog open={showBanDialog} onOpenChange={setShowBanDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ban User</DialogTitle>
+            <DialogDescription>
+              You are about to ban {selectedUser?.email}. This action will prevent them from accessing the platform.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="ban-type">Ban Type</Label>
+              <Select value={banType} onValueChange={(value: "user" | "installer") => setBanType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Customer</SelectItem>
+                  <SelectItem value="installer">Installer</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="ban-reason">Reason for Ban</Label>
+              <Textarea
+                id="ban-reason"
+                placeholder="Enter reason for banning this user..."
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowBanDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitBan}
+              disabled={!banReason.trim() || banMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {banMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Banning...
+                </>
+              ) : (
+                <>
+                  <Ban className="w-4 h-4 mr-2" />
+                  Ban User
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Unban User Dialog */}
+      <Dialog open={showUnbanDialog} onOpenChange={setShowUnbanDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Unban User</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to unban {selectedUser?.email}? They will regain access to the platform.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={() => setShowUnbanDialog(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitUnban}
+              disabled={unbanMutation.isPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {unbanMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Unbanning...
+                </>
+              ) : (
+                <>
+                  <UserCheck className="w-4 h-4 mr-2" />
+                  Unban User
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
 
@@ -3778,7 +4077,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-1 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-10 gap-1 h-auto p-1">
             <TabsTrigger value="overview" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
               <BarChart3 className="w-4 h-4 md:w-4 md:h-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -3829,6 +4128,11 @@ export default function AdminDashboard() {
               <span className="hidden sm:inline">Email Templates</span>
               <span className="sm:hidden">Emails</span>
             </TabsTrigger>
+            <TabsTrigger value="banned" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
+              <Ban className="w-4 h-4 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Banned Users</span>
+              <span className="sm:hidden">Banned</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -3874,6 +4178,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="emails" className="space-y-6">
             <EmailTemplateManagement />
+          </TabsContent>
+
+          <TabsContent value="banned" className="space-y-6">
+            <BannedUsersManagement />
           </TabsContent>
         </Tabs>
       </div>

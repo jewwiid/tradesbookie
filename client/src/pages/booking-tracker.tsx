@@ -35,6 +35,13 @@ export default function BookingTracker() {
 
   const { data: booking, isLoading, error } = useQuery<BookingDetails>({
     queryKey: ['/api/booking-tracker', trackingCode],
+    queryFn: async () => {
+      const response = await fetch(`/api/booking-tracker?code=${encodeURIComponent(trackingCode)}`);
+      if (!response.ok) {
+        throw new Error('Booking not found');
+      }
+      return response.json();
+    },
     enabled: searchAttempted && trackingCode.length > 0,
     retry: false,
   });

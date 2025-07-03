@@ -134,7 +134,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         address: data.contact.address,
         roomPhotoUrl: data.roomPhotoBase64 ? `data:image/jpeg;base64,${data.roomPhotoBase64}` : null,
         aiPreviewUrl: data.aiPreviewUrl || null,
-        roomAnalysis: data.roomAnalysis || null,
+        roomAnalysis: data.roomAnalysis ? JSON.stringify(data.roomAnalysis) : null,
         photoStorageConsent: data.photoStorageConsent || false,
         estimatedPrice: data.totalPrice ? data.totalPrice.toFixed(2) : "0.00",
         estimatedAddonsPrice: data.addonTotal ? data.addonTotal.toFixed(2) : "0.00",

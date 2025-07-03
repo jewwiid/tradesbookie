@@ -46,8 +46,17 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
     onSuccess: (data) => {
       updateBookingData({
         roomPhotoBase64: data.imageBase64,
-        roomAnalysis: data.analysis
+        compressedRoomPhoto: data.compressedBase64,
+        roomAnalysis: data.analysis,
+        compressionInfo: {
+          originalSize: data.originalSize,
+          compressedSize: data.compressedSize,
+          compressionRatio: data.compressionRatio
+        }
       });
+      
+      console.log(`Image compression: ${data.compressionRatio}% smaller (${Math.round(data.originalSize / 1024)}KB → ${Math.round(data.compressedSize / 1024)}KB)`);
+      
       toast({
         title: "Photo uploaded successfully!",
         description: "Room analyzed - AI preview will be generated at final booking step."

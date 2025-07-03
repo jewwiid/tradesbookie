@@ -51,7 +51,9 @@ import {
   XCircle,
   ChevronLeft,
   ChevronRight,
-  Ban
+  Ban,
+  Camera,
+  EyeOff
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1852,100 +1854,157 @@ function BookingManagement() {
                 </div>
               </div>
 
-              {/* Room Analysis Section */}
-              {selectedBooking.roomAnalysis && (
+              {/* Room Photos and Analysis Section */}
+              {(selectedBooking.roomAnalysis || selectedBooking.roomPhotoUrl || selectedBooking.roomPhotoCompressedUrl) && (
                 <div className="border rounded-lg p-4">
-                  <h3 className="font-semibold mb-3">AI Room Analysis</h3>
-                  <div className="bg-gray-50 p-3 rounded space-y-3">
-                    {(() => {
-                      try {
-                        const analysis = typeof selectedBooking.roomAnalysis === 'string' 
-                          ? JSON.parse(selectedBooking.roomAnalysis) 
-                          : selectedBooking.roomAnalysis;
-                        
-                        return (
-                          <div className="space-y-3">
-                            {analysis.recommendations && (
-                              <div>
-                                <h4 className="font-medium text-sm text-gray-700 mb-1">Recommendations</h4>
-                                <ul className="text-sm space-y-1">
-                                  {analysis.recommendations.map((rec: string, index: number) => (
-                                    <li key={index} className="flex items-start">
-                                      <span className="text-green-600 mr-2">•</span>
-                                      <span>{rec}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            
-                            {analysis.warnings && (
-                              <div>
-                                <h4 className="font-medium text-sm text-gray-700 mb-1">Warnings</h4>
-                                <ul className="text-sm space-y-1">
-                                  {analysis.warnings.map((warning: string, index: number) => (
-                                    <li key={index} className="flex items-start">
-                                      <span className="text-amber-600 mr-2">⚠</span>
-                                      <span>{warning}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-                            
-                            {analysis.difficultyAssessment && (
-                              <div>
-                                <h4 className="font-medium text-sm text-gray-700 mb-1">Difficulty Assessment</h4>
-                                <div className="text-sm bg-white p-2 rounded border">
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <div>
-                                      <span className="text-gray-600">Level:</span>
-                                      <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                                        analysis.difficultyAssessment.level === 'easy' ? 'bg-green-100 text-green-800' :
-                                        analysis.difficultyAssessment.level === 'moderate' ? 'bg-yellow-100 text-yellow-800' :
-                                        analysis.difficultyAssessment.level === 'difficult' ? 'bg-orange-100 text-orange-800' :
-                                        'bg-red-100 text-red-800'
-                                      }`}>
-                                        {analysis.difficultyAssessment.level}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <span className="text-gray-600">Time:</span>
-                                      <span className="ml-2">{analysis.difficultyAssessment.estimatedTime}</span>
-                                    </div>
-                                    {analysis.difficultyAssessment.factors && (
-                                      <div className="col-span-2">
-                                        <span className="text-gray-600">Factors:</span>
-                                        <span className="ml-2">{analysis.difficultyAssessment.factors.join(', ')}</span>
+                  <h3 className="font-semibold mb-3">Room Photos & AI Analysis</h3>
+                  
+                  {/* Photo Storage Consent Status */}
+                  <div className="mb-4">
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedBooking.photoStorageConsent 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {selectedBooking.photoStorageConsent ? (
+                        <>
+                          <Camera className="w-4 h-4 mr-2" />
+                          Photos stored with consent
+                        </>
+                      ) : (
+                        <>
+                          <EyeOff className="w-4 h-4 mr-2" />
+                          No photo storage consent
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Room Photos Display */}
+                  {selectedBooking.photoStorageConsent && (selectedBooking.roomPhotoUrl || selectedBooking.roomPhotoCompressedUrl) && (
+                    <div className="mb-4">
+                      <h4 className="font-medium text-sm text-gray-700 mb-2">Room Photos</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {selectedBooking.roomPhotoUrl && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Original Photo</p>
+                            <img 
+                              src={selectedBooking.roomPhotoUrl}
+                              alt="Original room photo" 
+                              className="w-full h-48 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => window.open(selectedBooking.roomPhotoUrl, '_blank')}
+                            />
+                          </div>
+                        )}
+                        {selectedBooking.roomPhotoCompressedUrl && (
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1">Compressed Photo (for bandwidth efficiency)</p>
+                            <img 
+                              src={selectedBooking.roomPhotoCompressedUrl}
+                              alt="Compressed room photo" 
+                              className="w-full h-48 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
+                              onClick={() => window.open(selectedBooking.roomPhotoCompressedUrl, '_blank')}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AI Room Analysis */}
+                  {selectedBooking.roomAnalysis && (
+                    <div className="bg-gray-50 p-3 rounded space-y-3">
+                      <h4 className="font-medium text-sm text-gray-700">AI Room Analysis</h4>
+                      {(() => {
+                        try {
+                          const analysis = typeof selectedBooking.roomAnalysis === 'string' 
+                            ? JSON.parse(selectedBooking.roomAnalysis) 
+                            : selectedBooking.roomAnalysis;
+                          
+                          return (
+                            <div className="space-y-3">
+                              {analysis.recommendations && (
+                                <div>
+                                  <h5 className="font-medium text-xs text-gray-600 mb-1">Recommendations</h5>
+                                  <ul className="text-sm space-y-1">
+                                    {analysis.recommendations.map((rec: string, index: number) => (
+                                      <li key={index} className="flex items-start">
+                                        <span className="text-green-600 mr-2">•</span>
+                                        <span>{rec}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {analysis.warnings && (
+                                <div>
+                                  <h5 className="font-medium text-xs text-gray-600 mb-1">Warnings</h5>
+                                  <ul className="text-sm space-y-1">
+                                    {analysis.warnings.map((warning: string, index: number) => (
+                                      <li key={index} className="flex items-start">
+                                        <span className="text-amber-600 mr-2">⚠</span>
+                                        <span>{warning}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              
+                              {analysis.difficultyAssessment && (
+                                <div>
+                                  <h5 className="font-medium text-xs text-gray-600 mb-1">Difficulty Assessment</h5>
+                                  <div className="text-sm bg-white p-2 rounded border">
+                                    <div className="grid grid-cols-2 gap-2">
+                                      <div>
+                                        <span className="text-gray-600">Level:</span>
+                                        <span className={`ml-2 px-2 py-1 rounded text-xs ${
+                                          analysis.difficultyAssessment.level === 'easy' ? 'bg-green-100 text-green-800' :
+                                          analysis.difficultyAssessment.level === 'moderate' ? 'bg-yellow-100 text-yellow-800' :
+                                          analysis.difficultyAssessment.level === 'difficult' ? 'bg-orange-100 text-orange-800' :
+                                          'bg-red-100 text-red-800'
+                                        }`}>
+                                          {analysis.difficultyAssessment.level}
+                                        </span>
                                       </div>
-                                    )}
+                                      <div>
+                                        <span className="text-gray-600">Time:</span>
+                                        <span className="ml-2">{analysis.difficultyAssessment.estimatedTime}</span>
+                                      </div>
+                                      {analysis.difficultyAssessment.factors && (
+                                        <div className="col-span-2">
+                                          <span className="text-gray-600">Factors:</span>
+                                          <span className="ml-2">{analysis.difficultyAssessment.factors.join(', ')}</span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )}
-                            
-                            {analysis.confidence && (
-                              <div>
-                                <h4 className="font-medium text-sm text-gray-700 mb-1">Analysis Confidence</h4>
-                                <div className="text-sm">
-                                  <span className={`px-2 py-1 rounded text-xs ${
-                                    analysis.confidence === 'high' ? 'bg-green-100 text-green-800' :
-                                    analysis.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-red-100 text-red-800'
-                                  }`}>
-                                    {analysis.confidence} confidence
-                                  </span>
+                              )}
+                              
+                              {analysis.confidence && (
+                                <div>
+                                  <h5 className="font-medium text-xs text-gray-600 mb-1">Analysis Confidence</h5>
+                                  <div className="text-sm">
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                      analysis.confidence === 'high' ? 'bg-green-100 text-green-800' :
+                                      analysis.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                      'bg-red-100 text-red-800'
+                                    }`}>
+                                      {analysis.confidence} confidence
+                                    </span>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      } catch (error) {
-                        // Fallback for non-JSON room analysis
-                        return <p className="text-sm">{selectedBooking.roomAnalysis}</p>;
-                      }
-                    })()}
-                  </div>
+                              )}
+                            </div>
+                          );
+                        } catch (error) {
+                          // Fallback for non-JSON room analysis
+                          return <p className="text-sm">{selectedBooking.roomAnalysis}</p>;
+                        }
+                      })()}
+                    </div>
+                  )}
                 </div>
               )}
 

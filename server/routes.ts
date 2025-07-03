@@ -786,15 +786,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Photo upload - storage only, no AI processing
+  // Get stored room photo for booking (installers and admin only)
+  app.get("/api/bookings/:id/room-photo", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const { type = 'compressed' } = req.query; // 'original' or 'compressed'
+      
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Check if user has permission (installer assigned to booking or admin)
+      const isInstaller = req.installerUser && booking.installerId === req.installerUser.id;
+      const isAdmin = req.user && req.user.role === 'admin';
+      
+      if (!isInstaller && !isAdmin) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Check if photo storage consent was given
+      if (!booking.photoStorageConsent) {
+        return res.status(404).json({ message: "Room photo not available - customer consent not given" });
+      }
+      
+      const photoUrl = type === 'original' ? booking.roomPhotoUrl : booking.roomPhotoCompressedUrl;
+      
+      if (!photoUrl) {
+        return res.status(404).json({ message: "Room photo not found" });
+      }
+      
+      res.json({
+        photoUrl,
+        type,
+        hasConsent: booking.photoStorageConsent,
+        roomAnalysis: booking.roomAnalysis,
+        bookingId: booking.id,
+        qrCode: booking.qrCode
+      });
+    } catch (error) {
+      console.error("Error retrieving room photo:", error);
+      res.status(500).json({ message: "Failed to retrieve room photo" });
+    }
+  });
+
+  // Photo upload with optional storage and compression
   app.post("/api/upload-room-photo", upload.single('photo'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No photo uploaded" });
       }
 
-      // Optimize image for faster AI processing
-      const base64Image = req.file.buffer.toString('base64');
+      const Sharp = require('sharp');
+      
+      // Create optimized versions of the image
+      const originalBuffer = req.file.buffer;
+      
+      // Compress for storage (720p max, 80% quality) - saves bandwidth and storage
+      const compressedBuffer = await Sharp(originalBuffer)
+        .resize(1280, 720, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 80 })
+        .toBuffer();
+      
+      // Convert to base64 for immediate display and AI processing
+      const base64Image = originalBuffer.toString('base64');
+      const compressedBase64 = compressedBuffer.toString('base64');
       
       // Perform room analysis when photo is uploaded
       let analysis = null;
@@ -807,8 +863,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({
         success: true,
-        imageBase64: base64Image,
-        analysis: analysis
+        imageBase64: base64Image, // For immediate display
+        compressedBase64: compressedBase64, // For storage when consent is given
+        analysis: analysis,
+        originalSize: originalBuffer.length,
+        compressedSize: compressedBuffer.length,
+        compressionRatio: Math.round((1 - compressedBuffer.length / originalBuffer.length) * 100)
       });
     } catch (error) {
       console.error("Error uploading photo:", error);
@@ -994,6 +1054,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookingData.referralDiscount = bookingData.referralDiscount.toFixed(2);
       } else if (bookingData.referralDiscount === null || bookingData.referralDiscount === undefined) {
         bookingData.referralDiscount = '0.00';
+      }
+      
+      // Handle image storage when user gives consent
+      if (bookingData.photoStorageConsent && rawData.roomPhotoBase64 && rawData.compressedRoomPhoto) {
+        console.log('Storing room photos - user has given consent');
+        
+        // Store both original and compressed versions as data URLs for immediate access
+        bookingData.roomPhotoUrl = `data:image/jpeg;base64,${rawData.roomPhotoBase64}`;
+        bookingData.roomPhotoCompressedUrl = `data:image/jpeg;base64,${rawData.compressedRoomPhoto}`;
+        
+        console.log('Images stored successfully with consent');
+      } else if (!bookingData.photoStorageConsent) {
+        console.log('Photo storage consent not given - images will not be stored');
+        // Clear any image URLs to ensure privacy
+        bookingData.roomPhotoUrl = null;
+        bookingData.roomPhotoCompressedUrl = null;
       }
       
       let booking;

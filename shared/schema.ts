@@ -124,6 +124,7 @@ export const bookings = pgTable("bookings", {
   
   // Images
   roomPhotoUrl: text("room_photo_url"),
+  roomPhotoCompressedUrl: text("room_photo_compressed_url"), // Optimized version for bandwidth efficiency
   aiPreviewUrl: text("ai_preview_url"),
   completedPhotoUrl: text("completed_photo_url"),
   

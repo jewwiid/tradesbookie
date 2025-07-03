@@ -215,69 +215,62 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[320px] p-0" aria-describedby="mobile-menu-description">
+                <SheetContent side="right" className="w-[85vw] max-w-[400px] min-w-[280px] p-0" aria-describedby="mobile-menu-description">
                   <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                   <SheetDescription id="mobile-menu-description" className="sr-only">
                     Main navigation menu for mobile devices
                   </SheetDescription>
                   <div className="flex flex-col h-full">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-6 border-b">
+                    <div className="flex items-center p-6 border-b">
                       <h2 className="text-lg font-semibold">Menu</h2>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        <X className="h-5 w-5" />
-                      </Button>
                     </div>
 
                     {/* Navigation Links */}
-                    <div className="flex-1 py-6">
+                    <div className="flex-1 py-4 overflow-y-auto">
                       {!isAdmin && !currentlyInstallerAuthenticated && (
-                        <div className="space-y-1 px-6">
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">
+                        <div className="space-y-2 px-4">
+                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">
                             Navigation
                           </div>
                           <Link 
                             href="/how-it-works" 
-                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <Home className="h-5 w-5 mr-3" />
+                            <Home className="h-5 w-5 mr-4 flex-shrink-0" />
                             How it Works
                           </Link>
                           <Link 
                             href="/pricing" 
-                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <Calendar className="h-5 w-5 mr-3" />
+                            <Calendar className="h-5 w-5 mr-4 flex-shrink-0" />
                             Pricing
                           </Link>
                           <Link 
                             href="/our-installers" 
-                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <User className="h-5 w-5 mr-3" />
+                            <User className="h-5 w-5 mr-4 flex-shrink-0" />
                             Our Installers
                           </Link>
                           <Link 
                             href="/installation-tracker" 
-                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <MapPin className="h-5 w-5 mr-3" />
+                            <MapPin className="h-5 w-5 mr-4 flex-shrink-0" />
                             Installation Map
                           </Link>
                           <Link 
                             href="/booking-tracker" 
-                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <Calendar className="h-5 w-5 mr-3" />
+                            <Calendar className="h-5 w-5 mr-4 flex-shrink-0" />
                             Track Booking
                           </Link>
                         </div>
@@ -285,16 +278,16 @@ export default function Navigation({ isInstallerContext = false, installerProfil
 
                       {/* Admin Section */}
                       {isAuthenticated && isAdmin && (
-                        <div className="space-y-1 px-6">
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">
+                        <div className="space-y-2 px-4">
+                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">
                             Admin
                           </div>
                           <Link 
                             href="/admin-dashboard" 
-                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <Shield className="h-5 w-5 mr-3" />
+                            <Shield className="h-5 w-5 mr-4 flex-shrink-0" />
                             Admin Dashboard
                           </Link>
                         </div>
@@ -302,24 +295,24 @@ export default function Navigation({ isInstallerContext = false, installerProfil
 
                       {/* Installer Dashboard Section */}
                       {currentlyInstallerAuthenticated && (
-                        <div className="space-y-1 px-6">
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">
+                        <div className="space-y-2 px-4">
+                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">
                             Installer Dashboard
                           </div>
                           <Link 
                             href="/installer-dashboard" 
-                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <Settings className="h-5 w-5 mr-3" />
+                            <Settings className="h-5 w-5 mr-4 flex-shrink-0" />
                             Dashboard
                           </Link>
                           <Link 
                             href="/" 
-                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                             onClick={() => setMobileMenuOpen(false)}
                           >
-                            <Home className="h-5 w-5 mr-3" />
+                            <Home className="h-5 w-5 mr-4 flex-shrink-0" />
                             Home
                           </Link>
                         </div>
@@ -328,25 +321,25 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                       {/* Installer Section for non-authenticated */}
                       {!isAdmin && !currentlyInstallerAuthenticated && (
                         <>
-                          <Separator className="my-6" />
-                          <div className="space-y-1 px-6">
-                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-4">
+                          <Separator className="my-4" />
+                          <div className="space-y-2 px-4">
+                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">
                               For Installers
                             </div>
                             <Link 
                               href="/installer-login" 
-                              className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                              className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                               onClick={() => setMobileMenuOpen(false)}
                             >
-                              <LogIn className="h-5 w-5 mr-3" />
+                              <LogIn className="h-5 w-5 mr-4 flex-shrink-0" />
                               Installer Login
                             </Link>
                             <Link 
                               href="/installer-registration" 
-                              className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                              className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                               onClick={() => setMobileMenuOpen(false)}
                             >
-                              <UserPlus className="h-5 w-5 mr-3" />
+                              <UserPlus className="h-5 w-5 mr-4 flex-shrink-0" />
                               Join as Installer
                             </Link>
                           </div>
@@ -355,7 +348,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="border-t p-6 space-y-3">
+                    <div className="border-t p-4 space-y-3">
                       {!isAdmin && !currentlyInstallerAuthenticated && (
                         <Link 
                           href="/booking" 

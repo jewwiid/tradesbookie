@@ -48,34 +48,34 @@ const AVAILABLE_SHORTCODES = [
 
 const DEFAULT_EMAIL_TEMPLATES = [
   {
-    templateKey: "booking_confirmation",
-    templateName: "Booking Confirmation",
-    description: "Sent to customers when they complete a booking"
+    templateKey: "customer_welcome",
+    templateName: "Customer Welcome Email",
+    description: "Sent to new customers after first registration"
   },
   {
-    templateKey: "installer_notification",
-    templateName: "Installer Job Notification",
-    description: "Sent to installers when new jobs are available"
+    templateKey: "booking_reminder",
+    templateName: "Booking Reminder",
+    description: "Sent 24 hours before scheduled installation"
   },
   {
-    templateKey: "installer_welcome",
-    templateName: "Installer Welcome Email",
-    description: "Sent to new installers upon registration"
+    templateKey: "review_request",
+    templateName: "Review Request",
+    description: "Sent after installation completion requesting feedback"
   },
   {
-    templateKey: "installer_approval",
-    templateName: "Installer Approval Email",
-    description: "Sent when installer applications are approved"
+    templateKey: "promotional_offer",
+    templateName: "Promotional Offer",
+    description: "Sent for special offers and discounts"
   },
   {
-    templateKey: "installer_rejection",
-    templateName: "Installer Rejection Email",
-    description: "Sent when installer applications are rejected"
+    templateKey: "newsletter",
+    templateName: "Newsletter",
+    description: "Monthly newsletter with tips and updates"
   },
   {
-    templateKey: "payment_confirmation",
-    templateName: "Payment Confirmation",
-    description: "Sent when payments are successfully processed"
+    templateKey: "customer_support",
+    templateName: "Customer Support Response",
+    description: "Template for customer support team responses"
   }
 ];
 

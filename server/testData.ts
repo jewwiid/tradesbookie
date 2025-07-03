@@ -3,6 +3,11 @@ import { storage } from "./storage";
 
 export async function createTestInstallationData() {
   try {
+    // Only create test data if ENABLE_DEMO_DATA environment variable is set to 'true'
+    if (process.env.ENABLE_DEMO_DATA !== 'true') {
+      console.log("Test data creation skipped (ENABLE_DEMO_DATA not set to 'true')");
+      return;
+    }
     // Create test bookings across different counties (completed ones for analytics)
     const completedBookings = [
       {

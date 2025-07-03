@@ -3719,16 +3719,32 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const installers = await storage.getAllInstallers();
       
       const enhancedInstallers = await Promise.all(installers.map(async (installer) => {
+        // Get actual job assignments for this installer
         const jobs = await storage.getInstallerJobs(installer.id);
         const completedJobs = jobs.filter(j => j.status === 'completed').length;
-        const totalEarnings = jobs.reduce((sum, job) => {
-          return sum + 150; // Average earnings per job
+        
+        // Calculate real earnings from completed bookings
+        let totalEarnings = 0;
+        const allBookings = await storage.getAllBookings();
+        const installerBookings = allBookings.filter(booking => 
+          booking.installerId === installer.id && booking.status === 'completed'
+        );
+        
+        totalEarnings = installerBookings.reduce((sum, booking) => {
+          const estimatedPrice = parseFloat(booking.estimatedPrice || '0');
+          return sum + estimatedPrice;
         }, 0);
+        
+        // Get authentic rating from reviews
+        const installerReviews = await storage.getInstallerReviews(installer.id);
+        const averageRating = installerReviews.length > 0 
+          ? installerReviews.reduce((sum, review) => sum + review.rating, 0) / installerReviews.length
+          : 0;
         
         return {
           ...installer,
           completedJobs,
-          rating: 4.2 + Math.random() * 0.8,
+          rating: parseFloat(averageRating.toFixed(1)),
           totalEarnings: Math.round(totalEarnings)
         };
       }));

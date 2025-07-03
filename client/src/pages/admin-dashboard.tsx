@@ -1545,63 +1545,208 @@ function BookingManagement() {
 
       {/* View Booking Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-2xl" aria-describedby="booking-view-description">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="booking-view-description">
           <DialogHeader>
-            <DialogTitle>Booking Details</DialogTitle>
+            <DialogTitle>Comprehensive Booking Details</DialogTitle>
             <DialogDescription id="booking-view-description">
-              View complete booking information
+              Complete booking information for administrative oversight
             </DialogDescription>
           </DialogHeader>
           {selectedBooking && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">QR Code</label>
-                  <div className="mt-2">
-                    <QRCode 
-                      value={`${window.location.origin}/qr-tracking/${selectedBooking.qrCode}`}
-                      size={120}
-                      className="mb-2"
-                    />
-                    <p className="font-mono text-xs text-gray-500">{selectedBooking.qrCode}</p>
+            <div className="space-y-6">
+              {/* Basic Information Section */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Basic Information</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">QR Code</label>
+                    <div className="mt-2">
+                      <QRCode 
+                        value={`${window.location.origin}/qr-tracking/${selectedBooking.qrCode}`}
+                        size={80}
+                        className="mb-2"
+                      />
+                      <p className="font-mono text-xs text-gray-500">{selectedBooking.qrCode}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Status</label>
+                    <div className="mt-2">
+                      <Badge className={getStatusColor(selectedBooking.status)}>
+                        {selectedBooking.status}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Service Type</label>
+                    <p className="mt-1 font-medium">{selectedBooking.serviceType}</p>
+                    <p className="text-sm text-gray-500">TV Size: {selectedBooking.tvSize}"</p>
                   </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium">Status</label>
-                  <Badge className={getStatusColor(selectedBooking.status)}>
-                    {selectedBooking.status}
-                  </Badge>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Service Type</label>
-                  <p>{selectedBooking.serviceType}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">TV Size</label>
-                  <p>{selectedBooking.tvSize}"</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Total Price</label>
-                  <p>€{selectedBooking.totalPrice}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">App Fee</label>
-                  <p>€{selectedBooking.appFee}</p>
+              </div>
+
+              {/* Customer Information Section */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Customer Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Customer Name</label>
+                    <p className="mt-1">{selectedBooking.contactName || selectedBooking.customerName || 'Guest User'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Email</label>
+                    <p className="mt-1">{selectedBooking.contactEmail || selectedBooking.customerEmail || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Phone</label>
+                    <p className="mt-1">{selectedBooking.contactPhone || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Registration Method</label>
+                    <p className="mt-1 capitalize">{selectedBooking.registrationMethod || 'Standard'}</p>
+                  </div>
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium">Address</label>
-                <p>{selectedBooking.address}</p>
+
+              {/* Service Details Section */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Service Specifications</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Wall Type</label>
+                    <p className="mt-1 capitalize">{selectedBooking.wallType || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Mount Type</label>
+                    <p className="mt-1 capitalize">{selectedBooking.mountType || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Wall Mount Option</label>
+                    <p className="mt-1">{selectedBooking.wallMountOption || 'None'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Cable Concealment</label>
+                    <p className="mt-1">{selectedBooking.cableConcealment ? 'Yes' : 'No'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Soundbar Installation</label>
+                    <p className="mt-1">{selectedBooking.soundBarInstallation ? 'Yes' : 'No'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Installation Difficulty</label>
+                    <p className="mt-1 capitalize">{selectedBooking.installationDifficulty || 'Standard'}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium">Customer</label>
-                <p>{selectedBooking.customerName || 'Guest User'}</p>
-                <p className="text-sm text-gray-500">{selectedBooking.customerEmail}</p>
+
+              {/* Pricing Information Section */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Pricing Breakdown</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Base Service Price</label>
+                    <p className="mt-1 text-lg font-semibold">€{selectedBooking.estimatedPrice || selectedBooking.totalPrice}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Platform Lead Fee</label>
+                    <p className="mt-1 text-lg font-semibold text-green-600">€{selectedBooking.appFee}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Wall Mount Fee</label>
+                    <p className="mt-1">€{selectedBooking.wallMountFee || '0'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Referral Discount</label>
+                    <p className="mt-1">{selectedBooking.referralDiscount ? `€${selectedBooking.referralDiscount}` : 'None'}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium">Created</label>
-                <p>{selectedBooking.createdAt ? new Date(selectedBooking.createdAt).toLocaleString() : 'N/A'}</p>
+
+              {/* Location & Schedule Section */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Location & Schedule</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Installation Address</label>
+                    <p className="mt-1">{selectedBooking.address}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Preferred Date</label>
+                      <p className="mt-1">{selectedBooking.scheduledDate ? new Date(selectedBooking.scheduledDate).toLocaleDateString() : 'Not scheduled'}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Time Slot</label>
+                      <p className="mt-1">{selectedBooking.timeSlot || 'Flexible'}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              {/* Installer Information Section */}
+              {selectedBooking.installerId && (
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-3">Assigned Installer</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Installer ID</label>
+                      <p className="mt-1">#{selectedBooking.installerId}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Lead Status</label>
+                      <p className="mt-1">
+                        {selectedBooking.leadPurchased ? 
+                          <Badge className="bg-green-100 text-green-800">Lead Purchased</Badge> : 
+                          <Badge className="bg-yellow-100 text-yellow-800">Lead Available</Badge>
+                        }
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* System Information Section */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">System Information</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Created</label>
+                    <p className="mt-1">{selectedBooking.createdAt ? new Date(selectedBooking.createdAt).toLocaleString() : 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Last Updated</label>
+                    <p className="mt-1">{selectedBooking.updatedAt ? new Date(selectedBooking.updatedAt).toLocaleString() : 'N/A'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">User ID</label>
+                    <p className="mt-1">{selectedBooking.userId || 'Guest'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Payment Status</label>
+                    <p className="mt-1">{selectedBooking.paymentStatus || 'Direct Payment'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Room Analysis Section */}
+              {selectedBooking.roomAnalysis && (
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-3">AI Room Analysis</h3>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="text-sm">{selectedBooking.roomAnalysis}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Notes Section */}
+              {selectedBooking.notes && (
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-3">Additional Notes</h3>
+                  <div className="bg-gray-50 p-3 rounded">
+                    <p className="text-sm">{selectedBooking.notes}</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>

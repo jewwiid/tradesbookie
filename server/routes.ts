@@ -3699,22 +3699,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Delete user endpoint
-  app.delete("/api/admin/users/:userId", isAdmin, async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      const success = await storage.deleteUser(userId);
-      
-      if (success) {
-        res.json({ message: "User deleted successfully" });
-      } else {
-        res.status(404).json({ message: "User not found" });
-      }
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      res.status(500).json({ message: "Failed to delete user" });
-    }
-  });
+
 
   // Admin Installers Management
   app.get("/api/admin/installers", isAdmin, async (req, res) => {
@@ -4360,6 +4345,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const user = await storage.getUserById(userId.toString());
       if (!user) {
         return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Prevent deletion of admin users
+      if (user.role === 'admin') {
+        return res.status(403).json({ message: "Cannot delete admin users" });
       }
       
       // Delete related data first to avoid foreign key constraints

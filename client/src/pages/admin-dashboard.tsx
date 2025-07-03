@@ -394,7 +394,8 @@ function UserManagement() {
                         variant="outline" 
                         size="sm"
                         onClick={() => handleDeleteUser(user)}
-                        disabled={deleteUserMutation.isPending}
+                        disabled={deleteUserMutation.isPending || user.role === 'admin'}
+                        title={user.role === 'admin' ? "Cannot delete admin users" : "Delete user"}
                       >
                         {deleteUserMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                       </Button>

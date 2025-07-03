@@ -1497,6 +1497,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public platform statistics endpoints (for homepage/public pages)
+  app.get("/api/platform/stats", async (req, res) => {
+    try {
+      const installers = await storage.getAllInstallers();
+      const bookings = await storage.getAllBookings();
+      const reviews = await storage.getAllReviews();
+
+      // Calculate real statistics
+      const totalInstallers = installers.filter(installer => installer.approvalStatus === 'approved').length;
+      
+      // Get unique counties from installer service areas
+      const counties = new Set(installers
+        .filter(installer => installer.approvalStatus === 'approved')
+        .map(installer => installer.serviceArea)
+        .filter(Boolean));
+      
+      // Calculate average rating from all reviews
+      const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+      const averageRating = reviews.length > 0 ? (totalRating / reviews.length) : 0;
+      
+      // Count completed installations
+      const completedInstallations = bookings.filter(booking => booking.status === 'completed').length;
+
+      res.json({
+        totalInstallers,
+        countiesCovered: counties.size,
+        averageRating: Number(averageRating.toFixed(1)),
+        completedInstallations
+      });
+    } catch (error) {
+      console.error("Error fetching platform stats:", error);
+      res.status(500).json({ message: "Failed to fetch platform statistics" });
+    }
+  });
+
   // Admin referral code management endpoints
   app.post("/api/referrals/codes", async (req, res) => {
     try {

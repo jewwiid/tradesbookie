@@ -21,6 +21,12 @@ export default function OurInstallers() {
     retry: false,
   });
 
+  // Fetch real platform statistics
+  const { data: platformStats, isLoading: statsLoading } = useQuery({
+    queryKey: ["/api/platform/stats"],
+    retry: false,
+  });
+
   // Function to get review stats for an installer
   const getInstallerReviewStats = (installerId: number) => {
     const installerReviews = allReviews.filter((review: any) => review.installerId === installerId);
@@ -91,19 +97,43 @@ export default function OurInstallers() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold text-blue-600 mb-2">50+</div>
+              <div className="text-3xl font-bold text-blue-600 mb-2">
+                {statsLoading ? (
+                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  platformStats?.totalInstallers || 0
+                )}
+              </div>
               <div className="text-gray-600">Professional Installers</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-green-600 mb-2">16</div>
+              <div className="text-3xl font-bold text-green-600 mb-2">
+                {statsLoading ? (
+                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  platformStats?.countiesCovered || 0
+                )}
+              </div>
               <div className="text-gray-600">Counties Covered</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-purple-600 mb-2">4.9</div>
+              <div className="text-3xl font-bold text-purple-600 mb-2">
+                {statsLoading ? (
+                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  platformStats?.averageRating > 0 ? platformStats.averageRating : "N/A"
+                )}
+              </div>
               <div className="text-gray-600">Average Rating</div>
             </div>
             <div>
-              <div className="text-3xl font-bold text-orange-600 mb-2">2,500+</div>
+              <div className="text-3xl font-bold text-orange-600 mb-2">
+                {statsLoading ? (
+                  <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                ) : (
+                  platformStats?.completedInstallations || 0
+                )}
+              </div>
               <div className="text-gray-600">Installations Completed</div>
             </div>
           </div>

@@ -258,6 +258,31 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Track Your Booking Section */}
+      <section className="py-12 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+              Track Your Booking
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Already booked? Track your installation progress and view booking details
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <Link href="/booking-tracker">
+                <Button className="inline-flex items-center bg-white text-primary border-2 border-primary px-8 py-4 rounded-xl text-lg font-semibold hover:bg-primary hover:text-white transition-all duration-300 shadow-md">
+                  <Calendar className="mr-3 h-5 w-5" />
+                  Track My Booking
+                </Button>
+              </Link>
+              <span className="text-gray-500 text-sm">
+                Use your QR code or booking reference
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Service Tiers Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

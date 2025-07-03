@@ -551,6 +551,10 @@ The application now includes a robust fallback system. When the database is unav
 - July 3, 2025: **Fixed admin notification email format - replaced raw JSON data display with properly formatted booking details**
 - July 3, 2025: **Resolved critical booking validation errors preventing submission: fixed roomAnalysis object-to-string conversion and added missing referralDiscount field handling**
 - July 3, 2025: **Updated Drizzle schema validation to properly handle roomAnalysis and referralDiscount field types with correct string formatting**
+- July 3, 2025: **Enhanced homepage with prominent "Track Your Booking" section for easy access to booking history**
+- July 3, 2025: **Added "Track Booking" navigation links to both desktop and mobile navigation menus**
+- July 3, 2025: **Fixed critical admin dashboard HTTP token errors by correcting apiRequest parameter order (method, url, data) for DELETE and PATCH requests**
+- July 3, 2025: **Admin booking deletion and status update system now fully operational with real-time synchronization**
 
 ## User Preferences
 

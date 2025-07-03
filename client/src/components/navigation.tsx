@@ -79,6 +79,12 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                     >
                       Installation Map
                     </Link>
+                    <Link 
+                      href="/booking-tracker" 
+                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                    >
+                      Track Booking
+                    </Link>
                   </div>
                 )}
               </div>
@@ -265,6 +271,14 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                           >
                             <MapPin className="h-5 w-5 mr-3" />
                             Installation Map
+                          </Link>
+                          <Link 
+                            href="/booking-tracker" 
+                            className="flex items-center py-3 px-3 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-md transition-colors"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <Calendar className="h-5 w-5 mr-3" />
+                            Track Booking
                           </Link>
                         </div>
                       )}

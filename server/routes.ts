@@ -896,6 +896,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Transform and validate the incoming data
       const rawData = req.body;
+      console.log('Raw booking data before processing:', JSON.stringify(rawData, null, 2));
       
       // Ensure userId is a string
       if (rawData.userId && typeof rawData.userId === 'number') {
@@ -934,19 +935,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawData.contactPhone = rawData.contactPhone || '01-234-5678';
       }
       
-      // Fix roomAnalysis field - convert null to empty string
-      if (rawData.roomAnalysis === null || rawData.roomAnalysis === undefined) {
-        rawData.roomAnalysis = '';
-      }
-      
-      // Fix referralDiscount field - convert number to string
-      if (typeof rawData.referralDiscount === 'number') {
-        rawData.referralDiscount = rawData.referralDiscount.toFixed(2);
-      } else if (rawData.referralDiscount === null || rawData.referralDiscount === undefined) {
-        rawData.referralDiscount = '0.00';
-      }
+      console.log('Raw data after processing:', {
+        roomAnalysis: rawData.roomAnalysis,
+        roomAnalysisType: typeof rawData.roomAnalysis,
+        referralDiscount: rawData.referralDiscount,
+        referralDiscountType: typeof rawData.referralDiscount
+      });
       
       const bookingData = insertBookingSchema.parse(rawData);
+      
+      // Transform parsed data for storage
+      if (bookingData.roomAnalysis === null) {
+        bookingData.roomAnalysis = '';
+      }
+      
+      if (typeof bookingData.referralDiscount === 'number') {
+        bookingData.referralDiscount = bookingData.referralDiscount.toFixed(2);
+      } else if (bookingData.referralDiscount === null || bookingData.referralDiscount === undefined) {
+        bookingData.referralDiscount = '0.00';
+      }
       
       let booking;
       try {

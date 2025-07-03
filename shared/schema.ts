@@ -547,8 +547,8 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   estimatedPrice: z.string(),
   estimatedTotal: z.string(), 
   estimatedAddonsPrice: z.string().optional(),
-  roomAnalysis: z.string().optional(),
-  referralDiscount: z.string().optional(),
+  roomAnalysis: z.string().nullable().optional(),
+  referralDiscount: z.union([z.string(), z.number()]).nullable().optional(),
 });
 
 // Removed: insertFeeStructureSchema no longer needed

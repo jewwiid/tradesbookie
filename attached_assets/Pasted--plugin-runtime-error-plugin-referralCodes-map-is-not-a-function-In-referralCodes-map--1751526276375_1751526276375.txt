@@ -1,0 +1,128 @@
+[plugin:runtime-error-plugin] referralCodes?.map is not a function. (In 'referralCodes?.map(
+            (code) => /* @__PURE__ */ jsxDEV(TableRow, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2547:16", "data-component-name": "TableRow", children: [
+              /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2548:20", "data-component-name": "TableCell", className: "font-mono", children: code.referralCode }, void 0, false, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2548,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2549:20", "data-component-name": "TableCell", children: /* @__PURE__ */ jsxDEV(Badge, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2550:22", "data-component-name": "Badge", variant: code.referralType === "sales_staff" ? "outline" : "default", children: code.referralType === "sales_staff" ? "Staff" : "Customer" }, void 0, false, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2550,
+                columnNumber: 23
+              }, this) }, void 0, false, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2549,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2554:20", "data-component-name": "TableCell", children: code.referralType === "sales_staff" ? `${code.salesStaffName} (${code.salesStaffStore})` : code.referrerName || "Customer" }, void 0, false, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2554,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2560:20", "data-component-name": "TableCell", children: [
+                globalDiscountPercentage,
+                "%"
+              ] }, void 0, true, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2560,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2561:20", "data-component-name": "TableCell", children: code.totalReferrals }, void 0, false, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2561,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2562:20", "data-component-name": "TableCell", children: [
+                "€",
+                parseFloat(code.totalEarnings || "0").toFixed(2)
+              ] }, void 0, true, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2562,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2563:20", "data-component-name": "TableCell", children: new Date(code.createdAt).toLocaleDateString() }, void 0, false, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2563,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2566:20", "data-component-name": "TableCell", children: /* @__PURE__ */ jsxDEV(Badge, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2567:22", "data-component-name": "Badge", variant: code.isActive ? "default" : "secondary", children: code.isActive ? "Active" : "Inactive" }, void 0, false, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2567,
+                columnNumber: 23
+              }, this) }, void 0, false, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2566,
+                columnNumber: 21
+              }, this),
+              /* @__PURE__ */ jsxDEV(TableCell, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2571:20", "data-component-name": "TableCell", children: /* @__PURE__ */ jsxDEV("div", { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2572:22", "data-component-name": "div", className: "flex space-x-2", children: [
+                /* @__PURE__ */ jsxDEV(
+                  Button,
+                  {
+                    "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2573:24",
+                    "data-component-name": "Button",
+                    size: "sm",
+                    variant: "outline",
+                    onClick: () => {
+                      setEditingCode(code);
+                      setShowEditDialog(true);
+                    },
+                    children: /* @__PURE__ */ jsxDEV(Edit, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2581:26", "data-component-name": "Edit", className: "w-4 h-4" }, void 0, false, {
+                      fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                      lineNumber: 2581,
+                      columnNumber: 27
+                    }, this)
+                  },
+                  void 0,
+                  false,
+                  {
+                    fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                    lineNumber: 2573,
+                    columnNumber: 25
+                  },
+                  this
+                ),
+                /* @__PURE__ */ jsxDEV(
+                  Button,
+                  {
+                    "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2583:24",
+                    "data-component-name": "Button",
+                    size: "sm",
+                    variant: "outline",
+                    onClick: () => {
+                      if (confirm("Are you sure you want to delete this referral code?")) {
+                        deleteReferralCodeMutation.mutate(code.id);
+                      }
+                    },
+                    disabled: deleteReferralCodeMutation.isPending,
+                    children: /* @__PURE__ */ jsxDEV(Trash2, { "data-replit-metadata": "client/src/pages/admin-dashboard.tsx:2593:26", "data-component-name": "Trash2", className: "w-4 h-4" }, void 0, false, {
+                      fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                      lineNumber: 2593,
+                      columnNumber: 27
+                    }, this)
+                  },
+                  void 0,
+                  false,
+                  {
+                    fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                    lineNumber: 2583,
+                    columnNumber: 25
+                  },
+                  this
+                )
+              ] }, void 0, true, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2572,
+                columnNumber: 23
+              }, this) }, void 0, false, {
+                fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+                lineNumber: 2571,
+                columnNumber: 21
+              }, this)
+            ] }, code.id, true, {
+              fileName: "/home/runner/workspace/client/src/pages/admin-dashboard.tsx",
+              lineNumber: 2547,
+              columnNumber: 17
+            }, this)
+          )', 'referralCodes?.map' is undefined)
+Click outside, press Esc key, or fix the code to dismiss.
+You can also disable this overlay by setting server.hmr.overlay to false in vite.config.js

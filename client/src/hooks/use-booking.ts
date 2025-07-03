@@ -117,11 +117,13 @@ export const useBooking = () => {
         customerNotes: bookingData.customerNotes || '',
         roomPhotoUrl: bookingData.roomPhotoUrl || '',
         aiPreviewUrl: bookingData.aiPreviewUrl || '',
-        roomAnalysis: bookingData.roomAnalysis || '',
+        roomAnalysis: typeof bookingData.roomAnalysis === 'string' ? bookingData.roomAnalysis : JSON.stringify(bookingData.roomAnalysis || ''),
         photoStorageConsent: bookingData.photoStorageConsent || false,
         estimatedPrice: bookingData.subtotal.toFixed(2),
         estimatedAddonsPrice: bookingData.addonTotal.toFixed(2),
         estimatedTotal: bookingData.total.toFixed(2),
+        referralCode: bookingData.referralCode || null,
+        referralDiscount: bookingData.referralDiscount ? bookingData.referralDiscount.toFixed(2) : "0.00",
       };
 
       const response = await apiRequest('POST', '/api/bookings', bookingPayload);

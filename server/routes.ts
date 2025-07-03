@@ -646,6 +646,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile update endpoint for authenticated users
+  app.patch('/api/auth/profile', async (req: any, res) => {
+    try {
+      console.log("PATCH /api/auth/profile - Session ID:", req.sessionID);
+      console.log("PATCH /api/auth/profile - req.user:", req.user);
+      console.log("PATCH /api/auth/profile - isAuthenticated:", req.isAuthenticated());
+      console.log("PATCH /api/auth/profile - Update data:", req.body);
+      
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const user = req.user;
+      const { firstName, lastName, email } = req.body;
+      
+      // Validate input
+      if (!firstName || !lastName || !email) {
+        return res.status(400).json({ message: "First name, last name, and email are required" });
+      }
+      
+      // Update user profile
+      const updatedUser = await storage.updateUser(user.id, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim()
+      });
+      
+      console.log("Profile updated successfully:", { id: updatedUser.id, email: updatedUser.email });
+      
+      res.json({ 
+        message: "Profile updated successfully",
+        user: updatedUser
+      });
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Test endpoint to debug session state
   app.get('/api/auth/debug', async (req: any, res) => {
     res.json({

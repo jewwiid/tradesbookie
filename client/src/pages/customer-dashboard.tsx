@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 interface User {
   id: number;
@@ -41,6 +41,13 @@ export default function CustomerDashboard() {
   const [verificationEmail, setVerificationEmail] = useState('');
   const [sendingVerification, setSendingVerification] = useState(false);
   const [showGuestUpgradeDialog, setShowGuestUpgradeDialog] = useState(false);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    firstName: '',
+    lastName: '',
+    email: ''
+  });
 
   // Get current user
   const { data: user, isLoading: userLoading, error: userError } = useQuery<User>({
@@ -98,6 +105,45 @@ export default function CustomerDashboard() {
   const handleUpgradeAccount = () => {
     setShowGuestUpgradeDialog(false);
     setLocation('/api/signup?returnTo=/customer-dashboard');
+  };
+
+  const handleEditProfile = () => {
+    if (user) {
+      setProfileData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || ''
+      });
+      setShowProfileEdit(true);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    setEditingProfile(true);
+    try {
+      const response = await apiRequest('PATCH', '/api/auth/profile', profileData) as { message?: string };
+      
+      if (response.message) {
+        toast({
+          title: "Profile updated",
+          description: "Your profile has been successfully updated."
+        });
+        
+        // Invalidate user query to refresh data
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+        setShowProfileEdit(false);
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to update profile",
+        description: "Please try again or contact support.",
+        variant: "destructive"
+      });
+    } finally {
+      setEditingProfile(false);
+    }
   };
 
   if (userLoading) {
@@ -440,6 +486,9 @@ export default function CustomerDashboard() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Welcome, {user.firstName || user.email}</span>
+              <Button variant="ghost" size="sm" onClick={handleEditProfile}>
+                <Edit3 className="w-4 h-4" />
+              </Button>
               <Button variant="ghost" onClick={() => setLocation('/')}>
                 <Home className="w-5 h-5" />
               </Button>
@@ -544,6 +593,70 @@ export default function CustomerDashboard() {
           )}
         </div>
       </div>
+
+      {/* Profile Edit Dialog */}
+      <Dialog open={showProfileEdit} onOpenChange={setShowProfileEdit}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+            <DialogDescription>
+              Update your profile information. Make sure to keep your details current for better service.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={profileData.firstName}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                  placeholder="Enter first name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={profileData.lastName}
+                  onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                  placeholder="Enter last name"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                value={profileData.email}
+                onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Enter email address"
+              />
+            </div>
+            <div className="flex space-x-3 pt-4">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setShowProfileEdit(false)}
+                disabled={editingProfile}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1"
+                onClick={handleSaveProfile}
+                disabled={editingProfile}
+              >
+                {editingProfile && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

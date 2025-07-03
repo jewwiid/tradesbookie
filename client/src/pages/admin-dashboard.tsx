@@ -335,7 +335,7 @@ function UserManagement() {
                         />
                       )}
                       <span className="font-medium">
-                        {user.firstName ? `${user.firstName} ${user.lastName}` : 'Anonymous User'}
+                        {user.firstName ? `${user.firstName} ${user.lastName}` : user.email.split('@')[0]}
                       </span>
                     </div>
                   </TableCell>
@@ -423,7 +423,7 @@ function UserManagement() {
                 <p className="text-sm">
                   {selectedUser.firstName ? 
                     `${selectedUser.firstName} ${selectedUser.lastName}` : 
-                    'Anonymous User'
+                    selectedUser.email.split('@')[0]
                   }
                 </p>
               </div>
@@ -482,7 +482,7 @@ function UserManagement() {
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <h4 className="font-medium text-red-800 mb-2">User to be deleted:</h4>
                 <div className="text-sm text-red-700">
-                  <p><strong>Name:</strong> {selectedUser.firstName ? `${selectedUser.firstName} ${selectedUser.lastName}` : 'Anonymous User'}</p>
+                  <p><strong>Name:</strong> {selectedUser.firstName ? `${selectedUser.firstName} ${selectedUser.lastName}` : selectedUser.email.split('@')[0]}</p>
                   <p><strong>Email:</strong> {selectedUser.email}</p>
                   <p><strong>Role:</strong> {selectedUser.role === 'admin' ? 'Admin' : 'Customer'}</p>
                   <p><strong>Registration Type:</strong> {

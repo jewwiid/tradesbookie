@@ -1601,20 +1601,23 @@ function BookingManagement() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{booking.customerName || 'Guest User'}</div>
-                      <div className="text-sm text-gray-500">{booking.customerEmail}</div>
+                      <div className="font-medium">{booking.contactName || booking.customerName || 'Guest User'}</div>
+                      <div className="text-sm text-gray-500">{booking.contactEmail || booking.customerEmail || 'No email provided'}</div>
+                      {booking.contactPhone && (
+                        <div className="text-xs text-gray-400">{booking.contactPhone}</div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{booking.serviceType}</div>
-                      <div className="text-sm text-gray-500">{booking.tvSize}"</div>
+                      <div className="font-medium capitalize">{booking.serviceType.replace('-', ' ')}</div>
+                      <div className="text-sm text-gray-500">{booking.tvSize}" TV</div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">€{booking.totalPrice}</div>
-                      <div className="text-sm text-gray-500">Fee: €{booking.appFee}</div>
+                      <div className="font-medium">€{booking.estimatedTotal || booking.totalPrice}</div>
+                      <div className="text-sm text-gray-500">Lead Fee: €{booking.appFee}</div>
                     </div>
                   </TableCell>
                   <TableCell>

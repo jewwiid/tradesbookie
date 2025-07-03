@@ -5754,6 +5754,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
       
       // Format response with booking details
+      let parsedAddons = [];
+      try {
+        if (Array.isArray(booking.addons)) {
+          parsedAddons = booking.addons;
+        } else if (typeof booking.addons === 'string' && booking.addons) {
+          parsedAddons = JSON.parse(booking.addons);
+        } else if (booking.addons && typeof booking.addons === 'object') {
+          parsedAddons = booking.addons;
+        }
+      } catch (err) {
+        console.error("Error parsing addons:", err, "Raw addons:", booking.addons);
+        parsedAddons = [];
+      }
+
       const response = {
         id: booking.id,
         qrCode: booking.qrCode,
@@ -5766,7 +5780,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         serviceType: booking.serviceType,
         wallType: booking.wallType,
         mountType: booking.mountType,
-        addons: booking.addons ? JSON.parse(booking.addons) : [],
+        addons: parsedAddons,
         estimatedTotal: booking.estimatedTotal,
         scheduledDate: booking.scheduledDate,
         createdAt: booking.createdAt,

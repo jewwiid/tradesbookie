@@ -98,6 +98,7 @@ interface User {
   totalSpent: number;
   registrationMethod?: string;
   role?: string;
+  emailVerified?: boolean;
 }
 
 interface Installer {
@@ -234,7 +235,7 @@ function UserManagement() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      await apiRequest(`/api/admin/users/${userId}`, "DELETE");
+      await apiRequest("DELETE", `/api/admin/users/${userId}`);
     },
     onSuccess: () => {
       toast({ title: "User deleted successfully" });
@@ -242,6 +243,25 @@ function UserManagement() {
     },
     onError: () => {
       toast({ title: "Failed to delete user", variant: "destructive" });
+    },
+  });
+
+  const sendVerificationEmailMutation = useMutation({
+    mutationFn: async (email: string) => {
+      return await apiRequest("POST", "/api/auth/send-verification", { email });
+    },
+    onSuccess: () => {
+      toast({ 
+        title: "Verification email sent", 
+        description: "The user will receive a new verification email shortly." 
+      });
+    },
+    onError: () => {
+      toast({ 
+        title: "Failed to send verification email", 
+        description: "Please try again or contact support.",
+        variant: "destructive" 
+      });
     },
   });
 
@@ -253,6 +273,10 @@ function UserManagement() {
   const handleDeleteUser = (user: User) => {
     setSelectedUser(user);
     setShowDeleteDialog(true);
+  };
+
+  const handleSendVerificationEmail = (user: User) => {
+    sendVerificationEmailMutation.mutate(user.email);
   };
 
   const confirmDeleteUser = () => {
@@ -290,6 +314,7 @@ function UserManagement() {
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
+                <TableHead>Email Status</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Registration Type</TableHead>
                 <TableHead>Joined</TableHead>
@@ -315,6 +340,13 @@ function UserManagement() {
                     </div>
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={user.emailVerified ? 'default' : 'secondary'}
+                    >
+                      {user.emailVerified ? 'Verified' : 'Unverified'}
+                    </Badge>
+                  </TableCell>
                   <TableCell>
                     <Badge 
                       variant={user.role === 'admin' ? 'destructive' : 'default'}
@@ -348,6 +380,16 @@ function UserManagement() {
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
+                      {!user.emailVerified && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleSendVerificationEmail(user)}
+                          disabled={sendVerificationEmailMutation.isPending}
+                        >
+                          {sendVerificationEmailMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                        </Button>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm"

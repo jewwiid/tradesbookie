@@ -2182,7 +2182,7 @@ function BannedUsersManagement() {
   const { data: bannedUsers = [], isLoading: bannedUsersLoading } = useQuery({
     queryKey: ['/api/admin/banned-users'],
     queryFn: () => fetch('/api/admin/banned-users', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      credentials: 'include'  // Use session cookies for authentication
     }).then(r => r.json())
   });
 
@@ -2191,9 +2191,9 @@ function BannedUsersManagement() {
     mutationFn: async (data: { email: string; banType: string; reason: string }) => {
       const response = await fetch('/api/admin/banned-users', {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
       });
@@ -2213,9 +2213,7 @@ function BannedUsersManagement() {
     mutationFn: async (id: number) => {
       const response = await fetch(`/api/admin/banned-users/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to unban user');
       return response.json();

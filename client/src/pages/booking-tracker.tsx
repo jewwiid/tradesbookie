@@ -178,7 +178,13 @@ export default function BookingTracker() {
                         <p><strong>Wall Type:</strong> {booking.wallType}</p>
                         <p><strong>Mount Type:</strong> {booking.mountType}</p>
                         {booking.addons && booking.addons.length > 0 && (
-                          <p><strong>Add-ons:</strong> {booking.addons.join(', ')}</p>
+                          <p><strong>Add-ons:</strong> {
+                            Array.isArray(booking.addons) 
+                              ? booking.addons.map((addon: any) => 
+                                  typeof addon === 'string' ? addon : addon.name || addon.key
+                                ).join(', ')
+                              : booking.addons
+                          }</p>
                         )}
                         <p className="flex items-center gap-1">
                           <CreditCard className="w-3 h-3" />

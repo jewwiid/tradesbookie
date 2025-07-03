@@ -4056,17 +4056,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
       });
 
-      // Calculate real lead revenue from actual bookings
-      const serviceTiers = [
-        { id: 1, key: "table-top-small", name: "Table Top Small", leadFee: 12 },
-        { id: 2, key: "bronze-wall-mount", name: "Bronze Wall Mount", leadFee: 20 },
-        { id: 3, key: "silver-premium", name: "Silver Premium", leadFee: 25 },
-        { id: 4, key: "gold-premium-large", name: "Gold Premium Large", leadFee: 35 }
-      ];
+      // Get real service tiers from database
+      const serviceTiers = await storage.getServiceTiers();
       
       const leadRevenueByService: Record<string, { leadFee: number; count: number; revenue: number }> = {};
       
-      // Initialize service tracking
+      // Initialize service tracking using actual service tier data
       serviceTiers.forEach((tier: any) => {
         leadRevenueByService[tier.key] = {
           leadFee: tier.leadFee || 0,
@@ -4078,9 +4073,30 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Count actual bookings per service type
       monthlyBookings.forEach(booking => {
         const serviceKey = booking.serviceType;
+        
+        // Try direct match first
         if (leadRevenueByService[serviceKey]) {
           leadRevenueByService[serviceKey].count += 1;
           leadRevenueByService[serviceKey].revenue += leadRevenueByService[serviceKey].leadFee;
+        } else {
+          // Check legacy service type mappings for backward compatibility
+          const legacyMapping: Record<string, string> = {
+            'Premium Wall Mount': 'silver',
+            'Bronze Wall Mount': 'bronze',
+            'Silver Wall Mount': 'silver',
+            'Gold Wall Mount': 'gold',
+            'Table Mount': 'table-top-small',
+            'Table Mount Large': 'table-top-large'
+          };
+          
+          const mappedKey = legacyMapping[serviceKey];
+          if (mappedKey && leadRevenueByService[mappedKey]) {
+            leadRevenueByService[mappedKey].count += 1;
+            leadRevenueByService[mappedKey].revenue += leadRevenueByService[mappedKey].leadFee;
+          } else {
+            // Log unmatched service types for debugging
+            console.log(`Unmatched service type in revenue breakdown: ${serviceKey}`);
+          }
         }
       });
 

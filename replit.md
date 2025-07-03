@@ -571,6 +571,10 @@ The application now includes a robust fallback system. When the database is unav
 - July 3, 2025: **Implemented admin user deletion protection - disabled delete functionality for admin users in both frontend UI (disabled button with tooltip) and backend API (403 forbidden response) to prevent accidental removal of important accounts**
 - July 3, 2025: **Enhanced admin booking details dialog with comprehensive information display including customer details, service specifications, pricing breakdown, location/schedule info, installer assignment status, and system information for better administrative oversight**
 - July 3, 2025: **Fixed AI Room Analysis display to show formatted, readable text instead of raw JSON data - now displays recommendations, warnings, difficulty assessment, and confidence levels in organized sections with proper visual formatting**
+- July 3, 2025: **Completed comprehensive solar enquiry management system enhancement with status editing dialogs, deletion confirmation, and full database CRUD operations**
+- July 3, 2025: **Added complete OHK Energy solar leads management with 7 status options (new, contacted, qualified, converted, not_interested, closed, lost) and color-coded progression tracking**
+- July 3, 2025: **Fixed Revenue Breakdown by Service Type to use authentic database data instead of hardcoded fallback values - now queries real service tiers and calculates accurate lead revenue from actual bookings**
+- July 3, 2025: **Enhanced platform insights endpoint with proper service type mapping and legacy booking compatibility for accurate revenue analytics**
 
 ## User Preferences
 

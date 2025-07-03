@@ -1028,15 +1028,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
           }
 
-          // Notify all available installers about new booking
+          // Notify all approved installers about new booking
           const installers = await storage.getAllInstallers();
-          for (const installer of installers) {
-            if (installer.email) {
+          const approvedInstallers = installers.filter(installer => 
+            installer.approvalStatus === 'approved' && installer.email
+          );
+          
+          console.log(`Notifying ${approvedInstallers.length} approved installers about new booking ${bookingDetails.qrCode}`);
+          
+          for (const installer of approvedInstallers) {
+            try {
               await sendInstallerNotification(
                 installer.email,
                 installer.contactName || installer.businessName,
                 bookingDetails
               );
+              console.log(`Email sent to installer: ${installer.email}`);
+            } catch (emailError) {
+              console.error(`Failed to send email to installer ${installer.email}:`, emailError);
             }
           }
 

@@ -557,6 +557,11 @@ The application now includes a robust fallback system. When the database is unav
 - July 3, 2025: **Admin booking deletion and status update system now fully operational with real-time synchronization**
 - July 3, 2025: **Fixed booking tracking system - corrected frontend API call to properly pass tracking code as query parameter**
 - July 3, 2025: **Fixed addons display issue in booking tracker - properly format addon objects to show readable names instead of "[object Object]"**
+- July 3, 2025: **Enhanced installer notification system for new bookings with lead generation messaging**
+- July 3, 2025: **Updated booking creation email flow to notify only approved installers (status === 'approved') instead of all registered installers**
+- July 3, 2025: **Redesigned installer notification emails with lead generation focus - emphasizes paid lead opportunities, earnings breakdown, and first-come-first-served urgency**
+- July 3, 2025: **Added comprehensive lead fee calculations and profit margins to installer email notifications**
+- July 3, 2025: **Enhanced email subject lines and content to clearly communicate lead purchase opportunities to approved installers**
 
 ## User Preferences
 

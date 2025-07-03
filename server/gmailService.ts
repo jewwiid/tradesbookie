@@ -234,49 +234,66 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
 export async function sendInstallerNotification(installerEmail: string, installerName: string, bookingDetails: any): Promise<boolean> {
   // Use valid email address for testing
   const validInstallerEmail = getInstallerNotificationEmail(installerEmail);
-  const subject = `New Installation Request - ${bookingDetails.qrCode}`;
+  const subject = `💰 New Lead Available - ${bookingDetails.qrCode}`;
   
   // Generate QR code image for installer email
   const qrCodeURL = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${bookingDetails.qrCode}`;
   const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
+  
+  // Calculate lead fee based on service type
+  const leadFeeMap: { [key: string]: number } = {
+    'table-top-small': 12,
+    'bronze': 20,
+    'silver': 25,
+    'gold': 35
+  };
+  const leadFee = leadFeeMap[bookingDetails.serviceType] || 20;
   
   const html = `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
-      <title>New Installation Request</title>
+      <title>New Lead Available</title>
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
         .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 8px 8px; }
-        .booking-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .lead-alert { background: #dcfce7; border: 2px solid #16a34a; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center; }
+        .booking-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
         .detail-label { font-weight: bold; color: #666; }
+        .earnings-highlight { background: #fef3c7; border: 1px solid #f59e0b; padding: 15px; border-radius: 8px; margin: 15px 0; }
         .action-buttons { text-align: center; margin: 30px 0; }
-        .button { display: inline-block; padding: 12px 24px; margin: 0 10px; text-decoration: none; border-radius: 5px; font-weight: bold; }
-        .accept-btn { background: #28a745; color: white; }
-        .decline-btn { background: #dc3545; color: white; }
+        .button { display: inline-block; padding: 15px 30px; margin: 0 10px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; }
+        .primary-btn { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; }
         .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>New Installation Request</h1>
-          <p>Job opportunity in your area</p>
+          <h1>💰 New Lead Available</h1>
+          <p>Premium installation opportunity in your area</p>
         </div>
         
         <div class="content">
+          <div class="lead-alert">
+            <h2 style="color: #16a34a; margin: 0 0 10px 0;">🎯 New Customer Request</h2>
+            <p style="color: #16a34a; margin: 0; font-size: 16px;">
+              A customer is looking for a TV installer in your area. Purchase this lead to get their contact details and secure the job.
+            </p>
+          </div>
+          
           <p>Hello ${installerName},</p>
           
-          <p>A new TV installation request has been submitted in your service area. Review the details below and respond quickly to secure this job.</p>
+          <p>A new TV installation request matching your service area is now available for purchase. Review the opportunity details below:</p>
           
           <div class="booking-details">
-            <h3>Job Details</h3>
+            <h3 style="color: #1f2937; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">💼 Lead Details</h3>
             <div class="detail-row">
-              <span class="detail-label">Booking ID:</span>
+              <span class="detail-label">Lead ID:</span>
               <span>${bookingDetails.qrCode}</span>
             </div>
             <div class="detail-row">
@@ -292,31 +309,49 @@ export async function sendInstallerNotification(installerEmail: string, installe
               <span>${bookingDetails.address}</span>
             </div>
             <div class="detail-row">
-              <span class="detail-label">Your Earnings:</span>
-              <span>€${bookingDetails.installerEarnings}</span>
-            </div>
-            <div class="detail-row">
-              <span class="detail-label">Difficulty:</span>
+              <span class="detail-label">Difficulty Level:</span>
               <span>${bookingDetails.difficulty || 'Standard'}</span>
             </div>
           </div>
+
+          <div class="earnings-highlight">
+            <h3 style="color: #92400e; margin: 0 0 10px 0;">💰 Earnings Breakdown</h3>
+            <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+              <span style="color: #92400e; font-weight: bold;">Customer Pays You Directly:</span>
+              <span style="color: #92400e; font-weight: bold;">€${bookingDetails.installerEarnings}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 8px 0; padding-top: 8px; border-top: 1px solid #f59e0b;">
+              <span style="color: #92400e;">Lead Access Fee:</span>
+              <span style="color: #92400e;">€${leadFee}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 8px 0; font-weight: bold; padding-top: 8px; border-top: 2px solid #f59e0b;">
+              <span style="color: #92400e;">Your Net Profit:</span>
+              <span style="color: #16a34a; font-size: 18px;">€${bookingDetails.installerEarnings - leadFee}</span>
+            </div>
+          </div>
           
-          <div class="qr-section" style="text-align: center; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px;">
-            <h3>Job QR Code</h3>
-            <p>Scan this QR code on-site for quick job verification:</p>
-            ${qrCodeImage ? `<div style="margin: 15px 0;"><img src="${qrCodeImage}" alt="QR Code for ${bookingDetails.qrCode}" style="border: 2px solid #ddd; border-radius: 8px; max-width: 200px; height: auto;" /></div>` : '<div style="margin: 15px 0; padding: 20px; background: #f0f0f0; border-radius: 8px;"><p>QR Code will be available shortly</p></div>'}
-            <p style="font-family: monospace; font-size: 14px; color: #666;"><strong>${bookingDetails.qrCode}</strong></p>
+          <div style="background: #e0f2fe; border: 1px solid #0369a1; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #0369a1; margin: 0 0 10px 0;">🔐 How Lead Generation Works</h3>
+            <ul style="color: #0369a1; margin: 0; padding-left: 20px;">
+              <li>Customer pays you directly (cash, card, or bank transfer)</li>
+              <li>No commission deducted from your earnings</li>
+              <li>Purchase lead access to get customer contact details</li>
+              <li>Lead fee is one-time payment for customer information</li>
+            </ul>
           </div>
           
           <div class="action-buttons">
-            <a href="https://tradesbook.ie/installer-dashboard" class="button accept-btn">View Dashboard</a>
+            <a href="https://tradesbook.ie/installer-dashboard" class="button primary-btn">🎯 Purchase Lead Access</a>
           </div>
           
-          <p><strong>Response Time:</strong> First-come, first-served basis. Login to your dashboard to accept or decline this request.</p>
+          <p style="text-align: center; font-weight: bold; color: #dc2626;">⚡ Act Fast: Leads are available on first-come, first-served basis!</p>
           
           <div class="footer">
-            <p>Login: <a href="https://tradesbook.ie/installer-login">tradesbook.ie/installer-login</a></p>
-            <p>Support: <a href="mailto:installers@tradesbook.ie">installers@tradesbook.ie</a></p>
+            <p>Dashboard: <a href="https://tradesbook.ie/installer-dashboard">tradesbook.ie/installer-dashboard</a></p>
+            <p>Support: <a href="mailto:installer@tradesbook.ie">installer@tradesbook.ie</a></p>
+            <p style="margin-top: 15px; font-size: 12px; color: #999;">
+              This lead notification was sent to approved installers in the service area.
+            </p>
           </div>
         </div>
       </div>

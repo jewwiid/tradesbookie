@@ -724,6 +724,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: lastName,
         role: role || 'customer',
         profileImageUrl: null,
+        emailVerified: true, // OAuth users are pre-verified through trusted provider
+        registrationMethod: 'oauth',
       });
       res.json(user);
     } catch (error) {
@@ -3686,7 +3688,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         bookingCount: userStats.get(user.id)?.bookingCount || 0,
         totalSpent: userStats.get(user.id)?.totalSpent || 0,
         registrationMethod: user.registrationMethod || 'oauth',
-        role: user.role || 'customer'
+        role: user.role || 'customer',
+        emailVerified: user.emailVerified || false
       }));
 
       res.json(enhancedUsers);

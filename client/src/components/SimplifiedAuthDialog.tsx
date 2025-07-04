@@ -133,14 +133,14 @@ export default function SimplifiedAuthDialog({
   };
 
   const handleOAuthLoginWithAccountSelection = () => {
-    // Clear any existing session first, then redirect to login
+    // Clear any existing session first, then redirect to account selection
     fetch('/api/logout', { method: 'POST' })
       .then(() => {
-        window.location.href = '/api/login';
+        window.location.href = '/api/login-select-account';
       })
       .catch(() => {
-        // Even if logout fails, still redirect to login
-        window.location.href = '/api/login';
+        // Even if logout fails, still redirect to account selection
+        window.location.href = '/api/login-select-account';
       });
   };
 

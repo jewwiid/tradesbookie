@@ -262,6 +262,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OAuth Account Selection Route - forces account selection
+  app.get("/api/login-select-account", (req, res, next) => {
+    console.log("=== OAUTH ACCOUNT SELECTION REQUEST START ===");
+    console.log("Account selection request from hostname:", req.hostname);
+    console.log("Account selection query params:", req.query);
+    
+    try {
+      // Store intended action and role in session
+      (req.session as any).authAction = 'login';
+      (req.session as any).intendedRole = req.query.role || 'customer';
+      
+      // Store return URL if provided
+      if (req.query.returnTo) {
+        (req.session as any).returnTo = req.query.returnTo as string;
+      }
+      
+      // Determine strategy based on hostname
+      function getStrategyName(hostname: string): string | null {
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return 'replitauth:localhost';
+        } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+          return `replitauth:${hostname}`;
+        } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
+          return 'replitauth:tradesbook.ie';
+        } else {
+          const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
+          return registeredDomain ? `replitauth:${registeredDomain}` : null;
+        }
+      }
+      
+      const strategyName = getStrategyName(req.hostname);
+      if (!strategyName) {
+        console.error("No OAuth strategy found for hostname:", req.hostname);
+        return res.status(400).json({ error: "OAuth not configured for this domain" });
+      }
+      
+      console.log("Using OAuth strategy for account selection:", strategyName);
+      
+      // Check if strategy is registered
+      const availableStrategies = Object.keys((passport as any)._strategies || {});
+      console.log("Available strategies:", availableStrategies);
+      
+      if (!availableStrategies.includes(strategyName)) {
+        console.error(`Strategy ${strategyName} not found!`);
+        return res.status(500).json({ 
+          error: "OAuth strategy not available", 
+          strategy: strategyName,
+          available: availableStrategies 
+        });
+      }
+      
+      // Save session before OAuth redirect
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session save error before OAuth:", saveErr);
+          return res.status(500).json({ error: "Session save failed" });
+        }
+        
+        console.log("About to call passport.authenticate for account selection...");
+        passport.authenticate(strategyName, { 
+          scope: "openid email profile offline_access",
+          prompt: "login select_account"  // Force fresh login and account selection
+        })(req, res, next);
+      });
+      
+    } catch (error) {
+      console.error("OAuth account selection setup error:", error);
+      res.status(500).json({ error: "OAuth account selection failed", details: error.message });
+    }
+  });
+
   // Simple installer authentication routes
   app.post("/api/installers/register", async (req, res) => {
     try {

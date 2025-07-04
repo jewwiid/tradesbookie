@@ -4745,6 +4745,39 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   // ====================== EMAIL TEST ENDPOINT ======================
   
+  // Test booking confirmation email with tracking URL
+  app.post("/api/test-booking-email", async (req, res) => {
+    try {
+      const { qrCode } = req.body;
+      
+      if (!qrCode) {
+        return res.status(400).json({ error: 'QR code is required' });
+      }
+
+      // Get booking details
+      const booking = await storage.getBookingByQrCode(qrCode);
+      if (!booking) {
+        return res.status(404).json({ error: 'Booking not found' });
+      }
+
+      // Send booking confirmation email with fixed tracking URL
+      const success = await sendBookingConfirmation(
+        booking.contactEmail,
+        booking.contactName,
+        booking
+      );
+
+      if (success) {
+        res.json({ success: true, message: `Test booking confirmation email sent successfully to ${booking.contactEmail}` });
+      } else {
+        res.status(500).json({ success: false, message: 'Failed to send test booking email' });
+      }
+    } catch (error) {
+      console.error('Test booking email error:', error);
+      res.status(500).json({ success: false, message: 'Error sending test booking email' });
+    }
+  });
+
   // Test Gmail functionality
   app.post("/api/test-email", isAuthenticated, isAdmin, async (req, res) => {
     try {

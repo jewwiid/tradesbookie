@@ -604,6 +604,10 @@ The application now includes a robust fallback system. When the database is unav
 - July 4, 2025: **Simplified OAuth authentication flow - removed confusing "Create New Account" vs "Sign In" distinction**
 - July 4, 2025: **Implemented automatic logout-and-redirect for account switching with user feedback notifications**
 - July 4, 2025: **Updated authentication dialog to show contextual options based on user authentication state**
+- July 4, 2025: **Implemented realistic OAuth account switching solution that acknowledges OAuth provider limitations**
+- July 4, 2025: **Enhanced authentication dialog with transparent messaging about Replit OAuth account selection constraints**
+- July 4, 2025: **Added practical guidance for users wanting to switch accounts (incognito windows, browser data clearing)**
+- July 4, 2025: **Fixed authentication dialog to show actual user email dynamically instead of hardcoded values**
 
 ## User Preferences
 

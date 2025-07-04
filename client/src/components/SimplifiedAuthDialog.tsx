@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Receipt, User, Mail, Phone, Star, Shield } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -36,7 +36,7 @@ export default function SimplifiedAuthDialog({
   const [lastName, setLastName] = useState('');
   const [activeTab, setActiveTab] = useState(defaultTab);
   const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   // Update active tab when defaultTab prop changes
   useEffect(() => {
@@ -134,32 +134,41 @@ export default function SimplifiedAuthDialog({
     window.location.href = '/api/login';
   };
 
-  const handleOAuthLoginWithAccountSelection = () => {
+  const handleOAuthLoginWithAccountSelection = async () => {
     if (isAuthenticated) {
-      // User is logged in, log them out then redirect to login
-      fetch('/api/logout', { 
-        method: 'POST',
-        credentials: 'include'
-      })
-      .then(() => {
-        // After logout, redirect to login
+      try {
+        // Show realistic expectations
         toast({
-          title: "Switching Accounts",
-          description: "Logging you out and redirecting to sign in with a different account...",
-          duration: 3000,
+          title: "Account Switching Instructions",
+          description: "Logging you out. For a different account, please use an incognito window or clear browser data.",
+          duration: 5000,
         });
+
+        // Force logout with session clearing
+        await fetch('/api/logout', { 
+          method: 'POST',
+          credentials: 'include'
+        });
+
+        // Clear any local storage or session storage
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Clear any cached authentication data
+        queryClient.removeQueries({ queryKey: ['/api/auth/user'] });
+
+        // Redirect to home page instead of immediate login
         setTimeout(() => {
-          window.location.href = '/api/login';
-        }, 1500);
-      })
-      .catch((error) => {
+          window.location.href = '/?logged_out=true';
+        }, 1000);
+      } catch (error) {
         console.error('Logout error:', error);
         toast({
           title: "Error",
           description: "Unable to log out. Please try using the profile menu.",
           variant: "destructive",
         });
-      });
+      }
     } else {
       // User is not logged in, proceed with normal login
       window.location.href = '/api/login';
@@ -353,10 +362,16 @@ export default function SimplifiedAuthDialog({
                 
                 <p className="text-xs text-center text-muted-foreground">
                   {isAuthenticated 
-                    ? "You're currently signed in. Use 'Switch Account' to log out and sign in with a different account."
-                    : "Sign in using Google, GitHub, or other social accounts. Account creation happens automatically on first sign-in."
+                    ? `Currently signed in as ${user?.email || 'your account'}. To switch accounts, you'll need to log out and manually clear your browser's OAuth session with Replit.`
+                    : "Sign in using your Replit account. Account creation happens automatically on first sign-in."
                   }
                 </p>
+                
+                {isAuthenticated && (
+                  <div className="text-xs text-center text-amber-600 bg-amber-50 p-2 rounded border">
+                    <strong>Note:</strong> OAuth account switching is limited by Replit's authentication system. For a different account, try logging out and using an incognito/private browser window.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

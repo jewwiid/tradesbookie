@@ -134,46 +134,7 @@ export default function SimplifiedAuthDialog({
     window.location.href = '/api/login';
   };
 
-  const handleOAuthLoginWithAccountSelection = async () => {
-    if (isAuthenticated) {
-      try {
-        // Show realistic expectations
-        toast({
-          title: "Account Switching Instructions",
-          description: "Logging you out. For a different account, please use an incognito window or clear browser data.",
-          duration: 5000,
-        });
 
-        // Force logout with session clearing
-        await fetch('/api/logout', { 
-          method: 'POST',
-          credentials: 'include'
-        });
-
-        // Clear any local storage or session storage
-        localStorage.clear();
-        sessionStorage.clear();
-
-        // Clear any cached authentication data
-        queryClient.removeQueries({ queryKey: ['/api/auth/user'] });
-
-        // Redirect to home page instead of immediate login
-        setTimeout(() => {
-          window.location.href = '/?logged_out=true';
-        }, 1000);
-      } catch (error) {
-        console.error('Logout error:', error);
-        toast({
-          title: "Error",
-          description: "Unable to log out. Please try using the profile menu.",
-          variant: "destructive",
-        });
-      }
-    } else {
-      // User is not logged in, proceed with normal login
-      window.location.href = '/api/login';
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -329,48 +290,32 @@ export default function SimplifiedAuthDialog({
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button 
-                  onClick={handleOAuthLogin}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Sign In with Social Account
-                </Button>
-                
-                {isAuthenticated && (
+                {!isAuthenticated ? (
                   <>
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                          Already Signed In
-                        </span>
-                      </div>
-                    </div>
                     <Button 
-                      onClick={handleOAuthLoginWithAccountSelection}
-                      variant="outline"
-                      className="w-full border-blue-200 hover:bg-blue-50"
+                      onClick={handleOAuthLogin}
+                      className="w-full bg-green-600 hover:bg-green-700"
                     >
                       <User className="w-4 h-4 mr-2" />
-                      Switch Account
+                      Sign In with Social Account
                     </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      Sign in using your social account. Account creation happens automatically on first sign-in.
+                    </p>
                   </>
-                )}
-                
-                <p className="text-xs text-center text-muted-foreground">
-                  {isAuthenticated 
-                    ? `Currently signed in as ${user?.email || 'your account'}. To switch accounts, you'll need to log out and manually clear your browser's OAuth session with Replit.`
-                    : "Sign in using your Replit account. Account creation happens automatically on first sign-in."
-                  }
-                </p>
-                
-                {isAuthenticated && (
-                  <div className="text-xs text-center text-amber-600 bg-amber-50 p-2 rounded border">
-                    <strong>Note:</strong> OAuth account switching is limited by Replit's authentication system. For a different account, try logging out and using an incognito/private browser window.
-                  </div>
+                ) : (
+                  <>
+                    <div className="text-center p-4 bg-green-50 rounded border border-green-200">
+                      <User className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                      <p className="text-sm font-medium text-green-800">Already Signed In</p>
+                      <p className="text-xs text-green-600 mt-1">
+                        Currently signed in as {user?.email || 'your account'}
+                      </p>
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground">
+                      You're already authenticated and can access all platform features.
+                    </p>
+                  </>
                 )}
               </CardContent>
             </Card>

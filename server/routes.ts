@@ -268,11 +268,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OAuth Account Selection Route - forces account selection
-  app.get("/api/login-select-account", (req, res, next) => {
-    console.log("=== OAUTH ACCOUNT SELECTION REQUEST START ===");
-    console.log("Account selection request from hostname:", req.hostname);
-    console.log("Account selection query params:", req.query);
+  // OAuth Simple Login Route - just tries to login with current session
+  app.get("/api/login-simple", (req, res, next) => {
+    console.log("=== OAUTH SIMPLE LOGIN REQUEST START ===");
+    console.log("Simple login request from hostname:", req.hostname);
+    console.log("Simple login query params:", req.query);
     
     try {
       // Store intended action and role in session

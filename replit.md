@@ -600,6 +600,10 @@ The application now includes a robust fallback system. When the database is unav
 - July 4, 2025: **Added comprehensive OAuth debugging and error handling to identify authentication flow issues**
 - July 4, 2025: **Simplified account selection to provide clear user instructions when OAuth provider limitations encountered**
 - July 4, 2025: **Updated account switching functionality to use manual logout-then-login approach for better user experience**
+- July 4, 2025: **Fixed authentication dialog UI logic to properly check user login status before showing account selection options**
+- July 4, 2025: **Simplified OAuth authentication flow - removed confusing "Create New Account" vs "Sign In" distinction**
+- July 4, 2025: **Implemented automatic logout-and-redirect for account switching with user feedback notifications**
+- July 4, 2025: **Updated authentication dialog to show contextual options based on user authentication state**
 
 ## User Preferences
 

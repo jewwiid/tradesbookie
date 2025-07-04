@@ -136,11 +136,29 @@ export default function SimplifiedAuthDialog({
 
   const handleOAuthLoginWithAccountSelection = () => {
     if (isAuthenticated) {
-      // User is logged in, provide instructions for account switching
-      toast({
-        title: "Account Selection",
-        description: "To switch accounts, please log out first using the profile menu, then sign in again with your desired account.",
-        duration: 5000,
+      // User is logged in, log them out then redirect to login
+      fetch('/api/logout', { 
+        method: 'POST',
+        credentials: 'include'
+      })
+      .then(() => {
+        // After logout, redirect to login
+        toast({
+          title: "Switching Accounts",
+          description: "Logging you out and redirecting to sign in with a different account...",
+          duration: 3000,
+        });
+        setTimeout(() => {
+          window.location.href = '/api/login';
+        }, 1500);
+      })
+      .catch((error) => {
+        console.error('Logout error:', error);
+        toast({
+          title: "Error",
+          description: "Unable to log out. Please try using the profile menu.",
+          variant: "destructive",
+        });
       });
     } else {
       // User is not logged in, proceed with normal login
@@ -303,53 +321,40 @@ export default function SimplifiedAuthDialog({
               </CardHeader>
               <CardContent className="space-y-4">
                 <Button 
-                  onClick={handleOAuthSignup}
-                  variant="outline"
-                  className="w-full"
+                  onClick={handleOAuthLogin}
+                  className="w-full bg-green-600 hover:bg-green-700"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Create New Account
+                  Sign In with Social Account
                 </Button>
-                <Button 
-                  onClick={handleOAuthLogin}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Sign In to Existing Account
-                </Button>
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-background px-2 text-muted-foreground">
-                      Or
-                    </span>
-                  </div>
-                </div>
-                {isAuthenticated ? (
-                  <Button 
-                    onClick={handleOAuthLoginWithAccountSelection}
-                    variant="outline"
-                    className="w-full border-blue-200 hover:bg-blue-50"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Switch to Different Account
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={handleOAuthLoginWithAccountSelection}
-                    variant="outline"
-                    className="w-full border-blue-200 hover:bg-blue-50"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Sign In with Account Selection
-                  </Button>
+                
+                {isAuthenticated && (
+                  <>
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                          Already Signed In
+                        </span>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={handleOAuthLoginWithAccountSelection}
+                      variant="outline"
+                      className="w-full border-blue-200 hover:bg-blue-50"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Switch Account
+                    </Button>
+                  </>
                 )}
+                
                 <p className="text-xs text-center text-muted-foreground">
                   {isAuthenticated 
-                    ? "Switch to a different social account. You'll need to log out first."
-                    : "Secure sign-in using your social account with option to choose from multiple accounts."
+                    ? "You're currently signed in. Use 'Switch Account' to log out and sign in with a different account."
+                    : "Sign in using Google, GitHub, or other social accounts. Account creation happens automatically on first sign-in."
                   }
                 </p>
               </CardContent>

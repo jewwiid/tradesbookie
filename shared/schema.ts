@@ -157,6 +157,9 @@ export const bookings = pgTable("bookings", {
   referralCode: text("referral_code"),
   referralDiscount: decimal("referral_discount", { precision: 8, scale: 2 }).default("0.00"),
   
+  // Demo flag to hide test bookings from real installers
+  isDemo: boolean("is_demo").default(false),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -1498,6 +1498,23 @@ function BookingManagement() {
     },
   });
 
+  const updateDemoFlagMutation = useMutation({
+    mutationFn: async ({ bookingId, isDemo }: { bookingId: number; isDemo: boolean }) => {
+      await apiRequest("PATCH", `/api/admin/bookings/${bookingId}/demo-flag`, { isDemo });
+    },
+    onSuccess: () => {
+      toast({ title: "Demo flag updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/bookings"] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update demo flag", 
+        description: error.message || "Update failed",
+        variant: "destructive" 
+      });
+    },
+  });
+
   // Fetch booking permissions when selecting a booking
   const { data: assignmentStatus } = useQuery({
     queryKey: ["/api/admin/bookings", selectedBooking?.id, "assignment-status"],
@@ -1586,6 +1603,7 @@ function BookingManagement() {
                 <TableHead>Value</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Demo</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -1633,6 +1651,26 @@ function BookingManagement() {
                     <Badge className={getStatusColor(booking.status)}>
                       {booking.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => updateDemoFlagMutation.mutate({ 
+                          bookingId: booking.id, 
+                          isDemo: !booking.isDemo 
+                        })}
+                        disabled={updateDemoFlagMutation.isPending}
+                        className={`rounded-full ${
+                          booking.isDemo 
+                            ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {booking.isDemo ? 'Demo' : 'Live'}
+                      </Button>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex space-x-2">

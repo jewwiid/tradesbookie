@@ -4392,6 +4392,28 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Admin Actions - Update Demo Flag
+  app.patch("/api/admin/bookings/:id/demo-flag", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const { isDemo } = req.body;
+      
+      // Validate booking exists
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Update demo flag in database
+      await storage.updateBookingDemoFlag(bookingId, isDemo);
+      
+      res.json({ message: "Demo flag updated successfully" });
+    } catch (error) {
+      console.error("Error updating demo flag:", error);
+      res.status(500).json({ message: "Failed to update demo flag" });
+    }
+  });
+
   // Admin Actions - Delete Booking (only for unassigned bookings)
   app.delete("/api/admin/bookings/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
@@ -6169,12 +6191,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       // Get all unassigned bookings that can be purchased as leads
       const allBookings = await storage.getAllBookings();
-      const availableBookings = allBookings.filter(booking => 
-        // Include open, pending, urgent, confirmed status and ensure not assigned to any installer yet
-        (booking.status === "open" || booking.status === "pending" || booking.status === "urgent" || booking.status === "confirmed") &&
-        !booking.installerId && // Not assigned to any installer yet
-        !declinedRequestIds.includes(booking.id) // Not declined by this installer
-      );
+      const availableBookings = allBookings.filter(booking => {
+        // Basic filters for available leads
+        const isAvailable = (booking.status === "open" || booking.status === "pending" || booking.status === "urgent" || booking.status === "confirmed") &&
+          !booking.installerId && // Not assigned to any installer yet
+          !declinedRequestIds.includes(booking.id); // Not declined by this installer
+        
+        // Demo filtering logic
+        if (installerId === 2) {
+          // Demo installer (ID 2) can see all available bookings including demo ones
+          return isAvailable;
+        } else {
+          // Real installers should NOT see demo bookings
+          return isAvailable && !booking.isDemo;
+        }
+      });
       
       // Add lead fees and profit calculations
       const leadsWithFees = availableBookings.map(booking => {

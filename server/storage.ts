@@ -74,6 +74,7 @@ export interface IStorage {
   updateBookingStatus(id: number, status: string): Promise<void>;
   updateBookingAiPreview(id: number, aiPreviewUrl: string): Promise<void>;
   updateBookingPayment(id: number, paymentIntentId: string, paymentStatus: string, paidAmount?: number): Promise<void>;
+  updateBookingDemoFlag(id: number, isDemo: boolean): Promise<void>;
   getAllBookings(): Promise<Booking[]>;
 
   // Removed: Fee structure operations no longer needed in lead generation model
@@ -557,6 +558,12 @@ export class DatabaseStorage implements IStorage {
 
     await db.update(bookings)
       .set(updateData)
+      .where(eq(bookings.id, id));
+  }
+
+  async updateBookingDemoFlag(id: number, isDemo: boolean): Promise<void> {
+    await db.update(bookings)
+      .set({ isDemo, updatedAt: new Date() })
       .where(eq(bookings.id, id));
   }
 

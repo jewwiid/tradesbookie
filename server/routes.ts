@@ -252,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("About to call passport.authenticate for login...");
         passport.authenticate(strategyName, { 
           scope: "openid email profile offline_access",
-          prompt: "login"  // Force login screen for sign-in
+          prompt: "select_account"  // Allow users to select different accounts/providers
         })(req, res, next);
       });
       

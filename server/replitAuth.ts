@@ -455,6 +455,25 @@ export async function setupAuth(app: Express) {
       });
     });
   });
+
+  // POST logout endpoint for API calls
+  app.post("/api/logout", (req, res) => {
+    req.logout((err) => {
+      if (err) {
+        console.error('Logout error:', err);
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      
+      // Clear the session and return success response
+      req.session.destroy((sessionErr) => {
+        if (sessionErr) {
+          console.error('Session destruction error:', sessionErr);
+        }
+        res.clearCookie('connect.sid');
+        res.json({ success: true, message: "Logged out successfully" });
+      });
+    });
+  });
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {

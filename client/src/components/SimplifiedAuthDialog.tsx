@@ -132,6 +132,18 @@ export default function SimplifiedAuthDialog({
     window.location.href = '/api/signup';
   };
 
+  const handleOAuthLoginWithAccountSelection = () => {
+    // Clear any existing session first, then redirect to login
+    fetch('/api/logout', { method: 'POST' })
+      .then(() => {
+        window.location.href = '/api/login';
+      })
+      .catch(() => {
+        // Even if logout fails, still redirect to login
+        window.location.href = '/api/login';
+      });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto" aria-describedby="simplified-auth-description">
@@ -301,8 +313,26 @@ export default function SimplifiedAuthDialog({
                 >
                   Sign In to Existing Account
                 </Button>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or
+                    </span>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleOAuthLoginWithAccountSelection}
+                  variant="outline"
+                  className="w-full border-blue-200 hover:bg-blue-50"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Choose Different Account
+                </Button>
                 <p className="text-xs text-center text-muted-foreground">
-                  Secure sign-in using your existing Replit account
+                  Secure sign-in using your Replit account. "Choose Different Account" lets you select from multiple accounts.
                 </p>
               </CardContent>
             </Card>

@@ -49,7 +49,9 @@ export default function BookingTracker() {
 
   const handleSearch = () => {
     if (trackingCode.trim()) {
-      setSearchAttempted(true);
+      // Redirect to the detailed tracking page for unified experience
+      window.location.href = `/track/${trackingCode.trim()}`;
+      return;
     }
   };
 

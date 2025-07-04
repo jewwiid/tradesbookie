@@ -114,7 +114,18 @@ export default function QRTracking() {
 
   const getCurrentStepIndex = () => {
     const status = booking.jobAssignment?.status || booking.status;
-    return statusSteps.findIndex(step => step.key === status);
+    
+    // Map booking statuses to step indices
+    const statusMapping: { [key: string]: number } = {
+      'open': 0,        // Booking received
+      'pending': 0,     // Booking received
+      'assigned': 1,    // Installer assigned
+      'accepted': 2,    // Installer confirmed
+      'in_progress': 3, // Installation in progress
+      'completed': 4    // Installation complete
+    };
+    
+    return statusMapping[status] ?? 0; // Default to first step if status not found
   };
 
   const currentStepIndex = getCurrentStepIndex();

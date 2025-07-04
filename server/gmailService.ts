@@ -461,7 +461,7 @@ export async function sendLeadPurchaseNotification(
   installerDetails: any
 ): Promise<boolean> {
   try {
-    const trackingUrl = `https://tradesbook.ie/track/${leadDetails.qrCode}`;
+    const trackingUrl = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${leadDetails.qrCode}`;
     const qrCodeDataURL = await generateQRCodeDataURL(trackingUrl);
     
     const htmlContent = `
@@ -592,7 +592,7 @@ export async function sendStatusUpdateNotification(
   message?: string
 ): Promise<boolean> {
   try {
-    const trackingUrl = `https://tradesbook.ie/track/${leadDetails.qrCode}`;
+    const trackingUrl = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${leadDetails.qrCode}`;
     const statusDisplayMap = {
       'pending': 'Pending',
       'installation_scheduled': 'Installation Scheduled',
@@ -697,7 +697,7 @@ export async function sendScheduleProposalNotification(
       day: 'numeric'
     });
     
-    const trackingUrl = `https://tradesbook.ie/track/${booking.qrCode}`;
+    const trackingUrl = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${booking.qrCode}`;
     
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
@@ -776,7 +776,7 @@ export async function sendScheduleConfirmationNotification(
       day: 'numeric'
     });
     
-    const trackingUrl = `https://tradesbook.ie/track/${booking.qrCode}`;
+    const trackingUrl = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${booking.qrCode}`;
     
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">

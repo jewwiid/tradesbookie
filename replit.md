@@ -579,6 +579,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 3, 2025: **Fixed critical booking deletion issue preventing administrators from deleting 'pending' status bookings**
 - July 3, 2025: **Enhanced deleteBooking method with proper foreign key constraint handling for all related tables (declined_requests, job_assignments, schedule_negotiations, lead_quality_tracking, reviews, anti_manipulation, customer_verification)**
 - July 3, 2025: **Tested and verified complete cascade deletion functionality - admin can now delete any booking regardless of status**
+- July 4, 2025: **Fixed broken tracking URLs in customer booking emails - replaced hardcoded tradesbook.ie domain with environment-based URL generation for proper Replit deployment compatibility**
+- July 4, 2025: **Updated Gmail service tracking URL generation to use REPL_ID-based URLs instead of production domain for development and testing environments**
 
 ## User Preferences
 

@@ -7238,6 +7238,206 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   const httpServer = createServer(app);
+  // Email/Password Authentication Endpoints
+  
+  // Register with email and password
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "User already exists with this email" });
+      }
+      
+      // Hash password
+      const bcrypt = require('bcrypt');
+      const passwordHash = await bcrypt.hash(password, 10);
+      
+      // Create user
+      const user = await storage.upsertUser({
+        email,
+        firstName: firstName || '',
+        lastName: lastName || '',
+        passwordHash,
+        registrationMethod: 'email',
+        emailVerified: false,
+        role: 'customer'
+      });
+      
+      // Log user in
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Login error after registration:', err);
+          return res.status(500).json({ error: "Registration successful but login failed" });
+        }
+        
+        res.json({ 
+          success: true, 
+          user: { 
+            id: user.id, 
+            email: user.email, 
+            role: user.role 
+          } 
+        });
+      });
+      
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ error: "Registration failed" });
+    }
+  });
+  
+  // Login with email and password
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+      
+      // Get user
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.passwordHash) {
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+      
+      // Verify password
+      const bcrypt = require('bcrypt');
+      const passwordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!passwordValid) {
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+      
+      // Log user in
+      req.login(user, (err) => {
+        if (err) {
+          console.error('Login error:', err);
+          return res.status(500).json({ error: "Login failed" });
+        }
+        
+        res.json({ 
+          success: true, 
+          user: { 
+            id: user.id, 
+            email: user.email, 
+            role: user.role 
+          } 
+        });
+      });
+      
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: "Login failed" });
+    }
+  });
+  
+  // Change password (for authenticated users)
+  app.post("/api/auth/change-password", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current password and new password are required" });
+      }
+      
+      // Get current user
+      const user = await storage.getUserByEmail(req.user.email);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // For OAuth users, current password is not required
+      if (user.passwordHash) {
+        const bcrypt = require('bcrypt');
+        const passwordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+        if (!passwordValid) {
+          return res.status(401).json({ error: "Current password is incorrect" });
+        }
+      }
+      
+      // Hash new password
+      const bcrypt = require('bcrypt');
+      const newPasswordHash = await bcrypt.hash(newPassword, 10);
+      
+      // Update user
+      await storage.upsertUser({
+        ...user,
+        passwordHash: newPasswordHash,
+        registrationMethod: user.registrationMethod === 'oauth' ? 'oauth' : 'email'
+      });
+      
+      res.json({ success: true, message: "Password updated successfully" });
+      
+    } catch (error) {
+      console.error('Change password error:', error);
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+  
+  // Upgrade guest account to email/password account
+  app.post("/api/auth/upgrade-account", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const { password, firstName, lastName } = req.body;
+      
+      if (!password) {
+        return res.status(400).json({ error: "Password is required" });
+      }
+      
+      // Get current user
+      const user = await storage.getUserByEmail(req.user.email);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      // Check if user already has a password (not guest)
+      if (user.passwordHash) {
+        return res.status(400).json({ error: "Account already has password authentication" });
+      }
+      
+      // Hash password
+      const bcrypt = require('bcrypt');
+      const passwordHash = await bcrypt.hash(password, 10);
+      
+      // Update user
+      const updatedUser = await storage.upsertUser({
+        ...user,
+        firstName: firstName || user.firstName || '',
+        lastName: lastName || user.lastName || '',
+        passwordHash,
+        registrationMethod: 'email'
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Account upgraded successfully",
+        user: { 
+          id: updatedUser.id, 
+          email: updatedUser.email, 
+          role: updatedUser.role 
+        } 
+      });
+      
+    } catch (error) {
+      console.error('Account upgrade error:', error);
+      res.status(500).json({ error: "Failed to upgrade account" });
+    }
+  });
+
   return httpServer;
 }
 

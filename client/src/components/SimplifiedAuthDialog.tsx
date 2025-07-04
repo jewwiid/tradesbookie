@@ -18,7 +18,7 @@ interface SimplifiedAuthDialogProps {
   onSuccess: (user: any) => void;
   title?: string;
   description?: string;
-  defaultTab?: 'invoice' | 'guest' | 'oauth';
+  defaultTab?: 'invoice' | 'guest' | 'email' | 'oauth';
 }
 
 export default function SimplifiedAuthDialog({ 
@@ -34,6 +34,13 @@ export default function SimplifiedAuthDialog({
   const [phone, setPhone] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  
+  // Email/Password authentication states
+  const [emailAuthMode, setEmailAuthMode] = useState<'login' | 'register'>('login');
+  const [emailAuthEmail, setEmailAuthEmail] = useState('');
+  const [emailAuthPassword, setEmailAuthPassword] = useState('');
+  const [emailAuthFirstName, setEmailAuthFirstName] = useState('');
+  const [emailAuthLastName, setEmailAuthLastName] = useState('');
   const [activeTab, setActiveTab] = useState(defaultTab);
   const { toast } = useToast();
   const { isAuthenticated, user } = useAuth();
@@ -134,6 +141,64 @@ export default function SimplifiedAuthDialog({
     window.location.href = '/api/login';
   };
 
+  // Email authentication mutation
+  const emailAuthMutation = useMutation({
+    mutationFn: async (data: { mode: 'login' | 'register', email: string, password: string, firstName?: string, lastName?: string }) => {
+      const endpoint = data.mode === 'register' ? '/api/auth/register' : '/api/auth/login';
+      const payload: any = {
+        email: data.email,
+        password: data.password,
+      };
+
+      if (data.mode === 'register') {
+        payload.firstName = data.firstName;
+        payload.lastName = data.lastName;
+      }
+
+      return apiRequest('POST', endpoint, payload);
+    },
+    onSuccess: (data: any) => {
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: emailAuthMode === 'register' ? "Account created successfully!" : "Signed in successfully!",
+        });
+        
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+        onSuccess(data.user);
+        onClose();
+      } else {
+        throw new Error(data.error || 'Authentication failed');
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Authentication Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleEmailAuth = () => {
+    if (!emailAuthEmail || !emailAuthPassword) {
+      toast({
+        title: "Error",
+        description: "Email and password are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    emailAuthMutation.mutate({
+      mode: emailAuthMode,
+      email: emailAuthEmail,
+      password: emailAuthPassword,
+      firstName: emailAuthFirstName,
+      lastName: emailAuthLastName
+    });
+  };
+
 
 
   return (
@@ -146,11 +211,12 @@ export default function SimplifiedAuthDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'invoice' | 'guest' | 'oauth')} className="w-full mt-4">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'invoice' | 'guest' | 'email' | 'oauth')} className="w-full mt-4">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="invoice" className="text-xs">Harvey Norman</TabsTrigger>
             <TabsTrigger value="guest" className="text-xs">Quick Start</TabsTrigger>
-            <TabsTrigger value="oauth" className="text-xs">Full Account</TabsTrigger>
+            <TabsTrigger value="email" className="text-xs">Email/Password</TabsTrigger>
+            <TabsTrigger value="oauth" className="text-xs">Social Account</TabsTrigger>
           </TabsList>
 
           <TabsContent value="invoice" className="space-y-4 min-h-[300px]">
@@ -273,6 +339,108 @@ export default function SimplifiedAuthDialog({
                 </Button>
                 <p className="text-xs text-center text-muted-foreground">
                   We'll send booking updates to your email and phone
+                </p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="email" className="space-y-4 min-h-[300px]">
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center space-x-2">
+                  <Mail className="w-5 h-5 text-blue-600" />
+                  <CardTitle className="text-lg">Email & Password</CardTitle>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {emailAuthMode === 'login' ? 'Sign in with your email and password' : 'Create a new account with email and password'}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex space-x-2 mb-4">
+                  <Button
+                    variant={emailAuthMode === 'login' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setEmailAuthMode('login')}
+                    className="flex-1"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    variant={emailAuthMode === 'register' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setEmailAuthMode('register')}
+                    className="flex-1"
+                  >
+                    Create Account
+                  </Button>
+                </div>
+
+                {emailAuthMode === 'register' && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label htmlFor="email-first-name">First Name</Label>
+                      <Input
+                        id="email-first-name"
+                        placeholder="John"
+                        value={emailAuthFirstName}
+                        onChange={(e) => setEmailAuthFirstName(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="email-last-name">Last Name</Label>
+                      <Input
+                        id="email-last-name"
+                        placeholder="Doe"
+                        value={emailAuthLastName}
+                        onChange={(e) => setEmailAuthLastName(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <Label htmlFor="email-auth-email">Email Address *</Label>
+                  <Input
+                    id="email-auth-email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={emailAuthEmail}
+                    onChange={(e) => setEmailAuthEmail(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="email-auth-password">Password *</Label>
+                  <Input
+                    id="email-auth-password"
+                    type="password"
+                    placeholder="Your password"
+                    value={emailAuthPassword}
+                    onChange={(e) => setEmailAuthPassword(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <Button 
+                  onClick={handleEmailAuth}
+                  disabled={emailAuthMutation.isPending}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  {emailAuthMutation.isPending 
+                    ? (emailAuthMode === 'login' ? 'Signing In...' : 'Creating Account...') 
+                    : (emailAuthMode === 'login' ? 'Sign In' : 'Create Account')
+                  }
+                </Button>
+
+                <p className="text-xs text-center text-muted-foreground">
+                  {emailAuthMode === 'login' 
+                    ? 'Sign in to access your account and booking history'
+                    : 'Create an account to manage your bookings and access all features'
+                  }
                 </p>
               </CardContent>
             </Card>

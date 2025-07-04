@@ -26,6 +26,10 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role").default("customer"), // customer, admin
+  
+  // Password-based authentication
+  passwordHash: varchar("password_hash"), // For email/password authentication
+  
   emailVerified: boolean("is_email_verified").default(false),
   emailVerificationToken: varchar("email_verification_token"),
   emailVerificationExpires: timestamp("verification_token_expires"),
@@ -33,7 +37,7 @@ export const users = pgTable("users", {
   // Harvey Norman invoice-based authentication
   harveyNormanInvoiceNumber: varchar("harvey_norman_invoice"),
   invoiceVerified: boolean("invoice_verified").default(false),
-  registrationMethod: varchar("registration_method").default("oauth"), // oauth, invoice, guest
+  registrationMethod: varchar("registration_method").default("oauth"), // oauth, invoice, guest, email
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

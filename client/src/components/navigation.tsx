@@ -62,24 +62,6 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                       How it Works
                     </Link>
                     <Link 
-                      href="/pricing" 
-                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      Pricing
-                    </Link>
-                    <Link 
-                      href="/our-installers" 
-                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      Our Installers
-                    </Link>
-                    <Link 
-                      href="/installation-tracker" 
-                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      Installation Map
-                    </Link>
-                    <Link 
                       href="/booking-tracker" 
                       className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
                     >
@@ -240,30 +222,6 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                           >
                             <Home className="h-5 w-5 mr-4 flex-shrink-0" />
                             How it Works
-                          </Link>
-                          <Link 
-                            href="/pricing" 
-                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <Calendar className="h-5 w-5 mr-4 flex-shrink-0" />
-                            Pricing
-                          </Link>
-                          <Link 
-                            href="/our-installers" 
-                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <User className="h-5 w-5 mr-4 flex-shrink-0" />
-                            Our Installers
-                          </Link>
-                          <Link 
-                            href="/installation-tracker" 
-                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <MapPin className="h-5 w-5 mr-4 flex-shrink-0" />
-                            Installation Map
                           </Link>
                           <Link 
                             href="/booking-tracker" 

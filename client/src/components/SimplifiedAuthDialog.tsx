@@ -133,16 +133,12 @@ export default function SimplifiedAuthDialog({
   };
 
   const handleOAuthLoginWithAccountSelection = () => {
-    // Clear any existing session first, then use login route with fresh timestamp
-    fetch('/api/logout', { method: 'POST' })
-      .then(() => {
-        // Add timestamp to force fresh OAuth request which will show account selection
-        window.location.href = `/api/login?timestamp=${Date.now()}`;
-      })
-      .catch(() => {
-        // Even if logout fails, still redirect to login with fresh timestamp
-        window.location.href = `/api/login?timestamp=${Date.now()}`;
-      });
+    // For now, provide clear instructions to users about account switching
+    toast({
+      title: "Account Selection",
+      description: "To switch accounts, please log out first using the profile menu, then sign in again with your desired account.",
+      duration: 5000,
+    });
   };
 
   return (

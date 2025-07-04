@@ -253,7 +253,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         passport.authenticate(strategyName, { 
           scope: "openid email profile offline_access"
           // Removed prompt parameter as it's not supported by Replit OAuth
-        })(req, res, next);
+        })(req, res, (authErr) => {
+          if (authErr) {
+            console.error("Passport authentication error in login:", authErr);
+            return res.status(500).json({ error: "OAuth authentication failed", details: authErr.message });
+          }
+          console.log("Passport authentication completed for login");
+        });
       });
       
     } catch (error) {

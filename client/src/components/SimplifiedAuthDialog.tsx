@@ -10,6 +10,7 @@ import { Receipt, User, Mail, Phone, Star, Shield } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SimplifiedAuthDialogProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export default function SimplifiedAuthDialog({
   const [lastName, setLastName] = useState('');
   const [activeTab, setActiveTab] = useState(defaultTab);
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
 
   // Update active tab when defaultTab prop changes
   useEffect(() => {
@@ -133,12 +135,17 @@ export default function SimplifiedAuthDialog({
   };
 
   const handleOAuthLoginWithAccountSelection = () => {
-    // For now, provide clear instructions to users about account switching
-    toast({
-      title: "Account Selection",
-      description: "To switch accounts, please log out first using the profile menu, then sign in again with your desired account.",
-      duration: 5000,
-    });
+    if (isAuthenticated) {
+      // User is logged in, provide instructions for account switching
+      toast({
+        title: "Account Selection",
+        description: "To switch accounts, please log out first using the profile menu, then sign in again with your desired account.",
+        duration: 5000,
+      });
+    } else {
+      // User is not logged in, proceed with normal login
+      window.location.href = '/api/login';
+    }
   };
 
   return (
@@ -320,16 +327,30 @@ export default function SimplifiedAuthDialog({
                     </span>
                   </div>
                 </div>
-                <Button 
-                  onClick={handleOAuthLoginWithAccountSelection}
-                  variant="outline"
-                  className="w-full border-blue-200 hover:bg-blue-50"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Choose Different Account
-                </Button>
+                {isAuthenticated ? (
+                  <Button 
+                    onClick={handleOAuthLoginWithAccountSelection}
+                    variant="outline"
+                    className="w-full border-blue-200 hover:bg-blue-50"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Switch to Different Account
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={handleOAuthLoginWithAccountSelection}
+                    variant="outline"
+                    className="w-full border-blue-200 hover:bg-blue-50"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Sign In with Account Selection
+                  </Button>
+                )}
                 <p className="text-xs text-center text-muted-foreground">
-                  Secure sign-in using your social account. "Choose Different Account" lets you select from multiple accounts.
+                  {isAuthenticated 
+                    ? "Switch to a different social account. You'll need to log out first."
+                    : "Secure sign-in using your social account with option to choose from multiple accounts."
+                  }
                 </p>
               </CardContent>
             </Card>

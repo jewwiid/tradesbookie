@@ -136,7 +136,7 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
   const subject = `Booking Confirmation - ${bookingDetails.qrCode}`;
   
   // Generate QR code image for email
-  const qrCodeURL = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${bookingDetails.qrCode}`;
+  const qrCodeURL = `https://tradesbook.ie/track/${bookingDetails.qrCode}`;
   console.log('QR tracking URL:', qrCodeURL);
   const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
   console.log('QR code image generated for email:', qrCodeImage ? 'SUCCESS' : 'FAILED');
@@ -237,7 +237,7 @@ export async function sendInstallerNotification(installerEmail: string, installe
   const subject = `💰 New Lead Available - ${bookingDetails.qrCode}`;
   
   // Generate QR code image for installer email
-  const qrCodeURL = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${bookingDetails.qrCode}`;
+  const qrCodeURL = `https://tradesbook.ie/track/${bookingDetails.qrCode}`;
   const qrCodeImage = await generateQRCodeDataURL(qrCodeURL);
   
   // Calculate lead fee based on service type
@@ -461,7 +461,7 @@ export async function sendLeadPurchaseNotification(
   installerDetails: any
 ): Promise<boolean> {
   try {
-    const trackingUrl = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${leadDetails.qrCode}`;
+    const trackingUrl = `https://tradesbook.ie/track/${leadDetails.qrCode}`;
     const qrCodeDataURL = await generateQRCodeDataURL(trackingUrl);
     
     const htmlContent = `
@@ -592,7 +592,7 @@ export async function sendStatusUpdateNotification(
   message?: string
 ): Promise<boolean> {
   try {
-    const trackingUrl = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${leadDetails.qrCode}`;
+    const trackingUrl = `https://tradesbook.ie/track/${leadDetails.qrCode}`;
     const statusDisplayMap = {
       'pending': 'Pending',
       'installation_scheduled': 'Installation Scheduled',
@@ -697,7 +697,7 @@ export async function sendScheduleProposalNotification(
       day: 'numeric'
     });
     
-    const trackingUrl = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${booking.qrCode}`;
+    const trackingUrl = `https://tradesbook.ie/track/${booking.qrCode}`;
     
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
@@ -776,7 +776,7 @@ export async function sendScheduleConfirmationNotification(
       day: 'numeric'
     });
     
-    const trackingUrl = `${process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.app` : 'http://localhost:5000'}/track/${booking.qrCode}`;
+    const trackingUrl = `https://tradesbook.ie/track/${booking.qrCode}`;
     
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">

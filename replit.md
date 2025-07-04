@@ -585,6 +585,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 4, 2025: **Added test-booking-email endpoint for verification and testing of email delivery with proper tracking URL generation**
 - July 4, 2025: **Fixed "Total Cost: €undefined" display issue in tracking page and emails by updating field mapping from totalPrice to estimatedTotal**
 - July 4, 2025: **Updated booking confirmation email template to use proper fallback logic for price display (estimatedTotal || totalPrice || 'N/A')**
+- July 4, 2025: **Fixed tracking URL generation in all email templates to use production domain tradesbook.ie instead of Replit development domains**
+- July 4, 2025: **Updated all Gmail service functions to generate QR codes and tracking links pointing to https://tradesbook.ie/track/{qrCode} for professional email delivery**
 
 ## User Preferences
 

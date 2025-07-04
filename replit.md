@@ -592,9 +592,9 @@ The application now includes a robust fallback system. When the database is unav
 - July 4, 2025: **Simplified main navigation by removing "Our Installers", "Installation Map", and "Pricing" links from primary nav bar**
 - July 4, 2025: **Moved removed navigation items to footer where they remain accessible under Services and Support sections**
 - July 4, 2025: **Cleaned navigation now focuses on core customer journey: "How it Works" and "Track Booking" only**
-- July 4, 2025: **Enhanced OAuth account selection functionality with dedicated /api/login-select-account endpoint**
-- July 4, 2025: **Improved "Choose Different Account" feature to force proper account selection with combined "login select_account" prompt**
-- July 4, 2025: **Updated SimplifiedAuthDialog to use new account selection route for better social account switching experience**
+- July 4, 2025: **Enhanced OAuth account selection functionality using signup flow for account switching**
+- July 4, 2025: **Improved "Choose Different Account" to redirect to /api/signup which forces consent screen and account selection**
+- July 4, 2025: **Updated SimplifiedAuthDialog to use signup route with timestamp parameter for better social account switching experience**
 
 ## User Preferences
 

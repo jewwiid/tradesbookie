@@ -323,7 +323,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("About to call passport.authenticate for account selection...");
         passport.authenticate(strategyName, { 
           scope: "openid email profile offline_access",
-          prompt: "login select_account"  // Force fresh login and account selection
+          // Add timestamp to force fresh request and clear cached auth state
+          state: `account_selection_${Date.now()}`
         })(req, res, next);
       });
       

@@ -133,14 +133,15 @@ export default function SimplifiedAuthDialog({
   };
 
   const handleOAuthLoginWithAccountSelection = () => {
-    // Clear any existing session first, then redirect to account selection
+    // Clear any existing session first, then use signup route which forces consent/account selection
     fetch('/api/logout', { method: 'POST' })
       .then(() => {
-        window.location.href = '/api/login-select-account';
+        // Add timestamp to force fresh request
+        window.location.href = `/api/signup?timestamp=${Date.now()}`;
       })
       .catch(() => {
-        // Even if logout fails, still redirect to account selection
-        window.location.href = '/api/login-select-account';
+        // Even if logout fails, still redirect to signup which shows account selection
+        window.location.href = `/api/signup?timestamp=${Date.now()}`;
       });
   };
 

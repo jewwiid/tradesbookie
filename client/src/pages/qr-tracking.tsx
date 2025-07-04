@@ -69,12 +69,6 @@ export default function QRTracking() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
-  // Debug logging
-  console.log('QR Tracking Debug:', { qrCode, booking, isLoading, error });
-  console.log('Booking exists check:', !!booking);
-  console.log('Booking type:', typeof booking);
-  console.log('Error exists:', !!error);
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -87,7 +81,6 @@ export default function QRTracking() {
   }
 
   if (error) {
-    console.log('Error in booking fetch:', error);
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="max-w-md mx-auto">

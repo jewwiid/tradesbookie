@@ -191,7 +191,7 @@ export async function sendBookingConfirmation(customerEmail: string, customerNam
             </div>
             <div class="detail-row">
               <span class="detail-label">Total Cost:</span>
-              <span>€${bookingDetails.totalPrice}</span>
+              <span>€${bookingDetails.estimatedTotal || bookingDetails.totalPrice || 'N/A'}</span>
             </div>
           </div>
           

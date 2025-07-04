@@ -583,6 +583,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 4, 2025: **Updated Gmail service tracking URL generation to use REPL_ID-based URLs instead of production domain for development and testing environments**
 - July 4, 2025: **Successfully tested tracking URL fix - booking confirmation email sent to jude.okun@gmail.com with correct domain (https://3cc91570-fa8c-43bf-95a5-55159acf6009.replit.app/track/BK-hK75xZtKv3)**
 - July 4, 2025: **Added test-booking-email endpoint for verification and testing of email delivery with proper tracking URL generation**
+- July 4, 2025: **Fixed "Total Cost: €undefined" display issue in tracking page and emails by updating field mapping from totalPrice to estimatedTotal**
+- July 4, 2025: **Updated booking confirmation email template to use proper fallback logic for price display (estimatedTotal || totalPrice || 'N/A')**
 
 ## User Preferences
 

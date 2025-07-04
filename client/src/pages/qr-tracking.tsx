@@ -26,7 +26,8 @@ interface BookingDetails {
   wallType: string;
   mountType: string;
   address: string;
-  totalPrice: string;
+  estimatedTotal: string;
+  estimatedPrice: string;
   scheduledDate?: string;
   scheduledTime?: string;
   roomPhotoUrl?: string;
@@ -213,7 +214,7 @@ export default function QRTracking() {
               </div>
               <div>
                 <label className="text-sm font-medium text-gray-500">Total Price</label>
-                <p className="text-gray-900 font-semibold">{booking.totalPrice}</p>
+                <p className="text-gray-900 font-semibold">€{booking.estimatedTotal}</p>
               </div>
               {booking.scheduledDate && (
                 <div>

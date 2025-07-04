@@ -69,6 +69,9 @@ export default function QRTracking() {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  // Debug logging
+  console.log('QR Tracking Debug:', { qrCode, booking, isLoading, error });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">

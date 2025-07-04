@@ -294,7 +294,7 @@ export default function SimplifiedAuthDialog({
                   <CardTitle className="text-lg">Full Account</CardTitle>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Create a secure account for complete access and history
+                  Create a secure social account for complete access and history
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -332,7 +332,7 @@ export default function SimplifiedAuthDialog({
                   Choose Different Account
                 </Button>
                 <p className="text-xs text-center text-muted-foreground">
-                  Secure sign-in using your Replit account. "Choose Different Account" lets you select from multiple accounts.
+                  Secure sign-in using your social account. "Choose Different Account" lets you select from multiple accounts.
                 </p>
               </CardContent>
             </Card>

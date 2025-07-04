@@ -587,6 +587,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 4, 2025: **Updated booking confirmation email template to use proper fallback logic for price display (estimatedTotal || totalPrice || 'N/A')**
 - July 4, 2025: **Fixed tracking URL generation in all email templates to use production domain tradesbook.ie instead of Replit development domains**
 - July 4, 2025: **Updated all Gmail service functions to generate QR codes and tracking links pointing to https://tradesbook.ie/track/{qrCode} for professional email delivery**
+- July 4, 2025: **Fixed tracking page progress notes to show accurate status messages based on actual booking state instead of generic "current step" wording**
+- July 4, 2025: **Implemented contextual progress messages that check installer assignment status and provide appropriate updates for each booking stage**
 
 ## User Preferences
 

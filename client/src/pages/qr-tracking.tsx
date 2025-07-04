@@ -129,6 +129,28 @@ export default function QRTracking() {
     return statusMapping[status] ?? 0; // Default to first step if status not found
   };
 
+  const getProgressMessage = (stepIndex: number, currentStepIndex: number) => {
+    if (stepIndex !== currentStepIndex) return null;
+    
+    const status = booking.jobAssignment?.status || booking.status;
+    const hasInstaller = booking.installer;
+    
+    switch (stepIndex) {
+      case 0: // Booking Received
+        return "Your booking has been received and is being processed";
+      case 1: // Installer Assigned
+        return hasInstaller ? "An installer has been assigned to your booking" : "Looking for available installers in your area";
+      case 2: // Installer Confirmed
+        return "Your installer has confirmed and will contact you soon";
+      case 3: // Installation in Progress
+        return "Installation work is currently in progress";
+      case 4: // Installation Complete
+        return "Your installation has been completed successfully";
+      default:
+        return null;
+    }
+  };
+
   const currentStepIndex = getCurrentStepIndex();
 
   return (
@@ -193,7 +215,7 @@ export default function QRTracking() {
                       </h3>
                       {isCurrent && (
                         <p className="text-sm text-gray-600 mt-1">
-                          Current step - your installer is working on this now
+                          {getProgressMessage(index, currentStepIndex)}
                         </p>
                       )}
                     </div>

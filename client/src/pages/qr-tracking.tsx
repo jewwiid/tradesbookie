@@ -71,6 +71,9 @@ export default function QRTracking() {
 
   // Debug logging
   console.log('QR Tracking Debug:', { qrCode, booking, isLoading, error });
+  console.log('Booking exists check:', !!booking);
+  console.log('Booking type:', typeof booking);
+  console.log('Error exists:', !!error);
 
   if (isLoading) {
     return (
@@ -83,7 +86,24 @@ export default function QRTracking() {
     );
   }
 
-  if (error || !booking) {
+  if (error) {
+    console.log('Error in booking fetch:', error);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="text-center py-8">
+            <QrCode className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+            <h2 className="text-xl font-semibold mb-2">Error Loading Booking</h2>
+            <p className="text-gray-600">
+              There was an error loading the booking details. Please try again.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!booking) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="max-w-md mx-auto">

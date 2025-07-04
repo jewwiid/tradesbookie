@@ -251,8 +251,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Use passport authenticate - should redirect to OAuth provider
         console.log("About to call passport.authenticate for login...");
         passport.authenticate(strategyName, { 
-          scope: "openid email profile offline_access",
-          prompt: "login"  // Force fresh login for account selection
+          scope: "openid email profile offline_access"
+          // Removed prompt parameter as it's not supported by Replit OAuth
         })(req, res, next);
       });
       
@@ -476,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (req.session as any).returnTo = req.query.returnTo as string;
       }
       
-      // Determine strategy based on hostname
+      // Determine strategy based on hostname (matching login route exactly)
       function getStrategyName(hostname: string): string | null {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
           return 'replitauth:localhost';
@@ -498,7 +498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("Using OAuth strategy:", strategyName);
       
-      // Save session before OAuth redirect
+      // Save session before OAuth redirect (copying from login route)
       req.session.save((saveErr) => {
         if (saveErr) {
           console.error("Session save error before OAuth:", saveErr);
@@ -507,8 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log("About to call passport.authenticate for signup...");
         passport.authenticate(strategyName, { 
-          scope: "openid email profile offline_access",
-          prompt: "consent"  // Force consent screen for sign-up
+          scope: "openid email profile offline_access"
         })(req, res, next);
       });
       

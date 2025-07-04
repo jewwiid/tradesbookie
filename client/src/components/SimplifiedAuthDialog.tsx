@@ -129,19 +129,19 @@ export default function SimplifiedAuthDialog({
   };
 
   const handleOAuthSignup = () => {
-    window.location.href = '/api/signup';
+    window.location.href = '/api/login';
   };
 
   const handleOAuthLoginWithAccountSelection = () => {
-    // Clear any existing session first, then use signup route which forces consent/account selection
+    // Clear any existing session first, then use login route with fresh timestamp
     fetch('/api/logout', { method: 'POST' })
       .then(() => {
-        // Add timestamp to force fresh request
-        window.location.href = `/api/signup?timestamp=${Date.now()}`;
+        // Add timestamp to force fresh OAuth request which will show account selection
+        window.location.href = `/api/login?timestamp=${Date.now()}`;
       })
       .catch(() => {
-        // Even if logout fails, still redirect to signup which shows account selection
-        window.location.href = `/api/signup?timestamp=${Date.now()}`;
+        // Even if logout fails, still redirect to login with fresh timestamp
+        window.location.href = `/api/login?timestamp=${Date.now()}`;
       });
   };
 

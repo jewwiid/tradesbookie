@@ -372,13 +372,13 @@ export default function Home() {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardContent className="p-8 text-center">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+              <CardContent className="p-8 text-center flex flex-col h-full">
                 <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Receipt className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Harvey Norman Invoice</h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6 flex-grow">
                   Enter your Harvey Norman receipt number to book instantly. No account needed.
                 </p>
                 <Button 
@@ -386,20 +386,20 @@ export default function Home() {
                     setAuthDialogTab('invoice');
                     setAuthDialogOpen(true);
                   }}
-                  className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600"
+                  className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 mt-auto"
                 >
                   Use Invoice Number
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardContent className="p-8 text-center">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+              <CardContent className="p-8 text-center flex flex-col h-full">
                 <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Zap className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Quick Guest Booking</h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6 flex-grow">
                   Skip registration. Just provide your email for booking updates.
                 </p>
                 <Button 
@@ -407,20 +407,20 @@ export default function Home() {
                     setAuthDialogTab('guest');
                     setAuthDialogOpen(true);
                   }}
-                  className="w-full bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600"
+                  className="w-full bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600 mt-auto"
                 >
                   Book as Guest
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardContent className="p-8 text-center">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+              <CardContent className="p-8 text-center flex flex-col h-full">
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <User className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">Full Account</h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6 flex-grow">
                   Create an account for booking history, dashboard access, and more.
                 </p>
                 <Button 
@@ -428,7 +428,7 @@ export default function Home() {
                     setAuthDialogTab('oauth');
                     setAuthDialogOpen(true);
                   }}
-                  className="w-full bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600"
+                  className="w-full bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 mt-auto"
                 >
                   Create Account
                 </Button>

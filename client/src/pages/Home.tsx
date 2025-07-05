@@ -322,7 +322,7 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto">
             {serviceTiers.map((tier) => (
               <ServiceTierCard 
                 key={tier.key}

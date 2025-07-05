@@ -215,7 +215,7 @@ export default function SimplifiedAuthDialog({
           <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="invoice" className="text-xs">Harvey Norman</TabsTrigger>
             <TabsTrigger value="guest" className="text-xs">Quick Start</TabsTrigger>
-            <TabsTrigger value="email" className="text-xs">Email/Password</TabsTrigger>
+            <TabsTrigger value="email" className="text-xs">Email</TabsTrigger>
             <TabsTrigger value="oauth" className="text-xs">Social Account</TabsTrigger>
           </TabsList>
 

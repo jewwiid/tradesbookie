@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building, Receipt, User, Zap } from "lucide-react";
+import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building, Receipt, User, Zap, AlertTriangle, Home as HomeIcon, Clock, CreditCard } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Footer from "@/components/Footer";
@@ -442,6 +442,128 @@ export default function Home() {
               <span className="text-sm font-medium text-gray-700">
                 All options include email updates and booking tracking
               </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Professional Installation Section */}
+      <section className="py-16 bg-gradient-to-br from-orange-50 to-red-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Why Choose Professional TV Installation?
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Modern TVs present unique challenges that catch even experienced DIYers off guard
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-red-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <AlertTriangle className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Weight & Physics</h3>
+                <p className="text-gray-600">
+                  Today's 65" and 75" TVs weigh 30-40kg with massive leverage forces. Small mounting errors can cause catastrophic failure months later.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <HomeIcon className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">New Build Complexity</h3>
+                <p className="text-gray-600">
+                  Modern homes have metal studs, irregular spacing, hidden pipes, and cables that require professional detection tools.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <CardContent className="p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Insurance Protection</h3>
+                <p className="text-gray-600">
+                  Our vetted installers carry full liability insurance. If something goes wrong, you're completely protected.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900 mb-4">Time Reality Check</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <Clock className="h-6 w-6 text-red-500 mr-3" />
+                    <div>
+                      <span className="font-semibold text-gray-900">DIY Installation:</span>
+                      <span className="text-gray-600 ml-2">8-15 hours (research, shopping, installation, troubleshooting)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center">
+                    <CheckCircle className="h-6 w-6 text-green-500 mr-3" />
+                    <div>
+                      <span className="font-semibold text-gray-900">Professional Installation:</span>
+                      <span className="text-gray-600 ml-2">1-2 hours, done right the first time</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-full font-semibold text-lg">
+                  <Zap className="h-6 w-6 mr-2" />
+                  Save 6-13 Hours
+                </div>
+                <p className="text-gray-600 mt-3">Plus guaranteed results and peace of mind</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white">
+            <div className="text-center">
+              <h3 className="text-2xl font-bold mb-4">Our Platform Advantage</h3>
+              <div className="grid md:grid-cols-4 gap-6 mb-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Shield className="h-6 w-6" />
+                  </div>
+                  <p className="font-semibold">Vetted Network</p>
+                  <p className="text-sm opacity-90">All installers approved, rated & insured</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Camera className="h-6 w-6" />
+                  </div>
+                  <p className="font-semibold">AI Analysis</p>
+                  <p className="text-sm opacity-90">Instant room assessment & recommendations</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <Zap className="h-6 w-6" />
+                  </div>
+                  <p className="font-semibold">Real-Time Matching</p>
+                  <p className="text-sm opacity-90">Fastest response times in Ireland</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <CreditCard className="h-6 w-6" />
+                  </div>
+                  <p className="font-semibold">Transparent Pricing</p>
+                  <p className="text-sm opacity-90">Book free, pay installer directly</p>
+                </div>
+              </div>
+              <p className="text-lg opacity-90">
+                Don't risk your expensive TV or waste your weekend. Get it done right the first time.
+              </p>
             </div>
           </div>
         </div>

@@ -915,13 +915,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No photo uploaded" });
       }
 
-      const Sharp = require('sharp');
+      const sharp = (await import('sharp')).default;
       
       // Create optimized versions of the image
       const originalBuffer = req.file.buffer;
       
       // Compress for storage (720p max, 80% quality) - saves bandwidth and storage
-      const compressedBuffer = await Sharp(originalBuffer)
+      const compressedBuffer = await sharp(originalBuffer)
         .resize(1280, 720, { fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 80 })
         .toBuffer();

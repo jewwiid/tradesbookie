@@ -100,13 +100,13 @@ export default function BookingTracker() {
             Find Your Booking
           </CardTitle>
           <CardDescription>
-            Enter your QR code (e.g., QR-2025-001234) or booking reference number
+            Enter your QR code (e.g., BK-abc123xyz9) or booking reference number
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
             <Input
-              placeholder="QR-2025-001234 or booking reference"
+              placeholder="BK-abc123xyz9 or booking reference"
               value={trackingCode}
               onChange={(e) => setTrackingCode(e.target.value)}
               className="flex-1"

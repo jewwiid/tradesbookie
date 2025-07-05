@@ -5105,6 +5105,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Get all reviews for homepage display
+  app.get("/api/reviews", async (req, res) => {
+    try {
+      const reviews = await storage.getAllReviews();
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching all reviews:", error);
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
   // Past leads management endpoints
   app.get("/api/installer/:installerId/past-leads", async (req, res) => {
     try {

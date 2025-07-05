@@ -173,6 +173,33 @@ export default function Home() {
     retry: false,
   });
 
+  // Fetch review data for all installers
+  const { data: allReviews } = useQuery({
+    queryKey: ['/api/reviews'],
+    retry: false,
+  });
+
+  // Function to get real review stats for an installer
+  const getInstallerReviewStats = (installerId: number) => {
+    if (!allReviews) {
+      return { averageRating: 0, totalReviews: 0 };
+    }
+    
+    const installerReviews = allReviews.filter((review: any) => review.installerId === installerId);
+    
+    if (installerReviews.length === 0) {
+      return { averageRating: 0, totalReviews: 0 };
+    }
+    
+    const totalRating = installerReviews.reduce((sum: number, review: any) => sum + review.rating, 0);
+    const averageRating = (totalRating / installerReviews.length);
+    
+    return { 
+      averageRating: Math.round(averageRating * 10) / 10, 
+      totalReviews: installerReviews.length 
+    };
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -494,9 +521,22 @@ export default function Home() {
                       <span className="text-gray-600 text-sm">{installer.serviceArea}</span>
                     </div>
                     <div className="flex items-center justify-center mb-3">
-                      <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                      <span className="text-gray-700 font-medium">4.9/5</span>
-                      <span className="text-gray-500 text-sm ml-1">(50+ reviews)</span>
+                      {(() => {
+                        const reviewStats = getInstallerReviewStats(installer.id);
+                        return (
+                          <>
+                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                            <span className="text-gray-700 font-medium">
+                              {reviewStats.totalReviews > 0 ? `${reviewStats.averageRating}/5` : 'No reviews'}
+                            </span>
+                            {reviewStats.totalReviews > 0 && (
+                              <span className="text-gray-500 text-sm ml-1">
+                                ({reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? 's' : ''})
+                              </span>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                     <div className="flex items-center justify-center">
                       <Shield className="w-4 h-4 text-green-600 mr-1" />

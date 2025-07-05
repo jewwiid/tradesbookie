@@ -546,32 +546,30 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
                         Installation Difficulty Assessment
                       </h4>
                       
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-medium text-gray-600">COMPLEXITY</span>
-                            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              bookingData.roomAnalysis.difficultyAssessment.level === 'easy' ? 'bg-green-100 text-green-700' :
-                              bookingData.roomAnalysis.difficultyAssessment.level === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
-                              bookingData.roomAnalysis.difficultyAssessment.level === 'difficult' ? 'bg-orange-100 text-orange-700' :
-                              'bg-red-100 text-red-700'
-                            }`}>
-                              {bookingData.roomAnalysis.difficultyAssessment.level.toUpperCase()}
-                            </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3">
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium text-gray-600 block">COMPLEXITY</span>
+                          <div className={`inline-flex px-3 py-1.5 rounded-full text-xs font-medium ${
+                            bookingData.roomAnalysis.difficultyAssessment.level === 'easy' ? 'bg-green-100 text-green-700' :
+                            bookingData.roomAnalysis.difficultyAssessment.level === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
+                            bookingData.roomAnalysis.difficultyAssessment.level === 'difficult' ? 'bg-orange-100 text-orange-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {bookingData.roomAnalysis.difficultyAssessment.level.toUpperCase()}
                           </div>
                         </div>
-                        <div>
-                          <span className="text-xs font-medium text-gray-600">ESTIMATED TIME</span>
+                        <div className="space-y-1">
+                          <span className="text-xs font-medium text-gray-600 block">ESTIMATED TIME</span>
                           <p className="text-sm font-medium text-foreground">{bookingData.roomAnalysis.difficultyAssessment.estimatedTime}</p>
                         </div>
                       </div>
 
                       {bookingData.roomAnalysis.difficultyAssessment.factors?.length > 0 && (
                         <div className="mb-3">
-                          <h6 className="text-xs font-medium text-gray-600 mb-1">KEY FACTORS</h6>
-                          <div className="flex flex-wrap gap-1">
+                          <h6 className="text-xs font-medium text-gray-600 mb-2">KEY FACTORS</h6>
+                          <div className="flex flex-wrap gap-2">
                             {bookingData.roomAnalysis.difficultyAssessment.factors.map((factor, idx) => (
-                              <span key={idx} className="px-2 py-1 bg-white rounded-md text-xs text-gray-700 border">
+                              <span key={idx} className="px-3 py-1.5 bg-white rounded-lg text-xs font-medium text-gray-700 border shadow-sm">
                                 {factor}
                               </span>
                             ))}
@@ -580,14 +578,16 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
                       )}
 
                       {bookingData.roomAnalysis.difficultyAssessment.priceImpact !== 'none' && (
-                        <div className="flex items-center gap-2 p-2 bg-white rounded-md border">
-                          <div className={`w-2 h-2 rounded-full ${
-                            bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'low' ? 'bg-yellow-400' :
-                            bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'medium' ? 'bg-orange-400' :
-                            'bg-red-400'
-                          }`}></div>
-                          <span className="text-xs font-medium text-gray-600">PRICE IMPACT:</span>
-                          <span className="text-xs font-medium text-gray-800">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-white rounded-lg border shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${
+                              bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'low' ? 'bg-yellow-400' :
+                              bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'medium' ? 'bg-orange-400' :
+                              'bg-red-400'
+                            }`}></div>
+                            <span className="text-xs font-medium text-gray-600">PRICE IMPACT:</span>
+                          </div>
+                          <span className="text-sm font-bold text-gray-800">
                             {bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'low' ? '+10-20%' :
                              bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'medium' ? '+20-40%' :
                              '+40%+'}
@@ -598,8 +598,8 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
                   )}
 
                   {/* Room Analysis */}
-                  <div className="p-4 bg-muted rounded-lg text-left">
-                    <h4 className="font-semibold text-foreground mb-2">AI Room Analysis</h4>
+                  <div className="p-4 sm:p-6 bg-muted rounded-lg text-left">
+                    <h4 className="font-semibold text-foreground mb-3">AI Room Analysis</h4>
                     {bookingData.roomAnalysis.recommendations?.length > 0 && (
                       <div className="mb-2">
                         <h5 className="text-sm font-medium text-foreground">Recommendations:</h5>

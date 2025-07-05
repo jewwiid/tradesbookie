@@ -527,7 +527,7 @@ export default function Home() {
                           <>
                             <Star className="w-4 h-4 text-yellow-500 mr-1" />
                             <span className="text-gray-700 font-medium">
-                              {reviewStats.totalReviews > 0 ? `${reviewStats.averageRating}/5` : 'No reviews'}
+                              {reviewStats.totalReviews > 0 ? `${reviewStats.averageRating}/5` : 'No reviews yet'}
                             </span>
                             {reviewStats.totalReviews > 0 && (
                               <span className="text-gray-500 text-sm ml-1">

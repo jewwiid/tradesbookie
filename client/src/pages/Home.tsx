@@ -164,6 +164,25 @@ export default function Home() {
           price: 199
         }
       ]
+    },
+    {
+      key: "platinum",
+      name: "Platinum Premium Service",
+      description: "Ultimate TV installation with all premium features",
+      detailedDescription: "• All TV sizes supported (32\" to 100\"+)\n• Professional in-wall cable concealment (up to 4M)\n• Smart home integration setup\n• Premium full-motion mount installation\n• Soundbar/surround sound system setup\n• Complete TV calibration and optimization\n• 2-year installation warranty\n• Follow-up service visit included\n• Available for both residential and commercial properties",
+      icon: <Star className="text-2xl text-indigo-600" />,
+      gradient: "from-indigo-50 to-purple-50",
+      border: "border-indigo-200",
+      pricing: [
+        { 
+          label: "Premium Service", 
+          price: calculateCustomerPrice(449)
+        },
+        { 
+          label: "Ultra Large 85\"+", 
+          price: calculateCustomerPrice(599)
+        }
+      ]
     }
   ];
 
@@ -322,7 +341,7 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-4 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
             {serviceTiers.map((tier) => (
               <ServiceTierCard 
                 key={tier.key}

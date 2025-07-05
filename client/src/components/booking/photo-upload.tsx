@@ -432,7 +432,7 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
                 <p className="text-lg text-foreground mb-2">
                   {uploadMutation.isPending ? "Uploading..." : "Click to upload or drag and drop"}
                 </p>
-                <p className="text-sm text-muted-foreground">PNG, JPG up to 10MB</p>
+                <p className="text-sm text-muted-foreground">PNG, JPG up to 2MB</p>
               </div>
             </CardContent>
           </Card>

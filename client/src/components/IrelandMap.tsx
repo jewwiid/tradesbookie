@@ -19,18 +19,37 @@ interface InstallationRequest {
   tvSize: string;
 }
 
+interface Installation {
+  id: number;
+  address: string;
+  status: string;
+  latitude?: number;
+  longitude?: number;
+}
+
 interface IrelandMapProps {
-  requests: InstallationRequest[];
+  // For installer dashboard - active requests
+  requests?: InstallationRequest[];
   onRequestSelect?: (request: InstallationRequest) => void;
   selectedRequest?: InstallationRequest | null;
   className?: string;
+  
+  // For admin dashboard - completed installations
+  installations?: Installation[];
+  isLoading?: boolean;
+  showLegend?: boolean;
+  height?: string;
 }
 
 const IrelandMap: React.FC<IrelandMapProps> = ({
   requests,
   onRequestSelect,
   selectedRequest,
-  className = ''
+  className = '',
+  installations,
+  isLoading,
+  showLegend,
+  height = '400px'
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -135,16 +154,29 @@ const IrelandMap: React.FC<IrelandMapProps> = ({
     });
     markersRef.current = [];
 
-    // Add markers for each request
-    requests.forEach(request => {
-      const county = getCountyFromAddress(request.address);
-      const coordinates = countyCoordinates[county];
+    // Handle both requests (installer dashboard) and installations (admin dashboard)
+    const dataToMap = requests || installations || [];
+    
+    // Add markers for each item
+    dataToMap.forEach(item => {
+      const county = getCountyFromAddress(item.address);
+      
+      // Use precise coordinates if available (for installations) or county coordinates (for requests)
+      let coordinates: [number, number] | undefined;
+      if ('latitude' in item && 'longitude' in item && item.latitude && item.longitude) {
+        coordinates = [item.latitude, item.longitude];
+      } else {
+        coordinates = countyCoordinates[county];
+      }
       
       if (coordinates) {
+        // Different display logic for requests vs installations
+        const isRequest = 'leadFee' in item;
+        
         // Create custom icon
         const customIcon = L.divIcon({
           html: `<div style="
-            background-color: ${getMarkerColor(request.status)};
+            background-color: ${getMarkerColor(item.status)};
             width: 24px;
             height: 24px;
             border-radius: 50%;
@@ -156,41 +188,52 @@ const IrelandMap: React.FC<IrelandMapProps> = ({
             font-size: 12px;
             color: white;
             font-weight: bold;
-          ">€${request.leadFee}</div>`,
+          ">${isRequest ? `€${(item as InstallationRequest).leadFee}` : '✓'}</div>`,
           className: 'custom-marker',
           iconSize: [24, 24],
           iconAnchor: [12, 12]
         });
 
+        // Create different popup content for requests vs installations
+        const popupContent = isRequest 
+          ? `
+            <div style="font-size: 14px; line-height: 1.4;">
+              <strong>${item.address}</strong><br>
+              <span style="color: #666;">€${(item as InstallationRequest).leadFee} lead fee</span><br>
+              <span style="color: #666;">${(item as InstallationRequest).tvSize}" ${(item as InstallationRequest).serviceType}</span><br>
+              <span style="color: ${getMarkerColor(item.status)}; font-weight: bold; text-transform: uppercase;">${item.status}</span>
+            </div>
+          `
+          : `
+            <div style="font-size: 14px; line-height: 1.4;">
+              <strong>${item.address}</strong><br>
+              <span style="color: #666;">Installation ID: #${item.id}</span><br>
+              <span style="color: ${getMarkerColor(item.status)}; font-weight: bold; text-transform: uppercase;">${item.status}</span>
+            </div>
+          `;
+
         const marker = L.marker(coordinates, { icon: customIcon })
           .addTo(mapInstanceRef.current!)
-          .bindPopup(`
-            <div style="font-size: 14px; line-height: 1.4;">
-              <strong>${request.address}</strong><br>
-              <span style="color: #666;">€${request.leadFee} lead fee</span><br>
-              <span style="color: #666;">${request.tvSize}" ${request.serviceType}</span><br>
-              <span style="color: ${getMarkerColor(request.status)}; font-weight: bold; text-transform: uppercase;">${request.status}</span>
-            </div>
-          `)
+          .bindPopup(popupContent)
           .on('click', () => {
-            if (onRequestSelect) {
-              onRequestSelect(request);
+            if (isRequest && onRequestSelect) {
+              onRequestSelect(item as InstallationRequest);
             }
           });
 
         markersRef.current.push(marker);
 
-        // Highlight selected request
-        if (selectedRequest?.id === request.id) {
+        // Highlight selected request (only applies to installer dashboard)
+        if (isRequest && selectedRequest?.id === item.id) {
           marker.openPopup();
         }
       }
     });
-  }, [requests, selectedRequest, onRequestSelect]);
+  }, [requests, installations, selectedRequest, onRequestSelect]);
 
   return (
-    <div className={`w-full h-full relative overflow-hidden ${className}`} style={{ zIndex: 1 }}>
-      <div ref={mapRef} className="w-full h-full rounded-lg border-2 border-green-300" style={{ minHeight: '400px', zIndex: 1, position: 'relative' }} />
+    <div className={`w-full relative overflow-hidden ${className}`} style={{ height, zIndex: 1 }}>
+      <div ref={mapRef} className="w-full h-full rounded-lg border-2 border-green-300" style={{ minHeight: height, zIndex: 1, position: 'relative' }} />
     </div>
   );
 };

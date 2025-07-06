@@ -29,6 +29,9 @@ export default function OurInstallers() {
 
   // Function to get review stats for an installer
   const getInstallerReviewStats = (installerId: number) => {
+    if (!allReviews || !Array.isArray(allReviews)) {
+      return { averageRating: 0, totalReviews: 0 };
+    }
     const installerReviews = allReviews.filter((review: any) => review.installerId === installerId);
     
     if (installerReviews.length === 0) {

@@ -122,14 +122,18 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
 function findCityMatch(address: string): GeocodeResult | null {
   const addressLower = address.toLowerCase();
   
-  // Check for exact city/town matches first
+  // Find all matches and prioritize the longest/most specific one
+  const matches = [];
   for (const [cityName, location] of Object.entries(IRISH_CITIES_TOWNS)) {
     if (addressLower.includes(cityName)) {
-      return location;
+      matches.push({ cityName, location, length: cityName.length });
     }
   }
   
-  return null;
+  // Sort by length (descending) to get the most specific match first
+  matches.sort((a, b) => b.length - a.length);
+  
+  return matches.length > 0 ? matches[0].location : null;
 }
 
 function extractCountyFromAddress(address: string): string | undefined {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import InstallerProfile from "@/components/installer-profile";
+import InstallerLocationMap from "@/components/InstallerLocationMap";
 import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -258,6 +259,40 @@ export default function OurInstallers() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Interactive Map Section */}
+      <div className="bg-gray-50 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Installer Locations Across Ireland
+            </h2>
+            <p className="text-lg text-gray-600">
+              Interactive map showing our professional installers nationwide
+            </p>
+          </div>
+
+          {installersLoading ? (
+            <div className="w-full h-96 bg-gray-200 rounded-lg animate-pulse flex items-center justify-center">
+              <div className="text-gray-500">Loading map...</div>
+            </div>
+          ) : installers && installers.length > 0 ? (
+            <InstallerLocationMap
+              installers={installers}
+              height="500px"
+              className="mb-8"
+            />
+          ) : (
+            <div className="w-full h-96 bg-white rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">No installers to display</p>
+                <p className="text-sm">Check back soon as we build our network</p>
+              </div>
             </div>
           )}
         </div>

@@ -179,6 +179,35 @@
   background: hsl(var(--muted-foreground));
 }
 
+/* Custom styles for Leaflet installer markers */
+.installer-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.installer-popup {
+  max-width: 250px;
+}
+
+.installer-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+}
+
+.installer-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 12px;
+}
+
+/* Hide scrollbar for specific elements */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Animation classes */
 .fade-in {
   animation: fadeIn 0.5s ease-in-out;

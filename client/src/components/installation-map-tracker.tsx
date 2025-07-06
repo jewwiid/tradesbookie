@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, TrendingUp, Calendar, Monitor, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import GoogleMapsIreland from "./GoogleMapsIreland";
 
 interface InstallationLocation {
   location: string;
@@ -18,42 +19,49 @@ interface InstallationLocation {
   }>;
 }
 
-// Irish counties with SVG coordinates for accurate map positioning
-const IRELAND_LOCATIONS: Record<string, { x: number; y: number; county: string }> = {
-  'Dublin': { x: 190, y: 180, county: 'Dublin' },
-  'Cork': { x: 90, y: 320, county: 'Cork' },
-  'Galway': { x: 50, y: 200, county: 'Galway' },
-  'Limerick': { x: 80, y: 260, county: 'Limerick' },
-  'Waterford': { x: 140, y: 280, county: 'Waterford' },
-  'Kilkenny': { x: 160, y: 260, county: 'Kilkenny' },
-  'Wexford': { x: 180, y: 300, county: 'Wexford' },
-  'Carlow': { x: 170, y: 240, county: 'Carlow' },
-  'Kildare': { x: 170, y: 200, county: 'Kildare' },
-  'Laois': { x: 150, y: 220, county: 'Laois' },
-  'Meath': { x: 180, y: 160, county: 'Meath' },
-  'Wicklow': { x: 200, y: 220, county: 'Wicklow' },
-  'Offaly': { x: 140, y: 200, county: 'Offaly' },
-  'Westmeath': { x: 160, y: 180, county: 'Westmeath' },
-  'Longford': { x: 140, y: 160, county: 'Longford' },
-  'Louth': { x: 200, y: 140, county: 'Louth' },
-  'Cavan': { x: 160, y: 140, county: 'Cavan' },
-  'Monaghan': { x: 180, y: 120, county: 'Monaghan' },
-  'Donegal': { x: 120, y: 80, county: 'Donegal' },
-  'Sligo': { x: 100, y: 120, county: 'Sligo' },
-  'Leitrim': { x: 120, y: 140, county: 'Leitrim' },
-  'Roscommon': { x: 110, y: 180, county: 'Roscommon' },
-  'Mayo': { x: 80, y: 140, county: 'Mayo' },
-  'Clare': { x: 70, y: 240, county: 'Clare' },
-  'Kerry': { x: 50, y: 300, county: 'Kerry' },
-  'Tipperary': { x: 120, y: 240, county: 'Tipperary' },
-};
-
 export default function InstallationMapTracker() {
   const [selectedLocation, setSelectedLocation] = useState<InstallationLocation | null>(null);
 
-  const { data: locations = [], isLoading } = useQuery<InstallationLocation[]>({
-    queryKey: ["/api/installations/locations"],
+  // Fetch geocoded installation data for Google Maps
+  const { data: geocodedInstallations, isLoading } = useQuery({
+    queryKey: ['/api/installations/geocoded'],
+    retry: false,
   });
+
+  // Extract installation data by location from real data
+  const installationsByLocation: Record<string, InstallationLocation> = {};
+  
+  if (geocodedInstallations) {
+    geocodedInstallations.forEach((installation: any) => {
+      const locationKey = installation.county;
+      if (!installationsByLocation[locationKey]) {
+        installationsByLocation[locationKey] = {
+          location: locationKey,
+          count: 0,
+          recentInstallations: []
+        };
+      }
+      installationsByLocation[locationKey].count += 1;
+      installationsByLocation[locationKey].recentInstallations.push({
+        id: installation.id,
+        serviceType: installation.serviceType,
+        tvSize: installation.tvSize,
+        date: new Date(installation.createdAt).toISOString().split('T')[0],
+        status: installation.status
+      });
+    });
+  }
+
+  // Sort recent installations by date (most recent first)
+  Object.values(installationsByLocation).forEach(location => {
+    location.recentInstallations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Keep only the 5 most recent
+    location.recentInstallations = location.recentInstallations.slice(0, 5);
+  });
+
+  const locations = Object.values(installationsByLocation);
+  const totalInstallations = geocodedInstallations?.length || 0;
+  const topLocation = locations.sort((a, b) => b.count - a.count)[0];
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IE', {
@@ -80,9 +88,6 @@ export default function InstallationMapTracker() {
       default: return AlertCircle;
     }
   };
-
-  const totalInstallations = locations.reduce((sum, loc) => sum + loc.count, 0);
-  const topLocation = locations[0];
 
   if (isLoading) {
     return (
@@ -144,19 +149,28 @@ export default function InstallationMapTracker() {
 
       {/* Map and Details */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Interactive Ireland Map */}
+        {/* Google Maps Ireland */}
+        <div className="lg:col-span-2">
+          <GoogleMapsIreland 
+            installations={geocodedInstallations || []} 
+            isLoading={isLoading}
+            showLegend={true}
+            height="600px"
+          />
+        </div>
+      </div>
+
+      {/* Location Details */}
+      <div className="grid lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-blue-500" />
-              Installation Coverage Map
-            </CardTitle>
+            <CardTitle>Installation Locations</CardTitle>
             <CardDescription>
-              Privacy-protected view showing city and county data only
+              Click on a location to view recent installations
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="relative bg-gradient-to-b from-blue-50 to-green-50 dark:from-blue-900 dark:to-green-900 rounded-lg p-4 h-96 overflow-hidden">
+            <div className="space-y-3 max-h-96 overflow-y-auto">
               {/* SVG Map of Ireland */}
               <svg viewBox="0 0 300 400" className="w-full h-full">
                 {/* Accurate Ireland outline */}

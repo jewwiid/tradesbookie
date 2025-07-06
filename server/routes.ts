@@ -7593,6 +7593,49 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Geocoded installations endpoint for maps
+  app.get('/api/installations/geocoded', async (req, res) => {
+    try {
+      const bookings = await storage.getAllBookings();
+      const { geocodeAddress, getFallbackLocation } = await import('./services/geocoding.js');
+      
+      const geocodedInstallations = [];
+      
+      for (const booking of bookings) {
+        if (!booking.address) continue;
+        
+        // Try to geocode the address
+        let location = await geocodeAddress(booking.address);
+        
+        // If geocoding fails, try fallback location
+        if (!location) {
+          location = getFallbackLocation(booking.address);
+        }
+        
+        // If still no location, skip this booking
+        if (!location) continue;
+        
+        geocodedInstallations.push({
+          id: booking.id,
+          address: booking.address,
+          county: location.county,
+          lat: location.lat,
+          lng: location.lng,
+          serviceType: booking.serviceType,
+          totalPrice: booking.totalPrice,
+          status: booking.status,
+          createdAt: booking.createdAt,
+          tvSize: booking.tvSize
+        });
+      }
+      
+      res.json(geocodedInstallations);
+    } catch (error) {
+      console.error('Error fetching geocoded installations:', error);
+      res.status(500).json({ error: 'Failed to fetch installation data' });
+    }
+  });
+
   return httpServer;
 }
 

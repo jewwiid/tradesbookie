@@ -57,6 +57,7 @@ import {
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
+import GoogleMapsIreland from "@/components/GoogleMapsIreland";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
@@ -2484,6 +2485,12 @@ function SystemMetrics() {
     queryFn: () => fetch('/api/service-tiers').then(r => r.json())
   });
 
+  // Fetch geocoded installation data for Google Maps
+  const { data: geocodedInstallations, isLoading: mapLoading } = useQuery({
+    queryKey: ['/api/installations/geocoded'],
+    retry: false,
+  });
+
   // Use real data from API instead of simulated values
   const totalLeadRevenue = insights?.monthlyLeadRevenue || 0;
   const averageLeadValue = insights?.averageLeadValue || 0;
@@ -2625,6 +2632,16 @@ function SystemMetrics() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Installation Coverage Map */}
+      <div className="col-span-full">
+        <GoogleMapsIreland 
+          installations={geocodedInstallations || []} 
+          isLoading={mapLoading}
+          showLegend={true}
+          height="500px"
+        />
+      </div>
     </div>
   );
 }

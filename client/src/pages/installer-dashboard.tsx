@@ -132,12 +132,21 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
 
       {/* Visual Map Representation */}
       <div className="p-4 bg-gradient-to-b from-blue-50 to-green-50">
-        <div className="relative w-full aspect-[4/3] bg-gradient-to-br from-green-100 to-blue-100 rounded-lg border-2 border-green-200 overflow-hidden">
+        <div className="relative w-full h-64 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg border-2 border-green-300 overflow-hidden">
           {/* Ireland outline representation */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative w-3/4 h-3/4">
-              {/* Simplified Ireland shape */}
-              <div className="absolute inset-0 bg-green-200 rounded-tl-3xl rounded-tr-lg rounded-bl-2xl rounded-br-3xl opacity-30"></div>
+              {/* Simplified Ireland shape - more visible */}
+              <div className="absolute inset-0 bg-green-300 rounded-tl-3xl rounded-tr-lg rounded-bl-2xl rounded-br-3xl opacity-60 border border-green-400"></div>
+              
+              {/* Map grid pattern for visual reference */}
+              <div className="absolute inset-0">
+                <div className="grid grid-cols-4 grid-rows-3 h-full w-full opacity-20">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <div key={i} className="border border-gray-400"></div>
+                  ))}
+                </div>
+              </div>
               
               {/* Request markers on map */}
               {requests.map((request, index) => {
@@ -196,8 +205,19 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           
           {/* Map title overlay */}
           <div className="absolute top-2 left-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs font-medium text-gray-700">
-            Installation Requests Map
+            Installation Requests Map ({requests.length} leads)
           </div>
+          
+          {/* Center text when no leads */}
+          {requests.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center text-gray-500">
+                <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm font-medium">No active leads</p>
+                <p className="text-xs">Markers will appear when customers book</p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

@@ -194,7 +194,7 @@ export interface IStorage {
   getPlatformSetting(key: string): Promise<PlatformSettings | undefined>;
   getAllPlatformSettings(): Promise<PlatformSettings[]>;
   createPlatformSetting(setting: InsertPlatformSettings): Promise<PlatformSettings>;
-  updatePlatformSetting(key: string, value: string): Promise<void>;
+  updatePlatformSetting(key: string, updates: Partial<PlatformSettings>): Promise<PlatformSettings>;
   deletePlatformSetting(key: string): Promise<void>;
 
   // First lead voucher operations
@@ -203,6 +203,10 @@ export interface IStorage {
   markVoucherAsUsed(installerId: number, bookingId: number, voucherAmount: number, originalLeadFee: number): Promise<void>;
   checkVoucherEligibility(installerId: number): Promise<boolean>;
   getAllVouchers(): Promise<FirstLeadVoucher[]>;
+  getAllFirstLeadVouchers(): Promise<FirstLeadVoucher[]>;
+  createFirstLeadVoucher(voucher: InsertFirstLeadVoucher): Promise<FirstLeadVoucher>;
+  updateFirstLeadVoucher(id: number, updates: Partial<FirstLeadVoucher>): Promise<FirstLeadVoucher>;
+  getFirstLeadVoucher(installerId: number): Promise<FirstLeadVoucher | undefined>;
 
   // Anti-manipulation tracking operations
   createAntiManipulationRecord(record: InsertAntiManipulation): Promise<AntiManipulation>;
@@ -1374,10 +1378,12 @@ export class DatabaseStorage implements IStorage {
     return newSetting;
   }
 
-  async updatePlatformSetting(key: string, value: string): Promise<void> {
-    await db.update(platformSettings)
-      .set({ value, updatedAt: new Date() })
-      .where(eq(platformSettings.key, key));
+  async updatePlatformSetting(key: string, updates: Partial<PlatformSettings>): Promise<PlatformSettings> {
+    const [updatedSetting] = await db.update(platformSettings)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(platformSettings.key, key))
+      .returning();
+    return updatedSetting;
   }
 
   async deletePlatformSetting(key: string): Promise<void> {
@@ -1428,6 +1434,41 @@ export class DatabaseStorage implements IStorage {
 
   async getAllVouchers(): Promise<FirstLeadVoucher[]> {
     return await db.select().from(firstLeadVouchers).orderBy(desc(firstLeadVouchers.createdAt));
+  }
+
+  async createFirstLeadVoucher(voucher: InsertFirstLeadVoucher): Promise<FirstLeadVoucher> {
+    const [newVoucher] = await db.insert(firstLeadVouchers).values(voucher).returning();
+    return newVoucher;
+  }
+
+  async updateFirstLeadVoucher(id: number, updates: Partial<FirstLeadVoucher>): Promise<FirstLeadVoucher> {
+    const [updatedVoucher] = await db.update(firstLeadVouchers)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(firstLeadVouchers.id, id))
+      .returning();
+    return updatedVoucher;
+  }
+
+  async getFirstLeadVoucher(installerId: number): Promise<FirstLeadVoucher | undefined> {
+    const [voucher] = await db.select().from(firstLeadVouchers).where(eq(firstLeadVouchers.installerId, installerId));
+    return voucher;
+  }
+
+  async getAllFirstLeadVouchers(): Promise<FirstLeadVoucher[]> {
+    return await db.select().from(firstLeadVouchers).orderBy(desc(firstLeadVouchers.createdAt));
+  }
+
+  async createFirstLeadVoucher(voucher: InsertFirstLeadVoucher): Promise<FirstLeadVoucher> {
+    const [newVoucher] = await db.insert(firstLeadVouchers).values(voucher).returning();
+    return newVoucher;
+  }
+
+  async updateFirstLeadVoucher(id: number, updates: Partial<FirstLeadVoucher>): Promise<FirstLeadVoucher> {
+    const [updatedVoucher] = await db.update(firstLeadVouchers)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(firstLeadVouchers.id, id))
+      .returning();
+    return updatedVoucher;
   }
 
   // Anti-manipulation tracking operations

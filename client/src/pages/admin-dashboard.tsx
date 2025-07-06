@@ -1057,9 +1057,19 @@ function InstallerManagement() {
 
   // Handle image upload
   const handleImageUpload = () => {
+    console.log("🔄 handleImageUpload called");
+    console.log("📁 Selected Image:", selectedImage);
+    console.log("👤 Selected Installer:", selectedInstaller);
+    
     if (selectedImage && selectedInstaller) {
+      console.log("✅ Both image and installer selected, starting upload");
       setUploadingImage(true);
       uploadImageMutation.mutate({ installerId: selectedInstaller.id, imageFile: selectedImage });
+    } else {
+      console.log("❌ Missing requirements:", {
+        hasImage: !!selectedImage,
+        hasInstaller: !!selectedInstaller
+      });
     }
   };
 
@@ -1525,7 +1535,10 @@ function InstallerManagement() {
                           className="w-16 h-16 object-cover rounded-lg border"
                         />
                         <Button
-                          onClick={handleImageUpload}
+                          onClick={() => {
+                            console.log("🎯 Upload button clicked!");
+                            handleImageUpload();
+                          }}
                           disabled={uploadingImage}
                           size="sm"
                           className="bg-green-600 hover:bg-green-700"

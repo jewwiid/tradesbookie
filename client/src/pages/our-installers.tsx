@@ -45,14 +45,14 @@ export default function OurInstallers() {
   };
 
   const qualifications = [
-    "5+ years TV installation experience",
-    "Certified electrical work authorization",
-    "Comprehensive background checks",
-    "Insurance and bonding coverage",
-    "Customer service training",
-    "Safety protocol certification",
-    "Harvey Norman partnership trained",
-    "Real-time GPS tracking"
+    "Admin-reviewed and approved profiles",
+    "Business registration and contact verification", 
+    "Direct customer payment (cash, card, transfer)",
+    "Public liability insurance (optional)",
+    "Real-time availability status tracking",
+    "Customer review and rating system",
+    "Lead generation marketplace access",
+    "Professional profile with work samples"
   ];
 
   const serviceAreas = [
@@ -78,15 +78,15 @@ export default function OurInstallers() {
           <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
             <div className="flex items-center">
               <Shield className="w-5 h-5 text-green-600 mr-2" />
-              <span>Background checked</span>
+              <span>Admin approved</span>
             </div>
             <div className="flex items-center">
               <Award className="w-5 h-5 text-green-600 mr-2" />
-              <span>Certified professionals</span>
+              <span>Customer reviewed</span>
             </div>
             <div className="flex items-center">
               <Clock className="w-5 h-5 text-green-600 mr-2" />
-              <span>Real-time tracking</span>
+              <span>Direct payment</span>
             </div>
           </div>
         </div>
@@ -254,10 +254,10 @@ export default function OurInstallers() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose Our Installers?
+              How Our Platform Works
             </h2>
             <p className="text-lg text-gray-600">
-              Every installer meets our strict qualification standards
+              Connecting customers with verified installers through our lead generation marketplace
             </p>
           </div>
 

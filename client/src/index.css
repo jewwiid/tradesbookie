@@ -14,6 +14,25 @@
   }
 }
 
+/* Map container isolation */
+.leaflet-container {
+  z-index: 1 !important;
+  position: relative !important;
+}
+
+.leaflet-pane {
+  z-index: 1 !important;
+}
+
+.leaflet-map-pane {
+  z-index: 1 !important;
+}
+
+/* Ensure map stays contained */
+.leaflet-control-container {
+  z-index: 10 !important;
+}
+
 @font-face {
   font-family: 'GoodDog New';
   src: url('/fonts/gooddognew.ttf') format('truetype');

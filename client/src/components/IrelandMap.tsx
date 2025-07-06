@@ -189,8 +189,8 @@ const IrelandMap: React.FC<IrelandMapProps> = ({
   }, [requests, selectedRequest, onRequestSelect]);
 
   return (
-    <div className={`w-full h-full relative ${className}`}>
-      <div ref={mapRef} className="w-full h-full rounded-lg border-2 border-green-300" style={{ minHeight: '400px' }} />
+    <div className={`w-full h-full relative overflow-hidden ${className}`} style={{ zIndex: 1 }}>
+      <div ref={mapRef} className="w-full h-full rounded-lg border-2 border-green-300" style={{ minHeight: '400px', zIndex: 1, position: 'relative' }} />
     </div>
   );
 };

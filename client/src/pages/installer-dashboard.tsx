@@ -136,12 +136,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           {/* Ireland outline representation */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative w-3/4 h-3/4">
-              {/* Simplified Ireland shape - more visible */}
-              <div className="absolute inset-0 bg-green-400 border-2 border-green-600 shadow-lg opacity-80" 
-                   style={{
-                     clipPath: 'polygon(15% 10%, 35% 5%, 50% 15%, 70% 20%, 85% 35%, 90% 55%, 80% 75%, 70% 85%, 50% 90%, 30% 85%, 15% 70%, 10% 50%, 12% 30%)'
-                   }}>
-              </div>
+
               
               {/* Map grid pattern for visual reference */}
               <div className="absolute inset-0 opacity-30">

@@ -76,98 +76,170 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
   onRequestSelect: (request: ClientRequest) => void;
   selectedRequest?: ClientRequest;
 }) {
+  const getCountyFromAddress = (address: string): string => {
+    const counties = [
+      'Dublin', 'Cork', 'Galway', 'Limerick', 'Waterford', 'Kerry', 
+      'Mayo', 'Donegal', 'Wexford', 'Kilkenny', 'Tipperary', 'Clare',
+      'Kildare', 'Wicklow', 'Meath', 'Louth', 'Westmeath', 'Offaly',
+      'Laois', 'Carlow', 'Cavan', 'Monaghan', 'Sligo', 'Leitrim',
+      'Roscommon', 'Longford'
+    ];
+    
+    for (const county of counties) {
+      if (address.toLowerCase().includes(county.toLowerCase())) {
+        return county;
+      }
+    }
+    return 'Ireland';
+  };
+
+  const getMarkerColor = (status: string) => {
+    switch (status) {
+      case 'urgent': return '#f97316'; // orange
+      case 'emergency': return '#ef4444'; // red
+      default: return '#3b82f6'; // blue
+    }
+  };
+
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden">
       {/* Map Header */}
-      <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">
-        <div className="flex items-center justify-between">
+      <div className="p-3 sm:p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center space-x-2">
             <NavigationIcon className="w-5 h-5 text-green-600" />
             <span className="font-semibold text-green-800">Live Lead Map</span>
-            <Badge variant="secondary">{requests.length} available leads</Badge>
+            <Badge variant="secondary" className="text-xs">{requests.length} available leads</Badge>
           </div>
           
           {/* Map Legend */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center gap-2 sm:gap-4 text-xs">
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-xs text-gray-600">Standard</span>
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span className="text-gray-600">Standard</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-              <span className="text-xs text-gray-600">Urgent</span>
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <span className="text-gray-600">Urgent</span>
             </div>
             <div className="flex items-center space-x-1">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="text-xs text-gray-600">Emergency</span>
+              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+              <span className="text-gray-600">Emergency</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Interactive Lead List */}
-      <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
+      {/* Visual Map Representation */}
+      <div className="p-4 bg-gradient-to-b from-blue-50 to-green-50">
+        <div className="relative w-full aspect-[4/3] bg-gradient-to-br from-green-100 to-blue-100 rounded-lg border-2 border-green-200 overflow-hidden">
+          {/* Ireland outline representation */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative w-3/4 h-3/4">
+              {/* Simplified Ireland shape */}
+              <div className="absolute inset-0 bg-green-200 rounded-tl-3xl rounded-tr-lg rounded-bl-2xl rounded-br-3xl opacity-30"></div>
+              
+              {/* Request markers on map */}
+              {requests.map((request, index) => {
+                const county = getCountyFromAddress(request.address);
+                // Position markers based on rough county locations
+                const positions: { [key: string]: { top: string; left: string } } = {
+                  'Dublin': { top: '45%', left: '75%' },
+                  'Cork': { top: '80%', left: '40%' },
+                  'Galway': { top: '50%', left: '20%' },
+                  'Limerick': { top: '65%', left: '35%' },
+                  'Waterford': { top: '75%', left: '60%' },
+                  'Kerry': { top: '85%', left: '25%' },
+                  'Mayo': { top: '35%', left: '25%' },
+                  'Donegal': { top: '15%', left: '30%' },
+                  'Wexford': { top: '70%', left: '70%' },
+                  'Kilkenny': { top: '65%', left: '55%' },
+                  'Tipperary': { top: '60%', left: '45%' },
+                  'Clare': { top: '55%', left: '30%' },
+                  'Kildare': { top: '55%', left: '65%' },
+                  'Wicklow': { top: '60%', left: '70%' },
+                  'Meath': { top: '40%', left: '65%' },
+                  'Louth': { top: '35%', left: '70%' },
+                  'Westmeath': { top: '45%', left: '55%' },
+                  'Offaly': { top: '50%', left: '55%' },
+                  'Laois': { top: '55%', left: '55%' },
+                  'Carlow': { top: '65%', left: '65%' },
+                  'Cavan': { top: '30%', left: '60%' },
+                  'Monaghan': { top: '25%', left: '65%' },
+                  'Sligo': { top: '30%', left: '35%' },
+                  'Leitrim': { top: '30%', left: '45%' },
+                  'Roscommon': { top: '40%', left: '40%' },
+                  'Longford': { top: '40%', left: '50%' },
+                  'Ireland': { top: '50%', left: '50%' }
+                };
+                
+                const position = positions[county] || positions['Ireland'];
+                
+                return (
+                  <div
+                    key={request.id}
+                    className={`absolute w-4 h-4 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2 border-2 border-white shadow-lg transition-all duration-200 hover:scale-125 ${
+                      selectedRequest?.id === request.id ? 'scale-125 ring-4 ring-white ring-opacity-50' : ''
+                    }`}
+                    style={{
+                      top: position.top,
+                      left: position.left,
+                      backgroundColor: getMarkerColor(request.status)
+                    }}
+                    onClick={() => onRequestSelect(request)}
+                    title={`${request.address} - €${request.leadFee} lead fee`}
+                  />
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Map title overlay */}
+          <div className="absolute top-2 left-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs font-medium text-gray-700">
+            Installation Requests Map
+          </div>
+        </div>
+      </div>
+
+      {/* Lead List Below Map */}
+      <div className="max-h-64 overflow-y-auto">
         {requests.length > 0 ? (
-          requests.map((request, index) => {
-            const urgencyColor = request.status === 'urgent' ? 'border-orange-500' : 
-                                request.status === 'pending' ? 'border-red-500' : 'border-blue-500';
-            const urgencyBg = request.status === 'urgent' ? 'bg-orange-50' : 
-                             request.status === 'pending' ? 'bg-red-50' : 'bg-blue-50';
-            
-            return (
+          <div className="divide-y divide-gray-200">
+            {requests.map((request) => (
               <div
                 key={request.id}
-                className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                  selectedRequest?.id === request.id 
-                    ? `${urgencyColor} ${urgencyBg}` 
-                    : 'border-gray-200 hover:border-gray-300'
+                className={`p-3 cursor-pointer transition-all duration-200 hover:bg-gray-50 ${
+                  selectedRequest?.id === request.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
                 }`}
                 onClick={() => onRequestSelect(request)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <MapPin className="h-4 w-4 text-gray-500" />
-                      <span className="font-medium text-gray-900">{request.address}</span>
-                      <Badge variant={
-                        request.status === 'urgent' ? 'destructive' : 
-                        request.status === 'pending' ? 'destructive' : 'default'
-                      }>
-                        {request.status.replace('_', ' ')}
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div 
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: getMarkerColor(request.status) }}
+                      />
+                      <span className="text-sm font-medium text-gray-900 truncate">{request.address}</span>
+                      <Badge 
+                        variant={request.status === 'urgent' || request.status === 'emergency' ? 'destructive' : 'default'}
+                        className="text-xs"
+                      >
+                        {request.status}
                       </Badge>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-2">
-                      <div className="flex items-center gap-1">
-                        <Tv className="h-3 w-3" />
-                        {request.tvSize}" {request.serviceType}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(request.createdAt).toLocaleDateString('en-IE')}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-500">
-                        Lead Fee: <span className="font-medium text-gray-900">€{request.leadFee}</span>
-                      </div>
-                      <div className="text-sm text-green-600 font-medium">
-                        Est. Earnings: €{request.estimatedEarnings}
-                      </div>
+                    <div className="text-xs text-gray-500">
+                      {request.tvSize}" {request.serviceType} • Lead Fee: €{request.leadFee}
                     </div>
                   </div>
-                  
-                  <div className="ml-4 text-right">
-                    <div className="text-lg font-bold text-gray-900">
-                      {request.profitMargin}%
-                    </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-sm font-bold text-gray-900">{request.profitMargin}%</div>
                     <div className="text-xs text-gray-500">margin</div>
                   </div>
                 </div>
               </div>
-            );
-          })
+            ))}
+          </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
             <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />

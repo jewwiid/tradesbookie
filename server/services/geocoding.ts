@@ -61,147 +61,62 @@ const IRISH_CITIES_TOWNS: Record<string, GeocodeResult> = {
   'carrickmines': { lat: 53.2769, lng: -6.1522, formattedAddress: 'Carrickmines, Dublin, Ireland', county: 'Dublin', city: 'Carrickmines' },
   'fonthill': { lat: 53.3433, lng: -6.4286, formattedAddress: 'Fonthill, Dublin, Ireland', county: 'Dublin', city: 'Fonthill' },
   'kinsale road': { lat: 51.8833, lng: -8.5167, formattedAddress: 'Kinsale Road, Cork, Ireland', county: 'Cork', city: 'Kinsale Road' },
-  'castlebar': { lat: 53.8547, lng: -9.2977, formattedAddress: 'Castlebar, Mayo, Ireland', county: 'Mayo', city: 'Castlebar' },
-  
-  // Dublin postcodes for better accuracy
-  'dublin 4': { lat: 53.3244, lng: -6.2297, formattedAddress: 'Dublin 4, Ireland', county: 'Dublin', city: 'Dublin 4' },
-  'dublin 2': { lat: 53.3381, lng: -6.2592, formattedAddress: 'Dublin 2, Ireland', county: 'Dublin', city: 'Dublin 2' },
-  'dublin 1': { lat: 53.3515, lng: -6.2602, formattedAddress: 'Dublin 1, Ireland', county: 'Dublin', city: 'Dublin 1' },
-  'dublin 6': { lat: 53.3147, lng: -6.2706, formattedAddress: 'Dublin 6, Ireland', county: 'Dublin', city: 'Dublin 6' },
-  'dublin 8': { lat: 53.3308, lng: -6.2906, formattedAddress: 'Dublin 8, Ireland', county: 'Dublin', city: 'Dublin 8' },
-  'd18': { lat: 53.2769, lng: -6.1522, formattedAddress: 'D18, Dublin, Ireland', county: 'Dublin', city: 'D18' },
-  'sandyford': { lat: 53.2778, lng: -6.2269, formattedAddress: 'Sandyford, Dublin, Ireland', county: 'Dublin', city: 'Sandyford' },
-  'ballsbridge': { lat: 53.3306, lng: -6.2339, formattedAddress: 'Ballsbridge, Dublin, Ireland', county: 'Dublin', city: 'Ballsbridge' },
-  'rathmines': { lat: 53.3225, lng: -6.2653, formattedAddress: 'Rathmines, Dublin, Ireland', county: 'Dublin', city: 'Rathmines' },
-  'dun laoghaire': { lat: 53.2941, lng: -6.1378, formattedAddress: 'Dun Laoghaire, Dublin, Ireland', county: 'Dublin', city: 'Dun Laoghaire' },
-  'blackrock': { lat: 53.3017, lng: -6.1786, formattedAddress: 'Blackrock, Dublin, Ireland', county: 'Dublin', city: 'Blackrock' },
-  'stillorgan': { lat: 53.2794, lng: -6.2072, formattedAddress: 'Stillorgan, Dublin, Ireland', county: 'Dublin', city: 'Stillorgan' }
+  'castlebar': { lat: 53.8547, lng: -9.2977, formattedAddress: 'Castlebar, Mayo, Ireland', county: 'Mayo', city: 'Castlebar' }
 };
 
 export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
   try {
-    // Clean and normalize the address for better geocoding
-    const cleanedAddress = cleanIrishAddress(address);
-    
-    // Try multiple search strategies for better results
-    const searchStrategies = [
-      cleanedAddress,
-      `${cleanedAddress}, Ireland`,
-      `${cleanedAddress}, Republic of Ireland`,
-      // Remove postal codes and try again if original had them
-      cleanedAddress.replace(/[A-Z]\d{2}[A-Z]\d{3}/g, '').trim() + ', Ireland'
-    ];
-
-    for (const searchAddress of searchStrategies) {
-      if (!searchAddress.trim()) continue;
-      
-      const encodedAddress = encodeURIComponent(searchAddress);
-      
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&countrycodes=ie&limit=3&addressdetails=1&extratags=1`,
-          {
-            headers: {
-              'User-Agent': 'tradesbook.ie/1.0'
-            }
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          
-          if (data.length > 0) {
-            // Find the best match based on address components
-            const bestResult = findBestAddressMatch(data, address);
-            
-            if (bestResult) {
-              const addressDetails = bestResult.address || {};
-              
-              // Extract county and city from address details
-              const county = addressDetails.county || addressDetails.state || 
-                            extractCountyFromAddress(bestResult.display_name);
-              const city = addressDetails.city || addressDetails.town || 
-                          addressDetails.village || addressDetails.hamlet ||
-                          addressDetails.suburb || addressDetails.neighbourhood;
-
-              return {
-                lat: parseFloat(bestResult.lat),
-                lng: parseFloat(bestResult.lon),
-                formattedAddress: bestResult.display_name,
-                county: county || 'Unknown',
-                city: city || undefined
-              };
-            }
-          }
-        }
-        
-        // Small delay between requests to respect rate limits
-        await new Promise(resolve => setTimeout(resolve, 200));
-      } catch (fetchError) {
-        console.warn('Geocoding request failed:', fetchError);
-        continue; // Try next strategy
-      }
-    }
-
-    // If all API attempts fail, try city/town match
+    // First try to find exact city/town match for higher accuracy
     const cityMatch = findCityMatch(address);
     if (cityMatch) {
       return cityMatch;
     }
 
-    console.log(`No geocoding results for address: ${address}`);
-    return getFallbackLocation(address);
+    // Use OpenStreetMap Nominatim API (free alternative to Google Maps)
+    const searchAddress = address.includes('Ireland') ? address : `${address}, Ireland`;
+    const encodedAddress = encodeURIComponent(searchAddress);
+    
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&countrycodes=ie&limit=1&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'tradesbook.ie/1.0'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Nominatim API error:', response.status, response.statusText);
+      return getFallbackLocation(address);
+    }
+
+    const data = await response.json();
+    
+    if (data.length === 0) {
+      console.log(`No geocoding results for address: ${address}`);
+      return getFallbackLocation(address);
+    }
+
+    const result = data[0];
+    const addressDetails = result.address || {};
+    
+    // Extract county and city from address details
+    const county = addressDetails.county || addressDetails.state || 
+                  extractCountyFromAddress(result.display_name);
+    const city = addressDetails.city || addressDetails.town || 
+                addressDetails.village || addressDetails.hamlet;
+
+    return {
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon),
+      formattedAddress: result.display_name,
+      county: county || 'Unknown',
+      city: city || undefined
+    };
   } catch (error) {
     console.error('Geocoding error:', error);
     return getFallbackLocation(address);
   }
-}
-
-function cleanIrishAddress(address: string): string {
-  // Remove common formatting issues and normalize
-  return address
-    .replace(/\s+/g, ' ') // Multiple spaces to single space
-    .replace(/,\s*,/g, ',') // Remove double commas
-    .replace(/^\s*,|,\s*$/g, '') // Remove leading/trailing commas
-    .trim();
-}
-
-function findBestAddressMatch(results: any[], originalAddress: string): any | null {
-  if (results.length === 0) return null;
-  if (results.length === 1) return results[0];
-  
-  // Score results based on how well they match the original address
-  const scoredResults = results.map(result => {
-    let score = 0;
-    const displayName = result.display_name.toLowerCase();
-    const original = originalAddress.toLowerCase();
-    
-    // Prefer results with higher importance
-    if (result.importance) {
-      score += result.importance * 10;
-    }
-    
-    // Prefer results that contain parts of the original address
-    const addressParts = original.split(/[,\s]+/).filter(part => part.length > 2);
-    addressParts.forEach(part => {
-      if (displayName.includes(part)) {
-        score += 5;
-      }
-    });
-    
-    // Prefer results with detailed address components
-    if (result.address) {
-      if (result.address.house_number) score += 3;
-      if (result.address.road) score += 2;
-      if (result.address.suburb || result.address.neighbourhood) score += 1;
-    }
-    
-    return { result, score };
-  });
-  
-  // Return the highest scoring result
-  scoredResults.sort((a, b) => b.score - a.score);
-  return scoredResults[0].result;
 }
 
 function findCityMatch(address: string): GeocodeResult | null {
@@ -291,46 +206,11 @@ export const IRISH_LOCATION_FALLBACKS: Record<string, GeocodeResult> = {
 export function getFallbackLocation(address: string): GeocodeResult | null {
   const addressLower = address.toLowerCase();
   
-  // First use the detailed Irish location fallbacks (cities/towns/areas)
-  const cityMatch = findCityMatch(address);
-  if (cityMatch) {
-    return cityMatch;
-  }
-  
-  // Check for Dublin postcodes (D18, D04, etc.)
-  const dublinPostcodeMatch = addressLower.match(/d\d{2}/);
-  if (dublinPostcodeMatch) {
-    const postcode = dublinPostcodeMatch[0];
-    // Map common postcodes to areas
-    const postcodeAreas: Record<string, string> = {
-      'd18': 'carrickmines',
-      'd04': 'ballsbridge', 
-      'd06': 'rathmines',
-      'd02': 'dublin 2',
-      'd01': 'dublin 1',
-      'd08': 'dublin 8'
-    };
-    if (postcodeAreas[postcode]) {
-      const cityLocation = findCityMatch(postcodeAreas[postcode]);
-      if (cityLocation) return cityLocation;
-    }
-  }
-  
-  // Check for numbered Dublin areas (Dublin 4, Dublin 2, etc.)
-  const dublinNumberMatch = addressLower.match(/dublin\s*(\d+)/);
-  if (dublinNumberMatch) {
-    const dublinArea = `dublin ${dublinNumberMatch[1]}`;
-    const cityLocation = findCityMatch(dublinArea);
-    if (cityLocation) return cityLocation;
-  }
-  
-  // Fallback to county-level coordinates from IRISH_LOCATION_FALLBACKS
   for (const [county, location] of Object.entries(IRISH_LOCATION_FALLBACKS)) {
     if (addressLower.includes(county.toLowerCase())) {
       return location;
     }
   }
   
-  // Default to Dublin if no match found
-  return IRISH_LOCATION_FALLBACKS['Dublin'] || null;
+  return null;
 }

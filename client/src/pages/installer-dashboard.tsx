@@ -36,7 +36,8 @@ import {
   Phone,
   Shield,
   Edit,
-  Tv
+  Tv,
+  Calendar
 } from "lucide-react";
 
 interface InstallerStats {

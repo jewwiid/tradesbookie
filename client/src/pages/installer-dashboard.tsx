@@ -18,6 +18,8 @@ import Navigation from "@/components/navigation";
 import InstallerWalletDashboard from "@/components/installer/InstallerWalletDashboard";
 import PastLeadsManagement from "@/components/installer/PastLeadsManagement";
 import InstallerReviews from "@/components/installer/InstallerReviews";
+import VoucherStatus from "@/components/installer/VoucherStatus";
+import LeadPurchaseDialog from "@/components/installer/LeadPurchaseDialog";
 
 import { 
   Bolt, 
@@ -564,6 +566,8 @@ export default function InstallerDashboard() {
   const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const [selectedLeadForPurchase, setSelectedLeadForPurchase] = useState<ClientRequest | null>(null);
   const [profileData, setProfileData] = useState({
     name: "",
     businessName: "",
@@ -818,7 +822,10 @@ export default function InstallerDashboard() {
           if (jsonMatch) {
             const errorData = JSON.parse(jsonMatch[1]);
             if (errorData.message === "Lead purchase required") {
-              errorMessage = "Insufficient wallet balance. Please add credits to purchase this lead.";
+              // Open purchase dialog instead of showing error
+              setSelectedLeadForPurchase(selectedRequest);
+              setShowPurchaseDialog(true);
+              return;
             } else if (errorData.message) {
               errorMessage = errorData.message;
             }
@@ -1127,6 +1134,9 @@ export default function InstallerDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Voucher Status Display */}
+            <VoucherStatus installerId={installerProfile?.id} />
 
             {/* View Toggle */}
             <div className="flex justify-between items-center mb-6">
@@ -1815,6 +1825,22 @@ export default function InstallerDashboard() {
           </Tabs>
         </DialogContent>
       </Dialog>
+
+      {/* Lead Purchase Dialog */}
+      <LeadPurchaseDialog
+        lead={selectedLeadForPurchase}
+        installerId={installerProfile?.id || 0}
+        open={showPurchaseDialog}
+        onOpenChange={setShowPurchaseDialog}
+        onPurchaseSuccess={() => {
+          // Refresh all relevant data
+          queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'available-leads'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'stats'] });
+          queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile?.id}/wallet`] });
+          setSelectedLeadForPurchase(null);
+          setSelectedRequest(null);
+        }}
+      />
     </div>
   );
 }

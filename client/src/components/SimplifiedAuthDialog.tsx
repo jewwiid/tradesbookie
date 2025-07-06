@@ -39,6 +39,7 @@ export default function SimplifiedAuthDialog({
   const [emailAuthMode, setEmailAuthMode] = useState<'login' | 'register'>('login');
   const [emailAuthEmail, setEmailAuthEmail] = useState('');
   const [emailAuthPassword, setEmailAuthPassword] = useState('');
+  const [emailAuthConfirmPassword, setEmailAuthConfirmPassword] = useState('');
   const [emailAuthFirstName, setEmailAuthFirstName] = useState('');
   const [emailAuthLastName, setEmailAuthLastName] = useState('');
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -190,6 +191,36 @@ export default function SimplifiedAuthDialog({
         variant: "destructive",
       });
       return;
+    }
+
+    // Validation for registration mode
+    if (emailAuthMode === 'register') {
+      if (emailAuthPassword.length < 8) {
+        toast({
+          title: "Password Too Short",
+          description: "Password must be at least 8 characters long",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!emailAuthConfirmPassword) {
+        toast({
+          title: "Password Confirmation Required",
+          description: "Please confirm your password",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (emailAuthPassword !== emailAuthConfirmPassword) {
+        toast({
+          title: "Passwords Don't Match",
+          description: "Please make sure both passwords are identical",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     emailAuthMutation.mutate({
@@ -362,7 +393,10 @@ export default function SimplifiedAuthDialog({
                   <Button
                     variant={emailAuthMode === 'login' ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setEmailAuthMode('login')}
+                    onClick={() => {
+                      setEmailAuthMode('login');
+                      setEmailAuthConfirmPassword(''); // Clear confirm password when switching to login
+                    }}
                     className="flex-1"
                   >
                     Sign In
@@ -419,12 +453,29 @@ export default function SimplifiedAuthDialog({
                   <Input
                     id="email-auth-password"
                     type="password"
-                    placeholder="Your password"
+                    placeholder={emailAuthMode === 'register' ? 'Create a strong password (min 8 characters)' : 'Your password'}
                     value={emailAuthPassword}
                     onChange={(e) => setEmailAuthPassword(e.target.value)}
                     className="mt-1"
                   />
                 </div>
+
+                {emailAuthMode === 'register' && (
+                  <div>
+                    <Label htmlFor="email-auth-confirm-password">Confirm Password *</Label>
+                    <Input
+                      id="email-auth-confirm-password"
+                      type="password"
+                      placeholder="Confirm your password"
+                      value={emailAuthConfirmPassword}
+                      onChange={(e) => setEmailAuthConfirmPassword(e.target.value)}
+                      className="mt-1"
+                    />
+                    {emailAuthPassword && emailAuthConfirmPassword && emailAuthPassword !== emailAuthConfirmPassword && (
+                      <p className="text-sm text-red-500 mt-1">Passwords do not match</p>
+                    )}
+                  </div>
+                )}
 
                 <Button 
                   onClick={handleEmailAuth}

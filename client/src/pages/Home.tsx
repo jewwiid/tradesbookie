@@ -661,24 +661,20 @@ export default function Home() {
                       <MapPin className="w-4 h-4 text-gray-500 mr-1" />
                       <span className="text-gray-600 text-sm">{installer.serviceArea}</span>
                     </div>
-                    <div className="flex items-center justify-center mb-3">
-                      {(() => {
-                        const reviewStats = getInstallerReviewStats(installer.id);
-                        return (
-                          <>
-                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                            <span className="text-gray-700 font-medium">
-                              {reviewStats.totalReviews > 0 ? `${reviewStats.averageRating}/5` : 'No reviews yet'}
-                            </span>
-                            {reviewStats.totalReviews > 0 && (
-                              <span className="text-gray-500 text-sm ml-1">
-                                ({reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? 's' : ''})
-                              </span>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </div>
+                    {(() => {
+                      const reviewStats = getInstallerReviewStats(installer.id);
+                      return reviewStats.totalReviews > 0 ? (
+                        <div className="flex items-center justify-center mb-3">
+                          <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                          <span className="text-gray-700 font-medium">
+                            {reviewStats.averageRating}/5
+                          </span>
+                          <span className="text-gray-500 text-sm ml-1">
+                            ({reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? 's' : ''})
+                          </span>
+                        </div>
+                      ) : null;
+                    })()}
                     <div className="flex items-center justify-center">
                       <Shield className="w-4 h-4 text-green-600 mr-1" />
                       <span className="text-green-600 text-sm font-medium">Certified & Insured</span>

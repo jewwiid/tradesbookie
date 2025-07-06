@@ -653,6 +653,9 @@ The application now includes a robust fallback system. When the database is unav
 - July 6, 2025: **Simplified navigation by combining installer login and registration into single "Installer" button**
 - July 6, 2025: **Removed redundant "Join as Installer" button since login page provides registration link**
 - July 6, 2025: **Updated both desktop and mobile navigation with consistent single installer access point**
+- July 6, 2025: **Implemented review section hiding feature for better customer confidence**
+- July 6, 2025: **Updated both Home.tsx and our-installers.tsx to conditionally render review sections only when installers have reviews (reviewStats.totalReviews > 0)**
+- July 6, 2025: **Removed "No reviews" and "No reviews yet" messages - review sections now completely hidden when no reviews exist**
 
 ## User Preferences
 

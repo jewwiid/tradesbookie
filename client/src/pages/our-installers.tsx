@@ -229,14 +229,16 @@ export default function OurInstallers() {
                         const reviewStats = getInstallerReviewStats(installer.id);
                         return (
                           <>
-                            <Star className="w-4 h-4 text-yellow-500 mr-1" />
-                            <span className="text-gray-700 font-medium">
-                              {reviewStats.totalReviews > 0 ? `${reviewStats.averageRating}/5` : 'No reviews'}
-                            </span>
                             {reviewStats.totalReviews > 0 && (
-                              <span className="text-gray-500 text-sm ml-1">
-                                ({reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? 's' : ''})
-                              </span>
+                              <>
+                                <Star className="w-4 h-4 text-yellow-500 mr-1" />
+                                <span className="text-gray-700 font-medium">
+                                  {reviewStats.averageRating}/5
+                                </span>
+                                <span className="text-gray-500 text-sm ml-1">
+                                  ({reviewStats.totalReviews} review{reviewStats.totalReviews !== 1 ? 's' : ''})
+                                </span>
+                              </>
                             )}
                             {installer.insurance && (
                               <CheckCircle className="w-4 h-4 text-green-600 ml-2" />

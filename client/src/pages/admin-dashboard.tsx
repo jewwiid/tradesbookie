@@ -971,19 +971,42 @@ function InstallerManagement() {
   // Image upload mutation
   const uploadImageMutation = useMutation({
     mutationFn: async ({ installerId, imageFile }: { installerId: number; imageFile: File }) => {
+      console.log(`🔄 Starting image upload for installer ${installerId}`, {
+        fileName: imageFile.name,
+        fileSize: imageFile.size,
+        fileType: imageFile.type
+      });
+      
       const formData = new FormData();
       formData.append('profileImage', imageFile);
+      
+      console.log(`📤 Sending request to /api/admin/installers/${installerId}/image`);
       
       const response = await fetch(`/api/admin/installers/${installerId}/image`, {
         method: 'POST',
         body: formData,
+        credentials: 'include', // Include cookies for authentication
+      });
+      
+      console.log(`📥 Response received:`, {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
       });
       
       if (!response.ok) {
-        throw new Error('Failed to upload image');
+        const errorText = await response.text();
+        console.error(`❌ Upload failed:`, {
+          status: response.status,
+          statusText: response.statusText,
+          errorText
+        });
+        throw new Error(`Failed to upload image: ${response.status} ${response.statusText}`);
       }
       
-      return response.json();
+      const data = await response.json();
+      console.log(`✅ Upload successful:`, data);
+      return data;
     },
     onSuccess: (data) => {
       console.log("Image upload successful:", data);

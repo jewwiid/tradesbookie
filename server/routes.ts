@@ -4321,16 +4321,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+
   // Admin installer image upload endpoint
   app.post("/api/admin/installers/:id/image", isAuthenticated, isAdmin, upload.single('profileImage'), async (req, res) => {
     try {
+      console.log(`🔄 Image upload request received for installer ID: ${req.params.id}`);
+      console.log(`📁 File info:`, req.file ? { 
+        fieldname: req.file.fieldname, 
+        originalname: req.file.originalname, 
+        mimetype: req.file.mimetype, 
+        size: req.file.size 
+      } : 'No file');
+      
       const installerId = parseInt(req.params.id);
       
       if (!req.file) {
+        console.log("❌ No image file provided in request");
         return res.status(400).json({ message: "No image file provided" });
       }
       
       if (!installerId || isNaN(installerId)) {
+        console.log(`❌ Invalid installer ID: ${req.params.id}`);
         return res.status(400).json({ message: "Valid installer ID is required" });
       }
       
@@ -4339,18 +4350,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const installer = installers.find(i => i.id === installerId);
       
       if (!installer) {
+        console.log(`❌ Installer with ID ${installerId} not found in database`);
         return res.status(404).json({ message: "Installer not found" });
       }
       
+      console.log(`👤 Found installer: ${installer.businessName} (ID: ${installer.id})`);
+      
       // Convert uploaded file to base64 for storage
       const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      console.log(`📸 Base64 image created, length: ${base64Image.length} characters`);
       
       // Update installer profile with new image
+      console.log(`💾 Updating installer image in database...`);
       const updatedInstaller = await storage.updateInstallerImage(installerId, base64Image);
       
       console.log(`✅ Successfully uploaded image for installer ${installer.businessName}`);
-      console.log(`📸 Image URL length: ${base64Image.length} characters`);
-      console.log(`🔄 Updated installer:`, { id: updatedInstaller.id, businessName: updatedInstaller.businessName, hasImage: !!updatedInstaller.profileImageUrl });
+      console.log(`🔄 Updated installer:`, { 
+        id: updatedInstaller.id, 
+        businessName: updatedInstaller.businessName, 
+        hasImage: !!updatedInstaller.profileImageUrl,
+        imageLength: updatedInstaller.profileImageUrl?.length || 0
+      });
       
       res.json({ 
         message: "Profile image uploaded successfully",
@@ -4359,8 +4379,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       });
       
     } catch (error) {
-      console.error("Error uploading installer image:", error);
-      res.status(500).json({ message: "Failed to upload image" });
+      console.error("❌ Error uploading installer image:", error);
+      console.error("❌ Error stack:", error.stack);
+      res.status(500).json({ message: "Failed to upload image", error: error.message });
     }
   });
 

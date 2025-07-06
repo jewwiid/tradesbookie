@@ -87,16 +87,8 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                         size="sm"
                         className="text-gray-700 hover:text-primary font-medium"
                       >
-                        Installer Login
-                      </Button>
-                    </Link>
-                    <Link href="/installer-registration">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-gray-700 hover:text-primary font-medium"
-                      >
-                        Join as Installer
+                        <Wrench className="w-4 h-4 mr-1" />
+                        Installer
                       </Button>
                     </Link>
                     <Link href="/booking">
@@ -328,16 +320,8 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                               className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
                               onClick={() => setMobileMenuOpen(false)}
                             >
-                              <LogIn className="h-5 w-5 mr-4 flex-shrink-0" />
-                              Installer Login
-                            </Link>
-                            <Link 
-                              href="/installer-registration" 
-                              className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              <UserPlus className="h-5 w-5 mr-4 flex-shrink-0" />
-                              Join as Installer
+                              <Wrench className="h-5 w-5 mr-4 flex-shrink-0" />
+                              Installer
                             </Link>
                           </div>
                         </>

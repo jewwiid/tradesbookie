@@ -4346,13 +4346,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
       
       // Update installer profile with new image
-      await storage.updateInstallerImage(installerId, base64Image);
+      const updatedInstaller = await storage.updateInstallerImage(installerId, base64Image);
       
       console.log(`✅ Successfully uploaded image for installer ${installer.businessName}`);
+      console.log(`📸 Image URL length: ${base64Image.length} characters`);
+      console.log(`🔄 Updated installer:`, { id: updatedInstaller.id, businessName: updatedInstaller.businessName, hasImage: !!updatedInstaller.profileImageUrl });
       
       res.json({ 
         message: "Profile image uploaded successfully",
-        profileImageUrl: base64Image
+        profileImageUrl: base64Image,
+        installer: updatedInstaller
       });
       
     } catch (error) {

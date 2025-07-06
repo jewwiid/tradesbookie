@@ -985,9 +985,19 @@ function InstallerManagement() {
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Image upload successful:", data);
       toast({ title: "Image uploaded successfully" });
+      // Invalidate queries to refresh installer data
       queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/installers"] });
+      // Update the selected installer with new image URL if available
+      if (selectedInstaller && data.profileImageUrl) {
+        setSelectedInstaller({
+          ...selectedInstaller,
+          profileImageUrl: data.profileImageUrl
+        });
+      }
       setSelectedImage(null);
       setPreviewUrl(null);
       setUploadingImage(false);
@@ -1438,8 +1448,14 @@ function InstallerManagement() {
                 <div className="flex items-center space-x-4">
                   {/* Current Image Display */}
                   <div className="flex-shrink-0">
-                    <Avatar className="w-20 h-20">
-                      <AvatarImage src={selectedInstaller.profileImageUrl || ''} alt={selectedInstaller.businessName} />
+                    <Avatar className="w-20 h-20" key={selectedInstaller.profileImageUrl || 'no-image'}>
+                      <AvatarImage 
+                        src={selectedInstaller.profileImageUrl || ''} 
+                        alt={selectedInstaller.businessName}
+                        onError={(e) => {
+                          console.log("Avatar image failed to load:", selectedInstaller.profileImageUrl);
+                        }}
+                      />
                       <AvatarFallback className="bg-gray-200 text-gray-600">
                         {selectedInstaller.businessName?.charAt(0) || 'I'}
                       </AvatarFallback>

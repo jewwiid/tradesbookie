@@ -137,14 +137,21 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="relative w-3/4 h-3/4">
               {/* Simplified Ireland shape - more visible */}
-              <div className="absolute inset-0 bg-green-300 rounded-tl-3xl rounded-tr-lg rounded-bl-2xl rounded-br-3xl opacity-60 border border-green-400"></div>
+              <div className="absolute inset-0 bg-green-400 border-2 border-green-600 shadow-lg opacity-80" 
+                   style={{
+                     clipPath: 'polygon(15% 10%, 35% 5%, 50% 15%, 70% 20%, 85% 35%, 90% 55%, 80% 75%, 70% 85%, 50% 90%, 30% 85%, 15% 70%, 10% 50%, 12% 30%)'
+                   }}>
+              </div>
               
               {/* Map grid pattern for visual reference */}
-              <div className="absolute inset-0">
-                <div className="grid grid-cols-4 grid-rows-3 h-full w-full opacity-20">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <div key={i} className="border border-gray-400"></div>
-                  ))}
+              <div className="absolute inset-0 opacity-30">
+                <div className="w-full h-full border border-gray-600">
+                  <div className="absolute top-1/4 left-0 right-0 border-t border-gray-500"></div>
+                  <div className="absolute top-1/2 left-0 right-0 border-t border-gray-500"></div>
+                  <div className="absolute top-3/4 left-0 right-0 border-t border-gray-500"></div>
+                  <div className="absolute left-1/4 top-0 bottom-0 border-l border-gray-500"></div>
+                  <div className="absolute left-1/2 top-0 bottom-0 border-l border-gray-500"></div>
+                  <div className="absolute left-3/4 top-0 bottom-0 border-l border-gray-500"></div>
                 </div>
               </div>
               
@@ -187,13 +194,14 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
                 return (
                   <div
                     key={request.id}
-                    className={`absolute w-4 h-4 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2 border-2 border-white shadow-lg transition-all duration-200 hover:scale-125 ${
-                      selectedRequest?.id === request.id ? 'scale-125 ring-4 ring-white ring-opacity-50' : ''
+                    className={`absolute w-6 h-6 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2 border-3 border-white shadow-xl transition-all duration-200 hover:scale-125 z-10 ${
+                      selectedRequest?.id === request.id ? 'scale-125 ring-4 ring-white ring-opacity-70' : ''
                     }`}
                     style={{
                       top: position.top,
                       left: position.left,
-                      backgroundColor: getMarkerColor(request.status)
+                      backgroundColor: getMarkerColor(request.status),
+                      borderWidth: '3px'
                     }}
                     onClick={() => onRequestSelect(request)}
                     title={`${request.address} - €${request.leadFee} lead fee`}

@@ -71,6 +71,7 @@ function Router() {
         </ProtectedBooking>
       </Route>
       <Route path="/customer/:qrCode?" component={CustomerDashboard} />
+      <Route path="/customer-dashboard" component={CustomerDashboard} />
       <Route path="/installer-registration" component={InstallerRegistration} />
       <Route path="/installer-login" component={InstallerLogin} />
       <Route path="/installer-pending" component={InstallerPending} />

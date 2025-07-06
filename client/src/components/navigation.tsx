@@ -170,6 +170,14 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                         </Button>
                       </Link>
                     )}
+                    {!isAdmin && (
+                      <Link href="/customer-dashboard">
+                        <Button variant="outline" size="sm" className="font-medium">
+                          <User className="w-4 h-4 mr-1" />
+                          My Dashboard
+                        </Button>
+                      </Link>
+                    )}
                     <Button 
                       variant="outline"
                       size="sm"
@@ -261,6 +269,23 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                           >
                             <Shield className="h-5 w-5 mr-4 flex-shrink-0" />
                             Admin Dashboard
+                          </Link>
+                        </div>
+                      )}
+
+                      {/* Customer Dashboard Section */}
+                      {isAuthenticated && !isAdmin && !currentlyInstallerAuthenticated && (
+                        <div className="space-y-2 px-4">
+                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">
+                            Customer Dashboard
+                          </div>
+                          <Link 
+                            href="/customer-dashboard" 
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <User className="h-5 w-5 mr-4 flex-shrink-0" />
+                            My Dashboard
                           </Link>
                         </div>
                       )}

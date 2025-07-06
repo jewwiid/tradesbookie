@@ -35,7 +35,8 @@ import {
   Mail,
   Phone,
   Shield,
-  Edit
+  Edit,
+  Tv
 } from "lucide-react";
 
 interface InstallerStats {

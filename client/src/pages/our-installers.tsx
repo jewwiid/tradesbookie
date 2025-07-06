@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import { Button } from "@/components/ui/button";
@@ -55,12 +55,21 @@ export default function OurInstallers() {
     "Professional profile with work samples"
   ];
 
-  const serviceAreas = [
-    "Dublin City Centre", "South Dublin", "North Dublin", "West Dublin",
-    "Cork City", "Galway", "Limerick", "Waterford",
-    "Kilkenny", "Wexford", "Kildare", "Meath",
-    "Wicklow", "Carlow", "Laois", "Offaly"
-  ];
+  // Generate service areas from actual installer registrations
+  const serviceAreas = React.useMemo(() => {
+    if (!installers || !Array.isArray(installers) || installers.length === 0) return [];
+    
+    // Extract unique service areas from approved installers
+    const areas = installers
+      .filter((installer: any) => installer.serviceArea) // Only installers with service areas
+      .map((installer: any) => installer.serviceArea)
+      .filter((area: string, index: number, self: string[]) => 
+        area && self.indexOf(area) === index // Remove duplicates and empty values
+      )
+      .sort(); // Sort alphabetically
+    
+    return areas;
+  }, [installers]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -284,24 +293,45 @@ export default function OurInstallers() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-4">
-            {serviceAreas.map((area, index) => (
-              <div key={index} className="bg-white rounded-lg p-4 text-center shadow-sm">
-                <MapPin className="w-5 h-5 text-blue-600 mx-auto mb-2" />
-                <span className="text-sm font-medium text-gray-900">{area}</span>
+          {serviceAreas.length > 0 ? (
+            <>
+              <div className="grid md:grid-cols-4 gap-4">
+                {serviceAreas.map((area, index) => (
+                  <div key={index} className="bg-white rounded-lg p-4 text-center shadow-sm">
+                    <MapPin className="w-5 h-5 text-blue-600 mx-auto mb-2" />
+                    <span className="text-sm font-medium text-gray-900">{area}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <div className="text-center mt-8">
-            <p className="text-gray-600 mb-4">Don't see your area? We're expanding coverage regularly.</p>
-            <Link href="/installer-registration">
-              <Button variant="outline">
-                Join Our Network
-                <Users className="ml-2 w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
+              <div className="text-center mt-8">
+                <p className="text-gray-600 mb-4">Don't see your area? We're expanding coverage regularly.</p>
+                <Link href="/installer-registration">
+                  <Button variant="outline">
+                    Join Our Network
+                    <Users className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center">
+              <div className="bg-white rounded-lg p-8 shadow-sm">
+                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Building Our Network</h3>
+                <p className="text-gray-600 mb-6">
+                  We're actively recruiting qualified installers across Ireland. 
+                  Be among the first to join our platform.
+                </p>
+                <Link href="/installer-registration">
+                  <Button>
+                    Become an Installer
+                    <Users className="ml-2 w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

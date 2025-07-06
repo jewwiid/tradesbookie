@@ -4730,71 +4730,62 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-1 h-auto p-1">
-            <TabsTrigger value="overview" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <BarChart3 className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Overview</span>
-              <span className="sm:hidden">Stats</span>
+          <TabsList className="flex flex-wrap w-full gap-1 h-auto p-1 justify-start">
+            <TabsTrigger value="overview" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <BarChart3 className="w-4 h-4" />
+              <span>Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Users className="w-4 h-4 md:w-4 md:h-4" />
+            <TabsTrigger value="users" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Users className="w-4 h-4" />
               <span>Users</span>
             </TabsTrigger>
-            <TabsTrigger value="installers" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Shield className="w-4 h-4 md:w-4 md:h-4" />
+            <TabsTrigger value="installers" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Shield className="w-4 h-4" />
               <span>Installers</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Calendar className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Bookings</span>
-              <span className="sm:hidden">Jobs</span>
+            <TabsTrigger value="bookings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Calendar className="w-4 h-4" />
+              <span>Bookings</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <DollarSign className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Payments</span>
-              <span className="sm:hidden">Pay</span>
+            <TabsTrigger value="payments" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <DollarSign className="w-4 h-4" />
+              <span>Payments</span>
             </TabsTrigger>
-            <TabsTrigger value="system" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <TrendingUp className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Platform Insights</span>
-              <span className="sm:hidden">Insights</span>
+            <TabsTrigger value="system" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <TrendingUp className="w-4 h-4" />
+              <span>Platform Insights</span>
             </TabsTrigger>
-            <TabsTrigger value="solar" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Activity className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">OHK Energy</span>
-              <span className="sm:hidden">Solar</span>
+            <TabsTrigger value="solar" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Activity className="w-4 h-4" />
+              <span>OHK Energy</span>
             </TabsTrigger>
-            <TabsTrigger value="fees" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Percent className="w-4 h-4 md:w-4 md:h-4" />
+            <TabsTrigger value="fees" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Percent className="w-4 h-4" />
               <span>Fees</span>
             </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Users className="w-4 h-4 md:w-4 md:h-4" />
+            <TabsTrigger value="referrals" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Users className="w-4 h-4" />
               <span>Referrals</span>
             </TabsTrigger>
-            <TabsTrigger value="pricing" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Euro className="w-4 h-4 md:w-4 md:h-4" />
+            <TabsTrigger value="pricing" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Euro className="w-4 h-4" />
               <span>Pricing</span>
             </TabsTrigger>
-            <TabsTrigger value="emails" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Mail className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Email Templates</span>
-              <span className="sm:hidden">Emails</span>
+            <TabsTrigger value="emails" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Mail className="w-4 h-4" />
+              <span>Email Templates</span>
             </TabsTrigger>
-            <TabsTrigger value="resources" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Home className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Customer Resources</span>
-              <span className="sm:hidden">Resources</span>
+            <TabsTrigger value="resources" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Home className="w-4 h-4" />
+              <span>Customer Resources</span>
             </TabsTrigger>
-            <TabsTrigger value="fraud-prevention" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Shield className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Fraud Prevention</span>
-              <span className="sm:hidden">Security</span>
+            <TabsTrigger value="fraud-prevention" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Shield className="w-4 h-4" />
+              <span>Fraud Prevention</span>
             </TabsTrigger>
-            <TabsTrigger value="banned" className="flex flex-col md:flex-row items-center space-y-1 md:space-y-0 md:space-x-2 p-2 md:p-3 text-xs md:text-sm">
-              <Ban className="w-4 h-4 md:w-4 md:h-4" />
-              <span className="hidden sm:inline">Banned Users</span>
-              <span className="sm:hidden">Banned</span>
+            <TabsTrigger value="banned" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Ban className="w-4 h-4" />
+              <span>Banned Users</span>
             </TabsTrigger>
           </TabsList>
 

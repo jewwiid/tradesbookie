@@ -57,7 +57,7 @@ import {
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
-import GoogleMapsIreland from "@/components/GoogleMapsIreland";
+import IrelandMap from "@/components/IrelandMap";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
@@ -2635,7 +2635,7 @@ function SystemMetrics() {
 
       {/* Installation Coverage Map */}
       <div className="col-span-full">
-        <GoogleMapsIreland 
+        <IrelandMap 
           installations={geocodedInstallations || []} 
           isLoading={mapLoading}
           showLegend={true}

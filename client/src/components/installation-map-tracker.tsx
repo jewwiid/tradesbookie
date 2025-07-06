@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MapPin, TrendingUp, Calendar, Monitor, CheckCircle, Clock, AlertCircle } from "lucide-react";
-import GoogleMapsIreland from "./GoogleMapsIreland";
+import IrelandMap from "./IrelandMap";
 
 interface InstallationLocation {
   location: string;
@@ -151,7 +151,7 @@ export default function InstallationMapTracker() {
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Google Maps Ireland */}
         <div className="lg:col-span-2">
-          <GoogleMapsIreland 
+          <IrelandMap 
             installations={geocodedInstallations || []} 
             isLoading={isLoading}
             showLegend={true}

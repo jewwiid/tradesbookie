@@ -112,14 +112,56 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
     'kerry': [52.1662, -9.7024]
   };
 
-  const getCountyFromAddress = (address: string): string => {
+  const getCoordinatesFromAddress = (address: string): [number, number] => {
     const lowerAddress = address.toLowerCase();
-    for (const county of Object.keys(countyCoordinates)) {
-      if (lowerAddress.includes(county)) {
-        return county;
+    
+    // Check for specific cities/towns first for better accuracy
+    const cityMappings: { [key: string]: [number, number] } = {
+      'blanchardstown': [53.3928, -6.3764],
+      'tallaght': [53.2859, -6.3733],
+      'swords': [53.4597, -6.2178],
+      'carrickmines': [53.2769, -6.1522],
+      'fonthill': [53.3433, -6.4286],
+      'rathfarnham': [53.2925, -6.2794],
+      'dun laoghaire': [53.2936, -6.1347],
+      'rathmines': [53.3258, -6.2594],
+      'ballymun': [53.3956, -6.2642],
+      'carrigaline': [51.8139, -8.3989],
+      'little island': [51.9028, -8.3467],
+      'tuam': [53.5147, -8.8564],
+      'athenry': [53.2983, -8.7439],
+      'drogheda': [53.7178, -6.3478],
+      'dundalk': [54.0019, -6.4058],
+      'bray': [53.2028, -6.0989],
+      'naas': [53.2167, -6.6667],
+      'navan': [53.6548, -6.6978],
+      'athlone': [53.4239, -7.9406],
+      'tullamore': [53.2738, -7.4901],
+      'portlaoise': [53.0344, -7.3016],
+      'ennis': [52.8454, -8.9831],
+      'tralee': [52.2706, -9.7002],
+      'killarney': [52.0599, -9.5040],
+      'clonmel': [52.3558, -7.7003],
+      'castlebar': [53.8547, -9.2977],
+      'letterkenny': [54.9539, -7.7338],
+      'kinsale road': [51.8833, -8.5167]
+    };
+    
+    // Check for city/town matches first
+    for (const [cityName, coords] of Object.entries(cityMappings)) {
+      if (lowerAddress.includes(cityName)) {
+        return coords;
       }
     }
-    return 'dublin'; // Default fallback
+    
+    // Fallback to county-level coordinates
+    for (const [county, coords] of Object.entries(countyCoordinates)) {
+      if (lowerAddress.includes(county)) {
+        return coords;
+      }
+    }
+    
+    return [53.3441, -6.2675]; // Dublin default
   };
 
   const getMarkerColor = (status: string): string => {
@@ -187,8 +229,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
 
     // Add markers for each request
     requests.forEach(request => {
-      const county = getCountyFromAddress(request.address);
-      const coordinates = countyCoordinates[county];
+      const coordinates = getCoordinatesFromAddress(request.address);
       
       if (coordinates) {
         // Create custom icon

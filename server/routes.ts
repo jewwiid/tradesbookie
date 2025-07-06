@@ -6879,7 +6879,33 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Google Maps API Routes
+  // Geocoding endpoint using OpenStreetMap
+  app.post("/api/geocode", async (req, res) => {
+    try {
+      const { address } = req.body;
+      
+      if (!address) {
+        return res.status(400).json({ error: "Address is required" });
+      }
+
+      console.log("Geocoding request for address:", address);
+      const { geocodeAddress } = await import('./services/geocoding.js');
+      const result = await geocodeAddress(address);
+      
+      if (!result) {
+        console.log("No geocoding result found for:", address);
+        return res.status(404).json({ error: "Address not found" });
+      }
+
+      console.log("Geocoding successful:", result);
+      res.json(result);
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      res.status(500).json({ error: "Failed to geocode address" });
+    }
+  });
+
+  // Google Maps API Routes (legacy - keeping for compatibility)
   app.post("/api/maps/geocode", async (req, res) => {
     try {
       const { address } = req.body;

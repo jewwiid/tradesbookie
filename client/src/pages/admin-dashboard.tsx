@@ -1108,6 +1108,27 @@ function InstallerManagement() {
     },
   });
 
+  const updateInstallerProfileMutation = useMutation({
+    mutationFn: async ({ installerId, profileData }: { installerId: number; profileData: any }) => {
+      const response = await apiRequest("PATCH", `/api/admin/installers/${installerId}/profile`, profileData);
+      return response;
+    },
+    onSuccess: () => {
+      toast({ title: "Installer updated", description: "Profile changes saved successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+      setShowEditDialog(false);
+    },
+    onError: (error: any) => {
+      console.error("Update installer error:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to update installer";
+      toast({ 
+        title: "Failed to update installer", 
+        description: errorMessage,
+        variant: "destructive" 
+      });
+    },
+  });
+
   const handleViewInstaller = (installer: Installer) => {
     setSelectedInstaller(installer);
     setShowViewDialog(true);
@@ -1126,6 +1147,33 @@ function InstallerManagement() {
   const handleDeleteInstaller = (installer: Installer) => {
     setSelectedInstaller(installer);
     setShowDeleteDialog(true);
+  };
+
+  const handleSaveInstallerProfile = () => {
+    if (!selectedInstaller) return;
+    
+    // Collect form data
+    const formData = new FormData();
+    const businessName = (document.getElementById('businessName') as HTMLInputElement)?.value;
+    const contactName = (document.getElementById('contactName') as HTMLInputElement)?.value;
+    const email = (document.getElementById('email') as HTMLInputElement)?.value;
+    const phone = (document.getElementById('phone') as HTMLInputElement)?.value;
+    const serviceArea = (document.getElementById('serviceArea') as HTMLInputElement)?.value;
+    const address = (document.getElementById('address') as HTMLInputElement)?.value;
+    
+    const profileData = {
+      businessName,
+      contactName,
+      email,
+      phone,
+      serviceArea,
+      address
+    };
+    
+    updateInstallerProfileMutation.mutate({
+      installerId: selectedInstaller.id,
+      profileData
+    });
   };
 
   // Filter installers based on approval status
@@ -1517,11 +1565,18 @@ function InstallerManagement() {
                 <Button variant="outline" onClick={() => setShowEditDialog(false)}>
                   Cancel
                 </Button>
-                <Button onClick={() => {
-                  toast({ title: "Installer updated", description: "Changes saved successfully" });
-                  setShowEditDialog(false);
-                }}>
-                  Save Changes
+                <Button 
+                  onClick={handleSaveInstallerProfile}
+                  disabled={updateInstallerProfileMutation.isPending}
+                >
+                  {updateInstallerProfileMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </Button>
               </div>
             </div>

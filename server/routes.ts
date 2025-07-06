@@ -4361,6 +4361,30 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Admin installer profile update endpoint
+  app.patch("/api/admin/installers/:id/profile", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const profileData = req.body;
+      
+      if (!installerId || isNaN(installerId)) {
+        return res.status(400).json({ message: "Valid installer ID is required" });
+      }
+      
+      // Update installer profile
+      const updatedInstaller = await storage.updateInstallerProfile(installerId, profileData);
+      
+      res.json({ 
+        message: "Installer profile updated successfully", 
+        installer: updatedInstaller 
+      });
+      
+    } catch (error) {
+      console.error("Error updating installer profile:", error);
+      res.status(500).json({ message: "Failed to update installer profile" });
+    }
+  });
+
   // Admin installer approval endpoints
   app.patch("/api/admin/installers/:id/approve", isAuthenticated, isAdmin, async (req, res) => {
     try {

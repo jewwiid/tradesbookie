@@ -2836,6 +2836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           profileImageUrl: installer.profileImageUrl,
           insurance: installer.insurance,
           certifications: installer.certifications,
+          isAvailable: installer.isAvailable, // Show availability status for badge system
           // Hide contact details from public view
           contactName: installer.contactName?.split(' ')[0] + " " + (installer.contactName?.split(' ')[1]?.[0] || '') + ".", // Show first name + last initial
           email: "***@***.***", // Hidden

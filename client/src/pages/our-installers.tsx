@@ -174,7 +174,7 @@ export default function OurInstallers() {
                 <Card key={installer.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     {/* Profile Photo */}
-                    <div className="flex justify-center mb-4">
+                    <div className="flex justify-center mb-4 relative">
                       {installer.profileImageUrl ? (
                         <img
                           src={installer.profileImageUrl}
@@ -186,6 +186,16 @@ export default function OurInstallers() {
                           <span className="text-white text-lg font-semibold">
                             {installer.contactName?.split(' ').map((n: string) => n[0]).join('') || 'TV'}
                           </span>
+                        </div>
+                      )}
+                      
+                      {/* Availability Badge */}
+                      {installer.isAvailable && (
+                        <div className="absolute -top-1 -right-1">
+                          <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
+                            <div className="w-2 h-2 bg-white rounded-full mr-1"></div>
+                            Available
+                          </div>
                         </div>
                       )}
                     </div>

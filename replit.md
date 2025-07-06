@@ -626,6 +626,14 @@ The application now includes a robust fallback system. When the database is unav
 - July 6, 2025: **Updated remaining geocoding routes to use OpenStreetMap service instead of Google Maps**
 - July 6, 2025: **Removed unused StaticMapImage component that was calling deprecated Google Maps endpoints**
 - July 6, 2025: **Updated comments across components to reflect current Leaflet/OpenStreetMap implementation**
+- July 6, 2025: **Fixed missing password confirmation field in email authentication system**
+- July 6, 2025: **Added comprehensive password validation with 8-character minimum and password matching verification**
+- July 6, 2025: **Implemented real-time password mismatch warnings in SimplifiedAuthDialog component**
+- July 6, 2025: **Enhanced email authentication with proper form validation and user feedback**
+- July 6, 2025: **Created installer availability badge system for "Our Installers" page**
+- July 6, 2025: **Added dynamic "Available" badge display based on installer's isAvailable status from database**
+- July 6, 2025: **Enhanced public installer API endpoint to include availability status for badge functionality**
+- July 6, 2025: **Confirmed availability toggle in installer dashboard persists until manually changed by installer**
 
 ## User Preferences
 

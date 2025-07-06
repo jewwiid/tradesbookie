@@ -4991,6 +4991,86 @@ function PlatformSettingsManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Setting Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-md" aria-describedby="edit-setting-description">
+          <DialogHeader>
+            <DialogTitle>Edit Platform Setting</DialogTitle>
+            <DialogDescription id="edit-setting-description">
+              Update the value and configuration for this platform setting.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedSetting && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="settingKey">Key</Label>
+                <Input
+                  id="settingKey"
+                  value={selectedSetting.key}
+                  disabled
+                  className="bg-gray-100"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="settingValue">Value</Label>
+                <Input
+                  id="settingValue"
+                  value={selectedSetting.value}
+                  onChange={(e) => setSelectedSetting(prev => ({ ...prev, value: e.target.value }))}
+                  placeholder="Enter setting value"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="settingCategory">Category</Label>
+                <Input
+                  id="settingCategory"
+                  value={selectedSetting.category || ''}
+                  onChange={(e) => setSelectedSetting(prev => ({ ...prev, category: e.target.value }))}
+                  placeholder="Enter category (optional)"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="settingDescription">Description</Label>
+                <Input
+                  id="settingDescription"
+                  value={selectedSetting.description || ''}
+                  onChange={(e) => setSelectedSetting(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Enter description (optional)"
+                />
+              </div>
+              <div className="flex justify-end space-x-3 pt-4">
+                <Button variant="outline" onClick={() => {
+                  setShowEditDialog(false);
+                  setSelectedSetting(null);
+                }}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    updateSettingMutation.mutate({
+                      key: selectedSetting.key,
+                      value: selectedSetting.value,
+                      category: selectedSetting.category,
+                      description: selectedSetting.description
+                    });
+                  }}
+                  disabled={updateSettingMutation.isPending}
+                >
+                  {updateSettingMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

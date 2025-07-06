@@ -1,0 +1,568 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Plus, Edit, Trash2, ExternalLink, Star, Shield, Gift, Info, FileText, BookOpen } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+
+interface Resource {
+  id: number;
+  title: string;
+  description: string;
+  content: string;
+  type: string;
+  category: string;
+  brand?: string;
+  companyName?: string;
+  externalUrl?: string;
+  linkText: string;
+  imageUrl?: string;
+  iconType: string;
+  featured: boolean;
+  priority: number;
+  tags: string[];
+  isActive: boolean;
+  publishedAt: string;
+  createdBy?: string;
+  lastModifiedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const iconTypeOptions = [
+  { value: "link", label: "Link", icon: ExternalLink },
+  { value: "warranty", label: "Warranty", icon: Shield },
+  { value: "cashback", label: "Cashback", icon: Gift },
+  { value: "info", label: "Information", icon: Info },
+  { value: "tutorial", label: "Tutorial", icon: FileText },
+  { value: "guide", label: "Guide", icon: BookOpen },
+];
+
+const typeOptions = [
+  { value: "guide", label: "Guide" },
+  { value: "warranty", label: "Warranty" },
+  { value: "promotion", label: "Promotion" },
+  { value: "cashback", label: "Cashback" },
+  { value: "tutorial", label: "Tutorial" },
+];
+
+const categoryOptions = [
+  { value: "general", label: "General" },
+  { value: "warranty", label: "Warranty" },
+  { value: "promotions", label: "Promotions" },
+  { value: "tutorials", label: "Tutorials" },
+  { value: "guides", label: "Guides" },
+];
+
+const brandOptions = [
+  { value: "Sony", label: "Sony" },
+  { value: "Samsung", label: "Samsung" },
+  { value: "LG", label: "LG" },
+  { value: "Harvey Norman", label: "Harvey Norman" },
+  { value: "Philips", label: "Philips" },
+  { value: "TCL", label: "TCL" },
+  { value: "Hisense", label: "Hisense" },
+];
+
+export default function ResourcesManagement() {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    content: "",
+    type: "guide",
+    category: "general",
+    brand: "",
+    companyName: "",
+    externalUrl: "",
+    linkText: "Learn More",
+    imageUrl: "",
+    iconType: "link",
+    featured: false,
+    priority: 0,
+    tags: [] as string[],
+    isActive: true,
+  });
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch all resources
+  const { data: resources, isLoading } = useQuery({
+    queryKey: ["/api/admin/resources"],
+  });
+
+  // Create resource mutation
+  const createResourceMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/admin/resources", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+      toast({ title: "Resource created successfully" });
+      setDialogOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error creating resource", 
+        description: error.message || "Failed to create resource",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Update resource mutation
+  const updateResourceMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: any }) => 
+      apiRequest("PUT", `/api/admin/resources/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+      toast({ title: "Resource updated successfully" });
+      setDialogOpen(false);
+      setEditingResource(null);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error updating resource", 
+        description: error.message || "Failed to update resource",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Delete resource mutation
+  const deleteResourceMutation = useMutation({
+    mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/resources/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+      toast({ title: "Resource deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error deleting resource", 
+        description: error.message || "Failed to delete resource",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Toggle featured mutation
+  const toggleFeaturedMutation = useMutation({
+    mutationFn: ({ id, featured }: { id: number; featured: boolean }) => 
+      apiRequest("PATCH", `/api/admin/resources/${id}/featured`, { featured }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+      toast({ title: "Featured status updated" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error updating featured status", 
+        description: error.message || "Failed to update featured status",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      description: "",
+      content: "",
+      type: "guide",
+      category: "general",
+      brand: "",
+      companyName: "",
+      externalUrl: "",
+      linkText: "Learn More",
+      imageUrl: "",
+      iconType: "link",
+      featured: false,
+      priority: 0,
+      tags: [],
+      isActive: true,
+    });
+  };
+
+  const handleEdit = (resource: Resource) => {
+    setEditingResource(resource);
+    setFormData({
+      title: resource.title,
+      description: resource.description,
+      content: resource.content,
+      type: resource.type,
+      category: resource.category,
+      brand: resource.brand || "",
+      companyName: resource.companyName || "",
+      externalUrl: resource.externalUrl || "",
+      linkText: resource.linkText,
+      imageUrl: resource.imageUrl || "",
+      iconType: resource.iconType,
+      featured: resource.featured,
+      priority: resource.priority,
+      tags: resource.tags || [],
+      isActive: resource.isActive,
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editingResource) {
+      updateResourceMutation.mutate({ id: editingResource.id, data: formData });
+    } else {
+      createResourceMutation.mutate(formData);
+    }
+  };
+
+  const getIconForType = (iconType: string) => {
+    const iconOption = iconTypeOptions.find(option => option.value === iconType);
+    const IconComponent = iconOption?.icon || ExternalLink;
+    return <IconComponent className="h-4 w-4" />;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <div className="animate-pulse space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Customer Resources</h2>
+          <p className="text-gray-600">Manage helpful resources for customers</p>
+        </div>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={() => { setEditingResource(null); resetForm(); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Resource
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingResource ? "Edit Resource" : "Create New Resource"}
+              </DialogTitle>
+              <DialogDescription>
+                {editingResource ? "Update the resource information" : "Add a new helpful resource for customers"}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type</Label>
+                  <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {typeOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description *</Label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  rows={2}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="content">Content *</Label>
+                <Textarea
+                  id="content"
+                  value={formData.content}
+                  onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                  rows={4}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="brand">Brand</Label>
+                  <Select value={formData.brand} onValueChange={(value) => setFormData(prev => ({ ...prev, brand: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select brand" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {brandOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="externalUrl">External URL</Label>
+                  <Input
+                    id="externalUrl"
+                    type="url"
+                    value={formData.externalUrl}
+                    onChange={(e) => setFormData(prev => ({ ...prev, externalUrl: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="linkText">Link Text</Label>
+                  <Input
+                    id="linkText"
+                    value={formData.linkText}
+                    onChange={(e) => setFormData(prev => ({ ...prev, linkText: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="iconType">Icon Type</Label>
+                  <Select value={formData.iconType} onValueChange={(value) => setFormData(prev => ({ ...prev, iconType: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {iconTypeOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-2">
+                            <option.icon className="h-4 w-4" />
+                            {option.label}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Input
+                    id="priority"
+                    type="number"
+                    value={formData.priority}
+                    onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="imageUrl">Image URL</Label>
+                  <Input
+                    id="imageUrl"
+                    type="url"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="featured"
+                    checked={formData.featured}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, featured: checked }))}
+                  />
+                  <Label htmlFor="featured">Featured</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="isActive"
+                    checked={formData.isActive}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
+                  />
+                  <Label htmlFor="isActive">Active</Label>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createResourceMutation.isPending || updateResourceMutation.isPending}
+                >
+                  {editingResource ? "Update" : "Create"} Resource
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid gap-4">
+        {resources?.map((resource: Resource) => (
+          <Card key={resource.id}>
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-3">
+                  <div className="mt-1">
+                    {getIconForType(resource.iconType)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <CardTitle className="text-lg">{resource.title}</CardTitle>
+                      {resource.featured && (
+                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                          <Star className="h-3 w-3 mr-1" />
+                          Featured
+                        </Badge>
+                      )}
+                      {!resource.isActive && (
+                        <Badge variant="outline" className="text-gray-500">
+                          Inactive
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">{resource.description}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline">{resource.type}</Badge>
+                      <Badge variant="outline">{resource.category}</Badge>
+                      {resource.brand && (
+                        <Badge variant="outline">{resource.brand}</Badge>
+                      )}
+                      <span className="text-xs text-gray-500">Priority: {resource.priority}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleFeaturedMutation.mutate({ 
+                      id: resource.id, 
+                      featured: !resource.featured 
+                    })}
+                  >
+                    <Star className={`h-4 w-4 ${resource.featured ? 'text-yellow-500 fill-current' : ''}`} />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(resource)}>
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Resource</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{resource.title}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteResourceMutation.mutate(resource.id)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-sm text-gray-700 mb-3">{resource.content}</p>
+              {resource.externalUrl && (
+                <div className="flex items-center justify-between">
+                  <a
+                    href={resource.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    {resource.linkText}
+                  </a>
+                  <div className="text-xs text-gray-500">
+                    Created: {new Date(resource.createdAt).toLocaleDateString()}
+                    {resource.lastModifiedBy && (
+                      <span className="ml-2">by {resource.lastModifiedBy}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {(!resources || resources.length === 0) && (
+        <Card>
+          <CardContent className="text-center py-8">
+            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No resources yet</h3>
+            <p className="text-gray-600 mb-4">Start by creating your first customer resource.</p>
+            <Button onClick={() => { setEditingResource(null); resetForm(); setDialogOpen(true); }}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add First Resource
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

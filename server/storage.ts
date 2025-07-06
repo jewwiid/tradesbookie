@@ -3,7 +3,7 @@ import {
   referralSettings, referralCodes, referralUsage, consultationBookings,
   leadPricing, wallMountPricing, installerWallets, installerTransactions,
   scheduleNegotiations, declinedRequests, emailTemplates, bannedUsers,
-  leadQualityTracking, antiManipulation, customerVerification,
+  leadQualityTracking, antiManipulation, customerVerification, resources,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -20,7 +20,8 @@ import {
   type InstallerWallet, type InsertInstallerWallet,
   type InstallerTransaction, type InsertInstallerTransaction,
   type EmailTemplate, type InsertEmailTemplate,
-  type BannedUser, type InsertBannedUser
+  type BannedUser, type InsertBannedUser,
+  type Resource, type InsertResource
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -171,6 +172,19 @@ export interface IStorage {
   getAllBannedUsers(): Promise<BannedUser[]>;
   updateBannedUser(id: number, updates: Partial<InsertBannedUser>): Promise<void>;
   checkAndCleanExpiredBans(): Promise<void>;
+
+  // Resource operations
+  createResource(resource: InsertResource): Promise<Resource>;
+  getResource(id: number): Promise<Resource | undefined>;
+  getAllResources(): Promise<Resource[]>;
+  getActiveResources(): Promise<Resource[]>;
+  getFeaturedResources(): Promise<Resource[]>;
+  getResourcesByCategory(category: string): Promise<Resource[]>;
+  getResourcesByBrand(brand: string): Promise<Resource[]>;
+  updateResource(id: number, updates: Partial<InsertResource>): Promise<Resource>;
+  deleteResource(id: number): Promise<boolean>;
+  toggleResourceFeatured(id: number, featured: boolean): Promise<void>;
+  updateResourcePriority(id: number, priority: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1251,6 +1265,74 @@ export class DatabaseStorage implements IStorage {
           db.sql`ban_expires_at <= ${now}`
         ));
     }
+  }
+
+  // Resource operations
+  async createResource(resource: InsertResource): Promise<Resource> {
+    const [newResource] = await db.insert(resources).values(resource).returning();
+    return newResource;
+  }
+
+  async getResource(id: number): Promise<Resource | undefined> {
+    const [resource] = await db.select().from(resources).where(eq(resources.id, id));
+    return resource;
+  }
+
+  async getAllResources(): Promise<Resource[]> {
+    return await db.select().from(resources).orderBy(desc(resources.priority), desc(resources.createdAt));
+  }
+
+  async getActiveResources(): Promise<Resource[]> {
+    return await db.select()
+      .from(resources)
+      .where(eq(resources.isActive, true))
+      .orderBy(desc(resources.priority), desc(resources.createdAt));
+  }
+
+  async getFeaturedResources(): Promise<Resource[]> {
+    return await db.select()
+      .from(resources)
+      .where(and(eq(resources.isActive, true), eq(resources.featured, true)))
+      .orderBy(desc(resources.priority), desc(resources.createdAt));
+  }
+
+  async getResourcesByCategory(category: string): Promise<Resource[]> {
+    return await db.select()
+      .from(resources)
+      .where(and(eq(resources.isActive, true), eq(resources.category, category)))
+      .orderBy(desc(resources.priority), desc(resources.createdAt));
+  }
+
+  async getResourcesByBrand(brand: string): Promise<Resource[]> {
+    return await db.select()
+      .from(resources)
+      .where(and(eq(resources.isActive, true), eq(resources.brand, brand)))
+      .orderBy(desc(resources.priority), desc(resources.createdAt));
+  }
+
+  async updateResource(id: number, updates: Partial<InsertResource>): Promise<Resource> {
+    const [updatedResource] = await db.update(resources)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(resources.id, id))
+      .returning();
+    return updatedResource;
+  }
+
+  async deleteResource(id: number): Promise<boolean> {
+    const result = await db.delete(resources).where(eq(resources.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async toggleResourceFeatured(id: number, featured: boolean): Promise<void> {
+    await db.update(resources)
+      .set({ featured, updatedAt: new Date() })
+      .where(eq(resources.id, id));
+  }
+
+  async updateResourcePriority(id: number, priority: number): Promise<void> {
+    await db.update(resources)
+      .set({ priority, updatedAt: new Date() })
+      .where(eq(resources.id, id));
   }
 }
 

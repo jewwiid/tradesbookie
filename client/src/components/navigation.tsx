@@ -5,7 +5,7 @@ import { useInstallerAuth } from '@/hooks/useInstallerAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X, Wrench } from 'lucide-react';
+import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X, Wrench, FileText } from 'lucide-react';
 import SimplifiedAuthDialog from './SimplifiedAuthDialog';
 
 interface NavigationProps {
@@ -60,6 +60,12 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                       className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
                     >
                       How it Works
+                    </Link>
+                    <Link 
+                      href="/resources" 
+                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                    >
+                      Resources
                     </Link>
                     <Link 
                       href="/booking-tracker" 
@@ -222,6 +228,14 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                           >
                             <Home className="h-5 w-5 mr-4 flex-shrink-0" />
                             How it Works
+                          </Link>
+                          <Link 
+                            href="/resources" 
+                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <FileText className="h-5 w-5 mr-4 flex-shrink-0" />
+                            Resources
                           </Link>
                           <Link 
                             href="/booking-tracker" 

@@ -690,6 +690,48 @@ export const referralUsageRelations = relations(referralUsage, ({ one }) => ({
   }),
 }));
 
+// Resources/Blog system for customer resources
+export const resources = pgTable("resources", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  content: text("content").notNull(), // Main content/body
+  type: text("type").notNull().default("guide"), // guide, warranty, promotion, cashback, tutorial
+  category: text("category").notNull().default("general"), // warranty, promotions, tutorials, guides
+  
+  // Brand/Company information
+  brand: text("brand"), // Sony, Samsung, LG, Harvey Norman, etc.
+  companyName: text("company_name"), // For partner companies
+  
+  // Link information
+  externalUrl: text("external_url"), // Link to external resource
+  linkText: text("link_text").default("Learn More"), // Text for the link button
+  
+  // Visual elements
+  imageUrl: text("image_url"), // Optional image for the resource
+  iconType: text("icon_type").default("link"), // link, warranty, cashback, info
+  
+  // Metadata
+  featured: boolean("featured").default(false), // Show in featured section
+  priority: integer("priority").default(0), // For ordering (higher = more important)
+  tags: jsonb("tags").default([]), // Array of tags for filtering
+  
+  // Status and visibility
+  isActive: boolean("is_active").default(true),
+  publishedAt: timestamp("published_at").defaultNow(),
+  
+  // Admin tracking
+  createdBy: text("created_by"), // Admin user who created it
+  lastModifiedBy: text("last_modified_by"), // Admin user who last modified it
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const resourcesRelations = relations(resources, ({ one }) => ({
+  // No direct relations needed currently
+}));
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -782,6 +824,22 @@ export const insertWallMountPricingSchema = createInsertSchema(wallMountPricing)
   createdAt: true,
   updatedAt: true,
 });
+
+export const insertResourceSchema = createInsertSchema(resources).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Type exports
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Installer = typeof installers.$inferSelect;
+export type InsertInstaller = z.infer<typeof insertInstallerSchema>;
+export type Booking = typeof bookings.$inferSelect;
+export type InsertBooking = z.infer<typeof insertBookingSchema>;
+export type Resource = typeof resources.$inferSelect;
+export type InsertResource = z.infer<typeof insertResourceSchema>;
 
 export const insertInstallerWalletSchema = createInsertSchema(installerWallets).omit({
   id: true,

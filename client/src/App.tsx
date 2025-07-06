@@ -36,6 +36,7 @@ import MapsDemo from "@/pages/maps-demo";
 import DemoLogin from "@/pages/demo-login";
 import CreditCheckout from "@/pages/credit-checkout";
 import BookingTracker from "@/pages/booking-tracker";
+import Resources from "@/pages/resources";
 
 
 function Router() {
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/how-it-works" component={HowItWorks} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/our-installers" component={OurInstallers} />
+      <Route path="/resources" component={Resources} />
       <Route path="/installation-tracker" component={InstallationTracker} />
       <Route path="/booking-tracker" component={BookingTracker} />
       <Route path="/tv-recommendation" component={TVRecommendation} />

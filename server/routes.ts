@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 import { 
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
-  users, bookings, reviews, referralCodes, referralUsage
+  insertResourceSchema, users, bookings, reviews, referralCodes, referralUsage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -6732,6 +6732,150 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Error sending test email:", error);
       res.status(500).json({ message: "Failed to send test email" });
+    }
+  });
+
+  // Resources API Routes - Customer Help Resources Management
+  // Get all resources (public endpoint for customers)
+  app.get("/api/resources", async (req, res) => {
+    try {
+      const { category, brand, featured } = req.query;
+      
+      let resources;
+      if (featured === 'true') {
+        resources = await storage.getFeaturedResources();
+      } else if (category) {
+        resources = await storage.getResourcesByCategory(category as string);
+      } else if (brand) {
+        resources = await storage.getResourcesByBrand(brand as string);
+      } else {
+        resources = await storage.getActiveResources();
+      }
+      
+      res.json(resources);
+    } catch (error) {
+      console.error("Error fetching resources:", error);
+      res.status(500).json({ message: "Failed to fetch resources" });
+    }
+  });
+
+  // Get single resource (public endpoint)
+  app.get("/api/resources/:id", async (req, res) => {
+    try {
+      const resource = await storage.getResource(parseInt(req.params.id));
+      if (!resource) {
+        return res.status(404).json({ message: "Resource not found" });
+      }
+      res.json(resource);
+    } catch (error) {
+      console.error("Error fetching resource:", error);
+      res.status(500).json({ message: "Failed to fetch resource" });
+    }
+  });
+
+  // Admin resource management routes
+  app.get("/api/admin/resources", isAdmin, async (req, res) => {
+    try {
+      const resources = await storage.getAllResources();
+      res.json(resources);
+    } catch (error) {
+      console.error("Error fetching admin resources:", error);
+      res.status(500).json({ message: "Failed to fetch resources" });
+    }
+  });
+
+  // Create new resource (admin only)
+  app.post("/api/admin/resources", isAdmin, async (req, res) => {
+    try {
+      const resourceData = insertResourceSchema.parse(req.body);
+      
+      // Add admin user information
+      const user = req.user as any;
+      const enhancedData = {
+        ...resourceData,
+        createdBy: user?.email || 'admin',
+        lastModifiedBy: user?.email || 'admin'
+      };
+      
+      const resource = await storage.createResource(enhancedData);
+      res.status(201).json(resource);
+    } catch (error) {
+      console.error("Error creating resource:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid resource data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to create resource" });
+      }
+    }
+  });
+
+  // Update resource (admin only)
+  app.put("/api/admin/resources/:id", isAdmin, async (req, res) => {
+    try {
+      const resourceId = parseInt(req.params.id);
+      const updateData = insertResourceSchema.partial().parse(req.body);
+      
+      // Add admin user information
+      const user = req.user as any;
+      const enhancedData = {
+        ...updateData,
+        lastModifiedBy: user?.email || 'admin'
+      };
+      
+      const resource = await storage.updateResource(resourceId, enhancedData);
+      res.json(resource);
+    } catch (error) {
+      console.error("Error updating resource:", error);
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid resource data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to update resource" });
+      }
+    }
+  });
+
+  // Delete resource (admin only)
+  app.delete("/api/admin/resources/:id", isAdmin, async (req, res) => {
+    try {
+      const resourceId = parseInt(req.params.id);
+      const success = await storage.deleteResource(resourceId);
+      
+      if (success) {
+        res.json({ message: "Resource deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Resource not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting resource:", error);
+      res.status(500).json({ message: "Failed to delete resource" });
+    }
+  });
+
+  // Toggle resource featured status (admin only)
+  app.patch("/api/admin/resources/:id/featured", isAdmin, async (req, res) => {
+    try {
+      const resourceId = parseInt(req.params.id);
+      const { featured } = req.body;
+      
+      await storage.toggleResourceFeatured(resourceId, featured);
+      res.json({ message: "Resource featured status updated" });
+    } catch (error) {
+      console.error("Error updating resource featured status:", error);
+      res.status(500).json({ message: "Failed to update featured status" });
+    }
+  });
+
+  // Update resource priority (admin only)
+  app.patch("/api/admin/resources/:id/priority", isAdmin, async (req, res) => {
+    try {
+      const resourceId = parseInt(req.params.id);
+      const { priority } = req.body;
+      
+      await storage.updateResourcePriority(resourceId, priority);
+      res.json({ message: "Resource priority updated" });
+    } catch (error) {
+      console.error("Error updating resource priority:", error);
+      res.status(500).json({ message: "Failed to update priority" });
     }
   });
 

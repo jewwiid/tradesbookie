@@ -250,19 +250,20 @@ export default function ResourcesManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">Customer Resources</h2>
-          <p className="text-gray-600">Manage helpful resources for customers</p>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl sm:text-2xl font-bold">Customer Resources</h2>
+          <p className="text-sm sm:text-base text-gray-600">Manage helpful resources for customers</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => { setEditingResource(null); resetForm(); }}>
+            <Button onClick={() => { setEditingResource(null); resetForm(); }} className="shrink-0">
               <Plus className="h-4 w-4 mr-2" />
-              Add Resource
+              <span className="hidden sm:inline">Add Resource</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
             <DialogHeader>
               <DialogTitle>
                 {editingResource ? "Edit Resource" : "Create New Resource"}
@@ -272,7 +273,7 @@ export default function ResourcesManagement() {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>
                   <Input
@@ -321,7 +322,7 @@ export default function ResourcesManagement() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">Category</Label>
                   <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
@@ -354,7 +355,7 @@ export default function ResourcesManagement() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="externalUrl">External URL</Label>
                   <Input
@@ -374,7 +375,7 @@ export default function ResourcesManagement() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="iconType">Icon Type</Label>
                   <Select value={formData.iconType} onValueChange={(value) => setFormData(prev => ({ ...prev, iconType: value }))}>
@@ -452,38 +453,40 @@ export default function ResourcesManagement() {
         {resources?.map((resource: Resource) => (
           <Card key={resource.id}>
             <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1">
+              <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+                <div className="flex items-start space-x-3 min-w-0 flex-1">
+                  <div className="mt-1 shrink-0">
                     {getIconForType(resource.iconType)}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CardTitle className="text-lg">{resource.title}</CardTitle>
-                      {resource.featured && (
-                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                          <Star className="h-3 w-3 mr-1" />
-                          Featured
-                        </Badge>
-                      )}
-                      {!resource.isActive && (
-                        <Badge variant="outline" className="text-gray-500">
-                          Inactive
-                        </Badge>
-                      )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                      <CardTitle className="text-base sm:text-lg truncate">{resource.title}</CardTitle>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        {resource.featured && (
+                          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs">
+                            <Star className="h-3 w-3 mr-1" />
+                            Featured
+                          </Badge>
+                        )}
+                        {!resource.isActive && (
+                          <Badge variant="outline" className="text-gray-500 text-xs">
+                            Inactive
+                          </Badge>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600">{resource.description}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="outline">{resource.type}</Badge>
-                      <Badge variant="outline">{resource.category}</Badge>
+                    <p className="text-sm text-gray-600 line-clamp-2">{resource.description}</p>
+                    <div className="flex flex-wrap items-center gap-1 mt-2">
+                      <Badge variant="outline" className="text-xs">{resource.type}</Badge>
+                      <Badge variant="outline" className="text-xs">{resource.category}</Badge>
                       {resource.brand && (
-                        <Badge variant="outline">{resource.brand}</Badge>
+                        <Badge variant="outline" className="text-xs">{resource.brand}</Badge>
                       )}
-                      <span className="text-xs text-gray-500">Priority: {resource.priority}</span>
+                      <span className="text-xs text-gray-500 whitespace-nowrap">Priority: {resource.priority}</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-1 shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"

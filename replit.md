@@ -641,6 +641,7 @@ The application now includes a robust fallback system. When the database is unav
 - July 6, 2025: **Implemented dynamic Service Coverage Areas display based on actual installer registrations instead of static hardcoded data**
 - July 6, 2025: **Service areas now automatically update when new installers register in different counties, showing real-time coverage expansion**
 - July 6, 2025: **Added fallback message when no installers registered yet: "Building Our Network" with installer recruitment call-to-action**
+- July 6, 2025: **Fixed navigation system to hide installer-related links when customers are authenticated**
 
 ## User Preferences
 

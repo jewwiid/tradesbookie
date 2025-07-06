@@ -79,7 +79,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
 
               {/* Right Side - CTA and Auth */}
               <div className="hidden md:flex items-center space-x-3">
-                {!isAdmin && !currentlyInstallerAuthenticated && (
+                {!isAdmin && !currentlyInstallerAuthenticated && !isAuthenticated && (
                   <>
                     <Link href="/installer-login">
                       <Button
@@ -291,7 +291,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                       )}
 
                       {/* Installer Section for non-authenticated */}
-                      {!isAdmin && !currentlyInstallerAuthenticated && (
+                      {!isAdmin && !currentlyInstallerAuthenticated && !isAuthenticated && (
                         <>
                           <Separator className="my-4" />
                           <div className="space-y-2 px-4">
@@ -321,7 +321,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
 
                     {/* Footer Actions */}
                     <div className="border-t p-4 space-y-3">
-                      {!isAdmin && !currentlyInstallerAuthenticated && (
+                      {!isAdmin && !currentlyInstallerAuthenticated && !isAuthenticated && (
                         <Link 
                           href="/booking" 
                           className="w-full block"

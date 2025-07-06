@@ -6879,7 +6879,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Google Maps API Routes
+  // Geocoding API Routes (using OpenStreetMap)
   app.post("/api/maps/geocode", async (req, res) => {
     try {
       const { address } = req.body;
@@ -6888,7 +6888,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.status(400).json({ error: "Address is required" });
       }
 
-      const { geocodeAddress } = await import('./googleMapsService');
+      const { geocodeAddress } = await import('./services/geocoding');
       const result = await geocodeAddress(address);
       
       if (!result) {
@@ -6902,88 +6902,6 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  app.post("/api/maps/static-map", async (req, res) => {
-    try {
-      const { center, zoom, size, markers, mapType } = req.body;
-      
-      if (!center || !center.lat || !center.lng) {
-        return res.status(400).json({ error: "Center coordinates are required" });
-      }
-
-      const { generateStaticMapUrl } = await import('./googleMapsService');
-      const mapUrl = generateStaticMapUrl({
-        center,
-        zoom,
-        size,
-        markers,
-        mapType
-      });
-      
-      res.json({ mapUrl });
-    } catch (error) {
-      console.error("Static map generation error:", error);
-      res.status(500).json({ error: "Failed to generate map" });
-    }
-  });
-
-  app.post("/api/maps/distance", async (req, res) => {
-    try {
-      const { point1, point2 } = req.body;
-      
-      if (!point1 || !point2 || !point1.lat || !point1.lng || !point2.lat || !point2.lng) {
-        return res.status(400).json({ error: "Two valid coordinate points are required" });
-      }
-
-      const { calculateDistance } = await import('./googleMapsService');
-      const distance = calculateDistance(point1, point2);
-      
-      res.json({ distance });
-    } catch (error) {
-      console.error("Distance calculation error:", error);
-      res.status(500).json({ error: "Failed to calculate distance" });
-    }
-  });
-
-  app.post("/api/maps/validate-irish-address", async (req, res) => {
-    try {
-      const { address } = req.body;
-      
-      if (!address) {
-        return res.status(400).json({ error: "Address is required" });
-      }
-
-      const { validateIrishAddress } = await import('./googleMapsService');
-      const isValid = await validateIrishAddress(address);
-      
-      res.json({ isValid });
-    } catch (error) {
-      console.error("Address validation error:", error);
-      res.status(500).json({ error: "Failed to validate address" });
-    }
-  });
-
-  app.post("/api/maps/booking-map", async (req, res) => {
-    try {
-      const { customerAddress, installerLocation } = req.body;
-      
-      if (!customerAddress) {
-        return res.status(400).json({ error: "Customer address is required" });
-      }
-
-      const { generateBookingMapImage } = await import('./googleMapsService');
-      const mapUrl = await generateBookingMapImage(customerAddress, installerLocation);
-      
-      if (!mapUrl) {
-        return res.status(404).json({ error: "Unable to generate map for the provided address" });
-      }
-
-      res.json({ mapUrl });
-    } catch (error) {
-      console.error("Booking map generation error:", error);
-      res.status(500).json({ error: "Failed to generate booking map" });
-    }
-  });
-
   app.post("/api/maps/batch-geocode", async (req, res) => {
     try {
       const { addresses } = req.body;
@@ -6992,31 +6910,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.status(400).json({ error: "Array of addresses is required" });
       }
 
-      const { batchGeocodeAddresses } = await import('./googleMapsService');
-      const results = await batchGeocodeAddresses(addresses);
+      const { geocodeMultipleAddresses } = await import('./services/geocoding');
+      const results = await geocodeMultipleAddresses(addresses);
       
-      res.json({ results });
+      res.json({ results: Array.from(results.entries()).map(([address, result]) => ({ address, ...result })) });
     } catch (error) {
       console.error("Batch geocoding error:", error);
       res.status(500).json({ error: "Failed to batch geocode addresses" });
-    }
-  });
-
-  app.post("/api/maps/find-nearby-installers", async (req, res) => {
-    try {
-      const { customerLocation, installerLocations } = req.body;
-      
-      if (!customerLocation || !installerLocations) {
-        return res.status(400).json({ error: "Customer location and installer locations are required" });
-      }
-
-      const { findNearbyInstallers } = await import('./googleMapsService');
-      const nearbyInstallers = await findNearbyInstallers(customerLocation, installerLocations);
-      
-      res.json({ nearbyInstallers });
-    } catch (error) {
-      console.error("Find nearby installers error:", error);
-      res.status(500).json({ error: "Failed to find nearby installers" });
     }
   });
 

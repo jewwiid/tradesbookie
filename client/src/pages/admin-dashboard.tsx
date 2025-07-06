@@ -2485,7 +2485,7 @@ function SystemMetrics() {
     queryFn: () => fetch('/api/service-tiers').then(r => r.json())
   });
 
-  // Fetch geocoded installation data for Google Maps
+  // Fetch geocoded installation data for map display
   const { data: geocodedInstallations, isLoading: mapLoading } = useQuery({
     queryKey: ['/api/installations/geocoded'],
     retry: false,

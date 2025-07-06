@@ -22,7 +22,7 @@ interface InstallationLocation {
 export default function InstallationMapTracker() {
   const [selectedLocation, setSelectedLocation] = useState<InstallationLocation | null>(null);
 
-  // Fetch geocoded installation data for Google Maps
+  // Fetch geocoded installation data for map display
   const { data: geocodedInstallations, isLoading } = useQuery({
     queryKey: ['/api/installations/geocoded'],
     retry: false,
@@ -149,7 +149,7 @@ export default function InstallationMapTracker() {
 
       {/* Map and Details */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Google Maps Ireland */}
+        {/* Interactive Map of Ireland */}
         <div className="lg:col-span-2">
           <IrelandMap 
             installations={geocodedInstallations || []} 

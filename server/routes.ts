@@ -1108,10 +1108,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawData.contactName = `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'Demo User';
         rawData.contactEmail = req.user.email || 'demo@tradesbook.ie';
         rawData.contactPhone = rawData.contactPhone || '01-234-5678'; // Default if not provided
+        rawData.userId = req.user.id; // Link booking to authenticated user
       } else {
         rawData.contactName = rawData.contactName || 'Guest User';
         rawData.contactEmail = rawData.contactEmail || 'guest@tradesbook.ie';
         rawData.contactPhone = rawData.contactPhone || '01-234-5678';
+        rawData.userId = null; // No user linkage for guest bookings
+      }
+      
+      // Add invoice tracking for invoice-authenticated users
+      if ((req.session as any).authMethod === 'invoice' && (req.session as any).invoiceNumber) {
+        rawData.invoiceNumber = (req.session as any).invoiceNumber;
+        rawData.invoiceSessionId = (req.session as any).invoiceSessionId;
+        console.log(`Booking linked to invoice: ${rawData.invoiceNumber}, session: ${rawData.invoiceSessionId}`);
+      } else {
+        console.log(`Booking created without invoice tracking, auth method: ${(req.session as any).authMethod}`);
       }
       
       console.log('Raw data after processing:', {
@@ -1335,6 +1346,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(bookings);
     } catch (error) {
       console.error("Error fetching user bookings:", error);
+      res.status(500).json({ message: "Failed to fetch bookings" });
+    }
+  });
+
+  // Get bookings for current authenticated user (including invoice-authenticated users)
+  app.get("/api/auth/user/bookings", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      let bookings;
+      
+      // If user authenticated via invoice, filter by invoice number
+      if ((req.session as any).authMethod === 'invoice' && (req.session as any).invoiceNumber) {
+        const allBookings = await storage.getAllBookings();
+        bookings = allBookings.filter(booking => 
+          booking.invoiceNumber === (req.session as any).invoiceNumber ||
+          booking.userId === req.user.id
+        );
+        console.log(`Found ${bookings.length} bookings for invoice ${(req.session as any).invoiceNumber}`);
+      } else {
+        // Regular OAuth user - get bookings by user ID
+        bookings = await storage.getUserBookings(req.user.id);
+      }
+
+      res.json(bookings);
+    } catch (error) {
+      console.error("Error fetching authenticated user bookings:", error);
       res.status(500).json({ message: "Failed to fetch bookings" });
     }
   });
@@ -3263,23 +3303,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await harveyNormanInvoiceService.loginWithInvoice(invoiceNumber);
       
       if (result.success && result.user) {
-        // Establish proper Passport session for invoice-authenticated user
-        req.login(result.user, (err) => {
-          if (err) {
-            console.error('Session login error:', err);
-            return res.status(500).json({ error: 'Failed to establish session' });
+        // First, logout any existing user session to ensure clean state
+        req.logout((logoutErr) => {
+          if (logoutErr) {
+            console.error('Logout error during invoice login:', logoutErr);
           }
           
-          // Set additional session data
-          (req.session as any).userId = result.user.id;
-          (req.session as any).isAuthenticated = true;
-          (req.session as any).authMethod = 'invoice';
-          
-          res.json({
-            success: true,
-            user: result.user,
-            message: result.message,
-            isNewRegistration: result.isNewRegistration
+          // Clear existing session data
+          req.session.regenerate((regenerateErr) => {
+            if (regenerateErr) {
+              console.error('Session regeneration error:', regenerateErr);
+              return res.status(500).json({ error: 'Failed to establish clean session' });
+            }
+            
+            // Establish proper Passport session for invoice-authenticated user
+            req.login(result.user, (err) => {
+              if (err) {
+                console.error('Session login error:', err);
+                return res.status(500).json({ error: 'Failed to establish session' });
+              }
+              
+              // Set additional session data for invoice authentication
+              (req.session as any).userId = result.user.id;
+              (req.session as any).isAuthenticated = true;
+              (req.session as any).authMethod = 'invoice';
+              (req.session as any).invoiceNumber = invoiceNumber;
+              (req.session as any).invoiceSessionId = `invoice-${invoiceNumber}-${Date.now()}`;
+              
+              console.log(`Invoice login successful for ${invoiceNumber}: User ${result.user.id}`);
+              
+              res.json({
+                success: true,
+                user: result.user,
+                message: result.message,
+                isNewRegistration: result.isNewRegistration,
+                invoiceNumber: invoiceNumber,
+                sessionId: (req.session as any).invoiceSessionId
+              });
+            });
           });
         });
       } else {

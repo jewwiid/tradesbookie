@@ -62,8 +62,10 @@ export default function SimplifiedAuthDialog({
     },
     onSuccess: (data) => {
       toast({
-        title: data.isNewRegistration ? "Welcome!" : "Welcome back!",
-        description: data.message,
+        title: data.isNewRegistration ? "Account Created!" : "Welcome back!",
+        description: data.isNewRegistration 
+          ? `Your account has been created using Harvey Norman invoice ${data.invoiceNumber}. You can now book your TV installation.`
+          : `Signed in using Harvey Norman invoice ${data.invoiceNumber}. Any bookings you make will be tracked to this invoice.`,
       });
       onSuccess(data.user);
       onClose();

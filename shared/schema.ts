@@ -161,6 +161,10 @@ export const bookings = pgTable("bookings", {
   referralCode: text("referral_code"),
   referralDiscount: decimal("referral_discount", { precision: 8, scale: 2 }).default("0.00"),
   
+  // Harvey Norman invoice tracking for invoice-authenticated bookings
+  invoiceNumber: text("invoice_number"), // Harvey Norman invoice used for authentication
+  invoiceSessionId: text("invoice_session_id"), // Unique session identifier for invoice login
+  
   // Demo flag to hide test bookings from real installers
   isDemo: boolean("is_demo").default(false),
   

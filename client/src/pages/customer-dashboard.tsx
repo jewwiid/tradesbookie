@@ -55,9 +55,9 @@ export default function CustomerDashboard() {
     retry: false,
   });
 
-  // Get user's bookings only if user exists
+  // Get user's bookings only if user exists (including invoice-authenticated users)
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
-    queryKey: ['/api/customer/bookings'],
+    queryKey: ['/api/auth/user/bookings'],
     enabled: !!user,
   });
 

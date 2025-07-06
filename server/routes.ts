@@ -4321,6 +4321,46 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Admin installer image upload endpoint
+  app.post("/api/admin/installers/:id/image", isAuthenticated, isAdmin, upload.single('profileImage'), async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+      
+      if (!installerId || isNaN(installerId)) {
+        return res.status(400).json({ message: "Valid installer ID is required" });
+      }
+      
+      // Get installer details to verify existence
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      // Convert uploaded file to base64 for storage
+      const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      
+      // Update installer profile with new image
+      await storage.updateInstallerImage(installerId, base64Image);
+      
+      console.log(`✅ Successfully uploaded image for installer ${installer.businessName}`);
+      
+      res.json({ 
+        message: "Profile image uploaded successfully",
+        profileImageUrl: base64Image
+      });
+      
+    } catch (error) {
+      console.error("Error uploading installer image:", error);
+      res.status(500).json({ message: "Failed to upload image" });
+    }
+  });
+
   // Admin installer approval endpoints
   app.patch("/api/admin/installers/:id/approve", isAuthenticated, isAdmin, async (req, res) => {
     try {

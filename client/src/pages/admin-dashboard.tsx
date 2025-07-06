@@ -54,7 +54,9 @@ import {
   ChevronRight,
   Ban,
   Camera,
-  EyeOff
+  EyeOff,
+  Upload,
+  Image as ImageIcon
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
@@ -954,6 +956,9 @@ function InstallerManagement() {
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const { data: installers, isLoading } = useQuery<Installer[]>({
     queryKey: ["/api/admin/installers"],
@@ -962,6 +967,77 @@ function InstallerManagement() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Image upload mutation
+  const uploadImageMutation = useMutation({
+    mutationFn: async ({ installerId, imageFile }: { installerId: number; imageFile: File }) => {
+      const formData = new FormData();
+      formData.append('profileImage', imageFile);
+      
+      const response = await fetch(`/api/admin/installers/${installerId}/image`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Image uploaded successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+      setSelectedImage(null);
+      setPreviewUrl(null);
+      setUploadingImage(false);
+    },
+    onError: (error: Error) => {
+      toast({ title: "Failed to upload image", description: error.message, variant: "destructive" });
+      setUploadingImage(false);
+    },
+  });
+
+  // Handle image selection
+  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file size (2MB limit)
+      if (file.size > 2 * 1024 * 1024) {
+        toast({ title: "File too large", description: "Please select an image smaller than 2MB", variant: "destructive" });
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({ title: "Invalid file type", description: "Please select an image file", variant: "destructive" });
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview URL
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+    }
+  };
+
+  // Handle image upload
+  const handleImageUpload = () => {
+    if (selectedImage && selectedInstaller) {
+      setUploadingImage(true);
+      uploadImageMutation.mutate({ installerId: selectedInstaller.id, imageFile: selectedImage });
+    }
+  };
+
+  // Clear image selection
+  const clearImageSelection = () => {
+    setSelectedImage(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+  };
 
   const toggleInstallerStatusMutation = useMutation({
     mutationFn: async ({ installerId, isActive }: { installerId: number; isActive: boolean }) => {
@@ -1304,6 +1380,87 @@ function InstallerManagement() {
           </DialogHeader>
           {selectedInstaller && (
             <div className="space-y-4">
+              {/* Profile Image Upload Section */}
+              <div className="space-y-4 p-4 border rounded-lg bg-gray-50">
+                <div className="flex items-center space-x-2">
+                  <ImageIcon className="w-5 h-5 text-gray-600" />
+                  <Label className="text-sm font-medium">Profile Image</Label>
+                </div>
+                
+                <div className="flex items-center space-x-4">
+                  {/* Current Image Display */}
+                  <div className="flex-shrink-0">
+                    <Avatar className="w-20 h-20">
+                      <AvatarImage src={selectedInstaller.profileImageUrl || ''} alt={selectedInstaller.businessName} />
+                      <AvatarFallback className="bg-gray-200 text-gray-600">
+                        {selectedInstaller.businessName?.charAt(0) || 'I'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  
+                  {/* Image Upload Controls */}
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                        id="imageUpload"
+                      />
+                      <Label htmlFor="imageUpload" className="cursor-pointer">
+                        <Button variant="outline" size="sm" asChild>
+                          <span>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Select Image
+                          </span>
+                        </Button>
+                      </Label>
+                      
+                      {selectedImage && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={clearImageSelection}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Image Preview */}
+                    {previewUrl && (
+                      <div className="flex items-center space-x-2">
+                        <img
+                          src={previewUrl}
+                          alt="Preview"
+                          className="w-16 h-16 object-cover rounded-lg border"
+                        />
+                        <Button
+                          onClick={handleImageUpload}
+                          disabled={uploadingImage}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {uploadingImage ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4 mr-2" />
+                          )}
+                          {uploadingImage ? 'Uploading...' : 'Upload'}
+                        </Button>
+                      </div>
+                    )}
+                    
+                    <p className="text-xs text-gray-500">
+                      Select a profile image for this installer (max 2MB, JPG/PNG)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Basic Information */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="businessName">Business Name</Label>

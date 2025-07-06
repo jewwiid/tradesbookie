@@ -173,49 +173,103 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
     }
   };
 
-  // Initialize map
+  // Initialize map with proper DOM readiness checks
   useEffect(() => {
-    if (!mapRef.current) return;
+    const initializeMap = () => {
+      if (!mapRef.current || mapInstanceRef.current) return;
 
-    // Fix for default markers in Leaflet
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    });
+      try {
+        // Ensure container has dimensions before initializing
+        if (mapRef.current.offsetWidth === 0 || mapRef.current.offsetHeight === 0) {
+          setTimeout(initializeMap, 100);
+          return;
+        }
 
-    // Initialize map centered on Ireland
-    const map = L.map(mapRef.current, {
-      center: [53.1424, -7.6921], // Center of Ireland
-      zoom: 7,
-      minZoom: 6,
-      maxZoom: 12,
-      zoomControl: true,
-      scrollWheelZoom: true,
-      doubleClickZoom: true,
-      dragging: true
-    });
+        // Fix for default markers in Leaflet
+        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        });
 
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-      maxZoom: 18
-    }).addTo(map);
+        // Initialize map centered on Ireland
+        const map = L.map(mapRef.current, {
+          center: [53.1424, -7.6921], // Center of Ireland
+          zoom: 7,
+          minZoom: 6,
+          maxZoom: 12,
+          zoomControl: true,
+          scrollWheelZoom: true,
+          doubleClickZoom: true,
+          dragging: true
+        });
 
-    // Set bounds to Ireland
-    const irelandBounds = L.latLngBounds(
-      L.latLng(51.222, -10.669), // Southwest corner
-      L.latLng(55.636, -5.452)   // Northeast corner
-    );
-    map.setMaxBounds(irelandBounds);
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 18
+        }).addTo(map);
 
-    mapInstanceRef.current = map;
+        // Set bounds to Ireland
+        const irelandBounds = L.latLngBounds(
+          L.latLng(51.222, -10.669), // Southwest corner
+          L.latLng(55.636, -5.452)   // Northeast corner
+        );
+        map.setMaxBounds(irelandBounds);
+
+        mapInstanceRef.current = map;
+      } catch (error) {
+        console.error('Map initialization error:', error);
+      }
+    };
+
+    // Small delay to ensure DOM is fully ready
+    const timeoutId = setTimeout(initializeMap, 100);
 
     return () => {
-      map.remove();
+      clearTimeout(timeoutId);
+      if (mapInstanceRef.current) {
+        try {
+          mapInstanceRef.current.remove();
+        } catch (e) {
+          console.warn('Map cleanup warning:', e);
+        }
+        mapInstanceRef.current = null;
+      }
     };
   }, []);
+
+  // Geocode addresses using real API for better accuracy
+  const geocodeAddressAPI = async (address: string): Promise<[number, number] | null> => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
+      const response = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.lat && result.lng) {
+          return [result.lat, result.lng];
+        }
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.warn('Geocoding API error for', address, '- using fallback coordinates');
+      }
+    }
+    
+    // Fallback to local coordinates if API fails
+    return getCoordinatesFromAddress(address);
+  };
 
   // Update markers when requests change
   useEffect(() => {
@@ -227,56 +281,73 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
     });
     markersRef.current = [];
 
-    // Add markers for each request
-    requests.forEach(request => {
-      const coordinates = getCoordinatesFromAddress(request.address);
-      
-      if (coordinates) {
-        // Create custom icon
-        const customIcon = L.divIcon({
-          html: `<div style="
-            background-color: ${getMarkerColor(request.status)};
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: white;
-            font-weight: bold;
-          ">€${request.leadFee}</div>`,
-          className: 'custom-marker',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        });
-
-        const marker = L.marker(coordinates, { icon: customIcon })
-          .addTo(mapInstanceRef.current!)
-          .bindPopup(`
-            <div style="font-size: 14px; line-height: 1.4;">
-              <strong>${request.address}</strong><br>
-              <span style="color: #666;">€${request.leadFee} lead fee</span><br>
-              <span style="color: #666;">${request.tvSize}" ${request.serviceType}</span><br>
-              <span style="color: ${getMarkerColor(request.status)}; font-weight: bold; text-transform: uppercase;">${request.status}</span>
-            </div>
-          `)
-          .on('click', () => {
-            if (onRequestSelect) {
-              onRequestSelect(request);
-            }
+    // Add markers for each request with improved geocoding
+    const addMarkersWithGeocoding = async () => {
+      for (const request of requests) {
+        const coordinates = await geocodeAddressAPI(request.address);
+        
+        if (coordinates) {
+          // Create custom icon
+          const customIcon = L.divIcon({
+            html: `<div style="
+              background-color: ${getMarkerColor(request.status)};
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              border: 3px solid white;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 10px;
+              color: white;
+              font-weight: bold;
+            ">€${request.leadFee}</div>`,
+            className: 'custom-marker',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
           });
 
-        markersRef.current.push(marker);
+          const marker = L.marker(coordinates, { icon: customIcon })
+            .addTo(mapInstanceRef.current!)
+            .bindPopup(`
+              <div style="font-size: 14px; line-height: 1.4;">
+                <strong>${request.address}</strong><br>
+                <span style="color: #666;">€${request.leadFee} lead fee</span><br>
+                <span style="color: #666;">${request.tvSize}" ${request.serviceType}</span><br>
+                <span style="color: ${getMarkerColor(request.status)}; font-weight: bold; text-transform: uppercase;">${request.status}</span>
+              </div>
+            `)
+            .on('click', () => {
+              // Zoom to the marker location
+              mapInstanceRef.current!.setView(coordinates, 14, { animate: true });
+              
+              if (onRequestSelect) {
+                onRequestSelect(request);
+              }
+            });
 
-        // Highlight selected request
-        if (selectedRequest?.id === request.id) {
-          marker.openPopup();
+          markersRef.current.push(marker);
+
+          // Highlight selected request with zoom
+          if (selectedRequest?.id === request.id) {
+            marker.openPopup();
+            mapInstanceRef.current!.setView(coordinates, 14, { animate: true });
+          }
         }
       }
-    });
+      
+      // If no request is selected, fit all markers in view
+      if (!selectedRequest && markersRef.current.length > 0) {
+        const group = new L.featureGroup(markersRef.current);
+        mapInstanceRef.current!.fitBounds(group.getBounds(), { padding: [20, 20] });
+      } else if (!selectedRequest) {
+        // Reset to Ireland view if no markers
+        mapInstanceRef.current!.setView([53.1424, -7.6921], 7);
+      }
+    };
+
+    addMarkersWithGeocoding();
   }, [requests, selectedRequest, onRequestSelect]);
 
   return (

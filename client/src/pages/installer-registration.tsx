@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Shield, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, Shield, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 
 export default function InstallerRegistration() {
   const [formData, setFormData] = useState({
@@ -198,13 +198,18 @@ export default function InstallerRegistration() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Installer Registration</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Join our network of professional TV installers
-          </p>
-        </CardHeader>
+      <div className="w-full max-w-md space-y-4">
+        <Link href="/" className="inline-flex items-center text-primary hover:text-primary/80">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Home
+        </Link>
+        <Card className="w-full">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Installer Registration</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Join our network of professional TV installers
+            </p>
+          </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -456,7 +461,8 @@ export default function InstallerRegistration() {
             </AlertDescription>
           </Alert>
         </CardContent>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import L from 'leaflet';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ import Navigation from "@/components/navigation";
 import InstallerWalletDashboard from "@/components/installer/InstallerWalletDashboard";
 import PastLeadsManagement from "@/components/installer/PastLeadsManagement";
 import InstallerReviews from "@/components/installer/InstallerReviews";
+
 import { 
   Bolt, 
   Hammer, 
@@ -76,30 +78,165 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
   onRequestSelect: (request: ClientRequest) => void;
   selectedRequest?: ClientRequest;
 }) {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
+
+  // County coordinate mapping for Ireland
+  const countyCoordinates: { [key: string]: [number, number] } = {
+    'dublin': [53.3498, -6.2603],
+    'cork': [51.8985, -8.4756],
+    'galway': [53.2707, -9.0568],
+    'limerick': [52.6638, -8.6267],
+    'waterford': [52.2583, -7.1119],
+    'kilkenny': [52.6541, -7.2448],
+    'wexford': [52.3369, -6.4633],
+    'carlow': [52.8406, -6.9267],
+    'laois': [53.0344, -7.3019],
+    'offaly': [53.2734, -7.7940],
+    'kildare': [53.1639, -6.9111],
+    'wicklow': [52.9810, -6.0448],
+    'meath': [53.6055, -6.6802],
+    'louth': [53.9474, -6.5372],
+    'monaghan': [54.2497, -6.9681],
+    'cavan': [53.9901, -7.3601],
+    'longford': [53.7244, -7.7956],
+    'westmeath': [53.5362, -7.3386],
+    'roscommon': [53.6279, -8.1951],
+    'sligo': [54.2766, -8.4761],
+    'leitrim': [54.0239, -8.0658],
+    'donegal': [54.9896, -8.1306],
+    'mayo': [53.8580, -9.2957],
+    'clare': [52.8466, -8.9860],
+    'tipperary': [52.4731, -8.1600],
+    'kerry': [52.1662, -9.7024]
+  };
+
   const getCountyFromAddress = (address: string): string => {
-    const counties = [
-      'Dublin', 'Cork', 'Galway', 'Limerick', 'Waterford', 'Kerry', 
-      'Mayo', 'Donegal', 'Wexford', 'Kilkenny', 'Tipperary', 'Clare',
-      'Kildare', 'Wicklow', 'Meath', 'Louth', 'Westmeath', 'Offaly',
-      'Laois', 'Carlow', 'Cavan', 'Monaghan', 'Sligo', 'Leitrim',
-      'Roscommon', 'Longford'
-    ];
-    
-    for (const county of counties) {
-      if (address.toLowerCase().includes(county.toLowerCase())) {
+    const lowerAddress = address.toLowerCase();
+    for (const county of Object.keys(countyCoordinates)) {
+      if (lowerAddress.includes(county)) {
         return county;
       }
     }
-    return 'Ireland';
+    return 'dublin'; // Default fallback
   };
 
-  const getMarkerColor = (status: string) => {
+  const getMarkerColor = (status: string): string => {
     switch (status) {
-      case 'urgent': return '#f97316'; // orange
-      case 'emergency': return '#ef4444'; // red
-      default: return '#3b82f6'; // blue
+      case 'urgent': return '#ef4444';
+      case 'emergency': return '#dc2626';
+      case 'standard': return '#3b82f6';
+      default: return '#6b7280';
     }
   };
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    // Fix for default markers in Leaflet
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
+
+    // Initialize map centered on Ireland
+    const map = L.map(mapRef.current, {
+      center: [53.1424, -7.6921], // Center of Ireland
+      zoom: 7,
+      minZoom: 6,
+      maxZoom: 12,
+      zoomControl: true,
+      scrollWheelZoom: true,
+      doubleClickZoom: true,
+      dragging: true
+    });
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(map);
+
+    // Set bounds to Ireland
+    const irelandBounds = L.latLngBounds(
+      L.latLng(51.222, -10.669), // Southwest corner
+      L.latLng(55.636, -5.452)   // Northeast corner
+    );
+    map.setMaxBounds(irelandBounds);
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      map.remove();
+    };
+  }, []);
+
+  // Update markers when requests change
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => {
+      mapInstanceRef.current!.removeLayer(marker);
+    });
+    markersRef.current = [];
+
+    // Add markers for each request
+    requests.forEach(request => {
+      const county = getCountyFromAddress(request.address);
+      const coordinates = countyCoordinates[county];
+      
+      if (coordinates) {
+        // Create custom icon
+        const customIcon = L.divIcon({
+          html: `<div style="
+            background-color: ${getMarkerColor(request.status)};
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: white;
+            font-weight: bold;
+          ">€${request.leadFee}</div>`,
+          className: 'custom-marker',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker(coordinates, { icon: customIcon })
+          .addTo(mapInstanceRef.current!)
+          .bindPopup(`
+            <div style="font-size: 14px; line-height: 1.4;">
+              <strong>${request.address}</strong><br>
+              <span style="color: #666;">€${request.leadFee} lead fee</span><br>
+              <span style="color: #666;">${request.tvSize}" ${request.serviceType}</span><br>
+              <span style="color: ${getMarkerColor(request.status)}; font-weight: bold; text-transform: uppercase;">${request.status}</span>
+            </div>
+          `)
+          .on('click', () => {
+            if (onRequestSelect) {
+              onRequestSelect(request);
+            }
+          });
+
+        markersRef.current.push(marker);
+
+        // Highlight selected request
+        if (selectedRequest?.id === request.id) {
+          marker.openPopup();
+        }
+      }
+    });
+  }, [requests, selectedRequest, onRequestSelect]);
 
   return (
     <div className="w-full bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -130,90 +267,20 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
         </div>
       </div>
 
-      {/* Visual Map Representation */}
+      {/* Interactive Map */}
       <div className="p-4 bg-gradient-to-b from-blue-50 to-green-50">
-        <div className="relative w-full h-64 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg border-2 border-green-300 overflow-hidden">
-          {/* Ireland outline representation */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-3/4 h-3/4">
-
-              
-              {/* Map grid pattern for visual reference */}
-              <div className="absolute inset-0 opacity-30">
-                <div className="w-full h-full border border-gray-600">
-                  <div className="absolute top-1/4 left-0 right-0 border-t border-gray-500"></div>
-                  <div className="absolute top-1/2 left-0 right-0 border-t border-gray-500"></div>
-                  <div className="absolute top-3/4 left-0 right-0 border-t border-gray-500"></div>
-                  <div className="absolute left-1/4 top-0 bottom-0 border-l border-gray-500"></div>
-                  <div className="absolute left-1/2 top-0 bottom-0 border-l border-gray-500"></div>
-                  <div className="absolute left-3/4 top-0 bottom-0 border-l border-gray-500"></div>
-                </div>
-              </div>
-              
-              {/* Request markers on map */}
-              {requests.map((request, index) => {
-                const county = getCountyFromAddress(request.address);
-                // Position markers based on rough county locations
-                const positions: { [key: string]: { top: string; left: string } } = {
-                  'Dublin': { top: '45%', left: '75%' },
-                  'Cork': { top: '80%', left: '40%' },
-                  'Galway': { top: '50%', left: '20%' },
-                  'Limerick': { top: '65%', left: '35%' },
-                  'Waterford': { top: '75%', left: '60%' },
-                  'Kerry': { top: '85%', left: '25%' },
-                  'Mayo': { top: '35%', left: '25%' },
-                  'Donegal': { top: '15%', left: '30%' },
-                  'Wexford': { top: '70%', left: '70%' },
-                  'Kilkenny': { top: '65%', left: '55%' },
-                  'Tipperary': { top: '60%', left: '45%' },
-                  'Clare': { top: '55%', left: '30%' },
-                  'Kildare': { top: '55%', left: '65%' },
-                  'Wicklow': { top: '60%', left: '70%' },
-                  'Meath': { top: '40%', left: '65%' },
-                  'Louth': { top: '35%', left: '70%' },
-                  'Westmeath': { top: '45%', left: '55%' },
-                  'Offaly': { top: '50%', left: '55%' },
-                  'Laois': { top: '55%', left: '55%' },
-                  'Carlow': { top: '65%', left: '65%' },
-                  'Cavan': { top: '30%', left: '60%' },
-                  'Monaghan': { top: '25%', left: '65%' },
-                  'Sligo': { top: '30%', left: '35%' },
-                  'Leitrim': { top: '30%', left: '45%' },
-                  'Roscommon': { top: '40%', left: '40%' },
-                  'Longford': { top: '40%', left: '50%' },
-                  'Ireland': { top: '50%', left: '50%' }
-                };
-                
-                const position = positions[county] || positions['Ireland'];
-                
-                return (
-                  <div
-                    key={request.id}
-                    className={`absolute w-6 h-6 rounded-full cursor-pointer transform -translate-x-1/2 -translate-y-1/2 border-3 border-white shadow-xl transition-all duration-200 hover:scale-125 z-10 ${
-                      selectedRequest?.id === request.id ? 'scale-125 ring-4 ring-white ring-opacity-70' : ''
-                    }`}
-                    style={{
-                      top: position.top,
-                      left: position.left,
-                      backgroundColor: getMarkerColor(request.status),
-                      borderWidth: '3px'
-                    }}
-                    onClick={() => onRequestSelect(request)}
-                    title={`${request.address} - €${request.leadFee} lead fee`}
-                  />
-                );
-              })}
-            </div>
-          </div>
-          
+        <div className="relative w-full h-80 rounded-lg overflow-hidden">
           {/* Map title overlay */}
-          <div className="absolute top-2 left-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs font-medium text-gray-700">
+          <div className="absolute top-2 left-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs font-medium text-gray-700 z-10">
             Installation Requests Map ({requests.length} leads)
           </div>
           
+          {/* Interactive Ireland Map */}
+          <div ref={mapRef} className="w-full h-full rounded-lg border-2 border-green-300" />
+          
           {/* Center text when no leads */}
           {requests.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center z-10 bg-white bg-opacity-75">
               <div className="text-center text-gray-500">
                 <MapPin className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm font-medium">No active leads</p>

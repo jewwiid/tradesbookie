@@ -7555,6 +7555,160 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Platform settings API
+  app.get('/api/admin/platform-settings', isAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getAllPlatformSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching platform settings:', error);
+      res.status(500).json({ error: 'Failed to fetch platform settings' });
+    }
+  });
+
+  app.post('/api/admin/platform-settings', isAdmin, async (req, res) => {
+    try {
+      const { key, value, description, category } = req.body;
+      const setting = await storage.createPlatformSetting({
+        key,
+        value,
+        description,
+        category
+      });
+      res.json(setting);
+    } catch (error) {
+      console.error('Error creating platform setting:', error);
+      res.status(500).json({ error: 'Failed to create platform setting' });
+    }
+  });
+
+  app.patch('/api/admin/platform-settings/:key', isAdmin, async (req, res) => {
+    try {
+      const { key } = req.params;
+      const { value, description, category } = req.body;
+      const setting = await storage.updatePlatformSetting(key, {
+        value,
+        description,
+        category
+      });
+      res.json(setting);
+    } catch (error) {
+      console.error('Error updating platform setting:', error);
+      res.status(500).json({ error: 'Failed to update platform setting' });
+    }
+  });
+
+  // First lead vouchers API
+  app.get('/api/admin/first-lead-vouchers', isAdmin, async (req, res) => {
+    try {
+      const vouchers = await storage.getAllFirstLeadVouchers();
+      res.json(vouchers);
+    } catch (error) {
+      console.error('Error fetching first lead vouchers:', error);
+      res.status(500).json({ error: 'Failed to fetch first lead vouchers' });
+    }
+  });
+
+  app.post('/api/admin/first-lead-vouchers', isAdmin, async (req, res) => {
+    try {
+      const { installerId, voucherAmount, originalLeadFee, adminNotes } = req.body;
+      const voucher = await storage.createFirstLeadVoucher({
+        installerId,
+        voucherAmount,
+        originalLeadFee,
+        adminNotes
+      });
+      res.json(voucher);
+    } catch (error) {
+      console.error('Error creating first lead voucher:', error);
+      res.status(500).json({ error: 'Failed to create first lead voucher' });
+    }
+  });
+
+  app.patch('/api/admin/first-lead-vouchers/:id', isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isEligible, adminNotes } = req.body;
+      const voucher = await storage.updateFirstLeadVoucher(parseInt(id), {
+        isEligible,
+        adminNotes
+      });
+      res.json(voucher);
+    } catch (error) {
+      console.error('Error updating first lead voucher:', error);
+      res.status(500).json({ error: 'Failed to update first lead voucher' });
+    }
+  });
+
+  // Check if installer is eligible for first lead voucher
+  app.get('/api/installers/:id/first-lead-eligibility', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const voucher = await storage.getFirstLeadVoucher(parseInt(id));
+      
+      // Check if they have platform setting enabled for first lead vouchers
+      const settings = await storage.getAllPlatformSettings();
+      const voucherEnabled = settings.find(s => s.key === 'first_lead_voucher_enabled');
+      
+      if (!voucherEnabled || voucherEnabled.value !== 'true') {
+        return res.json({ eligible: false, reason: 'Voucher system disabled' });
+      }
+      
+      // If no voucher record exists, they're eligible
+      if (!voucher) {
+        return res.json({ eligible: true, reason: 'First time installer' });
+      }
+      
+      // Check if they're still eligible and haven't used their voucher
+      if (voucher.isEligible && !voucher.isUsed) {
+        return res.json({ 
+          eligible: true, 
+          voucherAmount: voucher.voucherAmount,
+          reason: 'Unused voucher available' 
+        });
+      }
+      
+      res.json({ 
+        eligible: false, 
+        reason: voucher.isUsed ? 'Voucher already used' : 'No longer eligible' 
+      });
+    } catch (error) {
+      console.error('Error checking first lead eligibility:', error);
+      res.status(500).json({ error: 'Failed to check eligibility' });
+    }
+  });
+
+  // Use first lead voucher when purchasing a lead
+  app.post('/api/installers/:id/use-first-lead-voucher', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { bookingId, originalLeadFee } = req.body;
+      
+      const voucher = await storage.getFirstLeadVoucher(parseInt(id));
+      
+      if (!voucher || !voucher.isEligible || voucher.isUsed) {
+        return res.status(400).json({ error: 'No eligible voucher available' });
+      }
+      
+      // Mark voucher as used
+      const usedVoucher = await storage.updateFirstLeadVoucher(voucher.id, {
+        isUsed: true,
+        usedAt: new Date(),
+        usedForBookingId: bookingId,
+        originalLeadFee
+      });
+      
+      res.json({ 
+        success: true, 
+        voucherAmount: usedVoucher.voucherAmount,
+        message: 'First lead voucher applied successfully' 
+      });
+    } catch (error) {
+      console.error('Error using first lead voucher:', error);
+      res.status(500).json({ error: 'Failed to use voucher' });
+    }
+  });
+
   // Geocoded installations endpoint for maps
   app.get('/api/installations/geocoded', async (req, res) => {
     try {

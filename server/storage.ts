@@ -4,6 +4,7 @@ import {
   leadPricing, wallMountPricing, installerWallets, installerTransactions,
   scheduleNegotiations, declinedRequests, emailTemplates, bannedUsers,
   leadQualityTracking, antiManipulation, customerVerification, resources,
+  platformSettings, firstLeadVouchers,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -21,7 +22,10 @@ import {
   type InstallerTransaction, type InsertInstallerTransaction,
   type EmailTemplate, type InsertEmailTemplate,
   type BannedUser, type InsertBannedUser,
-  type Resource, type InsertResource
+  type Resource, type InsertResource,
+  type PlatformSettings, type InsertPlatformSettings,
+  type FirstLeadVoucher, type InsertFirstLeadVoucher,
+  type AntiManipulation, type InsertAntiManipulation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -185,6 +189,26 @@ export interface IStorage {
   deleteResource(id: number): Promise<boolean>;
   toggleResourceFeatured(id: number, featured: boolean): Promise<void>;
   updateResourcePriority(id: number, priority: number): Promise<void>;
+
+  // Platform settings operations  
+  getPlatformSetting(key: string): Promise<PlatformSettings | undefined>;
+  getAllPlatformSettings(): Promise<PlatformSettings[]>;
+  createPlatformSetting(setting: InsertPlatformSettings): Promise<PlatformSettings>;
+  updatePlatformSetting(key: string, value: string): Promise<void>;
+  deletePlatformSetting(key: string): Promise<void>;
+
+  // First lead voucher operations
+  getInstallerVoucher(installerId: number): Promise<FirstLeadVoucher | undefined>;
+  createInstallerVoucher(voucher: InsertFirstLeadVoucher): Promise<FirstLeadVoucher>;
+  markVoucherAsUsed(installerId: number, bookingId: number, voucherAmount: number, originalLeadFee: number): Promise<void>;
+  checkVoucherEligibility(installerId: number): Promise<boolean>;
+  getAllVouchers(): Promise<FirstLeadVoucher[]>;
+
+  // Anti-manipulation tracking operations
+  createAntiManipulationRecord(record: InsertAntiManipulation): Promise<AntiManipulation>;
+  getInstallerManipulationRecords(installerId: number): Promise<AntiManipulation[]>;
+  markManipulationResolved(id: number, resolvedBy: string): Promise<void>;
+  getAllManipulationRecords(): Promise<AntiManipulation[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1333,6 +1357,106 @@ export class DatabaseStorage implements IStorage {
     await db.update(resources)
       .set({ priority, updatedAt: new Date() })
       .where(eq(resources.id, id));
+  }
+
+  // Platform settings operations
+  async getPlatformSetting(key: string): Promise<PlatformSettings | undefined> {
+    const [setting] = await db.select().from(platformSettings).where(eq(platformSettings.key, key));
+    return setting;
+  }
+
+  async getAllPlatformSettings(): Promise<PlatformSettings[]> {
+    return await db.select().from(platformSettings).orderBy(platformSettings.key);
+  }
+
+  async createPlatformSetting(setting: InsertPlatformSettings): Promise<PlatformSettings> {
+    const [newSetting] = await db.insert(platformSettings).values(setting).returning();
+    return newSetting;
+  }
+
+  async updatePlatformSetting(key: string, value: string): Promise<void> {
+    await db.update(platformSettings)
+      .set({ value, updatedAt: new Date() })
+      .where(eq(platformSettings.key, key));
+  }
+
+  async deletePlatformSetting(key: string): Promise<void> {
+    await db.delete(platformSettings).where(eq(platformSettings.key, key));
+  }
+
+  // First lead voucher operations
+  async getInstallerVoucher(installerId: number): Promise<FirstLeadVoucher | undefined> {
+    const [voucher] = await db.select().from(firstLeadVouchers).where(eq(firstLeadVouchers.installerId, installerId));
+    return voucher;
+  }
+
+  async createInstallerVoucher(voucher: InsertFirstLeadVoucher): Promise<FirstLeadVoucher> {
+    const [newVoucher] = await db.insert(firstLeadVouchers).values(voucher).returning();
+    return newVoucher;
+  }
+
+  async markVoucherAsUsed(installerId: number, bookingId: number, voucherAmount: number, originalLeadFee: number): Promise<void> {
+    await db.update(firstLeadVouchers)
+      .set({ 
+        isUsed: true, 
+        usedAt: new Date(),
+        usedOnBookingId: bookingId,
+        voucherAmount,
+        originalLeadFee
+      })
+      .where(eq(firstLeadVouchers.installerId, installerId));
+  }
+
+  async checkVoucherEligibility(installerId: number): Promise<boolean> {
+    // Check if installer has a voucher and it hasn't been used
+    const voucher = await this.getInstallerVoucher(installerId);
+    if (!voucher || voucher.isUsed) {
+      return false;
+    }
+
+    // Check if installer has previously purchased any leads (excluding demo installer)
+    if (installerId === 2) {
+      return true; // Demo installer is always eligible
+    }
+
+    const previousLeads = await db.select()
+      .from(jobAssignments)
+      .where(eq(jobAssignments.installerId, installerId));
+
+    return previousLeads.length === 0; // Eligible if no previous leads purchased
+  }
+
+  async getAllVouchers(): Promise<FirstLeadVoucher[]> {
+    return await db.select().from(firstLeadVouchers).orderBy(desc(firstLeadVouchers.createdAt));
+  }
+
+  // Anti-manipulation tracking operations
+  async createAntiManipulationRecord(record: InsertAntiManipulation): Promise<AntiManipulation> {
+    const [newRecord] = await db.insert(antiManipulation).values(record).returning();
+    return newRecord;
+  }
+
+  async getInstallerManipulationRecords(installerId: number): Promise<AntiManipulation[]> {
+    return await db.select()
+      .from(antiManipulation)
+      .where(eq(antiManipulation.installerId, installerId))
+      .orderBy(desc(antiManipulation.flaggedAt));
+  }
+
+  async markManipulationResolved(id: number, resolvedBy: string): Promise<void> {
+    await db.update(antiManipulation)
+      .set({ 
+        isResolved: true, 
+        resolvedAt: new Date(),
+        resolvedBy
+      })
+      .where(eq(antiManipulation.id, id));
+  }
+
+  async getAllManipulationRecords(): Promise<AntiManipulation[]> {
+    return await db.select()
+      .from(antiManipulation)
+      .orderBy(desc(antiManipulation.flaggedAt));
   }
 }
 

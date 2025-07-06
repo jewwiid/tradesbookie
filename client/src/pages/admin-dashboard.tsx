@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { 
   Dialog, 
   DialogContent, 
@@ -60,7 +61,6 @@ import ResourcesManagement from "@/components/ResourcesManagement";
 import IrelandMap from "@/components/IrelandMap";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
@@ -4657,6 +4657,344 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
   );
 }
 
+// Platform Settings Management Component
+function PlatformSettingsManagement() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedSetting, setSelectedSetting] = useState<any>(null);
+
+  // Fetch platform settings
+  const { data: settings = [], isLoading } = useQuery({
+    queryKey: ['/api/admin/platform-settings'],
+    queryFn: () => fetch('/api/admin/platform-settings', {
+      credentials: 'include'
+    }).then(r => r.json())
+  });
+
+  // Fetch first lead vouchers
+  const { data: vouchers = [], isLoading: vouchersLoading } = useQuery({
+    queryKey: ['/api/admin/first-lead-vouchers'],
+    queryFn: () => fetch('/api/admin/first-lead-vouchers', {
+      credentials: 'include'
+    }).then(r => r.json())
+  });
+
+  // Create setting mutation
+  const createSettingMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/admin/platform-settings', data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-settings'] });
+      setShowCreateDialog(false);
+      toast({
+        title: "Setting Created",
+        description: "Platform setting has been created successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create setting",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Update setting mutation
+  const updateSettingMutation = useMutation({
+    mutationFn: async ({ key, ...data }: any) => {
+      const response = await apiRequest('PATCH', `/api/admin/platform-settings/${key}`, data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/platform-settings'] });
+      setShowEditDialog(false);
+      setSelectedSetting(null);
+      toast({
+        title: "Setting Updated",
+        description: "Platform setting has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update setting",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Create voucher mutation
+  const createVoucherMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/admin/first-lead-vouchers', data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/first-lead-vouchers'] });
+      toast({
+        title: "Voucher Created",
+        description: "First lead voucher has been created successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create voucher",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleToggleFirstLeadVouchers = async () => {
+    const voucherSetting = settings.find(s => s.key === 'first_lead_voucher_enabled');
+    const newValue = voucherSetting?.value === 'true' ? 'false' : 'true';
+    
+    if (voucherSetting) {
+      // Update existing setting
+      updateSettingMutation.mutate({
+        key: 'first_lead_voucher_enabled',
+        value: newValue,
+        description: 'Enable or disable first lead voucher system',
+        category: 'vouchers'
+      });
+    } else {
+      // Create new setting
+      createSettingMutation.mutate({
+        key: 'first_lead_voucher_enabled',
+        value: newValue,
+        description: 'Enable or disable first lead voucher system',
+        category: 'vouchers'
+      });
+    }
+  };
+
+  const isVoucherSystemEnabled = settings.find(s => s.key === 'first_lead_voucher_enabled')?.value === 'true';
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin mr-2" />
+            <span>Loading platform settings...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Platform Settings</h2>
+          <p className="text-gray-600">Manage platform configuration and first lead voucher system</p>
+        </div>
+      </div>
+
+      {/* First Lead Voucher System */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Target className="w-5 h-5" />
+            <span>First Lead Voucher System</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg">
+            <div>
+              <h3 className="font-medium">Enable First Lead Vouchers</h3>
+              <p className="text-sm text-gray-600">
+                Allow new installers to get their first lead for free to encourage platform adoption
+              </p>
+            </div>
+            <Button
+              onClick={handleToggleFirstLeadVouchers}
+              variant={isVoucherSystemEnabled ? "default" : "outline"}
+              disabled={updateSettingMutation.isPending || createSettingMutation.isPending}
+            >
+              {updateSettingMutation.isPending || createSettingMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              {isVoucherSystemEnabled ? "Enabled" : "Disabled"}
+            </Button>
+          </div>
+
+          {isVoucherSystemEnabled && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <Users className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium">Eligible Installers</span>
+                    </div>
+                    <p className="text-2xl font-bold">
+                      {vouchers.filter(v => v.isEligible && !v.isUsed).length}
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <UserCheck className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium">Vouchers Used</span>
+                    </div>
+                    <p className="text-2xl font-bold">
+                      {vouchers.filter(v => v.isUsed).length}
+                    </p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <Euro className="w-4 h-4 text-purple-600" />
+                      <span className="text-sm font-medium">Total Value</span>
+                    </div>
+                    <p className="text-2xl font-bold">
+                      €{vouchers.reduce((sum, v) => sum + (v.voucherAmount || 0), 0)}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {vouchersLoading ? (
+                <div className="flex justify-center p-4">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                </div>
+              ) : vouchers.length > 0 ? (
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Installer</TableHead>
+                        <TableHead>Voucher Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Used</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {vouchers.map((voucher) => (
+                        <TableRow key={voucher.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">Installer #{voucher.installerId}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              €{voucher.voucherAmount || 0}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={voucher.isUsed ? "secondary" : voucher.isEligible ? "default" : "destructive"}
+                            >
+                              {voucher.isUsed ? "Used" : voucher.isEligible ? "Eligible" : "Ineligible"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {voucher.createdAt ? new Date(voucher.createdAt).toLocaleDateString() : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            {voucher.usedAt ? new Date(voucher.usedAt).toLocaleDateString() : 'Not used'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center p-8 text-gray-500">
+                  <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>No vouchers created yet</p>
+                  <p className="text-sm">Vouchers are automatically created when new installers register</p>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Other Platform Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Settings className="w-5 h-5" />
+            <span>General Settings</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {settings.length > 0 ? (
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Key</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {settings.map((setting) => (
+                    <TableRow key={setting.key}>
+                      <TableCell>
+                        <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
+                          {setting.key}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {setting.value}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {setting.category || 'general'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate">
+                        {setting.description || 'No description'}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedSetting(setting);
+                            setShowEditDialog(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center p-8 text-gray-500">
+              <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p>No platform settings configured yet</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
@@ -4787,6 +5125,10 @@ export default function AdminDashboard() {
               <Ban className="w-4 h-4" />
               <span>Banned Users</span>
             </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Settings className="w-4 h-4" />
+              <span>Settings</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -4844,6 +5186,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="banned" className="space-y-6">
             <BannedUsersManagement />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <PlatformSettingsManagement />
           </TabsContent>
         </Tabs>
       </div>

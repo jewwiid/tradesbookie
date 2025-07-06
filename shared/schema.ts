@@ -736,6 +736,51 @@ export const resourcesRelations = relations(resources, ({ one }) => ({
   // No direct relations needed currently
 }));
 
+// Platform settings for admin configuration
+export const platformSettings = pgTable("platform_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").unique().notNull(), // setting identifier like 'first_lead_voucher_enabled'
+  value: text("value").notNull(), // JSON string for complex values, simple string for basic ones
+  description: text("description"), // Human-readable description of the setting
+  category: text("category").default("general"), // general, promotions, security, billing
+  dataType: text("data_type").default("string"), // string, boolean, number, json
+  isPublic: boolean("is_public").default(false), // Whether setting can be accessed by frontend
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// First lead voucher tracking to prevent exploitation
+export const firstLeadVouchers = pgTable("first_lead_vouchers", {
+  id: serial("id").primaryKey(),
+  installerId: integer("installer_id").references(() => installers.id).notNull(),
+  isUsed: boolean("is_used").default(false),
+  usedForBookingId: integer("used_for_booking_id").references(() => bookings.id), // Which booking used the voucher
+  voucherAmount: decimal("voucher_amount", { precision: 8, scale: 2 }).notNull(), // How much was waived
+  originalLeadFee: decimal("original_lead_fee", { precision: 8, scale: 2 }).notNull(), // What they would have paid
+  usedAt: timestamp("used_at"), // When the voucher was redeemed
+  adminNotes: text("admin_notes"), // For tracking/audit purposes
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+
+
+export const platformSettingsRelations = relations(platformSettings, ({ one }) => ({
+  // No direct relations needed currently
+}));
+
+export const firstLeadVouchersRelations = relations(firstLeadVouchers, ({ one, many }) => ({
+  installer: one(installers, {
+    fields: [firstLeadVouchers.installerId],
+    references: [installers.id],
+  }),
+  booking: one(bookings, {
+    fields: [firstLeadVouchers.usedForBookingId],
+    references: [bookings.id],
+  }),
+}));
+
+
+
 // Zod schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -833,6 +878,22 @@ export const insertResourceSchema = createInsertSchema(resources).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+export const insertPlatformSettingsSchema = createInsertSchema(platformSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFirstLeadVoucherSchema = createInsertSchema(firstLeadVouchers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAntiManipulationSchema = createInsertSchema(antiManipulation).omit({
+  id: true,
+  flaggedAt: true,
 });
 
 // Type exports
@@ -1026,3 +1087,11 @@ export const insertBannedUserSchema = createInsertSchema(bannedUsers).omit({
 
 export type BannedUser = typeof bannedUsers.$inferSelect;
 export type InsertBannedUser = z.infer<typeof insertBannedUserSchema>;
+
+// Platform settings and voucher types
+export type PlatformSettings = typeof platformSettings.$inferSelect;
+export type InsertPlatformSettings = z.infer<typeof insertPlatformSettingsSchema>;
+export type FirstLeadVoucher = typeof firstLeadVouchers.$inferSelect;
+export type InsertFirstLeadVoucher = z.infer<typeof insertFirstLeadVoucherSchema>;
+export type AntiManipulation = typeof antiManipulation.$inferSelect;
+export type InsertAntiManipulation = z.infer<typeof insertAntiManipulationSchema>;

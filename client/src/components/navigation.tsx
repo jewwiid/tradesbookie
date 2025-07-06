@@ -198,7 +198,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                       onClick={() => setAuthDialogOpen(true)}
                     >
                       <LogIn className="w-4 h-4 mr-1" />
-                      Quick Sign In
+                      Sign In
                     </Button>
                   </div>
                 ) : null}
@@ -423,7 +423,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                           }}
                         >
                           <LogIn className="h-5 w-5 mr-2" />
-                          Quick Sign In
+                          Sign In
                         </Button>
                       )}
                     </div>

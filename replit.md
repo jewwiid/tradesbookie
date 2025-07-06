@@ -648,6 +648,8 @@ The application now includes a robust fallback system. When the database is unav
 - July 6, 2025: **Improved findCityMatch function to sort matches by length and select most specific location first**
 - July 6, 2025: **Verified complete address flow from structured collection (streetAddress, town, county, eircode) to accurate geocoding**
 - July 6, 2025: **Tested and confirmed precise coordinates for specific Irish locations: Carrickmines (53.2769, -6.1522), Letterkenny (54.9539, -7.7338), Fonthill (53.3433, -6.4286), Kinsale Road (51.8833, -8.5167)**
+- July 6, 2025: **Updated navigation button text from "Quick Sign In" to "Sign In" for cleaner UI appearance**
+- July 6, 2025: **Widened SimplifiedAuthDialog popup from max-w-md to max-w-2xl for better user experience and readability**
 
 ## User Preferences
 

@@ -11,6 +11,8 @@ import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { PasswordStrengthMeter, PasswordMatchIndicator } from '@/components/PasswordStrengthMeter';
+import { calculatePasswordStrength } from '@/utils/passwordStrength';
 
 interface SimplifiedAuthDialogProps {
   isOpen: boolean;
@@ -195,13 +197,25 @@ export default function SimplifiedAuthDialog({
 
     // Validation for registration mode
     if (emailAuthMode === 'register') {
-      if (emailAuthPassword.length < 8) {
+      const passwordStrength = calculatePasswordStrength(emailAuthPassword);
+      
+      // Check if password meets minimum requirements
+      if (passwordStrength.score === 0) {
         toast({
-          title: "Password Too Short",
+          title: "Password Too Weak",
           description: "Password must be at least 8 characters long",
           variant: "destructive",
         });
         return;
+      }
+
+      // Optional: Warn if password is very weak (score 1) but still allow it
+      if (passwordStrength.score === 1) {
+        toast({
+          title: "Weak Password",
+          description: "Consider adding uppercase, numbers, or special characters for better security",
+          variant: "default",
+        });
       }
 
       if (!emailAuthConfirmPassword) {
@@ -458,6 +472,13 @@ export default function SimplifiedAuthDialog({
                     onChange={(e) => setEmailAuthPassword(e.target.value)}
                     className="mt-1"
                   />
+                  {emailAuthMode === 'register' && emailAuthPassword && (
+                    <PasswordStrengthMeter 
+                      password={emailAuthPassword} 
+                      showRequirements={true}
+                      className="mt-2"
+                    />
+                  )}
                 </div>
 
                 {emailAuthMode === 'register' && (
@@ -471,16 +492,21 @@ export default function SimplifiedAuthDialog({
                       onChange={(e) => setEmailAuthConfirmPassword(e.target.value)}
                       className="mt-1"
                     />
-                    {emailAuthPassword && emailAuthConfirmPassword && emailAuthPassword !== emailAuthConfirmPassword && (
-                      <p className="text-sm text-red-500 mt-1">Passwords do not match</p>
-                    )}
+                    <PasswordMatchIndicator 
+                      password={emailAuthPassword}
+                      confirmPassword={emailAuthConfirmPassword}
+                      showMatch={emailAuthPassword.length > 0 && emailAuthConfirmPassword.length > 0}
+                    />
                   </div>
                 )}
 
                 <Button 
                   onClick={handleEmailAuth}
-                  disabled={emailAuthMutation.isPending}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={emailAuthMutation.isPending || (emailAuthMode === 'register' && 
+                    (!emailAuthEmail || !emailAuthPassword || !emailAuthConfirmPassword || 
+                     emailAuthPassword !== emailAuthConfirmPassword || 
+                     calculatePasswordStrength(emailAuthPassword).score === 0))}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                 >
                   <Mail className="w-4 h-4 mr-2" />
                   {emailAuthMutation.isPending 

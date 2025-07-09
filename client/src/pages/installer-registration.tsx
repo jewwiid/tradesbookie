@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Shield, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
+import { PasswordStrengthMeter, PasswordMatchIndicator } from "@/components/PasswordStrengthMeter";
+import { calculatePasswordStrength } from "@/utils/passwordStrength";
 
 export default function InstallerRegistration() {
   const [formData, setFormData] = useState({
@@ -76,8 +78,11 @@ export default function InstallerRegistration() {
 
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else {
+      const passwordStrength = calculatePasswordStrength(formData.password);
+      if (passwordStrength.score === 0) {
+        newErrors.password = "Password must be at least 8 characters";
+      }
     }
 
     if (!formData.confirmPassword) {
@@ -403,7 +408,7 @@ export default function InstallerRegistration() {
                 value={formData.password}
                 onChange={handleInputChange("password")}
                 className={errors.password ? "border-red-500" : ""}
-                placeholder="Minimum 6 characters"
+                placeholder="Minimum 8 characters"
                 disabled={isLoading}
               />
               {errors.password && (
@@ -411,6 +416,13 @@ export default function InstallerRegistration() {
                   <AlertCircle className="w-3 h-3" />
                   {errors.password}
                 </p>
+              )}
+              {formData.password && (
+                <PasswordStrengthMeter 
+                  password={formData.password} 
+                  showRequirements={true}
+                  className="mt-2"
+                />
               )}
             </div>
 
@@ -431,9 +443,22 @@ export default function InstallerRegistration() {
                   {errors.confirmPassword}
                 </p>
               )}
+              <PasswordMatchIndicator 
+                password={formData.password}
+                confirmPassword={formData.confirmPassword}
+                showMatch={formData.password.length > 0 && formData.confirmPassword.length > 0}
+              />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full disabled:opacity-50" 
+              disabled={isLoading || 
+                (!formData.firstName || !formData.lastName || !formData.businessName || 
+                 !formData.email || !formData.password || !formData.confirmPassword ||
+                 formData.password !== formData.confirmPassword ||
+                 calculatePasswordStrength(formData.password).score === 0)}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />

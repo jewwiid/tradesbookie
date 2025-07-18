@@ -1,7 +1,26 @@
 import { useState } from "react";
 
+export interface TVInstallation {
+  id: string; // unique identifier for each TV
+  tvSize: string;
+  serviceType: string;
+  wallType: string;
+  mountType: string;
+  needsWallMount?: boolean;
+  wallMountOption?: string;
+  addons: Array<{
+    key: string;
+    name: string;
+    price: number;
+  }>;
+  basePrice?: number;
+  roomPhotoBase64?: string;
+  aiPreviewUrl?: string;
+  location?: string; // e.g., "Living Room", "Bedroom 1", "Kitchen"
+}
+
 export interface BookingData {
-  // Step 1: Photo
+  // Step 1: Photo (primary room photo)
   roomPhotoBase64?: string;
   roomAnalysis?: {
     recommendations: string[];
@@ -18,27 +37,26 @@ export interface BookingData {
   };
   photoStorageConsent?: boolean;
 
-  // Step 2: TV Size
+  // Step 2: TV Quantity
+  tvQuantity: number;
+  
+  // Step 3-6: TV Installations (for multi-TV support)
+  tvInstallations: TVInstallation[];
+  currentTvIndex: number; // Track which TV we're currently configuring
+
+  // Legacy fields for backward compatibility (when tvQuantity = 1)
   tvSize: string;
-
-  // Step 3: Service
   serviceType: string;
-  basePrice?: number;
-
-  // Step 4: Wall Type
   wallType: string;
-
-  // Step 5: Mount Type
   mountType: string;
   needsWallMount?: boolean;
   wallMountOption?: string;
-
-  // Step 6: Add-ons
   addons?: Array<{
     key: string;
     name: string;
     price: number;
   }>;
+  basePrice?: number;
 
   // Step 7: Schedule
   preferredDate?: string;
@@ -70,6 +88,9 @@ export interface BookingData {
 
 export function useBookingData() {
   const [bookingData, setBookingData] = useState<BookingData>({
+    tvQuantity: 1,
+    tvInstallations: [],
+    currentTvIndex: 0,
     tvSize: "",
     serviceType: "",
     wallType: "",
@@ -83,6 +104,9 @@ export function useBookingData() {
 
   const resetBookingData = () => {
     setBookingData({
+      tvQuantity: 1,
+      tvInstallations: [],
+      currentTvIndex: 0,
       tvSize: "",
       serviceType: "",
       wallType: "",
@@ -91,15 +115,72 @@ export function useBookingData() {
     });
   };
 
+  // Update specific TV installation
+  const updateTvInstallation = (index: number, tvData: Partial<TVInstallation>) => {
+    setBookingData(prev => {
+      const updatedInstallations = [...prev.tvInstallations];
+      updatedInstallations[index] = { ...updatedInstallations[index], ...tvData };
+      return { ...prev, tvInstallations: updatedInstallations };
+    });
+  };
+
+  // Add new TV installation
+  const addTvInstallation = (tvData?: Partial<TVInstallation>) => {
+    const newTv: TVInstallation = {
+      id: `tv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      tvSize: "",
+      serviceType: "",
+      wallType: "",
+      mountType: "",
+      addons: [],
+      location: `TV ${bookingData.tvInstallations.length + 1}`,
+      ...tvData
+    };
+    
+    setBookingData(prev => ({
+      ...prev,
+      tvInstallations: [...prev.tvInstallations, newTv]
+    }));
+  };
+
+  // Remove TV installation
+  const removeTvInstallation = (index: number) => {
+    setBookingData(prev => ({
+      ...prev,
+      tvInstallations: prev.tvInstallations.filter((_, i) => i !== index),
+      currentTvIndex: Math.max(0, prev.currentTvIndex - 1)
+    }));
+  };
+
   return {
     bookingData,
     updateBookingData,
-    resetBookingData
+    resetBookingData,
+    updateTvInstallation,
+    addTvInstallation,
+    removeTvInstallation
   };
 }
 
 export function calculateTotalPrice(bookingData: BookingData): number {
+  // Multi-TV pricing
+  if (bookingData.tvQuantity > 1 && bookingData.tvInstallations.length > 0) {
+    return bookingData.tvInstallations.reduce((total, tv) => {
+      const basePrice = tv.basePrice || 0;
+      const addonsPrice = tv.addons.reduce((sum, addon) => sum + addon.price, 0);
+      return total + basePrice + addonsPrice;
+    }, 0);
+  }
+  
+  // Single TV pricing (legacy)
   const basePrice = bookingData.basePrice || 0;
   const addonsPrice = bookingData.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0;
   return basePrice + addonsPrice;
+}
+
+export function getCurrentTvData(bookingData: BookingData): TVInstallation | null {
+  if (bookingData.tvQuantity > 1 && bookingData.tvInstallations.length > 0) {
+    return bookingData.tvInstallations[bookingData.currentTvIndex] || null;
+  }
+  return null;
 }

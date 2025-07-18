@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 interface MountTypeSelectorProps {
   bookingData: BookingData;
   updateBookingData: (data: Partial<BookingData>) => void;
+  updateTvInstallation?: (index: number, tvData: Partial<any>) => void;
 }
 
 // Interface for wall mount pricing from database
@@ -45,9 +46,16 @@ const MOUNT_TYPES = [
   }
 ];
 
-export default function MountTypeSelector({ bookingData, updateBookingData }: MountTypeSelectorProps) {
-  const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(bookingData.needsWallMount);
-  const [selectedWallMount, setSelectedWallMount] = useState<string>(bookingData.wallMountOption || '');
+export default function MountTypeSelector({ bookingData, updateBookingData, updateTvInstallation }: MountTypeSelectorProps) {
+  const isMultiTV = bookingData.tvQuantity > 1;
+  const currentTv = isMultiTV ? bookingData.tvInstallations[bookingData.currentTvIndex] : null;
+  
+  const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(
+    isMultiTV ? currentTv?.needsWallMount : bookingData.needsWallMount
+  );
+  const [selectedWallMount, setSelectedWallMount] = useState<string>(
+    isMultiTV ? (currentTv?.wallMountOption || '') : (bookingData.wallMountOption || '')
+  );
 
   // Fetch wall mount pricing from database
   const { data: wallMountPricing, isLoading: isLoadingPricing } = useQuery<WallMountPricing[]>({
@@ -56,24 +64,45 @@ export default function MountTypeSelector({ bookingData, updateBookingData }: Mo
   });
 
   const handleMountTypeSelect = (mountType: string) => {
-    updateBookingData({ mountType });
-    // Reset wall mount selection when mount type changes
+    if (isMultiTV && updateTvInstallation) {
+      updateTvInstallation(bookingData.currentTvIndex, { 
+        mountType,
+        wallMountOption: undefined,
+        needsWallMount: undefined
+      });
+    } else {
+      updateBookingData({ mountType });
+      // Reset wall mount selection when mount type changes
+      updateBookingData({ wallMountOption: undefined, needsWallMount: undefined });
+    }
     setSelectedWallMount('');
-    updateBookingData({ wallMountOption: undefined, needsWallMount: undefined });
   };
 
   const handleWallMountSelect = (needs: boolean) => {
     setNeedsWallMount(needs);
-    updateBookingData({ needsWallMount: needs });
+    if (isMultiTV && updateTvInstallation) {
+      updateTvInstallation(bookingData.currentTvIndex, { needsWallMount: needs });
+      if (!needs) {
+        updateTvInstallation(bookingData.currentTvIndex, { wallMountOption: undefined });
+      }
+    } else {
+      updateBookingData({ needsWallMount: needs });
+      if (!needs) {
+        updateBookingData({ wallMountOption: undefined });
+      }
+    }
     if (!needs) {
       setSelectedWallMount('');
-      updateBookingData({ wallMountOption: undefined });
     }
   };
 
   const handleWallMountOptionSelect = (wallMountKey: string) => {
     setSelectedWallMount(wallMountKey);
-    updateBookingData({ wallMountOption: wallMountKey });
+    if (isMultiTV && updateTvInstallation) {
+      updateTvInstallation(bookingData.currentTvIndex, { wallMountOption: wallMountKey });
+    } else {
+      updateBookingData({ wallMountOption: wallMountKey });
+    }
   };
 
   const getAvailableWallMounts = () => {

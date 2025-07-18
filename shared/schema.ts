@@ -97,7 +97,7 @@ export const installers = pgTable("installers", {
 
 // Removed: feeStructures table no longer needed in lead generation model
 
-// Bookings table
+// Bookings table - updated for multi-TV support
 export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
@@ -109,13 +109,16 @@ export const bookings = pgTable("bookings", {
   contactPhone: text("contact_phone").notNull(),
   contactEmail: text("contact_email").notNull(),
   
-  // Booking details
-  tvSize: text("tv_size").notNull(),
-  serviceType: text("service_type").notNull(),
-  wallType: text("wall_type").notNull(),
-  mountType: text("mount_type").notNull(),
+  // Multi-TV booking details - stored as JSON array for flexibility
+  tvInstallations: jsonb("tv_installations").notNull().default([]), // Array of TV installation objects
+  
+  // Legacy fields for backward compatibility (for single TV bookings)
+  tvSize: text("tv_size"),
+  serviceType: text("service_type"),
+  wallType: text("wall_type"),
+  mountType: text("mount_type"),
   needsWallMount: boolean("needs_wall_mount").default(false),
-  wallMountOption: text("wall_mount_option"), // Selected wall mount type if needed
+  wallMountOption: text("wall_mount_option"),
   addons: jsonb("addons").default([]),
   
   // Scheduling

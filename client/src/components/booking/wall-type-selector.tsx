@@ -5,6 +5,7 @@ import { BookingData } from "@/lib/booking-utils";
 interface WallTypeSelectorProps {
   bookingData: BookingData;
   updateBookingData: (data: Partial<BookingData>) => void;
+  updateTvInstallation?: (index: number, tvData: Partial<any>) => void;
 }
 
 const WALL_TYPES = [
@@ -30,9 +31,16 @@ const WALL_TYPES = [
   }
 ];
 
-export default function WallTypeSelector({ bookingData, updateBookingData }: WallTypeSelectorProps) {
+export default function WallTypeSelector({ bookingData, updateBookingData, updateTvInstallation }: WallTypeSelectorProps) {
+  const isMultiTV = bookingData.tvQuantity > 1;
+  const currentTv = isMultiTV ? bookingData.tvInstallations[bookingData.currentTvIndex] : null;
+  
   const handleWallTypeSelect = (wallType: string) => {
-    updateBookingData({ wallType });
+    if (isMultiTV && updateTvInstallation) {
+      updateTvInstallation(bookingData.currentTvIndex, { wallType });
+    } else {
+      updateBookingData({ wallType });
+    }
   };
 
   return (
@@ -41,7 +49,9 @@ export default function WallTypeSelector({ bookingData, updateBookingData }: Wal
         <Home className="w-8 h-8 text-white" />
       </div>
       
-      <h2 className="text-3xl font-bold text-foreground mb-4">What's Your Wall Type?</h2>
+      <h2 className="text-3xl font-bold text-foreground mb-4">
+        {isMultiTV ? `What's the Wall Type for ${currentTv?.location || `TV ${bookingData.currentTvIndex + 1}`}?` : "What's Your Wall Type?"}
+      </h2>
       <p className="text-lg text-muted-foreground mb-8">
         This helps us prepare the right tools and mounting hardware
       </p>
@@ -51,7 +61,7 @@ export default function WallTypeSelector({ bookingData, updateBookingData }: Wal
           <Card
             key={wall.type}
             className={`service-tile cursor-pointer ${
-              bookingData.wallType === wall.type ? 'selected' : ''
+              (isMultiTV ? currentTv?.wallType === wall.type : bookingData.wallType === wall.type) ? 'selected' : ''
             }`}
             onClick={() => handleWallTypeSelect(wall.type)}
           >

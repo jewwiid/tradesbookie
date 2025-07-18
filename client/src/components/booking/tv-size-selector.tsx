@@ -7,6 +7,7 @@ import { BookingData } from "@/lib/booking-utils";
 interface TVSizeSelectorProps {
   bookingData: BookingData;
   updateBookingData: (data: Partial<BookingData>) => void;
+  updateTvInstallation?: (index: number, tvData: Partial<any>) => void;
 }
 
 const TV_SIZES = [
@@ -18,13 +19,23 @@ const TV_SIZES = [
   { size: "85", label: "85\"", category: "Premium" }
 ];
 
-export default function TVSizeSelector({ bookingData, updateBookingData }: TVSizeSelectorProps) {
-  const [selectedSize, setSelectedSize] = useState(bookingData.tvSize);
+export default function TVSizeSelector({ bookingData, updateBookingData, updateTvInstallation }: TVSizeSelectorProps) {
+  const isMultiTV = bookingData.tvQuantity > 1;
+  const currentTv = isMultiTV ? bookingData.tvInstallations[bookingData.currentTvIndex] : null;
+  const [selectedSize, setSelectedSize] = useState(
+    isMultiTV ? (currentTv?.tvSize || "") : bookingData.tvSize
+  );
 
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size);
-    updateBookingData({ tvSize: size });
-    // AI preview generation removed - will only occur at final booking summary
+    
+    if (isMultiTV && updateTvInstallation) {
+      // Update specific TV installation
+      updateTvInstallation(bookingData.currentTvIndex, { tvSize: size });
+    } else {
+      // Update legacy single TV booking
+      updateBookingData({ tvSize: size });
+    }
   };
 
   return (
@@ -33,9 +44,11 @@ export default function TVSizeSelector({ bookingData, updateBookingData }: TVSiz
         <Tv className="w-8 h-8 text-white" />
       </div>
       
-      <h2 className="text-3xl font-bold text-foreground mb-4">What's Your TV Size?</h2>
+      <h2 className="text-3xl font-bold text-foreground mb-4">
+        {isMultiTV ? `What's the Size of ${currentTv?.location || `TV ${bookingData.currentTvIndex + 1}`}?` : "What's Your TV Size?"}
+      </h2>
       <p className="text-lg text-muted-foreground mb-8">
-        Select your TV size to see the accurate preview
+        {isMultiTV ? `Select the size for ${currentTv?.location || `TV ${bookingData.currentTvIndex + 1}`}` : "Select your TV size to see the accurate preview"}
       </p>
 
       {/* Preview Placeholder - AI generation happens at final step */}

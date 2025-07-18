@@ -6,6 +6,7 @@ import { BookingData } from "@/lib/booking-utils";
 interface AddonSelectorProps {
   bookingData: BookingData;
   updateBookingData: (data: Partial<BookingData>) => void;
+  updateTvInstallation?: (index: number, tvData: Partial<any>) => void;
 }
 
 const ADDONS = [
@@ -35,9 +36,12 @@ const ADDONS = [
   }
 ];
 
-export default function AddonSelector({ bookingData, updateBookingData }: AddonSelectorProps) {
+export default function AddonSelector({ bookingData, updateBookingData, updateTvInstallation }: AddonSelectorProps) {
+  const isMultiTV = bookingData.tvQuantity > 1;
+  const currentTv = isMultiTV ? bookingData.tvInstallations[bookingData.currentTvIndex] : null;
+  
   const handleAddonToggle = (addonKey: string, checked: boolean) => {
-    const currentAddons = bookingData.addons || [];
+    const currentAddons = isMultiTV ? (currentTv?.addons || []) : (bookingData.addons || []);
     
     if (checked) {
       const addon = ADDONS.find(a => a.key === addonKey);
@@ -47,16 +51,27 @@ export default function AddonSelector({ bookingData, updateBookingData }: AddonS
           name: addon.name,
           price: addon.price
         }];
-        updateBookingData({ addons: newAddons });
+        
+        if (isMultiTV && updateTvInstallation) {
+          updateTvInstallation(bookingData.currentTvIndex, { addons: newAddons });
+        } else {
+          updateBookingData({ addons: newAddons });
+        }
       }
     } else {
       const newAddons = currentAddons.filter(addon => addon.key !== addonKey);
-      updateBookingData({ addons: newAddons });
+      
+      if (isMultiTV && updateTvInstallation) {
+        updateTvInstallation(bookingData.currentTvIndex, { addons: newAddons });
+      } else {
+        updateBookingData({ addons: newAddons });
+      }
     }
   };
 
   const isAddonSelected = (addonKey: string) => {
-    return bookingData.addons?.some(addon => addon.key === addonKey) || false;
+    const currentAddons = isMultiTV ? (currentTv?.addons || []) : (bookingData.addons || []);
+    return currentAddons.some(addon => addon.key === addonKey) || false;
   };
 
   return (
@@ -65,9 +80,11 @@ export default function AddonSelector({ bookingData, updateBookingData }: AddonS
         <Plus className="w-8 h-8 text-white" />
       </div>
       
-      <h2 className="text-3xl font-bold text-foreground mb-4">Add-on Services</h2>
+      <h2 className="text-3xl font-bold text-foreground mb-4">
+        {isMultiTV ? `Add-on Services for ${currentTv?.location || `TV ${bookingData.currentTvIndex + 1}`}` : "Add-on Services"}
+      </h2>
       <p className="text-lg text-muted-foreground mb-8">
-        Enhance your installation with these optional services
+        {isMultiTV ? `Enhance the installation for ${currentTv?.location || `TV ${bookingData.currentTvIndex + 1}`}` : "Enhance your installation with these optional services"}
       </p>
 
       <div className="space-y-4">

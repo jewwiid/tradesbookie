@@ -2663,26 +2663,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (email === "test@tradesbook.ie" && password === "demo123") {
         let installer = await storage.getInstallerByEmail(email);
         
-        // If demo installer doesn't exist, create one (only if demo data is enabled)
+        // If demo installer doesn't exist, create one (always enabled for demo access)
         if (!installer) {
-          if (process.env.ENABLE_DEMO_DATA === 'true') {
-            const demoInstallerData = {
-              businessName: "Demo TV Services",
-              contactName: "Demo Installer",
-              email: "test@tradesbook.ie",
-              phone: "(555) 123-4567",
-              address: "Dublin, Ireland",
-              serviceArea: "Dublin",
-              expertise: ["Wall Mounting", "Cable Management", "LED TVs"],
-              bio: "Demo installer account for exploring the platform.",
-              yearsExperience: 5,
-              isActive: true,
-              isDemoAccount: true // Flag to identify demo accounts
-            };
-            installer = await storage.createInstaller(demoInstallerData);
-          } else {
-            return res.status(401).json({ error: "Demo account not available (demo data disabled)" });
-          }
+          const demoInstallerData = {
+            businessName: "Demo TV Services",
+            contactName: "Demo Installer",
+            email: "test@tradesbook.ie",
+            phone: "(555) 123-4567",
+            address: "Dublin, Ireland",
+            serviceArea: "Dublin",
+            expertise: ["Wall Mounting", "Cable Management", "LED TVs"],
+            bio: "Demo installer account for exploring the platform.",
+            yearsExperience: 5,
+            isActive: true,
+            isDemoAccount: true // Flag to identify demo accounts
+          };
+          installer = await storage.createInstaller(demoInstallerData);
         }
 
         // Reset and regenerate mock leads for demo account on each login
@@ -2718,26 +2714,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       else if (password === "demo123") {
         let installer = await storage.getInstallerByEmail(email);
         
-        // If installer doesn't exist, create a demo installer (only if demo data is enabled)
+        // If installer doesn't exist, create a demo installer (always enabled for demo access)
         if (!installer) {
-          if (process.env.ENABLE_DEMO_DATA === 'true') {
-            const demoInstallerData = {
-              businessName: `${email.split('@')[0]} TV Services`,
-              contactName: email.split('@')[0],
-              email,
-              phone: "(555) 123-4567",
-              address: "Dublin, Ireland",
-              serviceArea: "Dublin",
-              expertise: ["Wall Mounting", "Cable Management", "LED TVs"],
-              bio: "Professional TV installer with years of experience.",
-              yearsExperience: 5,
-              isActive: true,
-              isDemoAccount: false
-            };
-            installer = await storage.createInstaller(demoInstallerData);
-          } else {
-            return res.status(401).json({ error: "Demo account not available (demo data disabled)" });
-          }
+          const demoInstallerData = {
+            businessName: `${email.split('@')[0]} TV Services`,
+            contactName: email.split('@')[0],
+            email,
+            phone: "(555) 123-4567",
+            address: "Dublin, Ireland",
+            serviceArea: "Dublin",
+            expertise: ["Wall Mounting", "Cable Management", "LED TVs"],
+            bio: "Professional TV installer with years of experience.",
+            yearsExperience: 5,
+            isActive: true,
+            isDemoAccount: false
+          };
+          installer = await storage.createInstaller(demoInstallerData);
         }
 
         // Set installer session data

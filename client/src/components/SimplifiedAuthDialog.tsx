@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { PasswordStrengthMeter, PasswordMatchIndicator } from '@/components/PasswordStrengthMeter';
 import { calculatePasswordStrength } from '@/utils/passwordStrength';
+import { Link } from 'wouter';
 
 interface SimplifiedAuthDialogProps {
   isOpen: boolean;
@@ -514,6 +515,19 @@ export default function SimplifiedAuthDialog({
                     : (emailAuthMode === 'login' ? 'Sign In' : 'Create Account')
                   }
                 </Button>
+
+                {emailAuthMode === 'login' && (
+                  <div className="text-center">
+                    <Link href="/forgot-password">
+                      <Button 
+                        variant="link" 
+                        className="text-sm text-gray-600 hover:text-blue-600 p-0"
+                      >
+                        Forgot your password?
+                      </Button>
+                    </Link>
+                  </div>
+                )}
 
                 <p className="text-xs text-center text-muted-foreground">
                   {emailAuthMode === 'login' 

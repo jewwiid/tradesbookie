@@ -762,6 +762,18 @@ export const firstLeadVouchers = pgTable("first_lead_vouchers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Password reset tokens for secure password reset functionality
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(), // References users.id or installers.id depending on userType
+  tokenHash: text("token_hash").notNull().unique(), // SHA-256 hash of the actual token
+  userType: text("user_type").notNull(), // "customer" or "installer"
+  expiresAt: timestamp("expires_at").notNull(), // Token expiration (1 hour from creation)
+  used: boolean("used").default(false), // Whether token has been used
+  usedAt: timestamp("used_at"), // When token was used
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 
 
 export const platformSettingsRelations = relations(platformSettings, ({ one }) => ({
@@ -777,6 +789,10 @@ export const firstLeadVouchersRelations = relations(firstLeadVouchers, ({ one, m
     fields: [firstLeadVouchers.usedForBookingId],
     references: [bookings.id],
   }),
+}));
+
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  // No direct relations since userId can reference either users or installers based on userType
 }));
 
 
@@ -889,6 +905,12 @@ export const insertPlatformSettingsSchema = createInsertSchema(platformSettings)
 export const insertFirstLeadVoucherSchema = createInsertSchema(firstLeadVouchers).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens).omit({
+  id: true,
+  createdAt: true,
+  usedAt: true,
 });
 
 export const insertAntiManipulationSchema = createInsertSchema(antiManipulation).omit({
@@ -1007,6 +1029,28 @@ export type ReferralCode = typeof referralCodes.$inferSelect;
 export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
 export type ReferralUsage = typeof referralUsage.$inferSelect;
 export type InsertReferralUsage = z.infer<typeof insertReferralUsageSchema>;
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;
+
+// Password reset schemas
+export const passwordResetRequestSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  userType: z.enum(["customer", "installer"], { required_error: "User type is required" }),
+});
+
+export const passwordResetConfirmSchema = z.object({
+  token: z.string().min(1, "Reset token is required"),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string().min(8, "Password confirmation is required"),
+  userType: z.enum(["customer", "installer"], { required_error: "User type is required" }),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
+export type PasswordResetConfirm = z.infer<typeof passwordResetConfirmSchema>;
 
 // Harvey Norman Carrickmines consultation bookings
 export const consultationBookings = pgTable("consultation_bookings", {

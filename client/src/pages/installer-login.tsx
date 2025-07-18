@@ -285,16 +285,14 @@ export default function InstallerLogin() {
             
             {/* Forgot Password Link */}
             <div className="text-center mt-4">
-              <Button 
-                variant="link" 
-                className="text-sm text-gray-600 hover:text-primary"
-                onClick={() => toast({
-                  title: "Password Reset",
-                  description: "Please contact support at help@tradesbook.ie to reset your password.",
-                })}
-              >
-                Forgot your password?
-              </Button>
+              <Link href="/forgot-password">
+                <Button 
+                  variant="link" 
+                  className="text-sm text-gray-600 hover:text-primary"
+                >
+                  Forgot your password?
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

@@ -31,6 +31,7 @@ import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { fraudPreventionService } from "./fraudPreventionService";
 import { pricingManagementService } from "./pricingManagementService";
 import { getWebsiteMetrics } from "./analyticsService";
+import { requestPasswordReset, resetPassword } from "./passwordResetService";
 
 // Function to reset and generate varied demo leads for demo account (creates actual database bookings)
 const resetDemoLeads = async (installerId: number) => {
@@ -7837,6 +7838,97 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error('Error fetching geocoded installations:', error);
       res.status(500).json({ error: 'Failed to fetch installation data' });
+    }
+  });
+
+  // Password reset endpoints
+  app.post('/api/password-reset/request', async (req, res) => {
+    try {
+      const { email, userType } = req.body;
+      
+      if (!email || !userType) {
+        return res.status(400).json({ message: 'Email and user type are required' });
+      }
+      
+      if (!['customer', 'installer'].includes(userType)) {
+        return res.status(400).json({ message: 'Invalid user type' });
+      }
+      
+      const result = await requestPasswordReset(email, userType);
+      
+      if (result.success) {
+        res.json({ message: result.message });
+      } else {
+        res.status(400).json({ message: result.message });
+      }
+    } catch (error) {
+      console.error('Error requesting password reset:', error);
+      res.status(500).json({ message: 'Failed to process password reset request' });
+    }
+  });
+
+  app.post('/api/password-reset/confirm', async (req, res) => {
+    try {
+      const { token, newPassword, userType } = req.body;
+      
+      if (!token || !newPassword || !userType) {
+        return res.status(400).json({ message: 'Token, new password, and user type are required' });
+      }
+      
+      if (!['customer', 'installer'].includes(userType)) {
+        return res.status(400).json({ message: 'Invalid user type' });
+      }
+      
+      if (newPassword.length < 8) {
+        return res.status(400).json({ message: 'Password must be at least 8 characters long' });
+      }
+      
+      const result = await resetPassword(token, newPassword, userType);
+      
+      if (result.success) {
+        res.json({ message: result.message });
+      } else {
+        res.status(400).json({ message: result.message });
+      }
+    } catch (error) {
+      console.error('Error confirming password reset:', error);
+      res.status(500).json({ message: 'Failed to reset password' });
+    }
+  });
+
+  app.get('/api/password-reset/verify-token', async (req, res) => {
+    try {
+      const { token, userType } = req.query;
+      
+      if (!token || !userType) {
+        return res.status(400).json({ message: 'Token and user type are required' });
+      }
+      
+      if (!['customer', 'installer'].includes(userType as string)) {
+        return res.status(400).json({ message: 'Invalid user type' });
+      }
+      
+      const { hashToken } = await import('./passwordResetService.js');
+      const hashedToken = hashToken(token as string);
+      
+      const tokenRecord = await storage.getPasswordResetToken(hashedToken, userType as 'customer' | 'installer');
+      
+      if (!tokenRecord) {
+        return res.status(400).json({ message: 'Invalid or expired reset token' });
+      }
+      
+      if (tokenRecord.expiresAt < new Date()) {
+        return res.status(400).json({ message: 'Reset token has expired' });
+      }
+      
+      if (tokenRecord.used) {
+        return res.status(400).json({ message: 'Reset token has already been used' });
+      }
+      
+      res.json({ message: 'Token is valid' });
+    } catch (error) {
+      console.error('Error verifying password reset token:', error);
+      res.status(500).json({ message: 'Failed to verify token' });
     }
   });
 

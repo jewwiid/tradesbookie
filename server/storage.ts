@@ -4,7 +4,7 @@ import {
   leadPricing, wallMountPricing, installerWallets, installerTransactions,
   scheduleNegotiations, declinedRequests, emailTemplates, bannedUsers,
   leadQualityTracking, antiManipulation, customerVerification, resources,
-  platformSettings, firstLeadVouchers,
+  platformSettings, firstLeadVouchers, passwordResetTokens,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -25,7 +25,8 @@ import {
   type Resource, type InsertResource,
   type PlatformSettings, type InsertPlatformSettings,
   type FirstLeadVoucher, type InsertFirstLeadVoucher,
-  type AntiManipulation, type InsertAntiManipulation
+  type AntiManipulation, type InsertAntiManipulation,
+  type PasswordResetToken, type InsertPasswordResetToken
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -214,6 +215,15 @@ export interface IStorage {
   getInstallerManipulationRecords(installerId: number): Promise<AntiManipulation[]>;
   markManipulationResolved(id: number, resolvedBy: string): Promise<void>;
   getAllManipulationRecords(): Promise<AntiManipulation[]>;
+
+  // Password reset operations
+  createPasswordResetToken(userId: number, tokenHash: string, expiresAt: Date, userType: 'customer' | 'installer'): Promise<PasswordResetToken>;
+  getPasswordResetToken(tokenHash: string, userType: 'customer' | 'installer'): Promise<PasswordResetToken | undefined>;
+  markPasswordResetTokenAsUsed(tokenHash: string): Promise<void>;
+  deletePasswordResetToken(tokenHash: string): Promise<void>;
+  deleteExpiredPasswordResetTokens(): Promise<void>;
+  updateUserPassword(userId: number, newPasswordHash: string): Promise<void>;
+  updateInstallerPassword(userId: number, newPasswordHash: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1510,6 +1520,69 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(antiManipulation)
       .orderBy(desc(antiManipulation.flaggedAt));
+  }
+
+  // Password reset operations
+  async createPasswordResetToken(userId: number, tokenHash: string, expiresAt: Date, userType: 'customer' | 'installer'): Promise<PasswordResetToken> {
+    const [token] = await db.insert(passwordResetTokens).values({
+      userId,
+      tokenHash,
+      expiresAt,
+      userType,
+      used: false
+    }).returning();
+    return token;
+  }
+
+  async getPasswordResetToken(tokenHash: string, userType: 'customer' | 'installer'): Promise<PasswordResetToken | undefined> {
+    const [token] = await db.select()
+      .from(passwordResetTokens)
+      .where(and(
+        eq(passwordResetTokens.tokenHash, tokenHash),
+        eq(passwordResetTokens.userType, userType)
+      ));
+    return token;
+  }
+
+  async markPasswordResetTokenAsUsed(tokenHash: string): Promise<void> {
+    await db.update(passwordResetTokens)
+      .set({ 
+        used: true, 
+        usedAt: new Date() 
+      })
+      .where(eq(passwordResetTokens.tokenHash, tokenHash));
+  }
+
+  async deletePasswordResetToken(tokenHash: string): Promise<void> {
+    await db.delete(passwordResetTokens)
+      .where(eq(passwordResetTokens.tokenHash, tokenHash));
+  }
+
+  async deleteExpiredPasswordResetTokens(): Promise<void> {
+    await db.delete(passwordResetTokens)
+      .where(and(
+        eq(passwordResetTokens.used, false),
+        // Delete tokens older than their expiration date
+        eq(passwordResetTokens.expiresAt, new Date())
+      ));
+  }
+
+  async updateUserPassword(userId: number, newPasswordHash: string): Promise<void> {
+    await db.update(users)
+      .set({ 
+        passwordHash: newPasswordHash,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId.toString()));
+  }
+
+  async updateInstallerPassword(userId: number, newPasswordHash: string): Promise<void> {
+    await db.update(installers)
+      .set({ 
+        passwordHash: newPasswordHash,
+        updatedAt: new Date()
+      })
+      .where(eq(installers.id, userId));
   }
 }
 

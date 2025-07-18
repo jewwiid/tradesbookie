@@ -37,6 +37,8 @@ import DemoLogin from "@/pages/demo-login";
 import CreditCheckout from "@/pages/credit-checkout";
 import BookingTracker from "@/pages/booking-tracker";
 import Resources from "@/pages/resources";
+import ForgotPassword from "@/pages/forgot-password";
+import ResetPassword from "@/pages/reset-password";
 
 
 function Router() {
@@ -60,6 +62,8 @@ function Router() {
       <Route path="/review/:qrCode" component={ReviewPage} />
       <Route path="/refer" component={ReferralPage} />
       <Route path="/verify-email" component={VerifyEmail} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
 
 
       <Route path="/demo-login" component={DemoLogin} />

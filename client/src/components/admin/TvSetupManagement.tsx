@@ -485,13 +485,27 @@ function TvSetupManagement() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Streaming Apps Requested</CardTitle>
+                  <CardTitle className="text-sm">Recommended Apps for Setup</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedBooking.streamingApps.map((app, index) => (
-                      <Badge key={index} variant="secondary">{app}</Badge>
-                    ))}
+                  <div className="space-y-3">
+                    <p className="text-sm text-gray-600">Based on the TV details, recommend these apps:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedBooking.isSmartTv === 'yes' ? (
+                        <>
+                          <Badge variant="outline" className="bg-green-50 text-green-700">FreeView+ (if available)</Badge>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700">SaorView Player</Badge>
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700">Tivimate</Badge>
+                          <Badge variant="outline" className="bg-orange-50 text-orange-700">Smart STB</Badge>
+                        </>
+                      ) : (
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700">External streaming device required</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Verify compatibility with {selectedBooking.tvBrand} {selectedBooking.tvModel} ({selectedBooking.yearOfPurchase})
+                      {selectedBooking.tvOs && ` running ${selectedBooking.tvOs}`}
+                    </p>
                   </div>
                 </CardContent>
               </Card>

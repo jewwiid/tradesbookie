@@ -52,17 +52,10 @@ const TV_OS_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
-const STREAMING_APPS = [
-  { id: "freeview-plus", name: "FreeView+" },
-  { id: "saorview-player", name: "SaorView Player" },
-  { id: "tivimate", name: "Tivimate" },
-  { id: "smart-stb", name: "Smart STB" },
-  { id: "other", name: "Other Apps" },
-];
+
 
 export default function TvSetupAssist() {
   const { toast } = useToast();
-  const [selectedApps, setSelectedApps] = useState<string[]>([]);
   const [preferredDate, setPreferredDate] = useState<Date>();
   const [isSmartTv, setIsSmartTv] = useState<string>("");
 
@@ -87,7 +80,7 @@ export default function TvSetupAssist() {
       const response = await apiRequest("POST", "/api/tv-setup-booking", {
         ...data,
         preferredSetupDate: preferredDate,
-        streamingApps: selectedApps,
+        streamingApps: [], // Admin will recommend suitable apps
       });
       return response.json();
     },
@@ -124,29 +117,14 @@ export default function TvSetupAssist() {
   });
 
   const onSubmit = (data: TvSetupBookingForm) => {
-    if (selectedApps.length === 0) {
-      toast({
-        title: "Missing Information",
-        description: "Please select at least one streaming app.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     createBookingMutation.mutate({
       ...data,
-      streamingApps: selectedApps,
+      streamingApps: [], // Admin will recommend suitable apps
       preferredSetupDate: preferredDate,
     });
   };
 
-  const handleAppToggle = (appId: string) => {
-    setSelectedApps(prev => 
-      prev.includes(appId) 
-        ? prev.filter(id => id !== appId)
-        : [...prev, appId]
-    );
-  };
+
 
   const scrollToForm = () => {
     document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -649,32 +627,7 @@ export default function TvSetupAssist() {
                   </div>
                 </div>
 
-                {/* Streaming Apps */}
-                <div>
-                  <Label>Streaming Apps Available *</Label>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Select which apps you currently have or want help installing
-                  </p>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {STREAMING_APPS.map((app) => (
-                      <div key={app.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={app.id}
-                          checked={selectedApps.includes(app.id)}
-                          onCheckedChange={() => handleAppToggle(app.id)}
-                        />
-                        <Label htmlFor={app.id} className="font-normal">
-                          {app.name}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                  {selectedApps.length === 0 && form.formState.isSubmitted && (
-                    <p className="text-sm text-red-600 mt-1">
-                      Please select at least one streaming app
-                    </p>
-                  )}
-                </div>
+
 
                 {/* Preferred Date */}
                 <div>

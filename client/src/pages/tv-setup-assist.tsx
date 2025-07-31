@@ -27,6 +27,20 @@ if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
 }
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
+const TV_BRAND_OPTIONS = [
+  { value: "samsung", label: "Samsung" },
+  { value: "lg", label: "LG" },
+  { value: "sony", label: "Sony" },
+  { value: "panasonic", label: "Panasonic" },
+  { value: "philips", label: "Philips" },
+  { value: "tcl", label: "TCL" },
+  { value: "hisense", label: "Hisense" },
+  { value: "sharp", label: "Sharp" },
+  { value: "toshiba", label: "Toshiba" },
+  { value: "vestel", label: "Vestel" },
+  { value: "other", label: "Other" },
+];
+
 const TV_OS_OPTIONS = [
   { value: "android-tv", label: "Android TV" },
   { value: "webos", label: "WebOS (LG)" },
@@ -48,6 +62,7 @@ export default function TvSetupAssist() {
   const { toast } = useToast();
   const [selectedApps, setSelectedApps] = useState<string[]>([]);
   const [preferredDate, setPreferredDate] = useState<Date>();
+  const [isSmartTv, setIsSmartTv] = useState<string>("");
 
   const form = useForm<TvSetupBookingForm>({
     resolver: zodResolver(tvSetupBookingFormSchema),
@@ -506,11 +521,18 @@ export default function TvSetupAssist() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <Label htmlFor="tvBrand">TV Brand *</Label>
-                    <Input
-                      id="tvBrand"
-                      {...form.register("tvBrand")}
-                      placeholder="Samsung, LG, Sony, etc."
-                    />
+                    <Select onValueChange={(value) => form.setValue("tvBrand", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your TV brand" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TV_BRAND_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {form.formState.errors.tvBrand && (
                       <p className="text-sm text-red-600 mt-1">
                         {form.formState.errors.tvBrand.message}
@@ -533,34 +555,85 @@ export default function TvSetupAssist() {
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="tvOs">TV Operating System *</Label>
-                    <Select onValueChange={(value) => form.setValue("tvOs", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your TV's OS" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TV_OS_OPTIONS.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {form.formState.errors.tvOs && (
-                      <p className="text-sm text-red-600 mt-1">
-                        {form.formState.errors.tvOs.message}
-                      </p>
-                    )}
+                {/* Smart TV Check */}
+                <div>
+                  <Label>Is this a Smart TV? *</Label>
+                  <div className="flex gap-4 mt-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="smart-tv-yes"
+                        checked={isSmartTv === "yes"}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setIsSmartTv("yes");
+                            form.setValue("isSmartTv", "yes");
+                          }
+                        }}
+                      />
+                      <Label htmlFor="smart-tv-yes">Yes, it's a Smart TV</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="smart-tv-no"
+                        checked={isSmartTv === "no"}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setIsSmartTv("no");
+                            form.setValue("isSmartTv", "no");
+                            form.setValue("tvOs", "");
+                          }
+                        }}
+                      />
+                      <Label htmlFor="smart-tv-no">No, it's not a Smart TV</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="smart-tv-unknown"
+                        checked={isSmartTv === "unknown"}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setIsSmartTv("unknown");
+                            form.setValue("isSmartTv", "unknown");
+                            form.setValue("tvOs", "");
+                          }
+                        }}
+                      />
+                      <Label htmlFor="smart-tv-unknown">Don't know</Label>
+                    </div>
                   </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Conditional TV OS Dropdown */}
+                  {isSmartTv === "yes" && (
+                    <div>
+                      <Label htmlFor="tvOs">TV Operating System *</Label>
+                      <Select onValueChange={(value) => form.setValue("tvOs", value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your TV's OS" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TV_OS_OPTIONS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {form.formState.errors.tvOs && (
+                        <p className="text-sm text-red-600 mt-1">
+                          {form.formState.errors.tvOs.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <div>
                     <Label htmlFor="yearOfPurchase">Year of Purchase *</Label>
                     <Input
                       id="yearOfPurchase"
                       type="number"
-                      min="2020"
+                      min="2015"
                       max={new Date().getFullYear()}
                       {...form.register("yearOfPurchase", { valueAsNumber: true })}
                     />

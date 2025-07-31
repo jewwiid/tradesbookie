@@ -352,7 +352,8 @@ export const tvSetupBookings = pgTable("tv_setup_bookings", {
   // TV details
   tvBrand: text("tv_brand").notNull(),
   tvModel: text("tv_model").notNull(),
-  tvOs: text("tv_os").notNull(), // Android TV, WebOS, Tizen, Roku, FireTV, Other
+  isSmartTv: text("is_smart_tv").notNull(), // yes, no, unknown
+  tvOs: text("tv_os"), // Android TV, WebOS, Tizen, Roku, FireTV, Other (only required if smart TV)
   yearOfPurchase: integer("year_of_purchase").notNull(),
   
   // Available streaming apps (JSON array)
@@ -985,13 +986,23 @@ export const tvSetupBookingFormSchema = z.object({
   fullName: z.string().min(2, "Full name is required"),
   email: z.string().email("Valid email is required"),
   mobile: z.string().min(10, "Valid mobile number is required"),
-  tvBrand: z.string().min(2, "TV brand is required"),
+  tvBrand: z.string().min(1, "TV brand is required"),
   tvModel: z.string().min(2, "TV model is required"),
-  tvOs: z.string().min(1, "Please select your TV operating system"),
-  yearOfPurchase: z.number().min(2020, "Year must be 2020 or later").max(new Date().getFullYear(), "Year cannot be in the future"),
+  isSmartTv: z.string().min(1, "Please specify if this is a Smart TV"),
+  tvOs: z.string().optional(),
+  yearOfPurchase: z.number().min(2015, "Year must be 2015 or later").max(new Date().getFullYear(), "Year cannot be in the future"),
   streamingApps: z.array(z.string()).min(1, "Please select at least one streaming app"),
   preferredSetupDate: z.date().optional(),
   additionalNotes: z.string().optional(),
+}).refine((data) => {
+  // If it's a smart TV, then TV OS is required
+  if (data.isSmartTv === "yes" && (!data.tvOs || data.tvOs.length === 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "TV Operating System is required for Smart TVs",
+  path: ["tvOs"],
 });
 
 // TV Setup type exports

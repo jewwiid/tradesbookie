@@ -1074,7 +1074,7 @@ export const tvSetupBookingFormSchema = z.object({
   isSmartTv: z.string().min(1, "Please specify if this is a Smart TV"),
   tvOs: z.string().optional(),
   yearOfPurchase: z.number().min(2015, "Year must be 2015 or later").max(new Date().getFullYear(), "Year cannot be in the future"),
-  streamingApps: z.array(z.string()).min(1, "Please select at least one streaming app"),
+  streamingApps: z.array(z.string()).default([]),
   preferredSetupDate: z.date().optional(),
   additionalNotes: z.string().optional(),
 }).refine((data) => {

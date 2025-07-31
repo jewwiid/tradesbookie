@@ -30,7 +30,7 @@ export default function Home() {
   };
 
   // Map API data to display format or use fallback
-  const serviceTiers = isLoading || !apiServiceTiers ? [
+  const serviceTiers = isLoading || !apiServiceTiers || !Array.isArray(apiServiceTiers) ? [
     {
       key: "table-top",
       name: "Table Top Setup",
@@ -201,7 +201,7 @@ export default function Home() {
 
   // Function to get real review stats for an installer
   const getInstallerReviewStats = (installerId: number) => {
-    if (!allReviews) {
+    if (!allReviews || !Array.isArray(allReviews)) {
       return { averageRating: 0, totalReviews: 0 };
     }
     
@@ -644,7 +644,7 @@ export default function Home() {
                 </Card>
               ))}
             </div>
-          ) : installers && installers.length > 0 ? (
+          ) : installers && Array.isArray(installers) && installers.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {installers.map((installer: any) => (
                 <Card key={installer.id} className="hover:shadow-lg transition-shadow">

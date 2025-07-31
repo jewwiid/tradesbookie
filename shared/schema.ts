@@ -377,6 +377,17 @@ export const tvSetupBookings = pgTable("tv_setup_bookings", {
   completedAt: timestamp("completed_at"),
   adminNotes: text("admin_notes"),
   
+  // Login credentials provided by admin
+  appUsername: text("app_username"),
+  appPassword: text("app_password"),
+  credentialsProvided: boolean("credentials_provided").default(false),
+  credentialsEmailSent: boolean("credentials_email_sent").default(false),
+  credentialsSentAt: timestamp("credentials_sent_at"),
+  
+  // Email notifications tracking
+  confirmationEmailSent: boolean("confirmation_email_sent").default(false),
+  adminNotificationSent: boolean("admin_notification_sent").default(false),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

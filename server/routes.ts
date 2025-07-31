@@ -1654,9 +1654,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             try {
               const booking = await storage.getTvSetupBooking(parseInt(paymentIntent.metadata.bookingId));
               if (booking) {
-                await sendTvSetupBookingConfirmation(booking);
-                await sendTvSetupAdminNotification(booking);
-                console.log(`TV setup booking emails sent for booking ${booking.id}`);
+                // Import email service dynamically to avoid circular dependencies
+                const { sendTvSetupConfirmationEmail, sendTvSetupAdminNotification } = await import('./tvSetupEmailService');
+                
+                // Send confirmation email to customer
+                if (!booking.confirmationEmailSent) {
+                  const confirmationSent = await sendTvSetupConfirmationEmail(booking);
+                  if (confirmationSent) {
+                    await storage.markTvSetupEmailSent(booking.id, 'confirmation');
+                    console.log(`TV setup confirmation email sent for booking ${booking.id}`);
+                  }
+                }
+                
+                // Send admin notification
+                if (!booking.adminNotificationSent) {
+                  const adminNotificationSent = await sendTvSetupAdminNotification(booking);
+                  if (adminNotificationSent) {
+                    await storage.markTvSetupEmailSent(booking.id, 'admin');
+                    console.log(`TV setup admin notification sent for booking ${booking.id}`);
+                  }
+                }
               }
             } catch (emailError) {
               console.error('Error sending TV setup booking emails:', emailError);
@@ -1815,6 +1832,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error fetching TV setup bookings:", error);
       res.status(500).json({ 
         message: "Error fetching TV setup bookings: " + error.message 
+      });
+    }
+  });
+
+  // Update TV setup booking credentials (admin only)
+  app.post("/api/admin/tv-setup-booking/:id/credentials", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const { username, password } = req.body;
+
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+
+      await storage.updateTvSetupBookingCredentials(bookingId, username, password);
+      res.json({ success: true, message: "Credentials updated successfully" });
+    } catch (error: any) {
+      console.error("Error updating TV setup credentials:", error);
+      res.status(500).json({ 
+        message: "Error updating TV setup credentials: " + error.message 
+      });
+    }
+  });
+
+  // Send credentials email to customer (admin only)
+  app.post("/api/admin/tv-setup-booking/:id/send-credentials", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const booking = await storage.getTvSetupBooking(bookingId);
+      
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      if (!booking.credentialsProvided) {
+        return res.status(400).json({ message: "Credentials not yet provided for this booking" });
+      }
+
+      // Send credentials email
+      const { sendTvSetupCredentialsEmail } = await import('./tvSetupEmailService');
+      const emailSent = await sendTvSetupCredentialsEmail(booking);
+      
+      if (emailSent) {
+        await storage.markTvSetupEmailSent(bookingId, 'credentials');
+        res.json({ success: true, message: "Credentials email sent successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to send credentials email" });
+      }
+    } catch (error: any) {
+      console.error("Error sending credentials email:", error);
+      res.status(500).json({ 
+        message: "Error sending credentials email: " + error.message 
+      });
+    }
+  });
+
+  // Update TV setup booking status (admin only)
+  app.post("/api/admin/tv-setup-booking/:id/status", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const { status, adminNotes, assignedTo } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ message: "Status is required" });
+      }
+
+      await storage.updateTvSetupBookingStatus(bookingId, status, adminNotes, assignedTo);
+      res.json({ success: true, message: "Status updated successfully" });
+    } catch (error: any) {
+      console.error("Error updating TV setup booking status:", error);
+      res.status(500).json({ 
+        message: "Error updating TV setup booking status: " + error.message 
       });
     }
   });

@@ -1616,6 +1616,53 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(tvSetupBookings.id, id));
   }
+
+  async updateTvSetupBookingCredentials(id: number, username: string, password: string): Promise<void> {
+    await db.update(tvSetupBookings)
+      .set({ 
+        appUsername: username,
+        appPassword: password,
+        credentialsProvided: true,
+        updatedAt: new Date()
+      })
+      .where(eq(tvSetupBookings.id, id));
+  }
+
+  async markTvSetupEmailSent(id: number, emailType: 'confirmation' | 'admin' | 'credentials'): Promise<void> {
+    const updateData: any = { updatedAt: new Date() };
+    
+    switch (emailType) {
+      case 'confirmation':
+        updateData.confirmationEmailSent = true;
+        break;
+      case 'admin':
+        updateData.adminNotificationSent = true;
+        break;
+      case 'credentials':
+        updateData.credentialsEmailSent = true;
+        updateData.credentialsSentAt = new Date();
+        break;
+    }
+
+    await db.update(tvSetupBookings)
+      .set(updateData)
+      .where(eq(tvSetupBookings.id, id));
+  }
+
+  async updateTvSetupBookingStatus(id: number, status: string, adminNotes?: string, assignedTo?: string): Promise<void> {
+    const updateData: any = { 
+      setupStatus: status,
+      updatedAt: new Date()
+    };
+    
+    if (adminNotes) updateData.adminNotes = adminNotes;
+    if (assignedTo) updateData.assignedTo = assignedTo;
+    if (status === 'completed') updateData.completedAt = new Date();
+
+    await db.update(tvSetupBookings)
+      .set(updateData)
+      .where(eq(tvSetupBookings.id, id));
+  }
 }
 
 export const storage = new DatabaseStorage();

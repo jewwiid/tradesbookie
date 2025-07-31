@@ -37,6 +37,11 @@ export default function CustomerResources() {
     queryKey: ["/api/video-tutorials"]
   });
 
+  // Fetch general resources (from Customer Resources Management)
+  const { data: generalResources = [] } = useQuery({
+    queryKey: ["/api/resources"]
+  });
+
   const commonIssues = [
     {
       issue: "Can't find streaming apps on my TV",
@@ -87,47 +92,7 @@ export default function CustomerResources() {
     }
   ];
 
-  const downloadableGuides = [
-    {
-      title: "TV Compatibility Checker",
-      description: "PDF guide to check if your TV supports Irish streaming apps",
-      fileType: "PDF",
-      size: "2.1 MB"
-    },
-    {
-      title: "Internet Speed Requirements",
-      description: "Minimum speeds needed for different streaming qualities",
-      fileType: "PDF", 
-      size: "1.8 MB"
-    },
-    {
-      title: "Remote Control Setup Guide",
-      description: "How to navigate streaming apps with your TV remote",
-      fileType: "PDF",
-      size: "3.2 MB"
-    }
-  ];
 
-  const videoTutorials = [
-    {
-      title: "Setting up Netflix on Smart TV",
-      duration: "4:32",
-      thumbnail: "🎬",
-      level: "Beginner"
-    },
-    {
-      title: "Troubleshooting App Crashes",
-      duration: "6:15",
-      thumbnail: "🔧",
-      level: "Intermediate"
-    },
-    {
-      title: "Optimizing Picture Quality",
-      duration: "8:20",
-      thumbnail: "📺",
-      level: "Advanced"
-    }
-  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -254,99 +219,6 @@ export default function CustomerResources() {
             <Download className="w-7 h-7 mr-3 text-green-600" />
             Downloadable Guides
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {downloadableGuides.map((guide, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <h4 className="font-semibold text-gray-900 mb-2">{guide.title}</h4>
-                    <p className="text-gray-600 text-sm mb-4">{guide.description}</p>
-                    <div className="flex justify-center space-x-4 text-xs text-gray-500 mb-4">
-                      <span>{guide.fileType}</span>
-                      <span>{guide.size}</span>
-                    </div>
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Guide
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Video Tutorials */}
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
-            <Video className="w-7 h-7 mr-3 text-purple-600" />
-            Video Tutorials
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {videoTutorials.map((video, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer">
-                <CardContent className="pt-6">
-                  <div className="text-center">
-                    <div className="bg-gray-100 rounded-lg p-8 mb-4 relative">
-                      <span className="text-4xl">{video.thumbnail}</span>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Play className="w-8 h-8 text-white bg-black bg-opacity-50 rounded-full p-2" />
-                      </div>
-                    </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">{video.title}</h4>
-                    <div className="flex justify-center space-x-4 text-xs text-gray-500 mb-4">
-                      <span>{video.duration}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {video.level}
-                      </Badge>
-                    </div>
-                    <Button variant="outline" size="sm" className="w-full">
-                      <Play className="w-4 h-4 mr-2" />
-                      Watch Tutorial
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </section>
-
-        {/* Contact Support */}
-        <section>
-          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-            <CardContent className="pt-8 pb-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Still Need Help?</h2>
-                <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-                  If these resources don't solve your issue, our professional TV setup service provides personalized assistance 
-                  to get your streaming apps working perfectly.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link href="/tv-setup-assist">
-                    <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                      <Tv className="w-5 h-5 mr-2" />
-                      Book Professional Setup - €100
-                    </Button>
-                  </Link>
-                  <Button variant="outline" size="lg">
-                    <ExternalLink className="w-5 h-5 mr-2" />
-                    Contact Support
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* Downloadable Guides Section */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-bold text-gray-900 flex items-center">
-              <Download className="w-7 h-7 mr-3 text-green-600" />
-              Downloadable Guides
-            </h2>
-          </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {guides.map((guide: any) => (
               <Card key={guide.id} className="hover:shadow-lg transition-shadow">
@@ -398,6 +270,148 @@ export default function CustomerResources() {
             </Card>
           )}
         </section>
+
+        {/* General Resources */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
+            <Settings className="w-7 h-7 mr-3 text-orange-600" />
+            Additional Resources
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {generalResources.map((resource: any) => (
+              <Card key={resource.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span>{resource.title}</span>
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {resource.type}
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>{resource.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {resource.category && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Badge variant="secondary" className="text-xs">
+                          {resource.category}
+                        </Badge>
+                      </div>
+                    )}
+                    {resource.brand && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Tv className="h-4 w-4 mr-1" />
+                        {resource.brand}
+                      </div>
+                    )}
+                    {resource.externalUrl && (
+                      <Button 
+                        asChild
+                        className="w-full bg-orange-600 hover:bg-orange-700"
+                        size="sm"
+                      >
+                        <a href={resource.externalUrl} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          {resource.linkText || "Learn More"}
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {generalResources.length === 0 && (
+            <Card>
+              <CardContent className="text-center py-8">
+                <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600">No additional resources available at the moment.</p>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
+        {/* Video Tutorials */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
+            <Video className="w-7 h-7 mr-3 text-purple-600" />
+            Video Tutorials
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tutorials.map((tutorial: any) => (
+              <Card key={tutorial.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardContent className="pt-6">
+                  <div className="text-center">
+                    <div className="bg-gray-100 rounded-lg p-8 mb-4 relative">
+                      <Video className="w-12 h-12 mx-auto text-purple-500" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Play className="w-8 h-8 text-white bg-black bg-opacity-50 rounded-full p-2" />
+                      </div>
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">{tutorial.title}</h4>
+                    <p className="text-sm text-gray-600 mb-4">{tutorial.description}</p>
+                    <div className="flex justify-center space-x-4 text-xs text-gray-500 mb-4">
+                      {tutorial.duration && <span>{tutorial.duration}</span>}
+                      <Badge variant="outline" className="text-xs">
+                        {tutorial.category || 'Tutorial'}
+                      </Badge>
+                    </div>
+                    {tutorial.videoUrl && (
+                      <Button 
+                        asChild
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                      >
+                        <a href={tutorial.videoUrl} target="_blank" rel="noopener noreferrer">
+                          <Play className="w-4 h-4 mr-2" />
+                          Watch Tutorial
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {tutorials.length === 0 && (
+            <Card>
+              <CardContent className="text-center py-8">
+                <Video className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600">No video tutorials available at the moment.</p>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
+        {/* Contact Support */}
+        <section>
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+            <CardContent className="pt-8 pb-8">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">Still Need Help?</h2>
+                <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                  If these resources don't solve your issue, our professional TV setup service provides personalized assistance 
+                  to get your streaming apps working perfectly.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link href="/tv-setup-assist">
+                    <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                      <Tv className="w-5 h-5 mr-2" />
+                      Book Professional Setup - €100
+                    </Button>
+                  </Link>
+                  <Button variant="outline" size="lg">
+                    <ExternalLink className="w-5 h-5 mr-2" />
+                    Contact Support
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+
 
       </div>
       

@@ -695,8 +695,44 @@ export default function Home() {
         </div>
       </section>
 
+      {/* TV Setup CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm">
+                <Tv className="w-16 h-16" />
+              </div>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              Need Help Setting Up Your Smart TV Apps?
+            </h2>
+            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+              Get professional remote assistance to set up FreeView+ and SaorView-compatible streaming apps on your smart TV. One-time €100 fee with no ongoing subscriptions.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/tv-setup-assist">
+                <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-4 text-lg">
+                  Get TV Setup Help - €100
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg"
+                onClick={() => {
+                  document.getElementById('learn-more')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Learn More
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Resources Section */}
-      <section className="py-20 bg-gray-50">
+      <section id="learn-more" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">

@@ -49,6 +49,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/tv-setup-assist" className="text-gray-300 hover:text-white transition-colors">
+                  TV Setup Assistance
+                </Link>
+              </li>
+              <li>
                 <Link href="/solar-enquiry" className="text-gray-300 hover:text-white transition-colors">
                   Solar Installation
                 </Link>

@@ -1740,6 +1740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mobile: validatedData.mobile,
         tvBrand: validatedData.tvBrand,
         tvModel: validatedData.tvModel,
+        isSmartTv: validatedData.isSmartTv,
         tvOs: validatedData.tvOs,
         yearOfPurchase: validatedData.yearOfPurchase,
         streamingApps: validatedData.streamingApps,

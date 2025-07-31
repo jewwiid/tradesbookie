@@ -72,6 +72,7 @@ export default function TvSetupAssist() {
       mobile: "",
       tvBrand: "",
       tvModel: "",
+      isSmartTv: "",
       tvOs: "",
       yearOfPurchase: new Date().getFullYear(),
       streamingApps: [],

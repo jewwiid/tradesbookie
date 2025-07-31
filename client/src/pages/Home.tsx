@@ -700,11 +700,11 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="max-w-3xl mx-auto">
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-8">
               <img 
                 src={tvSetupImage} 
                 alt="Professional TV setup assistance - Smart TV configuration and app installation" 
-                className="w-32 h-32 rounded-2xl shadow-lg object-cover border-4 border-white/20"
+                className="max-w-md w-full h-auto rounded-2xl shadow-2xl border-4 border-white/20"
               />
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-6">

@@ -141,11 +141,11 @@ export default function TvSetupAssist() {
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-8">
               <img 
                 src={tvSetupImage} 
                 alt="Professional TV setup assistance - Smart TV configuration and app installation" 
-                className="w-32 h-32 rounded-2xl shadow-lg object-cover border-4 border-white/20"
+                className="max-w-md w-full h-auto rounded-2xl shadow-2xl border-4 border-white/20"
               />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -294,7 +294,7 @@ export default function TvSetupAssist() {
                 <img 
                   src={tvSetupImage} 
                   alt="TV Setup Assistance - Professional smart TV configuration" 
-                  className="mx-auto rounded-lg shadow-md mb-4 max-w-full h-48 object-cover"
+                  className="mx-auto rounded-lg shadow-md mb-4 max-w-sm w-full h-auto"
                 />
                 <h3 className="text-2xl font-bold">What You'll Get</h3>
               </div>

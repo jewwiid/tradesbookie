@@ -58,7 +58,8 @@ import {
   Upload,
   Image as ImageIcon,
   Tv,
-  BookOpen
+  BookOpen,
+  CheckCircle
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";

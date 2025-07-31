@@ -1795,6 +1795,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update booking with Stripe session info
       await storage.updateTvSetupBookingPayment(booking.id, session.payment_intent as string, 'pending');
 
+      // Send immediate booking confirmation email to customer
+      try {
+        await sendTvSetupBookingConfirmation(booking);
+        await storage.markTvSetupEmailSent(booking.id, 'confirmation');
+      } catch (emailError) {
+        console.error('Failed to send TV setup booking confirmation email:', emailError);
+      }
+
+      // Send immediate admin notification email
+      try {
+        await sendTvSetupAdminNotification(booking);
+        await storage.markTvSetupEmailSent(booking.id, 'admin');
+      } catch (emailError) {
+        console.error('Failed to send TV setup admin notification email:', emailError);
+      }
+
       res.json({ sessionId: session.id, bookingId: booking.id });
     } catch (error: any) {
       console.error("Error creating TV setup booking:", error);

@@ -21,6 +21,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { tvSetupBookingFormSchema, type TvSetupBookingForm } from "@shared/schema";
+import Navigation from "@/components/navigation";
+import Footer from "@/components/Footer";
 
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
@@ -152,6 +154,7 @@ export default function TvSetupAssist() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <Navigation />
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <div className="absolute inset-0 bg-black/20"></div>
@@ -732,6 +735,8 @@ export default function TvSetupAssist() {
           </Card>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }

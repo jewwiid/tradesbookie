@@ -345,7 +345,7 @@ export const tvSetupBookings = pgTable("tv_setup_bookings", {
   id: serial("id").primaryKey(),
   
   // Customer information
-  fullName: text("full_name").notNull(),
+  name: text("name").notNull(),
   email: text("email").notNull(),
   mobile: text("mobile").notNull(),
   
@@ -983,7 +983,7 @@ export const insertTvSetupBookingSchema = createInsertSchema(tvSetupBookings).om
 });
 
 export const tvSetupBookingFormSchema = z.object({
-  fullName: z.string().min(2, "Full name is required"),
+  name: z.string().min(2, "Name is required"),
   email: z.string().email("Valid email is required"),
   mobile: z.string().min(10, "Valid mobile number is required"),
   tvBrand: z.string().min(1, "TV brand is required"),

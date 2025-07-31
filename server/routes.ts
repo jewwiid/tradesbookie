@@ -1735,7 +1735,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create the booking in the database
       const booking = await storage.createTvSetupBooking({
-        fullName: validatedData.fullName,
+        name: validatedData.name,
         email: validatedData.email,
         mobile: validatedData.mobile,
         tvBrand: validatedData.tvBrand,

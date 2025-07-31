@@ -67,7 +67,7 @@ export default function TvSetupAssist() {
   const form = useForm<TvSetupBookingForm>({
     resolver: zodResolver(tvSetupBookingFormSchema),
     defaultValues: {
-      fullName: "",
+      name: "",
       email: "",
       mobile: "",
       tvBrand: "",
@@ -475,15 +475,15 @@ export default function TvSetupAssist() {
                 {/* Personal Information */}
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
-                    <Label htmlFor="fullName">Full Name *</Label>
+                    <Label htmlFor="name">Name *</Label>
                     <Input
-                      id="fullName"
-                      {...form.register("fullName")}
-                      placeholder="Your full name"
+                      id="name"
+                      {...form.register("name")}
+                      placeholder="Your name"
                     />
-                    {form.formState.errors.fullName && (
+                    {form.formState.errors.name && (
                       <p className="text-sm text-red-600 mt-1">
-                        {form.formState.errors.fullName.message}
+                        {form.formState.errors.name.message}
                       </p>
                     )}
                   </div>

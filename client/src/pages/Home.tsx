@@ -700,6 +700,9 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="max-w-3xl mx-auto">
+            <h3 className="text-2xl md:text-3xl font-bold text-yellow-300 mb-6">
+              FreeView, SaorView and more
+            </h3>
             <div className="flex justify-center mb-8">
               <img 
                 src={tvSetupImage} 

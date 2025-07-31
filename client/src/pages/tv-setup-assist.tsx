@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Tv, Wifi, Settings, CheckCircle, Star, Clock, Shield, Users, BookOpen, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
+import tvSetupImage from "@assets/IMG_1807_1753964075870.jpeg";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
@@ -141,9 +142,11 @@ export default function TvSetupAssist() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm">
-                <Tv className="w-16 h-16" />
-              </div>
+              <img 
+                src={tvSetupImage} 
+                alt="Professional TV setup assistance - Smart TV configuration and app installation" 
+                className="w-32 h-32 rounded-2xl shadow-lg object-cover border-4 border-white/20"
+              />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
               Stream More with{" "}
@@ -287,7 +290,14 @@ export default function TvSetupAssist() {
             </div>
 
             <div className="bg-white p-8 rounded-lg shadow-lg">
-              <h3 className="text-2xl font-bold mb-6 text-center">What You'll Get</h3>
+              <div className="text-center mb-6">
+                <img 
+                  src={tvSetupImage} 
+                  alt="TV Setup Assistance - Professional smart TV configuration" 
+                  className="mx-auto rounded-lg shadow-md mb-4 max-w-full h-48 object-cover"
+                />
+                <h3 className="text-2xl font-bold">What You'll Get</h3>
+              </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                   <span className="font-medium">Compatibility Assessment</span>
@@ -376,9 +386,11 @@ export default function TvSetupAssist() {
             <Card className="hover:shadow-lg transition-shadow border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
               <CardHeader>
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-3 bg-blue-100 rounded-full">
-                    <Users className="w-6 h-6 text-blue-600" />
-                  </div>
+                  <img 
+                    src={tvSetupImage} 
+                    alt="Professional TV setup service" 
+                    className="w-16 h-16 rounded-lg object-cover shadow-md"
+                  />
                   <div>
                     <CardTitle className="text-xl">Professional Setup</CardTitle>
                     <Badge className="bg-blue-600">€100 One-Time</Badge>

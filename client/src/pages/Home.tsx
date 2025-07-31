@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building, Receipt, User, Zap, AlertTriangle, Home as HomeIcon, Clock, CreditCard, FileText } from "lucide-react";
+import tvSetupImage from "@assets/IMG_1807_1753964075870.jpeg";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import Footer from "@/components/Footer";
@@ -700,9 +701,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="max-w-3xl mx-auto">
             <div className="flex justify-center mb-6">
-              <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm">
-                <Tv className="w-16 h-16" />
-              </div>
+              <img 
+                src={tvSetupImage} 
+                alt="Professional TV setup assistance - Smart TV configuration and app installation" 
+                className="w-32 h-32 rounded-2xl shadow-lg object-cover border-4 border-white/20"
+              />
             </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
               Need Help Setting Up Your Smart TV Apps?

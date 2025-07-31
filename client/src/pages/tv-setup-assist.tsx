@@ -14,7 +14,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Tv, Wifi, Settings, CheckCircle, Star, Clock, Shield, Users } from "lucide-react";
+import { CalendarIcon, Tv, Wifi, Settings, CheckCircle, Star, Clock, Shield, Users, BookOpen, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
@@ -310,6 +311,111 @@ export default function TvSetupAssist() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Self-Help vs Professional Help Section */}
+      <div className="py-20 bg-blue-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Choose Your Setup Experience
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Try our free self-help resources first, or jump straight to professional assistance
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Self-Help Option */}
+            <Card className="hover:shadow-lg transition-shadow border-2 hover:border-blue-200">
+              <CardHeader>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="p-3 bg-green-100 rounded-full">
+                    <BookOpen className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl">Try Self-Help First</CardTitle>
+                    <Badge variant="secondary" className="bg-green-100 text-green-700">FREE</Badge>
+                  </div>
+                </div>
+                <CardDescription className="text-base">
+                  Access our comprehensive guides, troubleshooting tips, and step-by-step tutorials
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                    <span>Setup guides for RTÉ Player, TG4, Virgin Media</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                    <span>Common troubleshooting solutions</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                    <span>TV compatibility checker</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
+                    <span>Video tutorials and downloadable guides</span>
+                  </li>
+                </ul>
+                <Link href="/customer-resources">
+                  <Button variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-50">
+                    <BookOpen className="w-4 h-4 mr-2" />
+                    Explore Free Resources
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Professional Help Option */}
+            <Card className="hover:shadow-lg transition-shadow border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+              <CardHeader>
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="p-3 bg-blue-100 rounded-full">
+                    <Users className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl">Professional Setup</CardTitle>
+                    <Badge className="bg-blue-600">€100 One-Time</Badge>
+                  </div>
+                </div>
+                <CardDescription className="text-base">
+                  Get personalized assistance from our TV setup experts for a guaranteed working solution
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-500 mr-3" />
+                    <span>Smart TV compatibility assessment</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-500 mr-3" />
+                    <span>Remote or in-person setup assistance</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-500 mr-3" />
+                    <span>Account configuration and login setup</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="w-5 h-5 text-blue-500 mr-3" />
+                    <span>Live demo and walkthrough training</span>
+                  </li>
+                </ul>
+                <Button 
+                  onClick={scrollToForm}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  <ArrowRight className="w-4 h-4 mr-2" />
+                  Book Professional Setup
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

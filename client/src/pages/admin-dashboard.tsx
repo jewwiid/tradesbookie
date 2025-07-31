@@ -57,7 +57,8 @@ import {
   EyeOff,
   Upload,
   Image as ImageIcon,
-  Tv
+  Tv,
+  BookOpen
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
@@ -4945,6 +4946,376 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
   );
 }
 
+// Customer Resources Management Component
+function CustomerResourcesManagement() {
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedResource, setSelectedResource] = useState<any>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Mock data for customer resources
+  const resources = [
+    {
+      id: 1,
+      title: "RTÉ Player Setup Guide",
+      category: "Setup Guides",
+      type: "guide",
+      content: "Step-by-step instructions for setting up RTÉ Player on smart TVs",
+      isPublished: true,
+      views: 245,
+      createdAt: new Date('2025-01-01')
+    },
+    {
+      id: 2,
+      title: "Common TV Connection Issues",
+      category: "Troubleshooting",
+      type: "faq",
+      content: "Solutions for WiFi, HDMI, and network connectivity problems",
+      isPublished: true,
+      views: 189,
+      createdAt: new Date('2025-01-02')
+    },
+    {
+      id: 3,
+      title: "TV Compatibility Checker Video",
+      category: "Video Tutorials",
+      type: "video",
+      content: "How to check if your TV supports FreeView+ and SaorView apps",
+      isPublished: false,
+      views: 0,
+      createdAt: new Date('2025-01-03')
+    }
+  ];
+
+  const handleDeleteResource = (resourceId: number) => {
+    toast({
+      title: "Resource Deleted",
+      description: "Customer resource has been removed successfully.",
+    });
+  };
+
+  const handleTogglePublish = (resourceId: number) => {
+    toast({
+      title: "Resource Updated",
+      description: "Resource publication status has been changed.",
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-medium">Customer Resources Management</h3>
+          <p className="text-sm text-gray-600">
+            Manage self-help guides, FAQs, and video tutorials for customers
+          </p>
+        </div>
+        <Button onClick={() => setShowAddDialog(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Resource
+        </Button>
+      </div>
+
+      {/* Resource Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <BookOpen className="w-5 h-5 text-blue-600" />
+              <div>
+                <p className="text-sm font-medium">Total Resources</p>
+                <p className="text-2xl font-bold text-blue-600">{resources.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Eye className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="text-sm font-medium">Total Views</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {resources.reduce((sum, r) => sum + r.views, 0)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
+              <div>
+                <p className="text-sm font-medium">Published</p>
+                <p className="text-2xl font-bold text-emerald-600">
+                  {resources.filter(r => r.isPublished).length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="w-5 h-5 text-orange-600" />
+              <div>
+                <p className="text-sm font-medium">Drafts</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {resources.filter(r => !r.isPublished).length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Resources Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Resources</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Views</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {resources.map((resource) => (
+                <TableRow key={resource.id}>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{resource.title}</p>
+                      <p className="text-sm text-gray-500 truncate max-w-xs">
+                        {resource.content}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{resource.category}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={resource.type === 'video' ? 'default' : 
+                               resource.type === 'faq' ? 'secondary' : 'outline'}
+                    >
+                      {resource.type.toUpperCase()}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-1">
+                      <Eye className="w-4 h-4 text-gray-400" />
+                      <span>{resource.views}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={resource.isPublished}
+                        onCheckedChange={() => handleTogglePublish(resource.id)}
+                      />
+                      <span className="text-sm">
+                        {resource.isPublished ? 'Published' : 'Draft'}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm text-gray-500">
+                    {resource.createdAt.toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedResource(resource);
+                          setShowEditDialog(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteResource(resource.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Add Resource Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="max-w-2xl" aria-describedby="add-resource-description">
+          <DialogHeader>
+            <DialogTitle>Add New Customer Resource</DialogTitle>
+            <DialogDescription id="add-resource-description">
+              Create a new guide, FAQ, or video tutorial for customers.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="resourceTitle">Title</Label>
+                <Input
+                  id="resourceTitle"
+                  placeholder="Enter resource title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="resourceCategory">Category</Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="setup-guides">Setup Guides</SelectItem>
+                    <SelectItem value="troubleshooting">Troubleshooting</SelectItem>
+                    <SelectItem value="video-tutorials">Video Tutorials</SelectItem>
+                    <SelectItem value="faqs">FAQs</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="resourceType">Resource Type</Label>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="guide">Written Guide</SelectItem>
+                  <SelectItem value="faq">FAQ</SelectItem>
+                  <SelectItem value="video">Video Tutorial</SelectItem>
+                  <SelectItem value="checklist">Checklist</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="resourceContent">Content</Label>
+              <Textarea
+                id="resourceContent"
+                placeholder="Enter the content or description..."
+                rows={6}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch id="publishNow" />
+              <Label htmlFor="publishNow">Publish immediately</Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              setShowAddDialog(false);
+              toast({
+                title: "Resource Created",
+                description: "New customer resource has been added successfully.",
+              });
+            }}>
+              Create Resource
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Resource Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl" aria-describedby="edit-resource-description">
+          <DialogHeader>
+            <DialogTitle>Edit Customer Resource</DialogTitle>
+            <DialogDescription id="edit-resource-description">
+              Update the resource information and content.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedResource && (
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editResourceTitle">Title</Label>
+                  <Input
+                    id="editResourceTitle"
+                    defaultValue={selectedResource.title}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editResourceCategory">Category</Label>
+                  <Select defaultValue={selectedResource.category.toLowerCase().replace(' ', '-')}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="setup-guides">Setup Guides</SelectItem>
+                      <SelectItem value="troubleshooting">Troubleshooting</SelectItem>
+                      <SelectItem value="video-tutorials">Video Tutorials</SelectItem>
+                      <SelectItem value="faqs">FAQs</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="editResourceContent">Content</Label>
+                <Textarea
+                  id="editResourceContent"
+                  defaultValue={selectedResource.content}
+                  rows={6}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center space-x-2">
+                  <Switch 
+                    id="editPublishStatus" 
+                    defaultChecked={selectedResource.isPublished}
+                  />
+                  <Label htmlFor="editPublishStatus">Published</Label>
+                </div>
+                <div className="text-sm text-gray-500">
+                  Views: {selectedResource.views} | Created: {selectedResource.createdAt.toLocaleDateString()}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowEditDialog(false);
+              setSelectedResource(null);
+            }}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              setShowEditDialog(false);
+              setSelectedResource(null);
+              toast({
+                title: "Resource Updated",
+                description: "Customer resource has been updated successfully.",
+              });
+            }}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 // TV Setup Management Component
 function TvSetupManagement() {
   const { toast } = useToast();
@@ -5820,6 +6191,10 @@ export default function AdminDashboard() {
               <Tv className="w-4 h-4" />
               <span>TV Setup</span>
             </TabsTrigger>
+            <TabsTrigger value="customer-resources" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <BookOpen className="w-4 h-4" />
+              <span>Customer Resources</span>
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Settings className="w-4 h-4" />
               <span>Settings</span>
@@ -5885,6 +6260,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="tv-setup" className="space-y-6">
             <TvSetupManagement />
+          </TabsContent>
+
+          <TabsContent value="customer-resources" className="space-y-6">
+            <CustomerResourcesManagement />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

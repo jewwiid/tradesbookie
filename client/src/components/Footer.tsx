@@ -91,6 +91,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/customer-resources" className="text-gray-300 hover:text-white transition-colors">
+                  Customer Resources
+                </Link>
+              </li>
+              <li>
                 <a href="mailto:support@tradesbook.ie" className="text-gray-300 hover:text-white transition-colors">
                   Contact Support
                 </a>

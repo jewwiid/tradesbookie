@@ -33,7 +33,8 @@ import {
   FileText,
   Euro,
   Loader2,
-  Trash2
+  Trash2,
+  CreditCard
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -173,6 +174,26 @@ function TvSetupManagement() {
       toast({
         title: "Error",
         description: error.message || "Failed to update status",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const sendPaymentLinkMutation = useMutation({
+    mutationFn: async (bookingId: number) => {
+      await apiRequest("POST", `/api/tv-setup-booking/${bookingId}/send-payment`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tv-setup-bookings"] });
+      toast({
+        title: "Success",
+        description: "Payment link created and will be sent to customer",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create payment link",
         variant: "destructive",
       });
     },
@@ -408,6 +429,21 @@ function TvSetupManagement() {
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <Send className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                          {booking.credentialsProvided && booking.paymentStatus !== 'completed' && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => sendPaymentLinkMutation.mutate(booking.id)}
+                              disabled={sendPaymentLinkMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {sendPaymentLinkMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <CreditCard className="h-4 w-4" />
                               )}
                             </Button>
                           )}

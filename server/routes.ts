@@ -1764,7 +1764,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate request data
       const validatedData = tvSetupBookingFormSchema.parse(req.body);
       
-      // Create the booking in the database
+      // Create the booking in the database without payment
       const booking = await storage.createTvSetupBooking({
         name: validatedData.name,
         email: validatedData.email,
@@ -1777,37 +1777,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         streamingApps: validatedData.streamingApps,
         preferredSetupDate: validatedData.preferredSetupDate,
         additionalNotes: validatedData.additionalNotes,
-        paymentStatus: 'pending'
+        paymentStatus: 'not_required', // Payment happens after credentials are provided
+        setupStatus: 'pending'
       });
-
-      // Create Stripe Checkout Session
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        line_items: [
-          {
-            price_data: {
-              currency: 'eur',
-              product_data: {
-                name: 'TV Setup Assistance Service',
-                description: 'Professional remote assistance for smart TV app setup including FreeView+ and SaorView configuration',
-              },
-              unit_amount: 10000, // €100 in cents
-            },
-            quantity: 1,
-          },
-        ],
-        mode: 'payment',
-        success_url: `${req.protocol}://${req.get('host')}/tv-setup-confirmation?booking_id=${booking.id}`,
-        cancel_url: `${req.protocol}://${req.get('host')}/tv-setup-assist`,
-        metadata: {
-          bookingId: booking.id.toString(),
-          service: 'tv_setup',
-          bookingType: 'tv_setup_assistance'
-        },
-      });
-
-      // Update booking with Stripe session info
-      await storage.updateTvSetupBookingPayment(booking.id, session.payment_intent as string, 'pending');
 
       // Send immediate booking confirmation email to customer
       try {
@@ -1825,11 +1797,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('Failed to send TV setup admin notification email:', emailError);
       }
 
-      res.json({ sessionId: session.id, bookingId: booking.id });
+      res.json({ 
+        success: true, 
+        bookingId: booking.id, 
+        message: "Booking created successfully. You will receive payment instructions once your login credentials are prepared." 
+      });
     } catch (error: any) {
       console.error("Error creating TV setup booking:", error);
       res.status(500).json({ 
         message: "Error creating TV setup booking: " + error.message 
+      });
+    }
+  });
+
+  // Send payment link to customer after credentials are provided
+  app.post("/api/tv-setup-booking/:id/send-payment", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const booking = await storage.getTvSetupBooking(bookingId);
+      
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      if (!booking.credentialsProvided) {
+        return res.status(400).json({ message: "Credentials must be provided before requesting payment" });
+      }
+
+      // Create Stripe Checkout Session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'eur',
+              product_data: {
+                name: 'TV Setup Assistance Service - Login Credentials',
+                description: `Access credentials for ${booking.name} - Professional TV app setup assistance`,
+              },
+              unit_amount: 10000, // €100 in cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${req.protocol}://${req.get('host')}/tv-setup-confirmation?booking_id=${booking.id}`,
+        cancel_url: `${req.protocol}://${req.get('host')}/tv-setup-status?booking_id=${booking.id}`,
+        metadata: {
+          bookingId: booking.id.toString(),
+          service: 'tv_setup',
+          bookingType: 'tv_setup_credentials'
+        },
+      });
+
+      // Update booking with Stripe session info
+      await storage.updateTvSetupBookingPayment(booking.id, session.payment_intent as string, 'pending');
+      
+      // TODO: Send email to customer with payment link
+      
+      res.json({ 
+        success: true, 
+        sessionId: session.id,
+        message: "Payment link created successfully" 
+      });
+    } catch (error: any) {
+      console.error("Error creating payment session:", error);
+      res.status(500).json({ 
+        message: "Error creating payment session: " + error.message 
+      });
+    }
+  });
+
+  // Customer payment page
+  app.get("/api/tv-setup-booking/:id/payment", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const booking = await storage.getTvSetupBooking(bookingId);
+      
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      if (!booking.credentialsProvided) {
+        return res.status(400).json({ message: "Credentials not yet provided" });
+      }
+
+      if (booking.paymentStatus === 'completed') {
+        return res.status(400).json({ message: "Payment already completed" });
+      }
+
+      res.json({ 
+        booking: {
+          id: booking.id,
+          name: booking.name,
+          email: booking.email,
+          tvBrand: booking.tvBrand,
+          tvModel: booking.tvModel,
+          paymentAmount: booking.paymentAmount,
+          credentialsProvided: booking.credentialsProvided
+        }
+      });
+    } catch (error: any) {
+      console.error("Error fetching booking for payment:", error);
+      res.status(500).json({ 
+        message: "Error fetching booking: " + error.message 
       });
     }
   });

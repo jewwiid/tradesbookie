@@ -84,28 +84,14 @@ export default function TvSetupAssist() {
       });
       return response.json();
     },
-    onSuccess: async (data) => {
-      const stripe = await stripePromise;
-      if (!stripe) {
-        toast({
-          title: "Payment Error",
-          description: "Unable to load payment system. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: data.sessionId,
+    onSuccess: (data) => {
+      toast({
+        title: "Booking Submitted Successfully!",
+        description: data.message || "Your TV setup request has been submitted. You'll receive payment instructions once your login credentials are ready.",
       });
-
-      if (error) {
-        toast({
-          title: "Payment Error",
-          description: error.message || "Unable to proceed to payment.",
-          variant: "destructive",
-        });
-      }
+      form.reset();
+      setPreferredDate(undefined);
+      setIsSmartTv("");
     },
     onError: (error: any) => {
       toast({

@@ -722,16 +722,15 @@ export default function Home() {
                   Get TV Setup Help - €100
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="border-white/80 text-white bg-transparent hover:bg-white hover:text-blue-600 hover:border-white px-8 py-4 text-lg font-semibold"
-                onClick={() => {
-                  document.getElementById('learn-more')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-              >
-                Learn More
-              </Button>
+              <Link href="/customer-resources">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="border-white/80 text-white bg-transparent hover:bg-white hover:text-blue-600 hover:border-white px-8 py-4 text-lg font-semibold"
+                >
+                  Learn More
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

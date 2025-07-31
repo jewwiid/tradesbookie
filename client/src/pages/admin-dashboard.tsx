@@ -46,6 +46,7 @@ import {
   Clock,
   DollarSign,
   AlertTriangle,
+  AlertCircle,
   Plus,
   Target,
   Mail,
@@ -4956,53 +4957,126 @@ function CustomerResourcesManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Mock data for customer resources
-  const resources = [
-    {
-      id: 1,
-      title: "RTÉ Player Setup Guide",
-      category: "Setup Guides",
-      type: "guide",
-      content: "Step-by-step instructions for setting up RTÉ Player on smart TVs",
-      isPublished: true,
-      views: 245,
-      createdAt: new Date('2025-01-01')
+  // Fetch real resources data from API
+  const { data: resources = [], isLoading, error } = useQuery({
+    queryKey: ["/api/admin/resources"],
+    retry: false,
+  });
+
+  // Create resource mutation
+  const createResourceMutation = useMutation({
+    mutationFn: async (resourceData: any) => {
+      await apiRequest("POST", "/api/admin/resources", resourceData);
     },
-    {
-      id: 2,
-      title: "Common TV Connection Issues",
-      category: "Troubleshooting",
-      type: "faq",
-      content: "Solutions for WiFi, HDMI, and network connectivity problems",
-      isPublished: true,
-      views: 189,
-      createdAt: new Date('2025-01-02')
+    onSuccess: () => {
+      toast({
+        title: "Resource Created",
+        description: "Customer resource has been created successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+      setShowAddDialog(false);
     },
-    {
-      id: 3,
-      title: "TV Compatibility Checker Video",
-      category: "Video Tutorials",
-      type: "video",
-      content: "How to check if your TV supports FreeView+ and SaorView apps",
-      isPublished: false,
-      views: 0,
-      createdAt: new Date('2025-01-03')
-    }
-  ];
+    onError: (error: any) => {
+      toast({
+        title: "Error Creating Resource",
+        description: error.message || "Failed to create resource",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update resource mutation
+  const updateResourceMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      await apiRequest("PUT", `/api/admin/resources/${id}`, data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Resource Updated",
+        description: "Customer resource has been updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+      setShowEditDialog(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Updating Resource",
+        description: error.message || "Failed to update resource",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete resource mutation
+  const deleteResourceMutation = useMutation({
+    mutationFn: async (resourceId: number) => {
+      await apiRequest("DELETE", `/api/admin/resources/${resourceId}`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Resource Deleted",
+        description: "Customer resource has been removed successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Deleting Resource",
+        description: error.message || "Failed to delete resource",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Toggle resource active status mutation
+  const toggleResourceMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
+      await apiRequest("PATCH", `/api/admin/resources/${id}/toggle`, { isActive });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Resource Updated",
+        description: "Resource publication status has been changed.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/resources"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Updating Resource",
+        description: error.message || "Failed to update resource status",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleDeleteResource = (resourceId: number) => {
-    toast({
-      title: "Resource Deleted",
-      description: "Customer resource has been removed successfully.",
-    });
+    deleteResourceMutation.mutate(resourceId);
   };
 
-  const handleTogglePublish = (resourceId: number) => {
-    toast({
-      title: "Resource Updated",
-      description: "Resource publication status has been changed.",
-    });
+  const handleTogglePublish = (resourceId: number, currentStatus: boolean) => {
+    toggleResourceMutation.mutate({ id: resourceId, isActive: !currentStatus });
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="animate-pulse">
+            <div className="h-20 bg-gray-200 rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center p-8 text-red-600">
+        <AlertCircle className="h-5 w-5 mr-2" />
+        Failed to load resources. Please try again.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -5039,7 +5113,7 @@ function CustomerResourcesManagement() {
               <div>
                 <p className="text-sm font-medium">Total Views</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {resources.reduce((sum, r) => sum + r.views, 0)}
+                  {resources.reduce((sum, r) => sum + (r.views || 0), 0)}
                 </p>
               </div>
             </div>
@@ -5052,7 +5126,7 @@ function CustomerResourcesManagement() {
               <div>
                 <p className="text-sm font-medium">Published</p>
                 <p className="text-2xl font-bold text-emerald-600">
-                  {resources.filter(r => r.isPublished).length}
+                  {resources.filter(r => r.isActive).length}
                 </p>
               </div>
             </div>
@@ -5065,7 +5139,7 @@ function CustomerResourcesManagement() {
               <div>
                 <p className="text-sm font-medium">Drafts</p>
                 <p className="text-2xl font-bold text-orange-600">
-                  {resources.filter(r => !r.isPublished).length}
+                  {resources.filter(r => !r.isActive).length}
                 </p>
               </div>
             </div>
@@ -5098,7 +5172,7 @@ function CustomerResourcesManagement() {
                     <div>
                       <p className="font-medium">{resource.title}</p>
                       <p className="text-sm text-gray-500 truncate max-w-xs">
-                        {resource.content}
+                        {resource.description}
                       </p>
                     </div>
                   </TableCell>
@@ -5116,22 +5190,22 @@ function CustomerResourcesManagement() {
                   <TableCell>
                     <div className="flex items-center space-x-1">
                       <Eye className="w-4 h-4 text-gray-400" />
-                      <span>{resource.views}</span>
+                      <span>{resource.views || 0}</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <Switch
-                        checked={resource.isPublished}
-                        onCheckedChange={() => handleTogglePublish(resource.id)}
+                        checked={resource.isActive}
+                        onCheckedChange={() => handleTogglePublish(resource.id, resource.isActive)}
                       />
                       <span className="text-sm">
-                        {resource.isPublished ? 'Published' : 'Draft'}
+                        {resource.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-gray-500">
-                    {resource.createdAt.toLocaleDateString()}
+                    {new Date(resource.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
@@ -5276,7 +5350,7 @@ function CustomerResourcesManagement() {
                 <Label htmlFor="editResourceContent">Content</Label>
                 <Textarea
                   id="editResourceContent"
-                  defaultValue={selectedResource.content}
+                  defaultValue={selectedResource.description}
                   rows={6}
                 />
               </div>
@@ -5284,12 +5358,12 @@ function CustomerResourcesManagement() {
                 <div className="flex items-center space-x-2">
                   <Switch 
                     id="editPublishStatus" 
-                    defaultChecked={selectedResource.isPublished}
+                    defaultChecked={selectedResource.isActive}
                   />
-                  <Label htmlFor="editPublishStatus">Published</Label>
+                  <Label htmlFor="editPublishStatus">Active</Label>
                 </div>
                 <div className="text-sm text-gray-500">
-                  Views: {selectedResource.views} | Created: {selectedResource.createdAt.toLocaleDateString()}
+                  Views: {selectedResource.views || 0} | Created: {new Date(selectedResource.createdAt).toLocaleDateString()}
                 </div>
               </div>
             </div>

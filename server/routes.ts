@@ -7284,6 +7284,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Toggle resource active status (admin only)
+  app.patch("/api/admin/resources/:id/toggle", isAdmin, async (req, res) => {
+    try {
+      const resourceId = parseInt(req.params.id);
+      const { isActive } = req.body;
+      
+      await storage.updateResource(resourceId, { isActive });
+      res.json({ message: "Resource status updated" });
+    } catch (error) {
+      console.error("Error updating resource status:", error);
+      res.status(500).json({ message: "Failed to update resource status" });
+    }
+  });
+
   // Update resource priority (admin only)
   app.patch("/api/admin/resources/:id/priority", isAdmin, async (req, res) => {
     try {

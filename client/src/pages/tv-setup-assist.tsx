@@ -726,7 +726,7 @@ export default function TvSetupAssist() {
                     {createBookingMutation.isPending ? (
                       "Processing..."
                     ) : (
-                      "Book TV Setup - €100"
+                      "Book TV Setup"
                     )}
                   </Button>
                 </div>

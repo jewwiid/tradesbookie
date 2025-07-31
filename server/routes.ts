@@ -1674,6 +1674,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     console.log(`TV setup admin notification sent for booking ${booking.id}`);
                   }
                 }
+
+                // Auto-send credentials if they are already available (payment completed)
+                if (booking.credentialsProvided && booking.appUsername && booking.appPassword && !booking.credentialsEmailSent) {
+                  try {
+                    const { sendTvSetupCredentialsEmail } = await import('./tvSetupEmailService');
+                    const credentialsSent = await sendTvSetupCredentialsEmail(booking);
+                    if (credentialsSent) {
+                      await storage.markTvSetupEmailSent(booking.id, 'credentials');
+                      console.log(`TV setup credentials email auto-sent for booking ${booking.id} after payment`);
+                    }
+                  } catch (credentialsError) {
+                    console.error('Failed to auto-send credentials email after payment:', credentialsError);
+                  }
+                }
               }
             } catch (emailError) {
               console.error('Error sending TV setup booking emails:', emailError);
@@ -1862,7 +1876,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Username and password are required" });
       }
 
+      // Update credentials in database
       await storage.updateTvSetupBookingCredentials(bookingId, username, password);
+      
+      // Get updated booking details
+      const booking = await storage.getTvSetupBooking(bookingId);
+      
+      // Auto-send credentials email if payment is completed and email hasn't been sent yet
+      if (booking && booking.paymentStatus === 'paid' && !booking.credentialsEmailSent) {
+        try {
+          const { sendTvSetupCredentialsEmail } = await import('./tvSetupEmailService');
+          const credentialsSent = await sendTvSetupCredentialsEmail(booking);
+          if (credentialsSent) {
+            await storage.markTvSetupEmailSent(bookingId, 'credentials');
+            console.log(`TV setup credentials email auto-sent for booking ${bookingId} after admin added credentials`);
+          }
+        } catch (emailError) {
+          console.error('Failed to auto-send credentials email:', emailError);
+          // Don't fail the request if email fails
+        }
+      }
+
       res.json({ success: true, message: "Credentials updated successfully" });
     } catch (error: any) {
       console.error("Error updating TV setup credentials:", error);
@@ -1914,7 +1948,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Status is required" });
       }
 
+      // Get the booking before updating to check current status
+      const currentBooking = await storage.getTvSetupBooking(bookingId);
+      if (!currentBooking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      // Update the booking status
       await storage.updateTvSetupBookingStatus(bookingId, status, adminNotes, assignedTo);
+      
+      // Get updated booking with new status
+      const updatedBooking = await storage.getTvSetupBooking(bookingId);
+      
+      // Send status update email to customer if status actually changed
+      if (currentBooking.setupStatus !== status && updatedBooking) {
+        try {
+          const { sendTvSetupStatusUpdateEmail } = await import('./tvSetupEmailService');
+          await sendTvSetupStatusUpdateEmail(updatedBooking, status);
+          console.log(`Status update email sent for booking ${bookingId}: ${currentBooking.setupStatus} → ${status}`);
+        } catch (emailError) {
+          console.error('Failed to send status update email:', emailError);
+          // Don't fail the request if email fails
+        }
+      }
+
       res.json({ success: true, message: "Status updated successfully" });
     } catch (error: any) {
       console.error("Error updating TV setup booking status:", error);

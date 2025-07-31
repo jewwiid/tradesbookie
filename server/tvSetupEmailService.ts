@@ -1,4 +1,4 @@
-import { sendNotificationEmail } from './services/emailService';
+import { sendGmailEmail } from './gmailService';
 import { EMAIL_CONFIG } from './emailConfig';
 import type { TvSetupBooking } from '@shared/schema';
 
@@ -63,7 +63,7 @@ export async function sendTvSetupConfirmationEmail(booking: TvSetupBooking): Pro
       </div>
     `;
 
-    await sendNotificationEmail(booking.email, subject, htmlContent, EMAIL_CONFIG.SUPPORT);
+    await sendGmailEmail(booking.email, subject, htmlContent, EMAIL_CONFIG.SUPPORT);
     return true;
   } catch (error) {
     console.error('Failed to send TV setup confirmation email:', error);
@@ -134,10 +134,108 @@ export async function sendTvSetupAdminNotification(booking: TvSetupBooking): Pro
       </div>
     `;
 
-    await sendNotificationEmail(EMAIL_CONFIG.ADMIN, subject, htmlContent, EMAIL_CONFIG.NOREPLY);
+    await sendGmailEmail(EMAIL_CONFIG.ADMIN, subject, htmlContent, EMAIL_CONFIG.NOREPLY);
     return true;
   } catch (error) {
     console.error('Failed to send TV setup admin notification:', error);
+    return false;
+  }
+}
+
+export async function sendTvSetupStatusUpdateEmail(booking: TvSetupBooking, newStatus: string): Promise<boolean> {
+  try {
+    const statusMessages: Record<string, string> = {
+      'pending': 'Your booking is being processed',
+      'scheduled': 'Your setup session has been scheduled',
+      'in_progress': 'Your TV setup is currently in progress',
+      'completed': 'Your TV setup has been completed successfully',
+      'cancelled': 'Your booking has been cancelled'
+    };
+
+    const statusColors: Record<string, string> = {
+      'pending': '#F59E0B',
+      'scheduled': '#3B82F6',
+      'in_progress': '#10B981',
+      'completed': '#059669',
+      'cancelled': '#EF4444'
+    };
+
+    const subject = `TV Setup Status Update - Booking #${booking.id}`;
+    
+    const streamingAppsText = Array.isArray(booking.streamingApps) 
+      ? booking.streamingApps.join(', ') 
+      : 'None specified';
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #3B82F6, #1E40AF); color: white; padding: 30px; text-align: center;">
+          <h1 style="margin: 0; font-size: 28px;">TV Setup Status Update</h1>
+          <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Booking #${booking.id}</p>
+        </div>
+        
+        <div style="padding: 30px; background: #fff;">
+          <h2 style="color: #1E40AF; margin: 0 0 20px 0;">Hello ${booking.name}!</h2>
+          
+          <div style="background: ${statusColors[newStatus] || '#F59E0B'}; color: white; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <h3 style="margin: 0; font-size: 20px;">Status: ${newStatus.toUpperCase()}</h3>
+            <p style="margin: 10px 0 0 0; font-size: 16px;">${statusMessages[newStatus] || 'Status updated'}</p>
+          </div>
+          
+          <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1E40AF; margin: 0 0 15px 0;">Booking Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Booking ID:</td><td style="padding: 8px 0; color: #6B7280;">#${booking.id}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">TV Brand:</td><td style="padding: 8px 0; color: #6B7280;">${booking.tvBrand}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">TV Model:</td><td style="padding: 8px 0; color: #6B7280;">${booking.tvModel}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Streaming Apps:</td><td style="padding: 8px 0; color: #6B7280;">${streamingAppsText}</td></tr>
+            </table>
+          </div>
+
+          ${newStatus === 'completed' && booking.appUsername && booking.appPassword ? `
+          <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+            <h3 style="color: #065F46; margin: 0 0 15px 0;">🎉 Your Login Credentials</h3>
+            <p style="margin: 0 0 15px 0; color: #065F46; line-height: 1.6;">
+              Your TV setup is complete! Here are your streaming app login credentials:
+            </p>
+            <div style="background: white; padding: 15px; border-radius: 6px; font-family: monospace;">
+              <p style="margin: 0 0 10px 0; color: #374151;"><strong>Username:</strong> ${booking.appUsername}</p>
+              <p style="margin: 0; color: #374151;"><strong>Password:</strong> ${booking.appPassword}</p>
+            </div>
+            <p style="margin: 15px 0 0 0; color: #065F46; font-size: 14px;">
+              Please save these credentials in a secure location. You can now enjoy all your streaming apps!
+            </p>
+          </div>
+          ` : ''}
+
+          ${newStatus === 'completed' ? `
+          <div style="background: #EEF2FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #1E40AF; margin: 0 0 15px 0;">🎯 Setup Complete!</h3>
+            <p style="margin: 0; color: #374151; line-height: 1.6;">
+              Your TV setup is now complete. All requested streaming apps have been configured and are ready to use. 
+              If you experience any issues, please contact our support team.
+            </p>
+          </div>
+          ` : ''}
+
+          <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+            <h3 style="color: #92400E; margin: 0 0 10px 0;">📞 Need Help?</h3>
+            <p style="margin: 0; color: #92400E; line-height: 1.6;">
+              If you have any questions, please contact us at:<br>
+              <strong>Email:</strong> support@tradesbook.ie
+            </p>
+          </div>
+
+          <p style="font-size: 14px; color: #6B7280; margin: 30px 0 0 0; text-align: center;">
+            Thank you for choosing TradesBook.ie for your TV setup needs!
+          </p>
+        </div>
+      </div>
+    `;
+
+    await sendGmailEmail(booking.email, subject, htmlContent, EMAIL_CONFIG.SUPPORT);
+    return true;
+  } catch (error) {
+    console.error('Failed to send TV setup status update email:', error);
     return false;
   }
 }
@@ -207,7 +305,7 @@ export async function sendTvSetupCredentialsEmail(booking: TvSetupBooking): Prom
       </div>
     `;
 
-    await sendNotificationEmail(booking.email, subject, htmlContent, EMAIL_CONFIG.SUPPORT);
+    await sendGmailEmail(booking.email, subject, htmlContent, EMAIL_CONFIG.SUPPORT);
     return true;
   } catch (error) {
     console.error('Failed to send TV setup credentials email:', error);

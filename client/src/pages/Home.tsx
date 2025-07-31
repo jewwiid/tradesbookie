@@ -725,7 +725,7 @@ export default function Home() {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg"
+                className="border-white/80 text-white bg-transparent hover:bg-white hover:text-blue-600 hover:border-white px-8 py-4 text-lg font-semibold"
                 onClick={() => {
                   document.getElementById('learn-more')?.scrollIntoView({ behavior: 'smooth' });
                 }}

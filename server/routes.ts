@@ -25,7 +25,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2024-06-20",
 });
 
-import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail, sendInstallerApprovalEmail, sendInstallerRejectionEmail } from "./gmailService";
+import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail, sendInstallerApprovalEmail, sendInstallerRejectionEmail, sendTvSetupBookingConfirmation, sendTvSetupAdminNotification } from "./gmailService";
 import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
 import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { fraudPreventionService } from "./fraudPreventionService";
@@ -1649,6 +1649,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
               paymentIntent.id,
               'paid'
             );
+
+            // Get booking details and send confirmation emails
+            try {
+              const booking = await storage.getTvSetupBooking(parseInt(paymentIntent.metadata.bookingId));
+              if (booking) {
+                await sendTvSetupBookingConfirmation(booking);
+                await sendTvSetupAdminNotification(booking);
+                console.log(`TV setup booking emails sent for booking ${booking.id}`);
+              }
+            } catch (emailError) {
+              console.error('Error sending TV setup booking emails:', emailError);
+            }
           } else {
             // Handle regular installation booking payment
             await storage.updateBookingStatus(

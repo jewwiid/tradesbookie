@@ -50,6 +50,116 @@ interface EmailOptions {
   replyTo?: string;
 }
 
+export async function sendTvSetupBookingConfirmation(booking: any): Promise<boolean> {
+  const subject = `TV Setup Assistance Booking Confirmation - ${booking.fullName}`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
+        <h1 style="margin: 0; font-size: 28px;">TV Setup Assistance Booked!</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Your remote TV setup service is confirmed</p>
+      </div>
+      
+      <div style="padding: 30px; background: #f8f9ff;">
+        <h2 style="color: #333; margin-bottom: 20px;">Booking Details</h2>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #667eea; margin-top: 0;">Customer Information</h3>
+          <p><strong>Name:</strong> ${booking.fullName}</p>
+          <p><strong>Email:</strong> ${booking.email}</p>
+          <p><strong>Mobile:</strong> ${booking.mobile}</p>
+        </div>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #667eea; margin-top: 0;">TV Information</h3>
+          <p><strong>Brand:</strong> ${booking.tvBrand}</p>
+          <p><strong>Model:</strong> ${booking.tvModel}</p>
+          <p><strong>Operating System:</strong> ${booking.tvOs}</p>
+          <p><strong>Year of Purchase:</strong> ${booking.yearOfPurchase}</p>
+          <p><strong>Apps to Setup:</strong> ${Array.isArray(booking.streamingApps) ? booking.streamingApps.join(', ') : booking.streamingApps}</p>
+        </div>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #667eea; margin-top: 0;">Service Details</h3>
+          <p><strong>Service:</strong> Remote TV Setup Assistance</p>
+          <p><strong>Fee:</strong> €100.00 (One-time payment)</p>
+          <p><strong>Preferred Date:</strong> ${booking.preferredSetupDate ? new Date(booking.preferredSetupDate).toLocaleDateString() : 'To be scheduled'}</p>
+          ${booking.additionalNotes ? `<p><strong>Notes:</strong> ${booking.additionalNotes}</p>` : ''}
+        </div>
+        
+        <div style="background: #667eea; color: white; padding: 20px; border-radius: 8px; text-align: center;">
+          <h3 style="margin-top: 0;">What's Next?</h3>
+          <p style="margin-bottom: 15px;">Our technical team will contact you within 24 hours to schedule your remote setup session.</p>
+          <p style="margin-bottom: 0;"><strong>Contact:</strong> support@tradesbook.ie | +353 1 234 5678</p>
+        </div>
+      </div>
+      
+      <div style="background: #333; color: white; padding: 20px; text-align: center;">
+        <p style="margin: 0; font-size: 14px;">© 2025 tradesbook.ie - TV Setup Assistance Service</p>
+      </div>
+    </div>
+  `;
+
+  return sendGmailEmail({
+    to: booking.email,
+    subject,
+    html,
+    from: 'noreply@tradesbook.ie',
+    replyTo: 'support@tradesbook.ie'
+  });
+}
+
+export async function sendTvSetupAdminNotification(booking: any): Promise<boolean> {
+  const subject = `New TV Setup Booking - ${booking.fullName} (#${booking.id})`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: #dc2626; color: white; padding: 20px; text-align: center;">
+        <h1 style="margin: 0; font-size: 24px;">🚨 New TV Setup Booking</h1>
+        <p style="margin: 10px 0 0 0;">Requires immediate attention</p>
+      </div>
+      
+      <div style="padding: 20px; background: #fef2f2;">
+        <h2 style="color: #333; margin-bottom: 15px;">Booking #${booking.id}</h2>
+        
+        <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #dc2626;">
+          <h3 style="color: #dc2626; margin-top: 0; font-size: 16px;">Customer Details</h3>
+          <p style="margin: 5px 0;"><strong>Name:</strong> ${booking.fullName}</p>
+          <p style="margin: 5px 0;"><strong>Email:</strong> ${booking.email}</p>
+          <p style="margin: 5px 0;"><strong>Mobile:</strong> ${booking.mobile}</p>
+        </div>
+        
+        <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+          <h3 style="color: #333; margin-top: 0; font-size: 16px;">TV Specifications</h3>
+          <p style="margin: 5px 0;"><strong>Brand & Model:</strong> ${booking.tvBrand} ${booking.tvModel}</p>
+          <p style="margin: 5px 0;"><strong>OS:</strong> ${booking.tvOs}</p>
+          <p style="margin: 5px 0;"><strong>Year:</strong> ${booking.yearOfPurchase}</p>
+          <p style="margin: 5px 0;"><strong>Apps Needed:</strong> ${Array.isArray(booking.streamingApps) ? booking.streamingApps.join(', ') : booking.streamingApps}</p>
+        </div>
+        
+        <div style="background: white; padding: 15px; border-radius: 8px;">
+          <h3 style="color: #333; margin-top: 0; font-size: 16px;">Scheduling</h3>
+          <p style="margin: 5px 0;"><strong>Preferred Date:</strong> ${booking.preferredSetupDate ? new Date(booking.preferredSetupDate).toLocaleDateString() : 'Flexible'}</p>
+          <p style="margin: 5px 0;"><strong>Payment:</strong> €100.00 (Paid via Stripe)</p>
+          ${booking.additionalNotes ? `<p style="margin: 5px 0;"><strong>Notes:</strong> ${booking.additionalNotes}</p>` : ''}
+        </div>
+        
+        <div style="background: #dc2626; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-top: 20px;">
+          <p style="margin: 0; font-weight: bold;">Action Required: Contact customer within 24 hours</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return sendGmailEmail({
+    to: 'admin@tradesbook.ie',
+    subject,
+    html,
+    from: 'bookings@tradesbook.ie',
+    replyTo: 'support@tradesbook.ie'
+  });
+}
+
 export async function sendGmailEmail(options: EmailOptions): Promise<boolean> {
   if (!CLIENT_ID || !CLIENT_SECRET || !REFRESH_TOKEN) {
     console.log(`EMAIL SIMULATION: To: ${Array.isArray(options.to) ? options.to.join(', ') : options.to}, Subject: ${options.subject}`);

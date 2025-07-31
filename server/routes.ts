@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 import { 
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
-  insertResourceSchema, users, bookings, reviews, referralCodes, referralUsage
+  insertResourceSchema, tvSetupBookingFormSchema, users, bookings, reviews, referralCodes, referralUsage
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -1642,10 +1642,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Handle booking payments
         if (paymentIntent.metadata.bookingId) {
-          await storage.updateBookingStatus(
-            parseInt(paymentIntent.metadata.bookingId), 
-            'paid'
-          );
+          if (paymentIntent.metadata.service === 'tv_setup') {
+            // Handle TV setup booking payment
+            await storage.updateTvSetupBookingPayment(
+              parseInt(paymentIntent.metadata.bookingId), 
+              paymentIntent.id,
+              'paid'
+            );
+          } else {
+            // Handle regular installation booking payment
+            await storage.updateBookingStatus(
+              parseInt(paymentIntent.metadata.bookingId), 
+              'paid'
+            );
+          }
         }
         
         // Handle credit purchases
@@ -1703,6 +1713,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     res.json({ received: true });
+  });
+
+  // TV Setup Assistance API endpoints
+  app.post("/api/tv-setup-booking", async (req, res) => {
+    try {
+      // Validate request data
+      const validatedData = tvSetupBookingFormSchema.parse(req.body);
+      
+      // Create the booking in the database
+      const booking = await storage.createTvSetupBooking({
+        fullName: validatedData.fullName,
+        email: validatedData.email,
+        mobile: validatedData.mobile,
+        tvBrand: validatedData.tvBrand,
+        tvModel: validatedData.tvModel,
+        tvOs: validatedData.tvOs,
+        yearOfPurchase: validatedData.yearOfPurchase,
+        streamingApps: validatedData.streamingApps,
+        preferredSetupDate: validatedData.preferredSetupDate,
+        additionalNotes: validatedData.additionalNotes,
+        paymentStatus: 'pending'
+      });
+
+      // Create Stripe Checkout Session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'eur',
+              product_data: {
+                name: 'TV Setup Assistance Service',
+                description: 'Professional remote assistance for smart TV app setup including FreeView+ and SaorView configuration',
+              },
+              unit_amount: 10000, // €100 in cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${req.protocol}://${req.get('host')}/tv-setup-confirmation?booking_id=${booking.id}`,
+        cancel_url: `${req.protocol}://${req.get('host')}/tv-setup-assist`,
+        metadata: {
+          bookingId: booking.id.toString(),
+          service: 'tv_setup',
+          bookingType: 'tv_setup_assistance'
+        },
+      });
+
+      // Update booking with Stripe session info
+      await storage.updateTvSetupBookingPayment(booking.id, session.payment_intent as string, 'pending');
+
+      res.json({ sessionId: session.id, bookingId: booking.id });
+    } catch (error: any) {
+      console.error("Error creating TV setup booking:", error);
+      res.status(500).json({ 
+        message: "Error creating TV setup booking: " + error.message 
+      });
+    }
+  });
+
+  // Get TV setup booking by ID
+  app.get("/api/tv-setup-booking/:id", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const booking = await storage.getTvSetupBooking(bookingId);
+      
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+      
+      res.json(booking);
+    } catch (error: any) {
+      console.error("Error fetching TV setup booking:", error);
+      res.status(500).json({ 
+        message: "Error fetching TV setup booking: " + error.message 
+      });
+    }
+  });
+
+  // Get all TV setup bookings (admin only)
+  app.get("/api/admin/tv-setup-bookings", isAuthenticated, async (req, res) => {
+    try {
+      const bookings = await storage.getAllTvSetupBookings();
+      res.json(bookings);
+    } catch (error: any) {
+      console.error("Error fetching TV setup bookings:", error);
+      res.status(500).json({ 
+        message: "Error fetching TV setup bookings: " + error.message 
+      });
+    }
   });
 
   // Installer Dashboard API endpoints

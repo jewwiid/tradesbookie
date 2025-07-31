@@ -4,7 +4,7 @@ import {
   leadPricing, wallMountPricing, installerWallets, installerTransactions,
   scheduleNegotiations, declinedRequests, emailTemplates, bannedUsers,
   leadQualityTracking, antiManipulation, customerVerification, resources,
-  platformSettings, firstLeadVouchers, passwordResetTokens,
+  platformSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -26,7 +26,8 @@ import {
   type PlatformSettings, type InsertPlatformSettings,
   type FirstLeadVoucher, type InsertFirstLeadVoucher,
   type AntiManipulation, type InsertAntiManipulation,
-  type PasswordResetToken, type InsertPasswordResetToken
+  type PasswordResetToken, type InsertPasswordResetToken,
+  type TvSetupBooking, type InsertTvSetupBooking
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or } from "drizzle-orm";
@@ -224,6 +225,12 @@ export interface IStorage {
   deleteExpiredPasswordResetTokens(): Promise<void>;
   updateUserPassword(userId: number, newPasswordHash: string): Promise<void>;
   updateInstallerPassword(userId: number, newPasswordHash: string): Promise<void>;
+
+  // TV Setup booking operations
+  createTvSetupBooking(booking: InsertTvSetupBooking): Promise<TvSetupBooking>;
+  getTvSetupBooking(id: number): Promise<TvSetupBooking | undefined>;
+  getAllTvSetupBookings(): Promise<TvSetupBooking[]>;
+  updateTvSetupBookingPayment(id: number, paymentIntentId: string, status: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1583,6 +1590,31 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(installers.id, userId));
+  }
+
+  // TV Setup booking operations
+  async createTvSetupBooking(booking: InsertTvSetupBooking): Promise<TvSetupBooking> {
+    const [tvBooking] = await db.insert(tvSetupBookings).values(booking).returning();
+    return tvBooking;
+  }
+
+  async getTvSetupBooking(id: number): Promise<TvSetupBooking | undefined> {
+    const [tvBooking] = await db.select().from(tvSetupBookings).where(eq(tvSetupBookings.id, id));
+    return tvBooking;
+  }
+
+  async getAllTvSetupBookings(): Promise<TvSetupBooking[]> {
+    return await db.select().from(tvSetupBookings).orderBy(desc(tvSetupBookings.createdAt));
+  }
+
+  async updateTvSetupBookingPayment(id: number, paymentIntentId: string, status: string): Promise<void> {
+    await db.update(tvSetupBookings)
+      .set({ 
+        stripePaymentIntentId: paymentIntentId,
+        paymentStatus: status,
+        updatedAt: new Date()
+      })
+      .where(eq(tvSetupBookings.id, id));
   }
 }
 

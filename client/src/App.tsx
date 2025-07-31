@@ -39,6 +39,8 @@ import BookingTracker from "@/pages/booking-tracker";
 import Resources from "@/pages/resources";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
+import TvSetupAssist from "@/pages/tv-setup-assist";
+import TvSetupConfirmation from "@/pages/tv-setup-confirmation";
 
 
 function Router() {
@@ -64,7 +66,8 @@ function Router() {
       <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
-
+      <Route path="/tv-setup-assist" component={TvSetupAssist} />
+      <Route path="/tv-setup-confirmation" component={TvSetupConfirmation} />
 
       <Route path="/demo-login" component={DemoLogin} />
       

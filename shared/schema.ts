@@ -336,10 +336,46 @@ export const referralUsage = pgTable("referral_usage", {
   refereeUserId: text("referee_user_id"), // Customer who used the code
   discountAmount: decimal("discount_amount", { precision: 8, scale: 2 }).notNull(), // In euros
   rewardAmount: decimal("reward_amount", { precision: 8, scale: 2 }).notNull(), // In euros
-  subsidizedByInstaller: boolean("subsidized_by_installer").notNull().default(false), // If discount is paid by installer
-  installerSubsidyAmount: decimal("installer_subsidy_amount", { precision: 8, scale: 2 }).default("0.00"), // Amount installer pays for discount
-  status: text("status").notNull().default("pending"), // pending, completed, cancelled
-  paidOut: boolean("paid_out").notNull().default(false),
+  subsidizedByInstaller: boolean("subsidized_by_installer").notNull().default(false), // If discount is subsidized by installer
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// TV Setup Assistance bookings - Remote help with FreeView+, SaorView apps
+export const tvSetupBookings = pgTable("tv_setup_bookings", {
+  id: serial("id").primaryKey(),
+  
+  // Customer information
+  fullName: text("full_name").notNull(),
+  email: text("email").notNull(),
+  mobile: text("mobile").notNull(),
+  
+  // TV details
+  tvBrand: text("tv_brand").notNull(),
+  tvModel: text("tv_model").notNull(),
+  tvOs: text("tv_os").notNull(), // Android TV, WebOS, Tizen, Roku, FireTV, Other
+  yearOfPurchase: integer("year_of_purchase").notNull(),
+  
+  // Available streaming apps (JSON array)
+  streamingApps: jsonb("streaming_apps").notNull().default([]), // FreeView+, SaorView Player, Tivimate, Smart STB, Other
+  
+  // Scheduling
+  preferredSetupDate: timestamp("preferred_setup_date"),
+  additionalNotes: text("additional_notes"),
+  
+  // Payment details
+  stripePaymentIntentId: text("stripe_payment_intent_id").unique(),
+  paymentStatus: text("payment_status").default("pending"), // pending, completed, failed
+  paymentAmount: decimal("payment_amount", { precision: 8, scale: 2 }).notNull().default("100.00"),
+  
+  // Setup status
+  setupStatus: text("setup_status").default("pending"), // pending, scheduled, in_progress, completed, cancelled
+  setupMethod: text("setup_method"), // remote, in_person
+  
+  // Admin tracking
+  assignedTo: text("assigned_to"), // Admin/technician handling the setup
+  completedAt: timestamp("completed_at"),
+  adminNotes: text("admin_notes"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -936,6 +972,32 @@ export const insertInstallerWalletSchema = createInsertSchema(installerWallets).
   createdAt: true,
   updatedAt: true,
 });
+
+// TV Setup Assistance schemas
+export const insertTvSetupBookingSchema = createInsertSchema(tvSetupBookings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  stripePaymentIntentId: true,
+});
+
+export const tvSetupBookingFormSchema = z.object({
+  fullName: z.string().min(2, "Full name is required"),
+  email: z.string().email("Valid email is required"),
+  mobile: z.string().min(10, "Valid mobile number is required"),
+  tvBrand: z.string().min(2, "TV brand is required"),
+  tvModel: z.string().min(2, "TV model is required"),
+  tvOs: z.string().min(1, "Please select your TV operating system"),
+  yearOfPurchase: z.number().min(2020, "Year must be 2020 or later").max(new Date().getFullYear(), "Year cannot be in the future"),
+  streamingApps: z.array(z.string()).min(1, "Please select at least one streaming app"),
+  preferredSetupDate: z.date().optional(),
+  additionalNotes: z.string().optional(),
+});
+
+// TV Setup type exports
+export type TvSetupBooking = typeof tvSetupBookings.$inferSelect;
+export type InsertTvSetupBooking = z.infer<typeof insertTvSetupBookingSchema>;
+export type TvSetupBookingForm = z.infer<typeof tvSetupBookingFormSchema>;
 
 export const insertInstallerTransactionSchema = createInsertSchema(installerTransactions).omit({
   id: true,

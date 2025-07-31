@@ -1,0 +1,545 @@
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { loadStripe } from "@stripe/stripe-js";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { CalendarIcon, Tv, Wifi, Settings, CheckCircle, Star, Clock, Shield, Users } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { apiRequest } from "@/lib/queryClient";
+import { tvSetupBookingFormSchema, type TvSetupBookingForm } from "@shared/schema";
+
+if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
+  throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');
+}
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+const TV_OS_OPTIONS = [
+  { value: "android-tv", label: "Android TV" },
+  { value: "webos", label: "WebOS (LG)" },
+  { value: "tizen", label: "Tizen (Samsung)" },
+  { value: "roku", label: "Roku TV" },
+  { value: "fire-tv", label: "Fire TV" },
+  { value: "other", label: "Other" },
+];
+
+const STREAMING_APPS = [
+  { id: "freeview-plus", name: "FreeView+" },
+  { id: "saorview-player", name: "SaorView Player" },
+  { id: "tivimate", name: "Tivimate" },
+  { id: "smart-stb", name: "Smart STB" },
+  { id: "other", name: "Other Apps" },
+];
+
+export default function TvSetupAssist() {
+  const { toast } = useToast();
+  const [selectedApps, setSelectedApps] = useState<string[]>([]);
+  const [preferredDate, setPreferredDate] = useState<Date>();
+
+  const form = useForm<TvSetupBookingForm>({
+    resolver: zodResolver(tvSetupBookingFormSchema),
+    defaultValues: {
+      fullName: "",
+      email: "",
+      mobile: "",
+      tvBrand: "",
+      tvModel: "",
+      tvOs: "",
+      yearOfPurchase: new Date().getFullYear(),
+      streamingApps: [],
+      additionalNotes: "",
+    },
+  });
+
+  const createBookingMutation = useMutation({
+    mutationFn: async (data: TvSetupBookingForm) => {
+      const response = await apiRequest("POST", "/api/tv-setup-booking", {
+        ...data,
+        preferredSetupDate: preferredDate,
+        streamingApps: selectedApps,
+      });
+      return response.json();
+    },
+    onSuccess: async (data) => {
+      const stripe = await stripePromise;
+      if (!stripe) {
+        toast({
+          title: "Payment Error",
+          description: "Unable to load payment system. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: data.sessionId,
+      });
+
+      if (error) {
+        toast({
+          title: "Payment Error",
+          description: error.message || "Unable to proceed to payment.",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Booking Error",
+        description: error.message || "Unable to create booking. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: TvSetupBookingForm) => {
+    if (selectedApps.length === 0) {
+      toast({
+        title: "Missing Information",
+        description: "Please select at least one streaming app.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createBookingMutation.mutate({
+      ...data,
+      streamingApps: selectedApps,
+      preferredSetupDate: preferredDate,
+    });
+  };
+
+  const handleAppToggle = (appId: string) => {
+    setSelectedApps(prev => 
+      prev.includes(appId) 
+        ? prev.filter(id => id !== appId)
+        : [...prev, appId]
+    );
+  };
+
+  const scrollToForm = () => {
+    document.getElementById('booking-form')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-white/10 rounded-full backdrop-blur-sm">
+                <Tv className="w-16 h-16" />
+              </div>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
+              Stream More with{" "}
+              <span className="text-yellow-300">FreeView+ Setup Help</span>
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
+              Unlock free-to-air and bonus channels on your smart TV with our professional remote assistance
+            </p>
+            <Button 
+              onClick={scrollToForm}
+              size="lg" 
+              className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-4 text-lg"
+            >
+              Get Started - €100 One-Time Fee
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* What's Included Section */}
+      <div className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              What's Included in Your TV Setup
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Professional guidance to help you access all available free-to-air and bonus channels
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Settings className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Smart TV Compatibility Check</h3>
+                <p className="text-gray-600">
+                  We'll verify your TV can run SaorView-compatible apps and guide you through setup
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Wifi className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">App Configuration</h3>
+                <p className="text-gray-600">
+                  Step-by-step help installing and configuring FreeView+ type streaming apps
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-8 h-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">Remote or In-Person</h3>
+                <p className="text-gray-600">
+                  Choose remote screen sharing assistance or in-person setup visit
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="w-8 h-8 text-yellow-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">One-Time Payment</h3>
+                <p className="text-gray-600">
+                  €100 one-time fee with no ongoing subscriptions or hidden costs
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+
+      {/* Benefits Section */}
+      <div className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Why Choose Professional Setup?
+              </h2>
+              <div className="space-y-6">
+                <div className="flex items-start">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Save Hours of Frustration</h3>
+                    <p className="text-gray-600">
+                      Skip the trial-and-error process of finding and configuring the right apps for your specific TV model
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <Shield className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Safe & Secure Setup</h3>
+                    <p className="text-gray-600">
+                      Professional guidance ensures you're using legitimate apps and services safely
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <Star className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Maximize Your Channels</h3>
+                    <p className="text-gray-600">
+                      Get access to all available free-to-air and bonus channels your TV can support
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mr-4 mt-1">
+                    <Clock className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2">Quick Setup Process</h3>
+                    <p className="text-gray-600">
+                      Most setups completed within 30-60 minutes with expert guidance
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-8 rounded-lg shadow-lg">
+              <h3 className="text-2xl font-bold mb-6 text-center">What You'll Get</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <span className="font-medium">Compatibility Assessment</span>
+                  <Badge variant="secondary">Included</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <span className="font-medium">App Installation Help</span>
+                  <Badge variant="secondary">Included</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <span className="font-medium">Login & Configuration</span>
+                  <Badge variant="secondary">Included</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                  <span className="font-medium">Live Demo & Training</span>
+                  <Badge variant="secondary">Included</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border-2 border-green-200">
+                  <span className="font-bold text-green-800">Total Price</span>
+                  <Badge className="bg-green-600">€100 One-Time</Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Booking Form */}
+      <div id="booking-form" className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Book Your TV Setup Assistance
+            </h2>
+            <p className="text-xl text-gray-600">
+              Fill out the form below and proceed to secure payment
+            </p>
+          </div>
+
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Tv className="w-6 h-6" />
+                Setup Information
+              </CardTitle>
+              <CardDescription>
+                Tell us about your TV and what you need help with
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Personal Information */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="fullName">Full Name *</Label>
+                    <Input
+                      id="fullName"
+                      {...form.register("fullName")}
+                      placeholder="Your full name"
+                    />
+                    {form.formState.errors.fullName && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {form.formState.errors.fullName.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="email">Email Address *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      {...form.register("email")}
+                      placeholder="your.email@example.com"
+                    />
+                    {form.formState.errors.email && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {form.formState.errors.email.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="mobile">Mobile Number *</Label>
+                  <Input
+                    id="mobile"
+                    {...form.register("mobile")}
+                    placeholder="087 123 4567"
+                  />
+                  {form.formState.errors.mobile && (
+                    <p className="text-sm text-red-600 mt-1">
+                      {form.formState.errors.mobile.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* TV Information */}
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="tvBrand">TV Brand *</Label>
+                    <Input
+                      id="tvBrand"
+                      {...form.register("tvBrand")}
+                      placeholder="Samsung, LG, Sony, etc."
+                    />
+                    {form.formState.errors.tvBrand && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {form.formState.errors.tvBrand.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="tvModel">TV Model *</Label>
+                    <Input
+                      id="tvModel"
+                      {...form.register("tvModel")}
+                      placeholder="Model number or series"
+                    />
+                    {form.formState.errors.tvModel && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {form.formState.errors.tvModel.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="tvOs">TV Operating System *</Label>
+                    <Select onValueChange={(value) => form.setValue("tvOs", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your TV's OS" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TV_OS_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.formState.errors.tvOs && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {form.formState.errors.tvOs.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="yearOfPurchase">Year of Purchase *</Label>
+                    <Input
+                      id="yearOfPurchase"
+                      type="number"
+                      min="2020"
+                      max={new Date().getFullYear()}
+                      {...form.register("yearOfPurchase", { valueAsNumber: true })}
+                    />
+                    {form.formState.errors.yearOfPurchase && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {form.formState.errors.yearOfPurchase.message}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Streaming Apps */}
+                <div>
+                  <Label>Streaming Apps Available *</Label>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Select which apps you currently have or want help installing
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {STREAMING_APPS.map((app) => (
+                      <div key={app.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={app.id}
+                          checked={selectedApps.includes(app.id)}
+                          onCheckedChange={() => handleAppToggle(app.id)}
+                        />
+                        <Label htmlFor={app.id} className="font-normal">
+                          {app.name}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedApps.length === 0 && form.formState.isSubmitted && (
+                    <p className="text-sm text-red-600 mt-1">
+                      Please select at least one streaming app
+                    </p>
+                  )}
+                </div>
+
+                {/* Preferred Date */}
+                <div>
+                  <Label>Preferred Setup Date (Optional)</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !preferredDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {preferredDate ? format(preferredDate, "PPP") : "Select a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={preferredDate}
+                        onSelect={setPreferredDate}
+                        disabled={(date) => date < new Date()}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Additional Notes */}
+                <div>
+                  <Label htmlFor="additionalNotes">Additional Notes (Optional)</Label>
+                  <Textarea
+                    id="additionalNotes"
+                    {...form.register("additionalNotes")}
+                    placeholder="Any specific requirements or questions..."
+                    rows={3}
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <div className="flex justify-center pt-6">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    disabled={createBookingMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700 px-8 py-4 text-lg"
+                  >
+                    {createBookingMutation.isPending ? (
+                      "Processing..."
+                    ) : (
+                      "Proceed to Payment - €100"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

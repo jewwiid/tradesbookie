@@ -19,6 +19,8 @@ import {
   Video
 } from "lucide-react";
 import { Link } from "wouter";
+import Navigation from "@/components/navigation";
+import Footer from "@/components/Footer";
 
 export default function CustomerResources() {
   const commonIssues = [
@@ -115,6 +117,7 @@ export default function CustomerResources() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navigation />
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -322,6 +325,8 @@ export default function CustomerResources() {
           </Card>
         </section>
       </div>
+      
+      <Footer />
     </div>
   );
 }

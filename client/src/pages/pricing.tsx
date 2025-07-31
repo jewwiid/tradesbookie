@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
+import Footer from "@/components/Footer";
 import ServiceTierCard from "@/components/ServiceTierCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -378,6 +379,8 @@ export default function Pricing() {
           </Link>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 }

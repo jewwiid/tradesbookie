@@ -77,6 +77,8 @@ import PricingManagement from "@/components/admin/PricingManagement";
 import WallMountPricingManagement from "@/components/admin/WallMountPricingManagement";
 import FraudPreventionDashboard from "@/components/FraudPreventionDashboard";
 import TvSetupManagement from "@/components/admin/TvSetupManagement";
+import DownloadableGuidesManagement from "@/components/admin/DownloadableGuidesManagement";
+import VideoTutorialsManagement from "@/components/admin/VideoTutorialsManagement";
 
 interface AdminStats {
   totalBookings: number;
@@ -5949,6 +5951,14 @@ export default function AdminDashboard() {
               <BookOpen className="w-4 h-4" />
               <span>Customer Resources</span>
             </TabsTrigger>
+            <TabsTrigger value="downloadable-guides" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Upload className="w-4 h-4" />
+              <span>Downloadable Guides</span>
+            </TabsTrigger>
+            <TabsTrigger value="video-tutorials" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Camera className="w-4 h-4" />
+              <span>Video Tutorials</span>
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Settings className="w-4 h-4" />
               <span>Settings</span>
@@ -6018,6 +6028,14 @@ export default function AdminDashboard() {
 
           <TabsContent value="customer-resources" className="space-y-6">
             <CustomerResourcesManagement />
+          </TabsContent>
+
+          <TabsContent value="downloadable-guides" className="space-y-6">
+            <DownloadableGuidesManagement />
+          </TabsContent>
+
+          <TabsContent value="video-tutorials" className="space-y-6">
+            <VideoTutorialsManagement />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

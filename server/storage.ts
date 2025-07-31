@@ -5,6 +5,7 @@ import {
   scheduleNegotiations, declinedRequests, emailTemplates, bannedUsers,
   leadQualityTracking, antiManipulation, customerVerification, resources,
   platformSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
+  downloadableGuides, videoTutorials,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -27,10 +28,12 @@ import {
   type FirstLeadVoucher, type InsertFirstLeadVoucher,
   type AntiManipulation, type InsertAntiManipulation,
   type PasswordResetToken, type InsertPasswordResetToken,
-  type TvSetupBooking, type InsertTvSetupBooking
+  type TvSetupBooking, type InsertTvSetupBooking,
+  type DownloadableGuide, type InsertDownloadableGuide,
+  type VideoTutorial, type InsertVideoTutorial
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or } from "drizzle-orm";
+import { eq, desc, and, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import bcrypt from "bcrypt";
 
@@ -192,6 +195,24 @@ export interface IStorage {
   deleteResource(id: number): Promise<boolean>;
   toggleResourceFeatured(id: number, featured: boolean): Promise<void>;
   updateResourcePriority(id: number, priority: number): Promise<void>;
+
+  // Downloadable Guides operations
+  getDownloadableGuides(): Promise<DownloadableGuide[]>;
+  getAllDownloadableGuides(): Promise<DownloadableGuide[]>;
+  getDownloadableGuideById(id: number): Promise<DownloadableGuide | undefined>;
+  createDownloadableGuide(guide: InsertDownloadableGuide): Promise<DownloadableGuide>;
+  updateDownloadableGuide(id: number, guide: Partial<InsertDownloadableGuide>): Promise<void>;
+  deleteDownloadableGuide(id: number): Promise<void>;
+  incrementDownloadCount(id: number): Promise<void>;
+
+  // Video Tutorials operations
+  getVideoTutorials(): Promise<VideoTutorial[]>;
+  getAllVideoTutorials(): Promise<VideoTutorial[]>;
+  getVideoTutorialById(id: number): Promise<VideoTutorial | undefined>;
+  createVideoTutorial(tutorial: InsertVideoTutorial): Promise<VideoTutorial>;
+  updateVideoTutorial(id: number, tutorial: Partial<InsertVideoTutorial>): Promise<void>;
+  deleteVideoTutorial(id: number): Promise<void>;
+  incrementViewCount(id: number): Promise<void>;
 
   // Platform settings operations  
   getPlatformSetting(key: string): Promise<PlatformSettings | undefined>;
@@ -1662,6 +1683,86 @@ export class DatabaseStorage implements IStorage {
     await db.update(tvSetupBookings)
       .set(updateData)
       .where(eq(tvSetupBookings.id, id));
+  }
+
+  // Downloadable Guides implementation
+  async getDownloadableGuides(): Promise<DownloadableGuide[]> {
+    return await db.select().from(downloadableGuides)
+      .where(eq(downloadableGuides.isActive, true))
+      .orderBy(downloadableGuides.createdAt);
+  }
+
+  async getAllDownloadableGuides(): Promise<DownloadableGuide[]> {
+    return await db.select().from(downloadableGuides).orderBy(downloadableGuides.createdAt);
+  }
+
+  async getDownloadableGuideById(id: number): Promise<DownloadableGuide | undefined> {
+    const [guide] = await db.select().from(downloadableGuides).where(eq(downloadableGuides.id, id));
+    return guide;
+  }
+
+  async createDownloadableGuide(guide: InsertDownloadableGuide): Promise<DownloadableGuide> {
+    const [newGuide] = await db.insert(downloadableGuides).values(guide).returning();
+    return newGuide;
+  }
+
+  async updateDownloadableGuide(id: number, guide: Partial<InsertDownloadableGuide>): Promise<void> {
+    await db.update(downloadableGuides)
+      .set({ ...guide, updatedAt: new Date() })
+      .where(eq(downloadableGuides.id, id));
+  }
+
+  async deleteDownloadableGuide(id: number): Promise<void> {
+    await db.delete(downloadableGuides).where(eq(downloadableGuides.id, id));
+  }
+
+  async incrementDownloadCount(id: number): Promise<void> {
+    await db.update(downloadableGuides)
+      .set({ 
+        downloadCount: sql`${downloadableGuides.downloadCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(downloadableGuides.id, id));
+  }
+
+  // Video Tutorials implementation
+  async getVideoTutorials(): Promise<VideoTutorial[]> {
+    return await db.select().from(videoTutorials)
+      .where(eq(videoTutorials.isActive, true))
+      .orderBy(videoTutorials.createdAt);
+  }
+
+  async getAllVideoTutorials(): Promise<VideoTutorial[]> {
+    return await db.select().from(videoTutorials).orderBy(videoTutorials.createdAt);
+  }
+
+  async getVideoTutorialById(id: number): Promise<VideoTutorial | undefined> {
+    const [tutorial] = await db.select().from(videoTutorials).where(eq(videoTutorials.id, id));
+    return tutorial;
+  }
+
+  async createVideoTutorial(tutorial: InsertVideoTutorial): Promise<VideoTutorial> {
+    const [newTutorial] = await db.insert(videoTutorials).values(tutorial).returning();
+    return newTutorial;
+  }
+
+  async updateVideoTutorial(id: number, tutorial: Partial<InsertVideoTutorial>): Promise<void> {
+    await db.update(videoTutorials)
+      .set({ ...tutorial, updatedAt: new Date() })
+      .where(eq(videoTutorials.id, id));
+  }
+
+  async deleteVideoTutorial(id: number): Promise<void> {
+    await db.delete(videoTutorials).where(eq(videoTutorials.id, id));
+  }
+
+  async incrementViewCount(id: number): Promise<void> {
+    await db.update(videoTutorials)
+      .set({ 
+        viewCount: sql`${videoTutorials.viewCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(videoTutorials.id, id));
   }
 }
 

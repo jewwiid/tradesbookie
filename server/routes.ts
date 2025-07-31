@@ -8214,6 +8214,118 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Customer Resources Management API Routes
+  
+  // Downloadable Guides Routes
+  app.get("/api/downloadable-guides", async (req, res) => {
+    try {
+      const guides = await storage.getDownloadableGuides();
+      res.json(guides);
+    } catch (error) {
+      console.error("Error fetching downloadable guides:", error);
+      res.status(500).json({ message: "Failed to fetch downloadable guides" });
+    }
+  });
+
+  app.get("/api/admin/downloadable-guides", isAdmin, async (req, res) => {
+    try {
+      const guides = await storage.getAllDownloadableGuides();
+      res.json(guides);
+    } catch (error) {
+      console.error("Error fetching all downloadable guides:", error);
+      res.status(500).json({ message: "Failed to fetch downloadable guides" });
+    }
+  });
+
+  app.post("/api/admin/downloadable-guides", isAdmin, async (req, res) => {
+    try {
+      const guideData = req.body;
+      const guide = await storage.createDownloadableGuide(guideData);
+      res.json(guide);
+    } catch (error) {
+      console.error("Error creating downloadable guide:", error);
+      res.status(500).json({ message: "Failed to create downloadable guide" });
+    }
+  });
+
+  app.put("/api/admin/downloadable-guides/:id", isAdmin, async (req, res) => {
+    try {
+      const guideId = parseInt(req.params.id);
+      const guideData = req.body;
+      await storage.updateDownloadableGuide(guideId, guideData);
+      res.json({ message: "Downloadable guide updated successfully" });
+    } catch (error) {
+      console.error("Error updating downloadable guide:", error);
+      res.status(500).json({ message: "Failed to update downloadable guide" });
+    }
+  });
+
+  app.delete("/api/admin/downloadable-guides/:id", isAdmin, async (req, res) => {
+    try {
+      const guideId = parseInt(req.params.id);
+      await storage.deleteDownloadableGuide(guideId);
+      res.json({ message: "Downloadable guide deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting downloadable guide:", error);
+      res.status(500).json({ message: "Failed to delete downloadable guide" });
+    }
+  });
+
+  // Video Tutorials Routes
+  app.get("/api/video-tutorials", async (req, res) => {
+    try {
+      const tutorials = await storage.getVideoTutorials();
+      res.json(tutorials);
+    } catch (error) {
+      console.error("Error fetching video tutorials:", error);
+      res.status(500).json({ message: "Failed to fetch video tutorials" });
+    }
+  });
+
+  app.get("/api/admin/video-tutorials", isAdmin, async (req, res) => {
+    try {
+      const tutorials = await storage.getAllVideoTutorials();
+      res.json(tutorials);
+    } catch (error) {
+      console.error("Error fetching all video tutorials:", error);
+      res.status(500).json({ message: "Failed to fetch video tutorials" });
+    }
+  });
+
+  app.post("/api/admin/video-tutorials", isAdmin, async (req, res) => {
+    try {
+      const tutorialData = req.body;
+      const tutorial = await storage.createVideoTutorial(tutorialData);
+      res.json(tutorial);
+    } catch (error) {
+      console.error("Error creating video tutorial:", error);
+      res.status(500).json({ message: "Failed to create video tutorial" });
+    }
+  });
+
+  app.put("/api/admin/video-tutorials/:id", isAdmin, async (req, res) => {
+    try {
+      const tutorialId = parseInt(req.params.id);
+      const tutorialData = req.body;
+      await storage.updateVideoTutorial(tutorialId, tutorialData);
+      res.json({ message: "Video tutorial updated successfully" });
+    } catch (error) {
+      console.error("Error updating video tutorial:", error);
+      res.status(500).json({ message: "Failed to update video tutorial" });
+    }
+  });
+
+  app.delete("/api/admin/video-tutorials/:id", isAdmin, async (req, res) => {
+    try {
+      const tutorialId = parseInt(req.params.id);
+      await storage.deleteVideoTutorial(tutorialId);
+      res.json({ message: "Video tutorial deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting video tutorial:", error);
+      res.status(500).json({ message: "Failed to delete video tutorial" });
+    }
+  });
+
   return httpServer;
 }
 

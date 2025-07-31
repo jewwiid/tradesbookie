@@ -1,7 +1,9 @@
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BookOpen, 
   Download, 
@@ -16,13 +18,25 @@ import {
   CheckCircle,
   AlertCircle,
   FileText,
-  Video
+  Video,
+  Clock,
+  Eye
 } from "lucide-react";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 
 export default function CustomerResources() {
+  // Fetch downloadable guides
+  const { data: guides = [] } = useQuery({
+    queryKey: ["/api/downloadable-guides"]
+  });
+
+  // Fetch video tutorials
+  const { data: tutorials = [] } = useQuery({
+    queryKey: ["/api/video-tutorials"]
+  });
+
   const commonIssues = [
     {
       issue: "Can't find streaming apps on my TV",
@@ -324,6 +338,67 @@ export default function CustomerResources() {
             </CardContent>
           </Card>
         </section>
+
+        {/* Downloadable Guides Section */}
+        <section className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 flex items-center">
+              <Download className="w-7 h-7 mr-3 text-green-600" />
+              Downloadable Guides
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {guides.map((guide: any) => (
+              <Card key={guide.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center justify-between">
+                    <span>{guide.title}</span>
+                    <Badge variant="outline" className="text-xs">
+                      <FileText className="h-3 w-3 mr-1" />
+                      {guide.fileType}
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>{guide.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {guide.fileSize && (
+                      <div className="flex items-center text-sm text-gray-600">
+                        <Eye className="h-4 w-4 mr-1" />
+                        Size: {guide.fileSize}
+                      </div>
+                    )}
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Download className="h-4 w-4 mr-1" />
+                      {guide.downloadCount} downloads
+                    </div>
+                    {guide.fileUrl && (
+                      <Button 
+                        asChild
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        size="sm"
+                      >
+                        <a href={guide.fileUrl} target="_blank" rel="noopener noreferrer">
+                          <Download className="h-4 w-4 mr-2" />
+                          Download Guide
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {guides.length === 0 && (
+            <Card>
+              <CardContent className="text-center py-8">
+                <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600">No downloadable guides available at the moment.</p>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
       </div>
       
       <Footer />

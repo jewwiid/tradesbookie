@@ -787,6 +787,37 @@ export const resourcesRelations = relations(resources, ({ one }) => ({
   // No direct relations needed currently
 }));
 
+// Customer Resources Tables for downloadable guides and video tutorials
+export const downloadableGuides = pgTable("downloadable_guides", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  fileType: text("file_type").notNull(), // PDF, DOC, etc.
+  fileSize: text("file_size").notNull(), // e.g., "2.1 MB"
+  fileUrl: text("file_url"), // URL to the actual file
+  category: text("category").default("general"), // compatibility, speed, remote-control, etc.
+  downloadCount: integer("download_count").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const videoTutorials = pgTable("video_tutorials", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  duration: text("duration").notNull(), // e.g., "4:32"
+  videoUrl: text("video_url").notNull(), // YouTube, Vimeo, or direct URL
+  thumbnailUrl: text("thumbnail_url"), // Optional custom thumbnail
+  thumbnailEmoji: text("thumbnail_emoji").default("📺"), // Fallback emoji thumbnail
+  level: text("level").notNull(), // Beginner, Intermediate, Advanced
+  category: text("category").default("general"), // setup, troubleshooting, optimization, etc.
+  viewCount: integer("view_count").default(0),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Platform settings for admin configuration
 export const platformSettings = pgTable("platform_settings", {
   id: serial("id").primaryKey(),
@@ -947,6 +978,41 @@ export const insertResourceSchema = createInsertSchema(resources).omit({
   updatedAt: true,
 });
 
+// Downloadable Guides schemas
+export const insertDownloadableGuideSchema = createInsertSchema(downloadableGuides).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  downloadCount: true,
+});
+
+export const downloadableGuideFormSchema = insertDownloadableGuideSchema.extend({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+  fileType: z.string().min(1, "File type is required"),
+  fileSize: z.string().min(1, "File size is required"),
+  category: z.string().optional(),
+});
+
+// Video Tutorials schemas
+export const insertVideoTutorialSchema = createInsertSchema(videoTutorials).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  viewCount: true,
+});
+
+export const videoTutorialFormSchema = insertVideoTutorialSchema.extend({
+  title: z.string().min(1, "Title is required"),
+  duration: z.string().min(1, "Duration is required"),
+  videoUrl: z.string().url("Valid video URL is required"),
+  level: z.enum(["Beginner", "Intermediate", "Advanced"], {
+    required_error: "Level is required",
+  }),
+  category: z.string().optional(),
+  thumbnailEmoji: z.string().optional(),
+});
+
 export const insertPlatformSettingsSchema = createInsertSchema(platformSettings).omit({
   id: true,
   createdAt: true,
@@ -978,6 +1044,12 @@ export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type Resource = typeof resources.$inferSelect;
 export type InsertResource = z.infer<typeof insertResourceSchema>;
+export type DownloadableGuide = typeof downloadableGuides.$inferSelect;
+export type InsertDownloadableGuide = z.infer<typeof insertDownloadableGuideSchema>;
+export type DownloadableGuideFormData = z.infer<typeof downloadableGuideFormSchema>;
+export type VideoTutorial = typeof videoTutorials.$inferSelect;
+export type InsertVideoTutorial = z.infer<typeof insertVideoTutorialSchema>;
+export type VideoTutorialFormData = z.infer<typeof videoTutorialFormSchema>;
 
 export const insertInstallerWalletSchema = createInsertSchema(installerWallets).omit({
   id: true,

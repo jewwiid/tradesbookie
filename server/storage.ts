@@ -252,6 +252,7 @@ export interface IStorage {
   getTvSetupBooking(id: number): Promise<TvSetupBooking | undefined>;
   getAllTvSetupBookings(): Promise<TvSetupBooking[]>;
   updateTvSetupBookingPayment(id: number, paymentIntentId: string, status: string): Promise<void>;
+  deleteTvSetupBooking(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1683,6 +1684,10 @@ export class DatabaseStorage implements IStorage {
     await db.update(tvSetupBookings)
       .set(updateData)
       .where(eq(tvSetupBookings.id, id));
+  }
+
+  async deleteTvSetupBooking(id: number): Promise<void> {
+    await db.delete(tvSetupBookings).where(eq(tvSetupBookings.id, id));
   }
 
   // Downloadable Guides implementation

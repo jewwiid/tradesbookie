@@ -32,7 +32,8 @@ import {
   Calendar,
   FileText,
   Euro,
-  Loader2
+  Loader2,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -83,6 +84,7 @@ function TvSetupManagement() {
   const [showCredentialsDialog, setShowCredentialsDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -176,6 +178,28 @@ function TvSetupManagement() {
     },
   });
 
+  const deleteBookingMutation = useMutation({
+    mutationFn: async (bookingId: number) => {
+      await apiRequest("DELETE", `/api/admin/tv-setup-booking/${bookingId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tv-setup-bookings"] });
+      toast({
+        title: "Success",
+        description: "TV setup booking deleted successfully",
+      });
+      setShowDeleteDialog(false);
+      setSelectedBooking(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete booking",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       pending: "outline",
@@ -226,6 +250,16 @@ function TvSetupManagement() {
   const openDetailsDialog = (booking: TvSetupBooking) => {
     setSelectedBooking(booking);
     setShowDetailsDialog(true);
+  };
+
+  const openDeleteDialog = (booking: TvSetupBooking) => {
+    setSelectedBooking(booking);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteBooking = () => {
+    if (!selectedBooking) return;
+    deleteBookingMutation.mutate(selectedBooking.id);
   };
 
   const onCredentialsSubmit = (values: z.infer<typeof credentialsSchema>) => {
@@ -377,6 +411,13 @@ function TvSetupManagement() {
                               )}
                             </Button>
                           )}
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => openDeleteDialog(booking)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -667,6 +708,55 @@ function TvSetupManagement() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent aria-describedby="delete-booking-description">
+          <DialogHeader>
+            <DialogTitle>Delete TV Setup Booking</DialogTitle>
+            <DialogDescription id="delete-booking-description">
+              Are you sure you want to permanently delete this TV setup booking? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBooking && (
+            <div className="py-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 className="font-medium text-red-800 mb-2">Booking to be deleted:</h4>
+                <div className="text-sm text-red-700 space-y-1">
+                  <p><strong>ID:</strong> #{selectedBooking.id}</p>
+                  <p><strong>Customer:</strong> {selectedBooking.name}</p>
+                  <p><strong>Email:</strong> {selectedBooking.email}</p>
+                  <p><strong>TV:</strong> {selectedBooking.tvBrand} {selectedBooking.tvModel}</p>
+                  <p><strong>Status:</strong> {selectedBooking.setupStatus}</p>
+                  <p><strong>Payment:</strong> €{selectedBooking.paymentAmount} ({selectedBooking.paymentStatus})</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteBooking}
+              disabled={deleteBookingMutation.isPending}
+            >
+              {deleteBookingMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Permanently
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

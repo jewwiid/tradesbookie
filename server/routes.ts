@@ -1981,6 +1981,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete TV setup booking (admin only)
+  app.delete("/api/admin/tv-setup-booking/:id", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      
+      if (!bookingId || isNaN(bookingId)) {
+        return res.status(400).json({ message: "Valid booking ID is required" });
+      }
+
+      // Check if booking exists
+      const booking = await storage.getTvSetupBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      await storage.deleteTvSetupBooking(bookingId);
+      res.json({ success: true, message: "TV setup booking deleted successfully" });
+    } catch (error: any) {
+      console.error("Error deleting TV setup booking:", error);
+      res.status(500).json({ 
+        message: "Error deleting TV setup booking: " + error.message 
+      });
+    }
+  });
+
   // Installer Dashboard API endpoints
   app.get("/api/installer/stats", async (req, res) => {
     try {

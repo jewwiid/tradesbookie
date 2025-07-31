@@ -70,9 +70,17 @@ export default function VideoTutorialsManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch video tutorials
+  // Fetch video tutorials from both sources
   const { data: tutorials = [], isLoading } = useQuery({
     queryKey: ["/api/admin/video-tutorials"]
+  });
+
+  // Fetch tutorials from general resources
+  const { data: resourceTutorials = [] } = useQuery({
+    queryKey: ["/api/admin/resources"],
+    select: (data: any[]) => data.filter((resource: any) => 
+      resource.type === 'tutorial' || resource.type === 'video'
+    ),
   });
 
   // Create tutorial mutation
@@ -188,6 +196,27 @@ export default function VideoTutorialsManagement() {
       deleteTutorialMutation.mutate(tutorialId);
     }
   };
+
+  // Combine both tutorial sources
+  const allTutorials = [
+    ...tutorials,
+    ...resourceTutorials.map((resource: any) => ({
+      id: `resource-${resource.id}`,
+      title: resource.title,
+      description: resource.description,
+      duration: '',
+      videoUrl: resource.externalUrl,
+      thumbnailUrl: '',
+      thumbnailEmoji: '📺',
+      level: 'beginner',
+      category: resource.category,
+      viewCount: resource.views || 0,
+      isActive: resource.isActive,
+      createdAt: resource.createdAt,
+      updatedAt: resource.updatedAt,
+      isFromResource: true
+    }))
+  ];
 
   if (isLoading) {
     return (
@@ -346,8 +375,17 @@ export default function VideoTutorialsManagement() {
       </div>
 
       <div className="grid gap-4">
-        {tutorials.map((tutorial: VideoTutorial) => (
-          <Card key={tutorial.id}>
+        {allTutorials.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-8">
+              <Play className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600">No video tutorials available.</p>
+              <p className="text-sm text-gray-500 mt-2">Create a tutorial or add resources from Customer Resources Management.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          allTutorials.map((tutorial: any) => (
+            <Card key={tutorial.id}>
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -429,7 +467,8 @@ export default function VideoTutorialsManagement() {
               </div>
             </CardContent>
           </Card>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Edit Dialog */}

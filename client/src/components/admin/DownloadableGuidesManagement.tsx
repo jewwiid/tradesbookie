@@ -68,9 +68,15 @@ export default function DownloadableGuidesManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch downloadable guides
+  // Fetch downloadable guides from both sources
   const { data: guides = [], isLoading } = useQuery({
     queryKey: ["/api/admin/downloadable-guides"]
+  });
+
+  // Fetch guides from general resources
+  const { data: resourceGuides = [] } = useQuery({
+    queryKey: ["/api/admin/resources"],
+    select: (data: any[]) => data.filter((resource: any) => resource.type === 'guide'),
   });
 
   // Create guide mutation
@@ -184,6 +190,25 @@ export default function DownloadableGuidesManagement() {
       deleteGuideMutation.mutate(guideId);
     }
   };
+
+  // Combine both guide sources
+  const allGuides = [
+    ...guides,
+    ...resourceGuides.map((resource: any) => ({
+      id: `resource-${resource.id}`,
+      title: resource.title,
+      description: resource.description,
+      fileType: 'Resource',
+      fileSize: '',
+      fileUrl: resource.externalUrl,
+      category: resource.category,
+      downloadCount: resource.views || 0,
+      isActive: resource.isActive,
+      createdAt: resource.createdAt,
+      updatedAt: resource.updatedAt,
+      isFromResource: true
+    }))
+  ];
 
   if (isLoading) {
     return (
@@ -330,8 +355,17 @@ export default function DownloadableGuidesManagement() {
       </div>
 
       <div className="grid gap-4">
-        {guides.map((guide: DownloadableGuide) => (
-          <Card key={guide.id}>
+        {allGuides.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-8">
+              <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-600">No downloadable guides available.</p>
+              <p className="text-sm text-gray-500 mt-2">Create a guide or add resources from Customer Resources Management.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          allGuides.map((guide: any) => (
+            <Card key={guide.id}>
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -403,7 +437,8 @@ export default function DownloadableGuidesManagement() {
               </div>
             </CardContent>
           </Card>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Edit Dialog */}

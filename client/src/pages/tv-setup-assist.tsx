@@ -85,13 +85,8 @@ export default function TvSetupAssist() {
       return response.json();
     },
     onSuccess: (data) => {
-      toast({
-        title: "Booking Submitted Successfully!",
-        description: data.message || "Your TV setup request has been submitted. You'll receive payment instructions once your login credentials are ready.",
-      });
-      form.reset();
-      setPreferredDate(undefined);
-      setIsSmartTv("");
+      // Redirect to confirmation page
+      window.location.href = `/tv-setup-confirmation?booking_id=${data.bookingId}`;
     },
     onError: (error: any) => {
       toast({

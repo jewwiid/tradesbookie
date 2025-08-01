@@ -1783,7 +1783,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send immediate booking confirmation email to customer
       try {
-        await sendTvSetupBookingConfirmation(booking);
+        const { sendTvSetupConfirmationEmail } = await import('./tvSetupEmailService');
+        await sendTvSetupConfirmationEmail(booking);
         await storage.markTvSetupEmailSent(booking.id, 'confirmation');
       } catch (emailError) {
         console.error('Failed to send TV setup booking confirmation email:', emailError);
@@ -1791,6 +1792,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send immediate admin notification email
       try {
+        const { sendTvSetupAdminNotification } = await import('./tvSetupEmailService');
         await sendTvSetupAdminNotification(booking);
         await storage.markTvSetupEmailSent(booking.id, 'admin');
       } catch (emailError) {

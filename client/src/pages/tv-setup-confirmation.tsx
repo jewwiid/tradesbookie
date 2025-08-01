@@ -66,10 +66,10 @@ export default function TvSetupConfirmation() {
             <CheckCircle className="w-12 h-12 text-white" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Payment Successful!
+            Booking Submitted Successfully!
           </h1>
           <p className="text-xl text-gray-600 mb-2">
-            Your TV Setup Assistance has been booked
+            Your TV Setup Assistance request has been received
           </p>
           <Badge className="bg-green-600 text-white px-4 py-2 text-lg">
             Booking ID: {booking.id}
@@ -188,9 +188,9 @@ export default function TvSetupConfirmation() {
                     <span className="text-blue-600 font-semibold">2</span>
                   </div>
                   <div>
-                    <h4 className="font-semibold">Setup Scheduling</h4>
+                    <h4 className="font-semibold">Credentials Preparation</h4>
                     <p className="text-gray-600">
-                      Our team will contact you within 24 hours to schedule your TV setup assistance.
+                      Our team will prepare your login credentials for streaming apps within 24 hours.
                     </p>
                   </div>
                 </div>
@@ -200,9 +200,21 @@ export default function TvSetupConfirmation() {
                     <span className="text-blue-600 font-semibold">3</span>
                   </div>
                   <div>
+                    <h4 className="font-semibold">Payment Instructions</h4>
+                    <p className="text-gray-600">
+                      Once your credentials are ready, you'll receive an email with payment instructions (€100).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-blue-600 font-semibold">4</span>
+                  </div>
+                  <div>
                     <h4 className="font-semibold">Professional Setup</h4>
                     <p className="text-gray-600">
-                      Remote or in-person assistance to get all your streaming apps working perfectly.
+                      After payment, receive your login credentials and setup assistance for all streaming apps.
                     </p>
                   </div>
                 </div>
@@ -222,13 +234,13 @@ export default function TvSetupConfirmation() {
                 </div>
               </div>
 
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <h4 className="font-semibold text-green-900">Payment Confirmed</h4>
+                  <Clock className="w-5 h-5 text-yellow-600" />
+                  <h4 className="font-semibold text-yellow-900">Payment Pending</h4>
                 </div>
-                <p className="text-green-700 text-sm">
-                  Your payment of €100 has been successfully processed. No further payment is required.
+                <p className="text-yellow-700 text-sm">
+                  No payment required yet. You'll receive payment instructions (€100) once your login credentials are prepared.
                 </p>
               </div>
             </CardContent>

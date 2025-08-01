@@ -21,7 +21,7 @@ export async function sendTvSetupConfirmationEmail(booking: TvSetupBooking): Pro
           <h2 style="color: #1E40AF; margin: 0 0 20px 0;">Hello ${booking.name}!</h2>
           
           <p style="font-size: 16px; line-height: 1.6; color: #374151;">
-            Thank you for booking our TV Setup Assistance service. We've received your request and our team will contact you within 24 hours to schedule your setup session.
+            Thank you for booking our TV Setup Assistance service. We've received your request and our team will prepare your login credentials within 24 hours. You'll receive payment instructions once your credentials are ready.
           </p>
           
           <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -33,16 +33,16 @@ export async function sendTvSetupConfirmationEmail(booking: TvSetupBooking): Pro
               <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Smart TV:</td><td style="padding: 8px 0; color: #6B7280;">${booking.isSmartTv}</td></tr>
               ${booking.tvOs ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">TV OS:</td><td style="padding: 8px 0; color: #6B7280;">${booking.tvOs}</td></tr>` : ''}
               <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Streaming Apps:</td><td style="padding: 8px 0; color: #6B7280;">${streamingAppsText}</td></tr>
-              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Payment Status:</td><td style="padding: 8px 0; color: #10B981; font-weight: bold;">€100.00 - Completed</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Payment Status:</td><td style="padding: 8px 0; color: #F59E0B; font-weight: bold;">€100.00 - Pending</td></tr>
             </table>
           </div>
 
           <div style="background: #EEF2FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #1E40AF; margin: 0 0 15px 0;">What Happens Next?</h3>
             <ul style="margin: 0; padding-left: 20px; color: #374151; line-height: 1.6;">
-              <li>Our team will contact you within 24 hours to schedule your setup session</li>
-              <li>We'll prepare your streaming app login credentials</li>
-              <li>You'll receive login details via email after setup is completed</li>
+              <li>Our team will prepare your streaming app login credentials within 24 hours</li>
+              <li>You'll receive an email with payment instructions (€100) once credentials are ready</li>
+              <li>After payment, you'll receive your login details and setup assistance</li>
               <li>Professional remote assistance for all app installations and configurations</li>
             </ul>
           </div>

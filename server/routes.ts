@@ -1380,6 +1380,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get TV setup bookings for current authenticated user
+  app.get("/api/auth/user/tv-setup-bookings", async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      // Get TV setup bookings by user email (matching the booking email)
+      const tvSetupBookings = await storage.getTvSetupBookingsByEmail(req.user.email);
+      
+      console.log(`Found ${tvSetupBookings.length} TV setup bookings for user ${req.user.email}`);
+      res.json(tvSetupBookings);
+    } catch (error) {
+      console.error("Error fetching authenticated user TV setup bookings:", error);
+      res.status(500).json({ message: "Failed to fetch TV setup bookings" });
+    }
+  });
+
   // QR Code generation
   app.get("/api/qr-code/:text", async (req, res) => {
     try {

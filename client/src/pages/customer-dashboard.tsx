@@ -34,6 +34,60 @@ interface Booking {
   createdAt?: string;
 }
 
+interface TvSetupBooking {
+  id: number;
+  name: string;
+  email: string;
+  mobile: string;
+  tvBrand: string;
+  tvModel: string;
+  isSmartTv: string;
+  tvOs?: string;
+  yearOfPurchase: number;
+  setupStatus: string;
+  paymentAmount: string;
+  originalAmount?: string;
+  discountAmount?: string;
+  referralCode?: string;
+  salesStaffName?: string;
+  salesStaffStore?: string;
+  additionalNotes?: string;
+  preferredSetupDate?: string;
+  createdAt: string;
+  updatedAt: string;
+  
+  // MAC Address fields
+  macAddress?: string;
+  macAddressProvided: boolean;
+  macAddressProvidedAt?: string;
+  recommendedApp?: string;
+  appDownloadInstructions?: string;
+  
+  // Credentials fields
+  credentialsProvided: boolean;
+  credentialsEmailSent: boolean;
+  credentialsSentAt?: string;
+  credentialsType?: string;
+  
+  // IPTV credentials (only shown after payment)
+  serverHostname?: string;
+  serverUsername?: string;
+  serverPassword?: string;
+  numberOfDevices?: number;
+  m3uUrl?: string;
+  
+  // Payment for credentials
+  credentialsPaymentRequired: boolean;
+  credentialsPaymentStatus: string;
+  credentialsPaymentAmount?: string;
+  credentialsPaidAt?: string;
+  
+  // Admin tracking
+  adminNotes?: string;
+  assignedTo?: string;
+  completedAt?: string;
+}
+
 export default function CustomerDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -58,6 +112,12 @@ export default function CustomerDashboard() {
   // Get user's bookings only if user exists (including invoice-authenticated users)
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
     queryKey: ['/api/auth/user/bookings'],
+    enabled: !!user,
+  });
+
+  // Get user's TV setup bookings
+  const { data: tvSetupBookings = [], isLoading: tvSetupLoading } = useQuery<TvSetupBooking[]>({
+    queryKey: ['/api/auth/user/tv-setup-bookings'],
     enabled: !!user,
   });
 
@@ -592,6 +652,43 @@ export default function CustomerDashboard() {
             </div>
           )}
         </div>
+
+        {/* TV Setup Section */}
+        <div className="space-y-6 mt-12">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Your TV Setup Bookings</h2>
+            <Button onClick={() => setLocation('/tv-setup-assist')} className="bg-orange-500 hover:bg-orange-600 text-white">
+              <Tv className="w-4 h-4 mr-2" />
+              Book TV Setup
+            </Button>
+          </div>
+
+          {tvSetupLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading your TV setup bookings...</p>
+            </div>
+          ) : tvSetupBookings.length === 0 ? (
+            <Card>
+              <CardContent className="pt-6 text-center">
+                <Tv className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="font-semibold mb-2">No TV Setup Bookings Yet</h3>
+                <p className="text-gray-600 mb-4">
+                  Book your TV setup assistance to get help with streaming apps and IPTV login credentials.
+                </p>
+                <Button onClick={() => setLocation('/tv-setup-assist')} className="bg-orange-500 hover:bg-orange-600 text-white">
+                  Book TV Setup Assistance
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-6">
+              {tvSetupBookings.map((booking) => (
+                <TvSetupCard key={booking.id} booking={booking} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Profile Edit Dialog */}
@@ -658,6 +755,165 @@ export default function CustomerDashboard() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// TV Setup Card Component
+function TvSetupCard({ booking }: { booking: TvSetupBooking }) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'mac_address_requested': return 'bg-blue-100 text-blue-800';
+      case 'credentials_ready': return 'bg-green-100 text-green-800';
+      case 'payment_required': return 'bg-orange-100 text-orange-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'pending': return 'Pending Review';
+      case 'mac_address_requested': return 'MAC Address Required';
+      case 'credentials_ready': return 'Credentials Ready';
+      case 'payment_required': return 'Payment Required';
+      case 'completed': return 'Completed';
+      default: return status;
+    }
+  };
+
+  const isPaidSetup = booking.credentialsPaymentStatus === 'paid' || booking.setupStatus === 'completed';
+  const showCredentials = isPaidSetup && booking.credentialsProvided;
+
+  return (
+    <Card className="w-full">
+      <CardContent className="p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-2 bg-orange-100 rounded-lg">
+                <Tv className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg">TV Setup Assistance</h3>
+                <p className="text-sm text-gray-600">
+                  {booking.tvBrand} {booking.tvModel} ({booking.yearOfPurchase})
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center text-sm">
+                <User className="h-4 w-4 text-gray-400 mr-2" />
+                <span className="text-gray-600">Customer:</span>
+                <span className="ml-1 font-medium">{booking.name}</span>
+              </div>
+              <div className="flex items-center text-sm">
+                <Phone className="h-4 w-4 text-gray-400 mr-2" />
+                <span className="text-gray-600">Mobile:</span>
+                <span className="ml-1 font-medium">{booking.mobile}</span>
+              </div>
+              <div className="flex items-center text-sm">
+                <Euro className="h-4 w-4 text-gray-400 mr-2" />
+                <span className="text-gray-600">Amount:</span>
+                <span className="ml-1 font-medium">€{booking.paymentAmount}</span>
+              </div>
+              <div className="flex items-center text-sm">
+                <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                <span className="text-gray-600">Created:</span>
+                <span className="ml-1 font-medium">
+                  {new Date(booking.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+
+            {/* MAC Address Status */}
+            {booking.macAddressProvided && booking.macAddress && (
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                <div className="flex items-center text-sm text-blue-800">
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  <span className="font-medium">MAC Address Provided:</span>
+                  <span className="ml-2 font-mono">{booking.macAddress}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Show credentials if payment completed */}
+            {showCredentials && (
+              <div className="mb-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                <h4 className="font-medium text-green-800 mb-3 flex items-center">
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  IPTV Login Credentials
+                </h4>
+                <div className="space-y-2 text-sm">
+                  {booking.credentialsType === 'iptv' && (
+                    <>
+                      <div className="flex flex-wrap items-center">
+                        <span className="text-green-700 font-medium w-32">Server Hostname:</span>
+                        <span className="font-mono text-green-900 bg-white px-2 py-1 rounded border">
+                          {booking.serverHostname || 'Not provided'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center">
+                        <span className="text-green-700 font-medium w-32">Username:</span>
+                        <span className="font-mono text-green-900 bg-white px-2 py-1 rounded border">
+                          {booking.serverUsername || 'Not provided'}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center">
+                        <span className="text-green-700 font-medium w-32">Password:</span>
+                        <span className="font-mono text-green-900 bg-white px-2 py-1 rounded border">
+                          {booking.serverPassword || 'Not provided'}
+                        </span>
+                      </div>
+                      {booking.numberOfDevices && (
+                        <div className="flex flex-wrap items-center">
+                          <span className="text-green-700 font-medium w-32">Devices:</span>
+                          <span className="text-green-900">{booking.numberOfDevices} device(s)</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {booking.credentialsType === 'm3u' && booking.m3uUrl && (
+                    <div className="flex flex-wrap items-center">
+                      <span className="text-green-700 font-medium w-32">M3U URL:</span>
+                      <span className="font-mono text-green-900 bg-white px-2 py-1 rounded border break-all">
+                        {booking.m3uUrl}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Payment required notice */}
+            {booking.credentialsPaymentRequired && booking.credentialsPaymentStatus !== 'paid' && (
+              <div className="mb-4">
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Payment of €{booking.credentialsPaymentAmount || booking.paymentAmount} is required to access your IPTV credentials.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col items-end gap-2">
+            <Badge className={getStatusColor(booking.setupStatus)}>
+              {getStatusText(booking.setupStatus)}
+            </Badge>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.open(`/tv-setup-tracker?bookingId=${booking.id}&email=${booking.email}`, '_blank')}
+            >
+              Track Progress
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 

@@ -265,6 +265,7 @@ export interface IStorage {
   }): Promise<void>;
   markTvSetupEmailSent(id: number, emailType: 'confirmation' | 'admin' | 'credentials'): Promise<void>;
   deleteTvSetupBooking(id: number): Promise<void>;
+  getTvSetupBookingsByEmail(email: string): Promise<TvSetupBooking[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1742,6 +1743,13 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTvSetupBooking(id: number): Promise<void> {
     await db.delete(tvSetupBookings).where(eq(tvSetupBookings.id, id));
+  }
+
+  async getTvSetupBookingsByEmail(email: string): Promise<TvSetupBooking[]> {
+    return await db.select()
+      .from(tvSetupBookings)
+      .where(eq(tvSetupBookings.email, email))
+      .orderBy(desc(tvSetupBookings.createdAt));
   }
 
   // Downloadable Guides implementation

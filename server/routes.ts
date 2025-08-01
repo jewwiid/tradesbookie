@@ -2119,6 +2119,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // TV Setup Tracker (public endpoint)
+  app.get("/api/tv-setup-tracker", async (req, res) => {
+    try {
+      const { bookingId, email } = req.query;
+      
+      if (!bookingId && !email) {
+        return res.status(400).json({ message: "Booking ID or email is required" });
+      }
+
+      let booking;
+      
+      if (bookingId) {
+        const id = parseInt(bookingId as string);
+        if (isNaN(id)) {
+          return res.status(400).json({ message: "Invalid booking ID" });
+        }
+        booking = await storage.getTvSetupBooking(id);
+      } else if (email) {
+        // Find booking by email (get most recent one)
+        const bookings = await storage.getAllTvSetupBookings();
+        const userBookings = bookings.filter(b => b.email === email);
+        if (userBookings.length > 0) {
+          // Get the most recent booking
+          booking = userBookings.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        }
+      }
+
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      // Return booking details (excluding sensitive information like payment intent IDs)
+      const safeBooking = {
+        id: booking.id,
+        name: booking.name,
+        email: booking.email,
+        mobile: booking.mobile,
+        tvBrand: booking.tvBrand,
+        tvModel: booking.tvModel,
+        isSmartTv: booking.isSmartTv,
+        tvOs: booking.tvOs,
+        yearOfPurchase: booking.yearOfPurchase,
+        setupStatus: booking.setupStatus || 'pending',
+        paymentAmount: booking.paymentAmount,
+        originalAmount: booking.originalAmount,
+        discountAmount: booking.discountAmount,
+        referralCode: booking.referralCode,
+        salesStaffName: booking.salesStaffName,
+        salesStaffStore: booking.salesStaffStore,
+        additionalNotes: booking.additionalNotes,
+        preferredSetupDate: booking.preferredSetupDate,
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
+        credentialsProvided: booking.credentialsProvided || false,
+        credentialsEmailSent: booking.credentialsEmailSent || false,
+        credentialsSentAt: booking.credentialsSentAt,
+        adminNotes: booking.adminNotes,
+        assignedTo: booking.assignedTo,
+        completedAt: booking.completedAt
+      };
+
+      res.json(safeBooking);
+    } catch (error: any) {
+      console.error("Error fetching TV setup booking for tracking:", error);
+      res.status(500).json({ 
+        message: "Error fetching TV setup booking: " + error.message 
+      });
+    }
+  });
+
   // Installer Dashboard API endpoints
   app.get("/api/installer/stats", async (req, res) => {
     try {

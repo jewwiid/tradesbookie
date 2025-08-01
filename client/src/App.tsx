@@ -42,6 +42,7 @@ import ResetPassword from "@/pages/reset-password";
 import TvSetupAssist from "@/pages/tv-setup-assist";
 import TvSetupConfirmation from "@/pages/tv-setup-confirmation";
 import TvSetupPayment from "@/pages/tv-setup-payment";
+import TvSetupTracker from "@/pages/tv-setup-tracker";
 import CustomerResources from "@/pages/customer-resources";
 
 
@@ -71,6 +72,7 @@ function Router() {
       <Route path="/tv-setup-assist" component={TvSetupAssist} />
       <Route path="/tv-setup-confirmation" component={TvSetupConfirmation} />
       <Route path="/tv-setup-payment/:bookingId" component={TvSetupPayment} />
+      <Route path="/tv-setup-tracker" component={TvSetupTracker} />
       <Route path="/customer-resources" component={CustomerResources} />
 
       <Route path="/demo-login" component={DemoLogin} />

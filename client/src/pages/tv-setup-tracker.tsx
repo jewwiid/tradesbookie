@@ -47,6 +47,13 @@ interface TvSetupBookingDetails {
   credentialsSentAt?: string;
   credentialsType?: string;
   
+  // IPTV credentials
+  serverHostname?: string;
+  serverUsername?: string;
+  serverPassword?: string;
+  numberOfDevices?: number;
+  m3uUrl?: string;
+  
   // Payment for credentials
   credentialsPaymentRequired: boolean;
   credentialsPaymentStatus: string;
@@ -549,17 +556,13 @@ export default function TvSetupTracker() {
                       </div>
                     )}
 
-                    {booking.credentialsType === 'm3u_email' && booking.fastmailEmail && (
+                    {booking.credentialsType === 'm3u_url' && booking.m3uUrl && (
                       <div className="p-4 bg-gray-50 rounded-lg space-y-3">
-                        <h4 className="font-medium">Email Account Details</h4>
+                        <h4 className="font-medium">M3U URL</h4>
                         <div className="grid gap-2 text-sm">
                           <div>
-                            <span className="font-medium">Email:</span> 
-                            <code className="ml-2 px-2 py-1 bg-white rounded">{booking.fastmailEmail}</code>
-                          </div>
-                          <div>
-                            <span className="font-medium">Password:</span> 
-                            <code className="ml-2 px-2 py-1 bg-white rounded">{booking.fastmailPassword}</code>
+                            <span className="font-medium">M3U URL:</span> 
+                            <code className="ml-2 px-2 py-1 bg-white rounded text-xs break-all">{booking.m3uUrl}</code>
                           </div>
                         </div>
                       </div>

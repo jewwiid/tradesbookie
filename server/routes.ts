@@ -2200,9 +2200,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         preferredSetupDate: booking.preferredSetupDate,
         createdAt: booking.createdAt,
         updatedAt: booking.updatedAt,
+        
+        // MAC Address fields
+        macAddress: booking.macAddress,
+        macAddressProvided: booking.macAddressProvided || false,
+        macAddressProvidedAt: booking.macAddressProvidedAt,
+        recommendedApp: booking.recommendedApp,
+        appDownloadInstructions: booking.appDownloadInstructions,
+        
+        // Credentials fields
         credentialsProvided: booking.credentialsProvided || false,
         credentialsEmailSent: booking.credentialsEmailSent || false,
         credentialsSentAt: booking.credentialsSentAt,
+        credentialsType: booking.credentialsType,
+        
+        // IPTV credentials (only show if payment is completed)
+        serverHostname: booking.paymentStatus === 'paid' ? booking.serverHostname : undefined,
+        serverUsername: booking.paymentStatus === 'paid' ? booking.serverUsername : undefined,
+        serverPassword: booking.paymentStatus === 'paid' ? booking.serverPassword : undefined,
+        numberOfDevices: booking.paymentStatus === 'paid' ? booking.numberOfDevices : undefined,
+        m3uUrl: booking.paymentStatus === 'paid' ? booking.m3uUrl : undefined,
+        
+        // Payment for credentials
+        credentialsPaymentRequired: booking.credentialsProvided && booking.paymentStatus !== 'paid',
+        credentialsPaymentStatus: booking.paymentStatus || 'pending',
+        credentialsPaymentAmount: booking.paymentAmount,
+        credentialsPaidAt: booking.paymentStatus === 'paid' ? booking.updatedAt : undefined,
+        
+        // Admin tracking
         adminNotes: booking.adminNotes,
         assignedTo: booking.assignedTo,
         completedAt: booking.completedAt

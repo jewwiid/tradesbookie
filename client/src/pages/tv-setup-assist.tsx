@@ -58,6 +58,15 @@ export default function TvSetupAssist() {
   const { toast } = useToast();
   const [preferredDate, setPreferredDate] = useState<Date>();
   const [isSmartTv, setIsSmartTv] = useState<string>("");
+  const [referralCode, setReferralCode] = useState<string>("");
+  const [referralValidation, setReferralValidation] = useState<{
+    isValid: boolean;
+    discount: number;
+    salesStaffName?: string;
+    salesStaffStore?: string;
+    message?: string;
+  }>({ isValid: false, discount: 0 });
+  const [finalPrice, setFinalPrice] = useState<number>(110);
 
   const form = useForm<TvSetupBookingForm>({
     resolver: zodResolver(tvSetupBookingFormSchema),
@@ -72,8 +81,51 @@ export default function TvSetupAssist() {
       yearOfPurchase: new Date().getFullYear(),
       streamingApps: [],
       additionalNotes: "",
+      referralCode: "",
     },
   });
+
+  // Validate referral code
+  const validateReferralCode = async (code: string) => {
+    if (!code || code.trim() === "") {
+      setReferralValidation({ isValid: false, discount: 0 });
+      setFinalPrice(110);
+      return;
+    }
+
+    try {
+      const response = await apiRequest("POST", "/api/harvey-norman/validate", {
+        referralCode: code.trim().toUpperCase(),
+        bookingAmount: 110
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        setReferralValidation({
+          isValid: true,
+          discount: result.discountAmount,
+          salesStaffName: result.salesStaffName,
+          salesStaffStore: result.salesStaffStore,
+          message: result.message
+        });
+        setFinalPrice(110 - result.discountAmount);
+      } else {
+        setReferralValidation({
+          isValid: false,
+          discount: 0,
+          message: result.message || "Invalid referral code"
+        });
+        setFinalPrice(110);
+      }
+    } catch (error) {
+      setReferralValidation({
+        isValid: false,
+        discount: 0,
+        message: "Error validating referral code"
+      });
+      setFinalPrice(110);
+    }
+  };
 
   const createBookingMutation = useMutation({
     mutationFn: async (data: TvSetupBookingForm) => {
@@ -81,6 +133,7 @@ export default function TvSetupAssist() {
         ...data,
         preferredSetupDate: preferredDate,
         streamingApps: [], // Admin will recommend suitable apps
+        referralCode: referralCode.trim().toUpperCase() || undefined,
       });
       return response.json();
     },
@@ -649,6 +702,91 @@ export default function TvSetupAssist() {
                   />
                 </div>
 
+                {/* Referral Code Section */}
+                <div className="border-t pt-6 space-y-4">
+                  <div>
+                    <Label htmlFor="referralCode">Staff Referral Code (Optional)</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        id="referralCode"
+                        value={referralCode}
+                        onChange={(e) => {
+                          const value = e.target.value.toUpperCase();
+                          setReferralCode(value);
+                          form.setValue("referralCode", value);
+                        }}
+                        onBlur={() => validateReferralCode(referralCode)}
+                        placeholder="Enter staff referral code (e.g. HNCRKMIKE)"
+                        className={cn(
+                          "flex-1",
+                          referralCode && referralValidation.isValid && "border-green-500",
+                          referralCode && !referralValidation.isValid && referralValidation.message && "border-red-500"
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => validateReferralCode(referralCode)}
+                        disabled={!referralCode}
+                      >
+                        Validate
+                      </Button>
+                    </div>
+                    
+                    {/* Referral validation feedback */}
+                    {referralCode && referralValidation.message && (
+                      <div className={cn(
+                        "mt-2 p-2 rounded text-sm",
+                        referralValidation.isValid 
+                          ? "bg-green-50 text-green-700 border border-green-200" 
+                          : "bg-red-50 text-red-700 border border-red-200"
+                      )}>
+                        {referralValidation.isValid && referralValidation.salesStaffName && (
+                          <div className="font-medium">
+                            ✓ Valid referral from {referralValidation.salesStaffName}
+                            {referralValidation.salesStaffStore && ` (${referralValidation.salesStaffStore})`}
+                          </div>
+                        )}
+                        <div>{referralValidation.message}</div>
+                      </div>
+                    )}
+                    
+                    <p className="text-sm text-gray-600 mt-1">
+                      Have a Harvey Norman staff referral? Enter their code for €10 off
+                    </p>
+                  </div>
+
+                  {/* Pricing Display */}
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium">TV Setup Service</span>
+                      <span>€110.00</span>
+                    </div>
+                    
+                    {referralValidation.isValid && referralValidation.discount > 0 && (
+                      <div className="flex justify-between items-center text-green-600">
+                        <span>Staff Referral Discount</span>
+                        <span>-€{referralValidation.discount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    
+                    <div className="border-t pt-2">
+                      <div className="flex justify-between items-center font-bold text-lg">
+                        <span>Total</span>
+                        <span className={cn(
+                          referralValidation.isValid && referralValidation.discount > 0 && "text-green-600"
+                        )}>
+                          €{finalPrice.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-gray-500 mt-2">
+                      Payment will be processed after login credentials are set up
+                    </p>
+                  </div>
+                </div>
+
                 {/* Submit Button */}
                 <div className="flex justify-center pt-6">
                   <Button
@@ -660,7 +798,7 @@ export default function TvSetupAssist() {
                     {createBookingMutation.isPending ? (
                       "Processing..."
                     ) : (
-                      "Book TV Setup"
+                      `Book TV Setup - €${finalPrice.toFixed(2)}`
                     )}
                   </Button>
                 </div>

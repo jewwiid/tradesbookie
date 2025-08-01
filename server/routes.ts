@@ -1764,6 +1764,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate request data
       const validatedData = tvSetupBookingFormSchema.parse(req.body);
       
+      // Initialize pricing
+      let originalAmount = 110.00;
+      let discountAmount = 0.00;
+      let finalAmount = originalAmount;
+      let referralCodeId = null;
+      let salesStaffName = null;
+      let salesStaffStore = null;
+      
+      // Process referral code if provided
+      if (validatedData.referralCode) {
+        try {
+          const { harveyNormanReferralService } = await import('./harvestNormanReferralService');
+          const referralService = new harveyNormanReferralService();
+          
+          const referralResult = await referralService.validateAndCalculateDiscount(
+            validatedData.referralCode.toUpperCase(),
+            originalAmount
+          );
+          
+          if (referralResult.success) {
+            discountAmount = referralResult.discountAmount;
+            finalAmount = originalAmount - discountAmount;
+            referralCodeId = referralResult.referralCodeId;
+            salesStaffName = referralResult.salesStaffName;
+            salesStaffStore = referralResult.salesStaffStore;
+          }
+        } catch (referralError) {
+          console.error('Error processing referral code:', referralError);
+          // Continue with booking creation even if referral validation fails
+        }
+      }
+      
       // Create the booking in the database without payment
       const booking = await storage.createTvSetupBooking({
         name: validatedData.name,
@@ -1778,7 +1810,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         preferredSetupDate: validatedData.preferredSetupDate,
         additionalNotes: validatedData.additionalNotes,
         paymentStatus: 'not_required', // Payment happens after credentials are provided
-        setupStatus: 'pending'
+        setupStatus: 'pending',
+        // Pricing and referral information
+        originalAmount: originalAmount.toString(),
+        discountAmount: discountAmount.toString(),
+        paymentAmount: finalAmount.toString(),
+        referralCode: validatedData.referralCode?.toUpperCase() || null,
+        referralCodeId,
+        salesStaffName,
+        salesStaffStore
       });
 
       // Send immediate booking confirmation email to customer

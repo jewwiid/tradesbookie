@@ -366,7 +366,15 @@ export const tvSetupBookings = pgTable("tv_setup_bookings", {
   // Payment details
   stripePaymentIntentId: text("stripe_payment_intent_id").unique(),
   paymentStatus: text("payment_status").default("pending"), // pending, completed, failed
-  paymentAmount: decimal("payment_amount", { precision: 8, scale: 2 }).notNull().default("100.00"),
+  paymentAmount: decimal("payment_amount", { precision: 8, scale: 2 }).notNull().default("110.00"),
+  originalAmount: decimal("original_amount", { precision: 8, scale: 2 }).notNull().default("110.00"),
+  discountAmount: decimal("discount_amount", { precision: 8, scale: 2 }).notNull().default("0.00"),
+  
+  // Referral system integration
+  referralCode: text("referral_code"),
+  referralCodeId: integer("referral_code_id"),
+  salesStaffName: text("sales_staff_name"),
+  salesStaffStore: text("sales_staff_store"),
   
   // Setup status
   setupStatus: text("setup_status").default("pending"), // pending, scheduled, in_progress, completed, cancelled
@@ -1082,6 +1090,7 @@ export const tvSetupBookingFormSchema = z.object({
     return val;
   }),
   additionalNotes: z.string().optional(),
+  referralCode: z.string().optional(),
 }).refine((data) => {
   // If it's a smart TV, then TV OS is required
   if (data.isSmartTv === "yes" && (!data.tvOs || data.tvOs.length === 0)) {

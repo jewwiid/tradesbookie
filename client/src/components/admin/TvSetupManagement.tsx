@@ -756,15 +756,8 @@ function TvSetupManagement() {
                     name="numberOfDevices"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <FormLabel className="text-sm font-medium text-gray-700">
                           NUMBER OF DEVICES
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-xs"
-                          >
-                            UPGRADE
-                          </Button>
                         </FormLabel>
                         <FormControl>
                           <Input 

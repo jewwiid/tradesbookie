@@ -1,0 +1,228 @@
+Here is your full implementation guide formatted as a Markdown document. You can copy this into a .md file and use it in Replit, GitHub, or send it to a developer.
+
+⸻
+
+
+# AI-Powered Q&A Assistant for Tracebook.ie
+
+## Overview
+
+Tracebook.ie is an electronics, audio, and visual retail website. This document outlines the implementation plan for an **AI-powered Q&A assistant** to help customers get instant answers to product-related questions. The assistant will:
+
+- Allow **free-form and FAQ-style** question input
+- Use **OpenAI (ChatGPT)** or **Perplexity API** for AI-generated responses
+- **Cache answers** to a backend database to improve speed and reduce API usage
+- Offer a **“Speak to Salesperson”** option for further support
+- Integrate cleanly into the **React frontend**
+
+---
+
+## 1. Features
+
+- ✨ Free-text and FAQ question input
+- ⚡ Real-time answers via OpenAI or Perplexity API
+- 💾 Smart caching using your existing database
+- 🤝 Optional contact with a salesperson
+- 🔐 Secure API key handling (backend only)
+- 📱 Fully compatible with React frontend
+
+---
+
+## 2. Tech Stack
+
+- **Frontend:** React (with Axios or Fetch)
+- **Backend:** Node.js + Express (or serverless)
+- **Database:** MongoDB / PostgreSQL / Supabase
+- **AI Provider:** OpenAI (ChatGPT API) or Perplexity API
+
+---
+
+## 3. Folder Structure
+
+/src
+/components
+AIHelpWidget.jsx
+/api
+askQuestion.js
+
+---
+
+## 4. React Component (AIHelpWidget.jsx)
+
+```jsx
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const FAQ_SUGGESTIONS = [
+  "What’s the difference between OLED and QLED?",
+  "Do I need a soundbar if my TV has speakers?",
+  "What does Dolby Atmos do?",
+];
+
+export default function AIHelpWidget() {
+  const [question, setQuestion] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const askQuestion = async (q) => {
+    setLoading(true);
+    setMessages(prev => [...prev, { sender: 'user', text: q }]);
+    setQuestion('');
+    try {
+      const res = await axios.post('/api/askQuestion', { question: q });
+      setMessages(prev => [...prev, { sender: 'bot', text: res.data.answer }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Error getting answer. Try again later.' }]);
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="ai-help-widget">
+      <h3>Need Help? Ask About Our Products</h3>
+      <div className="faq-buttons">
+        {FAQ_SUGGESTIONS.map((q, i) => (
+          <button key={i} onClick={() => askQuestion(q)}>{q}</button>
+        ))}
+      </div>
+
+      <textarea
+        placeholder="Type your question..."
+        value={question}
+        onChange={(e) => setQuestion(e.target.value)}
+      />
+      <button onClick={() => askQuestion(question)} disabled={!question || loading}>
+        {loading ? 'Thinking...' : 'Ask'}
+      </button>
+
+      <div className="chat-log">
+        {messages.map((msg, i) => (
+          <div key={i} className={`msg ${msg.sender}`}>{msg.text}</div>
+        ))}
+      </div>
+
+      <div className="contact-sales">
+        <p>Need more help?</p>
+        <button onClick={() => window.location.href = "/contact"}>Speak to a Salesperson</button>
+      </div>
+    </div>
+  );
+}
+
+
+⸻
+
+5. Backend (Node.js Express – /api/askQuestion.js)
+
+const express = require('express');
+const router = express.Router();
+const { Configuration, OpenAIApi } = require("openai");
+const db = require('../db'); // your DB client
+
+const openai = new OpenAIApi(new Configuration({
+  apiKey: process.env.OPENAI_API_KEY
+}));
+
+router.post('/askQuestion', async (req, res) => {
+  const { question } = req.body;
+  if (!question) return res.status(400).json({ error: 'Missing question' });
+
+  // 1. Check cache
+  const cached = await db.findOne({ question });
+  if (cached) return res.json({ answer: cached.answer });
+
+  // 2. Query OpenAI
+  const response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages: [
+      { role: "system", content: "You are a helpful electronics sales assistant. Answer briefly and clearly. Do not include links." },
+      { role: "user", content: question }
+    ],
+    temperature: 0.7,
+    max_tokens: 300
+  });
+
+  const answer = response.data.choices[0].message.content;
+
+  // 3. Save to DB
+  await db.insertOne({ question, answer, created_at: new Date() });
+
+  res.json({ answer });
+});
+
+module.exports = router;
+
+
+⸻
+
+6. Database Schema (Example)
+
+Table: faq_answers
+
+Field	Type
+id	UUID / Serial
+question	TEXT
+answer	TEXT
+created_at	TIMESTAMP
+
+Tip: Use a unique index on LOWER(question) to avoid duplicates.
+
+⸻
+
+7. API Key Security
+	•	Store keys in .env:
+
+OPENAI_API_KEY=your-key-here
+
+
+	•	Never expose keys on frontend
+	•	Use backend to relay requests securely
+
+⸻
+
+8. UI/UX Tips
+	•	Use chat-style bubbles for Q&A
+	•	Add a loading spinner while fetching
+	•	Provide a clear fallback: “Speak to a salesperson”
+	•	Make responses concise and friendly
+
+⸻
+
+9. Deployment Notes (Replit or Vercel)
+	•	Use Vercel’s api/ folder for backend routes
+	•	Add environment variables via dashboard
+	•	Connect frontend to backend via relative path /api/askQuestion
+
+⸻
+
+10. Future Enhancements
+	•	✅ Semantic matching (handle “QLED vs OLED” vs “How do they differ?”)
+	•	✅ Admin dashboard to edit cached answers
+	•	✅ Product recommendation integration
+	•	✅ Live chat or WhatsApp widget integration
+
+⸻
+
+11. Prompt Template for AI API
+
+System Prompt:
+You are a helpful sales assistant for an electronics store. Answer questions about TVs, soundbars, speakers, and headphones. Do not include any links. Keep answers concise and friendly.
+
+User Prompt:
+{{ customer_question }}
+
+
+⸻
+
+12. Summary
+
+This AI Q&A system for Tracebook.ie:
+	•	Improves customer experience with instant product help
+	•	Reduces staff workload for common queries
+	•	Encourages conversation with real staff when needed
+	•	Uses cost-effective caching with high-quality AI
+
+⸻
+
+
+Let me know if you want this styled as a GitHub README or if you want me to bundle it into a ZIP with boilerplate files.

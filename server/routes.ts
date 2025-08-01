@@ -1776,7 +1776,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (validatedData.referralCode) {
         try {
           const { harveyNormanReferralService } = await import('./harvestNormanReferralService');
-          const referralService = new harveyNormanReferralService();
+          const referralService = harveyNormanReferralService;
           
           const referralResult = await referralService.validateAndCalculateDiscount(
             validatedData.referralCode.toUpperCase(),

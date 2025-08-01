@@ -33,7 +33,8 @@ export async function sendTvSetupConfirmationEmail(booking: TvSetupBooking): Pro
               <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Smart TV:</td><td style="padding: 8px 0; color: #6B7280;">${booking.isSmartTv}</td></tr>
               ${booking.tvOs ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">TV OS:</td><td style="padding: 8px 0; color: #6B7280;">${booking.tvOs}</td></tr>` : ''}
               <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Streaming Apps:</td><td style="padding: 8px 0; color: #6B7280;">${streamingAppsText}</td></tr>
-              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Payment Status:</td><td style="padding: 8px 0; color: #F59E0B; font-weight: bold;">€100.00 - Pending</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Payment Amount:</td><td style="padding: 8px 0; color: #F59E0B; font-weight: bold;">€${booking.paymentAmount} - Pending</td></tr>
+              ${booking.referralCode ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Referral Code:</td><td style="padding: 8px 0; color: #16A34A; font-weight: bold;">${booking.referralCode} (€${booking.discountAmount} discount)</td></tr>` : ''}
             </table>
           </div>
 
@@ -112,6 +113,9 @@ export async function sendTvSetupAdminNotification(booking: TvSetupBooking): Pro
               ${booking.tvOs ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">TV OS:</td><td style="padding: 8px 0; color: #6B7280;">${booking.tvOs}</td></tr>` : ''}
               <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Year:</td><td style="padding: 8px 0; color: #6B7280;">${booking.yearOfPurchase}</td></tr>
               <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Apps Requested:</td><td style="padding: 8px 0; color: #6B7280;">${streamingAppsText}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Payment Amount:</td><td style="padding: 8px 0; color: #16A34A; font-weight: bold;">€${booking.paymentAmount}</td></tr>
+              ${booking.referralCode ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Referral Code:</td><td style="padding: 8px 0; color: #16A34A; font-weight: bold;">${booking.referralCode} - ${booking.salesStaffName} (${booking.salesStaffStore})</td></tr>` : ''}
+              ${booking.referralCode ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Discount Applied:</td><td style="padding: 8px 0; color: #16A34A; font-weight: bold;">€${booking.discountAmount}</td></tr>` : ''}
               ${booking.additionalNotes ? `<tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Notes:</td><td style="padding: 8px 0; color: #6B7280;">${booking.additionalNotes}</td></tr>` : ''}
             </table>
           </div>
@@ -141,11 +145,11 @@ export async function sendTvSetupAdminNotification(booking: TvSetupBooking): Pro
     `;
 
     await sendGmailEmail({
-      to: EMAIL_CONFIG.ADMIN,
+      to: EMAIL_CONFIG.SUPPORT,
       subject: subject,
       html: htmlContent,
       from: EMAIL_CONFIG.NOREPLY,
-      replyTo: EMAIL_CONFIG.NOREPLY
+      replyTo: EMAIL_CONFIG.SUPPORT
     });
     return true;
   } catch (error) {

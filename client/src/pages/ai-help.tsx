@@ -40,12 +40,14 @@ export default function AIHelpPage() {
         </div>
 
         {/* AI Help Widget */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-0">
-          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-8 overflow-hidden">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-6 text-center px-2">
               Ask me anything about TV installation & electronics
             </h2>
-            <AIHelpWidget />
+            <div className="overflow-hidden">
+              <AIHelpWidget />
+            </div>
           </div>
         </div>
 

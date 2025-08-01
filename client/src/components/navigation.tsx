@@ -68,7 +68,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                       Resources
                     </Link>
                     <Link 
-                      href="/customer-resources" 
+                      href="/ai-help" 
                       className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium px-3 py-1 rounded-md hover:bg-blue-50 flex items-center gap-1"
                     >
                       <MessageCircle className="w-4 h-4" />
@@ -253,7 +253,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                             Track Booking
                           </Link>
                           <Link 
-                            href="/customer-resources" 
+                            href="/ai-help" 
                             className="flex items-center py-4 px-4 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors text-base min-h-[48px] font-medium"
                             onClick={() => setMobileMenuOpen(false)}
                           >

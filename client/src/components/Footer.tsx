@@ -91,7 +91,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/customer-resources" className="text-blue-400 hover:text-blue-300 transition-colors flex items-center font-semibold">
+                <Link href="/ai-help" className="text-blue-400 hover:text-blue-300 transition-colors flex items-center font-semibold">
                   <MessageCircle className="w-4 h-4 mr-2" />
                   AI Help Assistant
                 </Link>

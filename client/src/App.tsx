@@ -44,6 +44,7 @@ import TvSetupConfirmation from "@/pages/tv-setup-confirmation";
 import TvSetupPayment from "@/pages/tv-setup-payment";
 import TvSetupTracker from "@/pages/tv-setup-tracker";
 import CustomerResources from "@/pages/customer-resources";
+import AIHelpPage from "@/pages/ai-help";
 
 
 function Router() {
@@ -74,6 +75,7 @@ function Router() {
       <Route path="/tv-setup-payment/:bookingId" component={TvSetupPayment} />
       <Route path="/tv-setup-tracker" component={TvSetupTracker} />
       <Route path="/customer-resources" component={CustomerResources} />
+      <Route path="/ai-help" component={AIHelpPage} />
 
       <Route path="/demo-login" component={DemoLogin} />
       

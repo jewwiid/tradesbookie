@@ -175,8 +175,8 @@ export async function sendGmailEmail(options: EmailOptions): Promise<boolean> {
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
     const recipients = Array.isArray(options.to) ? options.to.join(', ') : options.to;
-    const fromEmail = options.from || 'noreply@tradesbook.ie';
-    const replyToEmail = options.replyTo || 'support@tradesbook.ie';
+    const fromEmail = process.env.GMAIL_USER || 'noreply@tradesbook.ie';
+    const replyToEmail = process.env.GMAIL_USER || 'support@tradesbook.ie';
 
     console.log(`Gmail service: Sending email to ${recipients} with subject "${options.subject}"`);
 
@@ -184,7 +184,7 @@ export async function sendGmailEmail(options: EmailOptions): Promise<boolean> {
     const emailContent = [
       `MIME-Version: 1.0`,
       `To: ${recipients}`,
-      `From: ${fromEmail}`,
+      `From: TradesBook.ie <${fromEmail}>`,
       `Reply-To: ${replyToEmail}`,
       `Subject: ${options.subject}`,
       `Content-Type: text/html; charset=utf-8`,

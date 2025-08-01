@@ -33,6 +33,7 @@ import { pricingManagementService } from "./pricingManagementService";
 import { getWebsiteMetrics } from "./analyticsService";
 import { requestPasswordReset, resetPassword } from "./passwordResetService";
 import { askQuestion, getPopularQuestions, updateFaqAnswer, deactivateFaqAnswer } from "./faqService";
+import { compareTVModels } from "./tvComparisonService";
 
 // Function to reset and generate varied demo leads for demo account (creates actual database bookings)
 const resetDemoLeads = async (installerId: number) => {
@@ -8745,6 +8746,26 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Error fetching popular questions:", error);
       res.status(500).json({ error: "Failed to fetch popular questions" });
+    }
+  });
+
+  // AI TV Comparison endpoint
+  app.post("/api/ai/compare-tvs", async (req, res) => {
+    try {
+      const { model1, model2 } = req.body;
+      
+      if (!model1 || !model2) {
+        return res.status(400).json({ error: "Both TV models are required" });
+      }
+
+      const comparison = await compareTVModels(model1, model2);
+      res.json(comparison);
+    } catch (error) {
+      console.error("Error comparing TV models:", error);
+      res.status(500).json({ 
+        error: "Failed to compare TV models", 
+        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      });
     }
   });
 

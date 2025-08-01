@@ -78,6 +78,7 @@ function Router() {
       <Route path="/customer-resources" component={CustomerResources} />
       <Route path="/ai-help" component={AIHelpPage} />
       <Route path="/consultation" component={ConsultationBooking} />
+      <Route path="/consultation-booking" component={ConsultationBooking} />
 
       <Route path="/demo-login" component={DemoLogin} />
       

@@ -5,7 +5,7 @@ import {
   scheduleNegotiations, declinedRequests, emailTemplates, bannedUsers,
   leadQualityTracking, antiManipulation, customerVerification, resources,
   platformSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
-  downloadableGuides, videoTutorials,
+  consultations, downloadableGuides, videoTutorials,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -16,6 +16,7 @@ import {
   type ReferralCode, type InsertReferralCode,
   type ReferralUsage, type InsertReferralUsage,
   type ConsultationBooking, type InsertConsultationBooking,
+  type Consultation, type InsertConsultation,
   type LeadPricing, type InsertLeadPricing,
   type WallMountPricing, type InsertWallMountPricing,
   type ScheduleNegotiation, type InsertScheduleNegotiation,
@@ -266,6 +267,12 @@ export interface IStorage {
   markTvSetupEmailSent(id: number, emailType: 'confirmation' | 'admin' | 'credentials'): Promise<void>;
   deleteTvSetupBooking(id: number): Promise<void>;
   getTvSetupBookingsByEmail(email: string): Promise<TvSetupBooking[]>;
+
+  // Consultations
+  createConsultation(consultation: InsertConsultation): Promise<Consultation>;
+  getConsultation(id: number): Promise<Consultation | undefined>;
+  getAllConsultations(): Promise<Consultation[]>;
+  updateConsultation(id: number, updates: Partial<InsertConsultation>): Promise<Consultation | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1830,6 +1837,29 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(videoTutorials.id, id));
+  }
+
+  // Consultation operations
+  async createConsultation(consultation: InsertConsultation): Promise<Consultation> {
+    const [result] = await db.insert(consultations).values(consultation).returning();
+    return result;
+  }
+
+  async getConsultation(id: number): Promise<Consultation | undefined> {
+    const [result] = await db.select().from(consultations).where(eq(consultations.id, id));
+    return result;
+  }
+
+  async getAllConsultations(): Promise<Consultation[]> {
+    return await db.select().from(consultations).orderBy(desc(consultations.createdAt));
+  }
+
+  async updateConsultation(id: number, updates: Partial<InsertConsultation>): Promise<Consultation | undefined> {
+    const [result] = await db.update(consultations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(consultations.id, id))
+      .returning();
+    return result;
   }
 }
 

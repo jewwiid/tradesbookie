@@ -219,11 +219,11 @@ export default function AIHelpWidget() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => window.location.href = "/how-it-works"}
+              onClick={() => window.location.href = "/consultation"}
               className="text-xs"
             >
               <Phone className="h-3 w-3 mr-1" />
-              Contact Support
+              Book Consultation
             </Button>
             <Button
               type="submit"
@@ -246,11 +246,11 @@ export default function AIHelpWidget() {
           <Button
             variant="default"
             size="sm"
-            onClick={() => window.location.href = "/booking"}
+            onClick={() => window.location.href = "/consultation"}
             className="bg-green-600 hover:bg-green-700"
           >
             <Phone className="h-4 w-4 mr-2" />
-            Book Installation Service
+            Book Consultation
           </Button>
         </div>
       </CardContent>

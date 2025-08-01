@@ -8777,6 +8777,128 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Consultation booking endpoints
+  app.post("/api/consultations", async (req, res) => {
+    try {
+      const consultationData = req.body;
+      
+      // Basic validation
+      if (!consultationData.customerName || !consultationData.customerEmail || 
+          !consultationData.customerPhone || !consultationData.consultationType ||
+          !consultationData.preferredContactMethod || !consultationData.subject || 
+          !consultationData.message) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Create consultation in database
+      const consultation = await storage.createConsultation(consultationData);
+
+      // Send email notification to support
+      const { sendGmailEmail } = await import('./gmailService');
+      
+      const consultationTypeLabels = {
+        'technical-support': 'Technical Support',
+        'tv-recommendation': 'TV Recommendation',
+        'installation-planning': 'Installation Planning',
+        'general-inquiry': 'General Inquiry'
+      };
+
+      const urgencyLabels = {
+        'low': 'Low - Within a week',
+        'normal': 'Normal - Within 2-3 days',  
+        'high': 'High - Within 24 hours',
+        'urgent': 'Urgent - Same day'
+      };
+
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
+            <h1>New Consultation Request</h1>
+            <p style="margin: 0; opacity: 0.9;">ID: #${consultation.id}</p>
+          </div>
+          
+          <div style="padding: 30px; background: #f8f9fa;">
+            <h2 style="color: #333; margin-top: 0;">Customer Information</h2>
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <p><strong>Name:</strong> ${consultationData.customerName}</p>
+              <p><strong>Email:</strong> ${consultationData.customerEmail}</p>
+              <p><strong>Phone:</strong> ${consultationData.customerPhone}</p>
+              <p><strong>Existing Customer:</strong> ${consultationData.existingCustomer ? 'Yes' : 'No'}</p>
+            </div>
+
+            <h2 style="color: #333;">Consultation Details</h2>
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <p><strong>Type:</strong> ${consultationTypeLabels[consultationData.consultationType] || consultationData.consultationType}</p>
+              <p><strong>Subject:</strong> ${consultationData.subject}</p>
+              <p><strong>Urgency:</strong> <span style="color: ${consultationData.urgency === 'urgent' ? '#dc2626' : consultationData.urgency === 'high' ? '#ea580c' : consultationData.urgency === 'normal' ? '#2563eb' : '#16a34a'};">${urgencyLabels[consultationData.urgency] || consultationData.urgency}</span></p>
+              <p><strong>Preferred Contact:</strong> ${consultationData.preferredContactMethod}</p>
+              ${consultationData.preferredDate ? `<p><strong>Preferred Date:</strong> ${new Date(consultationData.preferredDate).toLocaleDateString()}</p>` : ''}
+              ${consultationData.preferredTime ? `<p><strong>Preferred Time:</strong> ${consultationData.preferredTime}</p>` : ''}
+            </div>
+
+            <h2 style="color: #333;">Message</h2>
+            <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea;">
+              <p style="margin: 0; white-space: pre-wrap;">${consultationData.message}</p>
+            </div>
+
+            <div style="margin-top: 30px; padding: 20px; background: #e3f2fd; border-radius: 8px; text-align: center;">
+              <p style="margin: 0; color: #1565c0;"><strong>Next Steps:</strong></p>
+              <p style="margin: 5px 0 0 0; color: #1565c0;">Contact the customer within ${consultationData.urgency === 'urgent' ? '2 hours' : consultationData.urgency === 'high' ? '4 hours' : consultationData.urgency === 'normal' ? '24 hours' : '48 hours'} via their preferred method.</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const emailSent = await sendGmailEmail({
+        to: 'support@tradesbook.ie',
+        subject: `New Consultation Request: ${consultationTypeLabels[consultationData.consultationType]} - ${consultationData.subject}`,
+        html: emailHtml
+      });
+
+      console.log(`Consultation created: ID ${consultation.id}, Email sent: ${emailSent}`);
+
+      res.json({ 
+        success: true, 
+        consultation: consultation,
+        emailSent: emailSent
+      });
+
+    } catch (error) {
+      console.error("Error creating consultation:", error);
+      res.status(500).json({ error: "Failed to create consultation request" });
+    }
+  });
+
+  // Admin endpoint to get all consultations
+  app.get("/api/admin/consultations", isAdmin, async (req, res) => {
+    try {
+      const consultations = await storage.getAllConsultations();
+      res.json(consultations);
+    } catch (error) {
+      console.error("Error fetching consultations:", error);
+      res.status(500).json({ error: "Failed to fetch consultations" });
+    }
+  });
+
+  // Admin endpoint to update consultation status
+  app.patch("/api/admin/consultations/:id", isAdmin, async (req, res) => {
+    try {
+      const consultationId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const consultation = await storage.updateConsultation(consultationId, updates);
+      
+      if (!consultation) {
+        return res.status(404).json({ error: "Consultation not found" });
+      }
+      
+      res.json(consultation);
+    } catch (error) {
+      console.error("Error updating consultation:", error);
+      res.status(500).json({ error: "Failed to update consultation" });
+    }
+  });
+
   return httpServer;
 }
 

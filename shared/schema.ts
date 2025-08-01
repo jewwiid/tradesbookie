@@ -1293,6 +1293,50 @@ export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit
 export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
 
+// Consultations table for booking meetings with support
+export const consultations = pgTable("consultations", {
+  id: serial("id").primaryKey(),
+  
+  // Customer information
+  customerName: text("customer_name").notNull(),
+  customerEmail: text("customer_email").notNull(),
+  customerPhone: text("customer_phone").notNull(),
+  
+  // Consultation details
+  consultationType: text("consultation_type").notNull(), // "technical-support", "tv-recommendation", "installation-planning", "general-inquiry"
+  preferredDate: timestamp("preferred_date"),
+  preferredTime: text("preferred_time"), // "morning", "afternoon", "evening"
+  preferredContactMethod: text("preferred_contact_method").notNull(), // "phone", "email", "video-call"
+  
+  // Subject and message
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  
+  // Additional context
+  urgency: text("urgency").default("normal"), // "low", "normal", "high", "urgent"
+  existingCustomer: boolean("existing_customer").default(false),
+  
+  // Status tracking
+  status: text("status").default("pending"), // "pending", "scheduled", "completed", "cancelled"
+  adminNotes: text("admin_notes"),
+  scheduledDateTime: timestamp("scheduled_date_time"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertConsultationSchema = createInsertSchema(consultations).omit({
+  id: true,
+  status: true,
+  adminNotes: true,
+  scheduledDateTime: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type Consultation = typeof consultations.$inferSelect;
+export type InsertConsultation = z.infer<typeof insertConsultationSchema>;
+
 // Banned users table for user management and security
 export const bannedUsers = pgTable("banned_users", {
   id: serial("id").primaryKey(),

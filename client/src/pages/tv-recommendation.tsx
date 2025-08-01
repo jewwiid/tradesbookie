@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Tv, Zap, Eye, Gamepad2, DollarSign, ArrowLeft, ArrowRight, Sparkles, Loader2, Trophy } from 'lucide-react';
+import { Tv, Zap, Eye, Gamepad2, DollarSign, ArrowLeft, ArrowRight, Sparkles, Loader2, Trophy, MessageCircle, HelpCircle, Clock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation } from '@tanstack/react-query';
@@ -763,6 +763,60 @@ I'm interested in learning more about this TV and discussing purchase options. P
               </>
             )}
           </Button>
+        </div>
+
+        {/* AI Help Assistant CTA Section */}
+        <div className="mt-12 mb-8">
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+            <CardContent className="p-6">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  Need More Help Choosing Your TV?
+                </h3>
+                <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                  Our AI assistant can answer specific questions about TV features, installation requirements, 
+                  streaming setup, and help you compare different models to make the perfect choice.
+                </p>
+                
+                {/* Feature Benefits */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <div className="flex items-center justify-center text-gray-600">
+                    <Zap className="w-4 h-4 text-blue-500 mr-2 flex-shrink-0" />
+                    <span className="font-medium text-sm">Instant Answers</span>
+                  </div>
+                  <div className="flex items-center justify-center text-gray-600">
+                    <Clock className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    <span className="font-medium text-sm">Available 24/7</span>
+                  </div>
+                  <div className="flex items-center justify-center text-gray-600">
+                    <HelpCircle className="w-4 h-4 text-purple-500 mr-2 flex-shrink-0" />
+                    <span className="font-medium text-sm">TV Expert Knowledge</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Button 
+                    onClick={() => window.open('/ai-help', '_blank')}
+                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3"
+                  >
+                    <MessageCircle className="w-4 h-4 mr-2" />
+                    Ask AI Assistant
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => window.open('/ai-help?tab=compare', '_blank')}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-50 px-6 py-3"
+                  >
+                    <Trophy className="w-4 h-4 mr-2" />
+                    Compare TV Models
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

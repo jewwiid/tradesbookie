@@ -377,7 +377,7 @@ export const tvSetupBookings = pgTable("tv_setup_bookings", {
   salesStaffStore: text("sales_staff_store"),
   
   // Setup status
-  setupStatus: text("setup_status").default("pending"), // pending, scheduled, in_progress, completed, cancelled
+  setupStatus: text("setup_status").default("pending"), // pending, mac_required, credentials_ready, payment_required, completed, cancelled
   setupMethod: text("setup_method"), // remote, in_person
   
   // Admin tracking
@@ -385,12 +385,39 @@ export const tvSetupBookings = pgTable("tv_setup_bookings", {
   completedAt: timestamp("completed_at"),
   adminNotes: text("admin_notes"),
   
+  // MAC Address collection (after booking confirmation)
+  macAddress: text("mac_address"), // Customer provides MAC address for their TV/device
+  macAddressProvided: boolean("mac_address_provided").default(false),
+  macAddressProvidedAt: timestamp("mac_address_provided_at"),
+  recommendedApp: text("recommended_app"), // App recommended by admin based on TV model
+  appDownloadInstructions: text("app_download_instructions"), // Custom instructions from admin
+  
+  // IPTV/M3U Credentials (provided by admin after MAC address)
+  serverHostname: text("server_hostname"), // e.g., http://536429.solanaflix.com:8080/
+  serverUsername: text("server_username"), // e.g., TV-10105389
+  serverPassword: text("server_password"), // e.g., 530090324041
+  m3uUrl: text("m3u_url"), // Generated M3U URL for the customer
+  numberOfDevices: integer("number_of_devices").default(1),
+  subscriptionExpiryDate: timestamp("subscription_expiry_date"), // 1 year from activation
+  
+  // Alternative: Email account for M3U access
+  fastmailEmail: text("fastmail_email"), // e.g., tvsetup1tradesbook@fastmail.com
+  fastmailPassword: text("fastmail_password"),
+  
   // Login credentials provided by admin
   appUsername: text("app_username"),
   appPassword: text("app_password"),
   credentialsProvided: boolean("credentials_provided").default(false),
   credentialsEmailSent: boolean("credentials_email_sent").default(false),
   credentialsSentAt: timestamp("credentials_sent_at"),
+  credentialsType: text("credentials_type"), // 'iptv' or 'm3u_email'
+  
+  // Payment for accessing credentials (only after MAC address provided and credentials ready)
+  credentialsPaymentRequired: boolean("credentials_payment_required").default(true),
+  credentialsPaymentStatus: text("credentials_payment_status").default("pending"), // pending, paid, failed
+  credentialsPaymentAmount: decimal("credentials_payment_amount", { precision: 8, scale: 2 }),
+  credentialsStripeSessionId: text("credentials_stripe_session_id"),
+  credentialsPaidAt: timestamp("credentials_paid_at"),
   
   // Email notifications tracking
   confirmationEmailSent: boolean("confirmation_email_sent").default(false),
@@ -1043,13 +1070,7 @@ export const insertAntiManipulationSchema = createInsertSchema(antiManipulation)
   flaggedAt: true,
 });
 
-// Type exports
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type Installer = typeof installers.$inferSelect;
-export type InsertInstaller = z.infer<typeof insertInstallerSchema>;
-export type Booking = typeof bookings.$inferSelect;
-export type InsertBooking = z.infer<typeof insertBookingSchema>;
+// Common type exports
 export type Resource = typeof resources.$inferSelect;
 export type InsertResource = z.infer<typeof insertResourceSchema>;
 export type DownloadableGuide = typeof downloadableGuides.$inferSelect;
@@ -1133,21 +1154,14 @@ export const insertScheduleNegotiationSchema = createInsertSchema(scheduleNegoti
   }),
 });
 
-// Types
+// Additional Types
 export type UpsertUser = typeof users.$inferInsert;
-export type User = typeof users.$inferSelect;
-
 export type HarveyNormanInvoice = typeof harveyNormanInvoices.$inferSelect;
 export type InsertHarveyNormanInvoice = z.infer<typeof insertHarveyNormanInvoiceSchema>;
 
-export type Installer = typeof installers.$inferSelect;
-export type InsertInstaller = z.infer<typeof insertInstallerSchema>;
 export type InstallerRegister = z.infer<typeof installerRegisterSchema>;
 export type InstallerLogin = z.infer<typeof installerLoginSchema>;
 export type InstallerProfile = z.infer<typeof installerProfileSchema>;
-
-export type Booking = typeof bookings.$inferSelect;
-export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
 // Removed: FeeStructure types no longer needed
 

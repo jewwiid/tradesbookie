@@ -252,6 +252,10 @@ export interface IStorage {
   getTvSetupBooking(id: number): Promise<TvSetupBooking | undefined>;
   getAllTvSetupBookings(): Promise<TvSetupBooking[]>;
   updateTvSetupBookingPayment(id: number, paymentIntentId: string, status: string): Promise<void>;
+  updateTvSetupBookingMacAddress(id: number, macAddress: string): Promise<void>;
+  updateTvSetupBookingStatus(id: number, status: string, adminNotes?: string, assignedTo?: string): Promise<void>;
+  updateTvSetupBookingStripeSession(id: number, sessionId: string): Promise<void>;
+  markTvSetupEmailSent(id: number, emailType: 'confirmation' | 'admin' | 'credentials'): Promise<void>;
   deleteTvSetupBooking(id: number): Promise<void>;
 }
 
@@ -1683,6 +1687,26 @@ export class DatabaseStorage implements IStorage {
 
     await db.update(tvSetupBookings)
       .set(updateData)
+      .where(eq(tvSetupBookings.id, id));
+  }
+
+  async updateTvSetupBookingMacAddress(id: number, macAddress: string): Promise<void> {
+    await db.update(tvSetupBookings)
+      .set({ 
+        macAddress,
+        macAddressProvided: true,
+        macAddressProvidedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(tvSetupBookings.id, id));
+  }
+
+  async updateTvSetupBookingStripeSession(id: number, sessionId: string): Promise<void> {
+    await db.update(tvSetupBookings)
+      .set({ 
+        stripeSessionId: sessionId,
+        updatedAt: new Date()
+      })
       .where(eq(tvSetupBookings.id, id));
   }
 

@@ -2189,6 +2189,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Submit MAC Address for TV Setup
+  app.put("/api/tv-setup-bookings/:id/mac-address", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      const { macAddress } = req.body;
+      
+      if (!bookingId || isNaN(bookingId)) {
+        return res.status(400).json({ message: "Valid booking ID is required" });
+      }
+      
+      if (!macAddress || !macAddress.trim()) {
+        return res.status(400).json({ message: "MAC address is required" });
+      }
+      
+      // Get the booking
+      const booking = await storage.getTvSetupBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+      
+      // Update MAC address and mark as provided
+      await storage.updateTvSetupBookingMacAddress(bookingId, macAddress.trim());
+      
+      // Update status to credentials_ready if not already set
+      if (booking.setupStatus === 'pending' || booking.setupStatus === 'mac_required') {
+        await storage.updateTvSetupBookingStatus(bookingId, 'credentials_ready');
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "MAC address submitted successfully" 
+      });
+    } catch (error: any) {
+      console.error("Error submitting MAC address:", error);
+      res.status(500).json({ 
+        message: "Error submitting MAC address: " + error.message 
+      });
+    }
+  });
+
+  // Initiate payment for TV setup credentials
+  app.post("/api/tv-setup-bookings/:id/payment", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      
+      if (!bookingId || isNaN(bookingId)) {
+        return res.status(400).json({ message: "Valid booking ID is required" });
+      }
+      
+      // Get the booking
+      const booking = await storage.getTvSetupBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+      
+      // Check if credentials are provided and payment is required
+      if (!booking.credentialsProvided) {
+        return res.status(400).json({ message: "Credentials not yet available" });
+      }
+      
+      if (booking.credentialsPaymentStatus === 'paid') {
+        return res.status(400).json({ message: "Payment already completed" });
+      }
+      
+      // Calculate payment amount (use credentials payment amount or fallback to original)
+      const paymentAmount = booking.credentialsPaymentAmount 
+        ? parseFloat(booking.credentialsPaymentAmount) 
+        : parseFloat(booking.paymentAmount);
+      
+      // Create Stripe checkout session
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'eur',
+              product_data: {
+                name: `TV Setup Credentials - Booking #${booking.id}`,
+                description: `Access to streaming login credentials for ${booking.tvBrand} ${booking.tvModel}`,
+              },
+              unit_amount: Math.round(paymentAmount * 100), // Convert to cents
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: `${req.get('origin')}/tv-setup-tracker?bookingId=${booking.id}&payment=success`,
+        cancel_url: `${req.get('origin')}/tv-setup-tracker?bookingId=${booking.id}&payment=cancelled`,
+        metadata: {
+          tvSetupBookingId: booking.id.toString(),
+          type: 'tv_setup_credentials'
+        },
+        customer_email: booking.email,
+      });
+
+      // Store the Stripe session ID
+      await storage.updateTvSetupBookingStripeSession(bookingId, session.id);
+      
+      res.json({ 
+        success: true, 
+        stripeUrl: session.url,
+        sessionId: session.id
+      });
+    } catch (error: any) {
+      console.error("Error creating payment session:", error);
+      res.status(500).json({ 
+        message: "Error creating payment session: " + error.message 
+      });
+    }
+  });
+
   // Installer Dashboard API endpoints
   app.get("/api/installer/stats", async (req, res) => {
     try {

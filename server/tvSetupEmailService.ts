@@ -123,7 +123,7 @@ export async function sendTvSetupAdminNotification(booking: TvSetupBooking): Pro
           </div>
 
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://tradesbook.ie/admin/tv-setup" style="background: #DC2626; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+            <a href="https://tradesbook.ie/admin-dashboard" style="background: #DC2626; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
               Manage This Booking
             </a>
           </div>

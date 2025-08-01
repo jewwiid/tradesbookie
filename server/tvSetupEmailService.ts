@@ -63,7 +63,13 @@ export async function sendTvSetupConfirmationEmail(booking: TvSetupBooking): Pro
       </div>
     `;
 
-    await sendGmailEmail(booking.email, subject, htmlContent, EMAIL_CONFIG.SUPPORT);
+    await sendGmailEmail({
+      to: booking.email,
+      subject: subject,
+      html: htmlContent,
+      from: EMAIL_CONFIG.SUPPORT,
+      replyTo: EMAIL_CONFIG.SUPPORT
+    });
     return true;
   } catch (error) {
     console.error('Failed to send TV setup confirmation email:', error);
@@ -134,7 +140,13 @@ export async function sendTvSetupAdminNotification(booking: TvSetupBooking): Pro
       </div>
     `;
 
-    await sendGmailEmail(EMAIL_CONFIG.ADMIN, subject, htmlContent, EMAIL_CONFIG.NOREPLY);
+    await sendGmailEmail({
+      to: EMAIL_CONFIG.ADMIN,
+      subject: subject,
+      html: htmlContent,
+      from: EMAIL_CONFIG.NOREPLY,
+      replyTo: EMAIL_CONFIG.NOREPLY
+    });
     return true;
   } catch (error) {
     console.error('Failed to send TV setup admin notification:', error);
@@ -232,7 +244,13 @@ export async function sendTvSetupStatusUpdateEmail(booking: TvSetupBooking, newS
       </div>
     `;
 
-    await sendGmailEmail(booking.email, subject, htmlContent, EMAIL_CONFIG.SUPPORT);
+    await sendGmailEmail({
+      to: booking.email,
+      subject: subject,
+      html: htmlContent,
+      from: EMAIL_CONFIG.SUPPORT,
+      replyTo: EMAIL_CONFIG.SUPPORT
+    });
     return true;
   } catch (error) {
     console.error('Failed to send TV setup status update email:', error);
@@ -305,7 +323,13 @@ export async function sendTvSetupCredentialsEmail(booking: TvSetupBooking): Prom
       </div>
     `;
 
-    await sendGmailEmail(booking.email, subject, htmlContent, EMAIL_CONFIG.SUPPORT);
+    await sendGmailEmail({
+      to: booking.email,
+      subject: subject,
+      html: htmlContent,
+      from: EMAIL_CONFIG.SUPPORT,
+      replyTo: EMAIL_CONFIG.SUPPORT
+    });
     return true;
   } catch (error) {
     console.error('Failed to send TV setup credentials email:', error);

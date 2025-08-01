@@ -32,6 +32,7 @@ import { fraudPreventionService } from "./fraudPreventionService";
 import { pricingManagementService } from "./pricingManagementService";
 import { getWebsiteMetrics } from "./analyticsService";
 import { requestPasswordReset, resetPassword } from "./passwordResetService";
+import { askQuestion, getPopularQuestions, updateFaqAnswer, deactivateFaqAnswer } from "./faqService";
 
 // Function to reset and generate varied demo leads for demo account (creates actual database bookings)
 const resetDemoLeads = async (installerId: number) => {
@@ -8713,6 +8714,66 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Error deleting video tutorial:", error);
       res.status(500).json({ message: "Failed to delete video tutorial" });
+    }
+  });
+
+  // AI FAQ/Q&A System endpoints
+  app.post("/api/faq/ask", async (req, res) => {
+    try {
+      const { question } = req.body;
+      
+      if (!question || question.trim().length === 0) {
+        return res.status(400).json({ error: "Question is required" });
+      }
+
+      const response = await askQuestion(question);
+      res.json(response);
+    } catch (error) {
+      console.error("Error asking FAQ question:", error);
+      res.status(500).json({ 
+        error: "Failed to generate answer", 
+        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      });
+    }
+  });
+
+  app.get("/api/faq/popular", async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 5;
+      const popularQuestions = await getPopularQuestions(limit);
+      res.json(popularQuestions);
+    } catch (error) {
+      console.error("Error fetching popular questions:", error);
+      res.status(500).json({ error: "Failed to fetch popular questions" });
+    }
+  });
+
+  // Admin FAQ management endpoints
+  app.put("/api/admin/faq/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { answer } = req.body;
+      
+      if (!answer) {
+        return res.status(400).json({ error: "Answer is required" });
+      }
+
+      await updateFaqAnswer(id, answer);
+      res.json({ message: "FAQ answer updated successfully" });
+    } catch (error) {
+      console.error("Error updating FAQ answer:", error);
+      res.status(500).json({ error: "Failed to update FAQ answer" });
+    }
+  });
+
+  app.delete("/api/admin/faq/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await deactivateFaqAnswer(id);
+      res.json({ message: "FAQ answer deactivated successfully" });
+    } catch (error) {
+      console.error("Error deactivating FAQ answer:", error);
+      res.status(500).json({ error: "Failed to deactivate FAQ answer" });
     }
   });
 

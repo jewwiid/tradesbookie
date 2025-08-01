@@ -1316,7 +1316,27 @@ export const insertBannedUserSchema = createInsertSchema(bannedUsers).omit({
   updatedAt: true,
 });
 
+// AI FAQ answers table for caching Q&A responses
+export const faqAnswers = pgTable("faq_answers", {
+  id: serial("id").primaryKey(),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  questionHash: text("question_hash").unique().notNull(), // For faster lookups
+  useCount: integer("use_count").default(1), // Track how often this Q&A is used
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertFaqAnswerSchema = createInsertSchema(faqAnswers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type BannedUser = typeof bannedUsers.$inferSelect;
+export type FaqAnswer = typeof faqAnswers.$inferSelect;
+export type InsertFaqAnswer = z.infer<typeof insertFaqAnswerSchema>;
 export type InsertBannedUser = z.infer<typeof insertBannedUserSchema>;
 
 // Platform settings and voucher types

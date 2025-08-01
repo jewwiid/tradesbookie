@@ -25,6 +25,7 @@ import {
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
+import AIHelpWidget from "@/components/AIHelpWidget";
 
 export default function CustomerResources() {
   // Fetch downloadable guides
@@ -382,6 +383,21 @@ export default function CustomerResources() {
               </CardContent>
             </Card>
           )}
+        </section>
+
+        {/* AI Help Assistant */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
+            <HelpCircle className="w-7 h-7 mr-3 text-blue-600" />
+            Ask Our AI Assistant
+          </h2>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6">
+            <p className="text-gray-700 mb-6 text-center max-w-2xl mx-auto">
+              Get instant answers to your questions about TV installation, electronics, and streaming services. 
+              Our AI assistant is trained on the latest technical information to help you quickly.
+            </p>
+            <AIHelpWidget />
+          </div>
         </section>
 
         {/* Contact Support */}

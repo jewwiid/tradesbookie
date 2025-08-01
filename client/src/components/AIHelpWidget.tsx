@@ -53,7 +53,7 @@ export default function AIHelpWidget() {
   const askQuestionMutation = useMutation({
     mutationFn: async (questionText: string): Promise<FaqResponse> => {
       const response = await apiRequest("POST", "/api/faq/ask", { question: questionText });
-      return response as FaqResponse;
+      return await response.json() as FaqResponse;
     },
     onSuccess: (response, questionText) => {
       const botMessage: Message = {

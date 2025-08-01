@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building, Receipt, User, Zap, AlertTriangle, Home as HomeIcon, Clock, CreditCard, FileText } from "lucide-react";
+import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building, Receipt, User, Zap, AlertTriangle, Home as HomeIcon, Clock, CreditCard, FileText, MessageCircle } from "lucide-react";
 import tvSetupImage from "@assets/IMG_1807_1753964075870.jpeg";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -618,6 +618,44 @@ export default function Home() {
                 Our certified installer arrives on time and mounts your TV exactly as previewed
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Help Assistant CTA Section */}
+      <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-8">
+              <MessageCircle className="h-10 w-10 text-white" />
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+              Got Questions? Ask Our AI Assistant
+            </h2>
+            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+              Get instant answers about TV installation, electronics setup, and streaming services. 
+              Our AI assistant is available 24/7 with expert knowledge to help you quickly.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+              <div className="flex items-center text-gray-600">
+                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                <span>Instant responses</span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                <span>24/7 availability</span>
+              </div>
+              <div className="flex items-center text-gray-600">
+                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                <span>Expert knowledge</span>
+              </div>
+            </div>
+            <Link href="/customer-resources">
+              <Button size="lg" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-8 py-4 text-lg">
+                <MessageCircle className="w-5 h-5 mr-2" />
+                Try AI Assistant Now
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

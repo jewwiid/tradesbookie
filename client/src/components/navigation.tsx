@@ -5,7 +5,7 @@ import { useInstallerAuth } from '@/hooks/useInstallerAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X, Wrench, FileText } from 'lucide-react';
+import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X, Wrench, FileText, MessageCircle } from 'lucide-react';
 import SimplifiedAuthDialog from './SimplifiedAuthDialog';
 
 interface NavigationProps {
@@ -66,6 +66,13 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                       className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
                     >
                       Resources
+                    </Link>
+                    <Link 
+                      href="/customer-resources" 
+                      className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium px-3 py-1 rounded-md hover:bg-blue-50 flex items-center gap-1"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      AI Help
                     </Link>
                     <Link 
                       href="/booking-tracker" 
@@ -244,6 +251,14 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                           >
                             <Calendar className="h-5 w-5 mr-4 flex-shrink-0" />
                             Track Booking
+                          </Link>
+                          <Link 
+                            href="/customer-resources" 
+                            className="flex items-center py-4 px-4 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors text-base min-h-[48px] font-medium"
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <MessageCircle className="h-5 w-5 mr-4 flex-shrink-0" />
+                            AI Help Assistant
                           </Link>
                         </div>
                       )}

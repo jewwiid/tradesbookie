@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Shield, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { Shield, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, MessageCircle } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -88,6 +88,12 @@ export default function Footer() {
               <li>
                 <Link href="/installer-registration" className="text-gray-300 hover:text-white transition-colors">
                   Join as Installer
+                </Link>
+              </li>
+              <li>
+                <Link href="/customer-resources" className="text-blue-400 hover:text-blue-300 transition-colors flex items-center font-semibold">
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  AI Help Assistant
                 </Link>
               </li>
               <li>

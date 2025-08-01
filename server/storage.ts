@@ -255,6 +255,14 @@ export interface IStorage {
   updateTvSetupBookingMacAddress(id: number, macAddress: string): Promise<void>;
   updateTvSetupBookingStatus(id: number, status: string, adminNotes?: string, assignedTo?: string): Promise<void>;
   updateTvSetupBookingStripeSession(id: number, sessionId: string): Promise<void>;
+  updateTvSetupBookingIptvCredentials(id: number, credentials: {
+    credentialsType: string;
+    serverHostname?: string;
+    serverUsername?: string;
+    serverPassword?: string;
+    numberOfDevices?: number;
+    m3uUrl?: string;
+  }): Promise<void>;
   markTvSetupEmailSent(id: number, emailType: 'confirmation' | 'admin' | 'credentials'): Promise<void>;
   deleteTvSetupBooking(id: number): Promise<void>;
 }
@@ -1705,6 +1713,28 @@ export class DatabaseStorage implements IStorage {
     await db.update(tvSetupBookings)
       .set({ 
         stripeSessionId: sessionId,
+        updatedAt: new Date()
+      })
+      .where(eq(tvSetupBookings.id, id));
+  }
+
+  async updateTvSetupBookingIptvCredentials(id: number, credentials: {
+    credentialsType: string;
+    serverHostname?: string;
+    serverUsername?: string;
+    serverPassword?: string;
+    numberOfDevices?: number;
+    m3uUrl?: string;
+  }): Promise<void> {
+    await db.update(tvSetupBookings)
+      .set({ 
+        credentialsType: credentials.credentialsType,
+        serverHostname: credentials.serverHostname,
+        serverUsername: credentials.serverUsername,
+        serverPassword: credentials.serverPassword,
+        numberOfDevices: credentials.numberOfDevices,
+        m3uUrl: credentials.m3uUrl,
+        credentialsProvided: true,
         updatedAt: new Date()
       })
       .where(eq(tvSetupBookings.id, id));

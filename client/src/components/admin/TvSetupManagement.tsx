@@ -56,8 +56,19 @@ interface TvSetupBooking {
   setupStatus: string;
   setupMethod?: string;
   assignedTo?: string;
+  
+  // IPTV Credentials - matching the screenshot format
+  serverHostname?: string;
+  serverUsername?: string;
+  serverPassword?: string;
+  m3uUrl?: string;
+  numberOfDevices?: number;
+  credentialsType?: string; // 'iptv' or 'm3u_url'
+  
+  // Legacy fields for backward compatibility
   appUsername?: string;
   appPassword?: string;
+  
   credentialsProvided: boolean;
   credentialsEmailSent: boolean;
   credentialsSentAt?: string;
@@ -70,8 +81,29 @@ interface TvSetupBooking {
 }
 
 const credentialsSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(1, "Password is required"),
+  credentialsType: z.enum(["iptv", "m3u_url"], {
+    required_error: "Please select credentials type",
+  }),
+  
+  // IPTV Login Details
+  serverHostname: z.string().optional(),
+  serverUsername: z.string().optional(), 
+  serverPassword: z.string().optional(),
+  numberOfDevices: z.number().min(1).max(10).optional().default(1),
+  
+  // M3U URL
+  m3uUrl: z.string().optional(),
+}).refine((data) => {
+  if (data.credentialsType === "iptv") {
+    return data.serverHostname && data.serverUsername && data.serverPassword;
+  }
+  if (data.credentialsType === "m3u_url") {
+    return data.m3uUrl;
+  }
+  return false;
+}, {
+  message: "Please provide all required fields for the selected credentials type",
+  path: ["credentialsType"],
 });
 
 const statusUpdateSchema = z.object({
@@ -94,8 +126,12 @@ function TvSetupManagement() {
   const credentialsForm = useForm<z.infer<typeof credentialsSchema>>({
     resolver: zodResolver(credentialsSchema),
     defaultValues: {
-      username: "",
-      password: "",
+      credentialsType: "iptv" as const,
+      serverHostname: "",
+      serverUsername: "",
+      serverPassword: "",
+      numberOfDevices: 1,
+      m3uUrl: "",
     },
   });
 
@@ -109,7 +145,7 @@ function TvSetupManagement() {
   });
 
   // Queries
-  const { data: bookings = [], isLoading } = useQuery({
+  const { data: bookings = [], isLoading } = useQuery<TvSetupBooking[]>({
     queryKey: ["/api/admin/tv-setup-bookings"],
     retry: false,
   });
@@ -255,8 +291,13 @@ function TvSetupManagement() {
 
   const openCredentialsDialog = (booking: TvSetupBooking) => {
     setSelectedBooking(booking);
-    credentialsForm.setValue("username", booking.appUsername || "");
-    credentialsForm.setValue("password", booking.appPassword || "");
+    // Set form values based on existing credentials
+    credentialsForm.setValue("credentialsType", (booking.credentialsType as "iptv" | "m3u_url") || "iptv");
+    credentialsForm.setValue("serverHostname", booking.serverHostname || "");
+    credentialsForm.setValue("serverUsername", booking.serverUsername || "");
+    credentialsForm.setValue("serverPassword", booking.serverPassword || "");
+    credentialsForm.setValue("numberOfDevices", booking.numberOfDevices || 1);
+    credentialsForm.setValue("m3uUrl", booking.m3uUrl || "");
     setShowCredentialsDialog(true);
   };
 
@@ -623,33 +664,173 @@ function TvSetupManagement() {
             </DialogDescription>
           </DialogHeader>
           <Form {...credentialsForm}>
-            <form onSubmit={credentialsForm.handleSubmit(onCredentialsSubmit)} className="space-y-4">
+            <form onSubmit={credentialsForm.handleSubmit(onCredentialsSubmit)} className="space-y-6">
+              {/* Credentials Type Selector */}
               <FormField
                 control={credentialsForm.control}
-                name="username"
+                name="credentialsType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter username for streaming apps" {...field} />
-                    </FormControl>
+                    <FormLabel className="text-base font-semibold">Credentials Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select credentials type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="iptv">IPTV Login Details</SelectItem>
+                        <SelectItem value="m3u_url">M3U URL</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={credentialsForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Enter password for streaming apps" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
+              {/* IPTV Login Details Section */}
+              {credentialsForm.watch("credentialsType") === "iptv" && (
+                <div className="space-y-4 border rounded-lg p-4 bg-blue-50">
+                  <h3 className="font-semibold text-lg text-blue-900 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    IPTV LOGIN DETAILS
+                    <Badge className="bg-green-100 text-green-800 text-xs">RECOMMENDED</Badge>
+                  </h3>
+                  
+                  <FormField
+                    control={credentialsForm.control}
+                    name="serverHostname"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">SERVER HOSTNAME</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="http://536429.solanaflix.com:8080/" 
+                            {...field} 
+                            className="font-mono text-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={credentialsForm.control}
+                    name="serverUsername"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">SERVER USERNAME</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="TV-10105389" 
+                            {...field} 
+                            className="font-mono text-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={credentialsForm.control}
+                    name="serverPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">SERVER PASSWORD</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="530090324041" 
+                            {...field} 
+                            className="font-mono text-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={credentialsForm.control}
+                    name="numberOfDevices"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                          NUMBER OF DEVICES
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-xs"
+                          >
+                            UPGRADE
+                          </Button>
+                        </FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            max="10" 
+                            {...field} 
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            value={field.value || 1}
+                            className="w-20"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {/* M3U URL Section */}
+              {credentialsForm.watch("credentialsType") === "m3u_url" && (
+                <div className="space-y-4 border rounded-lg p-4 bg-yellow-50">
+                  <h3 className="font-semibold text-lg text-yellow-900 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                    M3U URL
+                    <Badge className="bg-yellow-100 text-yellow-800 text-xs">NOT RECOMMENDED</Badge>
+                  </h3>
+                  
+                  <div className="flex gap-2 mb-4">
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      MPEGTS
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="text-gray-600"
+                    >
+                      HLS
+                    </Button>
+                  </div>
+
+                  <FormField
+                    control={credentialsForm.control}
+                    name="m3uUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="http://536429.solanaflix.com/get.php?username=TV-10105389&password=530090324041&type=m3u_plus" 
+                            {...field} 
+                            className="font-mono text-sm resize-none"
+                            rows={3}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setShowCredentialsDialog(false)}>
                   Cancel

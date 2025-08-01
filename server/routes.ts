@@ -1983,14 +1983,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/tv-setup-booking/:id/credentials", isAuthenticated, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);
-      const { username, password } = req.body;
+      const { 
+        credentialsType,
+        serverHostname,
+        serverUsername, 
+        serverPassword,
+        numberOfDevices,
+        m3uUrl
+      } = req.body;
 
-      if (!username || !password) {
-        return res.status(400).json({ message: "Username and password are required" });
+      if (!credentialsType) {
+        return res.status(400).json({ message: "Credentials type is required" });
       }
 
-      // Update credentials in database
-      await storage.updateTvSetupBookingCredentials(bookingId, username, password);
+      // Validate IPTV credentials
+      if (credentialsType === "iptv") {
+        if (!serverHostname || !serverUsername || !serverPassword) {
+          return res.status(400).json({ message: "Server hostname, username, and password are required for IPTV credentials" });
+        }
+      }
+
+      // Validate M3U URL credentials
+      if (credentialsType === "m3u_url") {
+        if (!m3uUrl) {
+          return res.status(400).json({ message: "M3U URL is required for M3U credentials" });
+        }
+      }
+
+      // Update credentials in database using new storage method
+      await storage.updateTvSetupBookingIptvCredentials(bookingId, {
+        credentialsType,
+        serverHostname,
+        serverUsername,
+        serverPassword,
+        numberOfDevices: numberOfDevices || 1,
+        m3uUrl
+      });
       
       // Get updated booking details
       const booking = await storage.getTvSetupBooking(bookingId);

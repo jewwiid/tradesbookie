@@ -482,7 +482,10 @@ function TvSetupManagement() {
                         <div className="space-y-1">
                           {getStatusBadge(booking.setupStatus)}
                           {booking.assignedTo && (
-                            <div className="text-sm text-gray-500">Assigned: {booking.assignedTo}</div>
+                            <div className="text-xs text-gray-500 font-mono">
+                              <div className="text-gray-700 font-normal">Stored in:</div>
+                              {booking.assignedTo}
+                            </div>
                           )}
                         </div>
                       </TableCell>
@@ -653,7 +656,10 @@ function TvSetupManagement() {
                     <div><Label className="font-medium">Amount:</Label> €{selectedBooking.paymentAmount}</div>
                     <div><Label className="font-medium">Setup Status:</Label> {getStatusBadge(selectedBooking.setupStatus)}</div>
                     {selectedBooking.assignedTo && (
-                      <div><Label className="font-medium">Assigned To:</Label> {selectedBooking.assignedTo}</div>
+                      <div>
+                        <Label className="font-medium">Credentials Storage Email:</Label> 
+                        <span className="font-mono text-sm ml-2">{selectedBooking.assignedTo}</span>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -1070,10 +1076,17 @@ function TvSetupManagement() {
                 name="assignedTo"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Assigned To (Optional)</FormLabel>
+                    <FormLabel>Credentials Storage Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter technician name" {...field} />
+                      <Input 
+                        placeholder="e.g. tvsetup1tradesbook@fastmail.com" 
+                        {...field} 
+                        type="email"
+                      />
                     </FormControl>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Email address where this client's login credentials are stored
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}

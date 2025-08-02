@@ -261,11 +261,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Content Column - Takes up more space for buttons */}
-            <div className="lg:col-span-7 xl:col-span-8 text-center lg:text-left lg:pr-8 xl:pr-12 relative z-20">
+            <div className="lg:col-span-8 xl:col-span-9 text-center lg:text-left lg:pr-8 xl:pr-12 relative z-20">
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight mx-auto lg:mx-0">
                 Ireland's Leading{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                  TV Installation Platform
+                  Home Improvement Platform
                 </span>
               </h1>
               <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed mx-auto lg:mx-0 max-w-none">
@@ -314,7 +314,7 @@ export default function Home() {
             </div>
             
             {/* Image Column - Takes up less space now */}
-            <div className="lg:col-span-5 xl:col-span-4 relative order-first lg:order-last z-10">
+            <div className="lg:col-span-4 xl:col-span-3 relative order-first lg:order-last z-10">
               <div className="relative max-w-md mx-auto lg:max-w-none hero-slideshow-container">
                 <div 
                   className="relative overflow-hidden rounded-3xl shadow-2xl aspect-[3/2] cursor-pointer"

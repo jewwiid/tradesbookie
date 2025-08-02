@@ -2018,6 +2018,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Credentials must be provided before requesting payment" });
       }
 
+      // Calculate payment amount (use credentials payment amount or fallback to booking payment amount)
+      const paymentAmount = booking.credentialsPaymentAmount 
+        ? parseFloat(booking.credentialsPaymentAmount) 
+        : parseFloat(booking.paymentAmount);
+
       // Create Stripe Checkout Session
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -2029,7 +2034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 name: 'TV Setup Assistance Service - Login Credentials',
                 description: `Access credentials for ${booking.name} - Professional TV app setup assistance`,
               },
-              unit_amount: 10000, // €100 in cents
+              unit_amount: Math.round(paymentAmount * 100), // Convert to cents
             },
             quantity: 1,
           },

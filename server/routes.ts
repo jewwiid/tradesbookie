@@ -2700,6 +2700,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? parseFloat(booking.credentialsPaymentAmount) 
         : parseFloat(booking.paymentAmount);
       
+      console.log(`Creating Stripe session for booking ${booking.id}, amount: €${paymentAmount}`);
+      
       // Create Stripe checkout session
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -2736,6 +2738,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Error creating payment session:", error);
+      console.error("Error details:", {
+        message: error.message,
+        type: error.type,
+        code: error.code,
+        stack: error.stack
+      });
       res.status(500).json({ 
         message: "Error creating payment session: " + error.message 
       });

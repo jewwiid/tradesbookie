@@ -800,143 +800,120 @@ function TvSetupManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Booking ID</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>TV Details</TableHead>
-                    <TableHead>MAC Address</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Setup Status</TableHead>
-                    <TableHead>Credentials</TableHead>
-                    <TableHead>Referral</TableHead>
-                    <TableHead>Expiry Date</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="w-20">ID</TableHead>
+                    <TableHead className="w-48">Customer</TableHead>
+                    <TableHead className="w-32">TV Model</TableHead>
+                    <TableHead className="w-32">MAC</TableHead>
+                    <TableHead className="w-24">Payment</TableHead>
+                    <TableHead className="w-32">Status</TableHead>
+                    <TableHead className="w-24">Creds</TableHead>
+                    <TableHead className="w-28">Referral</TableHead>
+                    <TableHead className="w-28">Expiry</TableHead>
+                    <TableHead className="w-20">Date</TableHead>
+                    <TableHead className="w-40">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {bookings.map((booking: TvSetupBooking) => (
                     <TableRow key={booking.id}>
-                      <TableCell className="font-mono">#{booking.id}</TableCell>
+                      <TableCell className="font-mono text-sm">#{booking.id}</TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium">{booking.name}</div>
-                          <div className="text-sm text-gray-500">{booking.email}</div>
-                          <div className="text-sm text-gray-500">{booking.mobile}</div>
+                          <div className="font-medium text-sm truncate" title={booking.name}>{booking.name}</div>
+                          <div className="text-xs text-gray-500 truncate" title={booking.email}>{booking.email}</div>
+                          <div className="text-xs text-gray-500">{booking.mobile}</div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium">{booking.tvBrand} {booking.tvModel}</div>
-                          <div className="text-sm text-gray-500">
-                            {booking.isSmartTv === 'yes' ? `Smart TV (${booking.tvOs})` : 'Not Smart TV'}
+                          <div className="font-medium text-sm truncate" title={`${booking.tvBrand} ${booking.tvModel}`}>
+                            {booking.tvBrand} {booking.tvModel}
                           </div>
-                          <div className="text-sm text-gray-500">Year: {booking.yearOfPurchase}</div>
+                          <div className="text-xs text-gray-500">
+                            {booking.isSmartTv === 'yes' ? 'Smart' : 'Regular'} ({booking.yearOfPurchase})
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           {booking.macAddressProvided ? (
                             <div>
-                              <Badge className="bg-green-100 text-green-800 mb-1">
+                              <Badge className="bg-green-100 text-green-800 text-xs mb-1">
                                 <CheckCircle className="h-3 w-3 mr-1" />
-                                PROVIDED
+                                YES
                               </Badge>
-                              <div className="text-sm font-mono text-gray-700">{booking.macAddress}</div>
-                              {booking.macAddressProvidedAt && (
-                                <div className="text-xs text-gray-500">
-                                  {format(new Date(booking.macAddressProvidedAt), "MMM dd, HH:mm")}
-                                </div>
-                              )}
+                              <div className="text-xs font-mono text-gray-700 truncate" title={booking.macAddress}>
+                                {booking.macAddress}
+                              </div>
                             </div>
                           ) : (
-                            <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+                            <Badge variant="outline" className="bg-yellow-100 text-yellow-800 text-xs">
                               <Clock className="h-3 w-3 mr-1" />
-                              REQUIRED
+                              PENDING
                             </Badge>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
-                              {getPaymentBadge(booking.paymentStatus)}
-                              <span className="text-sm font-medium">€{booking.paymentAmount}</span>
-                            </div>
-                            {/* Show discount information if referral code was applied */}
-                            {booking.referralCode && booking.discountAmount && parseFloat(booking.discountAmount) > 0 && (
-                              <div className="flex items-center gap-2">
-                                <Badge className="bg-blue-100 text-blue-800 text-xs">
-                                  REFERRAL DISCOUNT
-                                </Badge>
-                                <span className="text-xs text-gray-600">
-                                  -€{booking.discountAmount} (was €{booking.originalAmount || '110.00'})
-                                </span>
-                              </div>
-                            )}
-                            {/* Show referral code if applied */}
-                            {booking.referralCode && (
-                              <div className="text-xs text-gray-500">
-                                Code: {booking.referralCode}
-                              </div>
-                            )}
-                          </div>
+                          {getPaymentBadge(booking.paymentStatus)}
+                          <div className="text-xs font-medium">€{booking.paymentAmount}</div>
+                          {booking.referralCode && booking.discountAmount && parseFloat(booking.discountAmount) > 0 && (
+                            <div className="text-xs text-blue-600">-€{booking.discountAmount}</div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           {getStatusBadge(booking.setupStatus)}
                           {booking.assignedTo && (
-                            <div className="text-xs text-gray-500 font-mono">
-                              <div className="text-gray-700 font-normal">Stored in:</div>
-                              {booking.assignedTo}
+                            <div className="text-xs text-gray-500 truncate" title={booking.assignedTo}>
+                              Store: {booking.assignedTo.split('@')[0]}
                             </div>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="space-y-1">
+                        <div className="flex flex-col gap-1">
                           {booking.credentialsProvided ? (
-                            <Badge className="bg-green-100 text-green-800">
+                            <Badge className="bg-green-100 text-green-800 text-xs">
                               <Key className="h-3 w-3 mr-1" />
-                              PROVIDED
+                              YES
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-red-100 text-red-800">
-                              <XCircle className="h-3 w-3 mr-1" />
-                              PENDING
+                            <Badge variant="outline" className="bg-red-100 text-red-800 text-xs">
+                              NO
                             </Badge>
                           )}
                           {booking.credentialsEmailSent && (
-                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                              <Mail className="h-3 w-3 mr-1" />
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
                               SENT
                             </Badge>
                           )}
+                          {/* Payment status for credentials */}
+                          {booking.credentialsPaymentStatus === 'completed' || booking.credentialsPaymentStatus === 'paid' ? (
+                            <Badge className="bg-green-100 text-green-800 text-xs">PAID</Badge>
+                          ) : booking.credentialsPaymentStatus === 'pending' ? (
+                            <Badge className="bg-yellow-100 text-yellow-800 text-xs">PENDING</Badge>
+                          ) : null}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           {booking.referralCode ? (
                             <div>
-                              <Badge variant="secondary" className="bg-purple-100 text-purple-800 mb-1">
-                                <Target className="h-3 w-3 mr-1" />
+                              <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-xs mb-1">
                                 {booking.referralCode}
                               </Badge>
                               {booking.salesStaffName && (
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-gray-500 truncate" title={booking.salesStaffName}>
                                   {booking.salesStaffName}
-                                </div>
-                              )}
-                              {booking.salesStaffStore && (
-                                <div className="text-xs text-gray-400">
-                                  {HARVEY_NORMAN_STORES[booking.salesStaffStore as keyof typeof HARVEY_NORMAN_STORES] || booking.salesStaffStore}
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <Badge variant="outline" className="bg-gray-100 text-gray-500">
-                              No Referral
+                            <Badge variant="outline" className="bg-gray-100 text-gray-500 text-xs">
+                              None
                             </Badge>
                           )}
                         </div>
@@ -945,8 +922,8 @@ function TvSetupManagement() {
                         <div className="space-y-1">
                           {booking.subscriptionExpiryDate ? (
                             <>
-                              <div className="text-sm text-gray-900">
-                                {format(new Date(booking.subscriptionExpiryDate), "MMM dd, yyyy")}
+                              <div className="text-xs text-gray-900">
+                                {format(new Date(booking.subscriptionExpiryDate), "MMM dd")}
                               </div>
                               <div className="text-xs">
                                 {(() => {
@@ -955,63 +932,50 @@ function TvSetupManagement() {
                                   const daysFromNow = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
                                   
                                   if (daysFromNow < 0) {
-                                    return <Badge variant="destructive" className="text-xs">Expired {Math.abs(daysFromNow)} days ago</Badge>;
+                                    return <Badge variant="destructive" className="text-xs">Expired</Badge>;
                                   } else if (daysFromNow <= 30) {
-                                    return <Badge className="bg-yellow-100 text-yellow-800 text-xs">Expires in {daysFromNow} days</Badge>;
+                                    return <Badge className="bg-yellow-100 text-yellow-800 text-xs">{daysFromNow}d</Badge>;
                                   } else {
-                                    return <Badge className="bg-green-100 text-green-800 text-xs">Active ({daysFromNow} days left)</Badge>;
+                                    return <Badge className="bg-green-100 text-green-800 text-xs">{daysFromNow}d</Badge>;
                                   }
                                 })()}
                               </div>
                             </>
                           ) : (
                             <Badge variant="outline" className="bg-gray-100 text-gray-500 text-xs">
-                              No Expiry Set
+                              None
                             </Badge>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-sm text-gray-500">
-                        {format(new Date(booking.createdAt), "MMM dd, yyyy")}
+                      <TableCell className="text-xs text-gray-500">
+                        {format(new Date(booking.createdAt), "MMM dd")}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => openDetailsDialog(booking)}
+                            title="View Details"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => openCredentialsDialog(booking)}
+                            title="Manage Credentials"
                           >
-                            <Key className="h-4 w-4" />
+                            <Key className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => openStatusDialog(booking)}
+                            title="Update Status"
                           >
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openReferralDialog(booking)}
-                            title="Edit Referral"
-                          >
-                            <Target className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openExpiryDialog(booking)}
-                            title="Set Expiry Date"
-                          >
-                            <Calendar className="h-4 w-4" />
+                            <Settings className="h-3 w-3" />
                           </Button>
                           {booking.credentialsProvided && !booking.credentialsEmailSent && (
                             <Button
@@ -1027,9 +991,9 @@ function TvSetupManagement() {
                                      : "Send credentials email"}
                             >
                               {sendCredentialsEmailMutation.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-3 w-3 animate-spin" />
                               ) : (
-                                <Send className="h-4 w-4" />
+                                <Send className="h-3 w-3" />
                               )}
                             </Button>
                           )}
@@ -1043,51 +1007,12 @@ function TvSetupManagement() {
                               title="Send IPTV Payment Link"
                             >
                               {sendPaymentLinkMutation.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <Loader2 className="h-3 w-3 animate-spin" />
                               ) : (
-                                <CreditCard className="h-4 w-4" />
+                                <CreditCard className="h-3 w-3" />
                               )}
                             </Button>
                           )}
-                          {booking.macAddressProvided && booking.credentialsProvided && booking.credentialsPaymentStatus !== 'paid' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => markCredentialsPaidMutation.mutate(booking.id)}
-                              disabled={markCredentialsPaidMutation.isPending}
-                              className="bg-blue-50 hover:bg-blue-100 border-blue-200"
-                              title="Mark IPTV Payment as Received"
-                            >
-                              {markCredentialsPaidMutation.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <CheckCircle className="h-4 w-4" />
-                              )}
-                            </Button>
-                          )}
-                          {booking.credentialsPaymentStatus === 'paid' && booking.setupStatus !== 'completed' && (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => completeSetupMutation.mutate(booking.id)}
-                              disabled={completeSetupMutation.isPending}
-                              className="bg-green-600 hover:bg-green-700"
-                              title="Mark Setup as Completed"
-                            >
-                              {completeSetupMutation.isPending ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <CheckCircle className="h-4 w-4" />
-                              )}
-                            </Button>
-                          )}
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => openDeleteDialog(booking)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>

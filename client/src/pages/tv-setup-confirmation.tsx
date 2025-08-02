@@ -27,6 +27,8 @@ interface TvSetupBooking {
   createdAt: string;
 }
 
+
+
 export default function TvSetupConfirmation() {
   const [, setLocation] = useLocation();
   const [bookingId, setBookingId] = useState<string>("");
@@ -43,10 +45,20 @@ export default function TvSetupConfirmation() {
     }
   }, [setLocation]);
 
-  const { data: booking, isLoading } = useQuery<TvSetupBooking>({
+  // Try to fetch TV setup booking
+  const { data: booking, isLoading, error } = useQuery<TvSetupBooking>({
     queryKey: ['/api/tv-setup-booking', bookingId],
     enabled: !!bookingId,
+    retry: false,
   });
+
+  // If TV setup booking not found, redirect to regular booking success page
+  useEffect(() => {
+    if (bookingId && error && !isLoading) {
+      // This is likely a regular booking, redirect to booking success page
+      setLocation(`/booking-success/${bookingId}`);
+    }
+  }, [bookingId, error, isLoading, setLocation]);
 
   if (isLoading) {
     return (

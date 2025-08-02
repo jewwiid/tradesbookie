@@ -1,7 +1,7 @@
-# tradesbook.ie - Home Improvement Service Platform
+# tradesbook.ie - TV Installation Service Platform
 
 ## Overview
-tradesbook.ie is a full-stack web application that connects customers with professional home improvement specialists via an intelligent booking system, with a primary focus on TV installation services. Key features include AI-powered room analysis for installation recommendations, dynamic pricing, QR code tracking for bookings, and multi-role dashboards for customers, installers, and administrators. The platform has transitioned to a lead generation marketplace model, where installers pay a fixed fee for customer leads, and customers pay installers directly. This shifts the platform's revenue source from commissions to lead connection fees, enhancing predictability and scalability.
+tradesbook.ie is a full-stack web application that connects customers with professional TV installers via an intelligent booking system. Key features include AI-powered room analysis for installation recommendations, dynamic pricing, QR code tracking for bookings, and multi-role dashboards for customers, installers, and administrators. The platform has transitioned to a lead generation marketplace model, where installers pay a fixed fee for customer leads, and customers pay installers directly. This shifts the platform's revenue source from commissions to lead connection fees, enhancing predictability and scalability.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

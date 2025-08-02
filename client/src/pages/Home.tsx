@@ -265,13 +265,13 @@ export default function Home() {
                 {/* Primary Actions Row */}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link href="/tv-recommendation" className="flex-1 sm:flex-none">
-                    <Button className="relative z-50 w-full sm:w-auto inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 min-w-[200px] shadow-lg border border-purple-500/20">
+                    <Button className="relative z-50 w-full sm:w-[220px] inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-purple-500/20">
                       <Tv className="mr-2 lg:mr-3 h-4 lg:h-5 w-4 lg:w-5" />
                       Find My Perfect TV
                     </Button>
                   </Link>
                   <Link href="/booking" className="flex-1 sm:flex-none">
-                    <Button className="relative z-50 w-full sm:w-auto inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 min-w-[200px] shadow-lg border border-blue-500/20">
+                    <Button className="relative z-50 w-full sm:w-[220px] inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-blue-500/20">
                       <Camera className="mr-2 lg:mr-3 h-4 lg:h-5 w-4 lg:w-5" />
                       Book TV Installation
                     </Button>
@@ -281,7 +281,7 @@ export default function Home() {
                 {/* Secondary Action Row */}
                 <div className="flex justify-center lg:justify-start">
                   <Link href="/tv-setup-assist">
-                    <Button className="relative z-50 inline-flex items-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 min-w-[200px] shadow-lg border border-emerald-500/20">
+                    <Button className="relative z-50 w-full sm:w-[220px] inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-emerald-500/20">
                       <Wrench className="mr-2 lg:mr-3 h-4 lg:h-5 w-4 lg:w-5" />
                       TV Setup Service
                     </Button>

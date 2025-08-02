@@ -1744,7 +1744,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   }
                   
                   // Auto-send credentials if they are available
-                  if (booking.credentialsProvided && booking.appUsername && booking.appPassword && !booking.credentialsEmailSent) {
+                  const hasAppCredentials = booking.appUsername && booking.appPassword;
+                  const hasIptvCredentials = booking.serverUsername && booking.serverPassword && booking.serverHostname;
+                  const hasM3uUrl = booking.m3uUrl;
+                  
+                  if ((hasAppCredentials || hasIptvCredentials || hasM3uUrl) && !booking.credentialsEmailSent) {
                     const credentialsSent = await sendTvSetupCredentialsEmail(booking);
                     if (credentialsSent) {
                       await storage.markTvSetupEmailSent(booking.id, 'credentials');
@@ -1781,15 +1785,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
 
                 // Auto-send credentials if they are already available (for regular bookings)
-                if (paymentIntent.metadata.paymentType !== 'credentials' && booking.credentialsProvided && booking.appUsername && booking.appPassword && !booking.credentialsEmailSent) {
-                  try {
-                    const credentialsSent = await sendTvSetupCredentialsEmail(booking);
-                    if (credentialsSent) {
-                      await storage.markTvSetupEmailSent(booking.id, 'credentials');
-                      console.log(`TV setup credentials email auto-sent for booking ${booking.id} after payment`);
+                if (paymentIntent.metadata.paymentType !== 'credentials') {
+                  const hasAppCredentials = booking.appUsername && booking.appPassword;
+                  const hasIptvCredentials = booking.serverUsername && booking.serverPassword && booking.serverHostname;
+                  const hasM3uUrl = booking.m3uUrl;
+                  
+                  if ((hasAppCredentials || hasIptvCredentials || hasM3uUrl) && !booking.credentialsEmailSent) {
+                    try {
+                      const credentialsSent = await sendTvSetupCredentialsEmail(booking);
+                      if (credentialsSent) {
+                        await storage.markTvSetupEmailSent(booking.id, 'credentials');
+                        console.log(`TV setup credentials email auto-sent for booking ${booking.id} after payment`);
+                      }
+                    } catch (credentialsError) {
+                      console.error('Failed to auto-send credentials email after payment:', credentialsError);
                     }
-                  } catch (credentialsError) {
-                    console.error('Failed to auto-send credentials email after payment:', credentialsError);
                   }
                 }
               }
@@ -2316,6 +2326,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      // Check if payment has been completed first
+      if (booking.credentialsPaymentStatus !== 'completed' && booking.credentialsPaymentStatus !== 'paid') {
+        return res.status(400).json({ message: "Cannot send credentials - payment not yet completed by customer." });
       }
 
       // Check if any credentials are available

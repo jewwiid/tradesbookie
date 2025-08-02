@@ -1018,7 +1018,13 @@ function TvSetupManagement() {
                               variant="default"
                               size="sm"
                               onClick={() => sendCredentialsEmailMutation.mutate(booking.id)}
-                              disabled={sendCredentialsEmailMutation.isPending}
+                              disabled={sendCredentialsEmailMutation.isPending || 
+                                (booking.credentialsPaymentStatus !== 'completed' && 
+                                 booking.credentialsPaymentStatus !== 'paid')}
+                              title={booking.credentialsPaymentStatus !== 'completed' && 
+                                     booking.credentialsPaymentStatus !== 'paid' 
+                                     ? "Payment must be completed before sending credentials" 
+                                     : "Send credentials email"}
                             >
                               {sendCredentialsEmailMutation.isPending ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -1171,6 +1177,16 @@ function TvSetupManagement() {
                         <Badge className="bg-green-100 text-green-800">Yes</Badge>
                       ) : (
                         <Badge variant="outline" className="bg-red-100 text-red-800">No</Badge>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="font-medium">Payment Status:</Label>{" "}
+                      {selectedBooking.credentialsPaymentStatus === 'completed' || selectedBooking.credentialsPaymentStatus === 'paid' ? (
+                        <Badge className="bg-green-100 text-green-800">Paid</Badge>
+                      ) : selectedBooking.credentialsPaymentStatus === 'pending' ? (
+                        <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+                      ) : (
+                        <Badge variant="outline" className="bg-gray-100 text-gray-800">Not Required</Badge>
                       )}
                     </div>
                     <div>

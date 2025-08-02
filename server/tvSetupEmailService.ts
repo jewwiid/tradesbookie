@@ -44,6 +44,21 @@ export async function sendTvSetupConfirmationEmail(booking: TvSetupBooking): Pro
             </ul>
           </div>
 
+          <div style="background: #E0E7FF; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3B82F6;">
+            <h3 style="color: #1E40AF; margin: 0 0 15px 0;">📱 Track Your Setup Progress</h3>
+            <p style="margin: 0 0 15px 0; color: #1E40AF; line-height: 1.6;">
+              You can track the status of your TV setup booking at any time using the link below:
+            </p>
+            <div style="text-align: center; margin: 20px 0;">
+              <a href="https://tradesbook.ie/tv-setup-tracker?bookingId=${booking.id}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                Track Your Setup Progress
+              </a>
+            </div>
+            <p style="margin: 15px 0 0 0; color: #1E40AF; font-size: 14px; text-align: center;">
+              Bookmark this link to check your setup status anytime
+            </p>
+          </div>
+
           <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
             <h3 style="color: #92400E; margin: 0 0 10px 0;">📞 Contact Information</h3>
             <p style="margin: 0; color: #92400E; line-height: 1.6;">

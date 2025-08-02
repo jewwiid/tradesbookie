@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -73,6 +73,21 @@ export default function TvSetupTracker() {
   const [macAddress, setMacAddress] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check URL parameters on component mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlBookingId = urlParams.get('bookingId');
+    const urlEmail = urlParams.get('email');
+    
+    if (urlBookingId) {
+      setBookingId(urlBookingId);
+      setSearchAttempted(true);
+    } else if (urlEmail) {
+      setEmail(urlEmail);
+      setSearchAttempted(true);
+    }
+  }, []);
 
   const { data: booking, isLoading, error } = useQuery<TvSetupBookingDetails>({
     queryKey: ['/api/tv-setup-tracker', bookingId, email],

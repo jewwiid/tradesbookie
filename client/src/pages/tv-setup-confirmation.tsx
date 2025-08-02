@@ -7,6 +7,26 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Clock, Calendar, Phone, Mail, Tv, User } from "lucide-react";
 import { format } from "date-fns";
 
+// Type for TV Setup Booking based on the API response
+interface TvSetupBooking {
+  id: number;
+  name: string;
+  email: string;
+  mobile: string;
+  tvBrand: string;
+  tvModel: string;
+  isSmartTv: string;
+  tvOs: string;
+  yearOfPurchase: number;
+  streamingApps: string[];
+  preferredSetupDate?: string;
+  additionalNotes?: string;
+  setupStatus: string;
+  paymentAmount: string;
+  paymentStatus: string;
+  createdAt: string;
+}
+
 export default function TvSetupConfirmation() {
   const [, setLocation] = useLocation();
   const [bookingId, setBookingId] = useState<string>("");
@@ -23,7 +43,7 @@ export default function TvSetupConfirmation() {
     }
   }, [setLocation]);
 
-  const { data: booking, isLoading } = useQuery({
+  const { data: booking, isLoading } = useQuery<TvSetupBooking>({
     queryKey: ['/api/tv-setup-booking', bookingId],
     enabled: !!bookingId,
   });
@@ -237,11 +257,29 @@ export default function TvSetupConfirmation() {
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-5 h-5 text-yellow-600" />
-                  <h4 className="font-semibold text-yellow-900">Payment Pending</h4>
+                  <h4 className="font-semibold text-yellow-900">Payment Status</h4>
                 </div>
                 <p className="text-yellow-700 text-sm">
-                  No payment required yet. You'll receive payment instructions (€100) once your login credentials are prepared.
+                  {booking.paymentStatus === 'not_required' 
+                    ? 'No payment required yet. You\'ll receive payment instructions once your login credentials are prepared.'
+                    : `Payment Status: ${booking.paymentStatus}`
+                  }
                 </p>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
+                <h4 className="font-semibold text-blue-900 mb-2">Track Your Booking</h4>
+                <p className="text-blue-700 text-sm mb-3">
+                  You can track the progress of your TV setup booking at any time using the link below:
+                </p>
+                <Button 
+                  onClick={() => setLocation(`/tv-setup-tracker?bookingId=${booking.id}`)}
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-700 border-blue-300 hover:bg-blue-100"
+                >
+                  Track Your Setup Progress
+                </Button>
               </div>
             </CardContent>
           </Card>

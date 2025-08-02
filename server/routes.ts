@@ -2445,6 +2445,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send payment link email to customer (admin only)
+  app.post("/api/tv-setup-booking/:id/send-payment", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      
+      if (!bookingId || isNaN(bookingId)) {
+        return res.status(400).json({ message: "Valid booking ID is required" });
+      }
+      
+      // Get the booking
+      const booking = await storage.getTvSetupBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+      
+      // Check if credentials are provided and payment is required
+      if (!booking.credentialsProvided) {
+        return res.status(400).json({ message: "Credentials not yet available" });
+      }
+      
+      if (booking.credentialsPaymentStatus === 'paid') {
+        return res.status(400).json({ message: "Payment already completed" });
+      }
+      
+      // Send payment link email
+      const paymentAmount = booking.credentialsPaymentAmount || booking.paymentAmount;
+      const subject = `Payment Required - Your TV Setup Credentials Are Ready - Booking #${booking.id}`;
+      
+      const trackingUrl = `${req.get('origin') || 'https://tradesbook.ie'}/tv-setup-tracker?bookingId=${booking.id}`;
+      
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #3B82F6, #1E40AF); color: white; padding: 30px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px;">💳 Payment Required</h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Your TV setup credentials are ready!</p>
+          </div>
+          
+          <div style="padding: 30px; background: #fff;">
+            <h2 style="color: #1E40AF; margin: 0 0 20px 0;">Hello ${booking.name}!</h2>
+            
+            <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+              Great news! Your IPTV streaming credentials for your ${booking.tvBrand} ${booking.tvModel} are now ready and waiting for you.
+            </p>
+            
+            <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+              <h3 style="color: #065F46; margin: 0 0 15px 0;">✅ What's Ready for You:</h3>
+              <ul style="margin: 0; padding-left: 20px; color: #065F46; line-height: 1.6;">
+                <li>Your personalized streaming login credentials</li>
+                <li>Complete setup instructions for your TV</li>
+                <li>Access to premium streaming content</li>
+                <li>Technical support if needed</li>
+              </ul>
+            </div>
+            
+            <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+              <h3 style="color: #92400E; margin: 0 0 15px 0;">💰 Payment Required</h3>
+              <p style="margin: 0; color: #92400E; font-size: 16px;">
+                <strong>Amount: €${paymentAmount}</strong><br>
+                A final payment is required to access your streaming credentials and complete your TV setup.
+              </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${trackingUrl}" style="display: inline-block; background: #3B82F6; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                Complete Payment & Get Your Credentials
+              </a>
+            </div>
+            
+            <div style="background: #EEF2FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #1E40AF; margin: 0 0 15px 0;">📋 Booking Details</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Booking ID:</td><td style="padding: 8px 0; color: #6B7280;">#${booking.id}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">TV Brand:</td><td style="padding: 8px 0; color: #6B7280;">${booking.tvBrand}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">TV Model:</td><td style="padding: 8px 0; color: #6B7280;">${booking.tvModel}</td></tr>
+                <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Payment Amount:</td><td style="padding: 8px 0; color: #6B7280;">€${paymentAmount}</td></tr>
+              </table>
+            </div>
+            
+            <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #374151; margin: 0 0 15px 0;">🔗 Quick Access</h3>
+              <p style="margin: 0; color: #6B7280; line-height: 1.6;">
+                Click the button above or visit: <br>
+                <a href="${trackingUrl}" style="color: #3B82F6; word-break: break-all;">${trackingUrl}</a>
+              </p>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 30px 0;">
+            
+            <div style="text-align: center; color: #6B7280; font-size: 14px;">
+              <p style="margin: 0;">Need help? Contact us at <a href="mailto:support@tradesbook.ie" style="color: #3B82F6;">support@tradesbook.ie</a></p>
+              <p style="margin: 10px 0 0 0;">© 2025 Tradesbook.ie - Professional TV Installation Services</p>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      const { sendGmailEmail } = await import('./gmailService');
+      const emailSent = await sendGmailEmail(booking.email, subject, htmlContent);
+      
+      if (emailSent) {
+        res.json({ 
+          success: true, 
+          message: "Payment link email sent successfully" 
+        });
+      } else {
+        res.status(500).json({ 
+          message: "Failed to send payment link email" 
+        });
+      }
+    } catch (error: any) {
+      console.error("Error sending payment link email:", error);
+      res.status(500).json({ 
+        message: "Error sending payment link email: " + error.message 
+      });
+    }
+  });
+
   // Initiate payment for TV setup credentials
   app.post("/api/tv-setup-bookings/:id/payment", async (req, res) => {
     try {

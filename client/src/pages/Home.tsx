@@ -245,65 +245,81 @@ export default function Home() {
       )}
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-16 lg:py-24">
+      <section className="relative bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-16 lg:py-24 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="text-center lg:text-left">
-              <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-16 items-center">
+            {/* Content Column - Takes up more space on large screens */}
+            <div className="lg:col-span-7 text-center lg:text-left lg:pr-8">
+              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Ireland's Leading{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
                   TV Installation Platform
                 </span>
               </h1>
-              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl lg:max-w-none">
                 Tradesbook.ie connects you with Ireland's certified TV installation professionals. Book instantly, track your service, and get expert setup for all your entertainment needs.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center lg:justify-start">
-                <Link href="/tv-recommendation">
-                  <Button className="inline-flex items-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
-                    <Tv className="mr-3 h-5 w-5" />
-                    Find My Perfect TV
-                  </Button>
-                </Link>
-                <Link href="/booking">
-                  <Button className="inline-flex items-center bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
-                    <Camera className="mr-3 h-5 w-5" />
-                    Book TV Installation
-                  </Button>
-                </Link>
-                <Link href="/tv-setup-assist">
-                  <Button className="inline-flex items-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
-                    <Wrench className="mr-3 h-5 w-5" />
-                    TV Setup Service
-                  </Button>
-                </Link>
+              
+              {/* Button Container with better spacing */}
+              <div className="flex flex-col gap-4 mb-8 max-w-2xl mx-auto lg:mx-0">
+                {/* Primary Actions Row */}
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link href="/tv-recommendation" className="flex-1 sm:flex-none">
+                    <Button className="w-full sm:w-auto inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 min-w-[200px]">
+                      <Tv className="mr-2 lg:mr-3 h-4 lg:h-5 w-4 lg:w-5" />
+                      Find My Perfect TV
+                    </Button>
+                  </Link>
+                  <Link href="/booking" className="flex-1 sm:flex-none">
+                    <Button className="w-full sm:w-auto inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 min-w-[200px]">
+                      <Camera className="mr-2 lg:mr-3 h-4 lg:h-5 w-4 lg:w-5" />
+                      Book TV Installation
+                    </Button>
+                  </Link>
+                </div>
+                
+                {/* Secondary Action Row */}
+                <div className="flex justify-center lg:justify-start">
+                  <Link href="/tv-setup-assist">
+                    <Button className="inline-flex items-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300 min-w-[200px]">
+                      <Wrench className="mr-2 lg:mr-3 h-4 lg:h-5 w-4 lg:w-5" />
+                      TV Setup Service
+                    </Button>
+                  </Link>
+                </div>
               </div>
-              <div className="mt-8 flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
+              
+              {/* Feature Highlights */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3 text-sm text-gray-500">
                 <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Certified Installers
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                  <span>Certified Installers</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Instant Booking
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                  <span>Instant Booking</span>
                 </div>
                 <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Live Tracking
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                  <span>Live Tracking</span>
                 </div>
               </div>
             </div>
-            <div className="relative">
-              <img 
-                src="/images/hero-room.jpg" 
-                alt="Modern living room with mounted TV" 
-                className="rounded-3xl shadow-2xl w-full"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl"></div>
-              <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-gray-800">AI Preview Active</span>
+            
+            {/* Image Column - Takes up less space and has better constraints */}
+            <div className="lg:col-span-5 relative order-first lg:order-last">
+              <div className="relative max-w-md mx-auto lg:max-w-none">
+                <img 
+                  src="/images/hero-room.jpg" 
+                  alt="Modern living room with mounted TV" 
+                  className="rounded-3xl shadow-2xl w-full h-auto object-cover aspect-[4/3] lg:aspect-[3/4]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl"></div>
+                <div className="absolute bottom-4 lg:bottom-6 left-4 lg:left-6 bg-white/90 backdrop-blur-sm rounded-xl p-3 lg:p-4">
+                  <div className="flex items-center space-x-2 lg:space-x-3">
+                    <div className="w-2.5 lg:w-3 h-2.5 lg:h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs lg:text-sm font-medium text-gray-800">AI Preview Active</span>
+                  </div>
                 </div>
               </div>
             </div>

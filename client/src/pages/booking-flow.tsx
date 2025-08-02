@@ -16,6 +16,7 @@ import ContactForm from "@/components/booking/contact-form";
 import MultiTVNavigation from "@/components/booking/multi-tv-navigation";
 import { useBookingData } from "@/lib/booking-utils";
 import Navigation from "@/components/navigation";
+import Footer from "@/components/Footer";
 
 const TOTAL_STEPS = 9; // Updated to include TV quantity step
 
@@ -189,6 +190,9 @@ export default function BookingFlow() {
           </Card>
         </div>
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

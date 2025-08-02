@@ -74,30 +74,7 @@ export default function TvSetupTracker() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Format MAC address as user types
-  const formatMacAddress = (value: string) => {
-    // Remove all non-alphanumeric characters
-    const clean = value.replace(/[^a-fA-F0-9]/g, '');
-    
-    // Limit to 12 characters (6 pairs)
-    const limited = clean.slice(0, 12);
-    
-    // Add colons every 2 characters
-    const formatted = limited.replace(/(.{2})/g, '$1:').slice(0, -1);
-    
-    return formatted.toUpperCase();
-  };
 
-  const handleMacAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatMacAddress(e.target.value);
-    setMacAddress(formatted);
-  };
-
-  // Validate MAC address format
-  const isValidMacAddress = (mac: string) => {
-    const macRegex = /^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$/;
-    return macRegex.test(mac);
-  };
 
   // Check URL parameters on component mount but don't automatically search
   useEffect(() => {
@@ -135,6 +112,28 @@ export default function TvSetupTracker() {
     if (bookingId.trim() || email.trim()) {
       setSearchAttempted(true);
     }
+  };
+
+  // MAC Address formatting and validation
+  const isValidMacAddress = (mac: string) => {
+    const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+    return macRegex.test(mac);
+  };
+
+  const formatMacAddress = (value: string) => {
+    // Remove all non-alphanumeric characters
+    const cleaned = value.replace(/[^0-9A-Fa-f]/gi, '');
+    
+    // Add colons every 2 characters
+    const formatted = cleaned.match(/.{1,2}/g)?.join(':') || cleaned;
+    
+    // Limit to 17 characters (XX:XX:XX:XX:XX:XX)
+    return formatted.slice(0, 17).toUpperCase();
+  };
+
+  const handleMacAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatMacAddress(e.target.value);
+    setMacAddress(formatted);
   };
 
   const submitMacAddress = useMutation({
@@ -493,6 +492,63 @@ export default function TvSetupTracker() {
                         }`}>
                           {step.description}
                         </p>
+                        
+                        {/* MAC Address Input Field - Only show for MAC Address Required step when not completed */}
+                        {step.title === 'MAC Address Required' && !step.completed && (
+                          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                            {booking.recommendedApp && (
+                              <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-700 rounded-md">
+                                <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+                                  Recommended App: {booking.recommendedApp}
+                                </h5>
+                                {booking.appDownloadInstructions && (
+                                  <div className="text-sm text-blue-800 dark:text-blue-200 whitespace-pre-line">
+                                    {booking.appDownloadInstructions}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            <div className="space-y-3">
+                              <div>
+                                <label htmlFor="macAddress" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                  MAC Address *
+                                </label>
+                                <Input
+                                  id="macAddress"
+                                  type="text"
+                                  placeholder="Enter MAC address (XX:XX:XX:XX:XX:XX)"
+                                  value={macAddress}
+                                  onChange={handleMacAddressChange}
+                                  className="font-mono"
+                                  maxLength={17}
+                                />
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                  Find this in your TV/device network settings. It's usually labeled as "MAC Address", "Wi-Fi MAC", or "Ethernet MAC".
+                                </p>
+                                {macAddress && !isValidMacAddress(macAddress) && (
+                                  <p className="text-sm text-red-500 mt-2">
+                                    Please enter a valid MAC address format (XX:XX:XX:XX:XX:XX)
+                                  </p>
+                                )}
+                              </div>
+                              <Button 
+                                onClick={() => submitMacAddress.mutate()}
+                                disabled={!isValidMacAddress(macAddress) || submitMacAddress.isPending}
+                                className="w-full"
+                                size="sm"
+                              >
+                                {submitMacAddress.isPending ? 'Submitting...' : 'Submit MAC Address'}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show MAC Address when completed */}
+                        {step.title === 'MAC Address Required' && step.completed && booking.macAddress && (
+                          <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm">
+                            <span className="text-green-700 dark:text-green-300 font-mono">{booking.macAddress}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -500,64 +556,7 @@ export default function TvSetupTracker() {
               </CardContent>
             </Card>
 
-            {/* MAC Address Submission */}
-            {booking && !booking.macAddressProvided && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Tv className="w-5 h-5" />
-                    Provide MAC Address
-                  </CardTitle>
-                  <CardDescription>
-                    {booking.recommendedApp 
-                      ? `Please download ${booking.recommendedApp} on your TV and provide your device MAC address below.`
-                      : 'Please provide your TV/device MAC address to continue with the setup.'
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {booking.appDownloadInstructions && (
-                    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <h4 className="font-medium text-blue-900 mb-2">Setup Instructions:</h4>
-                      <div className="text-sm text-blue-800 whitespace-pre-line">
-                        {booking.appDownloadInstructions}
-                      </div>
-                    </div>
-                  )}
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="macAddress" className="block text-sm font-medium mb-2">
-                        MAC Address *
-                      </label>
-                      <Input
-                        id="macAddress"
-                        type="text"
-                        placeholder="Enter MAC address (XX:XX:XX:XX:XX:XX)"
-                        value={macAddress}
-                        onChange={handleMacAddressChange}
-                        className="font-mono"
-                        maxLength={17}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Find this in your TV/device network settings. It's usually labeled as "MAC Address", "Wi-Fi MAC", or "Ethernet MAC".
-                      </p>
-                    </div>
-                    <Button 
-                      onClick={() => submitMacAddress.mutate()}
-                      disabled={!isValidMacAddress(macAddress) || submitMacAddress.isPending}
-                      className="w-full"
-                    >
-                      {submitMacAddress.isPending ? 'Submitting...' : 'Submit MAC Address'}
-                    </Button>
-                    {macAddress && !isValidMacAddress(macAddress) && (
-                      <p className="text-sm text-red-500 mt-2">
-                        Please enter a valid MAC address format (XX:XX:XX:XX:XX:XX)
-                      </p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+
 
             {/* Payment for Credentials */}
             {booking && booking.setupStatus === 'payment_required' && booking.credentialsProvided && booking.credentialsPaymentStatus === 'pending' && (

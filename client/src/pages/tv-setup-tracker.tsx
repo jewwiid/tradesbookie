@@ -705,11 +705,6 @@ export default function TvSetupTracker() {
                 <CardContent>
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <p className="text-blue-800">{booking.adminNotes}</p>
-                    {booking.assignedTo && (
-                      <p className="text-sm text-blue-600 mt-2">
-                        Assigned to: {booking.assignedTo}
-                      </p>
-                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -145,6 +145,27 @@ const expiryUpdateSchema = z.object({
   subscriptionExpiryDate: z.string().min(1, "Expiry date is required"),
 });
 
+// Harvey Norman store locations mapping
+const HARVEY_NORMAN_STORES = {
+  'BLA': 'Blanchardstown',
+  'CKM': 'Carrickmines', 
+  'CRK': 'Cork',
+  'CAS': 'Castlebar',
+  'DRO': 'Drogheda',
+  'FON': 'Fonthill',
+  'GAL': 'Galway',
+  'KIN': 'Kinsale Road',
+  'LIM': 'Limerick', 
+  'LIT': 'Little Island',
+  'NAA': 'Naas',
+  'RAT': 'Rathfarnham',
+  'SLI': 'Sligo',
+  'SWO': 'Swords',
+  'TAL': 'Tallaght',
+  'TRA': 'Tralee',
+  'WAT': 'Waterford'
+};
+
 function TvSetupManagement() {
   const [selectedBooking, setSelectedBooking] = useState<TvSetupBooking | null>(null);
   const [showCredentialsDialog, setShowCredentialsDialog] = useState(false);
@@ -833,7 +854,7 @@ function TvSetupManagement() {
                               )}
                               {booking.salesStaffStore && (
                                 <div className="text-xs text-gray-400">
-                                  {booking.salesStaffStore}
+                                  {HARVEY_NORMAN_STORES[booking.salesStaffStore as keyof typeof HARVEY_NORMAN_STORES] || booking.salesStaffStore}
                                 </div>
                               )}
                             </div>
@@ -1554,8 +1575,11 @@ function TvSetupManagement() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="CKM">Carrickmines</SelectItem>
-                          <SelectItem value="CRK">Cork</SelectItem>
+                          {Object.entries(HARVEY_NORMAN_STORES).map(([code, name]) => (
+                            <SelectItem key={code} value={code}>
+                              {name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>

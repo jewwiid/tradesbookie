@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { CalendarDays, Mail, Phone, Tv, Settings, CheckCircle, Clock, AlertCircle, User, CreditCard } from 'lucide-react';
+import { CalendarDays, Mail, Phone, Tv, Settings, CheckCircle, Clock, AlertCircle, User, CreditCard, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Navigation from '@/components/navigation';
 import { formatDate } from '@/lib/utils';
@@ -74,7 +74,7 @@ export default function TvSetupTracker() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Check URL parameters on component mount
+  // Check URL parameters on component mount but don't automatically search
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const urlBookingId = urlParams.get('bookingId');
@@ -82,10 +82,10 @@ export default function TvSetupTracker() {
     
     if (urlBookingId) {
       setBookingId(urlBookingId);
-      setSearchAttempted(true);
+      // Don't automatically set searchAttempted to true
     } else if (urlEmail) {
       setEmail(urlEmail);
-      setSearchAttempted(true);
+      // Don't automatically set searchAttempted to true
     }
   }, []);
 
@@ -299,8 +299,57 @@ export default function TvSetupTracker() {
           </Alert>
         )}
 
-        {/* Booking Details */}
-        {booking && (
+        {/* Instructions - Show when no search has been attempted */}
+        {!searchAttempted && !booking && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Info className="w-5 h-5" />
+                How to Track Your TV Setup
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-sm font-medium text-blue-600 dark:text-blue-400 flex-shrink-0">
+                    1
+                  </div>
+                  <div>
+                    <p className="font-medium">Enter Your Information</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Use either your booking ID (from your confirmation email) or the email address you used when booking.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-sm font-medium text-blue-600 dark:text-blue-400 flex-shrink-0">
+                    2
+                  </div>
+                  <div>
+                    <p className="font-medium">View Your Setup Progress</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      See real-time updates on your TV setup status, from initial booking to completion.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-sm font-medium text-blue-600 dark:text-blue-400 flex-shrink-0">
+                    3
+                  </div>
+                  <div>
+                    <p className="font-medium">Take Required Actions</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Complete any requested steps like providing MAC address or making payments.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Booking Details - Only show after successful search */}
+        {booking && searchAttempted && (
           <div className="space-y-6">
             {/* Status Overview */}
             <Card>

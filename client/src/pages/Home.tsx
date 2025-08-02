@@ -650,12 +650,16 @@ export default function Home() {
                 <span>Expert knowledge</span>
               </div>
             </div>
-            <Link href="/ai-help">
-              <Button size="lg" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-8 py-4 text-lg">
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Try AI Assistant Now
-              </Button>
-            </Link>
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-8 py-4 text-lg"
+              onClick={() => {
+                window.location.href = '/ai-help';
+              }}
+            >
+              <MessageCircle className="w-5 h-5 mr-2" />
+              Try AI Assistant Now
+            </Button>
           </div>
         </div>
       </section>
@@ -761,11 +765,15 @@ export default function Home() {
               Get professional remote assistance to set up FreeView+ and SaorView-compatible streaming apps on your smart TV. One-time €100 fee with no ongoing subscriptions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/tv-setup-assist">
-                <Button size="lg" className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-4 text-lg">
-                  Get TV Setup Help - €100
-                </Button>
-              </Link>
+              <Button 
+                size="lg" 
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-4 text-lg"
+                onClick={() => {
+                  window.location.href = '/tv-setup-assist';
+                }}
+              >
+                Get TV Setup Help - €100
+              </Button>
               <Link href="/customer-resources">
                 <Button 
                   variant="outline" 

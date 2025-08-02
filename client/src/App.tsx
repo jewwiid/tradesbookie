@@ -46,6 +46,7 @@ import TvSetupTracker from "@/pages/tv-setup-tracker";
 import CustomerResources from "@/pages/customer-resources";
 import AIHelpPage from "@/pages/ai-help";
 import ConsultationBooking from "@/pages/consultation-booking";
+import ConsultationSuccess from "@/pages/consultation-success";
 
 
 function Router() {
@@ -79,6 +80,7 @@ function Router() {
       <Route path="/ai-help" component={AIHelpPage} />
       <Route path="/consultation" component={ConsultationBooking} />
       <Route path="/consultation-booking" component={ConsultationBooking} />
+      <Route path="/consultation-success" component={ConsultationSuccess} />
 
       <Route path="/demo-login" component={DemoLogin} />
       

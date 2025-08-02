@@ -8890,6 +8890,23 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Get consultation by ID (for confirmation page)
+  app.get("/api/consultations/:id", async (req, res) => {
+    try {
+      const consultationId = parseInt(req.params.id);
+      const consultation = await storage.getConsultation(consultationId);
+      
+      if (!consultation) {
+        return res.status(404).json({ error: "Consultation not found" });
+      }
+      
+      res.json(consultation);
+    } catch (error) {
+      console.error("Error fetching consultation:", error);
+      res.status(500).json({ error: "Failed to fetch consultation" });
+    }
+  });
+
   // Admin endpoint to get all consultations
   app.get("/api/admin/consultations", isAdmin, async (req, res) => {
     try {

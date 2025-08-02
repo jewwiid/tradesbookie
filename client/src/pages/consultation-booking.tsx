@@ -82,8 +82,13 @@ export default function ConsultationBooking() {
       const response = await apiRequest("POST", "/api/consultations", data);
       return await response.json();
     },
-    onSuccess: () => {
-      setIsSubmitted(true);
+    onSuccess: (result) => {
+      // Redirect to consultation success page with the consultation ID
+      if (result?.consultation?.id) {
+        setLocation(`/consultation-success?consultationId=${result.consultation.id}`);
+      } else {
+        setIsSubmitted(true);
+      }
       toast({
         title: "Consultation Request Submitted",
         description: "We'll contact you within 24 hours to schedule your consultation.",

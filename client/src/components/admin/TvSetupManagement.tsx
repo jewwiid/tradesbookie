@@ -1258,7 +1258,7 @@ function TvSetupManagement() {
                           <SelectValue placeholder="Select store" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           <SelectItem value="CKM">Carrickmines</SelectItem>
                           <SelectItem value="CRK">Cork</SelectItem>
                         </SelectContent>

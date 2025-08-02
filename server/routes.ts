@@ -4367,7 +4367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate invoice format first
       if (!harveyNormanInvoiceService.isValidInvoiceFormat(invoiceNumber)) {
         return res.status(400).json({ 
-          error: "Invalid invoice format. Please enter your Harvey Norman invoice number (format: HN-[STORE]-[NUMBER])" 
+          error: "Invalid invoice format. Please enter your Harvey Norman invoice number (format: HN-[STORE]-[NUMBER] or HN[STORE][NUMBER])" 
         });
       }
 

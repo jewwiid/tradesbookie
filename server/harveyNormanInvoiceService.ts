@@ -244,11 +244,39 @@ export class HarveyNormanInvoiceService {
    * Validate invoice format
    */
   isValidInvoiceFormat(invoiceNumber: string): boolean {
-    // Harvey Norman invoice format: HN-[STORE_CODE]-[INVOICE_NUMBER]
+    // Harvey Norman invoice format: HN-[STORE_CODE]-[INVOICE_NUMBER] or HN[STORE_CODE][INVOICE_NUMBER]
     // Store codes: CKM (Carrickmines), CRK (Cork), DUB (Dublin), GAL (Galway), LIM (Limerick), etc.
     // Invoice numbers are typically 7 digits but can vary
-    const regex = /^HN-[A-Z]{3,4}-\d{6,8}$/;
-    return regex.test(invoiceNumber);
+    const regexWithHyphens = /^HN-[A-Z]{3,4}-\d{6,8}$/;
+    const regexWithoutHyphens = /^HN[A-Z]{3,4}\d{6,8}$/;
+    return regexWithHyphens.test(invoiceNumber) || regexWithoutHyphens.test(invoiceNumber);
+  }
+
+  /**
+   * Parse invoice number to extract store code and invoice number
+   */
+  parseInvoiceNumber(invoiceNumber: string): { storeCode: string; invoiceNum: string } | null {
+    // Try format with hyphens: HN-[STORE_CODE]-[INVOICE_NUMBER]
+    const regexWithHyphens = /^HN-([A-Z]{3,4})-(\d{6,8})$/;
+    const matchWithHyphens = invoiceNumber.match(regexWithHyphens);
+    if (matchWithHyphens) {
+      return {
+        storeCode: matchWithHyphens[1],
+        invoiceNum: matchWithHyphens[2]
+      };
+    }
+
+    // Try format without hyphens: HN[STORE_CODE][INVOICE_NUMBER]
+    const regexWithoutHyphens = /^HN([A-Z]{3,4})(\d{6,8})$/;
+    const matchWithoutHyphens = invoiceNumber.match(regexWithoutHyphens);
+    if (matchWithoutHyphens) {
+      return {
+        storeCode: matchWithoutHyphens[1],
+        invoiceNum: matchWithoutHyphens[2]
+      };
+    }
+
+    return null;
   }
 
   /**

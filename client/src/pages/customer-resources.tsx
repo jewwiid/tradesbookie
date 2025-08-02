@@ -124,7 +124,7 @@ export default function CustomerResources() {
                 <Link href="/tv-setup-assist">
                   <Button className="bg-blue-600 hover:bg-blue-700">
                     <Tv className="w-4 h-4 mr-2" />
-                    Book TV Setup Service - €100
+                    Book TV Setup Service
                   </Button>
                 </Link>
               </div>

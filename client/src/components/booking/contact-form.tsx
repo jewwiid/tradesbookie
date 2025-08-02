@@ -270,6 +270,26 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         </div>
       )}
 
+      {/* Authentication Options */}
+      {!isAuthenticated && (
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="text-left">
+              <p className="text-sm font-medium text-green-900">Want to save time?</p>
+              <p className="text-sm text-green-700">Sign in or create an account to auto-fill your details</p>
+            </div>
+            <Button
+              onClick={() => setAuthDialogOpen(true)}
+              variant="outline"
+              className="border-green-600 text-green-600 hover:bg-green-50"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Create Account / Sign In
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <div>
           <Label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
@@ -569,6 +589,29 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
           </>
         )}
       </Button>
+
+      {/* Authentication Dialog */}
+      <SimplifiedAuthDialog
+        isOpen={authDialogOpen}
+        onClose={() => setAuthDialogOpen(false)}
+        onSuccess={(userData) => {
+          // Auto-fill form data if available
+          if (userData.firstName || userData.lastName) {
+            const fullName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+            handleInputChange('name', fullName);
+          }
+          if (userData.email) {
+            handleInputChange('email', userData.email);
+          }
+          toast({
+            title: "Welcome back!",
+            description: "Your account details have been loaded.",
+          });
+        }}
+        title="Create Account or Sign In"
+        description="Sign in to auto-fill your details and access booking history"
+        defaultTab="oauth"
+      />
     </div>
   );
 }

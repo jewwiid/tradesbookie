@@ -952,33 +952,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getReferralUsageHistory(): Promise<any[]> {
-    const results = await db.select({
-      id: referralUsage.id,
-      referralCodeId: referralUsage.referralCodeId,
-      bookingId: referralUsage.bookingId,
-      tvSetupBookingId: referralUsage.tvSetupBookingId,
-      bookingType: referralUsage.bookingType,
-      referrerUserId: referralUsage.referrerUserId,
-      refereeUserId: referralUsage.refereeUserId,
-      discountAmount: referralUsage.discountAmount,
-      rewardAmount: referralUsage.rewardAmount,
-      subsidizedByInstaller: referralUsage.subsidizedByInstaller,
-      status: referralUsage.status,
-      paidOut: referralUsage.paidOut,
-      createdAt: referralUsage.createdAt,
-      updatedAt: referralUsage.updatedAt,
-      // Join referral code info
-      referralCode: referralCodes.referralCode,
-      // Join TV setup booking customer info
-      customerName: tvSetupBookings.name,
-      customerEmail: tvSetupBookings.email,
-      customerMobile: tvSetupBookings.mobile,
-    }).from(referralUsage)
-      .leftJoin(referralCodes, eq(referralUsage.referralCodeId, referralCodes.id))
-      .leftJoin(tvSetupBookings, eq(referralUsage.tvSetupBookingId, tvSetupBookings.id))
-      .orderBy(desc(referralUsage.createdAt));
-    
-    return results;
+    try {
+      const results = await db.select({
+        id: referralUsage.id,
+        referralCodeId: referralUsage.referralCodeId,
+        bookingId: referralUsage.bookingId,
+        tvSetupBookingId: referralUsage.tvSetupBookingId,
+        bookingType: referralUsage.bookingType,
+        referrerUserId: referralUsage.referrerUserId,
+        refereeUserId: referralUsage.refereeUserId,
+        discountAmount: referralUsage.discountAmount,
+        rewardAmount: referralUsage.rewardAmount,
+        subsidizedByInstaller: referralUsage.subsidizedByInstaller,
+        status: referralUsage.status,
+        paidOut: referralUsage.paidOut,
+        createdAt: referralUsage.createdAt,
+        updatedAt: referralUsage.updatedAt,
+        // Join referral code info
+        referralCode: referralCodes.referralCode,
+        // Join TV setup booking customer info
+        customerName: tvSetupBookings.name,
+        customerEmail: tvSetupBookings.email,
+        customerMobile: tvSetupBookings.mobile,
+      }).from(referralUsage)
+        .leftJoin(referralCodes, eq(referralUsage.referralCodeId, referralCodes.id))
+        .leftJoin(tvSetupBookings, eq(referralUsage.tvSetupBookingId, tvSetupBookings.id))
+        .orderBy(desc(referralUsage.createdAt));
+      
+      return results;
+    } catch (error) {
+      console.error('Error in getReferralUsageHistory:', error);
+      // Fallback to simple query if joins fail
+      return await db.select().from(referralUsage)
+        .orderBy(desc(referralUsage.createdAt));
+    }
   }
 
   async getReferralEarnings(userId: string): Promise<{ totalEarnings: number; pendingEarnings: number; totalReferrals: number }> {

@@ -310,9 +310,9 @@ export default function Home() {
             <div className="lg:col-span-4 xl:col-span-5 relative order-first lg:order-last z-10">
               <div className="relative max-w-md mx-auto lg:max-w-none">
                 <img 
-                  src="/images/hero-room.jpg" 
-                  alt="Modern living room with mounted TV" 
-                  className="rounded-3xl shadow-2xl w-full h-auto object-cover aspect-[4/3] lg:aspect-[3/4]"
+                  src="/attached_assets/2_1754160490051.png" 
+                  alt="Modern furnished living room ready for TV installation" 
+                  className="rounded-3xl shadow-2xl w-full h-auto object-cover aspect-[3/2]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl"></div>
                 <div className="absolute bottom-4 lg:bottom-6 left-4 lg:left-6 bg-white/90 backdrop-blur-sm rounded-xl p-3 lg:p-4 z-20">

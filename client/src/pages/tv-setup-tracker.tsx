@@ -74,6 +74,31 @@ export default function TvSetupTracker() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Format MAC address as user types
+  const formatMacAddress = (value: string) => {
+    // Remove all non-alphanumeric characters
+    const clean = value.replace(/[^a-fA-F0-9]/g, '');
+    
+    // Limit to 12 characters (6 pairs)
+    const limited = clean.slice(0, 12);
+    
+    // Add colons every 2 characters
+    const formatted = limited.replace(/(.{2})/g, '$1:').slice(0, -1);
+    
+    return formatted.toUpperCase();
+  };
+
+  const handleMacAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatMacAddress(e.target.value);
+    setMacAddress(formatted);
+  };
+
+  // Validate MAC address format
+  const isValidMacAddress = (mac: string) => {
+    const macRegex = /^[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}$/;
+    return macRegex.test(mac);
+  };
+
   // Check URL parameters on component mount but don't automatically search
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -114,7 +139,7 @@ export default function TvSetupTracker() {
 
   const submitMacAddress = useMutation({
     mutationFn: async () => {
-      if (!booking?.id || !macAddress.trim()) return;
+      if (!booking?.id || !macAddress.trim() || !isValidMacAddress(macAddress)) return;
       return apiRequest('PUT', `/api/tv-setup-bookings/${booking.id}/mac-address`, {
         macAddress: macAddress.trim()
       });
@@ -476,7 +501,7 @@ export default function TvSetupTracker() {
             </Card>
 
             {/* MAC Address Submission */}
-            {booking && booking.setupStatus === 'mac_required' && !booking.macAddressProvided && (
+            {booking && !booking.macAddressProvided && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -507,10 +532,11 @@ export default function TvSetupTracker() {
                       <Input
                         id="macAddress"
                         type="text"
-                        placeholder="e.g., 00:1A:2B:3C:4D:5E"
+                        placeholder="Enter MAC address (XX:XX:XX:XX:XX:XX)"
                         value={macAddress}
-                        onChange={(e) => setMacAddress(e.target.value)}
+                        onChange={handleMacAddressChange}
                         className="font-mono"
+                        maxLength={17}
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         Find this in your TV/device network settings. It's usually labeled as "MAC Address", "Wi-Fi MAC", or "Ethernet MAC".
@@ -518,11 +544,16 @@ export default function TvSetupTracker() {
                     </div>
                     <Button 
                       onClick={() => submitMacAddress.mutate()}
-                      disabled={!macAddress.trim() || submitMacAddress.isPending}
+                      disabled={!isValidMacAddress(macAddress) || submitMacAddress.isPending}
                       className="w-full"
                     >
                       {submitMacAddress.isPending ? 'Submitting...' : 'Submit MAC Address'}
                     </Button>
+                    {macAddress && !isValidMacAddress(macAddress) && (
+                      <p className="text-sm text-red-500 mt-2">
+                        Please enter a valid MAC address format (XX:XX:XX:XX:XX:XX)
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

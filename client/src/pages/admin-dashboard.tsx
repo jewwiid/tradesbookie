@@ -4073,9 +4073,9 @@ function ReferralManagement() {
                   <TableBody>
                     {referralUsage.slice(0, 10).map((usage: any) => (
                       <TableRow key={usage.id}>
-                        <TableCell className="font-mono">{usage.referralCode}</TableCell>
-                        <TableCell>{usage.customerEmail || 'Guest'}</TableCell>
-                        <TableCell>#{usage.bookingId}</TableCell>
+                        <TableCell className="font-mono">{usage.referralCode || 'N/A'}</TableCell>
+                        <TableCell>{usage.customerName || usage.customerEmail || 'Guest'}</TableCell>
+                        <TableCell>#{usage.tvSetupBookingId || usage.bookingId || 'N/A'}</TableCell>
                         <TableCell>€{parseFloat(usage.discountAmount || "0").toFixed(2)}</TableCell>
                         <TableCell>€{parseFloat(usage.rewardAmount || "0").toFixed(2)}</TableCell>
                         <TableCell>

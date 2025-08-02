@@ -951,9 +951,34 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount > 0;
   }
 
-  async getReferralUsageHistory(): Promise<ReferralUsage[]> {
-    return await db.select().from(referralUsage)
-      .orderBy(referralUsage.createdAt);
+  async getReferralUsageHistory(): Promise<any[]> {
+    const results = await db.select({
+      id: referralUsage.id,
+      referralCodeId: referralUsage.referralCodeId,
+      bookingId: referralUsage.bookingId,
+      tvSetupBookingId: referralUsage.tvSetupBookingId,
+      bookingType: referralUsage.bookingType,
+      referrerUserId: referralUsage.referrerUserId,
+      refereeUserId: referralUsage.refereeUserId,
+      discountAmount: referralUsage.discountAmount,
+      rewardAmount: referralUsage.rewardAmount,
+      subsidizedByInstaller: referralUsage.subsidizedByInstaller,
+      status: referralUsage.status,
+      paidOut: referralUsage.paidOut,
+      createdAt: referralUsage.createdAt,
+      updatedAt: referralUsage.updatedAt,
+      // Join referral code info
+      referralCode: referralCodes.referralCode,
+      // Join TV setup booking customer info
+      customerName: tvSetupBookings.name,
+      customerEmail: tvSetupBookings.email,
+      customerMobile: tvSetupBookings.mobile,
+    }).from(referralUsage)
+      .leftJoin(referralCodes, eq(referralUsage.referralCodeId, referralCodes.id))
+      .leftJoin(tvSetupBookings, eq(referralUsage.tvSetupBookingId, tvSetupBookings.id))
+      .orderBy(desc(referralUsage.createdAt));
+    
+    return results;
   }
 
   async getReferralEarnings(userId: string): Promise<{ totalEarnings: number; pendingEarnings: number; totalReferrals: number }> {

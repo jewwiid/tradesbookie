@@ -331,7 +331,9 @@ export const referralCodes = pgTable("referral_codes", {
 export const referralUsage = pgTable("referral_usage", {
   id: serial("id").primaryKey(),
   referralCodeId: integer("referral_code_id").notNull(),
-  bookingId: integer("booking_id").notNull(),
+  bookingId: integer("booking_id"), // Regular booking ID (nullable for TV setup bookings)
+  tvSetupBookingId: integer("tv_setup_booking_id"), // TV setup booking ID (nullable for regular bookings)
+  bookingType: text("booking_type").notNull().default("regular"), // "regular" or "tv_setup"
   referrerUserId: text("referrer_user_id"), // Nullable for sales staff codes
   refereeUserId: text("referee_user_id"), // Customer who used the code
   discountAmount: decimal("discount_amount", { precision: 8, scale: 2 }).notNull(), // In euros

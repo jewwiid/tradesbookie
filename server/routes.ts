@@ -1940,6 +1940,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         salesStaffStore
       });
 
+      // Create referral usage tracking if referral code was used successfully
+      if (referralCodeId && discountAmount > 0) {
+        try {
+          // Get the referral code details to determine referrer
+          const referralCode = await storage.getReferralCodeById(referralCodeId);
+          if (referralCode) {
+            // Calculate reward amount (typically 5% of original amount for referrer)
+            const rewardAmount = originalAmount * 0.05; // 5% commission for referrer
+            
+            // Create referral usage record for TV setup booking
+            await storage.createReferralUsage({
+              referralCodeId: referralCodeId,
+              bookingId: null, // Not a regular booking
+              tvSetupBookingId: booking.id, // TV setup booking ID
+              bookingType: 'tv_setup', // Specify this is a TV setup booking
+              referrerUserId: referralCode.userId, // User who owns the referral code
+              refereeUserId: validatedData.email, // Customer who used the code (using email as identifier)
+              discountAmount: discountAmount.toString(),
+              rewardAmount: rewardAmount.toString(),
+              subsidizedByInstaller: false // TV setup referrals are platform-subsidized
+            });
+
+            // Update referral code statistics
+            await storage.updateReferralCodeStats(referralCodeId, rewardAmount);
+            
+            console.log(`Created referral usage tracking for code ${validatedData.referralCode}, booking ${booking.id}, discount €${discountAmount}, reward €${rewardAmount}`);
+          }
+        } catch (referralTrackingError) {
+          console.error('Error creating referral usage tracking:', referralTrackingError);
+          // Don't fail booking creation if referral tracking fails
+        }
+      }
+
       // Send immediate booking confirmation email to customer
       try {
         const { sendTvSetupConfirmationEmail } = await import('./tvSetupEmailService');

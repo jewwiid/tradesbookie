@@ -121,6 +121,7 @@ export interface IStorage {
   updateReferralSettings(settings: InsertReferralSettings): Promise<ReferralSettings>;
   createReferralCode(referralCode: InsertReferralCode): Promise<ReferralCode>;
   getReferralCodeByCode(code: string): Promise<ReferralCode | undefined>;
+  getReferralCodeById(id: number): Promise<ReferralCode | undefined>;
   getReferralCodeByUserId(userId: string): Promise<ReferralCode | undefined>;
   validateReferralCode(code: string): Promise<{ valid: boolean; discount: number; referrerId?: string }>;
   createReferralUsage(usage: InsertReferralUsage): Promise<ReferralUsage>;
@@ -852,6 +853,12 @@ export class DatabaseStorage implements IStorage {
   async getReferralCodeByCode(code: string): Promise<ReferralCode | undefined> {
     const [referralCode] = await db.select().from(referralCodes)
       .where(and(eq(referralCodes.referralCode, code), eq(referralCodes.isActive, true)));
+    return referralCode;
+  }
+
+  async getReferralCodeById(id: number): Promise<ReferralCode | undefined> {
+    const [referralCode] = await db.select().from(referralCodes)
+      .where(eq(referralCodes.id, id));
     return referralCode;
   }
 

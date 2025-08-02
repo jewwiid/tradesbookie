@@ -86,28 +86,30 @@ export default function AIHelpPage() {
 
         {/* Tab Navigation */}
         <div className="flex justify-center mb-6 sm:mb-8 px-4">
-          <div className="bg-white rounded-lg p-1 shadow-sm border">
+          <div className="bg-white rounded-lg p-1 shadow-sm border flex flex-row">
             <button
               onClick={() => setActiveTab('chat')}
-              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md font-medium text-xs sm:text-sm transition-colors flex items-center whitespace-nowrap ${
                 activeTab === 'chat'
                   ? 'bg-blue-500 text-white'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <MessageCircle className="w-4 h-4 inline mr-2" />
-              AI Chat Assistant
+              <MessageCircle className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">AI Chat Assistant</span>
+              <span className="sm:hidden">AI Chat</span>
             </button>
             <button
               onClick={() => setActiveTab('compare')}
-              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md font-medium text-xs sm:text-sm transition-colors flex items-center whitespace-nowrap ${
                 activeTab === 'compare'
                   ? 'bg-blue-500 text-white'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <ArrowRightLeft className="w-4 h-4 inline mr-2" />
-              TV Model Comparison
+              <ArrowRightLeft className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">TV Model Comparison</span>
+              <span className="sm:hidden">Compare TVs</span>
             </button>
           </div>
         </div>

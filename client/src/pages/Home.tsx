@@ -778,7 +778,7 @@ export default function Home() {
               Need Help Setting Up Your Smart TV Apps?
             </h2>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Get professional remote assistance to set up FreeView+ and SaorView-compatible streaming apps on your smart TV. One-time €100 fee with no ongoing subscriptions.
+              Get professional remote assistance to set up FreeView+ and SaorView-compatible streaming apps on your smart TV. Smart TV setup service with no ongoing subscriptions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -788,7 +788,7 @@ export default function Home() {
                   window.location.href = '/tv-setup-assist';
                 }}
               >
-                Get TV Setup Help - €100
+                Get TV Setup Help
               </Button>
               <Link href="/customer-resources">
                 <Button 

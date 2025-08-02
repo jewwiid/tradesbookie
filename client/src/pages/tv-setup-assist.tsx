@@ -181,18 +181,18 @@ export default function TvSetupAssist() {
               />
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Stream More with{" "}
-              <span className="text-yellow-300">FreeView+ Setup Help</span>
+              Smart TV Setup with{" "}
+              <span className="text-yellow-300">FreeView+ Apps</span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
-              Unlock free-to-air and bonus channels on your smart TV with our professional remote assistance
+              Professional Smart TV setup assistance - unlock free-to-air and bonus channels with remote guidance
             </p>
             <Button 
               onClick={scrollToForm}
               size="lg" 
               className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-8 py-4 text-lg"
             >
-              Get Started - €100 One-Time Fee
+              Get Started
             </Button>
           </div>
         </div>
@@ -203,10 +203,10 @@ export default function TvSetupAssist() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              What's Included in Your TV Setup
+              What's Included in Your Smart TV Setup
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Professional guidance to help you access all available free-to-air and bonus channels
+              Professional guidance to help you access all available free-to-air and bonus channels on your Smart TV
             </p>
           </div>
 
@@ -799,7 +799,7 @@ export default function TvSetupAssist() {
                     {createBookingMutation.isPending ? (
                       "Processing..."
                     ) : (
-                      `Book TV Setup - €${finalPrice.toFixed(2)}`
+                      "Book Smart TV Setup"
                     )}
                   </Button>
                 </div>

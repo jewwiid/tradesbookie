@@ -250,27 +250,27 @@ export default function Home() {
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-20 xl:gap-24 items-center">
             {/* Content Column - Takes up more space on large screens */}
             <div className="lg:col-span-8 xl:col-span-7 text-center lg:text-left lg:pr-8 xl:pr-12 relative z-20">
-              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight mx-auto lg:mx-0">
                 Ireland's Leading{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
                   TV Installation Platform
                 </span>
               </h1>
-              <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl lg:max-w-none">
+              <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed mx-auto lg:mx-0 max-w-none">
                 Tradesbook.ie connects you with Ireland's certified TV installation professionals. Book instantly, track your service, and get expert setup for all your entertainment needs.
               </p>
               
               {/* Button Container with better spacing and z-index */}
-              <div className="isolate relative z-50 flex flex-col gap-4 mb-8 max-w-2xl mx-auto lg:mx-0">
+              <div className="isolate relative z-50 flex flex-col gap-4 mb-8 w-full">
                 {/* Primary Actions Row */}
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/tv-recommendation" className="flex-1 sm:flex-none">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                  <Link href="/tv-recommendation" className="flex-shrink-0">
                     <Button className="relative z-50 w-full sm:w-[220px] inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-purple-500/20">
                       <Tv className="mr-2 lg:mr-3 h-4 lg:h-5 w-4 lg:w-5" />
                       Find My Perfect TV
                     </Button>
                   </Link>
-                  <Link href="/booking" className="flex-1 sm:flex-none">
+                  <Link href="/booking" className="flex-shrink-0">
                     <Button className="relative z-50 w-full sm:w-[220px] inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-blue-500/20">
                       <Camera className="mr-2 lg:mr-3 h-4 lg:h-5 w-4 lg:w-5" />
                       Book TV Installation
@@ -280,7 +280,7 @@ export default function Home() {
                 
                 {/* Secondary Action Row */}
                 <div className="flex justify-center lg:justify-start">
-                  <Link href="/tv-setup-assist">
+                  <Link href="/tv-setup-assist" className="flex-shrink-0">
                     <Button className="relative z-50 w-full sm:w-[220px] inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 lg:px-8 py-3 lg:py-4 rounded-2xl text-base lg:text-lg font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-emerald-500/20">
                       <Wrench className="mr-2 lg:mr-3 h-4 lg:h-5 w-4 lg:w-5" />
                       TV Setup Service

@@ -256,6 +256,12 @@ export interface IStorage {
   updateTvSetupBookingPayment(id: number, paymentIntentId: string, status: string): Promise<void>;
   updateTvSetupBookingMacAddress(id: number, macAddress: string): Promise<void>;
   updateTvSetupBookingStatus(id: number, status: string, adminNotes?: string, assignedTo?: string): Promise<void>;
+  updateTvSetupBookingReferral(id: number, referralData: {
+    referralCode?: string | null;
+    referralCodeId?: number | null;
+    salesStaffName?: string | null;
+    salesStaffStore?: string | null;
+  }): Promise<void>;
   updateTvSetupBookingStripeSession(id: number, sessionId: string): Promise<void>;
   updateTvSetupBookingIptvCredentials(id: number, credentials: {
     credentialsType: string;
@@ -1710,6 +1716,26 @@ export class DatabaseStorage implements IStorage {
     if (adminNotes) updateData.adminNotes = adminNotes;
     if (assignedTo) updateData.assignedTo = assignedTo;
     if (status === 'completed') updateData.completedAt = new Date();
+
+    await db.update(tvSetupBookings)
+      .set(updateData)
+      .where(eq(tvSetupBookings.id, id));
+  }
+
+  async updateTvSetupBookingReferral(id: number, referralData: {
+    referralCode?: string | null;
+    referralCodeId?: number | null;
+    salesStaffName?: string | null;
+    salesStaffStore?: string | null;
+  }): Promise<void> {
+    const updateData: any = { 
+      updatedAt: new Date()
+    };
+    
+    if (referralData.referralCode !== undefined) updateData.referralCode = referralData.referralCode;
+    if (referralData.referralCodeId !== undefined) updateData.referralCodeId = referralData.referralCodeId;
+    if (referralData.salesStaffName !== undefined) updateData.salesStaffName = referralData.salesStaffName;
+    if (referralData.salesStaffStore !== undefined) updateData.salesStaffStore = referralData.salesStaffStore;
 
     await db.update(tvSetupBookings)
       .set(updateData)

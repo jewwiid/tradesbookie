@@ -35,7 +35,8 @@ import {
   Euro,
   Loader2,
   Trash2,
-  CreditCard
+  CreditCard,
+  Target
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -57,6 +58,12 @@ interface TvSetupBooking {
   setupStatus: string;
   setupMethod?: string;
   assignedTo?: string;
+  
+  // Referral system integration
+  referralCode?: string;
+  referralCodeId?: number;
+  salesStaffName?: string;
+  salesStaffStore?: string;
   
   // MAC Address fields
   macAddress?: string;
@@ -124,12 +131,20 @@ const statusUpdateSchema = z.object({
   assignedTo: z.string().optional(),
 });
 
+const referralUpdateSchema = z.object({
+  referralCode: z.string().optional(),
+  referralCodeId: z.number().optional(),
+  salesStaffName: z.string().optional(),
+  salesStaffStore: z.string().optional(),
+});
+
 function TvSetupManagement() {
   const [selectedBooking, setSelectedBooking] = useState<TvSetupBooking | null>(null);
   const [showCredentialsDialog, setShowCredentialsDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showReferralDialog, setShowReferralDialog] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -153,6 +168,15 @@ function TvSetupManagement() {
       status: "",
       adminNotes: "",
       assignedTo: "",
+    },
+  });
+
+  const referralForm = useForm<z.infer<typeof referralUpdateSchema>>({
+    resolver: zodResolver(referralUpdateSchema),
+    defaultValues: {
+      referralCode: "",
+      salesStaffName: "",
+      salesStaffStore: "",
     },
   });
 
@@ -222,6 +246,28 @@ function TvSetupManagement() {
       toast({
         title: "Error",
         description: error.message || "Failed to update status",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateReferralMutation = useMutation({
+    mutationFn: async ({ bookingId, referral }: { bookingId: number; referral: z.infer<typeof referralUpdateSchema> }) => {
+      await apiRequest("POST", `/api/admin/tv-setup-booking/${bookingId}/referral`, referral);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tv-setup-bookings"] });
+      toast({
+        title: "Success",
+        description: "Referral information updated successfully",
+      });
+      setShowReferralDialog(false);
+      referralForm.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update referral",
         variant: "destructive",
       });
     },
@@ -371,6 +417,14 @@ function TvSetupManagement() {
     setShowDeleteDialog(true);
   };
 
+  const openReferralDialog = (booking: TvSetupBooking) => {
+    setSelectedBooking(booking);
+    referralForm.setValue("referralCode", booking.referralCode || "");
+    referralForm.setValue("salesStaffName", booking.salesStaffName || "");
+    referralForm.setValue("salesStaffStore", booking.salesStaffStore || "");
+    setShowReferralDialog(true);
+  };
+
   const handleDeleteBooking = () => {
     if (!selectedBooking) return;
     deleteBookingMutation.mutate(selectedBooking.id);
@@ -389,6 +443,14 @@ function TvSetupManagement() {
     updateStatusMutation.mutate({
       bookingId: selectedBooking.id,
       status: values,
+    });
+  };
+
+  const onReferralSubmit = (values: z.infer<typeof referralUpdateSchema>) => {
+    if (!selectedBooking) return;
+    updateReferralMutation.mutate({
+      bookingId: selectedBooking.id,
+      referral: values,
     });
   };
 
@@ -427,6 +489,7 @@ function TvSetupManagement() {
                     <TableHead>Payment</TableHead>
                     <TableHead>Setup Status</TableHead>
                     <TableHead>Credentials</TableHead>
+                    <TableHead>Referral</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -530,6 +593,32 @@ function TvSetupManagement() {
                           )}
                         </div>
                       </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          {booking.referralCode ? (
+                            <div>
+                              <Badge variant="secondary" className="bg-purple-100 text-purple-800 mb-1">
+                                <Target className="h-3 w-3 mr-1" />
+                                {booking.referralCode}
+                              </Badge>
+                              {booking.salesStaffName && (
+                                <div className="text-xs text-gray-500">
+                                  {booking.salesStaffName}
+                                </div>
+                              )}
+                              {booking.salesStaffStore && (
+                                <div className="text-xs text-gray-400">
+                                  {booking.salesStaffStore}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-100 text-gray-500">
+                              No Referral
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-sm text-gray-500">
                         {format(new Date(booking.createdAt), "MMM dd, yyyy")}
                       </TableCell>
@@ -555,6 +644,14 @@ function TvSetupManagement() {
                             onClick={() => openStatusDialog(booking)}
                           >
                             <Settings className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openReferralDialog(booking)}
+                            title="Edit Referral"
+                          >
+                            <Target className="h-4 w-4" />
                           </Button>
                           {booking.credentialsProvided && !booking.credentialsEmailSent && (
                             <Button
@@ -1107,6 +1204,98 @@ function TvSetupManagement() {
               )}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Referral Update Dialog */}
+      <Dialog open={showReferralDialog} onOpenChange={setShowReferralDialog}>
+        <DialogContent className="max-w-md" aria-describedby="referral-update-description">
+          <DialogHeader>
+            <DialogTitle>Update Referral Information</DialogTitle>
+            <DialogDescription id="referral-update-description">
+              Manually link or update referral information for this TV setup booking.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...referralForm}>
+            <form onSubmit={referralForm.handleSubmit(onReferralSubmit)} className="space-y-4">
+              <FormField
+                control={referralForm.control}
+                name="referralCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Referral Code</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter referral code" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={referralForm.control}
+                name="salesStaffName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sales Staff Name</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter sales staff name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={referralForm.control}
+                name="salesStaffStore"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Sales Staff Store</FormLabel>
+                    <FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select store" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="CKM">Carrickmines</SelectItem>
+                          <SelectItem value="CRK">Cork</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowReferralDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateReferralMutation.isPending}
+                >
+                  {updateReferralMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Target className="h-4 w-4 mr-2" />
+                      Update Referral
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>

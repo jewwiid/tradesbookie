@@ -2274,6 +2274,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update TV setup booking referral information (admin only)
+  app.post("/api/admin/tv-setup-booking/:id/referral", isAuthenticated, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const bookingId = parseInt(req.params.id);
+      const { referralCode, referralCodeId, salesStaffName, salesStaffStore } = req.body;
+
+      // Verify booking exists
+      const currentBooking = await storage.getTvSetupBooking(bookingId);
+      if (!currentBooking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      // Update the booking referral information
+      await storage.updateTvSetupBookingReferral(bookingId, {
+        referralCode: referralCode || null,
+        referralCodeId: referralCodeId || null,
+        salesStaffName: salesStaffName || null,
+        salesStaffStore: salesStaffStore || null,
+      });
+
+      res.json({ success: true, message: "Referral information updated successfully" });
+    } catch (error: any) {
+      console.error("Error updating TV setup booking referral:", error);
+      res.status(500).json({ 
+        message: "Error updating TV setup booking referral: " + error.message 
+      });
+    }
+  });
+
   // Mark IPTV credentials payment as received (admin only)
   app.post("/api/admin/tv-setup-booking/:id/mark-credentials-paid", isAuthenticated, async (req, res) => {
     try {

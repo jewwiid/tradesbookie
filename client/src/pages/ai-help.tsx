@@ -162,7 +162,15 @@ export default function AIHelpPage() {
                     disabled={!model1.trim() || !model2.trim() || compareModels.isPending}
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
-                    {compareModels.isPending ? 'Analyzing...' : 'Compare TVs'}
+                    {compareModels.isPending ? (
+                      <div className="flex items-center">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                        Analyzing
+                        <span className="animate-pulse">...</span>
+                      </div>
+                    ) : (
+                      'Compare TVs'
+                    )}
                   </Button>
                 </div>
 
@@ -270,6 +278,22 @@ export default function AIHelpPage() {
                         </CardContent>
                       </Card>
                     )}
+
+                    {/* Book Consultation Button */}
+                    <div className="text-center mt-6 pt-4 border-t border-gray-200">
+                      <p className="text-gray-600 mb-3 text-sm">
+                        Need personalized advice about these TV models?
+                      </p>
+                      <Button
+                        onClick={() => {
+                          const tvDetails = `${comparison.model1_name} vs ${comparison.model2_name} - Winner: ${comparison.winner}`;
+                          window.location.href = `/consultation-booking?tv=${encodeURIComponent(tvDetails)}`;
+                        }}
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2"
+                      >
+                        Book TV Consultation
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>

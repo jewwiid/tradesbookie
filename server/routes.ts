@@ -3054,6 +3054,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint for fetching active referral codes
+  app.get("/api/admin/referral-codes", async (req, res) => {
+    try {
+      const codes = await storage.getAllReferralCodes();
+      const activeCodes = codes.filter(code => code.isActive);
+      res.json(activeCodes);
+    } catch (error) {
+      console.error("Error fetching active referral codes:", error);
+      res.status(500).json({ message: "Failed to fetch referral codes" });
+    }
+  });
+
   // Harvey Norman Sales Staff Referral Routes
   app.post("/api/harvey-norman/create-code", async (req, res) => {
     try {

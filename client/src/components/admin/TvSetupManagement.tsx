@@ -188,6 +188,21 @@ function TvSetupManagement() {
     retry: false,
   });
 
+  // Query for fetching active referral codes
+  const { data: referralCodes = [] } = useQuery({
+    queryKey: ["/api/admin/referral-codes"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/admin/referral-codes");
+      const data = await response.json();
+      return data as Array<{
+        id: number;
+        referralCode: string;
+        salesStaffName: string;
+        salesStaffStore: string;
+      }>;
+    },
+  });
+
   // Mutations
   const updateCredentialsMutation = useMutation({
     mutationFn: async ({ bookingId, credentials }: { bookingId: number; credentials: z.infer<typeof credentialsSchema> }) => {
@@ -422,6 +437,7 @@ function TvSetupManagement() {
   const openReferralDialog = (booking: TvSetupBooking) => {
     setSelectedBooking(booking);
     referralForm.setValue("referralCode", booking.referralCode || "");
+    referralForm.setValue("referralCodeId", booking.referralCodeId || undefined);
     referralForm.setValue("salesStaffName", booking.salesStaffName || "");
     referralForm.setValue("salesStaffStore", booking.salesStaffStore || "");
     setShowReferralDialog(true);
@@ -1230,7 +1246,31 @@ function TvSetupManagement() {
                   <FormItem>
                     <FormLabel>Referral Code</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Enter referral code" />
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Auto-populate staff info when referral code is selected
+                          const selectedCode = referralCodes.find(code => code.referralCode === value);
+                          if (selectedCode) {
+                            referralForm.setValue("referralCodeId", selectedCode.id);
+                            referralForm.setValue("salesStaffName", selectedCode.salesStaffName || "");
+                            referralForm.setValue("salesStaffStore", selectedCode.salesStaffStore || "");
+                          }
+                        }} 
+                        value={field.value}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select referral code" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">None</SelectItem>
+                          {referralCodes.map((code) => (
+                            <SelectItem key={code.id} value={code.referralCode}>
+                              {code.referralCode} - {code.salesStaffName} ({code.salesStaffStore || 'No Store'})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

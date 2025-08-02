@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import ServiceTierCard from "@/components/ServiceTierCard";
@@ -17,6 +17,18 @@ export default function Home() {
   const { user, isAuthenticated } = useAuth();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [authDialogTab, setAuthDialogTab] = useState<'invoice' | 'guest' | 'oauth'>('invoice');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Auto-rotate images every 3 seconds when not hovered
+  useEffect(() => {
+    if (!isHovered) {
+      const interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev === 0 ? 1 : 0));
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [isHovered]);
 
   // Fetch dynamic pricing from backend
   const { data: apiServiceTiers, isLoading } = useQuery({
@@ -308,17 +320,50 @@ export default function Home() {
             
             {/* Image Column - Takes up less space and has lower z-index */}
             <div className="lg:col-span-4 xl:col-span-5 relative order-first lg:order-last z-10">
-              <div className="relative max-w-md mx-auto lg:max-w-none">
-                <img 
-                  src="/attached_assets/2_1754160490051.png" 
-                  alt="Modern furnished living room ready for TV installation" 
-                  className="rounded-3xl shadow-2xl w-full h-auto object-cover aspect-[3/2]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl"></div>
-                <div className="absolute bottom-4 lg:bottom-6 left-4 lg:left-6 bg-white/90 backdrop-blur-sm rounded-xl p-3 lg:p-4 z-20">
-                  <div className="flex items-center space-x-2 lg:space-x-3">
-                    <div className="w-2.5 lg:w-3 h-2.5 lg:h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs lg:text-sm font-medium text-gray-800">AI Preview Active</span>
+              <div className="relative max-w-md mx-auto lg:max-w-none hero-slideshow-container">
+                <div 
+                  className="relative overflow-hidden rounded-3xl shadow-2xl aspect-[3/2] cursor-pointer"
+                  onMouseEnter={() => {
+                    setIsHovered(true);
+                    setCurrentImageIndex(1); // Show furnished room on hover
+                  }}
+                  onMouseLeave={() => {
+                    setIsHovered(false);
+                    setCurrentImageIndex(0); // Return to empty room
+                  }}
+                >
+                  <img 
+                    src="/attached_assets/1_1754160490051.png" 
+                    alt="Empty room ready for TV installation" 
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+                      currentImageIndex === 0 ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                  <img 
+                    src="/attached_assets/2_1754160490051.png" 
+                    alt="Modern furnished living room with TV installation preview" 
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
+                      currentImageIndex === 1 ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                  <div className="absolute bottom-4 lg:bottom-6 left-4 lg:left-6 bg-white/90 backdrop-blur-sm rounded-xl p-3 lg:p-4 z-20">
+                    <div className="flex items-center space-x-2 lg:space-x-3">
+                      <div className="w-2.5 lg:w-3 h-2.5 lg:h-3 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs lg:text-sm font-medium text-gray-800">
+                        {currentImageIndex === 0 ? 'Upload Your Room' : 'AI Preview Ready'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Image indicator dots */}
+                  <div className="absolute bottom-4 lg:bottom-6 right-4 lg:right-6 flex space-x-2 z-20">
+                    <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      currentImageIndex === 0 ? 'bg-white' : 'bg-white/50'
+                    }`}></div>
+                    <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      currentImageIndex === 1 ? 'bg-white' : 'bg-white/50'
+                    }`}></div>
                   </div>
                 </div>
               </div>

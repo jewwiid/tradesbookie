@@ -165,7 +165,7 @@ function TvSetupManagement() {
   const statusForm = useForm<z.infer<typeof statusUpdateSchema>>({
     resolver: zodResolver(statusUpdateSchema),
     defaultValues: {
-      status: "",
+      status: "pending",
       adminNotes: "",
       assignedTo: "",
     },
@@ -176,7 +176,7 @@ function TvSetupManagement() {
     defaultValues: {
       referralCode: "",
       salesStaffName: "",
-      salesStaffStore: "",
+      salesStaffStore: "none",
     },
   });
 

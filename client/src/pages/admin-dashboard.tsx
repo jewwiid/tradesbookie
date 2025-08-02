@@ -5935,7 +5935,7 @@ export default function AdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="resources" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Home className="w-4 h-4" />
-              <span>Customer Resources</span>
+              <span>General Resources</span>
             </TabsTrigger>
             <TabsTrigger value="fraud-prevention" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Shield className="w-4 h-4" />
@@ -5951,7 +5951,7 @@ export default function AdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="customer-resources" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <BookOpen className="w-4 h-4" />
-              <span>Customer Resources</span>
+              <span>TV Setup Help</span>
             </TabsTrigger>
             <TabsTrigger value="downloadable-guides" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Upload className="w-4 h-4" />

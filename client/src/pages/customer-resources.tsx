@@ -27,21 +27,62 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import AIHelpWidget from "@/components/AIHelpWidget";
 
+interface Guide {
+  id: number;
+  title: string;
+  description: string;
+  fileType?: string;
+  fileSize?: string;
+  downloadCount?: number;
+  fileUrl?: string;
+}
+
+interface Tutorial {
+  id: number;
+  title: string;
+  description: string;
+  duration?: string;
+  category?: string;
+  videoUrl?: string;
+}
+
+interface Resource {
+  id: number;
+  title: string;
+  description: string;
+  type: string;
+  category?: string;
+  brand?: string;
+  externalUrl?: string;
+  linkText?: string;
+}
+
 export default function CustomerResources() {
   // Fetch downloadable guides
-  const { data: guides = [] } = useQuery({
+  const { data: guides = [] } = useQuery<Guide[]>({
     queryKey: ["/api/downloadable-guides"]
   });
 
-  // Fetch video tutorials
-  const { data: tutorials = [] } = useQuery({
+  // Fetch video tutorials  
+  const { data: tutorials = [] } = useQuery<Tutorial[]>({
     queryKey: ["/api/video-tutorials"]
   });
 
-  // Fetch general resources (from Customer Resources Management)
-  const { data: generalResources = [] } = useQuery({
+  // Fetch TV setup specific resources only
+  const { data: allResources = [] } = useQuery<Resource[]>({
     queryKey: ["/api/resources"]
   });
+
+  // Filter resources to only show TV setup related content
+  const tvSetupResources = allResources.filter(resource => 
+    resource.category === 'tv-setup' || 
+    resource.category === 'streaming' || 
+    resource.category === 'installation' ||
+    resource.type === 'tv-guide' ||
+    resource.title.toLowerCase().includes('tv') ||
+    resource.title.toLowerCase().includes('streaming') ||
+    resource.title.toLowerCase().includes('setup')
+  );
 
   const commonIssues = [
     {
@@ -101,9 +142,9 @@ export default function CustomerResources() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Customer Resources</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">TV Setup & Streaming Resources</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Self-help guides, tutorials, and troubleshooting resources for setting up Irish streaming apps on your smart TV.
+            Complete guides and resources specifically for TV installation, smart TV setup, and streaming app configuration.
           </p>
         </div>
 
@@ -221,7 +262,7 @@ export default function CustomerResources() {
             Downloadable Guides
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {guides.map((guide: any) => (
+            {guides.map((guide) => (
               <Card key={guide.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center justify-between">
@@ -272,14 +313,14 @@ export default function CustomerResources() {
           )}
         </section>
 
-        {/* General Resources */}
+        {/* TV Setup Resources */}
         <section className="mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-6 flex items-center">
-            <Settings className="w-7 h-7 mr-3 text-orange-600" />
-            Additional Resources
+            <Tv className="w-7 h-7 mr-3 text-orange-600" />
+            TV Setup Resources
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {generalResources.map((resource: any) => (
+            {tvSetupResources.map((resource) => (
               <Card key={resource.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center justify-between">
@@ -322,11 +363,11 @@ export default function CustomerResources() {
               </Card>
             ))}
           </div>
-          {generalResources.length === 0 && (
+          {tvSetupResources.length === 0 && (
             <Card>
               <CardContent className="text-center py-8">
-                <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <p className="text-gray-600">No additional resources available at the moment.</p>
+                <Tv className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600">No TV setup resources available at the moment.</p>
               </CardContent>
             </Card>
           )}
@@ -339,7 +380,7 @@ export default function CustomerResources() {
             Video Tutorials
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tutorials.map((tutorial: any) => (
+            {tutorials.map((tutorial) => (
               <Card key={tutorial.id} className="hover:shadow-lg transition-shadow cursor-pointer">
                 <CardContent className="pt-6">
                   <div className="text-center">

@@ -26,7 +26,7 @@ The application uses a modern full-stack architecture.
 - **AI-Powered Recommendations**: AI room analysis for installation previews, TV placement suggestions, personalized 5-question TV recommendation questionnaire, and AI Help Assistant with live TV model comparison using Perplexity's agent mode for current market data.
 - **Admin Dashboard**: Comprehensive dashboard for managing users, installers, bookings, lead pricing, and platform insights. Includes real-time analytics for bookings, revenue, and user activity.
 - **Review System**: Comprehensive customer review system with star ratings and verified purchase badges for installers.
-- **Payment Processing**: Stripe integration for installer credit payments with secure checkout and webhook support.
+- **Payment Processing**: Stripe integration for installer credit payments and TV setup credentials with secure checkout, discount handling, and webhook support.
 - **Email System**: Google Workspace Email Integration for professional HTML email templates across all platform communications (booking confirmations, installer notifications, admin alerts).
 - **Security**: Contact information protection to prevent direct contact bypass.
 

@@ -267,6 +267,26 @@ function TvSetupManagement() {
     },
   });
 
+  const completeSetupMutation = useMutation({
+    mutationFn: async (bookingId: number) => {
+      await apiRequest("POST", `/api/admin/tv-setup-bookings/${bookingId}/complete`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tv-setup-bookings"] });
+      toast({
+        title: "Success",
+        description: "TV setup marked as completed and customer notified",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to complete setup",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteBookingMutation = useMutation({
     mutationFn: async (bookingId: number) => {
       await apiRequest("DELETE", `/api/admin/tv-setup-booking/${bookingId}`);
@@ -576,6 +596,22 @@ function TvSetupManagement() {
                               title="Mark IPTV Payment as Received"
                             >
                               {markCredentialsPaidMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <CheckCircle className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                          {booking.credentialsPaymentStatus === 'paid' && booking.setupStatus !== 'completed' && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => completeSetupMutation.mutate(booking.id)}
+                              disabled={completeSetupMutation.isPending}
+                              className="bg-green-600 hover:bg-green-700"
+                              title="Mark Setup as Completed"
+                            >
+                              {completeSetupMutation.isPending ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <CheckCircle className="h-4 w-4" />

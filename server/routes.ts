@@ -1720,6 +1720,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
           }
         }
+
+        // Handle TV setup credentials payment
+        if (paymentIntent.metadata.tvSetupBookingId && paymentIntent.metadata.type === 'tv_setup_credentials') {
+          const bookingId = parseInt(paymentIntent.metadata.tvSetupBookingId);
+          
+          try {
+            // Update credentials payment status
+            await storage.updateTvSetupBookingCredentialsPayment(bookingId, 'paid', new Date().toISOString());
+            
+            // Get booking details for notifications
+            const booking = await storage.getTvSetupBooking(bookingId);
+            if (booking) {
+              // Send payment confirmation to customer
+              const { sendGmailEmail } = await import('./gmailService');
+              await sendGmailEmail({
+                to: booking.email,
+                subject: `Payment Confirmed - Your TV Setup Credentials Are Ready`,
+                html:
+                `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <div style="background: linear-gradient(135deg, #10B981, #047857); color: white; padding: 30px; text-align: center;">
+                    <h1 style="margin: 0; font-size: 28px;">Payment Confirmed!</h1>
+                    <p style="margin: 10px 0 0 0; font-size: 16px;">Your streaming credentials are now available</p>
+                  </div>
+                  
+                  <div style="padding: 30px; background: #F0FDF4;">
+                    <h2 style="color: #047857; margin: 0 0 20px 0;">Hello ${booking.name}!</h2>
+                    
+                    <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+                      Thank you for your payment! Your TV streaming credentials are now ready and can be accessed through your tracking link.
+                    </p>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+                      <h3 style="color: #047857; margin: 0 0 15px 0;">Next Steps</h3>
+                      <p style="margin: 0; color: #374151;">
+                        1. Visit your tracking page to access your credentials<br>
+                        2. Follow the setup instructions provided<br>
+                        3. Contact us if you need any assistance
+                      </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                      <a href="${process.env.FRONTEND_URL || 'https://tradesbook.ie'}/tv-setup-tracker?bookingId=${booking.id}" 
+                         style="background: #10B981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                        Access Your Credentials
+                      </a>
+                    </div>
+                    
+                    <p style="font-size: 14px; color: #6B7280; text-align: center; margin-top: 30px;">
+                      Booking #${booking.id} | Payment Amount: €${booking.credentialsPaymentAmount || booking.paymentAmount}
+                    </p>
+                  </div>
+                </div>
+                `
+              });
+
+              // Send admin notification about payment
+              await sendGmailEmail({
+                to: 'admin@tradesbook.ie',
+                subject: `Credentials Payment Received - Booking #${booking.id}`,
+                html:
+                `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <div style="background: #1F2937; color: white; padding: 20px;">
+                    <h2 style="margin: 0;">TV Setup Credentials Payment Received</h2>
+                  </div>
+                  
+                  <div style="padding: 20px; background: #F9FAFB;">
+                    <h3 style="color: #1F2937;">Payment Details</h3>
+                    <ul>
+                      <li><strong>Booking ID:</strong> #${booking.id}</li>
+                      <li><strong>Customer:</strong> ${booking.name} (${booking.email})</li>
+                      <li><strong>Amount Paid:</strong> €${booking.credentialsPaymentAmount || booking.paymentAmount}</li>
+                      <li><strong>Payment Intent:</strong> ${paymentIntent.id}</li>
+                      <li><strong>TV:</strong> ${booking.tvBrand} ${booking.tvModel}</li>
+                      <li><strong>MAC Address:</strong> ${booking.macAddress || 'Not provided'}</li>
+                    </ul>
+                    
+                    <p style="margin-top: 20px; padding: 15px; background: #FEF3C7; border-radius: 6px; color: #92400E;">
+                      <strong>Action Required:</strong> Customer has paid for credentials. You can now mark the setup as completed in the admin dashboard.
+                    </p>
+                    
+                    <div style="text-align: center; margin: 20px 0;">
+                      <a href="${process.env.FRONTEND_URL || 'https://tradesbook.ie'}/admin-dashboard" 
+                         style="background: #1F2937; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                        View in Admin Dashboard
+                      </a>
+                    </div>
+                  </div>
+                </div>
+                `
+              });
+
+              console.log(`TV setup credentials payment confirmed for booking ${booking.id}`);
+            }
+          } catch (error) {
+            console.error('Error processing credentials payment:', error);
+          }
+        }
         
         // Handle credit purchases
         if (paymentIntent.metadata.service === 'credit_purchase' && paymentIntent.metadata.installerId) {
@@ -2413,6 +2512,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error creating payment session:", error);
       res.status(500).json({ 
         message: "Error creating payment session: " + error.message 
+      });
+    }
+  });
+
+  // Admin endpoint to mark TV setup as completed after payment
+  app.post("/api/admin/tv-setup-bookings/:id/complete", async (req, res) => {
+    try {
+      // Check admin authentication
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(401).json({ message: "Admin access required" });
+      }
+
+      const bookingId = parseInt(req.params.id);
+      
+      if (!bookingId || isNaN(bookingId)) {
+        return res.status(400).json({ message: "Valid booking ID is required" });
+      }
+      
+      // Get the booking
+      const booking = await storage.getTvSetupBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+      
+      // Check if payment is completed
+      if (booking.credentialsPaymentStatus !== 'paid') {
+        return res.status(400).json({ message: "Payment must be completed before marking as complete" });
+      }
+      
+      // Update booking status to completed
+      await storage.updateTvSetupBookingStatus(bookingId, 'completed');
+      
+      // Send completion notification to customer
+      const { sendGmailEmail } = await import('./gmailService');
+      await sendGmailEmail({
+        to: booking.email,
+        subject: `TV Setup Complete - Booking #${booking.id}`,
+        html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 30px; text-align: center;">
+            <h1 style="margin: 0; font-size: 28px;">Setup Complete! 🎉</h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px;">Your TV streaming service is ready to use</p>
+          </div>
+          
+          <div style="padding: 30px; background: #F0FDF4;">
+            <h2 style="color: #047857; margin: 0 0 20px 0;">Hello ${booking.name}!</h2>
+            
+            <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+              Great news! Your TV setup service has been completed successfully. Your streaming credentials are active and ready to use.
+            </p>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+              <h3 style="color: #047857; margin: 0 0 15px 0;">What's Next?</h3>
+              <p style="margin: 0; color: #374151;">
+                • Your credentials are ready and working<br>
+                • Start enjoying your streaming content<br>
+                • Contact us if you need any support
+              </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'https://tradesbook.ie'}/tv-setup-tracker?bookingId=${booking.id}" 
+                 style="background: #10B981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                View Your Credentials
+              </a>
+            </div>
+            
+            <p style="font-size: 14px; color: #6B7280; text-align: center; margin-top: 30px;">
+              Thank you for choosing TradesBook.ie for your TV setup needs!
+            </p>
+          </div>
+        </div>
+        `
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "TV setup marked as completed and customer notified"
+      });
+    } catch (error: any) {
+      console.error("Error marking TV setup as completed:", error);
+      res.status(500).json({ 
+        message: "Error marking setup as completed: " + error.message 
       });
     }
   });

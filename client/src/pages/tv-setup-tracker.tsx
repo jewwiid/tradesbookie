@@ -163,7 +163,8 @@ export default function TvSetupTracker() {
   const initiateCredentialsPayment = useMutation({
     mutationFn: async () => {
       if (!booking?.id) return;
-      return apiRequest('POST', `/api/tv-setup-bookings/${booking.id}/payment`, {});
+      const response = await apiRequest('POST', `/api/tv-setup-bookings/${booking.id}/payment`, {});
+      return response.json();
     },
     onSuccess: (data: any) => {
       console.log("Payment response:", data);
@@ -567,7 +568,7 @@ export default function TvSetupTracker() {
                                 className="w-full bg-orange-600 hover:bg-orange-700"
                                 size="sm"
                               >
-                                {initiateCredentialsPayment.isPending ? 'Processing...' : 'Pay Now'}
+                                {initiateCredentialsPayment.isPending ? 'Processing...' : 'Pay for Credentials'}
                               </Button>
                             </div>
                           </div>
@@ -616,7 +617,7 @@ export default function TvSetupTracker() {
                       className="w-full"
                       size="lg"
                     >
-                      {initiateCredentialsPayment.isPending ? 'Processing...' : 'Pay Now'}
+                      {initiateCredentialsPayment.isPending ? 'Processing...' : 'Pay for Credentials'}
                     </Button>
                     <p className="text-xs text-gray-500 text-center">
                       Secure payment powered by Stripe. You'll be redirected to complete payment.

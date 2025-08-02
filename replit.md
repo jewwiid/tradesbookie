@@ -23,7 +23,7 @@ The application uses a modern full-stack architecture.
 - **Authentication**: Dual authentication architecture: OAuth for customers/admins, and email/password for installers. Simplified authentication options include Harvey Norman invoice lookup and guest booking. Email verification system for new signups.
 - **Lead Generation Model**: Customers book for free; installers pay fixed lead fees. Installer wallet system for credit management and transaction tracking.
 - **Installer Matching**: Uber-style real-time installer matching with an interactive map, availability toggles, distance-based job matching, and urgency levels. Email and SMS notifications for booking confirmations.
-- **AI-Powered Recommendations**: AI room analysis for installation previews, TV placement suggestions, personalized 5-question TV recommendation questionnaire, and AI Help Assistant with TV model comparison feature.
+- **AI-Powered Recommendations**: AI room analysis for installation previews, TV placement suggestions, personalized 5-question TV recommendation questionnaire, and AI Help Assistant with live TV model comparison using Perplexity's agent mode for current market data.
 - **Admin Dashboard**: Comprehensive dashboard for managing users, installers, bookings, lead pricing, and platform insights. Includes real-time analytics for bookings, revenue, and user activity.
 - **Review System**: Comprehensive customer review system with star ratings and verified purchase badges for installers.
 - **Payment Processing**: Stripe integration for installer credit payments with secure checkout and webhook support.

@@ -277,19 +277,16 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
                   <Link href="/tv-recommendation" className="flex-1 min-w-0">
                     <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-purple-500/20">
-                      <Tv className="mr-2 h-4 w-4 flex-shrink-0" />
                       <span className="whitespace-nowrap">Find My Perfect TV</span>
                     </Button>
                   </Link>
                   <Link href="/booking" className="flex-1 min-w-0">
                     <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-blue-500/20">
-                      <Camera className="mr-2 h-4 w-4 flex-shrink-0" />
                       <span className="whitespace-nowrap">Book TV Installation</span>
                     </Button>
                   </Link>
                   <Link href="/tv-setup-assist" className="flex-1 min-w-0">
                     <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-emerald-500/20">
-                      <Wrench className="mr-2 h-4 w-4 flex-shrink-0" />
                       <span className="whitespace-nowrap">TV Setup Service</span>
                     </Button>
                   </Link>

@@ -4865,7 +4865,8 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="Blanchardstown">Blanchardstown (BLA)</SelectItem>
-                      <SelectItem value="Carrickmines">Carrickmines (CRK)</SelectItem>
+                      <SelectItem value="Carrickmines">Carrickmines (CKM)</SelectItem>
+                      <SelectItem value="Cork">Cork (CRK)</SelectItem>
                       <SelectItem value="Castlebar">Castlebar (CAS)</SelectItem>
                       <SelectItem value="Drogheda">Drogheda (DRO)</SelectItem>
                       <SelectItem value="Fonthill">Fonthill (FON)</SelectItem>

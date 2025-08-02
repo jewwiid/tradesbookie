@@ -55,6 +55,8 @@ interface TvSetupBooking {
   additionalNotes?: string;
   paymentStatus: string;
   paymentAmount: string;
+  originalAmount?: string;
+  discountAmount?: string;
   setupStatus: string;
   setupMethod?: string;
   assignedTo?: string;
@@ -544,18 +546,21 @@ function TvSetupManagement() {
                               {getPaymentBadge(booking.paymentStatus)}
                               <span className="text-sm font-medium">€{booking.paymentAmount}</span>
                             </div>
-                            {booking.credentialsPaymentRequired && (
+                            {/* Show discount information if referral code was applied */}
+                            {booking.referralCode && booking.discountAmount && parseFloat(booking.discountAmount) > 0 && (
                               <div className="flex items-center gap-2">
-                                <Badge 
-                                  className={
-                                    booking.credentialsPaymentStatus === 'paid' 
-                                      ? "bg-green-100 text-green-800" 
-                                      : "bg-orange-100 text-orange-800"
-                                  }
-                                >
-                                  {booking.credentialsPaymentStatus === 'paid' ? 'IPTV PAID' : 'IPTV DUE'}
+                                <Badge className="bg-blue-100 text-blue-800 text-xs">
+                                  REFERRAL DISCOUNT
                                 </Badge>
-                                <span className="text-xs font-medium">€{booking.credentialsPaymentAmount || 50}</span>
+                                <span className="text-xs text-gray-600">
+                                  -€{booking.discountAmount} (was €{booking.originalAmount || '110.00'})
+                                </span>
+                              </div>
+                            )}
+                            {/* Show referral code if applied */}
+                            {booking.referralCode && (
+                              <div className="text-xs text-gray-500">
+                                Code: {booking.referralCode}
                               </div>
                             )}
                           </div>

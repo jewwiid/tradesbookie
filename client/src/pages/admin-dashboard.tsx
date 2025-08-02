@@ -125,6 +125,8 @@ interface Installer {
   address?: string;
   serviceArea?: string;
   isActive: boolean;
+  isPubliclyVisible?: boolean;
+  profileImageUrl?: string;
   createdAt: string;
   completedJobs: number;
   rating: number;
@@ -1125,6 +1127,20 @@ function InstallerManagement() {
     },
   });
 
+  const togglePublicVisibilityMutation = useMutation({
+    mutationFn: async ({ installerId, isPubliclyVisible }: { installerId: number; isPubliclyVisible: boolean }) => {
+      await apiRequest(`/api/admin/installers/${installerId}/visibility`, "PATCH", { isPubliclyVisible });
+    },
+    onSuccess: () => {
+      toast({ title: "Public visibility updated" });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/installers"] }); // Update public installer list
+    },
+    onError: () => {
+      toast({ title: "Failed to update visibility", variant: "destructive" });
+    },
+  });
+
   const approveInstallerMutation = useMutation({
     mutationFn: async ({ installerId, score, comments }: { installerId: number; score: number; comments: string }) => {
       await apiRequest("PATCH", `/api/admin/installers/${installerId}/approve`, { 
@@ -1301,6 +1317,7 @@ function InstallerManagement() {
               <TableHead>Earnings</TableHead>
               <TableHead>Approval</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Visibility</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -1363,6 +1380,23 @@ function InstallerManagement() {
                   <Badge variant={installer.isActive ? "default" : "secondary"}>
                     {installer.isActive ? "Active" : "Inactive"}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant={installer.isPubliclyVisible !== false ? "default" : "secondary"}>
+                      {installer.isPubliclyVisible !== false ? "Public" : "Hidden"}
+                    </Badge>
+                    <Switch 
+                      checked={installer.isPubliclyVisible !== false}
+                      onCheckedChange={(checked) => 
+                        togglePublicVisibilityMutation.mutate({
+                          installerId: installer.id,
+                          isPubliclyVisible: checked
+                        })
+                      }
+                      title={installer.isPubliclyVisible !== false ? "Hide from public view" : "Show in public view"}
+                    />
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
@@ -1457,6 +1491,12 @@ function InstallerManagement() {
                   <Label className="text-sm font-medium text-gray-600">Status</Label>
                   <Badge variant={selectedInstaller.isActive ? "default" : "secondary"}>
                     {selectedInstaller.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Public Visibility</Label>
+                  <Badge variant={selectedInstaller.isPubliclyVisible !== false ? "default" : "secondary"}>
+                    {selectedInstaller.isPubliclyVisible !== false ? "Public" : "Hidden"}
                   </Badge>
                 </div>
               </div>

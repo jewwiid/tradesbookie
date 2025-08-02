@@ -3945,7 +3945,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Return only public-safe installer information (hide contact details)
       const publicInstallers = installers
-        .filter(installer => installer.approvalStatus === 'approved')
+        .filter(installer => 
+          installer.approvalStatus === 'approved' && 
+          installer.isPubliclyVisible !== false &&
+          installer.businessName !== 'Demo TV Services'
+        )
         .map(installer => ({
           id: installer.id,
           businessName: installer.businessName,
@@ -5434,10 +5438,45 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       console.log(`Updating installer ${installerId} status to ${isActive ? 'active' : 'inactive'}`);
       
+      // Update the installer status in the database
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      await storage.updateInstaller(installerId, { isActive });
+      
       res.json({ message: "Installer status updated successfully" });
     } catch (error) {
       console.error("Error updating installer status:", error);
       res.status(500).json({ message: "Failed to update installer status" });
+    }
+  });
+
+  // Admin Actions - Update Installer Public Visibility
+  app.patch("/api/admin/installers/:id/visibility", isAdmin, async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const { isPubliclyVisible } = req.body;
+      
+      console.log(`Updating installer ${installerId} public visibility to ${isPubliclyVisible ? 'visible' : 'hidden'}`);
+      
+      // Update the installer visibility in the database
+      const installers = await storage.getAllInstallers();
+      const installer = installers.find(i => i.id === installerId);
+      
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      await storage.updateInstaller(installerId, { isPubliclyVisible });
+      
+      res.json({ message: "Installer visibility updated successfully" });
+    } catch (error) {
+      console.error("Error updating installer visibility:", error);
+      res.status(500).json({ message: "Failed to update installer visibility" });
     }
   });
 

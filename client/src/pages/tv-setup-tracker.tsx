@@ -549,6 +549,27 @@ export default function TvSetupTracker() {
                             <span className="text-green-700 dark:text-green-300 font-mono">{booking.macAddress}</span>
                           </div>
                         )}
+                        
+                        {/* Payment Required Step - Show payment button when credentials are ready */}
+                        {step.title === 'Payment Required' && !step.completed && booking.credentialsProvided && booking.credentialsPaymentStatus === 'pending' && (
+                          <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                            <div className="space-y-3">
+                              <div className="text-sm text-orange-800 dark:text-orange-200">
+                                <p className="font-medium">Payment Required to Access Credentials</p>
+                                <p>Amount: €{booking.credentialsPaymentAmount || booking.paymentAmount}</p>
+                                <p className="text-xs mt-1">Your IPTV streaming credentials are ready. Complete payment to get access.</p>
+                              </div>
+                              <Button 
+                                onClick={() => initiateCredentialsPayment.mutate()}
+                                disabled={initiateCredentialsPayment.isPending}
+                                className="w-full bg-orange-600 hover:bg-orange-700"
+                                size="sm"
+                              >
+                                {initiateCredentialsPayment.isPending ? 'Processing...' : 'Pay Now'}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

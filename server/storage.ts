@@ -266,6 +266,8 @@ export interface IStorage {
   }): Promise<void>;
   markTvSetupEmailSent(id: number, emailType: 'confirmation' | 'admin' | 'credentials'): Promise<void>;
   markTvSetupCredentialsPaid(id: number): Promise<void>;
+  updateTvSetupBookingStripeSession(id: number, sessionId: string): Promise<void>;
+  updateTvSetupBookingCredentialsPayment(id: number, sessionId: string, status: string): Promise<void>;
   deleteTvSetupBooking(id: number): Promise<void>;
   getTvSetupBookingsByEmail(email: string): Promise<TvSetupBooking[]>;
 
@@ -1723,6 +1725,25 @@ export class DatabaseStorage implements IStorage {
       .set({ 
         credentialsPaymentStatus: 'paid',
         credentialsPaidAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(tvSetupBookings.id, id));
+  }
+
+  async updateTvSetupBookingStripeSession(id: number, sessionId: string): Promise<void> {
+    await db.update(tvSetupBookings)
+      .set({ 
+        credentialsStripeSessionId: sessionId,
+        updatedAt: new Date()
+      })
+      .where(eq(tvSetupBookings.id, id));
+  }
+
+  async updateTvSetupBookingCredentialsPayment(id: number, sessionId: string, status: string): Promise<void> {
+    await db.update(tvSetupBookings)
+      .set({ 
+        credentialsStripeSessionId: sessionId,
+        credentialsPaymentStatus: status,
         updatedAt: new Date()
       })
       .where(eq(tvSetupBookings.id, id));

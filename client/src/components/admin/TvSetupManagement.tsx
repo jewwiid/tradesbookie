@@ -58,6 +58,17 @@ interface TvSetupBooking {
   setupMethod?: string;
   assignedTo?: string;
   
+  // MAC Address fields
+  macAddress?: string;
+  macAddressProvided: boolean;
+  macAddressProvidedAt?: string;
+  
+  // IPTV Payment and setup workflow
+  credentialsPaymentRequired: boolean;
+  credentialsPaymentAmount?: number;
+  credentialsPaymentStatus: string;
+  credentialsPaidAt?: string;
+  
   // IPTV Credentials - matching the screenshot format
   serverHostname?: string;
   serverUsername?: string;
@@ -236,6 +247,26 @@ function TvSetupManagement() {
     },
   });
 
+  const markCredentialsPaidMutation = useMutation({
+    mutationFn: async (bookingId: number) => {
+      await apiRequest("POST", `/api/admin/tv-setup-booking/${bookingId}/mark-credentials-paid`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tv-setup-bookings"] });
+      toast({
+        title: "Success",
+        description: "IPTV credentials payment marked as received",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to mark payment as received",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteBookingMutation = useMutation({
     mutationFn: async (bookingId: number) => {
       await apiRequest("DELETE", `/api/admin/tv-setup-booking/${bookingId}`);
@@ -372,6 +403,7 @@ function TvSetupManagement() {
                     <TableHead>Booking ID</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>TV Details</TableHead>
+                    <TableHead>MAC Address</TableHead>
                     <TableHead>Payment</TableHead>
                     <TableHead>Setup Status</TableHead>
                     <TableHead>Credentials</TableHead>
@@ -401,8 +433,49 @@ function TvSetupManagement() {
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
-                          {getPaymentBadge(booking.paymentStatus)}
-                          <div className="text-sm font-medium">€{booking.paymentAmount}</div>
+                          {booking.macAddressProvided ? (
+                            <div>
+                              <Badge className="bg-green-100 text-green-800 mb-1">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                PROVIDED
+                              </Badge>
+                              <div className="text-sm font-mono text-gray-700">{booking.macAddress}</div>
+                              {booking.macAddressProvidedAt && (
+                                <div className="text-xs text-gray-500">
+                                  {format(new Date(booking.macAddressProvidedAt), "MMM dd, HH:mm")}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+                              <Clock className="h-3 w-3 mr-1" />
+                              REQUIRED
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              {getPaymentBadge(booking.paymentStatus)}
+                              <span className="text-sm font-medium">€{booking.paymentAmount}</span>
+                            </div>
+                            {booking.credentialsPaymentRequired && (
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  className={
+                                    booking.credentialsPaymentStatus === 'paid' 
+                                      ? "bg-green-100 text-green-800" 
+                                      : "bg-orange-100 text-orange-800"
+                                  }
+                                >
+                                  {booking.credentialsPaymentStatus === 'paid' ? 'IPTV PAID' : 'IPTV DUE'}
+                                </Badge>
+                                <span className="text-xs font-medium">€{booking.credentialsPaymentAmount || 50}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -474,18 +547,35 @@ function TvSetupManagement() {
                               )}
                             </Button>
                           )}
-                          {booking.credentialsProvided && booking.paymentStatus !== 'completed' && (
+                          {booking.credentialsProvided && booking.credentialsPaymentRequired && booking.credentialsPaymentStatus !== 'paid' && (
                             <Button
                               variant="default"
                               size="sm"
                               onClick={() => sendPaymentLinkMutation.mutate(booking.id)}
                               disabled={sendPaymentLinkMutation.isPending}
                               className="bg-green-600 hover:bg-green-700"
+                              title="Send IPTV Payment Link"
                             >
                               {sendPaymentLinkMutation.isPending ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
                                 <CreditCard className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                          {booking.macAddressProvided && booking.credentialsProvided && booking.credentialsPaymentStatus !== 'paid' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => markCredentialsPaidMutation.mutate(booking.id)}
+                              disabled={markCredentialsPaidMutation.isPending}
+                              className="bg-blue-50 hover:bg-blue-100 border-blue-200"
+                              title="Mark IPTV Payment as Received"
+                            >
+                              {markCredentialsPaidMutation.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <CheckCircle className="h-4 w-4" />
                               )}
                             </Button>
                           )}

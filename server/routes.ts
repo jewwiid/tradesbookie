@@ -2142,6 +2142,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mark IPTV credentials payment as received (admin only)
+  app.post("/api/admin/tv-setup-booking/:id/mark-credentials-paid", isAuthenticated, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.id);
+      
+      if (!bookingId || isNaN(bookingId)) {
+        return res.status(400).json({ message: "Valid booking ID is required" });
+      }
+
+      // Get the booking
+      const booking = await storage.getTvSetupBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      // Check if credentials are provided and MAC address is provided
+      if (!booking.credentialsProvided) {
+        return res.status(400).json({ message: "Credentials not yet provided for this booking" });
+      }
+
+      if (!booking.macAddressProvided) {
+        return res.status(400).json({ message: "MAC address not yet provided for this booking" });
+      }
+
+      // Mark credentials payment as paid
+      await storage.markTvSetupCredentialsPaid(bookingId);
+      
+      // Update status to completed if all requirements are met
+      if (booking.setupStatus !== 'completed') {
+        await storage.updateTvSetupBookingStatus(bookingId, 'completed');
+      }
+
+      res.json({ 
+        success: true, 
+        message: "IPTV credentials payment marked as received" 
+      });
+    } catch (error: any) {
+      console.error("Error marking credentials payment as paid:", error);
+      res.status(500).json({ 
+        message: "Error marking credentials payment as paid: " + error.message 
+      });
+    }
+  });
+
   // Delete TV setup booking (admin only)
   app.delete("/api/admin/tv-setup-booking/:id", isAuthenticated, async (req, res) => {
     try {

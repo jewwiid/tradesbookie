@@ -265,6 +265,7 @@ export interface IStorage {
     m3uUrl?: string;
   }): Promise<void>;
   markTvSetupEmailSent(id: number, emailType: 'confirmation' | 'admin' | 'credentials'): Promise<void>;
+  markTvSetupCredentialsPaid(id: number): Promise<void>;
   deleteTvSetupBooking(id: number): Promise<void>;
   getTvSetupBookingsByEmail(email: string): Promise<TvSetupBooking[]>;
 
@@ -1712,6 +1713,16 @@ export class DatabaseStorage implements IStorage {
         macAddress,
         macAddressProvided: true,
         macAddressProvidedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(tvSetupBookings.id, id));
+  }
+
+  async markTvSetupCredentialsPaid(id: number): Promise<void> {
+    await db.update(tvSetupBookings)
+      .set({ 
+        credentialsPaymentStatus: 'paid',
+        credentialsPaidAt: new Date(),
         updatedAt: new Date()
       })
       .where(eq(tvSetupBookings.id, id));

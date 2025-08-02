@@ -1941,7 +1941,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Create referral usage tracking if referral code was used successfully
-      if (referralCodeId && discountAmount > 0) {
+      if (referralCodeId) {
         try {
           // Get the referral code details to determine referrer
           const referralCode = await storage.getReferralCodeById(referralCodeId);
@@ -1955,7 +1955,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               bookingId: null, // Not a regular booking
               tvSetupBookingId: booking.id, // TV setup booking ID
               bookingType: 'tv_setup', // Specify this is a TV setup booking
-              referrerUserId: referralCode.userId, // User who owns the referral code
+              referrerUserId: referralCode.userId || `sales_staff_${referralCode.salesStaffName?.toLowerCase()}`, // User who owns the referral code or staff identifier
               refereeUserId: validatedData.email, // Customer who used the code (using email as identifier)
               discountAmount: discountAmount.toString(),
               rewardAmount: rewardAmount.toString(),

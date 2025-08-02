@@ -47,7 +47,7 @@ export default function TvSetupConfirmation() {
 
   // Try to fetch TV setup booking
   const { data: booking, isLoading, error } = useQuery<TvSetupBooking>({
-    queryKey: ['/api/tv-setup-booking', bookingId],
+    queryKey: [`/api/tv-setup-booking/${bookingId}`],
     enabled: !!bookingId,
     retry: false,
   });

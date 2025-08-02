@@ -138,8 +138,9 @@ export default function TvSetupAssist() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Redirect to confirmation page
-      window.location.href = `/tv-setup-confirmation?booking_id=${data.bookingId}`;
+      // Redirect to confirmation page with the booking ID
+      const bookingId = data.id || data.bookingId;
+      window.location.href = `/tv-setup-confirmation?booking_id=${bookingId}`;
     },
     onError: (error: any) => {
       toast({

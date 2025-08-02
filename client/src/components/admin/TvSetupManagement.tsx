@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,6 +97,7 @@ interface TvSetupBooking {
   adminNotificationSent: boolean;
   adminNotes?: string;
   completedAt?: string;
+  subscriptionExpiryDate?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -140,6 +141,10 @@ const referralUpdateSchema = z.object({
   salesStaffStore: z.string().optional(),
 });
 
+const expiryUpdateSchema = z.object({
+  subscriptionExpiryDate: z.string().min(1, "Expiry date is required"),
+});
+
 function TvSetupManagement() {
   const [selectedBooking, setSelectedBooking] = useState<TvSetupBooking | null>(null);
   const [showCredentialsDialog, setShowCredentialsDialog] = useState(false);
@@ -147,6 +152,13 @@ function TvSetupManagement() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showReferralDialog, setShowReferralDialog] = useState(false);
+  const [showExpiryDialog, setShowExpiryDialog] = useState(false);
+  
+  // Sorting and filtering state
+  const [sortBy, setSortBy] = useState<string>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [expiryFilter, setExpiryFilter] = useState<string>("all"); // all, expired, expiring_soon, active
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -182,11 +194,81 @@ function TvSetupManagement() {
     },
   });
 
+  const expiryForm = useForm<z.infer<typeof expiryUpdateSchema>>({
+    resolver: zodResolver(expiryUpdateSchema),
+    defaultValues: {
+      subscriptionExpiryDate: "",
+    },
+  });
+
   // Queries
-  const { data: bookings = [], isLoading } = useQuery<TvSetupBooking[]>({
+  const { data: rawBookings = [], isLoading } = useQuery<TvSetupBooking[]>({
     queryKey: ["/api/admin/tv-setup-bookings"],
     retry: false,
   });
+
+  // Sorting and filtering logic
+  const bookings = useMemo(() => {
+    let filtered = [...rawBookings];
+    
+    // Status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(booking => booking.setupStatus === statusFilter);
+    }
+    
+    // Expiry filter
+    if (expiryFilter !== "all") {
+      const now = new Date();
+      const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      
+      filtered = filtered.filter(booking => {
+        if (!booking.subscriptionExpiryDate) return expiryFilter === "no_expiry";
+        
+        const expiryDate = new Date(booking.subscriptionExpiryDate);
+        if (expiryFilter === "expired") return expiryDate < now;
+        if (expiryFilter === "expiring_soon") return expiryDate >= now && expiryDate <= thirtyDaysFromNow;
+        if (expiryFilter === "active") return expiryDate > thirtyDaysFromNow;
+        return true;
+      });
+    }
+    
+    // Sorting
+    filtered.sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (sortBy) {
+        case "name":
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case "email":
+          aValue = a.email.toLowerCase();
+          bValue = b.email.toLowerCase();
+          break;
+        case "setupStatus":
+          aValue = a.setupStatus || "";
+          bValue = b.setupStatus || "";
+          break;
+        case "subscriptionExpiryDate":
+          aValue = a.subscriptionExpiryDate ? new Date(a.subscriptionExpiryDate).getTime() : 0;
+          bValue = b.subscriptionExpiryDate ? new Date(b.subscriptionExpiryDate).getTime() : 0;
+          break;
+        case "createdAt":
+        default:
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+          break;
+      }
+      
+      if (typeof aValue === "string") {
+        return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+      } else {
+        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+      }
+    });
+    
+    return filtered;
+  }, [rawBookings, sortBy, sortOrder, statusFilter, expiryFilter]);
 
   // Query for fetching active referral codes
   const { data: referralCodes = [] } = useQuery({
@@ -285,6 +367,28 @@ function TvSetupManagement() {
       toast({
         title: "Error",
         description: error.message || "Failed to update referral",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateExpiryMutation = useMutation({
+    mutationFn: async ({ bookingId, expiry }: { bookingId: number; expiry: z.infer<typeof expiryUpdateSchema> }) => {
+      await apiRequest("POST", `/api/admin/tv-setup-booking/${bookingId}/expiry`, expiry);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/tv-setup-bookings"] });
+      toast({
+        title: "Success",
+        description: "Expiry date updated successfully",
+      });
+      setShowExpiryDialog(false);
+      expiryForm.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update expiry date",
         variant: "destructive",
       });
     },
@@ -443,6 +547,15 @@ function TvSetupManagement() {
     setShowReferralDialog(true);
   };
 
+  const openExpiryDialog = (booking: TvSetupBooking) => {
+    setSelectedBooking(booking);
+    const currentExpiry = booking.subscriptionExpiryDate 
+      ? format(new Date(booking.subscriptionExpiryDate), 'yyyy-MM-dd')
+      : "";
+    expiryForm.setValue("subscriptionExpiryDate", currentExpiry);
+    setShowExpiryDialog(true);
+  };
+
   const handleDeleteBooking = () => {
     if (!selectedBooking) return;
     deleteBookingMutation.mutate(selectedBooking.id);
@@ -472,6 +585,14 @@ function TvSetupManagement() {
     });
   };
 
+  const onExpirySubmit = (values: z.infer<typeof expiryUpdateSchema>) => {
+    if (!selectedBooking) return;
+    updateExpiryMutation.mutate({
+      bookingId: selectedBooking.id,
+      expiry: values,
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -490,12 +611,94 @@ function TvSetupManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {bookings.length === 0 ? (
+          {rawBookings.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Tv className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No TV setup bookings found</p>
             </div>
           ) : (
+            <>
+              {/* Sorting and Filtering Controls */}
+              <div className="mb-6 space-y-4">
+                <div className="flex flex-wrap gap-4 items-end">
+                  {/* Sort By */}
+                  <div className="space-y-2">
+                    <Label htmlFor="sortBy">Sort By</Label>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="createdAt">Created Date</SelectItem>
+                        <SelectItem value="name">Customer Name</SelectItem>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="setupStatus">Status</SelectItem>
+                        <SelectItem value="subscriptionExpiryDate">Expiry Date</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Sort Order */}
+                  <div className="space-y-2">
+                    <Label htmlFor="sortOrder">Order</Label>
+                    <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="desc">Newest First</SelectItem>
+                        <SelectItem value="asc">Oldest First</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Status Filter */}
+                  <div className="space-y-2">
+                    <Label htmlFor="statusFilter">Status</Label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="mac_required">MAC Required</SelectItem>
+                        <SelectItem value="credentials_ready">Credentials Ready</SelectItem>
+                        <SelectItem value="payment_required">Payment Required</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Expiry Filter */}
+                  <div className="space-y-2">
+                    <Label htmlFor="expiryFilter">Expiry Status</Label>
+                    <Select value={expiryFilter} onValueChange={setExpiryFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="expired">Expired</SelectItem>
+                        <SelectItem value="expiring_soon">Expiring Soon (30 days)</SelectItem>
+                        <SelectItem value="active">Active (30+ days)</SelectItem>
+                        <SelectItem value="no_expiry">No Expiry Set</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {/* Results Summary */}
+                <div className="text-sm text-gray-600">
+                  Showing {bookings.length} of {rawBookings.length} bookings
+                </div>
+              </div>
+            
+            </>
+          )}
+
+          {bookings.length > 0 && (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -508,6 +711,7 @@ function TvSetupManagement() {
                     <TableHead>Setup Status</TableHead>
                     <TableHead>Credentials</TableHead>
                     <TableHead>Referral</TableHead>
+                    <TableHead>Expiry Date</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -640,6 +844,36 @@ function TvSetupManagement() {
                           )}
                         </div>
                       </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          {booking.subscriptionExpiryDate ? (
+                            <>
+                              <div className="text-sm text-gray-900">
+                                {format(new Date(booking.subscriptionExpiryDate), "MMM dd, yyyy")}
+                              </div>
+                              <div className="text-xs">
+                                {(() => {
+                                  const now = new Date();
+                                  const expiryDate = new Date(booking.subscriptionExpiryDate);
+                                  const daysFromNow = Math.ceil((expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                                  
+                                  if (daysFromNow < 0) {
+                                    return <Badge variant="destructive" className="text-xs">Expired {Math.abs(daysFromNow)} days ago</Badge>;
+                                  } else if (daysFromNow <= 30) {
+                                    return <Badge className="bg-yellow-100 text-yellow-800 text-xs">Expires in {daysFromNow} days</Badge>;
+                                  } else {
+                                    return <Badge className="bg-green-100 text-green-800 text-xs">Active ({daysFromNow} days left)</Badge>;
+                                  }
+                                })()}
+                              </div>
+                            </>
+                          ) : (
+                            <Badge variant="outline" className="bg-gray-100 text-gray-500 text-xs">
+                              No Expiry Set
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-sm text-gray-500">
                         {format(new Date(booking.createdAt), "MMM dd, yyyy")}
                       </TableCell>
@@ -673,6 +907,14 @@ function TvSetupManagement() {
                             title="Edit Referral"
                           >
                             <Target className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openExpiryDialog(booking)}
+                            title="Set Expiry Date"
+                          >
+                            <Calendar className="h-4 w-4" />
                           </Button>
                           {booking.credentialsProvided && !booking.credentialsEmailSent && (
                             <Button
@@ -1343,6 +1585,65 @@ function TvSetupManagement() {
                     <>
                       <Target className="h-4 w-4 mr-2" />
                       Update Referral
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Expiry Date Update Dialog */}
+      <Dialog open={showExpiryDialog} onOpenChange={setShowExpiryDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Update Subscription Expiry</DialogTitle>
+            <DialogDescription>
+              Set or update the subscription expiry date for this TV setup booking.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...expiryForm}>
+            <form onSubmit={expiryForm.handleSubmit(onExpirySubmit)} className="space-y-4">
+              <FormField
+                control={expiryForm.control}
+                name="subscriptionExpiryDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Expiry Date</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field}
+                        min={format(new Date(), 'yyyy-MM-dd')}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowExpiryDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={updateExpiryMutation.isPending}
+                >
+                  {updateExpiryMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Update Expiry
                     </>
                   )}
                 </Button>

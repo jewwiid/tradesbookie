@@ -1742,6 +1742,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tvSetupBookings.id, id));
   }
 
+  async updateTvSetupBookingExpiry(id: number, expiryDate: Date): Promise<void> {
+    await db.update(tvSetupBookings)
+      .set({ 
+        subscriptionExpiryDate: expiryDate,
+        updatedAt: new Date()
+      })
+      .where(eq(tvSetupBookings.id, id));
+  }
+
   async updateTvSetupBookingMacAddress(id: number, macAddress: string): Promise<void> {
     await db.update(tvSetupBookings)
       .set({ 

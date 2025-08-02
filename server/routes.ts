@@ -2307,6 +2307,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update TV setup booking expiry date (admin only)
+  app.post("/api/admin/tv-setup-booking/:id/expiry", isAuthenticated, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const bookingId = parseInt(req.params.id);
+      const { subscriptionExpiryDate } = req.body;
+
+      if (!subscriptionExpiryDate) {
+        return res.status(400).json({ message: "Expiry date is required" });
+      }
+
+      // Verify booking exists
+      const currentBooking = await storage.getTvSetupBooking(bookingId);
+      if (!currentBooking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      // Validate and parse the date
+      const expiryDate = new Date(subscriptionExpiryDate);
+      if (isNaN(expiryDate.getTime())) {
+        return res.status(400).json({ message: "Invalid expiry date format" });
+      }
+
+      // Update the booking expiry date
+      await storage.updateTvSetupBookingExpiry(bookingId, expiryDate);
+
+      res.json({ success: true, message: "Expiry date updated successfully" });
+    } catch (error: any) {
+      console.error("Error updating TV setup booking expiry:", error);
+      res.status(500).json({ 
+        message: "Error updating TV setup booking expiry: " + error.message 
+      });
+    }
+  });
+
   // Mark IPTV credentials payment as received (admin only)
   app.post("/api/admin/tv-setup-booking/:id/mark-credentials-paid", isAuthenticated, async (req, res) => {
     try {

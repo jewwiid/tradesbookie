@@ -794,180 +794,83 @@ function TvSetupManagement() {
                     <Badge className="bg-green-100 text-green-800 text-xs">RECOMMENDED</Badge>
                   </h3>
 
-                  <Tabs defaultValue="mpegts" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="mpegts">MPEGTS</TabsTrigger>
-                      <TabsTrigger value="hls">HLS</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="mpegts" className="space-y-4 mt-4">
-                      <div className="text-sm text-blue-800 mb-3">
-                        <strong>MPEGTS Stream Configuration</strong>
-                      </div>
-                  
-                      <FormField
-                        control={credentialsForm.control}
-                        name="serverHostname"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">SERVER HOSTNAME</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="http://536429.solanaflix.com:8080/" 
-                                {...field} 
-                                className="font-mono text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                  <FormField
+                    control={credentialsForm.control}
+                    name="serverHostname"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">SERVER HOSTNAME</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="http://536429.solanaflix.com:8080/" 
+                            {...field} 
+                            className="font-mono text-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                      <FormField
-                        control={credentialsForm.control}
-                        name="serverUsername"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">SERVER USERNAME</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="TV-10105389" 
-                                {...field} 
-                                className="font-mono text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                  <FormField
+                    control={credentialsForm.control}
+                    name="serverUsername"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">SERVER USERNAME</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="TV-10105389" 
+                            {...field} 
+                            className="font-mono text-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                      <FormField
-                        control={credentialsForm.control}
-                        name="serverPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">SERVER PASSWORD</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="530090324041" 
-                                {...field} 
-                                className="font-mono text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TabsContent>
+                  <FormField
+                    control={credentialsForm.control}
+                    name="serverPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">SERVER PASSWORD</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="530090324041" 
+                            {...field} 
+                            className="font-mono text-sm"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <TabsContent value="hls" className="space-y-4 mt-4">
-                      <div className="text-sm text-blue-800 mb-3">
-                        <strong>HLS Stream Configuration</strong>
-                      </div>
-
-                      <FormField
-                        control={credentialsForm.control}
-                        name="serverHostname"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">SERVER HOSTNAME</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="http://536429.solanaflix.com:8080/" 
-                                {...field} 
-                                className="font-mono text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={credentialsForm.control}
-                        name="serverUsername"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">SERVER USERNAME</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="TV-10105389" 
-                                {...field} 
-                                className="font-mono text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={credentialsForm.control}
-                        name="serverPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">SERVER PASSWORD</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="530090324041" 
-                                {...field} 
-                                className="font-mono text-sm"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={credentialsForm.control}
-                        name="numberOfDevices"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">
-                              NUMBER OF DEVICES
-                            </FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                min="1" 
-                                max="10" 
-                                {...field} 
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                                value={field.value || 1}
-                                className="w-20"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={credentialsForm.control}
-                        name="numberOfDevices"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium text-gray-700">
-                              NUMBER OF DEVICES
-                            </FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                min="1" 
-                                max="10" 
-                                {...field} 
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                                value={field.value || 1}
-                                className="w-20"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TabsContent>
-                  </Tabs>
+                  <FormField
+                    control={credentialsForm.control}
+                    name="numberOfDevices"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium text-gray-700">
+                          NUMBER OF DEVICES
+                        </FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            min="1" 
+                            max="10" 
+                            {...field} 
+                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            value={field.value || 1}
+                            className="w-20"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               )}
 

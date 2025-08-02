@@ -169,6 +169,8 @@ export default function TvSetupTracker() {
     onSuccess: (data: any) => {
       console.log("Payment response:", data);
       if (data.stripeUrl) {
+        console.log("Redirecting to Stripe:", data.stripeUrl);
+        // Force redirect to Stripe checkout
         window.location.href = data.stripeUrl;
       } else {
         console.error("No stripeUrl in response:", data);

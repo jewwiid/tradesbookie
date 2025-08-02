@@ -276,21 +276,21 @@ export default function Home() {
               <div className="isolate relative z-50 flex flex-col gap-4 mb-8 w-full">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 justify-center lg:justify-start">
                   <Link href="/tv-recommendation" className="flex-shrink-0">
-                    <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-purple-500/20">
-                      <Tv className="mr-2 h-4 w-4" />
-                      Find My Perfect TV
+                    <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-3 rounded-xl text-xs sm:text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-purple-500/20 whitespace-nowrap overflow-hidden">
+                      <Tv className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                      <span className="truncate">Find My Perfect TV</span>
                     </Button>
                   </Link>
                   <Link href="/booking" className="flex-shrink-0">
-                    <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-blue-500/20">
-                      <Camera className="mr-2 h-4 w-4" />
-                      Book TV Installation
+                    <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white px-3 py-3 rounded-xl text-xs sm:text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-blue-500/20 whitespace-nowrap overflow-hidden">
+                      <Camera className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                      <span className="truncate">Book TV Installation</span>
                     </Button>
                   </Link>
                   <Link href="/tv-setup-assist" className="flex-shrink-0">
-                    <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-emerald-500/20">
-                      <Wrench className="mr-2 h-4 w-4" />
-                      TV Setup Service
+                    <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-3 py-3 rounded-xl text-xs sm:text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-emerald-500/20 whitespace-nowrap overflow-hidden">
+                      <Wrench className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                      <span className="truncate">TV Setup Service</span>
                     </Button>
                   </Link>
                 </div>

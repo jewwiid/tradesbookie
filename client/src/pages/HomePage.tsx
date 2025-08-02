@@ -159,16 +159,19 @@ export default function HomePage() {
               </div>
             </div>
             <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600" 
-                alt="Modern living room with mounted TV" 
-                className="rounded-3xl shadow-2xl w-full" 
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl"></div>
-              <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-gray-800">AI Preview Active</span>
+              {/* Container with 3:2 aspect ratio */}
+              <div className="relative w-full aspect-[3/2] rounded-3xl shadow-2xl overflow-hidden">
+                <img 
+                  src="/attached_assets/2_1754160490051.png" 
+                  alt="Modern furnished living room ready for TV installation" 
+                  className="w-full h-full object-cover" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-gray-800">AI Preview Ready</span>
+                  </div>
                 </div>
               </div>
             </div>

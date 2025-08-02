@@ -2318,8 +2318,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
 
-      if (!booking.credentialsProvided) {
-        return res.status(400).json({ message: "Credentials not yet provided for this booking" });
+      // Check if any credentials are available
+      const hasAppCredentials = booking.appUsername && booking.appPassword;
+      const hasIptvCredentials = booking.serverUsername && booking.serverPassword && booking.serverHostname;
+      const hasM3uUrl = booking.m3uUrl;
+      
+      if (!hasAppCredentials && !hasIptvCredentials && !hasM3uUrl) {
+        return res.status(400).json({ message: "No credentials or M3U URL available for this booking. Please add IPTV credentials or M3U URL first." });
       }
 
       // Send credentials email
@@ -2494,6 +2499,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error marking credentials payment as paid:", error);
       res.status(500).json({ 
         message: "Error marking credentials payment as paid: " + error.message 
+      });
+    }
+  });
+
+  // Send payment request email for credentials (admin only)
+  app.post("/api/admin/tv-setup-booking/:id/send-payment-request", isAuthenticated, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const bookingId = parseInt(req.params.id);
+      const booking = await storage.getTvSetupBooking(bookingId);
+      
+      if (!booking) {
+        return res.status(404).json({ message: "TV setup booking not found" });
+      }
+
+      // Check if MAC address is provided
+      if (!booking.macAddress) {
+        return res.status(400).json({ message: "Cannot send payment request - MAC address not provided by customer yet." });
+      }
+
+      // Check if already paid
+      if (booking.credentialsPaymentStatus === 'completed' || booking.credentialsPaymentStatus === 'paid') {
+        return res.status(400).json({ message: "Customer has already completed payment for credentials." });
+      }
+
+      // Send payment request email
+      const { sendTvSetupPaymentRequestEmail } = await import('./tvSetupEmailService');
+      const emailSent = await sendTvSetupPaymentRequestEmail(booking);
+      
+      if (emailSent) {
+        res.json({ success: true, message: "Payment request email sent successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to send payment request email" });
+      }
+    } catch (error: any) {
+      console.error("Error sending payment request email:", error);
+      res.status(500).json({ 
+        message: "Error sending payment request email: " + error.message 
       });
     }
   });

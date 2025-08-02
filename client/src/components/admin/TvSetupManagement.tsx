@@ -355,10 +355,12 @@ function TvSetupManagement() {
           break;
       }
       
-      if (typeof aValue === "string") {
+      if (typeof aValue === "string" && typeof bValue === "string") {
         return sortOrder === "asc" ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
       } else {
-        return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
+        const numA = Number(aValue);
+        const numB = Number(bValue);
+        return sortOrder === "asc" ? numA - numB : numB - numA;
       }
     });
     

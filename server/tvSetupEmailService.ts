@@ -270,8 +270,13 @@ export async function sendTvSetupStatusUpdateEmail(booking: TvSetupBooking, newS
 
 export async function sendTvSetupCredentialsEmail(booking: TvSetupBooking): Promise<boolean> {
   try {
-    if (!booking.appUsername || !booking.appPassword) {
-      throw new Error('Login credentials not available for booking');
+    // Check for both app credentials (legacy) and IPTV credentials (current)
+    const hasAppCredentials = booking.appUsername && booking.appPassword;
+    const hasIptvCredentials = booking.serverUsername && booking.serverPassword && booking.serverHostname;
+    const hasM3uUrl = booking.m3uUrl;
+    
+    if (!hasAppCredentials && !hasIptvCredentials && !hasM3uUrl) {
+      throw new Error('No login credentials or M3U URL available for booking');
     }
 
     const subject = `Your TV Setup Login Credentials - Booking #${booking.id}`;
@@ -294,13 +299,39 @@ export async function sendTvSetupCredentialsEmail(booking: TvSetupBooking): Prom
             Your TV setup has been completed successfully! Below are your login credentials for the streaming apps that were configured on your TV.
           </p>
           
+          ${hasIptvCredentials ? `
           <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
-            <h3 style="color: #065F46; margin: 0 0 15px 0;">🔑 Your Login Credentials</h3>
+            <h3 style="color: #065F46; margin: 0 0 15px 0;">🔑 Your IPTV Login Credentials</h3>
+            <table style="width: 100%; border-collapse: collapse; background: white; padding: 15px; border-radius: 6px;">
+              <tr><td style="padding: 12px; font-weight: bold; color: #374151; border-bottom: 1px solid #E5E7EB;">Server URL:</td><td style="padding: 12px; color: #6B7280; border-bottom: 1px solid #E5E7EB; font-family: monospace; font-size: 14px; font-weight: bold;">${booking.serverHostname}</td></tr>
+              <tr><td style="padding: 12px; font-weight: bold; color: #374151; border-bottom: 1px solid #E5E7EB;">Username:</td><td style="padding: 12px; color: #6B7280; border-bottom: 1px solid #E5E7EB; font-family: monospace; font-size: 16px; font-weight: bold;">${booking.serverUsername}</td></tr>
+              <tr><td style="padding: 12px; font-weight: bold; color: #374151; border-bottom: 1px solid #E5E7EB;">Password:</td><td style="padding: 12px; color: #6B7280; border-bottom: 1px solid #E5E7EB; font-family: monospace; font-size: 16px; font-weight: bold;">${booking.serverPassword}</td></tr>
+              <tr><td style="padding: 12px; font-weight: bold; color: #374151;">Device Limit:</td><td style="padding: 12px; color: #6B7280; font-family: monospace; font-size: 16px; font-weight: bold;">${booking.numberOfDevices || 1} device(s)</td></tr>
+            </table>
+          </div>
+          ` : ''}
+          
+          ${hasM3uUrl ? `
+          <div style="background: #E0E7FF; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3B82F6;">
+            <h3 style="color: #1E40AF; margin: 0 0 15px 0;">📺 M3U Playlist URL</h3>
+            <div style="background: white; padding: 15px; border-radius: 6px;">
+              <p style="margin: 0 0 10px 0; color: #374151; font-weight: bold;">Your M3U URL:</p>
+              <div style="background: #F3F4F6; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 14px; word-break: break-all; color: #1F2937;">
+                ${booking.m3uUrl}
+              </div>
+            </div>
+          </div>
+          ` : ''}
+          
+          ${hasAppCredentials ? `
+          <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+            <h3 style="color: #065F46; margin: 0 0 15px 0;">🔑 Your App Login Credentials</h3>
             <table style="width: 100%; border-collapse: collapse; background: white; padding: 15px; border-radius: 6px;">
               <tr><td style="padding: 12px; font-weight: bold; color: #374151; border-bottom: 1px solid #E5E7EB;">Username:</td><td style="padding: 12px; color: #6B7280; border-bottom: 1px solid #E5E7EB; font-family: monospace; font-size: 16px; font-weight: bold;">${booking.appUsername}</td></tr>
               <tr><td style="padding: 12px; font-weight: bold; color: #374151;">Password:</td><td style="padding: 12px; color: #6B7280; font-family: monospace; font-size: 16px; font-weight: bold;">${booking.appPassword}</td></tr>
             </table>
           </div>
+          ` : ''}
 
           <div style="background: #EEF2FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h3 style="color: #1E40AF; margin: 0 0 15px 0;">📱 Configured Apps</h3>
@@ -483,6 +514,79 @@ export async function sendTvSetupAdminPaymentNotification(booking: TvSetupBookin
     return true;
   } catch (error) {
     console.error('Failed to send TV setup admin payment notification:', error);
+    return false;
+  }
+}
+
+export async function sendTvSetupPaymentRequestEmail(booking: TvSetupBooking): Promise<boolean> {
+  try {
+    const subject = `Payment Request - Your TV Setup Credentials Ready - Booking #${booking.id}`;
+    
+    const credentialsAmount = booking.credentialsPaymentAmount || booking.paymentAmount || "89.99";
+    
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #3B82F6, #1E40AF); color: white; padding: 30px; text-align: center;">
+          <h1 style="margin: 0; font-size: 28px;">💳 Payment Required</h1>
+          <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Complete payment to receive your credentials</p>
+        </div>
+        
+        <div style="padding: 30px; background: #fff;">
+          <h2 style="color: #1E40AF; margin: 0 0 20px 0;">Hello ${booking.name}!</h2>
+          
+          <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+            Great news! Your TV setup is complete and your streaming credentials are ready. To access your credentials, please complete the payment below.
+          </p>
+          
+          <div style="background: #EBF8FF; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3B82F6;">
+            <h3 style="color: #1E3A8A; margin: 0 0 15px 0;">📺 Setup Details</h3>
+            <ul style="margin: 0; padding-left: 20px; color: #374151;">
+              <li><strong>TV:</strong> ${booking.tvBrand} ${booking.tvModel}</li>
+              <li><strong>Setup Status:</strong> Complete - Credentials Ready</li>
+              <li><strong>MAC Address:</strong> ${booking.macAddress}</li>
+              <li><strong>Payment Amount:</strong> €${credentialsAmount}</li>
+            </ul>
+          </div>
+          
+          <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+            <h3 style="color: #92400E; margin: 0 0 15px 0;">⚡ What You'll Get</h3>
+            <p style="margin: 0; color: #78350F;">
+              After payment, you'll immediately receive your IPTV login credentials via email. These credentials will give you access to thousands of channels and streaming content on your newly configured TV.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'https://tradesbook.ie'}/tv-setup-tracker?bookingId=${booking.id}" 
+               style="background: #3B82F6; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">
+              Complete Payment - €${credentialsAmount}
+            </a>
+          </div>
+          
+          <div style="background: #F3F4F6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px; color: #6B7280; text-align: center;">
+              <strong>Secure Payment:</strong> All payments are processed securely through Stripe.<br>
+              Your credentials will be automatically sent after successful payment.
+            </p>
+          </div>
+          
+          <p style="font-size: 14px; color: #6B7280; margin: 30px 0 0 0; text-align: center;">
+            Questions? Contact us at: <strong>support@tradesbook.ie</strong><br>
+            Booking #${booking.id} | Setup by TradesBook.ie
+          </p>
+        </div>
+      </div>
+    `;
+
+    await sendGmailEmail({
+      to: booking.email,
+      subject: subject,
+      html: htmlContent,
+      from: EMAIL_CONFIG.SUPPORT,
+      replyTo: EMAIL_CONFIG.SUPPORT
+    });
+    return true;
+  } catch (error) {
+    console.error('Failed to send TV setup payment request email:', error);
     return false;
   }
 }

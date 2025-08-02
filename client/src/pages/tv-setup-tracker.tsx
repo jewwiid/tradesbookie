@@ -166,9 +166,11 @@ export default function TvSetupTracker() {
       return apiRequest('POST', `/api/tv-setup-bookings/${booking.id}/payment`, {});
     },
     onSuccess: (data: any) => {
+      console.log("Payment response:", data);
       if (data.stripeUrl) {
         window.location.href = data.stripeUrl;
       } else {
+        console.error("No stripeUrl in response:", data);
         toast({
           title: "Payment Error",
           description: "Failed to create payment session. Please contact support.",

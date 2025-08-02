@@ -2719,8 +2719,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
         ],
         mode: 'payment',
-        success_url: `${req.get('origin')}/tv-setup-tracker?bookingId=${booking.id}&payment=success`,
-        cancel_url: `${req.get('origin')}/tv-setup-tracker?bookingId=${booking.id}&payment=cancelled`,
+        success_url: `${req.protocol}://${req.get('host')}/tv-setup-tracker?bookingId=${booking.id}&payment=success`,
+        cancel_url: `${req.protocol}://${req.get('host')}/tv-setup-tracker?bookingId=${booking.id}&payment=cancelled`,
         metadata: {
           tvSetupBookingId: booking.id.toString(),
           type: 'tv_setup_credentials'

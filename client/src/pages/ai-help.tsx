@@ -2,7 +2,7 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import AIHelpWidget from "@/components/AIHelpWidget";
 import { MessageCircle, Zap, Clock, CheckCircle, ArrowRightLeft } from "lucide-react";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +27,11 @@ export default function AIHelpPage() {
   const [model1, setModel1] = useState('');
   const [model2, setModel2] = useState('');
   const [comparison, setComparison] = useState<TVComparison | null>(null);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const compareModels = useMutation({
     mutationFn: async ({ model1, model2 }: { model1: string; model2: string }) => {

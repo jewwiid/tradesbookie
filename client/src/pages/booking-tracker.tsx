@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CalendarDays, MapPin, Phone, Mail, Package, CreditCard, User } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Navigation from '@/components/navigation';
+import Footer from '@/components/Footer';
 
 interface BookingDetails {
   id: number;
@@ -305,6 +306,7 @@ export default function BookingTracker() {
         </CardContent>
       </Card>
       </div>
+      <Footer />
     </div>
   );
 }

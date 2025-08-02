@@ -1248,22 +1248,30 @@ function TvSetupManagement() {
                     <FormControl>
                       <Select 
                         onValueChange={(value) => {
-                          field.onChange(value);
-                          // Auto-populate staff info when referral code is selected
-                          const selectedCode = referralCodes.find(code => code.referralCode === value);
-                          if (selectedCode) {
-                            referralForm.setValue("referralCodeId", selectedCode.id);
-                            referralForm.setValue("salesStaffName", selectedCode.salesStaffName || "");
-                            referralForm.setValue("salesStaffStore", selectedCode.salesStaffStore || "");
+                          // Handle "none" selection by clearing referral data
+                          if (value === "none") {
+                            field.onChange("");
+                            referralForm.setValue("referralCodeId", undefined);
+                            referralForm.setValue("salesStaffName", "");
+                            referralForm.setValue("salesStaffStore", "");
+                          } else {
+                            field.onChange(value);
+                            // Auto-populate staff info when referral code is selected
+                            const selectedCode = referralCodes.find(code => code.referralCode === value);
+                            if (selectedCode) {
+                              referralForm.setValue("referralCodeId", selectedCode.id);
+                              referralForm.setValue("salesStaffName", selectedCode.salesStaffName || "");
+                              referralForm.setValue("salesStaffStore", selectedCode.salesStaffStore || "");
+                            }
                           }
                         }} 
-                        value={field.value}
+                        value={field.value || "none"}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select referral code" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">None</SelectItem>
+                          <SelectItem value="none">None</SelectItem>
                           {referralCodes.map((code) => (
                             <SelectItem key={code.id} value={code.referralCode}>
                               {code.referralCode} - {code.salesStaffName} ({code.salesStaffStore || 'No Store'})

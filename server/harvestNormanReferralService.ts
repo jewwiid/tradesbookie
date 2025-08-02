@@ -25,7 +25,8 @@ export class HarveyNormanReferralService {
   // Harvey Norman store code mapping
   private readonly storeAbbreviations: { [key: string]: string } = {
     'Blanchardstown': 'BLA',
-    'Carrickmines': 'CRK',
+    'Carrickmines': 'CKM',
+    'Cork': 'CRK',
     'Castlebar': 'CAS',
     'Drogheda': 'DRO',
     'Fonthill': 'FON',

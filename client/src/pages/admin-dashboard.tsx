@@ -4758,7 +4758,8 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
   // Store abbreviations mapping
   const storeAbbreviations: { [key: string]: string } = {
     'Blanchardstown': 'BLA',
-    'Carrickmines': 'CRK',
+    'Carrickmines': 'CKM',
+    'Cork': 'CRK',
     'Castlebar': 'CAS',
     'Drogheda': 'DRO',
     'Fonthill': 'FON',

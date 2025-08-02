@@ -293,7 +293,8 @@ export default function SimplifiedAuthDialog({
                     <p className="mb-2">Store codes:</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                       <span>BLA (Blanchardstown)</span>
-                      <span>CRK (Carrickmines)</span>
+                      <span>CKM (Carrickmines)</span>
+                      <span>CRK (Cork)</span>
                       <span>CAS (Castlebar)</span>
                       <span>DRO (Drogheda)</span>
                       <span>FON (Fonthill)</span>

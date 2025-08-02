@@ -717,7 +717,7 @@ export default function TvSetupAssist() {
                           form.setValue("referralCode", value);
                         }}
                         onBlur={() => validateReferralCode(referralCode)}
-                        placeholder="Enter staff referral code (e.g. HNCRKMIKE)"
+                        placeholder="Enter staff referral code (e.g. HNCKMMIKE)"
                         className={cn(
                           "flex-1",
                           referralCode && referralValidation.isValid && "border-green-500",

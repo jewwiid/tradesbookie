@@ -289,7 +289,7 @@ export default function BookingTracker() {
             <h4 className="font-medium mb-2">How to find your tracking code:</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-600">
               <li><strong>QR Code:</strong> Check your booking confirmation email for the QR code (e.g., BK-abc123xyz9)</li>
-              <li><strong>Invoice Users:</strong> Use your Harvey Norman invoice number (e.g., HN-CRK-2576597)</li>
+              <li><strong>Invoice Users:</strong> Use your Harvey Norman invoice number (e.g., HN-CKM-2576597)</li>
               <li><strong>Guest Users:</strong> Check your email for the booking reference sent after confirmation</li>
             </ul>
           </div>

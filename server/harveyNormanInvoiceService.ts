@@ -125,7 +125,7 @@ export class HarveyNormanInvoiceService {
   async createSampleInvoices(): Promise<void> {
     const sampleInvoices = [
       {
-        invoiceNumber: 'HN-CRK-2576597',
+        invoiceNumber: 'HN-CKM-2576597',
         customerEmail: 'jude.okun@email.com',
         customerName: 'Jude Okun',
         customerPhone: '0851159264',
@@ -134,7 +134,7 @@ export class HarveyNormanInvoiceService {
         tvSize: 'N/A',
         purchaseAmount: '224.50',
         storeName: 'Harvey Norman Carrickmines',
-        storeCode: 'CRK'
+        storeCode: 'CKM'
       },
       {
         invoiceNumber: 'HN-DUB-001234',
@@ -149,7 +149,7 @@ export class HarveyNormanInvoiceService {
         storeCode: 'DUB'
       },
       {
-        invoiceNumber: 'HN-COR-005678',
+        invoiceNumber: 'HN-CRK-005678',
         customerEmail: 'mary.jones@email.com',
         customerName: 'Mary Jones',
         customerPhone: '0879876543',
@@ -158,7 +158,7 @@ export class HarveyNormanInvoiceService {
         tvSize: '65"',
         purchaseAmount: '1299.99',
         storeName: 'Harvey Norman Cork',
-        storeCode: 'COR'
+        storeCode: 'CRK'
       },
       {
         invoiceNumber: 'HN-GAL-009876',
@@ -245,7 +245,7 @@ export class HarveyNormanInvoiceService {
    */
   isValidInvoiceFormat(invoiceNumber: string): boolean {
     // Harvey Norman invoice format: HN-[STORE_CODE]-[INVOICE_NUMBER]
-    // Store codes: CRK (Carrickmines), DUB (Dublin), COR (Cork), GAL (Galway), LIM (Limerick), etc.
+    // Store codes: CKM (Carrickmines), CRK (Cork), DUB (Dublin), GAL (Galway), LIM (Limerick), etc.
     // Invoice numbers are typically 7 digits but can vary
     const regex = /^HN-[A-Z]{3,4}-\d{6,8}$/;
     return regex.test(invoiceNumber);
@@ -257,7 +257,8 @@ export class HarveyNormanInvoiceService {
   getStoreName(storeCode: string): string {
     const storeMap: Record<string, string> = {
       'BLA': 'Harvey Norman Blanchardstown',
-      'CRK': 'Harvey Norman Carrickmines',
+      'CKM': 'Harvey Norman Carrickmines',
+      'CRK': 'Harvey Norman Cork',
       'CAS': 'Harvey Norman Castlebar',
       'DRO': 'Harvey Norman Drogheda',
       'FON': 'Harvey Norman Fonthill',

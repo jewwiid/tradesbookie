@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { 
@@ -34,6 +35,28 @@ import { getWebsiteMetrics } from "./analyticsService";
 import { requestPasswordReset, resetPassword } from "./passwordResetService";
 import { askQuestion, getPopularQuestions, updateFaqAnswer, deactivateFaqAnswer } from "./faqService";
 import { compareTVModels } from "./tvComparisonService";
+
+// WebSocket clients for real-time updates
+const wsClients = new Set<WebSocket>();
+
+// Broadcast function for real-time updates
+function broadcastBookingUpdate(bookingId: number, event: string, data?: any) {
+  const message = JSON.stringify({
+    type: 'booking_update',
+    bookingId,
+    event,
+    data,
+    timestamp: new Date().toISOString()
+  });
+  
+  wsClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
+  
+  console.log(`Broadcast booking update: ${event} for booking ${bookingId}`);
+}
 
 // Function to reset and generate varied demo leads for demo account (creates actual database bookings)
 const resetDemoLeads = async (installerId: number) => {
@@ -1670,35 +1693,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
               'paid'
             );
 
+            // Handle TV setup credentials payment
+            if (paymentIntent.metadata.paymentType === 'credentials') {
+              await storage.updateTvSetupBookingCredentialsPayment(
+                parseInt(paymentIntent.metadata.bookingId),
+                'completed'
+              );
+              
+              // Update setup status to completed
+              await storage.updateTvSetupBookingStatus(
+                parseInt(paymentIntent.metadata.bookingId),
+                'completed'
+              );
+            }
+
             // Get booking details and send confirmation emails
             try {
               const booking = await storage.getTvSetupBooking(parseInt(paymentIntent.metadata.bookingId));
               if (booking) {
                 // Import email service dynamically to avoid circular dependencies
-                const { sendTvSetupConfirmationEmail, sendTvSetupAdminNotification } = await import('./tvSetupEmailService');
+                const { sendTvSetupConfirmationEmail, sendTvSetupAdminNotification, sendTvSetupPaymentCompletedEmail, sendTvSetupCredentialsEmail } = await import('./tvSetupEmailService');
                 
-                // Send confirmation email to customer
-                if (!booking.confirmationEmailSent) {
-                  const confirmationSent = await sendTvSetupConfirmationEmail(booking);
-                  if (confirmationSent) {
-                    await storage.markTvSetupEmailSent(booking.id, 'confirmation');
-                    console.log(`TV setup confirmation email sent for booking ${booking.id}`);
+                // Handle initial booking payment
+                if (paymentIntent.metadata.paymentType !== 'credentials') {
+                  // Send confirmation email to customer
+                  if (!booking.confirmationEmailSent) {
+                    const confirmationSent = await sendTvSetupConfirmationEmail(booking);
+                    if (confirmationSent) {
+                      await storage.markTvSetupEmailSent(booking.id, 'confirmation');
+                      console.log(`TV setup confirmation email sent for booking ${booking.id}`);
+                    }
                   }
-                }
-                
-                // Send admin notification
-                if (!booking.adminNotificationSent) {
-                  const adminNotificationSent = await sendTvSetupAdminNotification(booking);
-                  if (adminNotificationSent) {
-                    await storage.markTvSetupEmailSent(booking.id, 'admin');
-                    console.log(`TV setup admin notification sent for booking ${booking.id}`);
+                  
+                  // Send admin notification
+                  if (!booking.adminNotificationSent) {
+                    const adminNotificationSent = await sendTvSetupAdminNotification(booking);
+                    if (adminNotificationSent) {
+                      await storage.markTvSetupEmailSent(booking.id, 'admin');
+                      console.log(`TV setup admin notification sent for booking ${booking.id}`);
+                    }
                   }
+                } else {
+                  // Handle credentials payment completion
+                  console.log(`Processing credentials payment for booking ${booking.id}`);
+                  
+                  // Send payment completion email to customer
+                  const paymentCompletedSent = await sendTvSetupPaymentCompletedEmail(booking);
+                  if (paymentCompletedSent) {
+                    console.log(`TV setup payment completion email sent for booking ${booking.id}`);
+                  }
+                  
+                  // Auto-send credentials if they are available
+                  if (booking.credentialsProvided && booking.appUsername && booking.appPassword && !booking.credentialsEmailSent) {
+                    const credentialsSent = await sendTvSetupCredentialsEmail(booking);
+                    if (credentialsSent) {
+                      await storage.markTvSetupEmailSent(booking.id, 'credentials');
+                      console.log(`TV setup credentials email auto-sent for booking ${booking.id} after payment`);
+                    }
+                  }
+                  
+                  // Send admin notification about completed payment
+                  const { sendTvSetupAdminPaymentNotification } = await import('./tvSetupEmailService');
+                  const adminPaymentNotificationSent = await sendTvSetupAdminPaymentNotification(booking);
+                  if (adminPaymentNotificationSent) {
+                    console.log(`TV setup admin payment notification sent for booking ${booking.id}`);
+                  }
+                  
+                  // Broadcast real-time update to connected clients
+                  const updateMessage = {
+                    type: 'booking_update',
+                    event: 'payment_completed',
+                    bookingId: booking.id.toString(),
+                    data: {
+                      status: 'paid',
+                      paidAt: new Date().toISOString(),
+                      paymentAmount: booking.credentialsPaymentAmount || booking.paymentAmount
+                    },
+                    timestamp: new Date().toISOString()
+                  };
+                  
+                  // Send to all connected WebSocket clients
+                  wsClients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                      client.send(JSON.stringify(updateMessage));
+                    }
+                  });
                 }
 
-                // Auto-send credentials if they are already available (payment completed)
-                if (booking.credentialsProvided && booking.appUsername && booking.appPassword && !booking.credentialsEmailSent) {
+                // Auto-send credentials if they are already available (for regular bookings)
+                if (paymentIntent.metadata.paymentType !== 'credentials' && booking.credentialsProvided && booking.appUsername && booking.appPassword && !booking.credentialsEmailSent) {
                   try {
-                    const { sendTvSetupCredentialsEmail } = await import('./tvSetupEmailService');
                     const credentialsSent = await sendTvSetupCredentialsEmail(booking);
                     if (credentialsSent) {
                       await storage.markTvSetupEmailSent(booking.id, 'credentials');
@@ -1811,6 +1895,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   </div>
                 </div>
                 `
+              });
+
+              // Broadcast real-time update via WebSocket
+              const updateMessage = {
+                type: 'booking_update',
+                event: 'payment_completed',
+                bookingId: booking.id.toString(),
+                data: {
+                  status: 'paid',
+                  paidAt: new Date().toISOString(),
+                  paymentAmount: booking.credentialsPaymentAmount || booking.paymentAmount
+                },
+                timestamp: new Date().toISOString()
+              };
+              
+              // Send to all connected WebSocket clients
+              wsClients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                  client.send(JSON.stringify(updateMessage));
+                }
               });
 
               console.log(`TV setup credentials payment confirmed for booking ${booking.id}`);
@@ -2722,8 +2826,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success_url: `${req.protocol}://${req.get('host')}/tv-setup-tracker?bookingId=${booking.id}&payment=success`,
         cancel_url: `${req.protocol}://${req.get('host')}/tv-setup-tracker?bookingId=${booking.id}&payment=cancelled`,
         metadata: {
-          tvSetupBookingId: booking.id.toString(),
-          type: 'tv_setup_credentials'
+          bookingId: booking.id.toString(),
+          service: 'tv_setup',
+          paymentType: 'credentials'
         },
         customer_email: booking.email,
       });
@@ -9447,6 +9552,32 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       res.status(500).json({ error: "Failed to update consultation" });
     }
   });
+
+  // Set up WebSocket server for real-time updates
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws) => {
+    console.log('New WebSocket client connected');
+    wsClients.add(ws);
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      wsClients.delete(ws);
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      wsClients.delete(ws);
+    });
+    
+    // Send initial connection confirmation
+    ws.send(JSON.stringify({
+      type: 'connection_established',
+      timestamp: new Date().toISOString()
+    }));
+  });
+  
+  console.log('WebSocket server setup complete on path /ws');
 
   return httpServer;
 }

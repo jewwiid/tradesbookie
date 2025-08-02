@@ -346,3 +346,143 @@ export async function sendTvSetupCredentialsEmail(booking: TvSetupBooking): Prom
     return false;
   }
 }
+
+export async function sendTvSetupPaymentCompletedEmail(booking: TvSetupBooking): Promise<boolean> {
+  try {
+    const subject = `Payment Confirmed - Your TV Setup Credentials Are Ready - Booking #${booking.id}`;
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #10B981, #047857); color: white; padding: 30px; text-align: center;">
+          <h1 style="margin: 0; font-size: 28px;">💳 Payment Confirmed!</h1>
+          <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Your streaming credentials are now available</p>
+        </div>
+        
+        <div style="padding: 30px; background: #fff;">
+          <h2 style="color: #047857; margin: 0 0 20px 0;">Hello ${booking.name}!</h2>
+          
+          <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+            Thank you for your payment! Your TV streaming credentials are now ready and can be accessed through your tracking link.
+          </p>
+          
+          <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+            <h3 style="color: #047857; margin: 0 0 15px 0;">✅ Payment Processed Successfully</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Booking ID:</td><td style="padding: 8px 0; color: #6B7280;">#${booking.id}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Amount Paid:</td><td style="padding: 8px 0; color: #10B981; font-weight: bold;">€${booking.credentialsPaymentAmount || booking.paymentAmount}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Status:</td><td style="padding: 8px 0; color: #10B981; font-weight: bold;">Completed</td></tr>
+            </table>
+          </div>
+          
+          <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+            <h3 style="color: #047857; margin: 0 0 15px 0;">🎯 Next Steps</h3>
+            <ol style="margin: 0; color: #374151; line-height: 1.8;">
+              <li>Visit your tracking page to access your credentials</li>
+              <li>Follow the setup instructions provided</li>
+              <li>Start enjoying your streaming services!</li>
+              <li>Contact us if you need any assistance</li>
+            </ol>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'https://tradesbook.ie'}/tv-setup-tracker?bookingId=${booking.id}" 
+               style="background: #10B981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">
+              🔑 Access Your Credentials
+            </a>
+          </div>
+          
+          <div style="background: #F8FAFC; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #374151; margin: 0 0 15px 0;">📞 Need Help?</h3>
+            <p style="margin: 0; color: #6B7280; line-height: 1.6;">
+              If you experience any issues accessing your credentials or need assistance, please contact our support team:<br>
+              <strong>Email:</strong> support@tradesbook.ie<br>
+              <strong>Hours:</strong> Monday - Friday, 9AM - 6PM
+            </p>
+          </div>
+          
+          <p style="font-size: 14px; color: #6B7280; text-align: center; margin-top: 30px;">
+            Booking #${booking.id} | Thank you for choosing TradesBook.ie!
+          </p>
+        </div>
+      </div>
+    `;
+
+    await sendGmailEmail({
+      to: booking.email,
+      subject: subject,
+      html: htmlContent,
+      from: EMAIL_CONFIG.SUPPORT,
+      replyTo: EMAIL_CONFIG.SUPPORT
+    });
+    return true;
+  } catch (error) {
+    console.error('Failed to send TV setup payment completion email:', error);
+    return false;
+  }
+}
+
+export async function sendTvSetupAdminPaymentNotification(booking: TvSetupBooking): Promise<boolean> {
+  try {
+    const subject = `TV Setup Payment Received - Action Required - Booking #${booking.id}`;
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 30px; text-align: center;">
+          <h1 style="margin: 0; font-size: 28px;">💰 Payment Received</h1>
+          <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Customer has paid for TV setup credentials</p>
+        </div>
+        
+        <div style="padding: 30px; background: #fff;">
+          <h2 style="color: #047857; margin: 0 0 20px 0;">Payment Notification</h2>
+          
+          <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+            A customer has completed payment for their TV setup credentials. Please review and take action if needed.
+          </p>
+          
+          <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+            <h3 style="color: #047857; margin: 0 0 15px 0;">Payment Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Booking ID:</td><td style="padding: 8px 0; color: #6B7280;">#${booking.id}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Customer:</td><td style="padding: 8px 0; color: #6B7280;">${booking.name}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Email:</td><td style="padding: 8px 0; color: #6B7280;">${booking.email}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Mobile:</td><td style="padding: 8px 0; color: #6B7280;">${booking.mobile}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Amount Paid:</td><td style="padding: 8px 0; color: #10B981; font-weight: bold;">€${booking.credentialsPaymentAmount || booking.paymentAmount}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">TV:</td><td style="padding: 8px 0; color: #6B7280;">${booking.tvBrand} ${booking.tvModel}</td></tr>
+              <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">MAC Address:</td><td style="padding: 8px 0; color: #6B7280;">${booking.macAddress || 'Not provided'}</td></tr>
+            </table>
+          </div>
+          
+          <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+            <h3 style="color: #92400E; margin: 0 0 15px 0;">⚠️ Action Required</h3>
+            <p style="margin: 0; color: #92400E; line-height: 1.6;">
+              Customer has paid for credentials access. If credentials are ready, they will be automatically sent. You can mark the setup as completed in the admin dashboard.
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${process.env.FRONTEND_URL || 'https://tradesbook.ie'}/admin-dashboard" 
+               style="background: #047857; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 16px;">
+              View in Admin Dashboard
+            </a>
+          </div>
+          
+          <p style="font-size: 14px; color: #6B7280; text-align: center; margin-top: 30px;">
+            Payment received at: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}
+          </p>
+        </div>
+      </div>
+    `;
+
+    await sendGmailEmail({
+      to: EMAIL_CONFIG.ADMIN,
+      subject: subject,
+      html: htmlContent,
+      from: EMAIL_CONFIG.ADMIN,
+      replyTo: EMAIL_CONFIG.ADMIN
+    });
+    return true;
+  } catch (error) {
+    console.error('Failed to send TV setup admin payment notification:', error);
+    return false;
+  }
+}

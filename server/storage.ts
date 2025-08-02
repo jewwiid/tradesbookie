@@ -1813,13 +1813,18 @@ export class DatabaseStorage implements IStorage {
       .where(eq(tvSetupBookings.id, id));
   }
 
-  async updateTvSetupBookingCredentialsPayment(id: number, sessionId: string, status: string): Promise<void> {
+  async updateTvSetupBookingCredentialsPayment(id: number, status: string, paidAt?: string): Promise<void> {
+    const updateData: any = { 
+      credentialsPaymentStatus: status,
+      updatedAt: new Date()
+    };
+    
+    if (paidAt) {
+      updateData.credentialsPaidAt = paidAt;
+    }
+    
     await db.update(tvSetupBookings)
-      .set({ 
-        credentialsStripeSessionId: sessionId,
-        credentialsPaymentStatus: status,
-        updatedAt: new Date()
-      })
+      .set(updateData)
       .where(eq(tvSetupBookings.id, id));
   }
 

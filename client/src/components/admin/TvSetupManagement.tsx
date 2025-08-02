@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -183,6 +183,80 @@ function TvSetupManagement() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const wsRef = useRef<WebSocket | null>(null);
+
+  // Set up WebSocket connection for real-time updates
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    const connectWebSocket = () => {
+      try {
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+        
+        ws.onopen = () => {
+          console.log('Admin WebSocket connected for real-time updates');
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            console.log('Admin WebSocket message received:', data);
+            
+            if (data.type === 'booking_update') {
+              // Invalidate and refetch booking data when updates are received
+              queryClient.invalidateQueries({ queryKey: ["/api/admin/tv-setup-bookings"] });
+              
+              // Show admin-friendly notifications
+              if (data.event === 'payment_completed') {
+                toast({
+                  title: "Payment Received",
+                  description: `Customer has completed payment for booking #${data.bookingId}. Amount: €${data.data?.paymentAmount || 'N/A'}`,
+                });
+              } else if (data.event === 'status_updated') {
+                toast({
+                  title: "Booking Updated",
+                  description: `Booking #${data.bookingId} status updated to: ${data.data?.status || 'Updated'}`,
+                });
+              } else if (data.event === 'credentials_ready') {
+                toast({
+                  title: "Credentials Ready",
+                  description: `Credentials have been prepared for booking #${data.bookingId}`,
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error parsing admin WebSocket message:', error);
+          }
+        };
+        
+        ws.onclose = () => {
+          console.log('Admin WebSocket connection closed, attempting to reconnect...');
+          // Attempt to reconnect after 3 seconds
+          setTimeout(connectWebSocket, 3000);
+        };
+        
+        ws.onerror = (error) => {
+          console.error('Admin WebSocket error:', error);
+        };
+      } catch (error) {
+        console.error('Failed to connect admin WebSocket:', error);
+        // Retry connection after 5 seconds
+        setTimeout(connectWebSocket, 5000);
+      }
+    };
+    
+    connectWebSocket();
+    
+    // Cleanup on unmount
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, [queryClient, toast]);
 
   // Forms
   const credentialsForm = useForm<z.infer<typeof credentialsSchema>>({

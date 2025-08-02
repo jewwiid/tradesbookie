@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -73,6 +73,83 @@ export default function TvSetupTracker() {
   const [macAddress, setMacAddress] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const wsRef = useRef<WebSocket | null>(null);
+
+  // Set up WebSocket connection for real-time updates
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    
+    const connectWebSocket = () => {
+      try {
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
+        
+        ws.onopen = () => {
+          console.log('WebSocket connected for real-time updates');
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            console.log('WebSocket message received:', data);
+            
+            if (data.type === 'booking_update' && data.bookingId && parseInt(data.bookingId) === parseInt(bookingId)) {
+              // Invalidate and refetch booking data when updates are received
+              queryClient.invalidateQueries({ queryKey: [`/api/tv-setup-tracker`] });
+              
+              // Show user-friendly notifications
+              if (data.event === 'payment_completed') {
+                toast({
+                  title: "Payment Confirmed!",
+                  description: "Your payment has been processed successfully. Your credentials are now available.",
+                });
+              } else if (data.event === 'status_updated') {
+                toast({
+                  title: "Status Updated",
+                  description: `Your booking status has been updated to: ${data.data?.status || 'Updated'}`,
+                });
+              } else if (data.event === 'credentials_ready') {
+                toast({
+                  title: "Credentials Ready",
+                  description: "Your streaming credentials have been prepared and are ready for download.",
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
+        
+        ws.onclose = () => {
+          console.log('WebSocket connection closed, attempting to reconnect...');
+          // Attempt to reconnect after 3 seconds
+          setTimeout(connectWebSocket, 3000);
+        };
+        
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+        };
+      } catch (error) {
+        console.error('Failed to connect WebSocket:', error);
+        // Retry connection after 5 seconds
+        setTimeout(connectWebSocket, 5000);
+      }
+    };
+    
+    // Only connect if we have a booking ID
+    if (bookingId) {
+      connectWebSocket();
+    }
+    
+    // Cleanup on unmount or dependency change
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+    };
+  }, [bookingId, queryClient, toast]);
 
 
 

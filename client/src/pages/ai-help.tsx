@@ -277,62 +277,7 @@ export default function AIHelpPage() {
           )}
         </div>
 
-        {/* Help Topics - Moved Outside Flex Container */}
-        <div className="max-w-6xl mx-auto mt-8 sm:mt-12 px-4 pb-8">
-          <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 text-center">
-            Popular Help Topics
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <h4 className="font-semibold text-gray-900 mb-2 text-sm">TV Installation</h4>
-              <ul className="text-gray-600 text-xs space-y-1">
-                <li>• Wall mounting requirements</li>
-                <li>• Cable management</li>
-                <li>• Bracket selection</li>
-              </ul>
-            </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Streaming Setup</h4>
-              <ul className="text-gray-600 text-xs space-y-1">
-                <li>• App installation</li>
-                <li>• WiFi connectivity</li>
-                <li>• Account setup</li>
-              </ul>
-            </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Technical Issues</h4>
-              <ul className="text-gray-600 text-xs space-y-1">
-                <li>• Picture quality problems</li>
-                <li>• Audio troubleshooting</li>
-                <li>• Remote control setup</li>
-              </ul>
-            </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Smart TV Features</h4>
-              <ul className="text-gray-600 text-xs space-y-1">
-                <li>• Voice control setup</li>
-                <li>• Screen mirroring</li>
-                <li>• Gaming mode</li>  
-              </ul>
-            </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Irish Services</h4>
-              <ul className="text-gray-600 text-xs space-y-1">
-                <li>• RTÉ Player setup</li>
-                <li>• SaorView configuration</li>
-                <li>• Virgin Media services</li>
-              </ul>
-            </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-              <h4 className="font-semibold text-gray-900 mb-2 text-sm">Hardware Questions</h4>
-              <ul className="text-gray-600 text-xs space-y-1">
-                <li>• HDMI connections</li>
-                <li>• Sound system setup</li>
-                <li>• Cable requirements</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+
 
         {/* Need More Help - Moved Outside Flex Container */}
         <div className="max-w-4xl mx-auto mt-6 text-center px-4 pb-8">
@@ -346,10 +291,10 @@ export default function AIHelpPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
               <a
-                href="/booking"
+                href="/consultation-booking"
                 className="inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors text-sm"
               >
-                Book Professional Installation
+                Book Consultation
               </a>
               <a
                 href="mailto:support@tradesbook.ie"

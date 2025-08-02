@@ -360,9 +360,9 @@ export default function AIHelpPage() {
             </div>
           </div>
         </div>
-        
-        <Footer />
       </div>
+      
+      <Footer />
     </div>
   );
 }

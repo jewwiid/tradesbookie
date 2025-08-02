@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import HarveyNormanBooking from '@/components/HarveyNormanBooking';
 import Navigation from '@/components/navigation';
+import Footer from '@/components/Footer';
 
 interface QuestionData {
   id: string;
@@ -819,6 +820,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
           </Card>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

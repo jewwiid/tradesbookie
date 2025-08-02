@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import Navigation from "@/components/navigation";
+import Footer from "@/components/Footer";
 import { Calendar, Clock, MessageCircle, Phone, Mail, Video, ArrowLeft, CheckCircle } from "lucide-react";
 
 interface ConsultationData {
@@ -413,6 +414,7 @@ export default function ConsultationBooking() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

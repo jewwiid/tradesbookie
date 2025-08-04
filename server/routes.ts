@@ -1113,21 +1113,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawData.preferredDate = new Date(rawData.preferredDate);
       }
       
-      // Calculate pricing first to get required price fields
-      const pricing = calculatePricing(
-        rawData.serviceType || 'bronze',
-        rawData.addons || []
-      );
+      // Handle multi-TV or single TV pricing calculation
+      let totalEstimatedPrice = 0;
+      let totalAddonsPrice = 0;
+      let totalBookingEstimate = 0;
       
-
+      if (rawData.tvInstallations && Array.isArray(rawData.tvInstallations) && rawData.tvInstallations.length > 0) {
+        // Multi-TV booking: calculate pricing for each TV
+        console.log('Processing multi-TV booking with', rawData.tvInstallations.length, 'TVs');
+        
+        rawData.tvInstallations.forEach((tv: any, index: number) => {
+          if (tv.serviceType && tv.addons) {
+            const tvPricing = calculatePricing(tv.serviceType, tv.addons);
+            tv.estimatedPrice = tvPricing.estimatedPrice;
+            tv.estimatedAddonsPrice = tvPricing.addonsPrice;
+            tv.estimatedTotal = tvPricing.totalEstimate;
+            
+            totalEstimatedPrice += tvPricing.estimatedPrice;
+            totalAddonsPrice += tvPricing.addonsPrice;
+            totalBookingEstimate += tvPricing.totalEstimate;
+            
+            console.log(`TV ${index + 1} (${tv.location || 'Unknown location'}): ${tv.tvSize}" ${tv.serviceType} = €${tvPricing.totalEstimate}`);
+          }
+        });
+        
+        // Store multi-TV installations as JSONB
+        rawData.tvInstallations = rawData.tvInstallations;
+      } else {
+        // Legacy single TV booking
+        console.log('Processing single TV booking');
+        const pricing = calculatePricing(
+          rawData.serviceType || 'bronze',
+          rawData.addons || []
+        );
+        
+        totalEstimatedPrice = pricing.estimatedPrice;
+        totalAddonsPrice = pricing.addonsPrice;
+        totalBookingEstimate = pricing.totalEstimate;
+      }
       
       // Set installerId to null for initial booking creation
       rawData.installerId = null;
       
       // Add calculated pricing to data as strings with null checks
-      rawData.estimatedPrice = (pricing.estimatedPrice || 0).toFixed(2);
-      rawData.estimatedTotal = (pricing.totalEstimate || 0).toFixed(2);
-      rawData.estimatedAddonsPrice = (pricing.addonsPrice || 0).toFixed(2);
+      rawData.estimatedPrice = totalEstimatedPrice.toFixed(2);
+      rawData.estimatedTotal = totalBookingEstimate.toFixed(2);
+      rawData.estimatedAddonsPrice = totalAddonsPrice.toFixed(2);
       
       // Add contact information (get from authenticated user or request)
       if (req.user) {

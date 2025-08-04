@@ -978,6 +978,24 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   estimatedAddonsPrice: z.string().optional(),
   roomAnalysis: z.string().nullable().optional(),
   referralDiscount: z.union([z.string(), z.number()]).nullable().optional(),
+  // Multi-TV installations support
+  tvInstallations: z.array(z.object({
+    tvSize: z.string(),
+    serviceType: z.string(),
+    wallType: z.string(),
+    mountType: z.string(),
+    needsWallMount: z.boolean(),
+    wallMountOption: z.string().optional(),
+    location: z.string().optional(),
+    addons: z.array(z.object({
+      key: z.string(),
+      name: z.string(),
+      price: z.number(),
+    })),
+    estimatedPrice: z.number(),
+    estimatedAddonsPrice: z.number(),
+    estimatedTotal: z.number(),
+  })).optional(),
 });
 
 // Removed: insertFeeStructureSchema no longer needed

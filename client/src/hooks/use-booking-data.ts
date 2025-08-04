@@ -1,8 +1,31 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+interface TvInstallation {
+  tvSize: string;
+  serviceType: string;
+  wallType: string;
+  mountType: string;
+  needsWallMount: boolean;
+  wallMountOption?: string;
+  location?: string; // e.g., "Living Room", "Bedroom", "Kitchen"
+  addons: Array<{
+    key: string;
+    name: string;
+    price: number;
+  }>;
+  estimatedPrice: number;
+  estimatedAddonsPrice: number;
+  estimatedTotal: number;
+}
+
 interface BookingData {
-  // Basic info
+  // Multi-TV support
+  tvQuantity?: number;
+  tvInstallations?: TvInstallation[];
+  currentTvIndex?: number;
+  
+  // Legacy single TV fields (for backward compatibility)
   tvSize?: string;
   serviceType?: string;
   wallType?: string;
@@ -28,7 +51,7 @@ interface BookingData {
   aiPreviewUrl?: string;
   photoStorageConsent?: boolean;
   
-  // Addons and pricing
+  // Legacy addons (for backward compatibility)
   addons?: Array<{
     key: string;
     name: string;
@@ -56,17 +79,95 @@ interface BookingStore {
   bookingData: BookingData;
   updateBookingData: (data: Partial<BookingData>) => void;
   resetBookingData: () => void;
+  // Multi-TV specific methods
+  initializeMultiTvBooking: (tvQuantity: number) => void;
+  updateTvInstallation: (index: number, data: Partial<TvInstallation>) => void;
+  calculateTotalPrice: () => number;
+  getCurrentTv: () => TvInstallation | undefined;
+  isMultiTvBooking: () => boolean;
 }
 
 export const useBookingData = create<BookingStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       bookingData: {},
       updateBookingData: (data) =>
         set((state) => ({
           bookingData: { ...state.bookingData, ...data },
         })),
       resetBookingData: () => set({ bookingData: {} }),
+      
+      // Multi-TV specific methods
+      initializeMultiTvBooking: (tvQuantity: number) =>
+        set((state) => {
+          const tvInstallations: TvInstallation[] = Array.from({ length: tvQuantity }, (_, index) => ({
+            tvSize: '',
+            serviceType: '',
+            wallType: '',
+            mountType: '',
+            needsWallMount: false,
+            wallMountOption: undefined,
+            location: `TV ${index + 1}`,
+            addons: [],
+            estimatedPrice: 0,
+            estimatedAddonsPrice: 0,
+            estimatedTotal: 0,
+          }));
+          
+          return {
+            bookingData: {
+              ...state.bookingData,
+              tvQuantity,
+              tvInstallations,
+              currentTvIndex: 0,
+            },
+          };
+        }),
+      
+      updateTvInstallation: (index: number, data: Partial<TvInstallation>) =>
+        set((state) => {
+          if (!state.bookingData.tvInstallations || index < 0 || index >= state.bookingData.tvInstallations.length) {
+            return state;
+          }
+          
+          const updatedInstallations = [...state.bookingData.tvInstallations];
+          updatedInstallations[index] = {
+            ...updatedInstallations[index],
+            ...data,
+          };
+          
+          return {
+            bookingData: {
+              ...state.bookingData,
+              tvInstallations: updatedInstallations,
+            },
+          };
+        }),
+      
+      calculateTotalPrice: () => {
+        const { bookingData } = get();
+        
+        if (bookingData.tvInstallations && bookingData.tvInstallations.length > 0) {
+          // Multi-TV booking: sum up all TV installations
+          return bookingData.tvInstallations.reduce((total, tv) => total + tv.estimatedTotal, 0);
+        } else {
+          // Legacy single TV booking
+          return (bookingData.totalPrice || 0) + (bookingData.addonTotal || 0);
+        }
+      },
+      
+      getCurrentTv: () => {
+        const { bookingData } = get();
+        if (!bookingData.tvInstallations || bookingData.currentTvIndex === undefined) {
+          return undefined;
+        }
+        return bookingData.tvInstallations[bookingData.currentTvIndex];
+      },
+      
+      isMultiTvBooking: () => {
+        const { bookingData } = get();
+        return !!(bookingData.tvQuantity && bookingData.tvQuantity > 1 && bookingData.tvInstallations);
+      },
     }),
     {
       name: 'booking-data',

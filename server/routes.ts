@@ -1525,28 +1525,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           
-          // Calculate lead fee (app fee) for the booking
-          const getLeadFee = (serviceType: string): number => {
-            const serviceTierMap: { [key: string]: number } = {
-              'table-top-small': 12,
-              'bronze': 20,
-              'silver': 25,
-              'gold': 35
-            };
-            return serviceTierMap[serviceType] || 20; // Default to bronze fee
-          };
+          // Calculate accurate lead fee using the pricing system
+          let totalLeadFee = 0;
+          let totalBookingValue = 0;
           
-          const leadFee = getLeadFee(booking.serviceType);
+          if (booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0) {
+            // Multi-TV booking: calculate total lead fee and value
+            booking.tvInstallations.forEach((tv: any) => {
+              if (tv.serviceType) {
+                const tvLeadFee = getLeadFee(tv.serviceType);
+                totalLeadFee += tvLeadFee;
+                totalBookingValue += tv.estimatedTotal || 0;
+              }
+            });
+          } else {
+            // Single TV booking: use legacy calculation
+            totalLeadFee = getLeadFee(booking.serviceType);
+            const bookingPricing = calculatePricing(booking.serviceType, booking.addons || []);
+            totalBookingValue = bookingPricing.totalEstimate;
+          }
           
           // Map database fields to expected frontend fields and add installer/user info
           return {
             ...booking,
-            // Fix price field mapping
-            totalPrice: booking.estimatedPrice,
-            estimatedTotal: booking.estimatedPrice,
-            // Add app fee (lead fee) calculation
-            appFee: leadFee,
-            leadFee: leadFee,
+            // Fix price field mapping - use calculated total for multi-TV or stored value for single TV
+            totalPrice: totalBookingValue || parseFloat(booking.estimatedTotal || booking.estimatedPrice || '0'),
+            estimatedTotal: totalBookingValue || parseFloat(booking.estimatedTotal || booking.estimatedPrice || '0'),
+            // Add accurate app fee (lead fee) calculation
+            appFee: totalLeadFee,
+            leadFee: totalLeadFee,
             // Add installer information
             installer: installerInfo,
             installerName: installerInfo?.name || null,

@@ -1967,14 +1967,29 @@ function BookingManagement() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium capitalize">{booking.serviceType.replace('-', ' ')}</div>
-                      <div className="text-sm text-gray-500">{booking.tvSize}" TV</div>
+                      {booking.tvInstallations && booking.tvInstallations.length > 1 ? (
+                        <>
+                          <div className="font-medium">{booking.tvInstallations.length} TVs</div>
+                          <div className="text-sm text-gray-500">
+                            {booking.tvInstallations.map((tv: any, index: number) => (
+                              <div key={index} className="text-xs">
+                                {tv.location}: {tv.tvSize}" {tv.serviceType.replace('-', ' ')}
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="font-medium capitalize">{booking.serviceType.replace('-', ' ')}</div>
+                          <div className="text-sm text-gray-500">{booking.tvSize}" TV</div>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">€{booking.estimatedTotal || booking.totalPrice}</div>
-                      <div className="text-sm text-gray-500">Lead Fee: €{booking.appFee}</div>
+                      <div className="font-medium">€{typeof booking.totalPrice === 'number' ? booking.totalPrice.toFixed(2) : booking.totalPrice}</div>
+                      <div className="text-sm text-gray-500">Lead Fee: €{typeof booking.leadFee === 'number' ? booking.leadFee.toFixed(2) : booking.leadFee}</div>
                     </div>
                   </TableCell>
                   <TableCell>

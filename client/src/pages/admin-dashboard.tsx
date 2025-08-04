@@ -2294,23 +2294,38 @@ function BookingManagement() {
                 </div>
               </div>
 
-              {/* Location & Schedule Section */}
+              {/* Scheduling Information */}
               <div className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-3">Location & Schedule</h3>
-                <div className="space-y-3">
+                <h3 className="font-semibold mb-3">Scheduling Details</h3>
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Installation Address</label>
-                    <p className="mt-1">{selectedBooking.address}</p>
+                    <label className="text-sm font-medium text-gray-600">Preferred Date</label>
+                    <p className="mt-1">
+                      {selectedBooking.preferredDate ? 
+                        new Date(selectedBooking.preferredDate).toLocaleDateString('en-IE', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        }) : 'TBD'
+                      }
+                    </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Preferred Date</label>
-                      <p className="mt-1">{selectedBooking.scheduledDate ? new Date(selectedBooking.scheduledDate).toLocaleDateString() : 'Not scheduled'}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-600">Time Slot</label>
-                      <p className="mt-1">{selectedBooking.timeSlot || 'Flexible'}</p>
-                    </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Preferred Time</label>
+                    <p className="mt-1">{selectedBooking.preferredTime || 'TBD'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Scheduled Date</label>
+                    <p className="mt-1">
+                      {selectedBooking.scheduledDate ? 
+                        new Date(selectedBooking.scheduledDate).toLocaleDateString('en-IE') : 'Not scheduled'
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Time Slot</label>
+                    <p className="mt-1">{selectedBooking.timeSlot || 'Flexible'}</p>
                   </div>
                 </div>
               </div>

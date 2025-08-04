@@ -1,0 +1,93 @@
+Raw booking data before processing: {
+  "userId": "42442296",
+  "contactName": "Jude Okun",
+  "contactPhone": "+353851159264",
+  "contactEmail": "jude.okun@gmail.com",
+  "tvSize": "43",
+  "serviceType": "silver",
+  "wallType": "drywall",
+  "mountType": "tilting",
+  "needsWallMount": false,
+  "wallMountOption": null,
+  "addons": [
+    {
+      "key": "cable-concealment",
+      "name": "Cable Concealment",
+      "price": 49
+    },
+    {
+      "key": "soundbar-install",
+      "name": "Soundbar Installation",
+      "price": 39
+    }
+  ],
+  "preferredDate": "2025-08-06",
+  "preferredTime": "13:00",
+  "address": "Apartment 39 The Ashes, Elmfield, Ballyogan Road, Dublin, D18X704",
+  "roomPhotoUrl": null,
+  "aiPreviewUrl": null,
+  "roomAnalysis": null,
+  "photoStorageConsent": false,
+  "estimatedPrice": "0.00",
+  "estimatedAddonsPrice": "0.00",
+  "estimatedTotal": "0.00",
+  "customerNotes": null,
+  "referralCode": null,
+  "referralDiscount": 0
+}
+Booking created without invoice tracking, auth method: undefined
+Raw data after processing: {
+  roomAnalysis: null,
+  roomAnalysisType: 'object',
+  referralDiscount: 0,
+  referralDiscountType: 'number'
+}
+Error creating booking: ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "number",
+    "path": [
+      "userId"
+    ],
+    "message": "Expected string, received number"
+  }
+]
+    at get error [as error] (file:///home/runner/workspace/node_modules/zod/lib/index.mjs:587:31)
+    at ZodObject.parse (file:///home/runner/workspace/node_modules/zod/lib/index.mjs:663:22)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:1161:47)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at Route.dispatch (/home/runner/workspace/node_modules/express/lib/router/route.js:119:3)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:284:15
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at strategy.pass (/home/runner/workspace/node_modules/passport/lib/middleware/authenticate.js:355:9)
+    at /home/runner/workspace/node_modules/passport/lib/strategies/session.js:120:12
+    at pass (/home/runner/workspace/node_modules/passport/lib/authenticator.js:352:31)
+    at deserialized (/home/runner/workspace/node_modules/passport/lib/authenticator.js:364:7)
+    at <anonymous> (/home/runner/workspace/server/replitAuth.ts:313:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  issues: [
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'number',
+      path: [Array],
+      message: 'Expected string, received number'
+    }
+  ],
+  addIssue: [Function (anonymous)],
+  addIssues: [Function (anonymous)],
+  errors: [
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'number',
+      path: [Array],
+      message: 'Expected string, received number'
+    }
+  ]
+}
+10:33:35 PM [express] POST /api/bookings 400 in 235ms :: {"message":"Failed to create booking","error…

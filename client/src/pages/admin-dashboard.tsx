@@ -2094,12 +2094,71 @@ function BookingManagement() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Service Type</label>
-                    <p className="mt-1 font-medium">{selectedBooking.serviceType}</p>
-                    <p className="text-sm text-gray-500">TV Size: {selectedBooking.tvSize}"</p>
+                    <label className="text-sm font-medium text-gray-600">Service Details</label>
+                    {selectedBooking.tvInstallations && selectedBooking.tvInstallations.length > 1 ? (
+                      <div className="mt-1">
+                        <p className="font-medium">{selectedBooking.tvInstallations.length} TV Installation</p>
+                        <p className="text-sm text-gray-500">Multi-TV booking</p>
+                      </div>
+                    ) : (
+                      <div className="mt-1">
+                        <p className="font-medium capitalize">{selectedBooking.serviceType.replace('-', ' ')}</p>
+                        <p className="text-sm text-gray-500">TV Size: {selectedBooking.tvSize}"</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
+
+              {/* Multi-TV Installation Details */}
+              {selectedBooking.tvInstallations && selectedBooking.tvInstallations.length > 0 && (
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-3">TV Installation Details</h3>
+                  <div className="space-y-4">
+                    {selectedBooking.tvInstallations.map((tv: any, index: number) => (
+                      <div key={index} className="border border-gray-200 rounded-lg p-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-medium">TV {index + 1}: {tv.location || `Unknown Location`}</h4>
+                          <div className="text-right">
+                            <div className="font-bold text-green-600">€{tv.estimatedTotal?.toFixed(2) || '0.00'}</div>
+                            <div className="text-xs text-gray-500">Service Cost</div>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-3 text-sm">
+                          <div>
+                            <label className="text-xs text-gray-600">TV Size</label>
+                            <p className="font-medium">{tv.tvSize}"</p>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600">Service Type</label>
+                            <p className="font-medium capitalize">{tv.serviceType.replace('-', ' ')}</p>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600">Mount Type</label>
+                            <p className="font-medium capitalize">{tv.mountType}</p>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600">Wall Type</label>
+                            <p className="font-medium capitalize">{tv.wallType}</p>
+                          </div>
+                        </div>
+                        {tv.addons && tv.addons.length > 0 && (
+                          <div className="mt-3">
+                            <label className="text-xs text-gray-600">Add-ons</label>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {tv.addons.map((addon: any, addonIndex: number) => (
+                                <Badge key={addonIndex} variant="secondary" className="text-xs">
+                                  {addon.name} (+€{addon.price})
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Customer Information Section */}
               <div className="border rounded-lg p-4">
@@ -2121,6 +2180,25 @@ function BookingManagement() {
                     <label className="text-sm font-medium text-gray-600">Registration Method</label>
                     <p className="mt-1 capitalize">{selectedBooking.registrationMethod || 'Standard'}</p>
                   </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">User ID</label>
+                    <p className="mt-1">{selectedBooking.userId || 'Guest booking'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Invoice Number</label>
+                    <p className="mt-1">{selectedBooking.invoiceNumber || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address Information */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Installation Address</h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-600">Full Address</label>
+                    <p className="mt-1">{selectedBooking.address || 'No address provided'}</p>
+                  </div>
                 </div>
               </div>
 
@@ -2141,8 +2219,8 @@ function BookingManagement() {
                     <p className="mt-1">{selectedBooking.wallMountOption || 'None'}</p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Cable Concealment</label>
-                    <p className="mt-1">{selectedBooking.cableConcealment ? 'Yes' : 'No'}</p>
+                    <label className="text-sm font-medium text-gray-600">Needs Wall Mount</label>
+                    <p className="mt-1">{selectedBooking.needsWallMount ? 'Yes' : 'No'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Soundbar Installation</label>
@@ -2155,25 +2233,63 @@ function BookingManagement() {
                 </div>
               </div>
 
-              {/* Pricing Information Section */}
+              {/* Add-ons Information */}
+              {selectedBooking.addons && selectedBooking.addons.length > 0 && (
+                <div className="border rounded-lg p-4">
+                  <h3 className="font-semibold mb-3">Selected Add-ons</h3>
+                  <div className="space-y-2">
+                    {selectedBooking.addons.map((addon: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <span className="font-medium">{addon.name}</span>
+                        <span className="text-green-600">+€{addon.price}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Pricing Information */}
               <div className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-3">Pricing Breakdown</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Base Service Price</label>
-                    <p className="mt-1 text-lg font-semibold">€{selectedBooking.estimatedPrice || selectedBooking.totalPrice}</p>
+                <h3 className="font-semibold mb-3">Pricing Details</h3>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Base Service Price:</span>
+                      <span className="font-medium">€{selectedBooking.estimatedPrice || '0.00'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Add-ons Price:</span>
+                      <span className="font-medium">€{selectedBooking.estimatedAddonsPrice || '0.00'}</span>
+                    </div>
+                    <div className="flex justify-between border-t pt-2">
+                      <span className="font-medium text-gray-900">Total Customer Price:</span>
+                      <span className="font-bold text-lg text-green-600">
+                        €{typeof selectedBooking.totalPrice === 'number' ? selectedBooking.totalPrice.toFixed(2) : selectedBooking.totalPrice}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Platform Lead Fee</label>
-                    <p className="mt-1 text-lg font-semibold text-green-600">€{selectedBooking.appFee}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Wall Mount Fee</label>
-                    <p className="mt-1">€{selectedBooking.wallMountFee || '0'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Referral Discount</label>
-                    <p className="mt-1">{selectedBooking.referralDiscount ? `€${selectedBooking.referralDiscount}` : 'None'}</p>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Lead Fee (Platform):</span>
+                      <span className="font-medium text-blue-600">
+                        €{typeof selectedBooking.leadFee === 'number' ? selectedBooking.leadFee.toFixed(2) : selectedBooking.leadFee}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Installer Earnings:</span>
+                      <span className="font-medium text-green-600">
+                        €{(
+                          (typeof selectedBooking.totalPrice === 'number' ? selectedBooking.totalPrice : parseFloat(selectedBooking.totalPrice || '0')) -
+                          (typeof selectedBooking.leadFee === 'number' ? selectedBooking.leadFee : parseFloat(selectedBooking.leadFee || '0'))
+                        ).toFixed(2)}
+                      </span>
+                    </div>
+                    {selectedBooking.referralDiscount && parseFloat(selectedBooking.referralDiscount) > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Referral Discount:</span>
+                        <span className="font-medium text-orange-600">-€{selectedBooking.referralDiscount}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

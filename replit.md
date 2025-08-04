@@ -3,6 +3,12 @@
 ## Overview
 tradesbook.ie is a full-stack web application that connects customers with professional TV installers via an intelligent booking system. Key features include AI-powered room analysis for installation recommendations, dynamic pricing, QR code tracking for bookings, and multi-role dashboards for customers, installers, and administrators. The platform has transitioned to a lead generation marketplace model, where installers pay a fixed fee for customer leads, and customers pay installers directly. This shifts the platform's revenue source from commissions to lead connection fees, enhancing predictability and scalability.
 
+## Recent Updates (August 2025)
+✓ **Multi-TV Booking System**: Enhanced platform to support 1-5 TV installations per booking with individual pricing calculations
+✓ **Accurate Booking Management**: Fixed booking value and lead fee calculations in admin dashboard to show real amounts
+✓ **Comprehensive Booking Details**: Enhanced admin interface to display complete booking information including multi-TV details, pricing breakdowns, and all metadata
+✓ **Server-Side Pricing Integration**: Updated booking creation to properly calculate pricing for both single and multi-TV installations using current pricing tiers
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Store recommendations: Only mention Harvey Norman for TV purchases, do not recommend other retailers like Currys, DID Electrical, or Amazon.ie.

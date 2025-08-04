@@ -1171,6 +1171,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookingData.referralDiscount = '0.00';
       }
       
+      // Convert userId to integer if it's a string
+      if (bookingData.userId && typeof bookingData.userId === 'string') {
+        bookingData.userId = parseInt(bookingData.userId, 10);
+      }
+      
       // Handle image storage when user gives consent
       if (bookingData.photoStorageConsent && rawData.roomPhotoBase64 && rawData.compressedRoomPhoto) {
         console.log('Storing room photos - user has given consent');

@@ -33,7 +33,7 @@ Focus on current information including:
 - Current market pricing and value for money
 - Gaming performance (if applicable)
 - Sound quality
-- Current availability in Irish market (Harvey Norman, Currys, DID Electrical, etc.)
+- Current availability in Irish market (Harvey Norman)
 - Latest reviews and reliability data
 - 2024-2025 model updates and improvements
 

@@ -81,7 +81,7 @@ REQUIRED OUTPUT FORMAT - JSON:
   "installationTips": ["Tips"]
 }
 
-SEARCH REQUIREMENT: You must find real product listings from Harvey Norman Ireland, Currys Ireland, DID Electrical, or Amazon.ie with actual model numbers and current pricing. Do NOT make up generic models.`
+SEARCH REQUIREMENT: You must find real product listings from Harvey Norman Ireland with actual model numbers and current pricing. Do NOT make up generic models.`
           },
           {
             role: 'user',
@@ -168,28 +168,19 @@ HARVEY NORMAN IRELAND (harveynorman.ie):
 - Samsung QE55QN95CATXXU, QE65QN90CATXXU, QE55Q80CATXXU
 - LG OLED55C3PUA, OLED65G3PUA, OLED55B3PUA
 - Sony XR-55A80L, XR-65X90L, XR-55X85L
-
-CURRYS IRELAND (currys.ie):
-- Samsung QE55QN95C, QE65QN90C series
-- LG OLED55C3, OLED65G3 series  
 - TCL 55C835, 65C745 series
-
-DID ELECTRICAL (did.ie):
 - Hisense 55U7KQTUK, 65U8KQTUK
 - Samsung Frame TV series
 - Sony Bravia XR series
-
-AMAZON.IE:
 - Current 2024-2025 TV models with exact product codes
 
-REQUIRED OUTPUT: Return 3-5 TVs with EXACT MODEL NUMBERS found on these Irish retail sites, including:
+REQUIRED OUTPUT: Return 3-5 TVs with EXACT MODEL NUMBERS found on Harvey Norman Ireland website, including:
 - Full product code (e.g. "Samsung QE55QN95CATXXU")  
-- Current Irish retail price in euros
-- Which specific Irish store sells it
-- Current stock status from that retailer
+- Current Harvey Norman retail price in euros
+- Current stock status from Harvey Norman
 - Technical specifications from product page
 
-Do NOT return generic descriptions. ONLY return TVs you can verify exist on Irish retail websites with exact model codes and current pricing.`;
+Do NOT return generic descriptions. ONLY return TVs you can verify exist on Harvey Norman Ireland website with exact model codes and current pricing.`;
 }
 
 function getBudgetRange(budget: string): string {
@@ -241,7 +232,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
         pros: ["Excellent value for money", "Good picture quality", "Smart Google TV platform"],
         cons: ["Limited premium features", "Basic sound system"],
         expertRating: "4.1/5",
-        retailers: ["Harvey Norman", "Currys", "DID Electrical"]
+        retailers: ["Harvey Norman"]
       },
       {
         model: "Hisense 50A6K 50-inch 4K LED", 
@@ -252,7 +243,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
         pros: ["Budget-friendly", "Decent picture quality", "Good smart features"],
         cons: ["Basic HDR performance", "Limited app ecosystem"],
         expertRating: "3.8/5",
-        retailers: ["DID Electrical", "Amazon.ie"]
+        retailers: ["Harvey Norman"]
       }
     ];
   }
@@ -268,7 +259,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
         pros: ["Reliable Samsung quality", "Good smart platform", "Decent gaming features"],
         cons: ["Basic LED technology", "Limited local dimming"],
         expertRating: "4.0/5",
-        retailers: ["Harvey Norman", "Currys"]
+        retailers: ["Harvey Norman"]
       }
     ];
     
@@ -282,7 +273,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
         pros: ["120Hz gaming support", "Low input lag", "Good value QLED"],
         cons: ["Limited premium features", "Basic sound"],
         expertRating: "4.2/5",
-        retailers: ["Harvey Norman", "Currys"]
+        retailers: ["Harvey Norman"]
       });
     }
     
@@ -302,7 +293,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
         pros: ["Perfect blacks", "Excellent for movies", "Premium picture quality"],
         cons: ["Risk of burn-in", "Lower peak brightness than QLED"],
         expertRating: "4.7/5",
-        retailers: ["Harvey Norman", "Currys", "DID Electrical"]
+        retailers: ["Harvey Norman"]
       });
     }
     
@@ -315,7 +306,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
       pros: ["Bright QLED display", "Good gaming performance", "Reliable platform"],
       cons: ["Limited viewing angles", "Basic sound system"],
       expertRating: "4.3/5", 
-      retailers: ["Harvey Norman", "Currys"]
+      retailers: ["Harvey Norman"]
     });
     
     if (isGaming) {
@@ -328,7 +319,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
         pros: ["Excellent motion handling", "Great for PS5 gaming", "Sony picture processing"],
         cons: ["Premium pricing", "Basic smart platform"],
         expertRating: "4.4/5",
-        retailers: ["Harvey Norman", "DID Electrical"]
+        retailers: ["Harvey Norman"]
       });
     }
     
@@ -346,7 +337,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
       pros: ["Exceptional brightness", "Premium design", "Advanced gaming features"],
       cons: ["Premium pricing", "Complex calibration"],
       expertRating: "4.8/5",
-      retailers: ["Harvey Norman", "Currys"]
+      retailers: ["Harvey Norman"]
     },
     {
       model: "LG OLED65G3PUA 65-inch OLED",
@@ -357,7 +348,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
       pros: ["Gallery-style design", "Perfect picture quality", "Premium build"],
       cons: ["Very expensive", "Burn-in considerations"],
       expertRating: "4.9/5",
-      retailers: ["Harvey Norman", "Currys", "DID Electrical"]
+      retailers: ["Harvey Norman"]
     },
     {
       model: "Sony XR-65A95L 65-inch QD-OLED",
@@ -368,7 +359,7 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
       pros: ["Cutting-edge QD-OLED technology", "Exceptional color accuracy", "Premium Sony processing"],
       cons: ["Very high price", "Limited availability"],
       expertRating: "4.9/5",
-      retailers: ["Harvey Norman", "DID Electrical"]
+      retailers: ["Harvey Norman"]
     }
   ];
 }
@@ -400,7 +391,7 @@ function extractPros(text: string): string[] {
 }
 
 function extractCons(text: string): string[] {
-  return ["Consider professional installation", "Compare multiple retailers for best price"];
+  return ["Consider professional installation", "Check Harvey Norman for best price"];
 }
 
 function extractSection(text: string, keyword: string): string | null {

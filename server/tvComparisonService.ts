@@ -27,15 +27,16 @@ I need a detailed comparison with the following structure:
 4. A comprehensive verdict explaining which is better and why
 
 Focus on current information including:
-- Picture quality (HDR, contrast, brightness, color accuracy)
+- Picture quality (HDR, contrast, brightness, color accuracy) - use RTINGS measurements
 - Smart TV features and operating system
 - Build quality and design
 - Current market pricing and value for money
-- Gaming performance (if applicable)
+- Gaming performance (if applicable) - include RTINGS input lag and gaming scores
 - Sound quality
 - Current availability in Irish market (Harvey Norman)
-- Latest reviews and reliability data
+- Latest reviews and reliability data from RTINGS and other expert sources
 - 2024-2025 model updates and improvements
+- RTINGS overall scores and specific measurement data
 
 Please provide current pricing information and availability status. Respond with valid JSON in this exact format:
 {
@@ -66,7 +67,7 @@ Please provide current pricing information and availability status. Respond with
         messages: [
           {
             role: "system",
-            content: "You are an expert TV reviewer with access to current market data. Analyze real TV specifications, current pricing, and latest reviews from Irish retailers. Always respond with valid JSON matching the specified format. Use current 2024-2025 market information."
+            content: "You are an expert TV reviewer with access to current market data and RTINGS professional measurements. Analyze real TV specifications, RTINGS test results, current pricing, and latest reviews. Always respond with valid JSON matching the specified format. Use current 2024-2025 market information and include specific RTINGS scores where available."
           },
           {
             role: "user",

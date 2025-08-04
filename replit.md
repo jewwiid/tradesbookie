@@ -6,6 +6,7 @@ tradesbook.ie is a full-stack web application that connects customers with profe
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Store recommendations: Only mention Harvey Norman for TV purchases, do not recommend other retailers like Currys, DID Electrical, or Amazon.ie.
+Technical analysis sources: Use RTINGS.com for TV measurements, professional reviews, and technical performance data in AI recommendations.
 
 ## System Architecture
 The application uses a modern full-stack architecture.

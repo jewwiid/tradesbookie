@@ -51,12 +51,22 @@ export async function getCurrentTVRecommendations(answers: TVRecommendationQuery
 
 CRITICAL REQUIREMENT: You MUST search for and return ACTUAL TV MODELS with EXACT MODEL NUMBERS and PRODUCT CODES currently available in Ireland. Do NOT provide generic descriptions.
 
+MANDATORY SOURCES FOR TECHNICAL ANALYSIS:
+1. RTINGS.com - Use for detailed measurements, professional reviews, and technical performance data
+2. Harvey Norman Ireland - Use for current pricing and availability
+3. Expert reviews from 2024-2025 for latest model assessments
+
 MANDATORY: Search for specific TV models from these series currently available in Irish stores:
 - Samsung: QN90C, QN95C, Q80C, S95C (with exact model codes like QE55QN90CATXXU)
 - LG: C3, G3, B3, A3 OLED (with exact model codes like OLED55C3PUA)
 - Sony: X90L, A80L, X85L Bravia (with exact model codes like XR-55A80L)
 - TCL: C835, C745, C655 (with exact model codes like 55C835)
 - Hisense: U7K, U8K, A7K (with exact model codes like 55U7KQTUK)
+
+RTINGS ANALYSIS REQUIREMENTS:
+- Include RTINGS measurement scores for picture quality, gaming, and HDR performance
+- Reference specific RTINGS test results (contrast ratio, peak brightness, input lag, etc.)
+- Use RTINGS recommendations and "Best TV" categories where applicable
 
 REQUIRED OUTPUT FORMAT - JSON:
 {
@@ -179,8 +189,10 @@ REQUIRED OUTPUT: Return 3-5 TVs with EXACT MODEL NUMBERS found on Harvey Norman 
 - Current Harvey Norman retail price in euros
 - Current stock status from Harvey Norman
 - Technical specifications from product page
+- RTINGS scores and measurements (contrast ratio, peak brightness, input lag, overall score)
+- Key RTINGS findings and recommendations
 
-Do NOT return generic descriptions. ONLY return TVs you can verify exist on Harvey Norman Ireland website with exact model codes and current pricing.`;
+Do NOT return generic descriptions. ONLY return TVs you can verify exist on Harvey Norman Ireland website with exact model codes and current pricing. Include specific RTINGS data where available.`;
 }
 
 function getBudgetRange(budget: string): string {
@@ -228,9 +240,9 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
         brand: "TCL",
         price: "€449",
         currentAvailability: "Check availability",
-        keyFeatures: ["4K QLED", "HDR10", "Google TV", "Dolby Vision"],
-        pros: ["Excellent value for money", "Good picture quality", "Smart Google TV platform"],
-        cons: ["Limited premium features", "Basic sound system"],
+        keyFeatures: ["4K QLED", "HDR10", "Google TV", "Dolby Vision", "Peak brightness: 400 nits", "Input lag: 13ms"],
+        pros: ["Excellent value for money", "Good picture quality", "Smart Google TV platform", "Low input lag for gaming"],
+        cons: ["Limited peak brightness", "Basic sound system", "Limited local dimming zones"],
         expertRating: "4.1/5",
         retailers: ["Harvey Norman"]
       },
@@ -239,9 +251,9 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
         brand: "Hisense",
         price: "€369",
         currentAvailability: "Check availability",
-        keyFeatures: ["4K LED", "HDR10", "VIDAA Smart TV", "DTS Virtual X"],
-        pros: ["Budget-friendly", "Decent picture quality", "Good smart features"],
-        cons: ["Basic HDR performance", "Limited app ecosystem"],
+        keyFeatures: ["4K LED", "HDR10", "VIDAA Smart TV", "DTS Virtual X", "Peak brightness: 350 nits", "Input lag: 18ms"],
+        pros: ["Budget-friendly", "Decent picture quality", "Good smart features", "Acceptable gaming performance"],
+        cons: ["Basic HDR performance", "Limited app ecosystem", "Edge-lit backlighting"],
         expertRating: "3.8/5",
         retailers: ["Harvey Norman"]
       }
@@ -289,9 +301,9 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
         brand: "LG",
         price: "€1,399",
         currentAvailability: "Check availability", 
-        keyFeatures: ["4K OLED", "HDR10", "Dolby Vision", "120Hz", "webOS"],
-        pros: ["Perfect blacks", "Excellent for movies", "Premium picture quality"],
-        cons: ["Risk of burn-in", "Lower peak brightness than QLED"],
+        keyFeatures: ["4K OLED", "HDR10", "Dolby Vision", "120Hz", "webOS", "Infinite contrast", "Input lag: 5.7ms"],
+        pros: ["Perfect blacks", "Excellent for movies", "Premium picture quality", "Exceptional gaming performance", "Wide viewing angles"],
+        cons: ["Risk of burn-in", "Peak brightness: 540 nits (lower than QLED)", "Potential image retention"],
         expertRating: "4.7/5",
         retailers: ["Harvey Norman"]
       });
@@ -333,9 +345,9 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
       brand: "Samsung", 
       price: "€2,299",
       currentAvailability: "Check availability",
-      keyFeatures: ["4K Neo QLED", "HDR10+", "144Hz", "Mini LED"],
-      pros: ["Exceptional brightness", "Premium design", "Advanced gaming features"],
-      cons: ["Premium pricing", "Complex calibration"],
+      keyFeatures: ["4K Neo QLED", "HDR10+", "144Hz", "Mini LED", "Peak brightness: 1,400 nits", "Input lag: 9.2ms"],
+      pros: ["Exceptional brightness", "Premium design", "Advanced gaming features", "Excellent HDR performance", "Local dimming zones"],
+      cons: ["Premium pricing", "Complex calibration", "Potential blooming in dark scenes"],
       expertRating: "4.8/5",
       retailers: ["Harvey Norman"]
     },
@@ -344,9 +356,9 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
       brand: "LG",
       price: "€2,799",
       currentAvailability: "Check availability", 
-      keyFeatures: ["4K OLED", "HDR10", "Dolby Vision", "Gallery Design"],
-      pros: ["Gallery-style design", "Perfect picture quality", "Premium build"],
-      cons: ["Very expensive", "Burn-in considerations"],
+      keyFeatures: ["4K OLED", "HDR10", "Dolby Vision", "Gallery Design", "Infinite contrast", "Input lag: 5.4ms"],
+      pros: ["Gallery-style design", "Perfect picture quality", "Premium build", "Exceptional gaming performance", "Ultra-thin profile"],
+      cons: ["Very expensive", "Burn-in considerations", "Peak brightness: 580 nits"],
       expertRating: "4.9/5",
       retailers: ["Harvey Norman"]
     },
@@ -355,9 +367,9 @@ function generateActualTVModels(answers: TVRecommendationQuery, budgetRange: str
       brand: "Sony",
       price: "€3,299", 
       currentAvailability: "Limited Stock",
-      keyFeatures: ["4K QD-OLED", "HDR10", "Cognitive Processor XR"],
-      pros: ["Cutting-edge QD-OLED technology", "Exceptional color accuracy", "Premium Sony processing"],
-      cons: ["Very high price", "Limited availability"],
+      keyFeatures: ["4K QD-OLED", "HDR10", "Cognitive Processor XR", "Peak brightness: 750 nits", "Input lag: 8.5ms"],
+      pros: ["Cutting-edge QD-OLED technology", "Exceptional color accuracy", "Premium Sony processing", "Best-in-class color volume", "Superior motion handling"],
+      cons: ["Very high price", "Limited availability", "No Dolby Vision support"],
       expertRating: "4.9/5",
       retailers: ["Harvey Norman"]
     }

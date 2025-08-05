@@ -545,35 +545,33 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-2 mb-4">
-          <div className="flex space-x-2 sm:flex-1">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setShowDetails(true)}
-              className="flex-1 sm:flex-initial hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
-            >
-              <Eye className="w-4 h-4 mr-1" />
-              Details
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onDecline(request.id)}
-              className="flex-1 sm:flex-initial hover:bg-red-50 hover:text-red-600 hover:border-red-300"
-            >
-              <X className="w-4 h-4 mr-1" />
-              Pass
-            </Button>
-          </div>
+        <div className="flex gap-2 mb-4">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowDetails(true)}
+            className="flex-1 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+          >
+            <Eye className="w-4 h-4 mr-1" />
+            Details
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onDecline(request.id)}
+            className="flex-1 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+          >
+            <X className="w-4 h-4 mr-1" />
+            Pass
+          </Button>
           <Button
             size="sm"
             onClick={() => onAccept(request.id)}
-            className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
+            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
           >
             <Check className="w-4 h-4 mr-1" />
-            <span className="hidden sm:inline">Purchase Lead (€{request.leadFee})</span>
-            <span className="sm:hidden">Buy €{request.leadFee}</span>
+            <span className="hidden lg:inline">Purchase Lead (€{request.leadFee})</span>
+            <span className="lg:hidden">Buy (€{request.leadFee})</span>
           </Button>
         </div>
 

@@ -1437,9 +1437,9 @@ export default function InstallerDashboard() {
 
             {/* Main Content */}
             {viewMode === 'map' ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
                 {/* Map */}
-                <div className="lg:col-span-2 h-[600px] relative z-10">
+                <div className="lg:col-span-2 h-[600px] relative z-0">
                   <IrelandMap 
                     requests={availableRequests}
                     onRequestSelect={setSelectedRequest}
@@ -1449,7 +1449,7 @@ export default function InstallerDashboard() {
                 </div>
                 
                 {/* Selected Request Details */}
-                <div className="space-y-4 relative z-20">
+                <div className="space-y-4 relative z-10">
               {selectedRequest ? (
                 <RequestCard
                   request={selectedRequest}
@@ -1469,7 +1469,7 @@ export default function InstallerDashboard() {
           </div>
         ) : (
           /* List View */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 relative z-0">
             {availableRequests.map((request: ClientRequest) => (
               <RequestCard
                 key={request.id}

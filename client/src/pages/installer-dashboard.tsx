@@ -69,7 +69,7 @@ interface ClientRequest {
   leadFee: number;
   estimatedEarnings: number;
   profitMargin: number;
-  status: 'pending' | 'urgent' | 'accepted' | 'in_progress' | 'completed';
+  status: 'pending' | 'urgent' | 'accepted' | 'in_progress' | 'completed' | 'open' | 'confirmed';
   scheduledDate?: string;
   createdAt: string;
   qrCode: string;
@@ -78,6 +78,16 @@ interface ClientRequest {
   referralCode?: string;
   referralDiscount?: string;
   distance?: number;
+  // Additional fields for complete booking details
+  customerName?: string;
+  customerEmail?: string | null;
+  customerPhone?: string | null;
+  customerNotes?: string;
+  needsWallMount?: boolean;
+  totalPrice?: string;
+  customerTotal?: string;
+  preferredDate?: string;
+  preferredTime?: string;
 }
 
 // Interactive Map Component for Ireland
@@ -594,11 +604,11 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-600">Customer Name</label>
-                    <p className="mt-1">{request.customerName || 'Not provided'}</p>
+                    <p className="mt-1">{request.customerName || 'Customer details available after lead purchase'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Contact Phone</label>
-                    <p className="mt-1">{request.customerPhone || 'Will be provided after purchase'}</p>
+                    <p className="mt-1">{request.customerPhone || 'Customer details available after lead purchase'}</p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Installation Address</label>
@@ -681,8 +691,8 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                   <div>
                     <label className="text-sm font-medium text-gray-600">Preferred Date</label>
                     <p className="mt-1">
-                      {request.preferredDate ? 
-                        new Date(request.preferredDate).toLocaleDateString('en-IE', {
+                      {request.scheduledDate ? 
+                        new Date(request.scheduledDate).toLocaleDateString('en-IE', {
                           weekday: 'long',
                           year: 'numeric',
                           month: 'long',
@@ -693,12 +703,20 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Preferred Time</label>
-                    <p className="mt-1">{request.preferredTime || 'Flexible'}</p>
+                    <p className="mt-1">
+                      {request.scheduledDate ? 
+                        new Date(request.scheduledDate).toLocaleTimeString('en-IE', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          hour12: false
+                        }) : 'Flexible'
+                      }
+                    </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Request Created</label>
                     <p className="mt-1">
-                      {new Date(request.createdAt).toLocaleDateString('en-IE')} at {new Date(request.createdAt).toLocaleTimeString('en-IE')}
+                      {request.createdAt && new Date(request.createdAt).toLocaleDateString('en-IE')} at {request.createdAt && new Date(request.createdAt).toLocaleTimeString('en-IE')}
                     </p>
                   </div>
                   <div>
@@ -706,10 +724,13 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                     <p className="mt-1">
                       <Badge className={
                         request.status === 'urgent' ? 'bg-orange-500' : 
-                        request.status === 'emergency' ? 'bg-red-500' : 'bg-blue-500'
+                        request.status === 'confirmed' ? 'bg-green-500' : 
+                        request.status === 'open' ? 'bg-blue-500' : 'bg-gray-500'
                       }>
                         {request.status === 'urgent' ? 'Urgent' : 
-                         request.status === 'emergency' ? 'Emergency' : 'Standard'}
+                         request.status === 'confirmed' ? 'Confirmed' :
+                         request.status === 'open' ? 'Standard' : 
+                         request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                       </Badge>
                     </p>
                   </div>
@@ -717,10 +738,10 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
               </div>
 
               {/* Customer Notes */}
-              {request.customerNotes && (
+              {request.notes && (
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-3">Customer Notes</h3>
-                  <p className="text-sm bg-gray-50 p-3 rounded">{request.customerNotes}</p>
+                  <p className="text-sm bg-gray-50 p-3 rounded">{request.notes}</p>
                 </div>
               )}
 

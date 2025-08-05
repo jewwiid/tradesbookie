@@ -545,32 +545,35 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
           </div>
         )}
 
-        <div className="flex space-x-2 mb-4">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowDetails(true)}
-            className="hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
-          >
-            <Eye className="w-4 h-4 mr-1" />
-            Details
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onDecline(request.id)}
-            className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
-          >
-            <X className="w-4 h-4 mr-1" />
-            Pass
-          </Button>
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
+          <div className="flex space-x-2 sm:flex-1">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowDetails(true)}
+              className="flex-1 sm:flex-initial hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Details
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onDecline(request.id)}
+              className="flex-1 sm:flex-initial hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Pass
+            </Button>
+          </div>
           <Button
             size="sm"
             onClick={() => onAccept(request.id)}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
           >
             <Check className="w-4 h-4 mr-1" />
-            Purchase Lead (€{request.leadFee})
+            <span className="hidden sm:inline">Purchase Lead (€{request.leadFee})</span>
+            <span className="sm:hidden">Buy €{request.leadFee}</span>
           </Button>
         </div>
 
@@ -1445,7 +1448,7 @@ export default function InstallerDashboard() {
           </div>
         ) : (
           /* List View */
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
             {availableRequests.map((request: ClientRequest) => (
               <RequestCard
                 key={request.id}

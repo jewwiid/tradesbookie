@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, MapPin, Phone, Mail, Package, CreditCard, User } from 'lucide-react';
+import { CalendarDays, MapPin, Phone, Mail, Package, CreditCard, User, Plus, ArrowRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/Footer';
+import { Link } from 'wouter';
 
 interface BookingDetails {
   id: number;
@@ -101,13 +102,13 @@ export default function BookingTracker() {
             Find Your Booking
           </CardTitle>
           <CardDescription>
-            Enter your QR code (e.g., BK-abc123xyz9) or booking reference number
+            Enter your QR code (e.g., BK-abc123xyz9), Harvey Norman invoice (e.g., HN-GAL-009876), or booking reference number
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
             <Input
-              placeholder="BK-abc123xyz9 or booking reference"
+              placeholder="BK-abc123xyz9, HN-GAL-009876, or booking reference"
               value={trackingCode}
               onChange={(e) => setTrackingCode(e.target.value)}
               className="flex-1"
@@ -124,11 +125,71 @@ export default function BookingTracker() {
       {searchAttempted && (
         <>
           {error && (
-            <Alert className="mb-6">
-              <AlertDescription>
-                Booking not found. Please check your QR code or booking reference and try again.
-              </AlertDescription>
-            </Alert>
+            <div className="space-y-6">
+              <Alert className="mb-6">
+                <AlertDescription>
+                  Booking not found. Please check your QR code or booking reference and try again.
+                </AlertDescription>
+              </Alert>
+              
+              {/* No Booking Found - CTA Section */}
+              <Card className="border-2 border-blue-200 bg-blue-50">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-xl text-blue-900">No Booking Found</CardTitle>
+                  <CardDescription className="text-blue-700">
+                    Don't worry! You can easily create a new booking or try different tracking methods.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Create New Booking */}
+                    <div className="p-4 bg-white rounded-lg border">
+                      <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Plus className="w-5 h-5 text-green-600" />
+                        Create New Booking
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Book your TV installation in minutes with our easy booking system.
+                      </p>
+                      <Link href="/book-installation">
+                        <Button className="w-full gradient-bg">
+                          Book Now <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </Link>
+                    </div>
+                    
+                    {/* Alternative Tracking Methods */}
+                    <div className="p-4 bg-white rounded-lg border">
+                      <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Package className="w-5 h-5 text-blue-600" />
+                        Alternative Tracking
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-3">
+                        Try these other ways to find your booking:
+                      </p>
+                      <ul className="text-sm text-gray-600 space-y-1 mb-3">
+                        <li>• Harvey Norman invoice number</li>
+                        <li>• Email confirmation code</li>
+                        <li>• Phone number used for booking</li>
+                      </ul>
+                      <Button variant="outline" className="w-full" onClick={() => setTrackingCode('')}>
+                        Try Different Code
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Contact Support */}
+                  <div className="mt-6 p-4 bg-gray-100 rounded-lg text-center">
+                    <p className="text-sm text-gray-600 mb-2">
+                      Still can't find your booking?
+                    </p>
+                    <p className="text-sm">
+                      Contact us at <a href="mailto:support@tradesbook.ie" className="text-blue-600 hover:underline font-medium">support@tradesbook.ie</a> or call <a href="tel:+35312345678" className="text-blue-600 hover:underline font-medium">01 234 5678</a>
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {booking && (
@@ -289,8 +350,8 @@ export default function BookingTracker() {
           <div>
             <h4 className="font-medium mb-2">How to find your tracking code:</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-600">
+              <li><strong>Harvey Norman Invoice:</strong> Use your receipt number (e.g., HN-GAL-009876, HN-DUB-123456, HN-BLA-555666)</li>
               <li><strong>QR Code:</strong> Check your booking confirmation email for the QR code (e.g., BK-abc123xyz9)</li>
-              <li><strong>Invoice Users:</strong> Use your Harvey Norman invoice number (e.g., HN-CKM-2576597)</li>
               <li><strong>Guest Users:</strong> Check your email for the booking reference sent after confirmation</li>
             </ul>
           </div>

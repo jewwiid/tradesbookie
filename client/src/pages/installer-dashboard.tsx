@@ -1439,7 +1439,7 @@ export default function InstallerDashboard() {
             {viewMode === 'map' ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative">
                 {/* Map */}
-                <div className="lg:col-span-2 h-[600px] relative z-0">
+                <div className="lg:col-span-2 h-[400px] sm:h-[500px] lg:h-[600px] relative z-0 mb-6 lg:mb-0">
                   <IrelandMap 
                     requests={availableRequests}
                     onRequestSelect={setSelectedRequest}
@@ -1458,7 +1458,7 @@ export default function InstallerDashboard() {
                   distance={selectedRequest.distance}
                 />
               ) : (
-                <Card className="h-full flex items-center justify-center">
+                <Card className="h-full flex items-center justify-center min-h-[200px]">
                   <CardContent className="text-center p-6">
                     <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-500">Select a request on the map to view details</p>

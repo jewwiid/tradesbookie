@@ -8,6 +8,7 @@ tradesbook.ie is a full-stack web application that connects customers with profe
 ✓ **Accurate Booking Management**: Fixed booking value and lead fee calculations in admin dashboard to show real amounts
 ✓ **Comprehensive Booking Details**: Enhanced admin interface to display complete booking information including multi-TV details, pricing breakdowns, and all metadata
 ✓ **Server-Side Pricing Integration**: Updated booking creation to properly calculate pricing for both single and multi-TV installations using current pricing tiers
+✓ **Unified Authentication Experience**: Updated TV installation booking page to include comprehensive authentication options (Harvey Norman invoice, guest booking, OAuth) matching homepage's "Book Faster Than Ever" section
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

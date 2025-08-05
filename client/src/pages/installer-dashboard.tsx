@@ -41,7 +41,9 @@ import {
   Shield,
   Edit,
   Tv,
-  Calendar
+  Calendar,
+  ArrowLeft,
+  Wrench
 } from "lucide-react";
 
 interface InstallerStats {
@@ -1004,12 +1006,9 @@ export default function InstallerDashboard() {
       });
       queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'available-leads'] });
       
-      // Update local stats to reflect accepted job
-      setStats(prev => ({
-        ...prev,
-        monthlyJobs: prev.monthlyJobs + 1,
-        earnings: prev.earnings + parseFloat(selectedRequest?.estimatedEarnings.toString() || "0")
-      }));
+      // Update local stats to reflect accepted job - refresh queries to get updated data
+      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile?.id}/past-leads`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile?.id}/reviews`] });
       
       // Remove the accepted request from selected state
       if (selectedRequest?.id === requestId) {

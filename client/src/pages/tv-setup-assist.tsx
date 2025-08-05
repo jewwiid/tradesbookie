@@ -14,7 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Tv, Wifi, Settings, CheckCircle, Star, Clock, Shield, Users, BookOpen, ArrowRight } from "lucide-react";
+import { CalendarIcon, Tv, Wifi, Settings, CheckCircle, Star, Clock, Shield, Users, BookOpen, ArrowRight, Receipt, Zap, User } from "lucide-react";
 import { Link } from "wouter";
 import tvSetupImage from "@assets/IMG_1807_1753964075870.jpeg";
 import { format } from "date-fns";
@@ -23,6 +23,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { tvSetupBookingFormSchema, type TvSetupBookingForm } from "@shared/schema";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
+import SimplifiedAuthDialog from "@/components/SimplifiedAuthDialog";
+import { useAuth } from '@/hooks/useAuth';
 
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
   throw new Error('Missing required Stripe key: VITE_STRIPE_PUBLIC_KEY');

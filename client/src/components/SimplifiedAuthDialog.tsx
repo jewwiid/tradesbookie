@@ -275,7 +275,7 @@ export default function SimplifiedAuthDialog({
                   <CardTitle className="text-lg">Harvey Norman Customer</CardTitle>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Already purchased a TV? Use your receipt to sign in instantly
+                  Already purchased a TV? Use your receipt to book installation instantly
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -288,9 +288,15 @@ export default function SimplifiedAuthDialog({
                     onChange={(e) => setInvoiceNumber(e.target.value)}
                     className="mt-1"
                   />
-                  <div className="mt-2 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
-                    <p className="font-medium mb-2">Format: HN-[STORE]-[NUMBER]</p>
-                    <p className="mb-2">Store codes:</p>
+                  <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs text-gray-600">
+                    <p className="font-medium mb-2 text-blue-800">Format: HN-[STORE]-[NUMBER]</p>
+                    <p className="mb-2 text-green-700 font-medium">Try these test invoices:</p>
+                    <div className="grid grid-cols-1 gap-1 text-xs mb-3">
+                      <span className="font-mono bg-white px-2 py-1 rounded border">HN-GAL-009876</span>
+                      <span className="font-mono bg-white px-2 py-1 rounded border">HN-DUB-123456</span>
+                      <span className="font-mono bg-white px-2 py-1 rounded border">HN-BLA-555666</span>
+                    </div>
+                    <p className="mb-2">All store codes:</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                       <span>BLA (Blanchardstown)</span>
                       <span>CKM (Carrickmines)</span>
@@ -317,7 +323,7 @@ export default function SimplifiedAuthDialog({
                   disabled={invoiceLoginMutation.isPending}
                   className="w-full gradient-bg"
                 >
-                  {invoiceLoginMutation.isPending ? 'Signing In...' : 'Sign In with Receipt'}
+                  {invoiceLoginMutation.isPending ? 'Booking...' : 'Book with Invoice Number'}
                 </Button>
               </CardContent>
             </Card>

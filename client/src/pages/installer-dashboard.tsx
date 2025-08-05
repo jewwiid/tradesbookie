@@ -788,7 +788,7 @@ export default function InstallerDashboard() {
   });
   
   // Get current installer profile
-  const { data: installerProfile, isLoading: profileLoading } = useQuery({
+  const { data: installerProfile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ["/api/installers/profile"],
     retry: false
   });
@@ -1107,6 +1107,48 @@ export default function InstallerDashboard() {
   }, [installerProfile, showProfileDialog]);
 
   // Show loading screen while checking approval status
+  // Handle authentication errors
+  if (profileError && (profileError as any)?.status === 401) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
+        <Card className="w-full max-w-md mx-4">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2">
+              <Wrench className="h-6 w-6 text-blue-600" />
+              Installer Login Required
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-gray-600 text-center">
+              You need to be logged in as an installer to access this dashboard.
+            </p>
+            <div className="space-y-2">
+              <Link href="/installer-login">
+                <Button className="w-full" size="lg">
+                  <User className="h-4 w-4 mr-2" />
+                  Sign in as Installer
+                </Button>
+              </Link>
+              <Link href="/installer-registration">
+                <Button variant="outline" className="w-full" size="lg">
+                  Register as New Installer
+                </Button>
+              </Link>
+            </div>
+            <div className="pt-4 border-t">
+              <Link href="/">
+                <Button variant="ghost" className="w-full">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Home
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (profileLoading || (installerProfile && installerProfile.approvalStatus !== "approved")) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">

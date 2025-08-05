@@ -15,6 +15,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
+import Footer from "@/components/Footer";
 import InstallerWalletDashboard from "@/components/installer/InstallerWalletDashboard";
 import PastLeadsManagement from "@/components/installer/PastLeadsManagement";
 import InstallerReviews from "@/components/installer/InstallerReviews";
@@ -1259,7 +1260,7 @@ export default function InstallerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 relative">
       {/* Navigation */}
       <Navigation isInstallerContext={true} installerProfile={installerProfile} />
       
@@ -1417,7 +1418,7 @@ export default function InstallerDashboard() {
             {viewMode === 'map' ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Map */}
-                <div className="lg:col-span-2 h-[600px] relative" style={{ zIndex: 1 }}>
+                <div className="lg:col-span-2 h-[600px] relative z-10">
                   <IrelandMap 
                     requests={availableRequests}
                     onRequestSelect={setSelectedRequest}
@@ -1427,7 +1428,7 @@ export default function InstallerDashboard() {
                 </div>
                 
                 {/* Selected Request Details */}
-                <div className="space-y-4">
+                <div className="space-y-4 relative z-20">
               {selectedRequest ? (
                 <RequestCard
                   request={selectedRequest}
@@ -1447,7 +1448,7 @@ export default function InstallerDashboard() {
           </div>
         ) : (
           /* List View */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 relative z-10">
             {availableRequests.map((request: ClientRequest) => (
               <RequestCard
                 key={request.id}
@@ -1859,7 +1860,7 @@ export default function InstallerDashboard() {
 
       {/* Profile Management Dialog */}
       <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="profile-dialog-description">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto z-50" aria-describedby="profile-dialog-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings className="w-5 h-5 text-primary" />
@@ -2092,6 +2093,9 @@ export default function InstallerDashboard() {
           setSelectedRequest(null);
         }}
       />
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

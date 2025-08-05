@@ -4,9 +4,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tv, User, Clock, Search, QrCode } from "lucide-react";
+import { Tv, User, Clock, Search, QrCode, Receipt, Zap, CheckCircle } from "lucide-react";
 import { useLocation } from "wouter";
 import Navigation from "@/components/navigation";
+import SimplifiedAuthDialog from "@/components/SimplifiedAuthDialog";
 
 interface ProtectedBookingProps {
   children: React.ReactNode;
@@ -19,6 +20,8 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
   const [canProceed, setCanProceed] = useState(false);
   const [, setLocation] = useLocation();
   const [trackingCode, setTrackingCode] = useState("");
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authDialogTab, setAuthDialogTab] = useState<'invoice' | 'guest' | 'email' | 'oauth'>('invoice');
 
   useEffect(() => {
     // Check daily usage from localStorage
@@ -54,6 +57,15 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
     setCanProceed(true);
   };
 
+  const handleAuthSuccess = (user: any) => {
+    toast({
+      title: "Authentication successful!",
+      description: "You can now proceed with your booking.",
+    });
+    setCanProceed(true);
+    setAuthDialogOpen(false);
+  };
+
   const handleTrackBooking = () => {
     if (!trackingCode.trim()) {
       toast({
@@ -85,179 +97,141 @@ export function ProtectedBooking({ children }: ProtectedBookingProps) {
     return <>{children}</>;
   }
 
-  // If not authenticated, show guest booking option with limits
+  // If not authenticated, show booking faster than ever authentication options
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-blue-50">
       <Navigation />
       <div className="py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Book Your TV Installation
-          </h1>
-          <p className="text-xl text-gray-600">
-            Try our AI room preview for free or sign in for unlimited access
-          </p>
-        </div>
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Book Your TV Installation
+            </h1>
+            <p className="text-xl text-gray-600">
+              Choose your preferred way to sign in and start booking
+            </p>
+          </div>
 
-        {/* Top Row - Full Width Tracking */}
-        <div className="mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-center">
-                <Search className="w-5 h-5 mr-2 text-blue-600" />
-                Track Installation
-              </CardTitle>
-              <CardDescription className="text-center">
-                Check the status of your existing booking with QR code or reference
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Enter QR code or booking reference"
-                    value={trackingCode}
-                    onChange={(e) => setTrackingCode(e.target.value)}
-                    className="text-center"
-                  />
+          {/* Authentication Options Grid */}
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12">
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+              <CardContent className="p-8 text-center flex flex-col h-full">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Receipt className="h-8 w-8 text-white" />
                 </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Harvey Norman Invoice</h3>
+                <p className="text-gray-600 mb-6 flex-grow">
+                  Enter your Harvey Norman receipt number to book instantly. No account needed.
+                </p>
                 <Button 
-                  onClick={handleTrackBooking}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+                  onClick={() => {
+                    setAuthDialogTab('invoice');
+                    setAuthDialogOpen(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 mt-auto"
                 >
-                  <QrCode className="w-4 h-4 mr-2" />
-                  Track My Installation
+                  Use Invoice Number
                 </Button>
-              </div>
-              
-              <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    Real-time installation status
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    Installer contact information
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    Booking details & schedule
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                    No account required
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
 
-        {/* Bottom Row - 2x2 Grid */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Free Trial Option */}
-          <Card className="relative">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Tv className="w-5 h-5 mr-2 text-indigo-600" />
-                Free AI Preview
-              </CardTitle>
-              <CardDescription>
-                Try our AI room visualization with 3 daily previews
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                <span className="text-sm text-gray-600">Daily AI previews:</span>
-                <span className="font-medium text-gray-900">{usageCount}/3 used</span>
-              </div>
-              
-              {usageCount < 3 ? (
-                <div>
-                  <Button 
-                    onClick={handleGuestBooking}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
-                  >
-                    Start Free Preview ({3 - usageCount} left today)
-                  </Button>
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    Visual AI generation only - full booking requires sign in
-                  </p>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+              <CardContent className="p-8 text-center flex flex-col h-full">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Zap className="h-8 w-8 text-white" />
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    You've used all 3 free AI previews today.
-                  </p>
-                  <p className="text-sm text-gray-500 mb-6">
-                    Resets tomorrow or sign in for unlimited AI previews.
-                  </p>
-                  <a
-                    href="/api/login"
-                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Sign In
-                  </a>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Sign In Option */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <User className="w-5 h-5 mr-2 text-green-600" />
-                Full Access Account
-              </CardTitle>
-              <CardDescription>
-                Create an account for unlimited AI previews and complete booking features
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                  Unlimited AI room visualizations
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                  Complete booking and payment process
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                  Booking history & QR tracking
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                  Priority customer support
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                  Exclusive discounts & referral rewards
-                </li>
-              </ul>
-              
-              <div className="pt-4">
-                <a
-                  href="/api/login"
-                  className="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Quick Guest Booking</h3>
+                <p className="text-gray-600 mb-6 flex-grow">
+                  Skip registration. Just provide your email for booking updates.
+                </p>
+                <Button 
+                  onClick={() => {
+                    setAuthDialogTab('guest');
+                    setAuthDialogOpen(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600 mt-auto"
                 >
-                  <User className="w-4 h-4 mr-2" />
-                  Create Account / Sign In
-                </a>
-              </div>
-            </CardContent>
-          </Card>
+                  Book as Guest
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+              <CardContent className="p-8 text-center flex flex-col h-full">
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <User className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Full Account</h3>
+                <p className="text-gray-600 mb-6 flex-grow">
+                  Create an account for booking history, dashboard access, and more.
+                </p>
+                <Button 
+                  onClick={() => {
+                    setAuthDialogTab('oauth');
+                    setAuthDialogOpen(true);
+                  }}
+                  className="w-full bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 mt-auto"
+                >
+                  Create Account
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm rounded-full border border-gray-200">
+              <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+              <span className="text-sm font-medium text-gray-700">
+                All options include email updates and booking tracking
+              </span>
+            </div>
+          </div>
+
+          {/* Tracking Section */}
+          <div className="max-w-2xl mx-auto">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-center">
+                  <Search className="w-5 h-5 mr-2 text-blue-600" />
+                  Track Existing Installation
+                </CardTitle>
+                <CardDescription className="text-center">
+                  Check the status of your existing booking with QR code or reference
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                  <div className="flex-1">
+                    <Input
+                      placeholder="Enter QR code or booking reference"
+                      value={trackingCode}
+                      onChange={(e) => setTrackingCode(e.target.value)}
+                      className="text-center"
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleTrackBooking}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+                  >
+                    <QrCode className="w-4 h-4 mr-2" />
+                    Track Installation
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
+
+      {/* Simplified Authentication Dialog */}
+      <SimplifiedAuthDialog
+        isOpen={authDialogOpen}
+        onClose={() => setAuthDialogOpen(false)}
+        onSuccess={handleAuthSuccess}
+        title="Sign In to Continue"
+        description="Choose your preferred way to sign in and complete your TV installation booking"
+        defaultTab={authDialogTab}
+      />
     </div>
   );
 }

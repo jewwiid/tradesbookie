@@ -7926,13 +7926,36 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         }
       }
       
-      // If not found, try Harvey Norman invoice format
-      if (!booking && code.startsWith('HN-')) {
-        // Find user by Harvey Norman invoice
+      // If not found, try Harvey Norman invoice format (both HN-GAL-009876 and HNGAL009876)
+      if (!booking && code.toUpperCase().startsWith('HN')) {
+        // Normalize the code to both formats for comparison
+        const normalizeInvoice = (invoice) => {
+          if (!invoice) return null;
+          // Remove hyphens for comparison
+          return invoice.replace(/-/g, '').toUpperCase();
+        };
+        
+        const normalizedSearchCode = normalizeInvoice(code);
+        
+        // Find user by Harvey Norman invoice (supporting both formats)
         const users = await storage.getAllUsers();
-        const user = users.find(u => u.harveyNormanInvoiceNumber === code);
+        const user = users.find(u => {
+          if (!u.harveyNormanInvoiceNumber) return false;
+          const normalizedUserInvoice = normalizeInvoice(u.harveyNormanInvoiceNumber);
+          return normalizedUserInvoice === normalizedSearchCode;
+        });
+        
         if (user) {
           booking = bookings.find(b => b.userId === user.id);
+        }
+        
+        // Also try to find booking directly by invoice number
+        if (!booking) {
+          booking = bookings.find(b => {
+            if (!b.invoiceNumber) return false;
+            const normalizedBookingInvoice = normalizeInvoice(b.invoiceNumber);
+            return normalizedBookingInvoice === normalizedSearchCode;
+          });
         }
       }
       

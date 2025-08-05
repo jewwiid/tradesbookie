@@ -10,6 +10,7 @@ tradesbook.ie is a full-stack web application that connects customers with profe
 ✓ **Server-Side Pricing Integration**: Updated booking creation to properly calculate pricing for both single and multi-TV installations using current pricing tiers
 ✓ **Unified Authentication Experience**: Updated TV installation booking page to include comprehensive authentication options (Harvey Norman invoice, guest booking, OAuth) matching homepage's "Book Faster Than Ever" section
 ✓ **Enhanced Booking Tracker**: Upgraded tracking system to support multiple Harvey Norman invoice formats (both HN-GAL-009876 and HNGAL009876), QR codes, and booking references with comprehensive error handling
+✓ **Installer Dashboard Authentication Fix**: Resolved authentication flow issues by properly separating OAuth and installer session authentication, ensuring all installers can access dashboard regardless of admin status with clear error handling and navigation
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

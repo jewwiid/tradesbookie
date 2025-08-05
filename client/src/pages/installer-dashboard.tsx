@@ -603,7 +603,7 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-600">Distance from You</label>
-                    <p className="mt-1">{distance ? `${distance}km away` : 'Calculating...'}</p>
+                    <p className="mt-1">{(distance || request.distance) ? `${distance || request.distance}km away` : 'Calculating...'}</p>
                   </div>
                 </div>
               </div>

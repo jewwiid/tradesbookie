@@ -646,7 +646,7 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Customer Total:</span>
-                      <span className="font-medium">€{request.customerTotal || request.totalPrice}</span>
+                      <span className="font-medium">€{request.estimatedTotal || request.customerTotal || request.totalPrice}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Lead Fee (You Pay):</span>

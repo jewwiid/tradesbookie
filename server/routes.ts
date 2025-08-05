@@ -8488,6 +8488,29 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Alternative geocoding endpoint (for frontend compatibility)
+  app.post("/api/geocode", async (req, res) => {
+    try {
+      const { address } = req.body;
+      
+      if (!address) {
+        return res.status(400).json({ error: "Address is required" });
+      }
+
+      const { geocodeAddress } = await import('./services/geocoding');
+      const result = await geocodeAddress(address);
+      
+      if (!result) {
+        return res.status(404).json({ error: "Address not found" });
+      }
+
+      res.json(result);
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      res.status(500).json({ error: "Failed to geocode address" });
+    }
+  });
+
   // Schedule negotiation endpoints
   app.post("/api/schedule-negotiations", async (req, res) => {
     try {

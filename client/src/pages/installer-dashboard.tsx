@@ -43,7 +43,10 @@ import {
   Tv,
   Calendar,
   ArrowLeft,
-  Wrench
+  Wrench,
+  Eye,
+  X,
+  Check
 } from "lucide-react";
 
 interface InstallerStats {

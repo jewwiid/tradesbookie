@@ -545,33 +545,34 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
           </div>
         )}
 
-        <div className="flex gap-2 mb-4">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowDetails(true)}
-            className="flex-1 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
-          >
-            <Eye className="w-4 h-4 mr-1" />
-            Details
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onDecline(request.id)}
-            className="flex-1 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
-          >
-            <X className="w-4 h-4 mr-1" />
-            Pass
-          </Button>
+        <div className="space-y-2 mb-4">
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowDetails(true)}
+              className="flex-1 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Details
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onDecline(request.id)}
+              className="flex-1 hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Pass
+            </Button>
+          </div>
           <Button
             size="sm"
             onClick={() => onAccept(request.id)}
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
           >
             <Check className="w-4 h-4 mr-1" />
-            <span className="hidden lg:inline">Purchase Lead (€{request.leadFee})</span>
-            <span className="lg:hidden">Buy (€{request.leadFee})</span>
+            Purchase Lead (€{request.leadFee})
           </Button>
         </div>
 

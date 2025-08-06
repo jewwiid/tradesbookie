@@ -815,7 +815,13 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                   <div>
                     <label className="text-sm font-medium text-gray-600">Preferred Date</label>
                     <p className="mt-1">
-                      {request.scheduledDate ? 
+                      {request.preferredDate ? 
+                        new Date(request.preferredDate).toLocaleDateString('en-IE', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        }) : request.scheduledDate ? 
                         new Date(request.scheduledDate).toLocaleDateString('en-IE', {
                           weekday: 'long',
                           year: 'numeric',

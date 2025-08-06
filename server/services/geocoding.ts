@@ -66,18 +66,14 @@ const IRISH_CITIES_TOWNS: Record<string, GeocodeResult> = {
 
 export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
   try {
-    // First try to find exact city/town match for higher accuracy
-    const cityMatch = findCityMatch(address);
-    if (cityMatch) {
-      return cityMatch;
-    }
-
-    // Use OpenStreetMap Nominatim API (free alternative to Google Maps)
+    // Try OpenStreetMap Nominatim API first for better accuracy
     const searchAddress = address.includes('Ireland') ? address : `${address}, Ireland`;
     const encodedAddress = encodeURIComponent(searchAddress);
     
+    console.log(`Geocoding address via Nominatim API: ${address}`);
+    
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&countrycodes=ie&limit=1&addressdetails=1`,
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&countrycodes=ie&limit=3&addressdetails=1`,
       {
         headers: {
           'User-Agent': 'tradesbook.ie/1.0'
@@ -85,37 +81,48 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
       }
     );
 
-    if (!response.ok) {
+    if (response.ok) {
+      const data = await response.json();
+      
+      if (data.length > 0) {
+        // Pick the most specific result (usually the first one)
+        const result = data[0];
+        const addressDetails = result.address || {};
+        
+        // Extract county and city from address details
+        const county = addressDetails.county || addressDetails.state || 
+                      extractCountyFromAddress(result.display_name);
+        const city = addressDetails.city || addressDetails.town || 
+                    addressDetails.village || addressDetails.hamlet;
+
+        console.log(`Successfully geocoded via API: ${address} -> ${result.lat}, ${result.lon}`);
+
+        return {
+          lat: parseFloat(result.lat),
+          lng: parseFloat(result.lon),
+          formattedAddress: result.display_name,
+          county: county || 'Unknown',
+          city: city || undefined
+        };
+      }
+    } else {
       console.error('Nominatim API error:', response.status, response.statusText);
-      return getFallbackLocation(address);
     }
 
-    const data = await response.json();
-    
-    if (data.length === 0) {
-      console.log(`No geocoding results for address: ${address}`);
-      return getFallbackLocation(address);
+    // If API fails or returns no results, try city/town matching as fallback
+    const cityMatch = findCityMatch(address);
+    if (cityMatch) {
+      console.log(`API failed, using city match for address: ${address} -> ${cityMatch.formattedAddress}`);
+      return cityMatch;
     }
 
-    const result = data[0];
-    const addressDetails = result.address || {};
-    
-    // Extract county and city from address details
-    const county = addressDetails.county || addressDetails.state || 
-                  extractCountyFromAddress(result.display_name);
-    const city = addressDetails.city || addressDetails.town || 
-                addressDetails.village || addressDetails.hamlet;
+    // Final fallback with random offset
+    console.log(`No geocoding results for address: ${address} - using fallback with offset`);
+    return getFallbackLocationWithRandomOffset(address);
 
-    return {
-      lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
-      formattedAddress: result.display_name,
-      county: county || 'Unknown',
-      city: city || undefined
-    };
   } catch (error) {
     console.error('Geocoding error:', error);
-    return getFallbackLocation(address);
+    return getFallbackLocationWithRandomOffset(address);
   }
 }
 
@@ -217,4 +224,42 @@ export function getFallbackLocation(address: string): GeocodeResult | null {
   }
   
   return null;
+}
+
+// Detect if an address is likely a test/fake address
+function isTestAddress(address: string): boolean {
+  const testIndicators = [
+    'test street', 'test road', 'test avenue',
+    'dummy', 'fake', 'example',
+    '123 shop street', '456 o\'connell', '789 test'
+  ];
+  
+  const addressLower = address.toLowerCase();
+  return testIndicators.some(indicator => addressLower.includes(indicator));
+}
+
+// Enhanced fallback that adds small random offsets to avoid overlapping markers
+export function getFallbackLocationWithRandomOffset(address: string): GeocodeResult | null {
+  const baseLocation = getFallbackLocation(address);
+  
+  if (!baseLocation) {
+    return null;
+  }
+  
+  // For test addresses, add more variety to the offset
+  const isTest = isTestAddress(address);
+  const offsetMultiplier = isTest ? 2.5 : 1.0; // Larger spread for test addresses
+  
+  // Add small random offset (up to ~500m radius for real, ~1.2km for test addresses)
+  const latOffset = (Math.random() - 0.5) * 0.008 * offsetMultiplier;
+  const lngOffset = (Math.random() - 0.5) * 0.012 * offsetMultiplier;
+  
+  console.log(`Using fallback with offset for ${isTest ? 'test' : 'real'} address: ${address} -> ${baseLocation.formattedAddress} + offset`);
+  
+  return {
+    ...baseLocation,
+    lat: baseLocation.lat + latOffset,
+    lng: baseLocation.lng + lngOffset,
+    formattedAddress: `${address} (estimated location)`,
+  };
 }

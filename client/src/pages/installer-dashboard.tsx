@@ -493,8 +493,8 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           )}
         </div>
         
-        {/* Map Instructions */}
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+        {/* Map Instructions - Hidden on mobile to prevent overlap */}
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 hidden lg:block">
           <div className="flex items-start gap-3">
             <div className="p-1 bg-blue-100 rounded-lg">
               <Info className="w-4 h-4 text-blue-600" />
@@ -1603,6 +1603,17 @@ export default function InstallerDashboard() {
 
                     {/* Mobile Layout */}
                     <div className="lg:hidden space-y-6">
+                      {/* Mobile Map Instructions - Only when no request selected */}
+                      {!selectedRequest && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Info className="w-4 h-4 text-blue-600" />
+                            <span className="font-medium text-blue-900 text-sm">Tap any marker to view lead details</span>
+                          </div>
+                          <p className="text-blue-700 text-xs">Use control buttons to fit all leads or reset view</p>
+                        </div>
+                      )}
+                      
                       {/* Map Section */}
                       <div className="h-[400px] sm:h-[500px] relative z-0">
                         <IrelandMap 

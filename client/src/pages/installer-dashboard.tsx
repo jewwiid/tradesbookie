@@ -421,8 +421,8 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
         </div>
       </div>
 
-      {/* Lead List Below Map */}
-      <div className="max-h-64 overflow-y-auto">
+      {/* Lead List Below Map - Hidden on mobile to prevent overlap */}
+      <div className="max-h-64 overflow-y-auto hidden lg:block">
         {requests.length > 0 ? (
           <div className="divide-y divide-gray-200">
             {requests.map((request) => (

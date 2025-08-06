@@ -1448,108 +1448,112 @@ export default function InstallerDashboard() {
 
             {/* Main Content */}
             {viewMode === 'map' ? (
-              <div className="space-y-6">
-                {/* Desktop Layout */}
-                <div className="hidden lg:grid lg:grid-cols-3 gap-6">
-                  {/* Map */}
-                  <div className="lg:col-span-2 h-[600px] relative z-0">
-                    <IrelandMap 
-                      requests={availableRequests}
-                      onRequestSelect={handleRequestToggle}
-                      selectedRequest={selectedRequest || undefined}
-                      className="h-full"
-                    />
-                  </div>
-                  
-                  {/* Selected Request Details - Desktop */}
-                  <div className="space-y-4">
-                    {selectedRequest ? (
-                      <RequestCard
-                        request={selectedRequest}
-                        onAccept={handleAcceptRequest}
-                        onDecline={handleDeclineRequest}
-                        distance={selectedRequest.distance}
-                      />
-                    ) : (
-                      <Card className="h-full flex items-center justify-center min-h-[200px]">
-                        <CardContent className="text-center p-6">
-                          <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-500">Select a request on the map to view details</p>
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Map */}
+                <div className="lg:col-span-3 h-[400px] sm:h-[500px] lg:h-[600px] relative z-0">
+                  <IrelandMap 
+                    requests={availableRequests}
+                    onRequestSelect={handleRequestToggle}
+                    selectedRequest={selectedRequest || undefined}
+                    className="h-full"
+                  />
+                </div>
+                
+                {/* Lead List Sidebar - Desktop */}
+                <div className="hidden lg:block space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
+                  <div className="space-y-3 max-h-[550px] overflow-y-auto">
+                    {availableRequests.map((request: ClientRequest) => (
+                      <Card 
+                        key={request.id}
+                        className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                          selectedRequest?.id === request.id ? 'ring-2 ring-primary bg-primary/5' : ''
+                        }`}
+                        onClick={() => handleRequestToggle(request)}
+                      >
+                        <CardContent className="p-3">
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-2 h-2 rounded-full flex-shrink-0"
+                                style={{ backgroundColor: 
+                                  request.status === 'urgent' || request.status === 'emergency' ? '#ef4444' : 
+                                  request.status === 'pending' ? '#f59e0b' : '#10b981' 
+                                }}
+                              />
+                              <span className="text-xs font-medium text-gray-900 truncate">
+                                {request.address.split(',')[0]}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {request.tvSize}" • €{request.leadFee}
+                            </div>
+                            <div className="text-right">
+                              <div className="text-sm font-bold text-gray-900">{Math.round(request.profitMargin)}%</div>
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
-                    )}
+                    ))}
                   </div>
                 </div>
 
-                {/* Mobile Layout */}
-                <div className="lg:hidden space-y-6">
-                  {/* Map */}
-                  <div className="h-[400px] sm:h-[500px] relative z-0">
-                    <IrelandMap 
-                      requests={availableRequests}
-                      onRequestSelect={handleRequestToggle}
-                      selectedRequest={selectedRequest || undefined}
-                      className="h-full"
-                    />
-                  </div>
-                  
-                  {/* Compact Lead List - Mobile */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
-                    <div className="space-y-3">
-                      {availableRequests.map((request: ClientRequest) => (
-                        <Card 
-                          key={request.id}
-                          className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
-                            selectedRequest?.id === request.id ? 'ring-2 ring-primary bg-primary/5' : ''
-                          }`}
-                          onClick={() => handleRequestToggle(request)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <div 
-                                    className="w-3 h-3 rounded-full flex-shrink-0"
-                                    style={{ backgroundColor: 
-                                      request.status === 'urgent' || request.status === 'emergency' ? '#ef4444' : 
-                                      request.status === 'pending' ? '#f59e0b' : '#10b981' 
-                                    }}
-                                  />
-                                  <span className="text-sm font-medium text-gray-900 truncate">
-                                    {request.address}
-                                  </span>
-                                  <Badge 
-                                    variant={request.status === 'urgent' || request.status === 'emergency' ? 'destructive' : 'default'}
-                                    className="text-xs flex-shrink-0"
-                                  >
-                                    {request.status}
-                                  </Badge>
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {request.tvSize}" {request.serviceType} • Lead Fee: €{request.leadFee}
-                                </div>
+                {/* Mobile Lead List */}
+                <div className="lg:hidden col-span-1 space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
+                  <div className="space-y-3">
+                    {availableRequests.map((request: ClientRequest) => (
+                      <Card 
+                        key={request.id}
+                        className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                          selectedRequest?.id === request.id ? 'ring-2 ring-primary bg-primary/5' : ''
+                        }`}
+                        onClick={() => handleRequestToggle(request)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div 
+                                  className="w-3 h-3 rounded-full flex-shrink-0"
+                                  style={{ backgroundColor: 
+                                    request.status === 'urgent' || request.status === 'emergency' ? '#ef4444' : 
+                                    request.status === 'pending' ? '#f59e0b' : '#10b981' 
+                                  }}
+                                />
+                                <span className="text-sm font-medium text-gray-900 truncate">
+                                  {request.address}
+                                </span>
+                                <Badge 
+                                  variant={request.status === 'urgent' || request.status === 'emergency' ? 'destructive' : 'default'}
+                                  className="text-xs flex-shrink-0"
+                                >
+                                  {request.status}
+                                </Badge>
                               </div>
-                              <div className="text-right flex-shrink-0 ml-4">
-                                <div className="text-lg font-bold text-gray-900">{Math.round(request.profitMargin)}%</div>
-                                <div className="text-xs text-gray-500">margin</div>
+                              <div className="text-xs text-gray-500">
+                                {request.tvSize}" {request.serviceType} • Lead Fee: €{request.leadFee}
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                            <div className="text-right flex-shrink-0 ml-4">
+                              <div className="text-lg font-bold text-gray-900">{Math.round(request.profitMargin)}%</div>
+                              <div className="text-xs text-gray-500">margin</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
 
-                  {/* Selected Request Details - Mobile (Below the list) */}
+                  {/* Selected Request Details - Mobile */}
                   {selectedRequest && (
-                    <div className="mt-12 pt-8 border-t border-gray-300 border-dashed">
-                      <div className="mb-6">
+                    <div className="mt-8 pt-6 border-t border-gray-300 border-dashed">
+                      <div className="mb-4">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <MapPin className="w-5 h-5 text-primary" />
                           Selected Lead Details
                         </h3>
-                        <p className="text-sm text-gray-600">Click the lead again on the map to deselect</p>
+                        <p className="text-sm text-gray-600">Click the lead again to deselect</p>
                       </div>
                       <RequestCard
                         request={selectedRequest}

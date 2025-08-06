@@ -1280,6 +1280,17 @@ export default function InstallerDashboard() {
     declineRequestMutation.mutate(requestId);
   };
 
+  // Toggle function for request selection
+  const handleRequestToggle = (request: ClientRequest) => {
+    if (selectedRequest?.id === request.id) {
+      // If the same request is clicked, deselect it
+      setSelectedRequest(null);
+    } else {
+      // Otherwise, select the new request
+      setSelectedRequest(request);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 relative">
       {/* Navigation */}
@@ -1318,7 +1329,7 @@ export default function InstallerDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-32">
         <Tabs defaultValue="requests" className="w-full">
           {/* Mobile-first responsive tabs */}
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-6 h-auto p-1">
@@ -1442,14 +1453,14 @@ export default function InstallerDashboard() {
                 <div className="lg:col-span-2 h-[400px] sm:h-[500px] lg:h-[600px] relative z-0 mb-6 lg:mb-0">
                   <IrelandMap 
                     requests={availableRequests}
-                    onRequestSelect={setSelectedRequest}
+                    onRequestSelect={handleRequestToggle}
                     selectedRequest={selectedRequest || undefined}
                     className="h-full"
                   />
                 </div>
                 
                 {/* Selected Request Details */}
-                <div className={`space-y-4 relative z-10 ${selectedRequest ? 'mb-8 lg:mb-0' : 'hidden lg:block'}`}>
+                <div className={`space-y-4 relative z-10 ${selectedRequest ? 'mb-12 lg:mb-0' : 'hidden lg:block'}`}>
               {selectedRequest ? (
                 <RequestCard
                   request={selectedRequest}

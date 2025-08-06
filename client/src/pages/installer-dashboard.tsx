@@ -211,7 +211,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
         });
 
-        // Initialize map centered on Ireland
+        // Initialize map centered on Ireland with mobile optimization
         const map = L.map(mapRef.current, {
           center: [53.1424, -7.6921], // Center of Ireland
           zoom: 7,
@@ -220,7 +220,10 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           zoomControl: true,
           scrollWheelZoom: true,
           doubleClickZoom: true,
-          dragging: true
+          dragging: true,
+          tap: true, // Enable tap events for mobile
+          tapTolerance: 15, // Increase tap tolerance for better mobile interaction
+          touchZoom: true // Enable touch zoom
         });
 
         // Add OpenStreetMap tiles
@@ -305,28 +308,34 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
         const coordinates = await geocodeAddressAPI(request.address);
         
         if (coordinates) {
-          // Create custom icon
+          // Create custom icon with larger size for mobile touch
           const customIcon = L.divIcon({
             html: `<div style="
               background-color: ${getMarkerColor(request.status)};
-              width: 24px;
-              height: 24px;
+              width: 32px;
+              height: 32px;
               border-radius: 50%;
               border: 3px solid white;
               box-shadow: 0 2px 8px rgba(0,0,0,0.3);
               display: flex;
               align-items: center;
               justify-content: center;
-              font-size: 10px;
+              font-size: 11px;
               color: white;
               font-weight: bold;
+              cursor: pointer;
+              z-index: 1000;
             ">€${request.leadFee}</div>`,
-            className: 'custom-marker',
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
+            className: 'custom-marker mobile-friendly-marker',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
           });
 
-          const marker = L.marker(coordinates, { icon: customIcon })
+          const marker = L.marker(coordinates, { 
+            icon: customIcon,
+            interactive: true,
+            bubblingMouseEvents: false
+          })
             .addTo(mapInstanceRef.current!)
             .bindPopup(`
               <div style="font-size: 14px; line-height: 1.4;">
@@ -336,7 +345,21 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
                 <span style="color: ${getMarkerColor(request.status)}; font-weight: bold; text-transform: uppercase;">${request.status}</span>
               </div>
             `)
-            .on('click', () => {
+            .on('click', (e) => {
+              e.originalEvent.preventDefault();
+              e.originalEvent.stopPropagation();
+              
+              // Zoom to the marker location
+              mapInstanceRef.current!.setView(coordinates, 14, { animate: true });
+              
+              if (onRequestSelect) {
+                onRequestSelect(request);
+              }
+            })
+            .on('touchstart', (e) => {
+              e.originalEvent.preventDefault();
+              e.originalEvent.stopPropagation();
+              
               // Zoom to the marker location
               mapInstanceRef.current!.setView(coordinates, 14, { animate: true });
               

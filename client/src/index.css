@@ -33,6 +33,34 @@
   z-index: 10 !important;
 }
 
+/* Mobile-friendly marker styles */
+.mobile-friendly-marker {
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+.mobile-friendly-marker > div {
+  touch-action: manipulation !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* Improve marker visibility on mobile */
+@media (max-width: 768px) {
+  .leaflet-marker-icon {
+    border-radius: 50% !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+  }
+  
+  .leaflet-popup-pane {
+    z-index: 700 !important;
+  }
+}
+
 @font-face {
   font-family: 'GoodDog New';
   src: url('/fonts/gooddognew.ttf') format('truetype');

@@ -7908,6 +7908,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           profitMargin: Math.max(0, profitMargin),
           status: booking.status,
           scheduledDate: booking.scheduledDate,
+          preferredDate: booking.preferredDate,
+          preferredTime: booking.preferredTime,
           createdAt: booking.createdAt,
           qrCode: booking.qrCode,
           notes: booking.customerNotes || booking.notes,

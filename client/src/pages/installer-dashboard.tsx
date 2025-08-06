@@ -1482,7 +1482,7 @@ export default function InstallerDashboard() {
                 </div>
 
                 {/* Mobile Layout */}
-                <div className="lg:hidden space-y-6">
+                <div className="lg:hidden space-y-8">
                   {/* Map */}
                   <div className="h-[400px] sm:h-[500px] relative z-0">
                     <IrelandMap 
@@ -1493,9 +1493,16 @@ export default function InstallerDashboard() {
                     />
                   </div>
                   
-                  {/* Selected Request Details - Mobile */}
+                  {/* Selected Request Details - Mobile Only */}
                   {selectedRequest && (
-                    <div className="space-y-4">
+                    <div className="mt-8 mb-8 border-t border-gray-200 pt-6">
+                      <div className="mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <MapPin className="w-5 h-5 text-primary" />
+                          Selected Lead Details
+                        </h3>
+                        <p className="text-sm text-gray-600">Click the lead again on the map to deselect</p>
+                      </div>
                       <RequestCard
                         request={selectedRequest}
                         onAccept={handleAcceptRequest}
@@ -1504,22 +1511,6 @@ export default function InstallerDashboard() {
                       />
                     </div>
                   )}
-                  
-                  {/* All Available Requests List - Mobile */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">All Available Leads</h3>
-                    <div className="grid grid-cols-1 gap-4">
-                      {availableRequests.map((request: ClientRequest) => (
-                        <RequestCard
-                          key={request.id}
-                          request={request}
-                          onAccept={handleAcceptRequest}
-                          onDecline={handleDeclineRequest}
-                          distance={request.distance}
-                        />
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </div>
         ) : (

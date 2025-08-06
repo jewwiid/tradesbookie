@@ -72,33 +72,76 @@ function extractEircode(address: string): string | null {
   return match ? match[1].toUpperCase() : null;
 }
 
+// Extract street name and area for more targeted geocoding
+function extractStreetAndArea(address: string): string | null {
+  // Remove apartment/unit numbers and development names
+  let cleanAddress = address
+    .replace(/^apartment \d+[a-z]?,?\s*/i, '')
+    .replace(/^apt \d+[a-z]?,?\s*/i, '')
+    .replace(/^unit \d+[a-z]?,?\s*/i, '')
+    .replace(/^flat \d+[a-z]?,?\s*/i, '')
+    .replace(/\bthe\s+\w+,?\s*/i, '') // Remove "The [Development]" 
+    .replace(/\b\w+field,?\s*/i, '') // Remove "Elmfield" type suffixes
+    .replace(/\b\w+wood,?\s*/i, '')
+    .replace(/\b\w+park,?\s*/i, '')
+    .trim();
+
+  // Extract street name + area/suburb + county
+  const parts = cleanAddress.split(',').map(part => part.trim()).filter(part => part.length > 2);
+  
+  if (parts.length >= 2) {
+    // Take street, area, and county (skip development names)
+    const relevantParts = parts.filter(part => {
+      const lower = part.toLowerCase();
+      return !lower.includes('ashes') && 
+             !lower.includes('grove') && 
+             !lower.includes('court') &&
+             !lower.match(/^d\d{2}/i); // Skip Eircodes
+    });
+    
+    if (relevantParts.length >= 2) {
+      const streetArea = relevantParts.slice(0, 3).join(', ');
+      return streetArea.includes('Ireland') ? streetArea : `${streetArea}, Ireland`;
+    }
+  }
+  
+  return null;
+}
+
 export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
   try {
-    // Extract Eircode if present for more accurate geocoding
+    // Extract Eircode if present for enhanced geocoding
     const eircode = extractEircode(address);
     
-    // Try multiple search strategies for better accuracy
+    // Try multiple search strategies for better accuracy (prioritize street-level over Eircode-only)
     const searchQueries = [];
     
-    // Strategy 1: Use Eircode if available (most accurate)
-    if (eircode) {
-      searchQueries.push(`${eircode}, Ireland`);
-      console.log(`Found Eircode ${eircode} in address: ${address}`);
-    }
-    
-    // Strategy 2: Full address
+    // Strategy 1: Full address (most reliable for Irish addresses)
     const fullAddress = address.includes('Ireland') ? address : `${address}, Ireland`;
     searchQueries.push(fullAddress);
     
-    // Strategy 3: Simplified address (remove apartment details)
+    // Strategy 2: Simplified address (remove apartment details, often more findable)
     const simplifiedAddress = address
       .replace(/apartment \d+/i, '')
       .replace(/apt \d+/i, '')
       .replace(/unit \d+/i, '')
+      .replace(/\bthe\s+/i, '') // Remove "The" prefix from developments
       .trim();
-    if (simplifiedAddress !== address) {
+    if (simplifiedAddress !== address && simplifiedAddress.length > 10) {
       const simpleSearch = simplifiedAddress.includes('Ireland') ? simplifiedAddress : `${simplifiedAddress}, Ireland`;
       searchQueries.push(simpleSearch);
+    }
+    
+    // Strategy 3: Extract and use street name + area (often most accurate)
+    const streetAndArea = extractStreetAndArea(address);
+    if (streetAndArea && streetAndArea !== fullAddress) {
+      searchQueries.push(streetAndArea);
+    }
+    
+    // Strategy 4: Use Eircode only as fallback (can be less accurate for specific locations)
+    if (eircode) {
+      searchQueries.push(`${eircode}, Ireland`);
+      console.log(`Found Eircode ${eircode} in address: ${address}`);
     }
     
     console.log(`Geocoding address via Nominatim API: ${address} (${searchQueries.length} strategies)`);
@@ -125,7 +168,7 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
             // Prefer results with higher accuracy (house, building level)
             const type = item.type || '';
             const category = item.category || '';
-            return ['house', 'building', 'residential'].includes(type) || 
+            return ['house', 'building', 'residential', 'amenity'].includes(type) || 
                    ['building', 'place'].includes(category);
           }) || data[0]; // Fallback to first result
           

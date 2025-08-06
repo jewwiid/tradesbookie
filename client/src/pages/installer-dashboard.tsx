@@ -74,7 +74,7 @@ interface ClientRequest {
   leadFee: number;
   estimatedEarnings: number;
   profitMargin: number;
-  status: 'pending' | 'urgent' | 'accepted' | 'in_progress' | 'completed' | 'open' | 'confirmed';
+  status: 'pending' | 'urgent' | 'emergency' | 'accepted' | 'in_progress' | 'completed' | 'open' | 'confirmed';
   scheduledDate?: string;
   createdAt: string;
   qrCode: string;
@@ -593,7 +593,29 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
     }
   };
 
-  const urgency = request.status === 'urgent' ? 'urgent' : 'standard';
+  // Priority system: Emergency > Urgent > Standard
+  // Auto-determine urgency based on scheduling and manual status
+  const getUrgencyLevel = (status: string, scheduledDate?: string) => {
+    // Manual override for emergency/urgent status
+    if (status === 'emergency') return 'emergency';
+    if (status === 'urgent') return 'urgent';
+    
+    // Auto-determine based on scheduling timeline
+    if (scheduledDate) {
+      const scheduled = new Date(scheduledDate);
+      const now = new Date();
+      const hoursDiff = (scheduled.getTime() - now.getTime()) / (1000 * 60 * 60);
+      
+      // Same day or within 24 hours = Emergency
+      if (hoursDiff <= 24) return 'emergency';
+      // Within 48 hours = Urgent  
+      if (hoursDiff <= 48) return 'urgent';
+    }
+    
+    return 'standard';
+  };
+
+  const urgency = getUrgencyLevel(request.status, request.scheduledDate);
   const urgencyInfo = getUrgencyInfo(urgency);
   const timeAgo = new Date(request.createdAt).toLocaleTimeString();
 
@@ -806,12 +828,15 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                   <div>
                     <label className="text-sm font-medium text-gray-600">Preferred Time</label>
                     <p className="mt-1">
-                      {request.scheduledDate ? 
-                        new Date(request.scheduledDate).toLocaleTimeString('en-IE', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: false
-                        }) : 'Flexible'
+                      {request.preferredTime ? 
+                        `${request.preferredTime} - ${
+                          request.preferredTime === '09:00' ? '11:00' :
+                          request.preferredTime === '11:00' ? '13:00' :
+                          request.preferredTime === '13:00' ? '15:00' :
+                          request.preferredTime === '15:00' ? '17:00' :
+                          request.preferredTime === '17:00' ? '19:00' : 
+                          '2 hour window'
+                        }` : 'Flexible'
                       }
                     </p>
                   </div>
@@ -825,11 +850,13 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                     <label className="text-sm font-medium text-gray-600">Urgency Level</label>
                     <p className="mt-1">
                       <Badge className={
-                        request.status === 'urgent' ? 'bg-orange-500' : 
-                        request.status === 'confirmed' ? 'bg-green-500' : 
-                        request.status === 'open' ? 'bg-blue-500' : 'bg-gray-500'
+                        request.status === 'emergency' ? 'bg-red-500 text-white' : 
+                        request.status === 'urgent' ? 'bg-orange-500 text-white' : 
+                        request.status === 'confirmed' ? 'bg-green-500 text-white' : 
+                        request.status === 'open' ? 'bg-blue-500 text-white' : 'bg-gray-500 text-white'
                       }>
-                        {request.status === 'urgent' ? 'Urgent' : 
+                        {request.status === 'emergency' ? 'Emergency' :
+                         request.status === 'urgent' ? 'Urgent' : 
                          request.status === 'confirmed' ? 'Confirmed' :
                          request.status === 'open' ? 'Standard' : 
                          request.status.charAt(0).toUpperCase() + request.status.slice(1)}

@@ -11,6 +11,8 @@ tradesbook.ie is a full-stack web application that connects customers with profe
 ✓ **Unified Authentication Experience**: Updated TV installation booking page to include comprehensive authentication options (Harvey Norman invoice, guest booking, OAuth) matching homepage's "Book Faster Than Ever" section
 ✓ **Enhanced Booking Tracker**: Upgraded tracking system to support multiple Harvey Norman invoice formats (both HN-GAL-009876 and HNGAL009876), QR codes, and booking references with comprehensive error handling
 ✓ **Installer Dashboard Authentication Fix**: Resolved authentication flow issues by properly separating OAuth and installer session authentication, ensuring all installers can access dashboard regardless of admin status with clear error handling and navigation
+✓ **Intelligent Priority System**: Implemented three-tier priority system (Standard/Urgent/Emergency) with automatic urgency detection based on scheduling timeline - same day bookings show as Emergency, within 48 hours as Urgent
+✓ **Accurate Booking Time Display**: Fixed preferred time display to show actual client-requested time slots (09:00-11:00, 11:00-13:00, etc.) instead of "Flexible" fallback text in installer dashboard
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

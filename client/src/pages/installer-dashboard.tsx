@@ -1451,7 +1451,7 @@ export default function InstallerDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
         <Tabs defaultValue="requests" className="w-full">
           {/* Mobile-first responsive tabs */}
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-6 h-auto p-1">
@@ -1667,7 +1667,7 @@ export default function InstallerDashboard() {
                       )}
                       
                       {/* Map Section */}
-                      <div className="h-[400px] sm:h-[500px] relative z-0 mb-24">
+                      <div className="h-[400px] sm:h-[500px] relative z-0 mb-6">
                         <IrelandMap 
                           requests={availableRequests}
                           onRequestSelect={handleRequestToggle}
@@ -1679,7 +1679,7 @@ export default function InstallerDashboard() {
                       {/* Single Detail View Section */}
                       {selectedRequest ? (
                         /* Show only selected lead */
-                        <div className="space-y-4 mb-48 pb-16">
+                        <div className="space-y-4 mb-8">
                           <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
                             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                               <MapPin className="w-5 h-5 text-primary" />
@@ -1696,7 +1696,7 @@ export default function InstallerDashboard() {
                         </div>
                       ) : (
                         /* Show all leads when none selected */
-                        <div className="space-y-4 mb-48 pb-16">
+                        <div className="space-y-4 mb-8">
                           <div className="flex justify-between items-center">
                             <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
                             <Badge variant="secondary" className="text-xs">{availableRequests.length} leads</Badge>
@@ -1718,7 +1718,7 @@ export default function InstallerDashboard() {
                   </div>
                 ) : (
                   /* List View */
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 relative z-0 mb-48 pb-16">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 relative z-0 mb-8">
                     {availableRequests.map((request: ClientRequest) => (
                       <RequestCard
                         key={request.id}

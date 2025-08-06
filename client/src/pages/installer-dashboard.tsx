@@ -1615,7 +1615,7 @@ export default function InstallerDashboard() {
                       )}
                       
                       {/* Map Section */}
-                      <div className="h-[400px] sm:h-[500px] relative z-0 mb-8">
+                      <div className="h-[400px] sm:h-[500px] relative z-0 mb-16">
                         <IrelandMap 
                           requests={availableRequests}
                           onRequestSelect={handleRequestToggle}

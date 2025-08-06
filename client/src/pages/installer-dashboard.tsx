@@ -1464,7 +1464,7 @@ export default function InstallerDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" style={{ marginBottom: '400px' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs defaultValue="requests" className="w-full">
           {/* Mobile-first responsive tabs */}
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-6 h-auto p-1">
@@ -2329,8 +2329,6 @@ export default function InstallerDashboard() {
         }}
       />
 
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }

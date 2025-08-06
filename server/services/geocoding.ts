@@ -64,55 +64,101 @@ const IRISH_CITIES_TOWNS: Record<string, GeocodeResult> = {
   'castlebar': { lat: 53.8547, lng: -9.2977, formattedAddress: 'Castlebar, Mayo, Ireland', county: 'Mayo', city: 'Castlebar' }
 };
 
+// Extract Eircode from Irish address
+function extractEircode(address: string): string | null {
+  // Irish Eircode pattern: 1 letter + 2 digits + 4 characters (letter/digit mix)
+  const eircodePattern = /([A-Z]\d{2}[A-Z0-9]{4})/i;
+  const match = address.match(eircodePattern);
+  return match ? match[1].toUpperCase() : null;
+}
+
 export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
   try {
-    // Try OpenStreetMap Nominatim API first for better accuracy
-    const searchAddress = address.includes('Ireland') ? address : `${address}, Ireland`;
-    const encodedAddress = encodeURIComponent(searchAddress);
+    // Extract Eircode if present for more accurate geocoding
+    const eircode = extractEircode(address);
     
-    console.log(`Geocoding address via Nominatim API: ${address}`);
+    // Try multiple search strategies for better accuracy
+    const searchQueries = [];
     
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&countrycodes=ie&limit=3&addressdetails=1`,
-      {
-        headers: {
-          'User-Agent': 'tradesbook.ie/1.0'
-        }
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
+    // Strategy 1: Use Eircode if available (most accurate)
+    if (eircode) {
+      searchQueries.push(`${eircode}, Ireland`);
+      console.log(`Found Eircode ${eircode} in address: ${address}`);
+    }
+    
+    // Strategy 2: Full address
+    const fullAddress = address.includes('Ireland') ? address : `${address}, Ireland`;
+    searchQueries.push(fullAddress);
+    
+    // Strategy 3: Simplified address (remove apartment details)
+    const simplifiedAddress = address
+      .replace(/apartment \d+/i, '')
+      .replace(/apt \d+/i, '')
+      .replace(/unit \d+/i, '')
+      .trim();
+    if (simplifiedAddress !== address) {
+      const simpleSearch = simplifiedAddress.includes('Ireland') ? simplifiedAddress : `${simplifiedAddress}, Ireland`;
+      searchQueries.push(simpleSearch);
+    }
+    
+    console.log(`Geocoding address via Nominatim API: ${address} (${searchQueries.length} strategies)`);
+    
+    // Try each search strategy
+    for (const searchQuery of searchQueries) {
+      const encodedAddress = encodeURIComponent(searchQuery);
       
-      if (data.length > 0) {
-        // Pick the most specific result (usually the first one)
-        const result = data[0];
-        const addressDetails = result.address || {};
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodedAddress}&countrycodes=ie&limit=5&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'tradesbook.ie/1.0'
+          }
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
         
-        // Extract county and city from address details
-        const county = addressDetails.county || addressDetails.state || 
-                      extractCountyFromAddress(result.display_name);
-        const city = addressDetails.city || addressDetails.town || 
-                    addressDetails.village || addressDetails.hamlet;
+        if (data.length > 0) {
+          // Pick the most specific result that matches our criteria
+          const result = data.find(item => {
+            // Prefer results with higher accuracy (house, building level)
+            const type = item.type || '';
+            const category = item.category || '';
+            return ['house', 'building', 'residential'].includes(type) || 
+                   ['building', 'place'].includes(category);
+          }) || data[0]; // Fallback to first result
+          
+          const addressDetails = result.address || {};
+          
+          // Extract county and city from address details
+          const county = addressDetails.county || addressDetails.state || 
+                        extractCountyFromAddress(result.display_name);
+          const city = addressDetails.city || addressDetails.town || 
+                      addressDetails.village || addressDetails.hamlet;
 
-        console.log(`Successfully geocoded via API: ${address} -> ${result.lat}, ${result.lon}`);
+          console.log(`Successfully geocoded via API: ${address} -> ${result.lat}, ${result.lon} (using query: "${searchQuery}")`);
 
-        return {
-          lat: parseFloat(result.lat),
-          lng: parseFloat(result.lon),
-          formattedAddress: result.display_name,
-          county: county || 'Unknown',
-          city: city || undefined
-        };
+          return {
+            lat: parseFloat(result.lat),
+            lng: parseFloat(result.lon),
+            formattedAddress: result.display_name,
+            county: county || 'Unknown',
+            city: city || undefined
+          };
+        }
+      } else {
+        console.warn(`Nominatim API error for query "${searchQuery}":`, response.status, response.statusText);
       }
-    } else {
-      console.error('Nominatim API error:', response.status, response.statusText);
+      
+      // Small delay between queries to be respectful to the API
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
-    // If API fails or returns no results, try city/town matching as fallback
+    // If all API attempts fail, try city/town matching as fallback
     const cityMatch = findCityMatch(address);
     if (cityMatch) {
-      console.log(`API failed, using city match for address: ${address} -> ${cityMatch.formattedAddress}`);
+      console.log(`All API strategies failed, using city match for address: ${address} -> ${cityMatch.formattedAddress}`);
       return cityMatch;
     }
 

@@ -1449,7 +1449,7 @@ export default function InstallerDashboard() {
                 </div>
                 
                 {/* Selected Request Details */}
-                <div className="space-y-4 relative z-10">
+                <div className={`space-y-4 relative z-10 ${selectedRequest ? 'mb-8 lg:mb-0' : ''}`}>
               {selectedRequest ? (
                 <RequestCard
                   request={selectedRequest}

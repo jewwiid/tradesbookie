@@ -52,7 +52,9 @@ import {
   RotateCcw,
   Info,
   Monitor,
-  Euro
+  Euro,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 interface InstallerStats {
@@ -495,12 +497,24 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
         
         {/* Map Instructions - Hidden on mobile to prevent overlap */}
         <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 hidden lg:block">
-          <div className="flex items-start gap-3">
-            <div className="p-1 bg-blue-100 rounded-lg">
-              <Info className="w-4 h-4 text-blue-600" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-1 bg-blue-100 rounded-lg">
+                <Info className="w-4 h-4 text-blue-600" />
+              </div>
+              <h4 className="font-medium text-blue-900">How to use the map</h4>
             </div>
-            <div>
-              <h4 className="font-medium text-blue-900 mb-1">How to use the map</h4>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMapHelp(!showMapHelp)}
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-100 p-1"
+            >
+              {showMapHelp ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </div>
+          {showMapHelp && (
+            <div className="mt-3 pt-3 border-t border-blue-200">
               <ul className="text-blue-700 text-sm space-y-1">
                 <li>• Click on any marker to view lead details and select it</li>
                 <li>• Use the control buttons to fit all leads or reset the view</li>
@@ -508,7 +522,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
                 <li>• Selected leads are highlighted and show detailed information below</li>
               </ul>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -937,6 +951,7 @@ export default function InstallerDashboard() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   const [selectedLeadForPurchase, setSelectedLeadForPurchase] = useState<ClientRequest | null>(null);
+  const [showMapHelp, setShowMapHelp] = useState(false);
   const [profileData, setProfileData] = useState({
     name: "",
     businessName: "",

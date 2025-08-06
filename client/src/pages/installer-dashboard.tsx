@@ -1482,51 +1482,56 @@ export default function InstallerDashboard() {
                 </div>
 
                 {/* Mobile Layout */}
-                <div className="lg:hidden space-y-6">
-                  {/* Map */}
-                  <div className="h-[400px] sm:h-[500px] relative z-0">
-                    <IrelandMap 
-                      requests={availableRequests}
-                      onRequestSelect={handleRequestToggle}
-                      selectedRequest={selectedRequest || undefined}
-                      className="h-full"
-                    />
+                <div className="lg:hidden">
+                  {/* Map Section */}
+                  <div className="mb-6">
+                    <div className="h-[400px] sm:h-[500px] relative z-0">
+                      <IrelandMap 
+                        requests={availableRequests}
+                        onRequestSelect={handleRequestToggle}
+                        selectedRequest={selectedRequest || undefined}
+                        className="h-full"
+                      />
+                    </div>
                   </div>
                   
-                  {/* Conditional Content Based on Selection */}
+                  {/* Content Sections - No Overlap */}
                   {selectedRequest ? (
-                    /* Selected Request Details - Only show when selected */
-                    <div className="space-y-4">
-                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                    /* Selected Request Details Section */
+                    <div className="mb-6">
+                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 mb-4">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <MapPin className="w-5 h-5 text-primary" />
                           Selected Lead Details
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">Click the lead again on the map to deselect and see all leads</p>
                       </div>
-                      <RequestCard
-                        request={selectedRequest}
-                        onAccept={handleAcceptRequest}
-                        onDecline={handleDeclineRequest}
-                        distance={selectedRequest.distance}
-                      />
+                      <div className="w-full">
+                        <RequestCard
+                          request={selectedRequest}
+                          onAccept={handleAcceptRequest}
+                          onDecline={handleDeclineRequest}
+                          distance={selectedRequest.distance}
+                        />
+                      </div>
                     </div>
                   ) : (
-                    /* Available Leads List - Only show when no selection */
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
+                    /* Available Leads List Section */
+                    <div className="mb-6">
+                      <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
                         <Badge variant="secondary" className="text-xs">{availableRequests.length} leads</Badge>
                       </div>
-                      <div className="grid grid-cols-1 gap-4">
+                      <div className="w-full space-y-4">
                         {availableRequests.map((request: ClientRequest) => (
-                          <RequestCard
-                            key={request.id}
-                            request={request}
-                            onAccept={handleAcceptRequest}
-                            onDecline={handleDeclineRequest}
-                            distance={request.distance}
-                          />
+                          <div key={request.id} className="w-full">
+                            <RequestCard
+                              request={request}
+                              onAccept={handleAcceptRequest}
+                              onDecline={handleDeclineRequest}
+                              distance={request.distance}
+                            />
+                          </div>
                         ))}
                       </div>
                     </div>

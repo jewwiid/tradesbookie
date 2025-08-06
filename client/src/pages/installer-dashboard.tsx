@@ -1493,33 +1493,44 @@ export default function InstallerDashboard() {
                     />
                   </div>
                   
-                  {/* Available Leads List Section */}
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
-                      <Badge variant="secondary" className="text-xs">{availableRequests.length} leads</Badge>
-                    </div>
-                    {selectedRequest && (
-                      <div className="bg-primary/5 p-3 rounded-lg border border-primary/20 text-sm text-gray-600">
-                        📍 Selected: {selectedRequest.address} - Click again on map to deselect
-                      </div>
-                    )}
+                  {/* Single Detail View Section */}
+                  {selectedRequest ? (
+                    /* Show only selected lead */
                     <div className="space-y-4">
-                      {availableRequests.map((request: ClientRequest) => (
-                        <div 
-                          key={request.id} 
-                          className={`w-full ${selectedRequest?.id === request.id ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                        >
+                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <MapPin className="w-5 h-5 text-primary" />
+                          Selected Lead Details
+                        </h3>
+                        <p className="text-sm text-gray-600 mt-1">Click the lead again on the map to see all leads</p>
+                      </div>
+                      <RequestCard
+                        request={selectedRequest}
+                        onAccept={handleAcceptRequest}
+                        onDecline={handleDeclineRequest}
+                        distance={selectedRequest.distance}
+                      />
+                    </div>
+                  ) : (
+                    /* Show all leads when none selected */
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
+                        <Badge variant="secondary" className="text-xs">{availableRequests.length} leads</Badge>
+                      </div>
+                      <div className="space-y-4">
+                        {availableRequests.map((request: ClientRequest) => (
                           <RequestCard
+                            key={request.id}
                             request={request}
                             onAccept={handleAcceptRequest}
                             onDecline={handleDeclineRequest}
                             distance={request.distance}
                           />
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
         ) : (

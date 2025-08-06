@@ -1548,110 +1548,8 @@ export default function InstallerDashboard() {
               </div>
             </div>
 
-            {/* Main Content */}
-            {viewMode === 'map' ? (
-              <div className="space-y-6">
-                {/* Desktop Layout */}
-                <div className="hidden lg:grid lg:grid-cols-3 gap-6">
-                  {/* Map */}
-                  <div className="lg:col-span-2 h-[600px] relative z-0">
-                    <IrelandMap 
-                      requests={availableRequests}
-                      onRequestSelect={handleRequestToggle}
-                      selectedRequest={selectedRequest || undefined}
-                      className="h-full"
-                    />
-                  </div>
-                  
-                  {/* Selected Request Details - Desktop */}
-                  <div className="space-y-4">
-                    {selectedRequest ? (
-                      <RequestCard
-                        request={selectedRequest}
-                        onAccept={handleAcceptRequest}
-                        onDecline={handleDeclineRequest}
-                        distance={selectedRequest.distance}
-                      />
-                    ) : (
-                      <Card className="h-full flex items-center justify-center min-h-[200px]">
-                        <CardContent className="text-center p-6">
-                          <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-500">Select a request on the map to view details</p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </div>
-
-                {/* Mobile Layout */}
-                <div className="lg:hidden space-y-6">
-                  {/* Map Section */}
-                  <div className="h-[400px] sm:h-[500px] relative z-0">
-                    <IrelandMap 
-                      requests={availableRequests}
-                      onRequestSelect={handleRequestToggle}
-                      selectedRequest={selectedRequest || undefined}
-                      className="h-full"
-                    />
-                  </div>
-                  
-                  {/* Single Detail View Section */}
-                  {selectedRequest ? (
-                    /* Show only selected lead */
-                    <div className="space-y-4">
-                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                          <MapPin className="w-5 h-5 text-primary" />
-                          Selected Lead Details
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">Click the lead again on the map to see all leads</p>
-                      </div>
-                      <RequestCard
-                        request={selectedRequest}
-                        onAccept={handleAcceptRequest}
-                        onDecline={handleDeclineRequest}
-                        distance={selectedRequest.distance}
-                      />
-                    </div>
-                  ) : (
-                    /* Show all leads when none selected */
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
-                        <Badge variant="secondary" className="text-xs">{availableRequests.length} leads</Badge>
-                      </div>
-                      <div className="space-y-4">
-                        {availableRequests.map((request: ClientRequest) => (
-                          <RequestCard
-                            key={request.id}
-                            request={request}
-                            onAccept={handleAcceptRequest}
-                            onDecline={handleDeclineRequest}
-                            distance={request.distance}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-        ) : (
-          /* List View */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 relative z-0">
-            {availableRequests.map((request: ClientRequest) => (
-              <RequestCard
-                key={request.id}
-                request={request}
-                onAccept={handleAcceptRequest}
-                onDecline={handleDeclineRequest}
-                distance={request.distance}
-              />
-            ))}
-          </div>
-        )}
-
-            {/* No Requests State */}
-            {availableRequests.length === 0 && !requestsLoading && (
+            {/* No Requests State - Show Before Main Content */}
+            {availableRequests.length === 0 && !requestsLoading ? (
               <Card className="p-12 text-center">
                 <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">No Active Requests</h3>
@@ -1666,6 +1564,110 @@ export default function InstallerDashboard() {
                   {isOnline ? "You're Available" : "Mark Available"}
                 </Button>
               </Card>
+            ) : (
+              /* Main Content - Only show when there are requests */
+              <>
+                {viewMode === 'map' ? (
+                  <div className="space-y-6">
+                    {/* Desktop Layout */}
+                    <div className="hidden lg:grid lg:grid-cols-3 gap-6">
+                      {/* Map */}
+                      <div className="lg:col-span-2 h-[600px] relative z-0">
+                        <IrelandMap 
+                          requests={availableRequests}
+                          onRequestSelect={handleRequestToggle}
+                          selectedRequest={selectedRequest || undefined}
+                          className="h-full"
+                        />
+                      </div>
+                      
+                      {/* Selected Request Details - Desktop */}
+                      <div className="space-y-4">
+                        {selectedRequest ? (
+                          <RequestCard
+                            request={selectedRequest}
+                            onAccept={handleAcceptRequest}
+                            onDecline={handleDeclineRequest}
+                            distance={selectedRequest.distance}
+                          />
+                        ) : (
+                          <Card className="h-full flex items-center justify-center min-h-[200px]">
+                            <CardContent className="text-center p-6">
+                              <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                              <p className="text-gray-500">Select a request on the map to view details</p>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Mobile Layout */}
+                    <div className="lg:hidden space-y-6">
+                      {/* Map Section */}
+                      <div className="h-[400px] sm:h-[500px] relative z-0">
+                        <IrelandMap 
+                          requests={availableRequests}
+                          onRequestSelect={handleRequestToggle}
+                          selectedRequest={selectedRequest || undefined}
+                          className="h-full"
+                        />
+                      </div>
+                      
+                      {/* Single Detail View Section */}
+                      {selectedRequest ? (
+                        /* Show only selected lead */
+                        <div className="space-y-4">
+                          <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                              <MapPin className="w-5 h-5 text-primary" />
+                              Selected Lead Details
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">Click the lead again on the map to see all leads</p>
+                          </div>
+                          <RequestCard
+                            request={selectedRequest}
+                            onAccept={handleAcceptRequest}
+                            onDecline={handleDeclineRequest}
+                            distance={selectedRequest.distance}
+                          />
+                        </div>
+                      ) : (
+                        /* Show all leads when none selected */
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
+                            <Badge variant="secondary" className="text-xs">{availableRequests.length} leads</Badge>
+                          </div>
+                          <div className="space-y-4">
+                            {availableRequests.map((request: ClientRequest) => (
+                              <RequestCard
+                                key={request.id}
+                                request={request}
+                                onAccept={handleAcceptRequest}
+                                onDecline={handleDeclineRequest}
+                                distance={request.distance}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  /* List View */
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 relative z-0">
+                    {availableRequests.map((request: ClientRequest) => (
+                      <RequestCard
+                        key={request.id}
+                        request={request}
+                        onAccept={handleAcceptRequest}
+                        onDecline={handleDeclineRequest}
+                        distance={request.distance}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 

@@ -1484,7 +1484,7 @@ export default function InstallerDashboard() {
                 {/* Mobile Layout */}
                 <div className="lg:hidden">
                   {/* Map Section */}
-                  <div className="mb-6">
+                  <div className="mb-8">
                     <div className="h-[400px] sm:h-[500px] relative z-0">
                       <IrelandMap 
                         requests={availableRequests}
@@ -1495,16 +1495,35 @@ export default function InstallerDashboard() {
                     </div>
                   </div>
                   
-                  {/* Content Sections - No Overlap */}
-                  {selectedRequest ? (
-                    /* Selected Request Details Section */
-                    <div className="mb-6">
-                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 mb-4">
+                  {/* Available Leads List Section - Always Show First */}
+                  <div className="mb-8">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
+                      <Badge variant="secondary" className="text-xs">{availableRequests.length} leads</Badge>
+                    </div>
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                      {availableRequests.map((request: ClientRequest) => (
+                        <div key={request.id} className="w-full">
+                          <RequestCard
+                            request={request}
+                            onAccept={handleAcceptRequest}
+                            onDecline={handleDeclineRequest}
+                            distance={request.distance}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Selected Request Details Section - Appears Below List */}
+                  {selectedRequest && (
+                    <div className="bg-white border-t-4 border-primary pt-6 mt-8 relative z-50">
+                      <div className="bg-primary/10 p-4 rounded-lg border border-primary/30 mb-6">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <MapPin className="w-5 h-5 text-primary" />
                           Selected Lead Details
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">Click the lead again on the map to deselect and see all leads</p>
+                        <p className="text-sm text-gray-600 mt-1">Click the lead again on the map to deselect</p>
                       </div>
                       <div className="w-full">
                         <RequestCard
@@ -1513,26 +1532,6 @@ export default function InstallerDashboard() {
                           onDecline={handleDeclineRequest}
                           distance={selectedRequest.distance}
                         />
-                      </div>
-                    </div>
-                  ) : (
-                    /* Available Leads List Section */
-                    <div className="mb-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
-                        <Badge variant="secondary" className="text-xs">{availableRequests.length} leads</Badge>
-                      </div>
-                      <div className="w-full space-y-4">
-                        {availableRequests.map((request: ClientRequest) => (
-                          <div key={request.id} className="w-full">
-                            <RequestCard
-                              request={request}
-                              onAccept={handleAcceptRequest}
-                              onDecline={handleDeclineRequest}
-                              distance={request.distance}
-                            />
-                          </div>
-                        ))}
                       </div>
                     </div>
                   )}

@@ -1627,7 +1627,7 @@ export default function InstallerDashboard() {
                       {/* Single Detail View Section */}
                       {selectedRequest ? (
                         /* Show only selected lead */
-                        <div className="space-y-4">
+                        <div className="space-y-4 mb-32">
                           <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
                             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                               <MapPin className="w-5 h-5 text-primary" />
@@ -1644,7 +1644,7 @@ export default function InstallerDashboard() {
                         </div>
                       ) : (
                         /* Show all leads when none selected */
-                        <div className="space-y-4">
+                        <div className="space-y-4 mb-32">
                           <div className="flex justify-between items-center">
                             <h3 className="text-lg font-semibold text-gray-900">Available Leads</h3>
                             <Badge variant="secondary" className="text-xs">{availableRequests.length} leads</Badge>
@@ -1666,7 +1666,7 @@ export default function InstallerDashboard() {
                   </div>
                 ) : (
                   /* List View */
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 relative z-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 relative z-0 mb-32">
                     {availableRequests.map((request: ClientRequest) => (
                       <RequestCard
                         key={request.id}

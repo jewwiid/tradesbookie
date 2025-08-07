@@ -20,8 +20,17 @@ export interface TVInstallation {
 }
 
 export interface BookingData {
-  // Step 1: Photo (primary room photo)
+  // Step 1: TV Quantity
+  tvQuantity: number;
+  
+  // Step 2: Photo (primary room photo)
   roomPhotoBase64?: string;
+  compressedRoomPhoto?: string;
+  compressionInfo?: {
+    originalSize: number;
+    compressedSize: number;
+    compressionRatio: number;
+  };
   roomAnalysis?: {
     recommendations: string[];
     warnings: string[];
@@ -36,11 +45,8 @@ export interface BookingData {
     };
   };
   photoStorageConsent?: boolean;
-
-  // Step 2: TV Quantity
-  tvQuantity: number;
   
-  // Step 3-6: TV Installations (for multi-TV support)
+  // Step 3-7: TV Installations (for multi-TV support)
   tvInstallations: TVInstallation[];
   currentTvIndex: number; // Track which TV we're currently configuring
 
@@ -58,11 +64,11 @@ export interface BookingData {
   }>;
   basePrice?: number;
 
-  // Step 7: Schedule
+  // Step 8: Schedule
   preferredDate?: string;
   preferredTime?: string;
 
-  // Step 8: Contact
+  // Step 9: Contact
   contact?: {
     name?: string;
     email?: string;

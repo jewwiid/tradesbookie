@@ -19,8 +19,8 @@ export default function TvQuantitySelector({ bookingData, updateBookingData, add
     setSelectedQuantity(quantity);
   };
 
-  // Update booking data whenever quantity changes
-  useEffect(() => {
+  // Update booking data when quantity changes
+  const handleQuantityUpdate = () => {
     if (selectedQuantity === 1) {
       // Single TV booking - use legacy flow
       updateBookingData({ 
@@ -33,13 +33,13 @@ export default function TvQuantitySelector({ bookingData, updateBookingData, add
       const currentInstallations = bookingData.tvInstallations || [];
       
       // Add missing TV installations
-      while (currentInstallations.length < selectedQuantity) {
+      for (let i = currentInstallations.length; i < selectedQuantity; i++) {
         addTvInstallation();
       }
       
-      // Remove excess TV installations
-      while (currentInstallations.length > selectedQuantity) {
-        removeTvInstallation(currentInstallations.length - 1);
+      // Remove excess TV installations  
+      for (let i = currentInstallations.length; i > selectedQuantity; i--) {
+        removeTvInstallation(i - 1);
       }
       
       updateBookingData({ 
@@ -47,7 +47,14 @@ export default function TvQuantitySelector({ bookingData, updateBookingData, add
         currentTvIndex: 0
       });
     }
-  }, [selectedQuantity, updateBookingData, addTvInstallation, removeTvInstallation]);
+  };
+
+  // Update when selectedQuantity changes
+  useEffect(() => {
+    if (bookingData.tvQuantity !== selectedQuantity) {
+      handleQuantityUpdate();
+    }
+  }, [selectedQuantity]);
 
   return (
     <div className="text-center">

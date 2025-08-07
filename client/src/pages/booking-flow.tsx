@@ -40,6 +40,19 @@ export default function BookingFlow() {
   };
 
   const nextStep = () => {
+    // For multi-TV mode, handle automatic TV navigation
+    if (bookingData.tvQuantity > 1 && currentStep >= 3 && currentStep <= 6) {
+      // If current TV is complete but not all TVs are complete
+      if (isCurrentTvComplete() && !areAllTvsComplete()) {
+        const nextIncompleteIndex = getNextIncompleteTvIndex();
+        if (nextIncompleteIndex !== -1) {
+          // Move to next incomplete TV
+          updateBookingData({ currentTvIndex: nextIncompleteIndex });
+          return;
+        }
+      }
+    }
+    
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
     }
@@ -51,6 +64,34 @@ export default function BookingFlow() {
     }
   };
 
+  const isCurrentTvComplete = () => {
+    if (bookingData.tvQuantity > 1 && bookingData.tvInstallations?.length > 0) {
+      const currentTv = bookingData.tvInstallations[bookingData.currentTvIndex];
+      return currentTv && currentTv.tvSize && currentTv.serviceType && currentTv.wallType && currentTv.mountType &&
+        (currentTv.needsWallMount === false || (currentTv.needsWallMount === true && currentTv.wallMountOption));
+    }
+    return false;
+  };
+
+  const areAllTvsComplete = () => {
+    if (bookingData.tvQuantity <= 1) return true;
+    if (!bookingData.tvInstallations || bookingData.tvInstallations.length !== bookingData.tvQuantity) return false;
+    
+    return bookingData.tvInstallations.every(tv => 
+      tv.tvSize && tv.serviceType && tv.wallType && tv.mountType &&
+      (tv.needsWallMount === false || (tv.needsWallMount === true && tv.wallMountOption))
+    );
+  };
+
+  const getNextIncompleteTvIndex = () => {
+    if (bookingData.tvQuantity <= 1 || !bookingData.tvInstallations) return -1;
+    
+    return bookingData.tvInstallations.findIndex(tv => 
+      !tv.tvSize || !tv.serviceType || !tv.wallType || !tv.mountType ||
+      (tv.needsWallMount === true && !tv.wallMountOption)
+    );
+  };
+
   const canProceed = () => {
     switch (currentStep) {
       case 1:
@@ -60,31 +101,33 @@ export default function BookingFlow() {
       case 3:
         // For multi-TV, check current TV's size; for single TV, check legacy field
         if (bookingData.tvQuantity > 1) {
-          const currentTv = bookingData.tvInstallations[bookingData.currentTvIndex];
+          const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
           return currentTv && currentTv.tvSize !== "";
         }
         return bookingData.tvSize !== "";
       case 4:
         // For multi-TV, check current TV's service; for single TV, check legacy field
         if (bookingData.tvQuantity > 1) {
-          const currentTv = bookingData.tvInstallations[bookingData.currentTvIndex];
+          const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
           return currentTv && currentTv.serviceType !== "";
         }
         return bookingData.serviceType !== "";
       case 5:
         // For multi-TV, check current TV's wall type; for single TV, check legacy field
         if (bookingData.tvQuantity > 1) {
-          const currentTv = bookingData.tvInstallations[bookingData.currentTvIndex];
+          const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
           return currentTv && currentTv.wallType !== "";
         }
         return bookingData.wallType !== "";
       case 6:
-        // For multi-TV, check current TV's mount type; for single TV, check legacy field
+        // For multi-TV, check current TV's mount type and ensure ALL TVs are complete before moving to addons
         if (bookingData.tvQuantity > 1) {
-          const currentTv = bookingData.tvInstallations[bookingData.currentTvIndex];
-          return currentTv && currentTv.mountType !== "" && 
+          const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
+          const currentTvValid = currentTv && currentTv.mountType !== "" && 
                  (currentTv.needsWallMount === false || 
                   (currentTv.needsWallMount === true && currentTv.wallMountOption));
+          // Only allow proceeding to addons if ALL TVs are complete
+          return currentTvValid && areAllTvsComplete();
         }
         return bookingData.mountType !== "" && 
                (bookingData.needsWallMount === false || 

@@ -567,6 +567,18 @@ export default function AIHelpPage() {
               <span className="hidden sm:inline">TV Model Comparison</span>
               <span className="sm:hidden">Compare TVs</span>
             </button>
+            <button
+              onClick={() => setActiveTab('electronics')}
+              className={`px-3 sm:px-4 py-2 rounded-md font-medium text-xs sm:text-sm transition-colors flex items-center whitespace-nowrap ${
+                activeTab === 'electronics'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <DollarSign className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">Product Comparison Tool</span>
+              <span className="sm:hidden">Products</span>
+            </button>
           </div>
         </div>
 
@@ -581,7 +593,7 @@ export default function AIHelpPage() {
                 <AIHelpWidget />
               </div>
             </div>
-          ) : (
+          ) : activeTab === 'compare' ? (
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 h-full flex flex-col">
               <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 text-center px-2 flex-shrink-0">
                 Compare TV Models with AI Analysis
@@ -761,23 +773,13 @@ export default function AIHelpPage() {
                 )}
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Electronic Product Comparison Section */}
-        <div className="max-w-4xl mx-auto mt-8 px-4">
-          <div className="bg-white rounded-xl shadow-xl border">
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6 rounded-t-xl">
-              <h2 className="text-2xl font-bold text-center flex items-center justify-center">
-                <ArrowRightLeft className="w-6 h-6 mr-2" />
-                Electronic Product Comparison Tool
+          ) : (
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 h-full flex flex-col">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 text-center px-2 flex-shrink-0">
+                Product Comparison Tool
               </h2>
-              <p className="text-center mt-2 text-purple-100">
-                Compare any electronic products with personalized AI analysis based on your needs
-              </p>
-            </div>
-            
-            <div className="p-6 space-y-6">
+              <div className="flex-1 overflow-y-auto">
+                {/* Electronic Product Comparison Steps */}
               {!productComparison ? (
                 <>
                   {/* Progress Bar */}
@@ -1126,8 +1128,9 @@ export default function AIHelpPage() {
                   )}
                 </div>
               )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Need More Help - Moved Outside Flex Container */}

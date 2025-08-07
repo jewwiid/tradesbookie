@@ -916,7 +916,7 @@ export default function AIHelpPage() {
                         <select
                           value={productCategory}
                           onChange={(e) => setProductCategory(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full px-4 py-3 bg-white border-2 border-purple-200 rounded-lg font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 hover:border-purple-300 transition-colors appearance-none bg-[url('data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3e%3cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3e%3c/svg%3e')] bg-[position:right_0.75rem_center] bg-[size:1.5em_1.5em] bg-no-repeat pr-10"
                         >
                           <option value="">Select a category...</option>
                           {productCategories.map((category) => (

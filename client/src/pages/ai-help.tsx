@@ -863,17 +863,18 @@ export default function AIHelpPage() {
                         </select>
                       </div>
 
-                      <div className="flex justify-between">
+                      <div className="space-y-3">
                         <Button
                           onClick={handlePrevStep}
                           variant="outline"
+                          className="w-full"
                         >
                           Previous
                         </Button>
                         <Button
                           onClick={handleNextStep}
                           disabled={!canProceedFromCategory}
-                          className="bg-purple-600 hover:bg-purple-700"
+                          className="w-full bg-purple-600 hover:bg-purple-700"
                         >
                           Next: Answer Questions
                         </Button>
@@ -883,28 +884,28 @@ export default function AIHelpPage() {
 
                   {/* Step 3: Category-Specific Questions */}
                   {currentStep === 2 && productCategory && (
-                    <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
+                    <div className="bg-orange-50 p-3 sm:p-6 rounded-lg border border-orange-200">
                       <h3 className="text-lg font-bold text-orange-900 mb-4 text-center">
                         Step 3: Answer Category Questions
                       </h3>
-                      <p className="text-orange-700 text-center mb-6">
+                      <p className="text-orange-700 text-center mb-6 text-sm sm:text-base">
                         Help us understand your specific needs for {productCategories.find(c => c.value === productCategory)?.label}
                       </p>
                       
-                      <div className="space-y-6">
+                      <div className="space-y-4 sm:space-y-6">
                         {getCurrentQuestions().map((question, index) => (
-                          <Card key={question.id}>
-                            <CardHeader>
-                              <CardTitle className="text-base">
+                          <Card key={question.id} className="overflow-hidden">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm sm:text-base">
                                 Question {index + 1}: {question.question}
                               </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <CardContent className="pt-0">
+                              <div className="grid grid-cols-1 gap-3">
                                 {question.options.map((option) => (
                                   <div
                                     key={option.value}
-                                    className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                                    className={`p-3 border-2 rounded-lg cursor-pointer transition-all text-sm sm:text-base ${
                                       questionnaire[question.id as keyof QuestionnaireAnswers] === option.value
                                         ? 'border-purple-500 bg-purple-50'
                                         : 'border-gray-300 hover:border-purple-300'
@@ -912,7 +913,7 @@ export default function AIHelpPage() {
                                     onClick={() => handleQuestionnaireAnswer(question.id, option.value)}
                                   >
                                     <div className="flex items-center">
-                                      <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                                      <div className={`w-4 h-4 rounded-full border-2 mr-3 flex-shrink-0 ${
                                         questionnaire[question.id as keyof QuestionnaireAnswers] === option.value
                                           ? 'border-purple-500 bg-purple-500'
                                           : 'border-gray-300'
@@ -921,7 +922,7 @@ export default function AIHelpPage() {
                                           <div className="w-full h-full rounded-full bg-white scale-50"></div>
                                         )}
                                       </div>
-                                      <span className="font-medium">{option.label}</span>
+                                      <span className="font-medium break-words">{option.label}</span>
                                     </div>
                                   </div>
                                 ))}
@@ -931,26 +932,27 @@ export default function AIHelpPage() {
                         ))}
                       </div>
 
-                      <div className="flex justify-between mt-6">
+                      <div className="mt-6 space-y-3">
                         <Button
                           onClick={handlePrevStep}
                           variant="outline"
+                          className="w-full"
                         >
                           Previous
                         </Button>
                         <Button
                           onClick={handleElectronicsCompare}
                           disabled={!canProceedFromQuestions || compareElectronics.isPending}
-                          className="bg-purple-600 hover:bg-purple-700"
+                          className="w-full bg-purple-600 hover:bg-purple-700"
                         >
                           {compareElectronics.isPending ? (
-                            <div className="flex items-center">
+                            <div className="flex items-center justify-center">
                               <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                              Analyzing Products
-                              <span className="animate-pulse">...</span>
+                              <span className="text-sm sm:text-base">Analyzing Products</span>
+                              <span className="animate-pulse text-sm sm:text-base">...</span>
                             </div>
                           ) : (
-                            'Compare Products with AI Analysis'
+                            <span className="text-sm sm:text-base">Compare Products with AI Analysis</span>
                           )}
                         </Button>
                       </div>

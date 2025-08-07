@@ -61,6 +61,7 @@ export default function AIHelpPage() {
   const [product1, setProduct1] = useState('');
   const [product2, setProduct2] = useState('');
   const [productCategory, setProductCategory] = useState('');
+  const [customCategory, setCustomCategory] = useState('');
   const [questionnaire, setQuestionnaire] = useState<QuestionnaireAnswers>({
     question1: '',
     question2: '',
@@ -127,7 +128,8 @@ export default function AIHelpPage() {
     { value: 'microwaves', label: 'Microwaves' },
     { value: 'electric-kettles', label: 'Electric Kettles' },
     { value: 'toasters', label: 'Toasters' },
-    { value: 'coffee-makers', label: 'Coffee Makers' }
+    { value: 'coffee-makers', label: 'Coffee Makers' },
+    { value: 'other', label: 'Other (Custom Category)' }
   ];
 
   const categoryQuestions: Record<string, CategoryQuestion[]> = {
@@ -489,6 +491,38 @@ export default function AIHelpPage() {
           { value: 'basic', label: 'No special features' }
         ]
       }
+    ],
+    'other': [
+      {
+        id: 'question1',
+        question: 'What is your primary intended use?',
+        options: [
+          { value: 'daily-use', label: 'Daily use at home' },
+          { value: 'professional', label: 'Professional or commercial use' },
+          { value: 'occasional', label: 'Occasional or recreational use' },
+          { value: 'travel', label: 'Travel or portable use' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'What matters most to you?',
+        options: [
+          { value: 'performance', label: 'Performance and functionality' },
+          { value: 'price', label: 'Price and value for money' },
+          { value: 'design', label: 'Design and appearance' },
+          { value: 'reliability', label: 'Reliability and durability' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'What is your experience level with this type of product?',
+        options: [
+          { value: 'beginner', label: 'Beginner - need something simple' },
+          { value: 'intermediate', label: 'Intermediate - comfortable with features' },
+          { value: 'advanced', label: 'Advanced - want full control and customization' },
+          { value: 'expert', label: 'Expert - professional level requirements' }
+        ]
+      }
     ]
   };
 
@@ -508,7 +542,7 @@ export default function AIHelpPage() {
     }
   };
 
-  const canProceedFromCategory = productCategory.trim();
+  const canProceedFromCategory = productCategory.trim() && (productCategory !== 'other' || customCategory.trim());
   const canProceedFromModels = product1.trim() && product2.trim();
   const canProceedFromQuestions = questionnaire.question1 && questionnaire.question2 && questionnaire.question3;
   
@@ -518,10 +552,11 @@ export default function AIHelpPage() {
 
   const handleElectronicsCompare = () => {
     if (canProceedFromCategory && canProceedFromModels && canProceedFromQuestions) {
+      const finalCategory = productCategory === 'other' ? customCategory.trim() : productCategory.trim();
       compareElectronics.mutate({ 
         product1: product1.trim(), 
         product2: product2.trim(), 
-        productCategory: productCategory.trim(),
+        productCategory: finalCategory,
         questionnaire 
       });
     }
@@ -590,6 +625,11 @@ export default function AIHelpPage() {
           first: 'e.g., Breville BES870XL, Cuisinart DCC-3200P1',
           second: 'e.g., Keurig K-Elite, Ninja CM401'
         };
+      case 'other':
+        return {
+          first: `Enter first ${customCategory || 'product'} model...`,
+          second: `Enter second ${customCategory || 'product'} model...`
+        };
       default:
         return {
           first: 'e.g., WH-1000XM5, QN55Q60TAFXZA',
@@ -602,6 +642,7 @@ export default function AIHelpPage() {
     setProduct1('');
     setProduct2('');
     setProductCategory('');
+    setCustomCategory('');
     setQuestionnaire({ question1: '', question2: '', question3: '' });
     setProductComparison(null);
     setCurrentStep(0);
@@ -927,6 +968,24 @@ export default function AIHelpPage() {
                         </select>
                       </div>
 
+                      {/* Custom Category Input */}
+                      {productCategory === 'other' && (
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Custom Product Category
+                          </label>
+                          <Input
+                            placeholder="e.g., Gaming Chairs, Air Purifiers, Smart Watches..."
+                            value={customCategory}
+                            onChange={(e) => setCustomCategory(e.target.value)}
+                            className="w-full px-4 py-3 border-2 border-purple-200 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 hover:border-purple-300 transition-colors"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Specify the type of products you want to compare
+                          </p>
+                        </div>
+                      )}
+
                       <div className="text-center">
                         <Button
                           onClick={handleNextStep}
@@ -946,7 +1005,7 @@ export default function AIHelpPage() {
                         Step 2: Enter Product Model Numbers
                       </h3>
                       <p className="text-green-700 text-center mb-4">
-                        Enter the exact model numbers or product codes for {productCategories.find(c => c.value === productCategory)?.label} you want to compare
+                        Enter the exact model numbers or product codes for {productCategory === 'other' ? customCategory || 'your products' : productCategories.find(c => c.value === productCategory)?.label} you want to compare
                       </p>
                       
                       {/* Model Number Disclaimer */}
@@ -1007,7 +1066,7 @@ export default function AIHelpPage() {
                         Step 3: Answer Category Questions
                       </h3>
                       <p className="text-orange-700 text-center mb-6 text-sm sm:text-base">
-                        Help us understand your specific needs for {productCategories.find(c => c.value === productCategory)?.label}
+                        Help us understand your specific needs for {productCategory === 'other' ? customCategory || 'your products' : productCategories.find(c => c.value === productCategory)?.label}
                       </p>
                       
                       <div className="space-y-4 sm:space-y-6">

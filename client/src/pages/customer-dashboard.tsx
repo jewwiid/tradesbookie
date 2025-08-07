@@ -29,10 +29,22 @@ interface Booking {
   tvSize: string;
   serviceType: string;
   estimatedPrice: string;
+  estimatedTotal?: string;
   status: string;
   contactName: string;
   installerId?: number;
   createdAt?: string;
+  // Multi-TV support
+  tvInstallations?: Array<{
+    tvSize: string;
+    serviceType: string;
+    location: string;
+    mountType?: string;
+    needsWallMount?: boolean;
+    wallMountOption?: string;
+    addons?: any[];
+    price?: string;
+  }>;
   installer?: {
     id: number;
     businessName: string;
@@ -1181,7 +1193,11 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="font-semibold text-lg text-gray-900">
-              {booking.tvSize}" TV Installation
+              {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
+                `${booking.tvInstallations.length} TV Installation`
+              ) : (
+                `${booking.tvSize}" TV Installation`
+              )}
             </h3>
             <p className="text-sm text-gray-600">{booking.address}</p>
           </div>
@@ -1256,11 +1272,19 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div className="flex items-center">
             <Tv className="h-4 w-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">{booking.serviceType}</span>
+            <span className="text-sm text-gray-600">
+              {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
+                `${booking.tvInstallations.length} TVs`
+              ) : (
+                booking.serviceType
+              )}
+            </span>
           </div>
           <div className="flex items-center">
             <Euro className="h-4 w-4 text-gray-400 mr-2" />
-            <span className="text-sm text-gray-600">€{booking.estimatedPrice}</span>
+            <span className="text-sm text-gray-600">
+              €{booking.estimatedTotal || booking.estimatedPrice}
+            </span>
           </div>
           <div className="flex items-center">
             <Clock className="h-4 w-4 text-gray-400 mr-2" />
@@ -1273,6 +1297,33 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
             <span className="text-sm text-gray-600">{booking.contactName}</span>
           </div>
         </div>
+
+        {/* Multi-TV Details Section */}
+        {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 && (
+          <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <h4 className="font-medium text-gray-900 mb-2">TV Installation Details</h4>
+            <div className="space-y-2">
+              {booking.tvInstallations.map((tv: any, index: number) => (
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center space-x-2">
+                    <Tv className="h-4 w-4 text-gray-400" />
+                    <span className="text-gray-900">
+                      {tv.location}: {tv.tvSize}" {tv.serviceType.replace('-', ' ')}
+                    </span>
+                    {tv.needsWallMount && (
+                      <Badge variant="outline" className="text-xs">
+                        Wall Mount
+                      </Badge>
+                    )}
+                  </div>
+                  {tv.price && (
+                    <span className="text-gray-600 font-medium">€{tv.price}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

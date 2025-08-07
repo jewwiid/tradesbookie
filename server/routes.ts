@@ -1568,12 +1568,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const allBookings = await storage.getAllBookings();
         bookings = allBookings.filter(booking => 
           booking.invoiceNumber === (req.session as any).invoiceNumber ||
-          booking.userId === req.user.id
+          booking.userId === req.user.id.toString()
         );
         console.log(`Found ${bookings.length} bookings for invoice ${(req.session as any).invoiceNumber}`);
       } else {
         // Regular OAuth user - get bookings by user ID
-        bookings = await storage.getUserBookings(req.user.id);
+        bookings = await storage.getUserBookings(req.user.id.toString());
       }
 
       // Enhance bookings with installer information if assigned
@@ -1581,7 +1581,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookings.map(async (booking) => {
           if (booking.installerId) {
             try {
-              const installer = await storage.getInstallerById(booking.installerId);
+              const installer = await storage.getInstaller(booking.installerId);
               if (installer) {
                 return {
                   ...booking,

@@ -35,6 +35,17 @@ interface BookingDetails {
   aiPreviewUrl?: string;
   customerNotes?: string;
   createdAt: string;
+  // Multi-TV support
+  tvInstallations?: Array<{
+    tvSize: string;
+    serviceType: string;
+    location: string;
+    mountType?: string;
+    needsWallMount?: boolean;
+    wallMountOption?: string;
+    addons?: any[];
+    price?: string;
+  }>;
   contact?: {
     name: string;
     phone: string;
@@ -265,22 +276,50 @@ export default function QRTracking() {
                   {booking.qrCode}
                 </p>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Service Type</label>
-                <p className="text-gray-900">{booking.serviceType}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">TV Size</label>
-                <p className="text-gray-900">{booking.tvSize}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Wall Type</label>
-                <p className="text-gray-900">{booking.wallType}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-500">Mount Type</label>
-                <p className="text-gray-900">{booking.mountType}</p>
-              </div>
+              {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
+                <div>
+                  <label className="text-sm font-medium text-gray-500">TV Installations</label>
+                  <div className="space-y-2 mt-2">
+                    {booking.tvInstallations.map((tv: any, index: number) => (
+                      <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-gray-900">
+                            {tv.location}: {tv.tvSize}" TV
+                          </span>
+                          {tv.price && (
+                            <span className="text-sm text-gray-600">€{tv.price}</span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <div>Service: {tv.serviceType.replace('-', ' ')}</div>
+                          {tv.needsWallMount && (
+                            <div>Mount: {tv.wallMountOption || 'Wall Mount Required'}</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Service Type</label>
+                    <p className="text-gray-900">{booking.serviceType}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">TV Size</label>
+                    <p className="text-gray-900">{booking.tvSize}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Wall Type</label>
+                    <p className="text-gray-900">{booking.wallType}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Mount Type</label>
+                    <p className="text-gray-900">{booking.mountType}</p>
+                  </div>
+                </>
+              )}
               <div>
                 <label className="text-sm font-medium text-gray-500">Total Price</label>
                 <p className="text-gray-900 font-semibold">€{booking.estimatedTotal}</p>

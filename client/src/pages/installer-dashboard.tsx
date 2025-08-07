@@ -191,9 +191,9 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
 
   const getMarkerColor = (status: string): string => {
     switch (status) {
-      case 'urgent': return '#ef4444';
-      case 'emergency': return '#dc2626';
-      case 'standard': return '#3b82f6';
+      case 'urgent': return '#fb923c'; // orange-400 to match legend
+      case 'emergency': return '#f87171'; // red-400 to match legend
+      case 'standard': return '#60a5fa'; // blue-400 to match legend
       default: return '#6b7280';
     }
   };

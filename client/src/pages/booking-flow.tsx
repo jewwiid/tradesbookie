@@ -41,14 +41,14 @@ export default function BookingFlow() {
 
   const nextStep = () => {
     // For multi-TV mode, handle automatic TV navigation
-    if (bookingData.tvQuantity > 1 && currentStep >= 3 && currentStep <= 7) {
+    if (bookingData.tvQuantity > 1 && currentStep >= 2 && currentStep <= 7) {
       // If current TV is complete but not all TVs are complete
       if (isCurrentTvComplete() && !areAllTvsComplete()) {
         const nextIncompleteIndex = getNextIncompleteTvIndex();
         if (nextIncompleteIndex !== -1) {
           // Move to next incomplete TV and reset to first TV-specific step (photo upload)
           updateBookingData({ currentTvIndex: nextIncompleteIndex });
-          setCurrentStep(1); // Start from photo upload for each TV
+          setCurrentStep(2); // Start from photo upload for each TV
           return;
         }
       }
@@ -98,9 +98,9 @@ export default function BookingFlow() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return true; // Photo is optional
-      case 2:
         return bookingData.tvQuantity > 0;
+      case 2:
+        return true; // Photo is optional
       case 3:
         // For multi-TV, check current TV's size; for single TV, check legacy field
         if (bookingData.tvQuantity > 1) {
@@ -147,8 +147,6 @@ export default function BookingFlow() {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <PhotoUpload bookingData={bookingData} updateBookingData={updateBookingData} onNext={nextStep} />;
-      case 2:
         return (
           <TVQuantitySelector 
             bookingData={bookingData} 
@@ -157,6 +155,8 @@ export default function BookingFlow() {
             removeTvInstallation={removeTvInstallation}
           />
         );
+      case 2:
+        return <PhotoUpload bookingData={bookingData} updateBookingData={updateBookingData} onNext={nextStep} />;
       case 3:
         return <TVSizeSelector bookingData={bookingData} updateBookingData={updateBookingData} updateTvInstallation={updateTvInstallation} />;
       case 4:

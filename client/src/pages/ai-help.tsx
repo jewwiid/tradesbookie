@@ -37,9 +37,18 @@ interface ElectronicProductComparison {
 }
 
 interface QuestionnaireAnswers {
-  usage: string;
-  experience: string;
-  priorities: string;
+  question1: string;
+  question2: string;
+  question3: string;
+}
+
+interface CategoryQuestion {
+  id: string;
+  question: string;
+  options: Array<{
+    value: string;
+    label: string;
+  }>;
 }
 
 export default function AIHelpPage() {
@@ -53,12 +62,12 @@ export default function AIHelpPage() {
   const [product2, setProduct2] = useState('');
   const [productCategory, setProductCategory] = useState('');
   const [questionnaire, setQuestionnaire] = useState<QuestionnaireAnswers>({
-    usage: '',
-    experience: '',
-    priorities: ''
+    question1: '',
+    question2: '',
+    question3: ''
   });
   const [productComparison, setProductComparison] = useState<ElectronicProductComparison | null>(null);
-  const [questionnaireStep, setQuestionnaireStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0); // 0: models, 1: category, 2: questions
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -106,58 +115,378 @@ export default function AIHelpPage() {
     }
   };
 
-  const questionnaireQuestions = [
-    {
-      id: 'usage',
-      question: 'What will you primarily use this product for?',
-      options: [
-        { value: 'work', label: 'Work & Productivity', description: 'Professional tasks, business use' },
-        { value: 'entertainment', label: 'Entertainment & Media', description: 'Gaming, streaming, multimedia' },
-        { value: 'creativity', label: 'Creative Work', description: 'Design, editing, content creation' },
-        { value: 'daily', label: 'Daily Personal Use', description: 'Communication, web browsing, general use' }
-      ]
-    },
-    {
-      id: 'experience', 
-      question: 'How would you describe your technical experience?',
-      options: [
-        { value: 'beginner', label: 'Beginner', description: 'Prefer simple, easy-to-use products' },
-        { value: 'intermediate', label: 'Intermediate', description: 'Comfortable with most tech features' },
-        { value: 'advanced', label: 'Advanced', description: 'Enjoy advanced features and customization' },
-        { value: 'expert', label: 'Expert', description: 'Want maximum control and technical specs' }
-      ]
-    },
-    {
-      id: 'priorities',
-      question: 'What matters most to you when choosing a product?',
-      options: [
-        { value: 'price', label: 'Best Value for Money', description: 'Budget-conscious, cost-effective choice' },
-        { value: 'performance', label: 'Maximum Performance', description: 'Speed, power, and capabilities' },
-        { value: 'reliability', label: 'Reliability & Support', description: 'Dependable, good warranty, support' },
-        { value: 'features', label: 'Latest Features', description: 'Cutting-edge technology and innovations' }
-      ]
-    }
+  const productCategories = [
+    { value: 'headphones', label: 'Headphones' },
+    { value: 'soundbars', label: 'Soundbars' },
+    { value: 'televisions', label: 'Televisions' },
+    { value: 'robot-vacuums', label: 'Robot Vacuums' },
+    { value: 'washing-machines', label: 'Washing Machines' },
+    { value: 'refrigerators', label: 'Refrigerators' },
+    { value: 'dishwashers', label: 'Dishwashers' },
+    { value: 'microwaves', label: 'Microwaves' },
+    { value: 'electric-kettles', label: 'Electric Kettles' },
+    { value: 'toasters', label: 'Toasters' },
+    { value: 'coffee-makers', label: 'Coffee Makers' }
   ];
+
+  const categoryQuestions: Record<string, CategoryQuestion[]> = {
+    'headphones': [
+      {
+        id: 'question1',
+        question: 'Preferred headphone type?',
+        options: [
+          { value: 'in-ear', label: 'In-ear' },
+          { value: 'on-ear', label: 'On-ear' },
+          { value: 'over-ear', label: 'Over-ear' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Main use-case?',
+        options: [
+          { value: 'commuting', label: 'Commuting/travel' },
+          { value: 'workouts', label: 'Workouts' },
+          { value: 'home', label: 'Home/office' },
+          { value: 'versatile', label: 'Versatile use' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Important features?',
+        options: [
+          { value: 'wireless', label: 'Wireless connectivity' },
+          { value: 'noise-cancel', label: 'Active noise cancellation' },
+          { value: 'battery', label: 'Long battery life' },
+          { value: 'comfort', label: 'Lightweight & comfort' }
+        ]
+      }
+    ],
+    'soundbars': [
+      {
+        id: 'question1',
+        question: 'Desired audio channels?',
+        options: [
+          { value: '2.1-3.1', label: '2.1/3.1' },
+          { value: '5.1', label: '5.1' },
+          { value: 'atmos', label: 'Atmos/DTS:X' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Connection preference?',
+        options: [
+          { value: 'wireless', label: 'Wireless (Bluetooth/Wi-Fi)' },
+          { value: 'hdmi', label: 'HDMI/ARC' },
+          { value: 'optical', label: 'Optical/AUX' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Aesthetic & size considerations?',
+        options: [
+          { value: 'slim', label: 'Slim/low-profile' },
+          { value: 'matches-tv', label: 'Matches TV width' },
+          { value: 'no-preference', label: 'No preference' }
+        ]
+      }
+    ],
+    'televisions': [
+      {
+        id: 'question1',
+        question: 'What matters most in picture quality?',
+        options: [
+          { value: 'resolution', label: 'Resolution (e.g., 4K/8K)' },
+          { value: 'hdr', label: 'HDR' },
+          { value: 'color', label: 'Colour accuracy' },
+          { value: 'not-sure', label: 'Not sure' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Ideal screen size?',
+        options: [
+          { value: 'small', label: '<50 inch' },
+          { value: 'medium', label: '55–65 inch' },
+          { value: 'large', label: '≥65 inch' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Smart-TV needs?',
+        options: [
+          { value: 'advanced', label: 'Advanced apps & voice control' },
+          { value: 'basic', label: 'Basic smart features' },
+          { value: 'none', label: 'No smart features' }
+        ]
+      }
+    ],
+    'robot-vacuums': [
+      {
+        id: 'question1',
+        question: 'Flooring & cleaning needs?',
+        options: [
+          { value: 'hard-floors', label: 'Mostly hard floors' },
+          { value: 'carpet', label: 'Mainly carpet' },
+          { value: 'mixed', label: 'Mixed floors' },
+          { value: 'vacuum-mop', label: 'Vacuum-mop combo' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Navigation preference?',
+        options: [
+          { value: 'random', label: 'Random navigation' },
+          { value: 'smart', label: 'Smart mapping' },
+          { value: 'lidar', label: 'LiDAR/advanced sensors' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Maintenance & features?',
+        options: [
+          { value: 'self-empty', label: 'Self-emptying bin' },
+          { value: 'tangle-free', label: 'Tangle-free roller' },
+          { value: 'quiet', label: 'Quiet operation' },
+          { value: 'none', label: 'None' }
+        ]
+      }
+    ],
+    'washing-machines': [
+      {
+        id: 'question1',
+        question: 'Preferred loading style?',
+        options: [
+          { value: 'front', label: 'Front load' },
+          { value: 'top-agitator', label: 'Top load (agitator)' },
+          { value: 'top-impeller', label: 'Top load (impeller)' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Household size/load size?',
+        options: [
+          { value: 'small', label: 'Small (1–2 people)' },
+          { value: 'medium', label: 'Medium (3–4 people)' },
+          { value: 'large', label: 'Large (5+ people or bulky items)' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Efficiency priorities?',
+        options: [
+          { value: 'high', label: 'High energy & water efficiency' },
+          { value: 'balanced', label: 'Balanced efficiency & price' },
+          { value: 'not-important', label: 'Efficiency not important' }
+        ]
+      }
+    ],
+    'refrigerators': [
+      {
+        id: 'question1',
+        question: 'Household size/storage needs?',
+        options: [
+          { value: 'small', label: '16–18 cu ft' },
+          { value: 'medium', label: '18–20 cu ft' },
+          { value: 'large', label: '>20 cu ft' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Ice maker & dispenser?',
+        options: [
+          { value: 'must-have', label: 'Must have' },
+          { value: 'nice-to-have', label: 'Nice to have' },
+          { value: 'no-thanks', label: 'No thanks' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Energy efficiency preferences?',
+        options: [
+          { value: 'energy-star', label: 'ENERGY STAR & energy saver' },
+          { value: 'standard', label: 'Standard efficiency' },
+          { value: 'unsure', label: 'Unsure' }
+        ]
+      }
+    ],
+    'dishwashers': [
+      {
+        id: 'question1',
+        question: 'Installation preference?',
+        options: [
+          { value: 'built-in', label: 'Built-in' },
+          { value: 'portable', label: 'Portable/countertop' },
+          { value: 'drawer', label: 'Drawer' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Noise & capacity?',
+        options: [
+          { value: 'quiet-large', label: 'Quiet & large capacity' },
+          { value: 'standard', label: 'Standard noise' },
+          { value: 'basic', label: 'Basic capacity/noise not important' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Preferred features?',
+        options: [
+          { value: 'adjustable', label: 'Adjustable racks & soil sensor' },
+          { value: 'drying', label: 'Advanced drying methods' },
+          { value: 'top-control', label: 'Top-control panel' },
+          { value: 'no-special', label: 'No special features' }
+        ]
+      }
+    ],
+    'microwaves': [
+      {
+        id: 'question1',
+        question: 'Installation type?',
+        options: [
+          { value: 'countertop', label: 'Countertop' },
+          { value: 'over-range', label: 'Over-the-range (with ventilation)' },
+          { value: 'built-in', label: 'Built-in' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Capacity & power?',
+        options: [
+          { value: 'compact', label: 'Compact (≤1 cu ft, ~700 W)' },
+          { value: 'mid-size', label: 'Mid-size (~1–1.5 cu ft, ~1,000 W)' },
+          { value: 'large', label: 'Large (>1.5 cu ft, ≥1,200 W)' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Desired features?',
+        options: [
+          { value: 'sensor', label: 'Sensor/automatic cooking' },
+          { value: 'convection', label: 'Convection or multi-purpose' },
+          { value: 'child-lock', label: 'Child lock & turntable off' },
+          { value: 'no-special', label: 'No special features' }
+        ]
+      }
+    ],
+    'electric-kettles': [
+      {
+        id: 'question1',
+        question: 'Capacity needed?',
+        options: [
+          { value: 'small', label: 'Small (<1 L)' },
+          { value: 'medium', label: 'Medium (1–1.5 L)' },
+          { value: 'large', label: 'Large (>1.5 L)' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Preferred features?',
+        options: [
+          { value: 'temp-control', label: 'Temperature control & water level indicator' },
+          { value: 'basic', label: 'Basic on-off with auto-shutoff' },
+          { value: 'swivel', label: '360° swivel base & insulated handle' },
+          { value: 'none', label: 'None' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Material preference?',
+        options: [
+          { value: 'steel', label: 'Stainless steel' },
+          { value: 'glass', label: 'Glass' },
+          { value: 'any', label: 'Any (BPA-free)' }
+        ]
+      }
+    ],
+    'toasters': [
+      {
+        id: 'question1',
+        question: 'How many slots?',
+        options: [
+          { value: '2-slice', label: '2-slice' },
+          { value: '4-slice', label: '4-slice' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Desired functions?',
+        options: [
+          { value: 'basic', label: 'Basic toasting' },
+          { value: 'defrost', label: 'Defrost & reheat' },
+          { value: 'adjustable', label: 'Adjustable browning & cancel button' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Design & cleaning preferences?',
+        options: [
+          { value: 'matches-decor', label: 'Matches kitchen décor' },
+          { value: 'removable-tray', label: 'Removable crumb tray' },
+          { value: 'high-wattage', label: 'High-wattage (fast)' },
+          { value: 'no-preference', label: 'No preference' }
+        ]
+      }
+    ],
+    'coffee-makers': [
+      {
+        id: 'question1',
+        question: 'Preferred brewing method?',
+        options: [
+          { value: 'drip', label: 'Drip coffee maker' },
+          { value: 'single-serve', label: 'Single-serve pod machine' },
+          { value: 'manual', label: 'Manual (French press/pour-over)' },
+          { value: 'hybrid', label: 'Hybrid coffee & espresso' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Typical brew size?',
+        options: [
+          { value: 'single', label: 'Single cup' },
+          { value: 'small', label: '2–4 cups' },
+          { value: 'large', label: '10+ cups' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Important features?',
+        options: [
+          { value: 'programmable', label: 'Programmable timer & auto-shutoff' },
+          { value: 'custom', label: 'Custom brew strength or temperature' },
+          { value: 'grinder', label: 'Built-in grinder or milk frother' },
+          { value: 'basic', label: 'Basic machine' }
+        ]
+      }
+    ]
+  };
 
   const handleQuestionnaireAnswer = (questionId: string, value: string) => {
     setQuestionnaire(prev => ({ ...prev, [questionId]: value }));
   };
 
-  const handleQuestionnaireNext = () => {
-    if (questionnaireStep < questionnaireQuestions.length - 1) {
-      setQuestionnaireStep(questionnaireStep + 1);
+  const handleNextStep = () => {
+    if (currentStep < 2) {
+      setCurrentStep(currentStep + 1);
     }
   };
 
-  const handleQuestionnairePrev = () => {
-    if (questionnaireStep > 0) {
-      setQuestionnaireStep(questionnaireStep - 1);
+  const handlePrevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
+  };
+
+  const canProceedFromModels = product1.trim() && product2.trim();
+  const canProceedFromCategory = productCategory.trim();
+  const canProceedFromQuestions = questionnaire.question1 && questionnaire.question2 && questionnaire.question3;
+  
+  const getCurrentQuestions = () => {
+    return categoryQuestions[productCategory] || [];
   };
 
   const handleElectronicsCompare = () => {
-    if (product1.trim() && product2.trim() && productCategory.trim() && 
-        questionnaire.usage && questionnaire.experience && questionnaire.priorities) {
+    if (canProceedFromModels && canProceedFromCategory && canProceedFromQuestions) {
       compareElectronics.mutate({ 
         product1: product1.trim(), 
         product2: product2.trim(), 
@@ -171,13 +500,10 @@ export default function AIHelpPage() {
     setProduct1('');
     setProduct2('');
     setProductCategory('');
-    setQuestionnaire({ usage: '', experience: '', priorities: '' });
+    setQuestionnaire({ question1: '', question2: '', question3: '' });
     setProductComparison(null);
-    setQuestionnaireStep(0);
+    setCurrentStep(0);
   };
-
-  const isQuestionnaireComplete = questionnaire.usage && questionnaire.experience && questionnaire.priorities;
-  const currentQuestion = questionnaireQuestions[questionnaireStep];
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -447,147 +773,200 @@ export default function AIHelpPage() {
             <div className="p-6 space-y-6">
               {!productComparison ? (
                 <>
-                  {/* Questionnaire Section */}
-                  <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-                    <h3 className="text-lg font-bold text-blue-900 mb-4 text-center">
-                      Step {questionnaireStep + 1} of {questionnaireQuestions.length}: Tell us about your needs
-                    </h3>
-                    
-                    <div className="mb-4">
-                      <div className="w-full bg-blue-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                          style={{ width: `${((questionnaireStep + 1) / questionnaireQuestions.length) * 100}%` }}
-                        ></div>
-                      </div>
+                  {/* Progress Bar */}
+                  <div className="mb-6">
+                    <div className="flex justify-between text-sm text-gray-500 mb-2">
+                      <span className={currentStep >= 0 ? 'text-purple-600 font-medium' : ''}>Models</span>
+                      <span className={currentStep >= 1 ? 'text-purple-600 font-medium' : ''}>Category</span>
+                      <span className={currentStep >= 2 ? 'text-purple-600 font-medium' : ''}>Questions</span>
                     </div>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-center">{currentQuestion.question}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {currentQuestion.options.map((option) => (
-                            <div
-                              key={option.value}
-                              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                                questionnaire[currentQuestion.id as keyof QuestionnaireAnswers] === option.value
-                                  ? 'border-blue-500 bg-blue-50'
-                                  : 'border-gray-300 hover:border-blue-300'
-                              }`}
-                              onClick={() => handleQuestionnaireAnswer(currentQuestion.id, option.value)}
-                            >
-                              <div className="flex items-center mb-2">
-                                <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                                  questionnaire[currentQuestion.id as keyof QuestionnaireAnswers] === option.value
-                                    ? 'border-blue-500 bg-blue-500'
-                                    : 'border-gray-300'
-                                }`}>
-                                  {questionnaire[currentQuestion.id as keyof QuestionnaireAnswers] === option.value && (
-                                    <div className="w-full h-full rounded-full bg-white scale-50"></div>
-                                  )}
-                                </div>
-                                <span className="font-medium">{option.label}</span>
-                              </div>
-                              <p className="text-sm text-gray-600 ml-7">{option.description}</p>
-                            </div>
-                          ))}
-                        </div>
-
-                        <div className="flex justify-between mt-6">
-                          <Button
-                            onClick={handleQuestionnairePrev}
-                            disabled={questionnaireStep === 0}
-                            variant="outline"
-                          >
-                            Previous
-                          </Button>
-                          <Button
-                            onClick={handleQuestionnaireNext}
-                            disabled={!questionnaire[currentQuestion.id as keyof QuestionnaireAnswers] || questionnaireStep === questionnaireQuestions.length - 1}
-                          >
-                            Next
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-purple-600 h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${((currentStep + 1) / 3) * 100}%` }}
+                      ></div>
+                    </div>
                   </div>
 
-                  {/* Product Input Section - Only show if questionnaire is complete */}
-                  {isQuestionnaireComplete && (
-                    <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                      <h3 className="text-lg font-bold text-green-900 mb-4 text-center">
-                        Great! Now enter the products you want to compare
+                  {/* Step 1: Model Numbers */}
+                  {currentStep === 0 && (
+                    <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                      <h3 className="text-lg font-bold text-blue-900 mb-4 text-center">
+                        Step 1: Enter Product Model Numbers
                       </h3>
+                      <p className="text-blue-700 text-center mb-6">
+                        Enter the exact model numbers or product codes you want to compare
+                      </p>
                       
-                      <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Product Category
+                            First Product Model/Code
                           </label>
                           <Input
-                            placeholder="e.g., Laptops, Smartphones, Headphones, Tablets"
-                            value={productCategory}
-                            onChange={(e) => setProductCategory(e.target.value)}
+                            placeholder="e.g., WH-1000XM5, QN55Q60TAFXZA"
+                            value={product1}
+                            onChange={(e) => setProduct1(e.target.value)}
                             className="w-full"
                           />
                         </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              First Product
-                            </label>
-                            <Input
-                              placeholder="e.g., MacBook Pro M3, iPhone 15 Pro"
-                              value={product1}
-                              onChange={(e) => setProduct1(e.target.value)}
-                              className="w-full"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Second Product
-                            </label>
-                            <Input
-                              placeholder="e.g., Dell XPS 15, Samsung Galaxy S24"
-                              value={product2}
-                              onChange={(e) => setProduct2(e.target.value)}
-                              className="w-full"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="text-center space-y-3">
-                          <Button
-                            onClick={handleElectronicsCompare}
-                            disabled={!product1.trim() || !product2.trim() || !productCategory.trim() || compareElectronics.isPending}
-                            className="w-full bg-purple-600 hover:bg-purple-700"
-                            size="lg"
-                          >
-                            {compareElectronics.isPending ? (
-                              <div className="flex items-center">
-                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                                Analyzing Products
-                                <span className="animate-pulse">...</span>
-                              </div>
-                            ) : (
-                              'Compare Products with AI Analysis'
-                            )}
-                          </Button>
-                          
-                          <Button
-                            onClick={resetElectronicsComparison}
-                            variant="outline"
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Second Product Model/Code
+                          </label>
+                          <Input
+                            placeholder="e.g., OLED55C1PUB, AirPods Pro"
+                            value={product2}
+                            onChange={(e) => setProduct2(e.target.value)}
                             className="w-full"
-                          >
-                            Reset & Start Over
-                          </Button>
+                          />
                         </div>
+                      </div>
+
+                      <div className="text-center">
+                        <Button
+                          onClick={handleNextStep}
+                          disabled={!canProceedFromModels}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Select Category
+                        </Button>
                       </div>
                     </div>
                   )}
+
+                  {/* Step 2: Product Category */}
+                  {currentStep === 1 && (
+                    <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                      <h3 className="text-lg font-bold text-green-900 mb-4 text-center">
+                        Step 2: Select Product Category
+                      </h3>
+                      <p className="text-green-700 text-center mb-6">
+                        Choose the category that best matches your products
+                      </p>
+                      
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Product Category
+                        </label>
+                        <select
+                          value={productCategory}
+                          onChange={(e) => setProductCategory(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="">Select a category...</option>
+                          {productCategories.map((category) => (
+                            <option key={category.value} value={category.value}>
+                              {category.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <Button
+                          onClick={handlePrevStep}
+                          variant="outline"
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          onClick={handleNextStep}
+                          disabled={!canProceedFromCategory}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Answer Questions
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 3: Category-Specific Questions */}
+                  {currentStep === 2 && productCategory && (
+                    <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
+                      <h3 className="text-lg font-bold text-orange-900 mb-4 text-center">
+                        Step 3: Answer Category Questions
+                      </h3>
+                      <p className="text-orange-700 text-center mb-6">
+                        Help us understand your specific needs for {productCategories.find(c => c.value === productCategory)?.label}
+                      </p>
+                      
+                      <div className="space-y-6">
+                        {getCurrentQuestions().map((question, index) => (
+                          <Card key={question.id}>
+                            <CardHeader>
+                              <CardTitle className="text-base">
+                                Question {index + 1}: {question.question}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {question.options.map((option) => (
+                                  <div
+                                    key={option.value}
+                                    className={`p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                                      questionnaire[question.id as keyof QuestionnaireAnswers] === option.value
+                                        ? 'border-purple-500 bg-purple-50'
+                                        : 'border-gray-300 hover:border-purple-300'
+                                    }`}
+                                    onClick={() => handleQuestionnaireAnswer(question.id, option.value)}
+                                  >
+                                    <div className="flex items-center">
+                                      <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                                        questionnaire[question.id as keyof QuestionnaireAnswers] === option.value
+                                          ? 'border-purple-500 bg-purple-500'
+                                          : 'border-gray-300'
+                                      }`}>
+                                        {questionnaire[question.id as keyof QuestionnaireAnswers] === option.value && (
+                                          <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                                        )}
+                                      </div>
+                                      <span className="font-medium">{option.label}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+
+                      <div className="flex justify-between mt-6">
+                        <Button
+                          onClick={handlePrevStep}
+                          variant="outline"
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          onClick={handleElectronicsCompare}
+                          disabled={!canProceedFromQuestions || compareElectronics.isPending}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          {compareElectronics.isPending ? (
+                            <div className="flex items-center">
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                              Analyzing Products
+                              <span className="animate-pulse">...</span>
+                            </div>
+                          ) : (
+                            'Compare Products with AI Analysis'
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reset Button - Always Available */}
+                  <div className="text-center">
+                    <Button
+                      onClick={resetElectronicsComparison}
+                      variant="outline"
+                      className="text-gray-600 hover:text-gray-800"
+                    >
+                      Reset & Start Over
+                    </Button>
+                  </div>
                 </>
               ) : (
                 /* Comparison Results */

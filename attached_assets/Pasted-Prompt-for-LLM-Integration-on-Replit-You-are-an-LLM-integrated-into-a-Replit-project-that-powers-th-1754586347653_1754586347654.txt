@@ -1,0 +1,187 @@
+Prompt for LLM Integration on Replit
+
+You are an LLM integrated into a Replit project that powers the AI comparison tool on Tracebook.ie.  Your task is to transform the questionnaire design described below into an interactive component.  Follow these steps:
+	1.	Collect product model numbers – create two input fields where the user enters or scans the model numbers/product codes of the two products they wish to compare.  These codes will be used to look up specifications and pricing.
+	2.	Select the product category – provide a drop‑down list of product categories (e.g., headphones, soundbars, televisions, robot vacuums, washing machines, refrigerators, dishwashers, microwaves, electric kettles, toasters, coffee makers).  Once a category is selected, load the relevant set of three questions.
+	3.	Display category‑specific questions – present the three multiple‑choice questions associated with the chosen category.  Each question should include predefined answer options.  Capture the user’s selections.
+	4.	Invoke the recommendation engine – send the product codes and the user’s responses as structured inputs to the AI comparison engine to generate a recommendation.  Display the outcome and highlight which product better suits the customer’s needs.
+
+Below is the questionnaire design with schematics and question sets for each category.  Use this information to dynamically generate the questions after the user selects a category.  Do not display all questions at once; only show the relevant set.
+
+⸻
+
+Questionnaire Design
+
+Headphones
+
+Schematic: over‑ear vs on‑ear vs in‑ear styles ￼; consider usage (commuting, workouts, home) ￼; choose wired or wireless ￼; evaluate noise cancellation ￼ and battery life ￼.
+
+Question 1: Preferred headphone type?
+Options: In‑ear / On‑ear / Over‑ear ￼
+
+Question 2: Main use‑case?
+Options: Commuting/travel / Workouts / Home/office / Versatile use ￼
+
+Question 3: Important features?
+Options: Wireless connectivity / Active noise cancellation / Long battery life / Lightweight & comfort ￼ ￼
+
+⸻
+
+Soundbars
+
+Schematic: choose channel configuration (2.1/3.1, 5.1, Atmos) ￼; support for Dolby Atmos/DTS:X ￼; design and size to match the TV ￼; connection method (wireless or wired) ￼.
+
+Question 1: Desired audio channels?
+Options: 2.1/3.1 / 5.1 / Atmos/DTS:X ￼
+
+Question 2: Connection preference?
+Options: Wireless (Bluetooth/Wi‑Fi) / HDMI/ARC / Optical/AUX ￼
+
+Question 3: Aesthetic & size considerations?
+Options: Slim/low‑profile / Matches TV width / No preference ￼
+
+⸻
+
+Televisions
+
+Schematic: evaluate picture quality (resolution, HDR) ￼; select screen size based on viewing distance ￼; consider design and smart features ￼; assess built‑in sound quality ￼.
+
+Question 1: What matters most in picture quality?
+Options: Resolution (e.g., 4K/8K) / HDR / Colour accuracy / Not sure
+
+Question 2: Ideal screen size?
+Options: <50 inch / 55–65 inch / ≥65 inch ￼
+
+Question 3: Smart‑TV needs?
+Options: Advanced apps & voice control / Basic smart features / No smart features ￼
+
+⸻
+
+Robot Vacuums
+
+Schematic: consider floor type and whether mopping is needed ￼; compare navigation systems (random vs smart mapping vs LiDAR) ￼; look at maintenance features such as self‑emptying bins and tangle‑free rollers ￼.
+
+Question 1: Flooring & cleaning needs?
+Options: Mostly hard floors / Mainly carpet / Mixed floors / Vacuum‑mop combo ￼
+
+Question 2: Navigation preference?
+Options: Random navigation / Smart mapping / LiDAR/advanced sensors ￼
+
+Question 3: Maintenance & features?
+Options: Self‑emptying bin / Tangle‑free roller / Quiet operation / None ￼
+
+⸻
+
+Washing Machines
+
+Schematic: choose capacity and drum size based on household ￼; look at energy (IMEF) and water efficiency (IWF) scores ￼; select loading style (front load vs top load) ￼.
+
+Question 1: Preferred loading style?
+Options: Front load / Top load (agitator) / Top load (impeller) ￼
+
+Question 2: Household size/load size?
+Options: Small (1–2 people) / Medium (3–4 people) / Large (5+ people or bulky items) ￼
+
+Question 3: Efficiency priorities?
+Options: High energy & water efficiency / Balanced efficiency & price / Efficiency not important ￼
+
+⸻
+
+Refrigerators
+
+Schematic: pick the right capacity (16–20 cu ft) ￼; decide on ice maker/dispenser (adds 14–20 % energy use) ￼; ensure ENERGY STAR certification and energy saver switch ￼; note that top‑mount freezer models are most efficient ￼.
+
+Question 1: Household size/storage needs?
+Options: 16–18 cu ft / 18–20 cu ft / >20 cu ft ￼
+
+Question 2: Ice maker & dispenser?
+Options: Must have / Nice to have / No thanks ￼
+
+Question 3: Energy efficiency preferences?
+Options: ENERGY STAR & energy saver / Standard efficiency / Unsure ￼
+
+⸻
+
+Dishwashers
+
+Schematic: choose installation type (built‑in, portable, drawer) ￼; account for noise (quiet ≤50 dB) ￼; consider adjustable racks, soil sensors and drying methods (heated, fan‑assisted, condensation) ￼; decide on top‑control vs front‑control panel ￼.
+
+Question 1: Installation preference?
+Options: Built‑in / Portable/countertop / Drawer ￼
+
+Question 2: Noise & capacity?
+Options: Quiet & large capacity / Standard noise / Basic capacity/noise not important ￼
+
+Question 3: Preferred features?
+Options: Adjustable racks & soil sensor / Advanced drying methods / Top‑control panel / No special features ￼ ￼
+
+⸻
+
+Microwaves
+
+Schematic: decide between countertop, over‑the‑range or built‑in models ￼; choose capacity and wattage (0.5–2 cu ft, 700–1,200 W) ￼ ￼; look for features like sensor cooking, convection, child lock and the option to stop the turntable ￼.
+
+Question 1: Installation type?
+Options: Countertop / Over‑the‑range (with ventilation) / Built‑in ￼
+
+Question 2: Capacity & power?
+Options: Compact (≤1 cu ft, ~700 W) / Mid‑size (~1–1.5 cu ft, ~1,000 W) / Large (>1.5 cu ft, ≥1,200 W) ￼ ￼
+
+Question 3: Desired features?
+Options: Sensor/automatic cooking / Convection or multi‑purpose / Child lock & turntable off / No special features ￼
+
+⸻
+
+Electric Kettles
+
+Schematic: choose capacity (0.7 L to 1.8 L) ￼; decide on temperature control, auto‑shutoff and water‑level indicators ￼; pick materials (stainless steel, glass) and ensure BPA‑free ￼ ￼; look for swivel bases, insulated handles, boil‑dry protection and auto cut‑off ￼ ￼.
+
+Question 1: Capacity needed?
+Options: Small (<1 L) / Medium (1–1.5 L) / Large (>1.5 L) ￼
+
+Question 2: Preferred features?
+Options: Temperature control & water level indicator / Basic on‑off with auto‑shutoff / 360° swivel base & insulated handle / None ￼ ￼
+
+Question 3: Material preference?
+Options: Stainless steel / Glass / Any (BPA‑free) ￼ ￼
+
+⸻
+
+Toasters
+
+Schematic: determine slot count (2 vs 4) ￼; identify functions such as defrost, reheat, adjustable browning and cancel button ￼; decide if the toaster will heat other foods besides bread ￼; consider aesthetics and removable crumb tray for easy cleaning ￼; high wattage means faster toasting ￼.
+
+Question 1: How many slots?
+Options: 2‑slice / 4‑slice ￼
+
+Question 2: Desired functions?
+Options: Basic toasting / Defrost & reheat / Adjustable browning & cancel button ￼
+
+Question 3: Design & cleaning preferences?
+Options: Matches kitchen décor / Removable crumb tray / High‑wattage (fast) / No preference ￼ ￼
+
+⸻
+
+Coffee Makers
+
+Schematic: decide between programmable electric drip, manual (French press/pour‑over), pod systems or hybrid coffee‑espresso machines ￼; choose brew size (single cup vs 10‑cup carafe) ￼; look for thermal carafe and programmable timer ￼; consider advanced features like built‑in grinders, milk frothers, brew‑strength control and cleaning alerts ￼.
+
+Question 1: Preferred brewing method?
+Options: Drip coffee maker / Single‑serve pod machine / Manual (French press/pour‑over) / Hybrid coffee & espresso ￼
+
+Question 2: Typical brew size?
+Options: Single cup / 2–4 cups / 10+ cups ￼
+
+Question 3: Important features?
+Options: Programmable timer & auto‑shutoff / Custom brew strength or temperature / Built‑in grinder or milk frother / Basic machine ￼
+
+⸻
+
+Output Format
+
+When building this on Replit, structure the data so that each category’s questions and answer options can be easily retrieved via a key (e.g., use a JSON object or dictionary).  The AI recommendation engine should receive an object containing:
+	•	model1 and model2: the product codes entered by the user.
+	•	category: one of the categories listed above.
+	•	responses: an array of the user’s answer choices for the three questions.
+
+Use this object to query the back‑end AI and return the comparison results to the user.

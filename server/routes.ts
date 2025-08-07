@@ -10127,9 +10127,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         });
       }
 
-      if (!questionnaire.usage || !questionnaire.experience || !questionnaire.priorities) {
+      if (!questionnaire.question1 || !questionnaire.question2 || !questionnaire.question3) {
         return res.status(400).json({ 
-          error: "Questionnaire must include usage, experience, and priorities" 
+          error: "Questionnaire must include answers to all three category questions" 
         });
       }
 

@@ -3,9 +3,9 @@ if (!process.env.PERPLEXITY_API_KEY) {
 }
 
 interface QuestionnaireAnswers {
-  usage: string; // What they'll use the product for
-  experience: string; // Their technical experience level
-  priorities: string; // Their main priorities (price, performance, features, etc.)
+  question1: string; // Category-specific question 1 answer
+  question2: string; // Category-specific question 2 answer
+  question3: string; // Category-specific question 3 answer
 }
 
 interface ProductComparisonResult {
@@ -30,10 +30,10 @@ export async function compareElectronicProducts(
 ): Promise<ProductComparisonResult> {
   
   const personalizedContext = `
-User Profile:
-- Primary usage: ${questionnaire.usage}
-- Technical experience: ${questionnaire.experience}
-- Main priorities: ${questionnaire.priorities}
+User Profile based on ${productCategory} category questions:
+- Answer 1: ${questionnaire.question1}
+- Answer 2: ${questionnaire.question2}
+- Answer 3: ${questionnaire.question3}
 `;
 
   const prompt = `Compare these two ${productCategory} products and provide a comprehensive analysis with current 2024-2025 market information, personalized for this specific user:
@@ -64,10 +64,12 @@ Focus on current information including:
 - Compatibility and ecosystem considerations
 - Long-term value and future-proofing
 
-Tailor the comparison specifically to:
-- Their usage pattern: ${questionnaire.usage}
-- Their technical level: ${questionnaire.experience}
-- Their priorities: ${questionnaire.priorities}
+Tailor the comparison specifically to their answers for ${productCategory}:
+- Question 1 response: ${questionnaire.question1}
+- Question 2 response: ${questionnaire.question2}
+- Question 3 response: ${questionnaire.question3}
+
+Use these specific responses to provide highly personalized recommendations that align with their stated preferences for this product category.
 
 Please provide current pricing information and availability status. Respond with valid JSON in this exact format:
 {

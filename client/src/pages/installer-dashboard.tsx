@@ -96,6 +96,9 @@ interface ClientRequest {
   customerTotal?: string;
   preferredDate?: string;
   preferredTime?: string;
+  // Multi-TV support
+  tvInstallations?: any[];
+  tvQuantity?: number;
 }
 
 // Interactive Map Component for Ireland
@@ -347,7 +350,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
               <div style="font-size: 14px; line-height: 1.4;">
                 <strong>${request.address}</strong><br>
                 <span style="color: #666;">€${request.leadFee} lead fee</span><br>
-                <span style="color: #666;">${request.tvSize}" ${request.serviceType}</span><br>
+                <span style="color: #666;">${request.tvQuantity && request.tvQuantity > 1 ? request.tvSize : `${request.tvSize}" ${request.serviceType}`}</span><br>
                 <span style="color: ${getMarkerColor(request.status)}; font-weight: bold; text-transform: uppercase;">${request.status}</span>
               </div>
             `)
@@ -533,7 +536,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
                     <div className="grid grid-cols-2 gap-4 text-sm text-slate-600">
                       <div className="flex items-center gap-2">
                         <Monitor className="w-4 h-4" />
-                        <span>{request.tvSize}" {request.serviceType}</span>
+                        <span>{request.tvQuantity && request.tvQuantity > 1 ? request.tvSize : `${request.tvSize}" ${request.serviceType}`}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Euro className="w-4 h-4" />
@@ -648,12 +651,31 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-2">
-            <div><span className="font-medium">Wall:</span> {request.wallType}</div>
-            <div><span className="font-medium">Mount:</span> {request.mountType}</div>
-            <div><span className="font-medium">Difficulty:</span> {request.difficulty}</div>
-            <div><span className="font-medium">Total:</span> €{request.estimatedTotal}</div>
-          </div>
+          {request.tvQuantity && request.tvQuantity > 1 ? (
+            // Multi-TV display
+            <div className="mt-2">
+              <div className="text-sm font-medium text-gray-700 mb-2">
+                {request.tvQuantity} TV Installation
+              </div>
+              <div className="text-xs text-gray-600 space-y-1">
+                <div>Services: {request.serviceType}</div>
+                <div>Wall Types: {request.wallType}</div>
+                <div>Mount Types: {request.mountType}</div>
+                <div>Difficulty: {request.difficulty}</div>
+              </div>
+              <div className="text-sm font-medium text-gray-700 mt-2">
+                Total: €{request.estimatedTotal}
+              </div>
+            </div>
+          ) : (
+            // Single TV display
+            <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-2">
+              <div><span className="font-medium">Wall:</span> {request.wallType}</div>
+              <div><span className="font-medium">Mount:</span> {request.mountType}</div>
+              <div><span className="font-medium">Difficulty:</span> {request.difficulty}</div>
+              <div><span className="font-medium">Total:</span> €{request.estimatedTotal}</div>
+            </div>
+          )}
 
           <div className="flex items-center space-x-2 text-gray-600">
             <User className="w-4 h-4" />
@@ -735,32 +757,81 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
               {/* Service Details */}
               <div className="border rounded-lg p-3 sm:p-4">
                 <h3 className="font-semibold mb-3 text-base sm:text-lg">Service Specifications</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">TV Size</label>
-                    <p className="text-sm sm:text-base font-bold">{request.tvSize}" Television</p>
+                
+                {request.tvQuantity && request.tvQuantity > 1 && request.tvInstallations ? (
+                  /* Multi-TV Installation Details */
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Tv className="w-5 h-5 text-primary" />
+                      <span className="font-semibold text-base">Multiple TV Installation ({request.tvQuantity} TVs)</span>
+                    </div>
+                    
+                    {request.tvInstallations.map((tv: any, index: number) => (
+                      <div key={index} className="p-3 bg-gray-50 rounded-lg border-l-4 border-primary">
+                        <h4 className="font-medium text-sm mb-2">TV {index + 1} ({tv.location || `TV ${index + 1}`})</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+                          <div>
+                            <span className="font-medium text-gray-600">Size:</span> {tv.tvSize}"
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Service:</span> {tv.serviceType}
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Wall:</span> {tv.wallType}
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Mount:</span> {tv.mountType}
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Wall Mount:</span> {tv.needsWallMount ? 'Required' : 'Not needed'}
+                          </div>
+                          {tv.basePrice && (
+                            <div>
+                              <span className="font-medium text-gray-600">Price:</span> €{tv.basePrice}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="pt-2 border-t">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-xs sm:text-sm font-medium text-gray-600">Installation Difficulty</label>
+                          <p className="text-sm sm:text-base capitalize">{request.difficulty}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Service Type</label>
-                    <p className="text-sm sm:text-base capitalize break-words">{request.serviceType?.replace('-', ' ') || 'Standard Installation'}</p>
+                ) : (
+                  /* Single TV Installation Details */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">TV Size</label>
+                      <p className="text-sm sm:text-base font-bold">{request.tvSize}" Television</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Service Type</label>
+                      <p className="text-sm sm:text-base capitalize break-words">{request.serviceType?.replace('-', ' ') || 'Standard Installation'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Type</label>
+                      <p className="text-sm sm:text-base capitalize">{request.wallType}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Mount Type</label>
+                      <p className="text-sm sm:text-base capitalize">{request.mountType}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Installation Difficulty</label>
+                      <p className="text-sm sm:text-base capitalize">{request.difficulty}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Mount Required</label>
+                      <p className="text-sm sm:text-base">{request.needsWallMount ? 'Yes' : 'No'}</p>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Type</label>
-                    <p className="text-sm sm:text-base capitalize">{request.wallType}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Mount Type</label>
-                    <p className="text-sm sm:text-base capitalize">{request.mountType}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Installation Difficulty</label>
-                    <p className="text-sm sm:text-base capitalize">{request.difficulty}</p>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Mount Required</label>
-                    <p className="text-sm sm:text-base">{request.needsWallMount ? 'Yes' : 'No'}</p>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* Pricing Breakdown */}

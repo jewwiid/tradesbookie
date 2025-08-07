@@ -77,12 +77,22 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         throw new Error('No room photo available');
       }
       
+      // For multi-TV, use the first TV's data for AI preview
+      const tvData = bookingData.tvQuantity > 1 && bookingData.tvInstallations.length > 0 
+        ? bookingData.tvInstallations[0] 
+        : {
+            tvSize: bookingData.tvSize,
+            mountType: bookingData.mountType,
+            wallType: bookingData.wallType,
+            addons: bookingData.addons || []
+          };
+      
       const response = await apiRequest('POST', '/api/generate-ai-preview', {
         imageBase64: bookingData.roomPhotoBase64,
-        tvSize: bookingData.tvSize,
-        mountType: bookingData.mountType,
-        wallType: bookingData.wallType,
-        selectedAddons: bookingData.addons || []
+        tvSize: tvData.tvSize,
+        mountType: tvData.mountType,
+        wallType: tvData.wallType,
+        selectedAddons: tvData.addons || []
       });
       return response.json();
     },
@@ -116,33 +126,65 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       });
       const user = await userResponse.json();
 
-      // Then create booking with proper schema mapping
-      const bookingResponse = await apiRequest('POST', '/api/bookings', {
-        userId: user.id.toString(),
-        contactName: data.contact.name,
-        contactPhone: data.contact.phone,
-        contactEmail: data.contact.email,
-        tvSize: data.tvSize.toString(),
-        serviceType: data.serviceType || 'bronze',
-        wallType: data.wallType,
-        mountType: data.mountType,
-        needsWallMount: data.needsWallMount || false,
-        wallMountOption: data.wallMountOption || null,
-        addons: data.addons || [],
-        preferredDate: data.preferredDate || null,
-        preferredTime: data.preferredTime || null,
-        address: data.contact.address,
-        roomPhotoUrl: data.roomPhotoBase64 ? `data:image/jpeg;base64,${data.roomPhotoBase64}` : null,
-        aiPreviewUrl: data.aiPreviewUrl || null,
-        roomAnalysis: data.roomAnalysis ? JSON.stringify(data.roomAnalysis) : null,
-        photoStorageConsent: data.photoStorageConsent || false,
-        estimatedPrice: data.totalPrice ? data.totalPrice.toFixed(2) : "0.00",
-        estimatedAddonsPrice: data.addonTotal ? data.addonTotal.toFixed(2) : "0.00",
-        estimatedTotal: data.totalPrice ? data.totalPrice.toFixed(2) : "0.00",
-        customerNotes: data.customerNotes || null,
-        referralCode: data.referralCode || null,
-        referralDiscount: data.referralDiscount || 0
-      });
+      // Calculate total price
+      const totalPrice = calculateTotalPrice(data);
+
+      // Prepare booking data based on whether it's single or multi-TV
+      let bookingPayload;
+      
+      if (data.tvQuantity > 1 && data.tvInstallations && data.tvInstallations.length > 0) {
+        // Multi-TV booking - send tvInstallations array
+        bookingPayload = {
+          userId: user.id.toString(),
+          contactName: data.contact.name,
+          contactPhone: data.contact.phone,
+          contactEmail: data.contact.email,
+          tvQuantity: data.tvQuantity,
+          tvInstallations: data.tvInstallations,
+          preferredDate: data.preferredDate || null,
+          preferredTime: data.preferredTime || null,
+          address: data.contact.address,
+          roomPhotoUrl: data.roomPhotoBase64 ? `data:image/jpeg;base64,${data.roomPhotoBase64}` : null,
+          aiPreviewUrl: data.aiPreviewUrl || null,
+          roomAnalysis: data.roomAnalysis ? JSON.stringify(data.roomAnalysis) : null,
+          photoStorageConsent: data.photoStorageConsent || false,
+          estimatedTotal: totalPrice.toFixed(2),
+          customerNotes: data.customerNotes || null,
+          referralCode: data.referralCode || null,
+          referralDiscount: data.referralDiscount || 0
+        };
+      } else {
+        // Single TV booking - use legacy fields
+        bookingPayload = {
+          userId: user.id.toString(),
+          contactName: data.contact.name,
+          contactPhone: data.contact.phone,
+          contactEmail: data.contact.email,
+          tvSize: data.tvSize.toString(),
+          serviceType: data.serviceType || 'bronze',
+          wallType: data.wallType,
+          mountType: data.mountType,
+          needsWallMount: data.needsWallMount || false,
+          wallMountOption: data.wallMountOption || null,
+          addons: data.addons || [],
+          preferredDate: data.preferredDate || null,
+          preferredTime: data.preferredTime || null,
+          address: data.contact.address,
+          roomPhotoUrl: data.roomPhotoBase64 ? `data:image/jpeg;base64,${data.roomPhotoBase64}` : null,
+          aiPreviewUrl: data.aiPreviewUrl || null,
+          roomAnalysis: data.roomAnalysis ? JSON.stringify(data.roomAnalysis) : null,
+          photoStorageConsent: data.photoStorageConsent || false,
+          estimatedPrice: data.basePrice ? data.basePrice.toFixed(2) : "0.00",
+          estimatedAddonsPrice: (data.addons || []).reduce((sum: number, addon: any) => sum + addon.price, 0).toFixed(2),
+          estimatedTotal: totalPrice.toFixed(2),
+          customerNotes: data.customerNotes || null,
+          referralCode: data.referralCode || null,
+          referralDiscount: data.referralDiscount || 0
+        };
+      }
+
+      // Create booking with appropriate payload
+      const bookingResponse = await apiRequest('POST', '/api/bookings', bookingPayload);
       
       return bookingResponse.json();
     },
@@ -525,22 +567,68 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         <CardContent className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Booking Summary</h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">TV Size:</span>
-              <span className="font-medium">{bookingData.tvSize}"</span>
-            </div>
-            {bookingData.serviceType && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Service:</span>
-                <span className="font-medium">€{bookingData.basePrice}</span>
-              </div>
+            {bookingData.tvQuantity > 1 && bookingData.tvInstallations.length > 0 ? (
+              // Multi-TV booking summary
+              <>
+                <div className="flex justify-between font-medium">
+                  <span className="text-muted-foreground">TVs to Install:</span>
+                  <span>{bookingData.tvQuantity} TVs</span>
+                </div>
+                <div className="space-y-3 mt-4">
+                  {bookingData.tvInstallations.map((tv, index) => (
+                    <div key={tv.id} className="p-3 bg-background rounded-lg border">
+                      <div className="font-medium text-foreground mb-2">
+                        TV {index + 1} ({tv.location || `TV ${index + 1}`})
+                      </div>
+                      <div className="space-y-1 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Size & Service:</span>
+                          <span>{tv.tvSize}" {tv.serviceType}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Base Price:</span>
+                          <span>€{tv.basePrice || 0}</span>
+                        </div>
+                        {tv.addons && tv.addons.length > 0 && (
+                          <div className="space-y-1">
+                            {tv.addons.map((addon, addonIndex) => (
+                              <div key={addonIndex} className="flex justify-between">
+                                <span className="text-muted-foreground">{addon.name}:</span>
+                                <span>€{addon.price}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex justify-between font-medium pt-1 border-t">
+                          <span>TV {index + 1} Total:</span>
+                          <span>€{((tv.basePrice || 0) + (tv.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0))}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              // Single TV booking summary
+              <>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">TV Size:</span>
+                  <span className="font-medium">{bookingData.tvSize}"</span>
+                </div>
+                {bookingData.serviceType && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Service:</span>
+                    <span className="font-medium">€{bookingData.basePrice}</span>
+                  </div>
+                )}
+                {bookingData.addons?.map((addon) => (
+                  <div key={addon.key} className="flex justify-between">
+                    <span className="text-muted-foreground">{addon.name}:</span>
+                    <span className="font-medium">€{addon.price}</span>
+                  </div>
+                ))}
+              </>
             )}
-            {bookingData.addons?.map((addon) => (
-              <div key={addon.key} className="flex justify-between">
-                <span className="text-muted-foreground">{addon.name}:</span>
-                <span className="font-medium">€{addon.price}</span>
-              </div>
-            ))}
             {bookingData.referralDiscount && bookingData.referralDiscount > 0 && (
               <div className="flex justify-between text-green-600">
                 <span className="text-muted-foreground">Harvey Norman Discount (10%):</span>

@@ -3768,14 +3768,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Transform bookings with lead access protection
       const requests = availableRequests.map(booking => {
+        // Handle multi-TV vs single TV data
+        let tvInfo, serviceInfo, totalPrice, installerEarnings;
+        
+        if (booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0) {
+          // Multi-TV booking
+          const tvCount = booking.tvInstallations.length;
+          const tvSizes = booking.tvInstallations.map((tv: any) => tv.tvSize).join(', ');
+          const services = booking.tvInstallations.map((tv: any) => tv.serviceType).join(', ');
+          
+          tvInfo = `${tvCount} TVs (${tvSizes}")`;
+          serviceInfo = services;
+          totalPrice = booking.estimatedTotal || booking.totalPrice;
+          installerEarnings = (parseFloat(totalPrice || '0') * 0.75).toFixed(0);
+        } else {
+          // Single TV booking (legacy)
+          tvInfo = booking.tvSize;
+          serviceInfo = booking.serviceType;
+          totalPrice = booking.totalPrice;
+          installerEarnings = (parseFloat(totalPrice || '0') * 0.75).toFixed(0);
+        }
+        
         // Base information available to all installers
         const baseInfo = {
           id: booking.id,
           customerId: booking.userId || 0,
-          tvSize: booking.tvSize,
-          serviceType: booking.serviceType,
-          totalPrice: booking.totalPrice,
-          installerEarnings: (parseFloat(booking.totalPrice) * 0.75).toFixed(0), // 75% commission  
+          tvSize: tvInfo,
+          serviceType: serviceInfo,
+          totalPrice: totalPrice,
+          estimatedTotal: totalPrice,
+          installerEarnings: installerEarnings, // 75% commission  
           preferredDate: booking.scheduledDate,
           preferredTime: "14:00", // Default time
           urgency: "standard", // Default urgency
@@ -3786,7 +3808,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "pending",
           leadFee: 25, // Lead fee required to access full details
           isPurchasable: true,
-          coordinates: { lat: 53.3498, lng: -6.2603 } // Default Dublin coordinates
+          coordinates: { lat: 53.3498, lng: -6.2603 }, // Default Dublin coordinates
+          tvInstallations: booking.tvInstallations || null,
+          tvQuantity: booking.tvInstallations ? booking.tvInstallations.length : 1
         };
 
         // For demo accounts, hide sensitive customer information 

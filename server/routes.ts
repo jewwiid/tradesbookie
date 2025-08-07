@@ -35,6 +35,7 @@ import { getWebsiteMetrics } from "./analyticsService";
 import { requestPasswordReset, resetPassword } from "./passwordResetService";
 import { askQuestion, getPopularQuestions, updateFaqAnswer, deactivateFaqAnswer } from "./faqService";
 import { compareTVModels } from "./tvComparisonService";
+import { compareElectronicProducts } from "./electronicProductComparisonService";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -10110,6 +10111,34 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       console.error("Error comparing TV models:", error);
       res.status(500).json({ 
         error: "Failed to compare TV models", 
+        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      });
+    }
+  });
+
+  // AI Electronic Product Comparison endpoint
+  app.post("/api/ai/compare-electronics", async (req, res) => {
+    try {
+      const { product1, product2, productCategory, questionnaire } = req.body;
+      
+      if (!product1 || !product2 || !productCategory || !questionnaire) {
+        return res.status(400).json({ 
+          error: "Product 1, Product 2, product category, and questionnaire answers are required" 
+        });
+      }
+
+      if (!questionnaire.usage || !questionnaire.experience || !questionnaire.priorities) {
+        return res.status(400).json({ 
+          error: "Questionnaire must include usage, experience, and priorities" 
+        });
+      }
+
+      const comparison = await compareElectronicProducts(product1, product2, productCategory, questionnaire);
+      res.json(comparison);
+    } catch (error) {
+      console.error("Error comparing electronic products:", error);
+      res.status(500).json({ 
+        error: "Failed to compare electronic products", 
         message: error instanceof Error ? error.message : "Unknown error occurred" 
       });
     }

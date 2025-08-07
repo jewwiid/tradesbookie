@@ -33,6 +33,16 @@ interface Booking {
   contactName: string;
   installerId?: number;
   createdAt?: string;
+  installer?: {
+    id: number;
+    businessName: string;
+    contactName: string;
+    phone: string;
+    profileImageUrl?: string;
+    averageRating: number;
+    totalReviews: number;
+    serviceArea: string;
+  };
 }
 
 interface InterestedInstaller {
@@ -1172,6 +1182,69 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
             {getStatusText(booking.status)}
           </Badge>
         </div>
+
+        {/* Installer Information - Show when installer is assigned */}
+        {booking.installer && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0">
+                {booking.installer.profileImageUrl ? (
+                  <img 
+                    src={booking.installer.profileImageUrl} 
+                    alt={booking.installer.businessName}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center">
+                    <User className="w-6 h-6" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 truncate">
+                      {booking.installer.businessName}
+                    </h4>
+                    <p className="text-sm text-gray-600 truncate">
+                      {booking.installer.contactName}
+                    </p>
+                    {booking.installer.totalReviews > 0 && (
+                      <div className="flex items-center mt-1">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="text-sm text-gray-600 ml-1">
+                          {booking.installer.averageRating.toFixed(1)} ({booking.installer.totalReviews} reviews)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {booking.installer.phone && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(`tel:${booking.installer!.phone}`, '_self')}
+                        className="text-xs"
+                      >
+                        <Phone className="w-3 h-3 mr-1" />
+                        Call
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setLocation(`/installer/${booking.installer!.id}`)}
+                      className="text-xs"
+                    >
+                      <ChevronRight className="w-3 h-3 mr-1" />
+                      Profile
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           <div className="flex items-center">

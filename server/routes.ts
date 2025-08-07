@@ -1576,7 +1576,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookings = await storage.getUserBookings(req.user.id);
       }
 
-      res.json(bookings);
+      // Enhance bookings with installer information if assigned
+      const enhancedBookings = await Promise.all(
+        bookings.map(async (booking) => {
+          if (booking.installerId) {
+            try {
+              const installer = await storage.getInstallerById(booking.installerId);
+              if (installer) {
+                return {
+                  ...booking,
+                  installer: {
+                    id: installer.id,
+                    businessName: installer.businessName,
+                    contactName: installer.contactName,
+                    phone: installer.phone,
+                    profileImageUrl: installer.profileImageUrl,
+                    averageRating: installer.averageRating || 0,
+                    totalReviews: installer.totalReviews || 0,
+                    serviceArea: installer.serviceArea
+                  }
+                };
+              }
+            } catch (error) {
+              console.error(`Error fetching installer ${booking.installerId}:`, error);
+            }
+          }
+          return booking;
+        })
+      );
+
+      res.json(enhancedBookings);
     } catch (error) {
       console.error("Error fetching authenticated user bookings:", error);
       res.status(500).json({ message: "Failed to fetch bookings" });

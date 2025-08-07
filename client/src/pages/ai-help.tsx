@@ -67,7 +67,7 @@ export default function AIHelpPage() {
     question3: ''
   });
   const [productComparison, setProductComparison] = useState<ElectronicProductComparison | null>(null);
-  const [currentStep, setCurrentStep] = useState(0); // 0: models, 1: category, 2: questions
+  const [currentStep, setCurrentStep] = useState(0); // 0: category, 1: models, 2: questions
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -508,8 +508,8 @@ export default function AIHelpPage() {
     }
   };
 
-  const canProceedFromModels = product1.trim() && product2.trim();
   const canProceedFromCategory = productCategory.trim();
+  const canProceedFromModels = product1.trim() && product2.trim();
   const canProceedFromQuestions = questionnaire.question1 && questionnaire.question2 && questionnaire.question3;
   
   const getCurrentQuestions = () => {
@@ -517,13 +517,84 @@ export default function AIHelpPage() {
   };
 
   const handleElectronicsCompare = () => {
-    if (canProceedFromModels && canProceedFromCategory && canProceedFromQuestions) {
+    if (canProceedFromCategory && canProceedFromModels && canProceedFromQuestions) {
       compareElectronics.mutate({ 
         product1: product1.trim(), 
         product2: product2.trim(), 
         productCategory: productCategory.trim(),
         questionnaire 
       });
+    }
+  };
+
+  // Dynamic placeholders based on category
+  const getPlaceholders = () => {
+    switch(productCategory) {
+      case 'headphones':
+        return {
+          first: 'e.g., Sony WH-1000XM5, Bose QuietComfort 45',
+          second: 'e.g., Audio-Technica ATH-M50x, Sennheiser HD 660S'
+        };
+      case 'earphones':
+        return {
+          first: 'e.g., Apple AirPods Pro, Sony WF-1000XM4',
+          second: 'e.g., Samsung Galaxy Buds Pro, Jabra Elite 85t'
+        };
+      case 'soundbars':
+        return {
+          first: 'e.g., Samsung HW-Q950A, Sonos Arc',
+          second: 'e.g., Bose Smart Soundbar 900, JBL Bar 9.1'
+        };
+      case 'televisions':
+        return {
+          first: 'e.g., Samsung QN55Q60TAFXZA, LG OLED55C1PUB',
+          second: 'e.g., Sony XR55A80J, Hisense 55U8G'
+        };
+      case 'robot-vacuums':
+        return {
+          first: 'e.g., iRobot Roomba i7+, Roborock S7',
+          second: 'e.g., Shark IQ Robot, Eufy RoboVac 11S'
+        };
+      case 'washing-machines':
+        return {
+          first: 'e.g., LG WM3900HWA, Samsung WF45R6300AW',
+          second: 'e.g., Whirlpool WTW8127LC, Bosch WAW285H2UC'
+        };
+      case 'refrigerators':
+        return {
+          first: 'e.g., Samsung RF23M8070SR, LG LMXS30776S',
+          second: 'e.g., Whirlpool WRS325SDHZ, Bosch B36CL80ENS'
+        };
+      case 'dishwashers':
+        return {
+          first: 'e.g., Bosch SHPM88Z75N, KitchenAid KDTM404KPS',
+          second: 'e.g., Miele G7106SCUSS, GE GDT695SSJSS'
+        };
+      case 'microwaves':
+        return {
+          first: 'e.g., Panasonic NN-SN966S, Breville BMO850BSS',
+          second: 'e.g., Toshiba EM131A5C-BS, Sharp R-21LCFS'
+        };
+      case 'electric-kettles':
+        return {
+          first: 'e.g., Breville BKE820XL, Cuisinart CPK-17P1',
+          second: 'e.g., Hamilton Beach 40880, OXO On Barista Brain'
+        };
+      case 'toasters':
+        return {
+          first: 'e.g., Breville BTA840XL, KitchenAid KMT4116CU',
+          second: 'e.g., Cuisinart CPT-440, Black+Decker TR1278B'
+        };
+      case 'coffee-makers':
+        return {
+          first: 'e.g., Breville BES870XL, Cuisinart DCC-3200P1',
+          second: 'e.g., Keurig K-Elite, Ninja CM401'
+        };
+      default:
+        return {
+          first: 'e.g., WH-1000XM5, QN55Q60TAFXZA',
+          second: 'e.g., OLED55C1PUB, AirPods Pro'
+        };
     }
   };
 
@@ -816,8 +887,8 @@ export default function AIHelpPage() {
                   {/* Progress Bar */}
                   <div className="mb-6">
                     <div className="flex justify-between text-sm text-gray-500 mb-2">
-                      <span className={currentStep >= 0 ? 'text-purple-600 font-medium' : ''}>Models</span>
-                      <span className={currentStep >= 1 ? 'text-purple-600 font-medium' : ''}>Category</span>
+                      <span className={currentStep >= 0 ? 'text-purple-600 font-medium' : ''}>Category</span>
+                      <span className={currentStep >= 1 ? 'text-purple-600 font-medium' : ''}>Models</span>
                       <span className={currentStep >= 2 ? 'text-purple-600 font-medium' : ''}>Questions</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
@@ -828,68 +899,14 @@ export default function AIHelpPage() {
                     </div>
                   </div>
 
-                  {/* Step 1: Model Numbers */}
+                  {/* Step 1: Product Category */}
                   {currentStep === 0 && (
                     <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
                       <h3 className="text-lg font-bold text-blue-900 mb-4 text-center">
-                        Step 1: Enter Product Model Numbers
+                        Step 1: Select Product Category
                       </h3>
-                      <p className="text-blue-700 text-center mb-4">
-                        Enter the exact model numbers or product codes you want to compare
-                      </p>
-                      
-                      {/* Model Number Disclaimer */}
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
-                        <p className="text-sm text-amber-800 text-center">
-                          <strong>Tip:</strong> The model number or product code can be found underneath the price on the ticket shown in store.
-                        </p>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            First Product Model/Code
-                          </label>
-                          <Input
-                            placeholder="e.g., WH-1000XM5, QN55Q60TAFXZA"
-                            value={product1}
-                            onChange={(e) => setProduct1(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Second Product Model/Code
-                          </label>
-                          <Input
-                            placeholder="e.g., OLED55C1PUB, AirPods Pro"
-                            value={product2}
-                            onChange={(e) => setProduct2(e.target.value)}
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="text-center">
-                        <Button
-                          onClick={handleNextStep}
-                          disabled={!canProceedFromModels}
-                          className="bg-purple-600 hover:bg-purple-700"
-                        >
-                          Next: Select Category
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Step 2: Product Category */}
-                  {currentStep === 1 && (
-                    <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-                      <h3 className="text-lg font-bold text-green-900 mb-4 text-center">
-                        Step 2: Select Product Category
-                      </h3>
-                      <p className="text-green-700 text-center mb-6">
-                        Choose the category that best matches your products
+                      <p className="text-blue-700 text-center mb-6">
+                        Choose the category that best matches the products you want to compare
                       </p>
                       
                       <div className="mb-6">
@@ -910,6 +927,60 @@ export default function AIHelpPage() {
                         </select>
                       </div>
 
+                      <div className="text-center">
+                        <Button
+                          onClick={handleNextStep}
+                          disabled={!canProceedFromCategory}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Enter Product Models
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 2: Model Numbers */}
+                  {currentStep === 1 && (
+                    <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                      <h3 className="text-lg font-bold text-green-900 mb-4 text-center">
+                        Step 2: Enter Product Model Numbers
+                      </h3>
+                      <p className="text-green-700 text-center mb-4">
+                        Enter the exact model numbers or product codes for {productCategories.find(c => c.value === productCategory)?.label} you want to compare
+                      </p>
+                      
+                      {/* Model Number Disclaimer */}
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
+                        <p className="text-sm text-amber-800 text-center">
+                          <strong>Tip:</strong> The model number or product code can be found underneath the price on the ticket shown in store.
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            First Product Model/Code
+                          </label>
+                          <Input
+                            placeholder={getPlaceholders().first}
+                            value={product1}
+                            onChange={(e) => setProduct1(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Second Product Model/Code
+                          </label>
+                          <Input
+                            placeholder={getPlaceholders().second}
+                            value={product2}
+                            onChange={(e) => setProduct2(e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+
                       <div className="space-y-3">
                         <Button
                           onClick={handlePrevStep}
@@ -920,7 +991,7 @@ export default function AIHelpPage() {
                         </Button>
                         <Button
                           onClick={handleNextStep}
-                          disabled={!canProceedFromCategory}
+                          disabled={!canProceedFromModels}
                           className="w-full bg-purple-600 hover:bg-purple-700"
                         >
                           Next: Answer Questions

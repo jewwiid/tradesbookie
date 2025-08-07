@@ -11,9 +11,10 @@ import { BookingData } from "@/lib/booking-store";
 interface PhotoUploadProps {
   bookingData: BookingData;
   updateBookingData: (data: Partial<BookingData>) => void;
+  onNext?: () => void;
 }
 
-export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUploadProps) {
+export default function PhotoUpload({ bookingData, updateBookingData, onNext }: PhotoUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -667,7 +668,10 @@ export default function PhotoUpload({ bookingData, updateBookingData }: PhotoUpl
       <div className="text-center">
         <Button 
           variant="outline" 
-          onClick={() => updateBookingData({ roomPhotoBase64: undefined, roomAnalysis: undefined, photoStorageConsent: false })}
+          onClick={() => {
+            updateBookingData({ roomPhotoBase64: undefined, roomAnalysis: undefined, photoStorageConsent: false });
+            onNext?.();
+          }}
           className="text-muted-foreground hover:text-foreground"
         >
           Skip this step

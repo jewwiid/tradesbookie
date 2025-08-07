@@ -103,7 +103,7 @@ export default function BookingFlow() {
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <PhotoUpload bookingData={bookingData} updateBookingData={updateBookingData} />;
+        return <PhotoUpload bookingData={bookingData} updateBookingData={updateBookingData} onNext={nextStep} />;
       case 2:
         return (
           <TVQuantitySelector 

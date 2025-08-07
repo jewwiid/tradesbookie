@@ -1141,12 +1141,21 @@ export default function AIHelpPage() {
               provide hands-on help to get everything working perfectly.
             </p>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
-              <a
-                href="/consultation-booking"
-                className="inline-flex items-center justify-center px-4 py-2 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors text-sm"
+              <Button
+                onClick={() => {
+                  if (comparison || productComparison) {
+                    window.location.href = "/consultation-booking";
+                  }
+                }}
+                disabled={!comparison && !productComparison}
+                className={`px-4 py-2 font-medium rounded-lg transition-colors text-sm ${
+                  comparison || productComparison
+                    ? "bg-orange-600 text-white hover:bg-orange-700"
+                    : "bg-gray-400 text-gray-200 cursor-not-allowed"
+                }`}
               >
-                Book Consultation
-              </a>
+                {comparison || productComparison ? "Book Consultation" : "Use AI Tools First"}
+              </Button>
               <a
                 href="mailto:support@tradesbook.ie"
                 className="inline-flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm sm:text-base"

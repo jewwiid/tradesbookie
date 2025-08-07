@@ -246,10 +246,15 @@ export default function AIHelpWidget() {
               variant="default"
               size="sm"
               onClick={() => window.location.href = "/consultation-booking"}
-              className="bg-green-600 hover:bg-green-700 h-7 sm:h-8 text-xs"
+              disabled={messages.length <= 1}
+              className={`h-7 sm:h-8 text-xs ${
+                messages.length > 1 
+                  ? "bg-green-600 hover:bg-green-700" 
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
             >
               <Phone className="h-3 w-3 mr-1" />
-              Book Consultation
+              {messages.length > 1 ? "Book Consultation" : "Ask AI First"}
             </Button>
           </div>
         </CardContent>

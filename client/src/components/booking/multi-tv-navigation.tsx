@@ -76,7 +76,7 @@ export default function MultiTVNavigation({
                 </div>
                 <div className="flex-1 text-left">
                   <div className="font-medium">{tv.location || `TV ${index + 1}`}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className={`text-xs ${index === bookingData.currentTvIndex ? 'text-white/90' : 'text-muted-foreground'}`}>
                     {tv.tvSize ? `${tv.tvSize}" TV` : "Not configured"}
                   </div>
                 </div>

@@ -699,94 +699,94 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
 
         {/* Detailed Booking Information Dialog */}
         <Dialog open={showDetails} onOpenChange={setShowDetails}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby="booking-details-description">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full" aria-describedby="booking-details-description">
             <DialogHeader>
-              <DialogTitle>Complete Booking Details</DialogTitle>
-              <DialogDescription id="booking-details-description">
+              <DialogTitle className="text-lg sm:text-xl">Complete Booking Details</DialogTitle>
+              <DialogDescription id="booking-details-description" className="text-sm sm:text-base">
                 Comprehensive information about this installation request
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Customer Information */}
-              <div className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-3">Customer Information</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Customer Name</label>
-                    <p className="mt-1">{request.customerName || 'Customer details available after lead purchase'}</p>
+              <div className="border rounded-lg p-3 sm:p-4">
+                <h3 className="font-semibold mb-3 text-base sm:text-lg">Customer Information</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Customer Name</label>
+                    <p className="text-sm sm:text-base break-words">{request.customerName || 'Customer details available after lead purchase'}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Contact Phone</label>
-                    <p className="mt-1">{request.customerPhone || 'Customer details available after lead purchase'}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Contact Phone</label>
+                    <p className="text-sm sm:text-base break-words">{request.customerPhone || 'Customer details available after lead purchase'}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Installation Address</label>
-                    <p className="mt-1">{request.address}</p>
+                  <div className="space-y-1 sm:col-span-2">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Installation Address</label>
+                    <p className="text-sm sm:text-base break-words">{request.address}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Distance from You</label>
-                    <p className="mt-1">{(distance || request.distance) ? `${distance || request.distance}km away` : 'Calculating...'}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Distance from You</label>
+                    <p className="text-sm sm:text-base">{(distance || request.distance) ? `${distance || request.distance}km away` : 'Calculating...'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Service Details */}
-              <div className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-3">Service Specifications</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">TV Size</label>
-                    <p className="mt-1 font-bold">{request.tvSize}" Television</p>
+              <div className="border rounded-lg p-3 sm:p-4">
+                <h3 className="font-semibold mb-3 text-base sm:text-lg">Service Specifications</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">TV Size</label>
+                    <p className="text-sm sm:text-base font-bold">{request.tvSize}" Television</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Service Type</label>
-                    <p className="mt-1 capitalize">{request.serviceType?.replace('-', ' ') || 'Standard Installation'}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Service Type</label>
+                    <p className="text-sm sm:text-base capitalize break-words">{request.serviceType?.replace('-', ' ') || 'Standard Installation'}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Wall Type</label>
-                    <p className="mt-1 capitalize">{request.wallType}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Type</label>
+                    <p className="text-sm sm:text-base capitalize">{request.wallType}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Mount Type</label>
-                    <p className="mt-1 capitalize">{request.mountType}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Mount Type</label>
+                    <p className="text-sm sm:text-base capitalize">{request.mountType}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Installation Difficulty</label>
-                    <p className="mt-1 capitalize">{request.difficulty}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Installation Difficulty</label>
+                    <p className="text-sm sm:text-base capitalize">{request.difficulty}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Wall Mount Required</label>
-                    <p className="mt-1">{request.needsWallMount ? 'Yes' : 'No'}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Mount Required</label>
+                    <p className="text-sm sm:text-base">{request.needsWallMount ? 'Yes' : 'No'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Pricing Breakdown */}
-              <div className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-3">Pricing & Earnings</h3>
-                <div className="grid grid-cols-2 gap-6">
+              <div className="border rounded-lg p-3 sm:p-4">
+                <h3 className="font-semibold mb-3 text-base sm:text-lg">Pricing & Earnings</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                   <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Customer Total:</span>
-                      <span className="font-medium">€{request.estimatedTotal || request.customerTotal || request.totalPrice}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs sm:text-sm text-gray-600">Customer Total:</span>
+                      <span className="font-medium text-sm sm:text-base">€{request.estimatedTotal || request.customerTotal || request.totalPrice}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Lead Fee (You Pay):</span>
-                      <span className="font-medium text-red-600">-€{request.leadFee}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs sm:text-sm text-gray-600">Lead Fee (You Pay):</span>
+                      <span className="font-medium text-red-600 text-sm sm:text-base">-€{request.leadFee}</span>
                     </div>
-                    <div className="flex justify-between border-t pt-2">
-                      <span className="font-medium text-gray-900">Your Earnings:</span>
-                      <span className="font-bold text-lg text-green-600">€{request.estimatedEarnings}</span>
+                    <div className="flex justify-between items-center border-t pt-2">
+                      <span className="font-medium text-gray-900 text-sm sm:text-base">Your Earnings:</span>
+                      <span className="font-bold text-base sm:text-lg text-green-600">€{request.estimatedEarnings}</span>
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Profit Margin:</span>
-                      <span className="font-medium text-green-600">{Math.round(request.profitMargin)}%</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs sm:text-sm text-gray-600">Profit Margin:</span>
+                      <span className="font-medium text-green-600 text-sm sm:text-base">{Math.round(request.profitMargin)}%</span>
                     </div>
-                    <div className="p-3 bg-green-50 rounded">
-                      <p className="text-sm text-green-800">
+                    <div className="p-2 sm:p-3 bg-green-50 rounded">
+                      <p className="text-xs sm:text-sm text-green-800">
                         Customer pays you directly: €{request.estimatedEarnings}
                       </p>
                     </div>
@@ -795,31 +795,31 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
               </div>
 
               {/* Scheduling Information */}
-              <div className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-3">Scheduling Details</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Preferred Date</label>
-                    <p className="mt-1">
+              <div className="border rounded-lg p-3 sm:p-4">
+                <h3 className="font-semibold mb-3 text-base sm:text-lg">Scheduling Details</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Preferred Date</label>
+                    <p className="text-sm sm:text-base break-words">
                       {request.preferredDate ? 
                         new Date(request.preferredDate).toLocaleDateString('en-IE', {
-                          weekday: 'long',
+                          weekday: 'short',
                           year: 'numeric',
-                          month: 'long',
+                          month: 'short',
                           day: 'numeric'
                         }) : request.scheduledDate ? 
                         new Date(request.scheduledDate).toLocaleDateString('en-IE', {
-                          weekday: 'long',
+                          weekday: 'short',
                           year: 'numeric',
-                          month: 'long',
+                          month: 'short',
                           day: 'numeric'
                         }) : 'Flexible'
                       }
                     </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Preferred Time</label>
-                    <p className="mt-1">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Preferred Time</label>
+                    <p className="text-sm sm:text-base">
                       {request.preferredTime ? 
                         `${request.preferredTime} - ${
                           request.preferredTime === '09:00' ? '11:00' :
@@ -832,79 +832,88 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                       }
                     </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Request Created</label>
-                    <p className="mt-1">
-                      {request.createdAt && new Date(request.createdAt).toLocaleDateString('en-IE')} at {request.createdAt && new Date(request.createdAt).toLocaleTimeString('en-IE')}
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Request Created</label>
+                    <p className="text-sm sm:text-base">
+                      {request.createdAt && new Date(request.createdAt).toLocaleDateString('en-IE')} {request.createdAt && new Date(request.createdAt).toLocaleTimeString('en-IE', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Urgency Level</label>
-                    <p className="mt-1">
-                      <Badge className={
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Urgency Level</label>
+                    <div className="flex items-center">
+                      <Badge className={`text-xs sm:text-sm ${
                         request.status === 'emergency' ? 'bg-red-500 text-white' : 
                         request.status === 'urgent' ? 'bg-orange-500 text-white' : 
                         request.status === 'confirmed' ? 'bg-green-500 text-white' : 
                         request.status === 'open' ? 'bg-blue-500 text-white' : 'bg-gray-500 text-white'
-                      }>
+                      }`}>
                         {request.status === 'emergency' ? 'Emergency' :
                          request.status === 'urgent' ? 'Urgent' : 
                          request.status === 'confirmed' ? 'Confirmed' :
                          request.status === 'open' ? 'Standard' : 
                          request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                       </Badge>
-                    </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Customer Notes */}
               {request.notes && (
-                <div className="border rounded-lg p-4">
-                  <h3 className="font-semibold mb-3">Customer Notes</h3>
-                  <p className="text-sm bg-gray-50 p-3 rounded">{request.notes}</p>
+                <div className="border rounded-lg p-3 sm:p-4">
+                  <h3 className="font-semibold mb-3 text-base sm:text-lg">Customer Notes</h3>
+                  <p className="text-xs sm:text-sm bg-gray-50 p-2 sm:p-3 rounded break-words">{request.notes}</p>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="flex justify-between items-center pt-4 border-t">
-                <div className="flex space-x-2">
-                  <Button variant="outline" onClick={() => setShowDetails(false)}>
-                    Close
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => {
-                      const encodedAddress = encodeURIComponent(request.address);
-                      window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
-                    }}
-                  >
-                    <MapPin className="w-4 h-4 mr-1" />
-                    View on Map
-                  </Button>
-                </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowDetails(false);
-                      onDecline(request.id);
-                    }}
-                    className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Pass on This Lead
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setShowDetails(false);
-                      onAccept(request.id);
-                    }}
-                    className="bg-green-600 hover:bg-green-700 text-white"
-                  >
-                    <Check className="w-4 h-4 mr-1" />
-                    Purchase Lead (€{request.leadFee})
-                  </Button>
+              <div className="space-y-3 pt-4 border-t">
+                {/* Mobile: Stack buttons vertically, Desktop: Side by side */}
+                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowDetails(false)}
+                      className="w-full sm:w-auto text-sm"
+                    >
+                      Close
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        const encodedAddress = encodeURIComponent(request.address);
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
+                      }}
+                      className="w-full sm:w-auto text-sm"
+                    >
+                      <MapPin className="w-4 h-4 mr-1" />
+                      View on Map
+                    </Button>
+                  </div>
+                  
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowDetails(false);
+                        onDecline(request.id);
+                      }}
+                      className="w-full sm:w-auto text-sm hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Pass on This Lead
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowDetails(false);
+                        onAccept(request.id);
+                      }}
+                      className="w-full sm:w-auto text-sm bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Check className="w-4 h-4 mr-1" />
+                      Purchase Lead (€{request.leadFee})
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

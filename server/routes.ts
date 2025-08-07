@@ -9360,18 +9360,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Update booking status to completed
       await storage.updateBookingStatus(booking.id, 'completed');
       
-      // Calculate and add earnings to installer wallet
-      const pricing = calculatePricing(booking.serviceType, booking.addons || []);
-      const estimatedEarnings = pricing.totalEstimate * 0.7; // 70% commission
-      
-      const walletService = new (await import('./installerWalletService.js')).InstallerWalletService();
-      await walletService.addTransaction(parseInt(installerId), {
-        type: 'job_earnings',
-        amount: estimatedEarnings.toString(),
-        description: `Job completion earnings for booking #${booking.id} (${booking.qrCode})`,
-        jobAssignmentId: jobAssignmentId,
-        status: 'completed'
-      });
+      // Note: Installer payment is handled directly by customer, no platform wallet transaction needed
       
       // Send completion notifications
       try {
@@ -9393,7 +9382,6 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       res.json({ 
         success: true, 
         message: 'Installation marked as complete successfully',
-        earnings: estimatedEarnings,
         bookingId: booking.id,
         completedAt: new Date()
       });

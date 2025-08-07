@@ -981,13 +981,13 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
       return response;
     },
     onSuccess: (data) => {
-      setCompletionSuccess(`Installation completed successfully! You earned €${data.earnings.toFixed(2)}`);
+      setCompletionSuccess('Installation completed successfully! Payment will be handled directly with the customer.');
       setVerificationData(null);
       setScanError('');
       refetchCompletedJobs(); // Refresh completed jobs list
       toast({
         title: "Installation Completed!",
-        description: `Job marked as complete. You earned €${data.earnings.toFixed(2)}`,
+        description: "Job marked as complete. Payment handled directly with customer.",
       });
     },
     onError: (error: any) => {

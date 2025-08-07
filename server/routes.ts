@@ -9269,6 +9269,176 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // QR Code verification and job completion endpoints
+  // Verify QR code belongs to installer's assigned job
+  app.post('/api/installer/verify-qr-code', async (req, res) => {
+    try {
+      const { qrCode, installerId } = req.body;
+      
+      if (!qrCode || !installerId) {
+        return res.status(400).json({ error: 'QR code and installer ID are required' });
+      }
+      
+      // Find booking by QR code
+      const bookings = await storage.getAllBookings();
+      const booking = bookings.find(b => b.qrCode === qrCode);
+      
+      if (!booking) {
+        return res.status(404).json({ error: 'Invalid QR code - booking not found' });
+      }
+      
+      // Check if installer is assigned to this booking
+      const jobAssignments = await storage.getBookingJobAssignments(booking.id);
+      const installerAssignment = jobAssignments.find(job => 
+        job.installerId === parseInt(installerId) && job.status === 'accepted'
+      );
+      
+      if (!installerAssignment) {
+        return res.status(403).json({ 
+          error: 'You are not assigned to this installation or have not accepted the job',
+          isAssigned: false
+        });
+      }
+      
+      // Check if job is already completed
+      if (installerAssignment.status === 'completed') {
+        return res.status(400).json({ 
+          error: 'This installation has already been marked as complete',
+          alreadyCompleted: true
+        });
+      }
+      
+      res.json({ 
+        valid: true, 
+        booking: {
+          id: booking.id,
+          qrCode: booking.qrCode,
+          customerName: booking.customerName,
+          address: booking.address,
+          serviceType: booking.serviceType,
+          scheduledDate: booking.scheduledDate
+        },
+        jobAssignmentId: installerAssignment.id
+      });
+    } catch (error) {
+      console.error('Error verifying QR code:', error);
+      res.status(500).json({ error: 'Failed to verify QR code' });
+    }
+  });
+  
+  // Mark installation as complete via QR verification
+  app.post('/api/installer/complete-installation', async (req, res) => {
+    try {
+      const { qrCode, installerId, jobAssignmentId } = req.body;
+      
+      if (!qrCode || !installerId || !jobAssignmentId) {
+        return res.status(400).json({ error: 'QR code, installer ID, and job assignment ID are required' });
+      }
+      
+      // Verify the QR code and assignment again for security
+      const bookings = await storage.getAllBookings();
+      const booking = bookings.find(b => b.qrCode === qrCode);
+      
+      if (!booking) {
+        return res.status(404).json({ error: 'Invalid QR code - booking not found' });
+      }
+      
+      const jobAssignments = await storage.getBookingJobAssignments(booking.id);
+      const installerAssignment = jobAssignments.find(job => 
+        job.id === jobAssignmentId && 
+        job.installerId === parseInt(installerId) && 
+        job.status === 'accepted'
+      );
+      
+      if (!installerAssignment) {
+        return res.status(403).json({ error: 'Invalid job assignment' });
+      }
+      
+      // Mark job as completed
+      await storage.updateJobStatus(jobAssignmentId, 'completed');
+      
+      // Update booking status to completed
+      await storage.updateBookingStatus(booking.id, 'completed');
+      
+      // Calculate and add earnings to installer wallet
+      const pricing = calculatePricing(booking.serviceType, booking.addons || []);
+      const estimatedEarnings = pricing.totalEstimate * 0.7; // 70% commission
+      
+      const walletService = new (await import('./installerWalletService.js')).InstallerWalletService();
+      await walletService.addTransaction(parseInt(installerId), {
+        type: 'job_earnings',
+        amount: estimatedEarnings.toString(),
+        description: `Job completion earnings for booking #${booking.id} (${booking.qrCode})`,
+        jobAssignmentId: jobAssignmentId,
+        status: 'completed'
+      });
+      
+      // Send completion notifications
+      try {
+        const { sendCompletionNotification } = await import('./emailService.js');
+        await sendCompletionNotification(
+          booking.customerEmail,
+          booking.customerName,
+          {
+            ...booking,
+            installationDate: new Date().toISOString(),
+            installerName: 'Professional Installer'
+          }
+        );
+      } catch (emailError) {
+        console.error('Failed to send completion notification:', emailError);
+        // Don't fail the completion for email errors
+      }
+      
+      res.json({ 
+        success: true, 
+        message: 'Installation marked as complete successfully',
+        earnings: estimatedEarnings,
+        bookingId: booking.id,
+        completedAt: new Date()
+      });
+    } catch (error) {
+      console.error('Error completing installation:', error);
+      res.status(500).json({ error: 'Failed to complete installation' });
+    }
+  });
+  
+  // Get installer's completed jobs
+  app.get('/api/installer/:id/completed-jobs', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const jobAssignments = await storage.getInstallerJobAssignments(parseInt(id));
+      
+      const completedJobs = jobAssignments
+        .filter(job => job.status === 'completed')
+        .sort((a, b) => new Date(b.completedDate || 0).getTime() - new Date(a.completedDate || 0).getTime());
+      
+      // Get booking details for each completed job
+      const completedJobsWithDetails = await Promise.all(
+        completedJobs.map(async (job) => {
+          const booking = await storage.getBooking(job.bookingId);
+          return {
+            ...job,
+            booking: booking ? {
+              id: booking.id,
+              qrCode: booking.qrCode,
+              customerName: booking.customerName,
+              address: booking.address,
+              serviceType: booking.serviceType,
+              estimatedTotal: booking.estimatedTotal,
+              scheduledDate: booking.scheduledDate
+            } : null
+          };
+        })
+      );
+      
+      res.json(completedJobsWithDetails);
+    } catch (error) {
+      console.error('Error fetching completed jobs:', error);
+      res.status(500).json({ error: 'Failed to fetch completed jobs' });
+    }
+  });
+
   // Geocoded installations endpoint for maps
   app.get('/api/installations/geocoded', async (req, res) => {
     try {

@@ -21,6 +21,7 @@ import PastLeadsManagement from "@/components/installer/PastLeadsManagement";
 import InstallerReviews from "@/components/installer/InstallerReviews";
 import VoucherStatus from "@/components/installer/VoucherStatus";
 import LeadPurchaseDialog from "@/components/installer/LeadPurchaseDialog";
+import QRScanner from "@/components/installer/QRScanner";
 
 import { 
   Bolt, 
@@ -924,10 +925,243 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
   );
 }
 
+// Job Completion Section Component
+function JobCompletionSection({ installerId }: { installerId?: number }) {
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanError, setScanError] = useState('');
+  const [completionSuccess, setCompletionSuccess] = useState('');
+  const [verificationData, setVerificationData] = useState<any>(null);
+  const { toast } = useToast();
+
+  // Fetch completed jobs
+  const { data: completedJobs = [], refetch: refetchCompletedJobs } = useQuery({
+    queryKey: [`/api/installer/${installerId}/completed-jobs`],
+    enabled: !!installerId,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // QR verification mutation
+  const verifyQRMutation = useMutation({
+    mutationFn: async (qrCode: string) => {
+      const response = await apiRequest('POST', '/api/installer/verify-qr-code', {
+        qrCode,
+        installerId
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      setVerificationData(data);
+      setScanError('');
+      toast({
+        title: "QR Code Verified!",
+        description: `Found booking for ${data.booking.customerName} at ${data.booking.address}`,
+      });
+    },
+    onError: (error: any) => {
+      setScanError(error.message || 'Failed to verify QR code');
+      setVerificationData(null);
+      toast({
+        title: "QR Verification Failed",
+        description: error.message || 'Failed to verify QR code',
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Job completion mutation
+  const completeJobMutation = useMutation({
+    mutationFn: async () => {
+      if (!verificationData) throw new Error('No verification data available');
+      
+      const response = await apiRequest('POST', '/api/installer/complete-installation', {
+        qrCode: verificationData.booking.qrCode,
+        installerId,
+        jobAssignmentId: verificationData.jobAssignmentId
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      setCompletionSuccess(`Installation completed successfully! You earned €${data.earnings.toFixed(2)}`);
+      setVerificationData(null);
+      setScanError('');
+      refetchCompletedJobs(); // Refresh completed jobs list
+      toast({
+        title: "Installation Completed!",
+        description: `Job marked as complete. You earned €${data.earnings.toFixed(2)}`,
+      });
+    },
+    onError: (error: any) => {
+      setScanError(error.message || 'Failed to complete installation');
+      toast({
+        title: "Completion Failed",
+        description: error.message || 'Failed to complete installation',
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleQRScan = (qrCode: string) => {
+    setIsScanning(false);
+    setScanError('');
+    setCompletionSuccess('');
+    verifyQRMutation.mutate(qrCode);
+  };
+
+  const handleCompleteJob = () => {
+    completeJobMutation.mutate();
+  };
+
+  if (!installerId) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-gray-500">
+            Please complete your profile setup to access job completion features.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* QR Scanner Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <QRScanner 
+            onScanSuccess={handleQRScan}
+            onError={(error) => setScanError(error)}
+            isLoading={verifyQRMutation.isPending || completeJobMutation.isPending}
+          />
+          
+          {/* Success/Error Messages */}
+          {completionSuccess && (
+            <Card className="mt-4 border-green-200 bg-green-50">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <span className="text-green-800">{completionSuccess}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {scanError && (
+            <Card className="mt-4 border-red-200 bg-red-50">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                  <span className="text-red-800">{scanError}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Verification & Completion Section */}
+        <div>
+          {verificationData && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-blue-800">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Ready to Complete</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div><strong>Customer:</strong> {verificationData.booking.customerName}</div>
+                  <div><strong>Address:</strong> {verificationData.booking.address}</div>
+                  <div><strong>Service:</strong> {verificationData.booking.serviceType}</div>
+                  <div><strong>QR Code:</strong> {verificationData.booking.qrCode}</div>
+                </div>
+                
+                <Button 
+                  onClick={handleCompleteJob}
+                  disabled={completeJobMutation.isPending}
+                  className="w-full"
+                >
+                  {completeJobMutation.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Completing...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Mark Installation Complete
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+          
+          {!verificationData && !completionSuccess && !scanError && (
+            <Card>
+              <CardContent className="p-6">
+                <div className="text-center text-gray-500">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <h3 className="font-semibold mb-2">Ready to Complete Installation</h3>
+                  <p className="text-sm">
+                    Scan the customer's QR code to verify their booking and mark the installation as complete.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Completed Jobs List */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <span>Recently Completed Jobs</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {completedJobs.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <CheckCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>No completed jobs yet. Complete your first installation to see it here!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {completedJobs.slice(0, 5).map((job: any) => (
+                <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <div>
+                      <div className="font-medium">{job.booking?.customerName}</div>
+                      <div className="text-sm text-gray-500">{job.booking?.address}</div>
+                      <div className="text-xs text-gray-400">
+                        Completed: {new Date(job.completedDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium">€{job.booking?.estimatedTotal}</div>
+                    <div className="text-xs text-gray-500">{job.booking?.qrCode}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function InstallerDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanError, setScanError] = useState<string>('');
+  const [completionSuccess, setCompletionSuccess] = useState<string>('');
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
@@ -1463,7 +1697,7 @@ export default function InstallerDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
         <Tabs defaultValue="requests" className="w-full">
           {/* Mobile-first responsive tabs */}
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-6 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 mb-6 h-auto p-1">
             <TabsTrigger value="requests" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <NavigationIcon className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline">Lead Requests</span>
@@ -1482,6 +1716,11 @@ export default function InstallerDashboard() {
               <DollarSign className="w-4 h-4 flex-shrink-0" />
               <span className="hidden lg:inline">Wallet & Credits</span>
               <span className="lg:hidden">Wallet</span>
+            </TabsTrigger>
+            <TabsTrigger value="job-completion" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline">Job Completion</span>
+              <span className="lg:hidden">Complete</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <Settings className="w-4 h-4 flex-shrink-0" />
@@ -1757,6 +1996,10 @@ export default function InstallerDashboard() {
             {installerProfile && (
               <InstallerWalletDashboard installerId={installerProfile.id} />
             )}
+          </TabsContent>
+
+          <TabsContent value="job-completion" className="space-y-6">
+            <JobCompletionSection installerId={installerProfile?.id} />
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-6">

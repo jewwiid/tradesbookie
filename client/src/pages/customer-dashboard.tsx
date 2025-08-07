@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -31,7 +31,27 @@ interface Booking {
   estimatedPrice: string;
   status: string;
   contactName: string;
+  installerId?: number;
   createdAt?: string;
+}
+
+interface InterestedInstaller {
+  id: number;
+  bookingId: number;
+  status: string;
+  leadFee: string;
+  installer: {
+    id: number;
+    businessName: string;
+    contactName?: string;
+    phone?: string;
+    serviceArea: string;
+    yearsExperience: number;
+    profileImageUrl?: string;
+    rating?: number;
+    averageRating: number;
+    totalReviews: number;
+  };
 }
 
 interface TvSetupBooking {
@@ -102,6 +122,9 @@ export default function CustomerDashboard() {
     lastName: '',
     email: ''
   });
+  const [showInstallerSelection, setShowInstallerSelection] = useState<number | null>(null);
+  const [selectedBookingInstallers, setSelectedBookingInstallers] = useState<InterestedInstaller[]>([]);
+  const [selectingInstaller, setSelectingInstaller] = useState(false);
 
   // Get current user
   const { data: user, isLoading: userLoading, error: userError } = useQuery<User>({
@@ -203,6 +226,49 @@ export default function CustomerDashboard() {
       });
     } finally {
       setEditingProfile(false);
+    }
+  };
+
+  const handleViewInstallers = async (bookingId: number) => {
+    try {
+      const installers = await apiRequest('GET', `/api/booking/${bookingId}/interested-installers`) as InterestedInstaller[];
+      setSelectedBookingInstallers(installers);
+      setShowInstallerSelection(bookingId);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load interested installers.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSelectInstaller = async (bookingId: number, installerId: number) => {
+    setSelectingInstaller(true);
+    try {
+      const response = await apiRequest('POST', `/api/booking/${bookingId}/select-installer`, {
+        installerId
+      }) as { success: boolean; message: string; selectedInstaller: any; refundedInstallers: number };
+      
+      if (response.success) {
+        toast({
+          title: "Installer Selected",
+          description: response.message
+        });
+        
+        // Refresh bookings data
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
+        setShowInstallerSelection(null);
+        setSelectedBookingInstallers([]);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to select installer. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSelectingInstaller(false);
     }
   };
 
@@ -475,7 +541,7 @@ export default function CustomerDashboard() {
             ) : (
               <div className="grid gap-6">
                 {bookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} />
+                  <BookingCard key={booking.id} booking={booking} onViewInstallers={handleViewInstallers} />
                 ))}
               </div>
             )}
@@ -526,6 +592,144 @@ export default function CustomerDashboard() {
                   Upgrade Account
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Installer Selection Dialog */}
+        <Dialog open={showInstallerSelection !== null} onOpenChange={() => setShowInstallerSelection(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Select Your Installer</DialogTitle>
+              <DialogDescription>
+                {selectedBookingInstallers.length} installer{selectedBookingInstallers.length !== 1 ? 's have' : ' has'} purchased your lead. Choose your preferred installer to proceed.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {selectedBookingInstallers.map((item) => (
+                <Card key={item.installer.id} className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-300">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-4 mb-4">
+                          {item.installer.profileImageUrl ? (
+                            <img 
+                              src={item.installer.profileImageUrl} 
+                              alt={item.installer.businessName}
+                              className="w-16 h-16 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <User className="w-8 h-8 text-white" />
+                            </div>
+                          )}
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900">{item.installer.businessName}</h3>
+                            {item.installer.contactName && (
+                              <p className="text-gray-600">{item.installer.contactName}</p>
+                            )}
+                            <div className="flex items-center space-x-4 mt-2">
+                              <div className="flex items-center space-x-1">
+                                <MapPin className="w-4 h-4 text-gray-400" />
+                                <span className="text-sm text-gray-600">{item.installer.serviceArea}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Clock className="w-4 h-4 text-gray-400" />
+                                <span className="text-sm text-gray-600">{item.installer.yearsExperience} years experience</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-6">
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-2">Rating & Reviews</h4>
+                            <div className="flex items-center space-x-2">
+                              {item.installer.averageRating > 0 ? (
+                                <>
+                                  <div className="flex items-center">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <Star
+                                        key={star}
+                                        className={`w-4 h-4 ${
+                                          star <= Math.round(item.installer.averageRating)
+                                            ? 'text-yellow-400 fill-current'
+                                            : 'text-gray-300'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-900">
+                                    {item.installer.averageRating.toFixed(1)}
+                                  </span>
+                                  <span className="text-sm text-gray-600">
+                                    ({item.installer.totalReviews} review{item.installer.totalReviews !== 1 ? 's' : ''})
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-sm text-gray-500">No reviews yet</span>
+                              )}
+                            </div>
+                            {item.installer.rating && (
+                              <div className="mt-2 flex items-center space-x-2">
+                                <Award className="w-4 h-4 text-blue-500" />
+                                <span className="text-sm text-gray-600">Admin Score: {item.installer.rating}/10</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-2">Lead Details</h4>
+                            <div className="space-y-1">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Lead Fee Paid:</span>
+                                <span className="font-medium">€{item.leadFee}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Status:</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {item.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-end space-y-2">
+                        <Button
+                          onClick={() => showInstallerSelection && handleSelectInstaller(showInstallerSelection, item.installer.id)}
+                          disabled={selectingInstaller}
+                          className="gradient-bg min-w-[120px]"
+                        >
+                          {selectingInstaller ? (
+                            <>Loading...</>
+                          ) : (
+                            <>Select <ChevronRight className="w-4 h-4 ml-1" /></>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {selectedBookingInstallers.length === 0 && (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Installers Yet</h3>
+                  <p className="text-gray-600">
+                    No installers have purchased your lead yet. Please check back later.
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setShowInstallerSelection(null)}>
+                Close
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -918,7 +1122,7 @@ function TvSetupCard({ booking }: { booking: TvSetupBooking }) {
 }
 
 // Booking Card Component
-function BookingCard({ booking }: { booking: Booking }) {
+function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewInstallers?: (bookingId: number) => void }) {
   const [, setLocation] = useLocation();
 
   const getStatusColor = (status: string) => {
@@ -1000,6 +1204,14 @@ function BookingCard({ booking }: { booking: Booking }) {
               >
                 <QrCode className="w-4 h-4 mr-2" />
                 Track
+              </Button>
+            )}
+            
+            {/* Show installer selection button for pending bookings */}
+            {booking.status === 'open' && !booking.installerId && onViewInstallers && (
+              <Button size="sm" onClick={() => onViewInstallers(booking.id)} className="gradient-bg">
+                <Users className="w-4 h-4 mr-2" />
+                Select Installer
               </Button>
             )}
           </div>

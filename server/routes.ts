@@ -5,10 +5,10 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 import { 
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
-  insertResourceSchema, tvSetupBookingFormSchema, users, bookings, reviews, referralCodes, referralUsage
+  insertResourceSchema, tvSetupBookingFormSchema, users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
 import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing, SERVICE_TIERS, getLeadFee } from "./pricing";
@@ -3830,16 +3830,266 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // For real installers, redirect to purchase endpoint for lead-based model
-      return res.status(400).json({ 
-        message: "Lead purchase required",
-        redirectTo: `/api/installer/purchase-lead/${requestId}`,
-        requiresPayment: true
+      // For real installers, allow multiple purchases of the same lead
+      const booking = await storage.getBooking(requestId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Check if installer has already purchased this lead
+      const existingAssignment = await db.select().from(jobAssignments)
+        .where(and(
+          eq(jobAssignments.bookingId, requestId),
+          eq(jobAssignments.installerId, targetInstallerId)
+        ))
+        .limit(1);
+
+      if (existingAssignment.length > 0) {
+        return res.status(400).json({ 
+          message: "You have already purchased this lead",
+          existingStatus: existingAssignment[0].status 
+        });
+      }
+
+      // Calculate lead fee
+      const leadFee = getLeadFee(booking.serviceType);
+      
+      // Check wallet balance
+      const wallet = await storage.getInstallerWallet(targetInstallerId);
+      if (!wallet) {
+        return res.status(400).json({ message: "Wallet not found" });
+      }
+      
+      const currentBalance = parseFloat(wallet.balance);
+      if (currentBalance < leadFee) {
+        return res.status(400).json({ 
+          message: "Insufficient wallet balance. Please add credits to purchase this lead.",
+          required: leadFee,
+          available: currentBalance 
+        });
+      }
+      
+      // Create job assignment with "purchased" status
+      const jobAssignment = await storage.createJobAssignment({
+        bookingId: requestId,
+        installerId: targetInstallerId,
+        status: "purchased", // New status for purchased but not selected
+        leadFee: leadFee.toString(),
+        leadFeeStatus: "paid",
+        leadPaidDate: new Date()
+      });
+      
+      // Deduct lead fee from wallet
+      const newBalance = currentBalance - leadFee;
+      const totalSpent = parseFloat(wallet.totalSpent) + leadFee;
+      await storage.updateInstallerWalletBalance(targetInstallerId, newBalance);
+      await storage.updateInstallerWalletTotalSpent(targetInstallerId, totalSpent);
+      
+      // Add transaction record
+      await storage.addInstallerTransaction({
+        installerId: targetInstallerId,
+        type: "lead_purchase",
+        amount: (-leadFee).toString(),
+        description: `Purchased lead access for request #${requestId}`,
+        jobAssignmentId: jobAssignment.id,
+        status: "completed"
+      });
+      
+      return res.json({
+        success: true,
+        message: "Lead purchased successfully! Wait for customer to select an installer.",
+        jobAssignment: jobAssignment,
+        newBalance: newBalance,
+        status: "purchased"
       });
 
     } catch (error) {
       console.error("Error processing request:", error);
       res.status(500).json({ message: "Failed to process request" });
+    }
+  });
+
+  // Get all installers who have purchased a specific booking/lead
+  app.get("/api/booking/:bookingId/interested-installers", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      
+      if (!bookingId) {
+        return res.status(400).json({ message: "Invalid booking ID" });
+      }
+
+      // Get all job assignments for this booking with installer details
+      const interestedInstallers = await db.select({
+        jobAssignment: jobAssignments,
+        installer: {
+          id: installers.id,
+          businessName: installers.businessName,
+          contactName: installers.contactName,
+          phone: installers.phone,
+          serviceArea: installers.serviceArea,
+          yearsExperience: installers.yearsExperience,
+          profileImageUrl: installers.profileImageUrl,
+          rating: installers.adminScore
+        }
+      })
+      .from(jobAssignments)
+      .innerJoin(installers, eq(jobAssignments.installerId, installers.id))
+      .where(and(
+        eq(jobAssignments.bookingId, bookingId),
+        eq(jobAssignments.leadFeeStatus, 'paid')
+      ))
+      .orderBy(desc(jobAssignments.assignedDate));
+
+      // Get installer reviews for each installer
+      const installersWithReviews = await Promise.all(
+        interestedInstallers.map(async (item) => {
+          const reviews = await storage.getInstallerReviews(item.installer.id);
+          const avgRating = reviews.length > 0 
+            ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
+            : 0;
+          
+          return {
+            ...item.jobAssignment,
+            installer: {
+              ...item.installer,
+              averageRating: Math.round(avgRating * 10) / 10,
+              totalReviews: reviews.length
+            }
+          };
+        })
+      );
+
+      res.json(installersWithReviews);
+    } catch (error) {
+      console.error("Error fetching interested installers:", error);
+      res.status(500).json({ message: "Failed to fetch interested installers" });
+    }
+  });
+
+  // Customer selects preferred installer
+  app.post("/api/booking/:bookingId/select-installer", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const { installerId } = req.body;
+
+      if (!bookingId || !installerId) {
+        return res.status(400).json({ message: "Booking ID and installer ID are required" });
+      }
+
+      // Verify the customer owns this booking
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Get all job assignments for this booking
+      const allAssignments = await storage.getBookingJobAssignments(bookingId);
+      
+      if (allAssignments.length === 0) {
+        return res.status(400).json({ message: "No installers have purchased this lead" });
+      }
+
+      // Verify the selected installer has purchased the lead
+      const selectedAssignment = allAssignments.find(a => a.installerId === installerId);
+      if (!selectedAssignment) {
+        return res.status(400).json({ message: "Selected installer has not purchased this lead" });
+      }
+
+      // Update the selected installer's status to "accepted"
+      await db.update(jobAssignments)
+        .set({ 
+          status: "accepted", 
+          acceptedDate: new Date() 
+        })
+        .where(and(
+          eq(jobAssignments.bookingId, bookingId),
+          eq(jobAssignments.installerId, installerId)
+        ));
+
+      // Update booking to assign the selected installer
+      await storage.updateBookingInstaller(bookingId, installerId);
+      await storage.updateBookingStatus(bookingId, "confirmed");
+
+      // Process refunds for non-selected installers
+      const nonSelectedAssignments = allAssignments.filter(a => a.installerId !== installerId);
+      
+      for (const assignment of nonSelectedAssignments) {
+        try {
+          // Update assignment status to "refunded"
+          await db.update(jobAssignments)
+            .set({ status: "refunded" })
+            .where(eq(jobAssignments.id, assignment.id));
+
+          // Refund the lead fee to installer wallet
+          const leadFee = parseFloat(assignment.leadFee);
+          const wallet = await storage.getInstallerWallet(assignment.installerId);
+          
+          if (wallet) {
+            const newBalance = parseFloat(wallet.balance) + leadFee;
+            const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - leadFee);
+            
+            await storage.updateInstallerWalletBalance(assignment.installerId, newBalance);
+            await storage.updateInstallerWalletTotalSpent(assignment.installerId, totalSpent);
+            
+            // Add refund transaction record
+            await storage.addInstallerTransaction({
+              installerId: assignment.installerId,
+              type: "refund",
+              amount: leadFee.toString(),
+              description: `Refund for unselected lead #${bookingId}`,
+              jobAssignmentId: assignment.id,
+              status: "completed"
+            });
+            
+            console.log(`Refunded €${leadFee} to installer ${assignment.installerId} for booking ${bookingId}`);
+          }
+        } catch (refundError) {
+          console.error(`Error processing refund for installer ${assignment.installerId}:`, refundError);
+        }
+      }
+
+      // Get selected installer details for response
+      const selectedInstaller = await storage.getInstaller(installerId);
+      
+      // Send confirmation emails
+      try {
+        // Notify selected installer
+        if (selectedInstaller?.email) {
+          await sendLeadPurchaseNotification(
+            selectedInstaller.email,
+            selectedInstaller.businessName || selectedInstaller.contactName || 'Installer',
+            booking,
+            'selected'
+          );
+        }
+
+        // Notify customer
+        if (booking.contactEmail) {
+          await sendStatusUpdateNotification(
+            booking.contactEmail,
+            booking.contactName,
+            booking,
+            'confirmed',
+            `Your installation has been confirmed with ${selectedInstaller?.businessName || 'selected installer'}`
+          );
+        }
+      } catch (emailError) {
+        console.error('Error sending notification emails:', emailError);
+      }
+
+      res.json({
+        success: true,
+        message: `Installer ${selectedInstaller?.businessName || 'selected'} has been assigned to your booking`,
+        selectedInstaller: {
+          id: selectedInstaller?.id,
+          businessName: selectedInstaller?.businessName,
+          contactName: selectedInstaller?.contactName
+        },
+        refundedInstallers: nonSelectedAssignments.length
+      });
+    } catch (error) {
+      console.error("Error selecting installer:", error);
+      res.status(500).json({ message: "Failed to select installer" });
     }
   });
 

@@ -4322,14 +4322,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const jobId = parseInt(req.params.jobId);
       const { status } = req.body;
       
+      // Validate status
+      const validStatuses = ['accepted', 'in_progress', 'completed', 'declined'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Invalid status. Must be one of: ' + validStatuses.join(', ') });
+      }
+      
+      // Get job assignment to find the booking
+      const jobAssignments = await storage.getJobAssignmentsByInstallerId(1); // Get from session in real app
+      const job = jobAssignments.find(j => j.id === jobId);
+      
+      if (!job) {
+        return res.status(404).json({ error: 'Job assignment not found' });
+      }
+      
       await storage.updateJobStatus(jobId, status);
       
-      // If job is completed, also update the booking status and earnings
-      if (status === "completed") {
-        const jobs = await storage.getInstallerJobs(1); // Demo installer ID
-        const job = jobs.find(j => j.id === jobId);
-        
-        if (job) {
+      // Update booking status based on job assignment status
+      switch (status) {
+        case 'accepted':
+          await storage.updateBookingStatus(job.bookingId, "confirmed");
+          break;
+        case 'in_progress':
+          await storage.updateBookingStatus(job.bookingId, "in_progress");
+          break;
+        case 'completed':
           await storage.updateBookingStatus(job.bookingId, "completed");
           
           // Calculate earnings (installer keeps customer payment minus lead fee)
@@ -4362,7 +4379,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               `Your TV installation has been completed successfully! Thank you for choosing tradesbook.ie. Reference: ${booking.qrCode}`
             );
           }
-        }
+          break;
       }
       
       res.json({ message: "Job status updated successfully" });
@@ -7461,7 +7478,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Update booking with selected installer
       await storage.updateBookingInstaller(bookingId, installerId);
-      await storage.updateBookingStatus(bookingId, 'installer_assigned');
+      await storage.updateBookingStatus(bookingId, 'assigned');
 
       // Update job assignment status for selected installer
       await storage.updateJobInstallerStatus(bookingId, installerId, 'assigned');

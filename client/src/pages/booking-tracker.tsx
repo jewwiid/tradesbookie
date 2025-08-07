@@ -59,11 +59,12 @@ export default function BookingTracker() {
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      'pending': { color: 'bg-yellow-100 text-yellow-800', text: 'Pending' },
-      'confirmed': { color: 'bg-blue-100 text-blue-800', text: 'Confirmed' },
+      'pending': { color: 'bg-yellow-100 text-yellow-800', text: 'Request Submitted' },
+      'open': { color: 'bg-yellow-100 text-yellow-800', text: 'Request Submitted' },
       'assigned': { color: 'bg-purple-100 text-purple-800', text: 'Installer Assigned' },
-      'in_progress': { color: 'bg-orange-100 text-orange-800', text: 'In Progress' },
-      'completed': { color: 'bg-green-100 text-green-800', text: 'Completed' },
+      'confirmed': { color: 'bg-blue-100 text-blue-800', text: 'Installer Confirmed' },
+      'in_progress': { color: 'bg-orange-100 text-orange-800', text: 'Installation in Progress' },
+      'completed': { color: 'bg-green-100 text-green-800', text: 'Installation Complete' },
       'cancelled': { color: 'bg-red-100 text-red-800', text: 'Cancelled' },
     };
     

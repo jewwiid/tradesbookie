@@ -55,8 +55,8 @@ interface BookingDetails {
 
 const statusSteps = [
   { key: "pending", label: "Booking Received", icon: Clock, color: "bg-blue-500" },
-  { key: "assigned", label: "Installer Assigned", icon: Wrench, color: "bg-yellow-500" },
-  { key: "accepted", label: "Installer Confirmed", icon: CheckCircle, color: "bg-green-500" },
+  { key: "assigned", label: "Installer Assigned", icon: Wrench, color: "bg-purple-500" },
+  { key: "confirmed", label: "Installer Confirmed", icon: CheckCircle, color: "bg-blue-500" },
   { key: "in_progress", label: "Installation in Progress", icon: Home, color: "bg-orange-500" },
   { key: "completed", label: "Installation Complete", icon: Star, color: "bg-emerald-500" }
 ];
@@ -114,19 +114,29 @@ export default function QRTracking() {
   }
 
   const getCurrentStepIndex = () => {
-    const status = booking.jobAssignment?.status || booking.status;
+    // Priority: Use jobAssignment status for installer-specific steps, otherwise use booking status
+    let currentStatus = booking.status;
     
-    // Map booking statuses to step indices
+    // If there's a job assignment, check its status for installer confirmation
+    if (booking.jobAssignment) {
+      if (booking.jobAssignment.status === 'accepted' && booking.status === 'assigned') {
+        currentStatus = 'confirmed'; // Installer has confirmed
+      } else if (booking.jobAssignment.status === 'completed') {
+        currentStatus = 'completed';
+      }
+    }
+    
+    // Map statuses to step indices
     const statusMapping: { [key: string]: number } = {
       'open': 0,        // Booking received
       'pending': 0,     // Booking received
       'assigned': 1,    // Installer assigned
-      'accepted': 2,    // Installer confirmed
+      'confirmed': 2,   // Installer confirmed
       'in_progress': 3, // Installation in progress
       'completed': 4    // Installation complete
     };
     
-    return statusMapping[status] ?? 0; // Default to first step if status not found
+    return statusMapping[currentStatus] ?? 0; // Default to first step if status not found
   };
 
   const getProgressMessage = (stepIndex: number, currentStepIndex: number) => {

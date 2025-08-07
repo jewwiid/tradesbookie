@@ -57,6 +57,7 @@ export default function BookingConfirmation() {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case "pending":
+      case "open":
         return { 
           icon: Clock, 
           color: "bg-yellow-500", 
@@ -66,16 +67,30 @@ export default function BookingConfirmation() {
       case "assigned":
         return { 
           icon: CheckCircle, 
-          color: "bg-blue-500", 
+          color: "bg-purple-500", 
           text: "Installer Assigned", 
-          description: "An installer has accepted your request" 
+          description: "An installer has been assigned to your request" 
         };
       case "confirmed":
         return { 
           icon: CheckCircle, 
+          color: "bg-blue-500", 
+          text: "Installer Confirmed", 
+          description: "Your installer has confirmed and will contact you soon" 
+        };
+      case "in_progress":
+        return { 
+          icon: CheckCircle, 
+          color: "bg-orange-500", 
+          text: "Installation in Progress", 
+          description: "Your TV installation is currently underway" 
+        };
+      case "completed":
+        return { 
+          icon: CheckCircle, 
           color: "bg-green-500", 
-          text: "Confirmed", 
-          description: "Your installation is confirmed and scheduled" 
+          text: "Installation Complete", 
+          description: "Your TV installation has been completed successfully" 
         };
       default:
         return { 

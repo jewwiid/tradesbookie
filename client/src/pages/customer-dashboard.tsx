@@ -1139,10 +1139,14 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
     switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800';
+      case 'in_progress':
+        return 'bg-orange-100 text-orange-800';
       case 'confirmed':
-      case 'in-progress':
         return 'bg-blue-100 text-blue-800';
+      case 'assigned':
+        return 'bg-purple-100 text-purple-800';
       case 'open':
+      case 'pending':
         return 'bg-yellow-100 text-yellow-800';
       case 'cancelled':
         return 'bg-red-100 text-red-800';
@@ -1154,13 +1158,16 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
   const getStatusText = (status: string) => {
     switch (status) {
       case 'open':
+      case 'pending':
         return 'Request Submitted';
-      case 'confirmed':
+      case 'assigned':
         return 'Installer Assigned';
-      case 'in-progress':
+      case 'confirmed':
+        return 'Installer Confirmed';
+      case 'in_progress':
         return 'Installation in Progress';
       case 'completed':
-        return 'Completed';
+        return 'Installation Complete';
       case 'cancelled':
         return 'Cancelled';
       default:

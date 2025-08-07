@@ -1078,7 +1078,7 @@ export default function AIHelpPage() {
                   )}
 
                   {/* Reset Button - Always Available */}
-                  <div className="text-center">
+                  <div className="text-center mt-8">
                     <Button
                       onClick={resetElectronicsComparison}
                       variant="outline"

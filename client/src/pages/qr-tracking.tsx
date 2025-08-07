@@ -259,6 +259,13 @@ export default function QRTracking() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
+                <label className="text-sm font-medium text-gray-500">Booking Reference</label>
+                <p className="text-gray-900 font-mono font-semibold flex items-center">
+                  <QrCode className="w-4 h-4 mr-2 text-primary" />
+                  {booking.qrCode}
+                </p>
+              </div>
+              <div>
                 <label className="text-sm font-medium text-gray-500">Service Type</label>
                 <p className="text-gray-900">{booking.serviceType}</p>
               </div>

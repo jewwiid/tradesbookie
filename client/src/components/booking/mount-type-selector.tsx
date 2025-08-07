@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Settings, Square, ChevronDown, Move, Check, X } from "lucide-react";
@@ -50,18 +50,27 @@ export default function MountTypeSelector({ bookingData, updateBookingData, upda
   const isMultiTV = bookingData.tvQuantity > 1;
   const currentTv = isMultiTV ? bookingData.tvInstallations[bookingData.currentTvIndex] : null;
   
-  const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(
-    isMultiTV ? currentTv?.needsWallMount : bookingData.needsWallMount
-  );
-  const [selectedWallMount, setSelectedWallMount] = useState<string>(
-    isMultiTV ? (currentTv?.wallMountOption || '') : (bookingData.wallMountOption || '')
-  );
+  // Get current values based on multi-TV or single TV mode
+  const currentMountType = isMultiTV ? currentTv?.mountType : bookingData.mountType;
+  const currentNeedsWallMount = isMultiTV ? currentTv?.needsWallMount : bookingData.needsWallMount;
+  const currentWallMountOption = isMultiTV ? currentTv?.wallMountOption : bookingData.wallMountOption;
+  
+  const [needsWallMount, setNeedsWallMount] = useState<boolean | undefined>(currentNeedsWallMount);
+  const [selectedWallMount, setSelectedWallMount] = useState<string>(currentWallMountOption || '');
 
   // Fetch wall mount pricing from database
   const { data: wallMountPricing, isLoading: isLoadingPricing } = useQuery<WallMountPricing[]>({
     queryKey: ['/api/wall-mount-pricing'],
     enabled: needsWallMount === true, // Only fetch when user wants wall mount
   });
+
+  // Update state when switching between TVs in multi-TV mode
+  useEffect(() => {
+    if (isMultiTV && currentTv) {
+      setNeedsWallMount(currentTv.needsWallMount);
+      setSelectedWallMount(currentTv.wallMountOption || '');
+    }
+  }, [isMultiTV, bookingData.currentTvIndex, currentTv]);
 
   const handleMountTypeSelect = (mountType: string) => {
     if (isMultiTV && updateTvInstallation) {
@@ -116,7 +125,7 @@ export default function MountTypeSelector({ bookingData, updateBookingData, upda
     };
     
     // Filter wall mounts based on selected mount type
-    const selectedMountTypeDB = mountTypeMapping[bookingData.mountType];
+    const selectedMountTypeDB = mountTypeMapping[currentMountType];
     if (!selectedMountTypeDB) return wallMountPricing; // Return all if no mount type selected
     
     return wallMountPricing.filter(mount => mount.mountType === selectedMountTypeDB);
@@ -139,7 +148,7 @@ export default function MountTypeSelector({ bookingData, updateBookingData, upda
           <Card
             key={mount.type}
             className={`service-tile cursor-pointer ${
-              bookingData.mountType === mount.type ? 'selected' : ''
+              currentMountType === mount.type ? 'selected' : ''
             }`}
             onClick={() => handleMountTypeSelect(mount.type)}
           >
@@ -159,7 +168,7 @@ export default function MountTypeSelector({ bookingData, updateBookingData, upda
       </div>
 
       {/* Wall Mount Question - appears after mount type is selected */}
-      {bookingData.mountType && (
+      {currentMountType && (
         <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
           <h3 className="text-xl font-semibold text-gray-900 mb-4">Do you need a wall mount?</h3>
           <p className="text-gray-600 mb-6">

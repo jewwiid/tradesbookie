@@ -134,312 +134,359 @@ export default function AIHelpPage() {
     'headphones': [
       {
         id: 'question1',
-        question: 'Where will you use these headphones most?',
+        question: 'Preferred headphone type?',
         options: [
-          { value: 'home-entertainment', label: 'Home entertainment and relaxation' },
-          { value: 'work-calls', label: 'Work from home and calls' }
+          { value: 'on-ear', label: 'On-ear' },
+          { value: 'over-ear', label: 'Over-ear' }
         ]
       },
       {
         id: 'question2',
-        question: "What's more important for your lifestyle?",
+        question: 'Main use-case?',
         options: [
-          { value: 'noise-cancelling', label: 'Noise cancelling for focus' },
-          { value: 'awareness-mode', label: 'Awareness of surroundings' }
+          { value: 'commuting', label: 'Commuting/travel' },
+          { value: 'workouts', label: 'Workouts' },
+          { value: 'home', label: 'Home/office' },
+          { value: 'versatile', label: 'Versatile use (all-round)' }
         ]
       },
       {
         id: 'question3',
-        question: 'How do you prioritize comfort vs. portability?',
+        question: 'Important features?',
         options: [
-          { value: 'comfort-priority', label: 'Maximum comfort for long sessions' },
-          { value: 'portability-priority', label: 'Foldable and travel-friendly' }
+          { value: 'wireless', label: 'Wireless connectivity (Bluetooth)' },
+          { value: 'noise-cancel', label: 'Active noise cancellation' },
+          { value: 'battery', label: 'Long battery life' },
+          { value: 'comfort', label: 'Lightweight, comfortable design' }
         ]
       }
     ],
     'earphones': [
       {
         id: 'question1',
-        question: "What's your main use for earphones?",
+        question: 'Preferred earphone style?',
         options: [
-          { value: 'commuting', label: 'Daily commuting' },
-          { value: 'fitness', label: 'Exercise and fitness' }
+          { value: 'true-wireless', label: 'True wireless earbuds (completely wireless)' },
+          { value: 'wireless-neckband', label: 'Wireless earphones with neckband cable' },
+          { value: 'wired', label: 'Wired earphones' }
         ]
       },
       {
         id: 'question2',
-        question: 'How important is wireless convenience vs. sound quality?',
+        question: 'Main use-case?',
         options: [
-          { value: 'wireless-priority', label: 'Wireless freedom is essential' },
-          { value: 'sound-priority', label: 'Best sound quality matters most' }
+          { value: 'commuting', label: 'Commuting/travel' },
+          { value: 'workouts', label: 'Workouts' },
+          { value: 'home', label: 'Home/office' },
+          { value: 'versatile', label: 'Versatile use (all-round)' }
         ]
       },
       {
         id: 'question3',
-        question: "What's your priority for daily use?",
+        question: 'Important features?',
         options: [
-          { value: 'battery-focus', label: 'Long battery life' },
-          { value: 'connectivity-focus', label: 'Quick pairing and calls' }
+          { value: 'noise-cancel', label: 'Active noise cancellation' },
+          { value: 'water-resist', label: 'Water/sweat resistance' },
+          { value: 'battery', label: 'Long battery life (for wireless)' },
+          { value: 'secure-fit', label: 'Secure & comfortable fit' }
         ]
       }
     ],
     'soundbars': [
       {
         id: 'question1',
-        question: 'What describes your space and setup needs?',
+        question: 'Desired sound experience?',
         options: [
-          { value: 'simple-upgrade', label: 'Simple TV sound upgrade' },
-          { value: 'home-theatre', label: 'Cinematic home theatre' }
+          { value: '2.1-3.1', label: 'Basic 2.1 or 3.1 (enhanced stereo sound)' },
+          { value: '5.1', label: 'Surround 5.1 (cinematic surround sound)' },
+          { value: 'atmos', label: 'Immersive 3D audio (Dolby Atmos)' }
         ]
       },
       {
         id: 'question2',
-        question: "What's most important for your listening?",
+        question: 'Connection preference?',
         options: [
-          { value: 'clear-dialogue', label: 'Clear speech and dialogue' },
-          { value: 'powerful-effects', label: 'Powerful bass and effects' }
+          { value: 'wireless', label: 'Wireless (Bluetooth or Wi-Fi)' },
+          { value: 'hdmi', label: 'HDMI (ARC)' },
+          { value: 'optical', label: 'Optical or AUX cable' }
         ]
       },
       {
         id: 'question3',
-        question: 'How does this fit your living space?',
+        question: 'Aesthetic & size considerations?',
         options: [
-          { value: 'apartment-friendly', label: 'Apartment-friendly volume control' },
-          { value: 'full-volume-house', label: 'House with space for full volume' }
+          { value: 'slim', label: 'Slim, low-profile design' },
+          { value: 'matches-tv', label: 'Soundbar width roughly matches TV' },
+          { value: 'no-preference', label: 'No preference' }
         ]
       }
     ],
     'televisions': [
       {
         id: 'question1',
-        question: 'What best describes your viewing room?',
+        question: 'What matters most in picture quality?',
         options: [
-          { value: 'bright-room', label: 'Bright living room with windows' },
-          { value: 'controlled-room', label: 'Controlled lighting room' }
+          { value: 'resolution', label: 'Resolution (e.g. 4K or 8K)' },
+          { value: 'hdr', label: 'High Dynamic Range (HDR)' },
+          { value: 'color', label: 'Colour accuracy' },
+          { value: 'not-sure', label: 'Not sure' }
         ]
       },
       {
         id: 'question2',
-        question: "What's your household's main TV activity?",
+        question: 'Ideal screen size?',
         options: [
-          { value: 'family-streaming', label: 'Family entertainment and streaming' },
-          { value: 'gaming-sports', label: 'Gaming and sports' }
+          { value: 'small', label: 'Under 50 inches' },
+          { value: 'medium', label: '55–65 inches' },
+          { value: 'large', label: '65 inches or larger' }
         ]
       },
       {
         id: 'question3',
-        question: 'For your household size and budget, which matters more?',
+        question: 'Smart TV features?',
         options: [
-          { value: 'size-priority', label: 'Largest screen size possible' },
-          { value: 'features-priority', label: 'Latest smart features and quality' }
+          { value: 'advanced', label: 'Advanced apps and voice control' },
+          { value: 'basic', label: 'Basic built-in smart apps' },
+          { value: 'none', label: 'Prefer a non-smart TV' }
         ]
       }
     ],
     'robot-vacuums': [
       {
         id: 'question1',
-        question: "What describes your home's floors?",
+        question: 'Flooring & cleaning needs?',
         options: [
           { value: 'hard-floors', label: 'Mostly hard floors' },
-          { value: 'carpets-rugs', label: 'Carpets and rugs throughout' }
+          { value: 'carpet', label: 'Mainly carpet' },
+          { value: 'mixed', label: 'Mixed floor types' },
+          { value: 'vacuum-mop', label: 'Vacuum + mop combo capability' }
         ]
       },
       {
         id: 'question2',
-        question: 'How do you prefer to manage your cleaning?',
+        question: 'Navigation preference?',
         options: [
-          { value: 'full-automation', label: 'Set it and forget it' },
-          { value: 'manual-control', label: 'Control when and where it cleans' }
+          { value: 'random', label: 'Random/simple navigation' },
+          { value: 'smart', label: 'Smart mapping (learns room layout)' },
+          { value: 'lidar', label: 'LiDAR or advanced sensors' }
         ]
       },
       {
         id: 'question3',
-        question: 'What fits your household routine?',
+        question: 'Maintenance & extra features?',
         options: [
-          { value: 'clean-while-out', label: "Clean while I'm out" },
-          { value: 'clean-while-home', label: "Clean when I'm home" }
+          { value: 'self-empty', label: 'Self-emptying dust bin' },
+          { value: 'tangle-free', label: 'Tangle-free brush roll' },
+          { value: 'quiet', label: 'Quiet operation' },
+          { value: 'none', label: 'None of these' }
         ]
       }
     ],
     'washing-machines': [
       {
         id: 'question1',
-        question: 'What describes your household washing needs?',
+        question: 'Preferred loading style?',
         options: [
-          { value: 'small-household', label: 'Small household (1-2 people)' },
-          { value: 'family-household', label: 'Family household (3+ people)' }
+          { value: 'front', label: 'Front load (door on front)' },
+          { value: 'top', label: 'Top load (lid on top)' },
+          { value: 'no-preference', label: 'No preference' }
         ]
       },
       {
         id: 'question2',
-        question: "What's your priority for running costs?",
+        question: 'Household size / load size?',
         options: [
-          { value: 'lowest-bills', label: 'Lowest energy bills' },
-          { value: 'fastest-wash', label: 'Fastest wash times' }
+          { value: 'small', label: 'Small (1–2 people)' },
+          { value: 'medium', label: 'Medium (3–4 people)' },
+          { value: 'large', label: 'Large (5+ people or bulky loads)' }
         ]
       },
       {
         id: 'question3',
-        question: 'What installation works for your home?',
+        question: 'Efficiency priorities?',
         options: [
-          { value: 'integrated-kitchen', label: 'Integrated into kitchen' },
-          { value: 'utility-standalone', label: 'Utility room or standalone' }
+          { value: 'high', label: 'High energy and water efficiency' },
+          { value: 'balanced', label: 'Balanced efficiency and price' },
+          { value: 'not-important', label: 'Efficiency not a priority' }
         ]
       }
     ],
     'refrigerators': [
       {
         id: 'question1',
-        question: 'What capacity suits your household?',
+        question: 'Household size / capacity needs?',
         options: [
-          { value: 'couple-small-family', label: 'Couple or small family' },
-          { value: 'large-family', label: 'Large family or entertaining' }
+          { value: 'small', label: 'Small (1–2 people, up to ~300 L total)' },
+          { value: 'medium', label: 'Medium (3–4 people, ~300–500 L)' },
+          { value: 'large', label: 'Large (5+ people or extra storage, 500 L+)' }
         ]
       },
       {
         id: 'question2',
-        question: "What's your priority for ongoing costs?",
+        question: 'Ice maker and water dispenser?',
         options: [
-          { value: 'lowest-bills', label: 'Lowest electricity bills' },
-          { value: 'convenience-features', label: 'Maximum convenience features' }
+          { value: 'must-have', label: 'Must have' },
+          { value: 'nice-to-have', label: 'Nice to have' },
+          { value: 'not-needed', label: 'Not needed' }
         ]
       },
       {
         id: 'question3',
-        question: 'What fits your kitchen layout?',
+        question: 'Energy efficiency preference?',
         options: [
-          { value: 'standard-kitchen', label: 'Standard kitchen space' },
-          { value: 'large-kitchen', label: 'Large kitchen or utility area' }
+          { value: 'high', label: 'High efficiency (top energy rating)' },
+          { value: 'standard', label: 'Standard efficiency' },
+          { value: 'unsure', label: 'Unsure / no preference' }
         ]
       }
     ],
     'dishwashers': [
       {
         id: 'question1',
-        question: 'What suits your kitchen setup?',
+        question: 'Installation type?',
         options: [
-          { value: 'integrated-kitchen', label: 'Integrated into kitchen units' },
-          { value: 'standalone-utility', label: 'Standalone or utility room' }
+          { value: 'built-in', label: 'Built-in (integrated)' },
+          { value: 'portable', label: 'Freestanding or countertop (portable)' },
+          { value: 'drawer', label: 'Drawer style' }
         ]
       },
       {
         id: 'question2',
-        question: 'What matters most for your household?',
+        question: 'Noise & capacity preference?',
         options: [
-          { value: 'efficiency-focus', label: 'Energy and water efficiency' },
-          { value: 'speed-convenience', label: 'Quick cleaning cycles' }
+          { value: 'quiet-large', label: 'Extra quiet with large capacity' },
+          { value: 'standard', label: 'Standard capacity and noise' },
+          { value: 'compact', label: 'Compact size (noise not important)' }
         ]
       },
       {
         id: 'question3',
-        question: 'How important is noise level?',
+        question: 'Preferred features?',
         options: [
-          { value: 'very-quiet', label: 'Very quiet operation essential' },
-          { value: 'standard-noise', label: 'Standard noise acceptable' }
+          { value: 'adjustable', label: 'Adjustable racks and soil sensor' },
+          { value: 'drying', label: 'Advanced drying features' },
+          { value: 'top-control', label: 'Top-mounted control panel' },
+          { value: 'no-special', label: 'No special features' }
         ]
       }
     ],
     'microwaves': [
       {
         id: 'question1',
-        question: 'What suits your kitchen layout?',
+        question: 'Installation type?',
         options: [
-          { value: 'countertop', label: 'Countertop space available' },
-          { value: 'built-in', label: 'Built-in or integrated' }
+          { value: 'countertop', label: 'Countertop (freestanding)' },
+          { value: 'over-range', label: 'Over-the-range (with ventilation hood)' },
+          { value: 'built-in', label: 'Built-in (cabinet integrated)' }
         ]
       },
       {
         id: 'question2',
-        question: 'What capacity fits your household?',
+        question: 'Capacity & power?',
         options: [
-          { value: 'compact-efficient', label: 'Compact and energy efficient' },
-          { value: 'family-size', label: 'Family size with more capacity' }
+          { value: 'compact', label: 'Compact (≤ ~25 L, ~700 W)' },
+          { value: 'mid-size', label: 'Mid-size (~25–40 L, ~1000 W)' },
+          { value: 'large', label: 'Large (>40 L, ≥1200 W)' }
         ]
       },
       {
         id: 'question3',
-        question: "What's most important for your cooking?",
+        question: 'Desired features?',
         options: [
-          { value: 'basic-reheating', label: 'Basic reheating and defrosting' },
-          { value: 'cooking-features', label: 'Cooking and grilling features' }
+          { value: 'sensor', label: 'Sensor cooking programs' },
+          { value: 'convection', label: 'Convection or grill function' },
+          { value: 'child-lock', label: 'Child lock or turntable-off option' },
+          { value: 'no-special', label: 'No special features' }
         ]
       }
     ],
     'electric-kettles': [
       {
         id: 'question1',
-        question: 'What capacity do you need?',
+        question: 'Capacity needed?',
         options: [
-          { value: 'small-capacity', label: '1-2 people' },
-          { value: 'large-capacity', label: 'Family or entertaining' }
+          { value: 'small', label: 'Small (under 1 L)' },
+          { value: 'medium', label: 'Medium (1–1.5 L)' },
+          { value: 'large', label: 'Large (over 1.5 L)' }
         ]
       },
       {
         id: 'question2',
-        question: 'What features matter most?',
+        question: 'Preferred features?',
         options: [
-          { value: 'energy-efficiency', label: 'Energy efficiency' },
-          { value: 'speed-convenience', label: 'Speed and convenience' }
+          { value: 'temp-control', label: 'Variable temperature control, water level indicator' },
+          { value: 'basic', label: 'Basic on/off with auto-shutoff' },
+          { value: 'swivel', label: '360° swivel base, cool-touch exterior' },
+          { value: 'none', label: 'No special features' }
         ]
       },
       {
         id: 'question3',
-        question: 'What design works for your kitchen?',
+        question: 'Material preference?',
         options: [
-          { value: 'modern-stylish', label: 'Modern and stylish' },
-          { value: 'practical-durable', label: 'Practical and durable' }
+          { value: 'steel', label: 'Stainless steel' },
+          { value: 'glass', label: 'Glass' },
+          { value: 'any', label: 'Any (BPA-free plastic)' }
         ]
       }
     ],
     'toasters': [
       {
         id: 'question1',
-        question: 'What capacity suits your household?',
+        question: 'How many slots?',
         options: [
-          { value: 'small-household', label: 'Small household (2-slice)' },
-          { value: 'family-household', label: 'Family household (4-slice)' }
+          { value: '2-slice', label: '2-slice' },
+          { value: '4-slice', label: '4-slice' }
         ]
       },
       {
         id: 'question2',
-        question: "What's your priority?",
+        question: 'Desired functions?',
         options: [
-          { value: 'speed-efficiency', label: 'Speed and energy efficiency' },
-          { value: 'versatile-features', label: 'Versatile toasting features' }
+          { value: 'basic', label: 'Basic toasting only' },
+          { value: 'defrost', label: 'Defrost and reheat modes' },
+          { value: 'adjustable', label: 'Adjustable browning control, cancel button' }
         ]
       },
       {
         id: 'question3',
-        question: 'How important is design and maintenance?',
+        question: 'Design & cleaning preferences?',
         options: [
-          { value: 'stylish-design', label: 'Stylish design for kitchen' },
-          { value: 'easy-maintenance', label: 'Easy cleaning and maintenance' }
+          { value: 'stylish', label: 'Stylish design to match kitchen' },
+          { value: 'easy-clean', label: 'Easy cleaning (removable crumb tray)' },
+          { value: 'high-power', label: 'High-power for faster toasting' },
+          { value: 'no-preference', label: 'No preference' }
         ]
       }
     ],
     'coffee-makers': [
       {
         id: 'question1',
-        question: 'How much coffee does your household drink?',
+        question: 'Preferred brewing method?',
         options: [
-          { value: 'light-consumption', label: '1-2 cups daily' },
-          { value: 'heavy-consumption', label: 'Multiple cups throughout day' }
+          { value: 'drip', label: 'Drip filter coffee maker' },
+          { value: 'single-serve', label: 'Single-serve pod/capsule machine' },
+          { value: 'manual', label: 'Manual brew (French press or pour-over)' },
+          { value: 'hybrid', label: 'Hybrid (coffee + espresso) machine' }
         ]
       },
       {
         id: 'question2',
-        question: "What's your priority?",
+        question: 'Typical brew size?',
         options: [
-          { value: 'convenience-speed', label: 'Convenience and speed' },
-          { value: 'taste-control', label: 'Best coffee taste and control' }
+          { value: 'single', label: 'Single cup at a time' },
+          { value: 'small', label: '2–4 cups (small pot)' },
+          { value: 'large', label: '10+ cups (large pot)' }
         ]
       },
       {
         id: 'question3',
-        question: 'How does this fit your kitchen?',
+        question: 'Important features?',
         options: [
-          { value: 'limited-space', label: 'Limited counter space' },
-          { value: 'dedicated-station', label: 'Dedicated coffee station' }
+          { value: 'programmable', label: 'Programmable timer and auto-shutoff' },
+          { value: 'custom', label: 'Adjustable brew strength or temperature' },
+          { value: 'grinder', label: 'Built-in grinder or milk frother' },
+          { value: 'basic', label: 'No special features' }
         ]
       }
     ]

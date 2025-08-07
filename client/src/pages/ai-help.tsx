@@ -589,6 +589,13 @@ export default function AIHelpPage() {
               <div className="flex-1 overflow-y-auto">
                 {/* TV Model Input Section */}
                 <div className="mb-6">
+                  {/* Model Number Disclaimer */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                    <p className="text-sm text-amber-800 text-center">
+                      <strong>Tip:</strong> The model number or product code can be found underneath the price on the ticket shown in store.
+                    </p>
+                  </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -794,9 +801,16 @@ export default function AIHelpPage() {
                       <h3 className="text-lg font-bold text-blue-900 mb-4 text-center">
                         Step 1: Enter Product Model Numbers
                       </h3>
-                      <p className="text-blue-700 text-center mb-6">
+                      <p className="text-blue-700 text-center mb-4">
                         Enter the exact model numbers or product codes you want to compare
                       </p>
+                      
+                      {/* Model Number Disclaimer */}
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
+                        <p className="text-sm text-amber-800 text-center">
+                          <strong>Tip:</strong> The model number or product code can be found underneath the price on the ticket shown in store.
+                        </p>
+                      </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div>

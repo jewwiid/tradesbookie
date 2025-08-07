@@ -41,13 +41,14 @@ export default function BookingFlow() {
 
   const nextStep = () => {
     // For multi-TV mode, handle automatic TV navigation
-    if (bookingData.tvQuantity > 1 && currentStep >= 3 && currentStep <= 6) {
+    if (bookingData.tvQuantity > 1 && currentStep >= 3 && currentStep <= 7) {
       // If current TV is complete but not all TVs are complete
       if (isCurrentTvComplete() && !areAllTvsComplete()) {
         const nextIncompleteIndex = getNextIncompleteTvIndex();
         if (nextIncompleteIndex !== -1) {
-          // Move to next incomplete TV
+          // Move to next incomplete TV and reset to first TV-specific step (photo upload)
           updateBookingData({ currentTvIndex: nextIncompleteIndex });
+          setCurrentStep(1); // Start from photo upload for each TV
           return;
         }
       }
@@ -68,7 +69,8 @@ export default function BookingFlow() {
     if (bookingData.tvQuantity > 1 && bookingData.tvInstallations?.length > 0) {
       const currentTv = bookingData.tvInstallations[bookingData.currentTvIndex];
       return currentTv && currentTv.tvSize && currentTv.serviceType && currentTv.wallType && currentTv.mountType &&
-        (currentTv.needsWallMount === false || (currentTv.needsWallMount === true && currentTv.wallMountOption));
+        (currentTv.needsWallMount === false || (currentTv.needsWallMount === true && currentTv.wallMountOption)) &&
+        currentTv.location; // Include location as part of TV completion
     }
     return false;
   };
@@ -79,7 +81,8 @@ export default function BookingFlow() {
     
     return bookingData.tvInstallations.every(tv => 
       tv.tvSize && tv.serviceType && tv.wallType && tv.mountType &&
-      (tv.needsWallMount === false || (tv.needsWallMount === true && tv.wallMountOption))
+      (tv.needsWallMount === false || (tv.needsWallMount === true && tv.wallMountOption)) &&
+      tv.location
     );
   };
 
@@ -88,7 +91,7 @@ export default function BookingFlow() {
     
     return bookingData.tvInstallations.findIndex(tv => 
       !tv.tvSize || !tv.serviceType || !tv.wallType || !tv.mountType ||
-      (tv.needsWallMount === true && !tv.wallMountOption)
+      (tv.needsWallMount === true && !tv.wallMountOption) || !tv.location
     );
   };
 

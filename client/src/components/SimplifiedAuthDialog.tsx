@@ -290,12 +290,6 @@ export default function SimplifiedAuthDialog({
                   />
                   <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs text-gray-600">
                     <p className="font-medium mb-2 text-blue-800">Format: HN-[STORE]-[NUMBER]</p>
-                    <p className="mb-2 text-green-700 font-medium">Try these test invoices:</p>
-                    <div className="grid grid-cols-1 gap-1 text-xs mb-3">
-                      <span className="font-mono bg-white px-2 py-1 rounded border">HN-GAL-009876</span>
-                      <span className="font-mono bg-white px-2 py-1 rounded border">HN-DUB-123456</span>
-                      <span className="font-mono bg-white px-2 py-1 rounded border">HN-BLA-555666</span>
-                    </div>
                     <p className="mb-2">All store codes:</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
                       <span>BLA (Blanchardstown)</span>

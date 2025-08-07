@@ -36,6 +36,144 @@ import { requestPasswordReset, resetPassword } from "./passwordResetService";
 import { askQuestion, getPopularQuestions, updateFaqAnswer, deactivateFaqAnswer } from "./faqService";
 import { compareTVModels } from "./tvComparisonService";
 
+// Auto-refund service for expired leads
+class LeadExpiryService {
+  private static readonly EXPIRY_DAYS = 5;
+  private static intervalId: NodeJS.Timeout | null = null;
+
+  // Check for expired leads and process refunds
+  static async processExpiredLeads(): Promise<void> {
+    try {
+      console.log('🕐 Checking for expired leads...');
+      
+      // Calculate 5 days ago
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() - this.EXPIRY_DAYS);
+      
+      // Find all purchased leads older than 5 days that haven't been selected
+      const expiredLeads = await db.select({
+        jobAssignment: jobAssignments,
+        booking: bookings
+      })
+      .from(jobAssignments)
+      .innerJoin(bookings, eq(jobAssignments.bookingId, bookings.id))
+      .where(and(
+        eq(jobAssignments.status, 'purchased'),
+        eq(jobAssignments.leadFeeStatus, 'paid')
+      ));
+
+      // Filter by expiry date (assignments older than 5 days)
+      const actuallyExpired = expiredLeads.filter(item => {
+        const assignedDate = new Date(item.jobAssignment.assignedDate);
+        return assignedDate < expiryDate;
+      });
+
+      if (actuallyExpired.length === 0) {
+        console.log('✅ No expired leads found');
+        return;
+      }
+
+      console.log(`🔄 Processing ${actuallyExpired.length} expired leads...`);
+      
+      // Group by booking ID to process each booking's expired leads
+      const expiredByBooking = new Map<number, typeof actuallyExpired>();
+      for (const item of actuallyExpired) {
+        const bookingId = item.jobAssignment.bookingId;
+        if (!expiredByBooking.has(bookingId)) {
+          expiredByBooking.set(bookingId, []);
+        }
+        expiredByBooking.get(bookingId)!.push(item);
+      }
+
+      let totalRefunded = 0;
+      let totalAmount = 0;
+
+      // Process each booking's expired leads
+      for (const [bookingId, expiredItems] of expiredByBooking) {
+        try {
+          console.log(`📋 Processing booking ${bookingId} with ${expiredItems.length} expired lead(s)`);
+          
+          for (const item of expiredItems) {
+            const { jobAssignment } = item;
+            
+            // Update assignment status to expired
+            await db.update(jobAssignments)
+              .set({ 
+                status: 'expired'
+              })
+              .where(eq(jobAssignments.id, jobAssignment.id));
+
+            // Process refund
+            const leadFee = parseFloat(jobAssignment.leadFee);
+            const wallet = await storage.getInstallerWallet(jobAssignment.installerId);
+            
+            if (wallet && leadFee > 0) {
+              const newBalance = parseFloat(wallet.balance) + leadFee;
+              const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - leadFee);
+              
+              await storage.updateInstallerWalletBalance(jobAssignment.installerId, newBalance);
+              await storage.updateInstallerWalletTotalSpent(jobAssignment.installerId, totalSpent);
+              
+              // Add refund transaction record
+              await storage.addInstallerTransaction({
+                installerId: jobAssignment.installerId,
+                type: 'refund',
+                amount: leadFee.toString(),
+                description: `Auto-refund for expired lead #${bookingId} (${this.EXPIRY_DAYS} day limit)`,
+                jobAssignmentId: jobAssignment.id,
+                status: 'completed'
+              });
+              
+              totalRefunded++;
+              totalAmount += leadFee;
+              
+              console.log(`💰 Refunded €${leadFee} to installer ${jobAssignment.installerId} for expired lead ${bookingId}`);
+            }
+          }
+          
+          // Update booking status to indicate lead expired
+          await storage.updateBookingStatus(bookingId, 'expired');
+          
+        } catch (error) {
+          console.error(`❌ Error processing expired booking ${bookingId}:`, error);
+        }
+      }
+      
+      if (totalRefunded > 0) {
+        console.log(`✅ Auto-refund complete: ${totalRefunded} refunds totaling €${totalAmount.toFixed(2)}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error processing expired leads:', error);
+    }
+  }
+
+  // Start the periodic expiry check
+  static startExpiryMonitoring(): void {
+    // Check every hour for expired leads
+    const intervalMs = 60 * 60 * 1000; // 1 hour
+    
+    console.log(`🚀 Starting lead expiry monitoring (checking every ${intervalMs / 1000 / 60} minutes)`);
+    
+    // Run initial check
+    this.processExpiredLeads();
+    
+    // Set up recurring checks
+    this.intervalId = setInterval(() => {
+      this.processExpiredLeads();
+    }, intervalMs);
+  }
+
+  // Stop the monitoring (for cleanup)
+  static stopExpiryMonitoring(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+      console.log('⏹️ Lead expiry monitoring stopped');
+    }
+  }
+}
+
 // WebSocket clients for real-time updates
 const wsClients = new Set<WebSocket>();
 
@@ -206,6 +344,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware - sets up passport and sessions
   await setupAuth(app);
+  
+  // Start the lead expiry monitoring system
+  LeadExpiryService.startExpiryMonitoring();
 
   // OAuth Login Route - for customers and admins only (installers use email/password)
   app.get("/api/login", (req, res, next) => {
@@ -10167,6 +10308,36 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
   
   console.log('WebSocket server setup complete on path /ws');
+
+  // Manual trigger for expired lead processing (admin endpoint)
+  app.post('/api/admin/process-expired-leads', async (req, res) => {
+    try {
+      console.log('🔧 Manual trigger for expired lead processing');
+      await LeadExpiryService.processExpiredLeads();
+      res.json({ 
+        success: true, 
+        message: 'Expired leads processed successfully' 
+      });
+    } catch (error) {
+      console.error('Error in manual expired lead processing:', error);
+      res.status(500).json({ 
+        error: 'Failed to process expired leads',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Cleanup expiry monitoring on server shutdown
+  process.on('SIGTERM', () => {
+    console.log('🛑 Server shutting down, cleaning up lead expiry monitoring...');
+    LeadExpiryService.stopExpiryMonitoring();
+  });
+
+  process.on('SIGINT', () => {
+    console.log('🛑 Server shutting down, cleaning up lead expiry monitoring...');
+    LeadExpiryService.stopExpiryMonitoring();
+    process.exit(0);
+  });
 
   return httpServer;
 }

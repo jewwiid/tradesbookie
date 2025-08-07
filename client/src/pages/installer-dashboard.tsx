@@ -1676,7 +1676,7 @@ export default function InstallerDashboard() {
                       )}
                       
                       {/* Map Section */}
-                      <div className="h-[400px] sm:h-[500px] relative z-0 mb-6 rounded-lg overflow-hidden border border-gray-200">
+                      <div className="h-[60vh] sm:h-[500px] relative z-0 mb-4 rounded-lg overflow-hidden border border-gray-200">
                         <IrelandMap 
                           requests={availableRequests}
                           onRequestSelect={handleRequestToggle}
@@ -1686,7 +1686,7 @@ export default function InstallerDashboard() {
                       </div>
                       
                       {/* Lead Details Section - Always positioned below map */}
-                      <div className="relative z-10 bg-gray-50 p-4 min-h-[200px]">
+                      <div className="relative z-10 bg-white border border-gray-200 rounded-lg p-3 sm:p-4 shadow-sm">
                         {selectedRequest ? (
                           /* Show only selected lead */
                           <div className="space-y-4">

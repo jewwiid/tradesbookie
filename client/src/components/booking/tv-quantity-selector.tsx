@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tv, Plus, Minus } from "lucide-react";
-import { useBookingData } from "@/hooks/use-booking-data";
+import { BookingData, TVInstallation } from "@/lib/booking-utils";
 
 interface TvQuantitySelectorProps {
-  onNext: () => void;
+  bookingData: BookingData;
+  updateBookingData: (data: Partial<BookingData>) => void;
+  addTvInstallation: (tvData?: Partial<TVInstallation>) => void;
+  removeTvInstallation: (index: number) => void;
 }
 
-export default function TvQuantitySelector({ onNext }: TvQuantitySelectorProps) {
-  const { bookingData, updateBookingData, initializeMultiTvBooking } = useBookingData();
+export default function TvQuantitySelector({ bookingData, updateBookingData, addTvInstallation, removeTvInstallation }: TvQuantitySelectorProps) {
   const [selectedQuantity, setSelectedQuantity] = useState(bookingData.tvQuantity || 1);
 
   const handleQuantityChange = (quantity: number) => {
@@ -17,16 +19,35 @@ export default function TvQuantitySelector({ onNext }: TvQuantitySelectorProps) 
     setSelectedQuantity(quantity);
   };
 
-  const handleNext = () => {
+  // Update booking data whenever quantity changes
+  useEffect(() => {
     if (selectedQuantity === 1) {
       // Single TV booking - use legacy flow
-      updateBookingData({ tvQuantity: 1 });
+      updateBookingData({ 
+        tvQuantity: 1,
+        tvInstallations: [],
+        currentTvIndex: 0
+      });
     } else {
       // Multi-TV booking - initialize TV installations array
-      initializeMultiTvBooking(selectedQuantity);
+      const currentInstallations = bookingData.tvInstallations || [];
+      
+      // Add missing TV installations
+      while (currentInstallations.length < selectedQuantity) {
+        addTvInstallation();
+      }
+      
+      // Remove excess TV installations
+      while (currentInstallations.length > selectedQuantity) {
+        removeTvInstallation(currentInstallations.length - 1);
+      }
+      
+      updateBookingData({ 
+        tvQuantity: selectedQuantity,
+        currentTvIndex: 0
+      });
     }
-    onNext();
-  };
+  }, [selectedQuantity, updateBookingData, addTvInstallation, removeTvInstallation]);
 
   return (
     <div className="text-center">
@@ -96,13 +117,6 @@ export default function TvQuantitySelector({ onNext }: TvQuantitySelectorProps) 
         ))}
       </div>
 
-      <Button 
-        onClick={handleNext}
-        className="w-full max-w-xs mx-auto text-lg py-6"
-        size="lg"
-      >
-        Continue
-      </Button>
     </div>
   );
 }

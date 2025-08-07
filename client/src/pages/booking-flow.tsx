@@ -120,14 +120,12 @@ export default function BookingFlow() {
         }
         return bookingData.wallType !== "";
       case 6:
-        // For multi-TV, check current TV's mount type and ensure ALL TVs are complete before moving to addons
+        // For multi-TV, check current TV's mount type only (nextStep will handle navigation)
         if (bookingData.tvQuantity > 1) {
           const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
-          const currentTvValid = currentTv && currentTv.mountType !== "" && 
+          return currentTv && currentTv.mountType !== "" && 
                  (currentTv.needsWallMount === false || 
                   (currentTv.needsWallMount === true && currentTv.wallMountOption));
-          // Only allow proceeding to addons if ALL TVs are complete
-          return currentTvValid && areAllTvsComplete();
         }
         return bookingData.mountType !== "" && 
                (bookingData.needsWallMount === false || 

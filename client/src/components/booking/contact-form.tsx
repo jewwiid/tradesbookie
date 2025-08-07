@@ -304,6 +304,11 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
             </div>
             <div>
               <p className="text-sm font-medium text-blue-900">Harvey Norman Customer Verified</p>
+              {user.harveyNormanInvoiceNumber && (
+                <p className="text-sm font-medium text-blue-800 mt-1">
+                  Invoice: {user.harveyNormanInvoiceNumber}
+                </p>
+              )}
               <p className="text-sm text-blue-700 mt-1">
                 Welcome back! Please confirm your contact details below so installers can reach you after accepting your request.
               </p>

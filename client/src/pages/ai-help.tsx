@@ -117,6 +117,7 @@ export default function AIHelpPage() {
 
   const productCategories = [
     { value: 'headphones', label: 'Headphones' },
+    { value: 'earphones', label: 'Earphones' },
     { value: 'soundbars', label: 'Soundbars' },
     { value: 'televisions', label: 'Televisions' },
     { value: 'robot-vacuums', label: 'Robot Vacuums' },
@@ -135,7 +136,6 @@ export default function AIHelpPage() {
         id: 'question1',
         question: 'Preferred headphone type?',
         options: [
-          { value: 'in-ear', label: 'In-ear' },
           { value: 'on-ear', label: 'On-ear' },
           { value: 'over-ear', label: 'Over-ear' }
         ]
@@ -147,45 +147,76 @@ export default function AIHelpPage() {
           { value: 'commuting', label: 'Commuting/travel' },
           { value: 'workouts', label: 'Workouts' },
           { value: 'home', label: 'Home/office' },
-          { value: 'versatile', label: 'Versatile use' }
+          { value: 'versatile', label: 'Versatile use (all-round)' }
         ]
       },
       {
         id: 'question3',
         question: 'Important features?',
         options: [
-          { value: 'wireless', label: 'Wireless connectivity' },
+          { value: 'wireless', label: 'Wireless connectivity (Bluetooth)' },
           { value: 'noise-cancel', label: 'Active noise cancellation' },
           { value: 'battery', label: 'Long battery life' },
-          { value: 'comfort', label: 'Lightweight & comfort' }
+          { value: 'comfort', label: 'Lightweight, comfortable design' }
+        ]
+      }
+    ],
+    'earphones': [
+      {
+        id: 'question1',
+        question: 'Preferred earphone style?',
+        options: [
+          { value: 'true-wireless', label: 'True wireless earbuds (completely wireless)' },
+          { value: 'wireless-neckband', label: 'Wireless earphones with neckband cable' },
+          { value: 'wired', label: 'Wired earphones' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Main use-case?',
+        options: [
+          { value: 'commuting', label: 'Commuting/travel' },
+          { value: 'workouts', label: 'Workouts' },
+          { value: 'home', label: 'Home/office' },
+          { value: 'versatile', label: 'Versatile use (all-round)' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Important features?',
+        options: [
+          { value: 'noise-cancel', label: 'Active noise cancellation' },
+          { value: 'water-resist', label: 'Water/sweat resistance' },
+          { value: 'battery', label: 'Long battery life (for wireless)' },
+          { value: 'secure-fit', label: 'Secure & comfortable fit' }
         ]
       }
     ],
     'soundbars': [
       {
         id: 'question1',
-        question: 'Desired audio channels?',
+        question: 'Desired sound experience?',
         options: [
-          { value: '2.1-3.1', label: '2.1/3.1' },
-          { value: '5.1', label: '5.1' },
-          { value: 'atmos', label: 'Atmos/DTS:X' }
+          { value: '2.1-3.1', label: 'Basic 2.1 or 3.1 (enhanced stereo sound)' },
+          { value: '5.1', label: 'Surround 5.1 (cinematic surround sound)' },
+          { value: 'atmos', label: 'Immersive 3D audio (Dolby Atmos)' }
         ]
       },
       {
         id: 'question2',
         question: 'Connection preference?',
         options: [
-          { value: 'wireless', label: 'Wireless (Bluetooth/Wi-Fi)' },
-          { value: 'hdmi', label: 'HDMI/ARC' },
-          { value: 'optical', label: 'Optical/AUX' }
+          { value: 'wireless', label: 'Wireless (Bluetooth or Wi-Fi)' },
+          { value: 'hdmi', label: 'HDMI (ARC)' },
+          { value: 'optical', label: 'Optical or AUX cable' }
         ]
       },
       {
         id: 'question3',
         question: 'Aesthetic & size considerations?',
         options: [
-          { value: 'slim', label: 'Slim/low-profile' },
-          { value: 'matches-tv', label: 'Matches TV width' },
+          { value: 'slim', label: 'Slim, low-profile design' },
+          { value: 'matches-tv', label: 'Soundbar width roughly matches TV' },
           { value: 'no-preference', label: 'No preference' }
         ]
       }
@@ -195,8 +226,8 @@ export default function AIHelpPage() {
         id: 'question1',
         question: 'What matters most in picture quality?',
         options: [
-          { value: 'resolution', label: 'Resolution (e.g., 4K/8K)' },
-          { value: 'hdr', label: 'HDR' },
+          { value: 'resolution', label: 'Resolution (e.g. 4K or 8K)' },
+          { value: 'hdr', label: 'High Dynamic Range (HDR)' },
           { value: 'color', label: 'Colour accuracy' },
           { value: 'not-sure', label: 'Not sure' }
         ]
@@ -205,18 +236,18 @@ export default function AIHelpPage() {
         id: 'question2',
         question: 'Ideal screen size?',
         options: [
-          { value: 'small', label: '<50 inch' },
-          { value: 'medium', label: '55–65 inch' },
-          { value: 'large', label: '≥65 inch' }
+          { value: 'small', label: 'Under 50 inches' },
+          { value: 'medium', label: '55–65 inches' },
+          { value: 'large', label: '65 inches or larger' }
         ]
       },
       {
         id: 'question3',
-        question: 'Smart-TV needs?',
+        question: 'Smart TV features?',
         options: [
-          { value: 'advanced', label: 'Advanced apps & voice control' },
-          { value: 'basic', label: 'Basic smart features' },
-          { value: 'none', label: 'No smart features' }
+          { value: 'advanced', label: 'Advanced apps and voice control' },
+          { value: 'basic', label: 'Basic built-in smart apps' },
+          { value: 'none', label: 'Prefer a non-smart TV' }
         ]
       }
     ],
@@ -227,27 +258,27 @@ export default function AIHelpPage() {
         options: [
           { value: 'hard-floors', label: 'Mostly hard floors' },
           { value: 'carpet', label: 'Mainly carpet' },
-          { value: 'mixed', label: 'Mixed floors' },
-          { value: 'vacuum-mop', label: 'Vacuum-mop combo' }
+          { value: 'mixed', label: 'Mixed floor types' },
+          { value: 'vacuum-mop', label: 'Vacuum + mop combo capability' }
         ]
       },
       {
         id: 'question2',
         question: 'Navigation preference?',
         options: [
-          { value: 'random', label: 'Random navigation' },
-          { value: 'smart', label: 'Smart mapping' },
-          { value: 'lidar', label: 'LiDAR/advanced sensors' }
+          { value: 'random', label: 'Random/simple navigation' },
+          { value: 'smart', label: 'Smart mapping (learns room layout)' },
+          { value: 'lidar', label: 'LiDAR or advanced sensors' }
         ]
       },
       {
         id: 'question3',
-        question: 'Maintenance & features?',
+        question: 'Maintenance & extra features?',
         options: [
-          { value: 'self-empty', label: 'Self-emptying bin' },
-          { value: 'tangle-free', label: 'Tangle-free roller' },
+          { value: 'self-empty', label: 'Self-emptying dust bin' },
+          { value: 'tangle-free', label: 'Tangle-free brush roll' },
           { value: 'quiet', label: 'Quiet operation' },
-          { value: 'none', label: 'None' }
+          { value: 'none', label: 'None of these' }
         ]
       }
     ],
@@ -256,85 +287,85 @@ export default function AIHelpPage() {
         id: 'question1',
         question: 'Preferred loading style?',
         options: [
-          { value: 'front', label: 'Front load' },
-          { value: 'top-agitator', label: 'Top load (agitator)' },
-          { value: 'top-impeller', label: 'Top load (impeller)' }
+          { value: 'front', label: 'Front load (door on front)' },
+          { value: 'top', label: 'Top load (lid on top)' },
+          { value: 'no-preference', label: 'No preference' }
         ]
       },
       {
         id: 'question2',
-        question: 'Household size/load size?',
+        question: 'Household size / load size?',
         options: [
           { value: 'small', label: 'Small (1–2 people)' },
           { value: 'medium', label: 'Medium (3–4 people)' },
-          { value: 'large', label: 'Large (5+ people or bulky items)' }
+          { value: 'large', label: 'Large (5+ people or bulky loads)' }
         ]
       },
       {
         id: 'question3',
         question: 'Efficiency priorities?',
         options: [
-          { value: 'high', label: 'High energy & water efficiency' },
-          { value: 'balanced', label: 'Balanced efficiency & price' },
-          { value: 'not-important', label: 'Efficiency not important' }
+          { value: 'high', label: 'High energy and water efficiency' },
+          { value: 'balanced', label: 'Balanced efficiency and price' },
+          { value: 'not-important', label: 'Efficiency not a priority' }
         ]
       }
     ],
     'refrigerators': [
       {
         id: 'question1',
-        question: 'Household size/storage needs?',
+        question: 'Household size / capacity needs?',
         options: [
-          { value: 'small', label: '16–18 cu ft' },
-          { value: 'medium', label: '18–20 cu ft' },
-          { value: 'large', label: '>20 cu ft' }
+          { value: 'small', label: 'Small (1–2 people, up to ~300 L total)' },
+          { value: 'medium', label: 'Medium (3–4 people, ~300–500 L)' },
+          { value: 'large', label: 'Large (5+ people or extra storage, 500 L+)' }
         ]
       },
       {
         id: 'question2',
-        question: 'Ice maker & dispenser?',
+        question: 'Ice maker and water dispenser?',
         options: [
           { value: 'must-have', label: 'Must have' },
           { value: 'nice-to-have', label: 'Nice to have' },
-          { value: 'no-thanks', label: 'No thanks' }
+          { value: 'not-needed', label: 'Not needed' }
         ]
       },
       {
         id: 'question3',
-        question: 'Energy efficiency preferences?',
+        question: 'Energy efficiency preference?',
         options: [
-          { value: 'energy-star', label: 'ENERGY STAR & energy saver' },
+          { value: 'high', label: 'High efficiency (top energy rating)' },
           { value: 'standard', label: 'Standard efficiency' },
-          { value: 'unsure', label: 'Unsure' }
+          { value: 'unsure', label: 'Unsure / no preference' }
         ]
       }
     ],
     'dishwashers': [
       {
         id: 'question1',
-        question: 'Installation preference?',
+        question: 'Installation type?',
         options: [
-          { value: 'built-in', label: 'Built-in' },
-          { value: 'portable', label: 'Portable/countertop' },
-          { value: 'drawer', label: 'Drawer' }
+          { value: 'built-in', label: 'Built-in (integrated)' },
+          { value: 'portable', label: 'Freestanding or countertop (portable)' },
+          { value: 'drawer', label: 'Drawer style' }
         ]
       },
       {
         id: 'question2',
-        question: 'Noise & capacity?',
+        question: 'Noise & capacity preference?',
         options: [
-          { value: 'quiet-large', label: 'Quiet & large capacity' },
-          { value: 'standard', label: 'Standard noise' },
-          { value: 'basic', label: 'Basic capacity/noise not important' }
+          { value: 'quiet-large', label: 'Extra quiet with large capacity' },
+          { value: 'standard', label: 'Standard capacity and noise' },
+          { value: 'compact', label: 'Compact size (noise not important)' }
         ]
       },
       {
         id: 'question3',
         question: 'Preferred features?',
         options: [
-          { value: 'adjustable', label: 'Adjustable racks & soil sensor' },
-          { value: 'drying', label: 'Advanced drying methods' },
-          { value: 'top-control', label: 'Top-control panel' },
+          { value: 'adjustable', label: 'Adjustable racks and soil sensor' },
+          { value: 'drying', label: 'Advanced drying features' },
+          { value: 'top-control', label: 'Top-mounted control panel' },
           { value: 'no-special', label: 'No special features' }
         ]
       }
@@ -344,27 +375,27 @@ export default function AIHelpPage() {
         id: 'question1',
         question: 'Installation type?',
         options: [
-          { value: 'countertop', label: 'Countertop' },
-          { value: 'over-range', label: 'Over-the-range (with ventilation)' },
-          { value: 'built-in', label: 'Built-in' }
+          { value: 'countertop', label: 'Countertop (freestanding)' },
+          { value: 'over-range', label: 'Over-the-range (with ventilation hood)' },
+          { value: 'built-in', label: 'Built-in (cabinet integrated)' }
         ]
       },
       {
         id: 'question2',
         question: 'Capacity & power?',
         options: [
-          { value: 'compact', label: 'Compact (≤1 cu ft, ~700 W)' },
-          { value: 'mid-size', label: 'Mid-size (~1–1.5 cu ft, ~1,000 W)' },
-          { value: 'large', label: 'Large (>1.5 cu ft, ≥1,200 W)' }
+          { value: 'compact', label: 'Compact (≤ ~25 L, ~700 W)' },
+          { value: 'mid-size', label: 'Mid-size (~25–40 L, ~1000 W)' },
+          { value: 'large', label: 'Large (>40 L, ≥1200 W)' }
         ]
       },
       {
         id: 'question3',
         question: 'Desired features?',
         options: [
-          { value: 'sensor', label: 'Sensor/automatic cooking' },
-          { value: 'convection', label: 'Convection or multi-purpose' },
-          { value: 'child-lock', label: 'Child lock & turntable off' },
+          { value: 'sensor', label: 'Sensor cooking programs' },
+          { value: 'convection', label: 'Convection or grill function' },
+          { value: 'child-lock', label: 'Child lock or turntable-off option' },
           { value: 'no-special', label: 'No special features' }
         ]
       }
@@ -374,19 +405,19 @@ export default function AIHelpPage() {
         id: 'question1',
         question: 'Capacity needed?',
         options: [
-          { value: 'small', label: 'Small (<1 L)' },
+          { value: 'small', label: 'Small (under 1 L)' },
           { value: 'medium', label: 'Medium (1–1.5 L)' },
-          { value: 'large', label: 'Large (>1.5 L)' }
+          { value: 'large', label: 'Large (over 1.5 L)' }
         ]
       },
       {
         id: 'question2',
         question: 'Preferred features?',
         options: [
-          { value: 'temp-control', label: 'Temperature control & water level indicator' },
-          { value: 'basic', label: 'Basic on-off with auto-shutoff' },
-          { value: 'swivel', label: '360° swivel base & insulated handle' },
-          { value: 'none', label: 'None' }
+          { value: 'temp-control', label: 'Variable temperature control, water level indicator' },
+          { value: 'basic', label: 'Basic on/off with auto-shutoff' },
+          { value: 'swivel', label: '360° swivel base, cool-touch exterior' },
+          { value: 'none', label: 'No special features' }
         ]
       },
       {
@@ -395,7 +426,7 @@ export default function AIHelpPage() {
         options: [
           { value: 'steel', label: 'Stainless steel' },
           { value: 'glass', label: 'Glass' },
-          { value: 'any', label: 'Any (BPA-free)' }
+          { value: 'any', label: 'Any (BPA-free plastic)' }
         ]
       }
     ],
@@ -412,18 +443,18 @@ export default function AIHelpPage() {
         id: 'question2',
         question: 'Desired functions?',
         options: [
-          { value: 'basic', label: 'Basic toasting' },
-          { value: 'defrost', label: 'Defrost & reheat' },
-          { value: 'adjustable', label: 'Adjustable browning & cancel button' }
+          { value: 'basic', label: 'Basic toasting only' },
+          { value: 'defrost', label: 'Defrost and reheat modes' },
+          { value: 'adjustable', label: 'Adjustable browning control, cancel button' }
         ]
       },
       {
         id: 'question3',
         question: 'Design & cleaning preferences?',
         options: [
-          { value: 'matches-decor', label: 'Matches kitchen décor' },
-          { value: 'removable-tray', label: 'Removable crumb tray' },
-          { value: 'high-wattage', label: 'High-wattage (fast)' },
+          { value: 'stylish', label: 'Stylish design to match kitchen' },
+          { value: 'easy-clean', label: 'Easy cleaning (removable crumb tray)' },
+          { value: 'high-power', label: 'High-power for faster toasting' },
           { value: 'no-preference', label: 'No preference' }
         ]
       }
@@ -433,29 +464,29 @@ export default function AIHelpPage() {
         id: 'question1',
         question: 'Preferred brewing method?',
         options: [
-          { value: 'drip', label: 'Drip coffee maker' },
-          { value: 'single-serve', label: 'Single-serve pod machine' },
-          { value: 'manual', label: 'Manual (French press/pour-over)' },
-          { value: 'hybrid', label: 'Hybrid coffee & espresso' }
+          { value: 'drip', label: 'Drip filter coffee maker' },
+          { value: 'single-serve', label: 'Single-serve pod/capsule machine' },
+          { value: 'manual', label: 'Manual brew (French press or pour-over)' },
+          { value: 'hybrid', label: 'Hybrid (coffee + espresso) machine' }
         ]
       },
       {
         id: 'question2',
         question: 'Typical brew size?',
         options: [
-          { value: 'single', label: 'Single cup' },
-          { value: 'small', label: '2–4 cups' },
-          { value: 'large', label: '10+ cups' }
+          { value: 'single', label: 'Single cup at a time' },
+          { value: 'small', label: '2–4 cups (small pot)' },
+          { value: 'large', label: '10+ cups (large pot)' }
         ]
       },
       {
         id: 'question3',
         question: 'Important features?',
         options: [
-          { value: 'programmable', label: 'Programmable timer & auto-shutoff' },
-          { value: 'custom', label: 'Custom brew strength or temperature' },
+          { value: 'programmable', label: 'Programmable timer and auto-shutoff' },
+          { value: 'custom', label: 'Adjustable brew strength or temperature' },
           { value: 'grinder', label: 'Built-in grinder or milk frother' },
-          { value: 'basic', label: 'Basic machine' }
+          { value: 'basic', label: 'No special features' }
         ]
       }
     ]

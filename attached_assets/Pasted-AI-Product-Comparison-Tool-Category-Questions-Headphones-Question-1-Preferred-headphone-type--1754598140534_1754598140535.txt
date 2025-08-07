@@ -1,0 +1,216 @@
+AI Product Comparison Tool – Category Questions
+
+Headphones
+
+Question 1: Preferred headphone type?
+	•	On-ear
+	•	Over-ear
+
+Question 2: Main use-case?
+	•	Commuting/travel
+	•	Workouts
+	•	Home/office
+	•	Versatile use (all-round)
+
+Question 3: Important features?
+	•	Wireless connectivity (Bluetooth)
+	•	Active noise cancellation
+	•	Long battery life
+	•	Lightweight, comfortable design
+
+Earphones
+
+Question 1: Preferred earphone style?
+	•	True wireless earbuds (completely wireless)
+	•	Wireless earphones with neckband cable
+	•	Wired earphones
+
+Question 2: Main use-case?
+	•	Commuting/travel
+	•	Workouts
+	•	Home/office
+	•	Versatile use (all-round)
+
+Question 3: Important features?
+	•	Active noise cancellation
+	•	Water/sweat resistance
+	•	Long battery life (for wireless)
+	•	Secure & comfortable fit
+
+Soundbars
+
+Question 1: Desired sound experience?
+	•	Basic 2.1 or 3.1 (enhanced stereo sound)
+	•	Surround 5.1 (cinematic surround sound)
+	•	Immersive 3D audio (Dolby Atmos)
+
+Question 2: Connection preference?
+	•	Wireless (Bluetooth or Wi-Fi)
+	•	HDMI (ARC)
+	•	Optical or AUX cable
+
+Question 3: Aesthetic & size considerations?
+	•	Slim, low-profile design
+	•	Soundbar width roughly matches TV
+	•	No preference
+
+Televisions
+
+Question 1: What matters most in picture quality?
+	•	Resolution (e.g. 4K or 8K)
+	•	High Dynamic Range (HDR)
+	•	Colour accuracy
+	•	Not sure
+
+Question 2: Ideal screen size?
+	•	Under 50 inches
+	•	55–65 inches
+	•	65 inches or larger
+
+Question 3: Smart TV features?
+	•	Advanced apps and voice control
+	•	Basic built-in smart apps
+	•	Prefer a non-smart TV
+
+Robot Vacuums
+
+Question 1: Flooring & cleaning needs?
+	•	Mostly hard floors
+	•	Mainly carpet
+	•	Mixed floor types
+	•	Vacuum + mop combo capability
+
+Question 2: Navigation preference?
+	•	Random/simple navigation
+	•	Smart mapping (learns room layout)
+	•	LiDAR or advanced sensors
+
+Question 3: Maintenance & extra features?
+	•	Self-emptying dust bin
+	•	Tangle-free brush roll
+	•	Quiet operation
+	•	None of these
+
+Washing Machines
+
+Question 1: Preferred loading style?
+	•	Front load (door on front)
+	•	Top load (lid on top)
+	•	No preference
+
+Question 2: Household size / load size?
+	•	Small (1–2 people)
+	•	Medium (3–4 people)
+	•	Large (5+ people or bulky loads)
+
+Question 3: Efficiency priorities?
+	•	High energy and water efficiency
+	•	Balanced efficiency and price
+	•	Efficiency not a priority
+
+Refrigerators
+
+Question 1: Household size / capacity needs?
+	•	Small (1–2 people, up to ~300 L total)
+	•	Medium (3–4 people, ~300–500 L)
+	•	Large (5+ people or extra storage, 500 L+)
+
+Question 2: Ice maker and water dispenser?
+	•	Must have
+	•	Nice to have
+	•	Not needed
+
+Question 3: Energy efficiency preference?
+	•	High efficiency (top energy rating)
+	•	Standard efficiency
+	•	Unsure / no preference
+
+Dishwashers
+
+Question 1: Installation type?
+	•	Built-in (integrated)
+	•	Freestanding or countertop (portable)
+	•	Drawer style
+
+Question 2: Noise & capacity preference?
+	•	Extra quiet with large capacity
+	•	Standard capacity and noise
+	•	Compact size (noise not important)
+
+Question 3: Preferred features?
+	•	Adjustable racks and soil sensor
+	•	Advanced drying features
+	•	Top-mounted control panel
+	•	No special features
+
+Microwaves
+
+Question 1: Installation type?
+	•	Countertop (freestanding)
+	•	Over-the-range (with ventilation hood)
+	•	Built-in (cabinet integrated)
+
+Question 2: Capacity & power?
+	•	Compact (≤ ~25 L, ~700 W)
+	•	Mid-size (~25–40 L, ~1000 W)
+	•	Large (>40 L, ≥1200 W)
+
+Question 3: Desired features?
+	•	Sensor cooking programs
+	•	Convection or grill function
+	•	Child lock or turntable-off option
+	•	No special features
+
+Electric Kettles
+
+Question 1: Capacity needed?
+	•	Small (under 1 L)
+	•	Medium (1–1.5 L)
+	•	Large (over 1.5 L)
+
+Question 2: Preferred features?
+	•	Variable temperature control, water level indicator
+	•	Basic on/off with auto-shutoff
+	•	360° swivel base, cool-touch exterior
+	•	No special features
+
+Question 3: Material preference?
+	•	Stainless steel
+	•	Glass
+	•	Any (BPA-free plastic)
+
+Toasters
+
+Question 1: How many slots?
+	•	2-slice
+	•	4-slice
+
+Question 2: Desired functions?
+	•	Basic toasting only
+	•	Defrost and reheat modes
+	•	Adjustable browning control, cancel button
+
+Question 3: Design & cleaning preferences?
+	•	Stylish design to match kitchen
+	•	Easy cleaning (removable crumb tray)
+	•	High-power for faster toasting
+	•	No preference
+
+Coffee Makers
+
+Question 1: Preferred brewing method?
+	•	Drip filter coffee maker
+	•	Single-serve pod/capsule machine
+	•	Manual brew (French press or pour-over)
+	•	Hybrid (coffee + espresso) machine
+
+Question 2: Typical brew size?
+	•	Single cup at a time
+	•	2–4 cups (small pot)
+	•	10+ cups (large pot)
+
+Question 3: Important features?
+	•	Programmable timer and auto-shutoff
+	•	Adjustable brew strength or temperature
+	•	Built-in grinder or milk frother
+	•	No special features

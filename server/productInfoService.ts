@@ -28,7 +28,7 @@ export async function getProductInfo(model: string): Promise<ProductInfo> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: 'sonar-pro',
         messages: [
           {
             role: 'system',
@@ -67,11 +67,8 @@ IMPORTANT: Return only real information found through search. Do not fabricate s
             content: searchQuery
           }
         ],
-        temperature: 0.2,
         max_tokens: 2000,
-        search_recency_filter: 'week',
-        return_related_questions: false,
-        stream: false
+        temperature: 0.2
       })
     });
 

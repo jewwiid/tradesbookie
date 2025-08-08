@@ -54,7 +54,7 @@ export async function getProductRecommendations(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: 'sonar-pro',
         messages: [
           {
             role: 'system',
@@ -98,11 +98,8 @@ MANDATORY: Only return products you can verify exist on harveynorman.ie. Do not 
             content: searchQuery
           }
         ],
-        temperature: 0.2,
         max_tokens: 2000,
-        search_recency_filter: 'week',
-        return_related_questions: false,
-        stream: false
+        temperature: 0.2
       })
     });
 

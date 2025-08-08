@@ -43,7 +43,7 @@ export async function getCurrentTVRecommendations(answers: TVRecommendationQuery
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: 'sonar-pro',
         messages: [
           {
             role: 'system',
@@ -450,7 +450,7 @@ Focus on information from 2024-2025 and current Irish market availability.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',
+        model: 'sonar-pro',
         messages: [
           {
             role: 'system',

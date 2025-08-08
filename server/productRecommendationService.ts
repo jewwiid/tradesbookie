@@ -167,7 +167,7 @@ function convertAnswersToFilters(
 
   // Convert category-specific answers to filters
   switch (category) {
-    case 'soundbar':
+    case 'soundbars':
       if (answers.room_profile) {
         filters.must.attributes.roomSize = answers.room_profile;
       }
@@ -179,7 +179,7 @@ function convertAnswersToFilters(
       }
       break;
       
-    case 'television':
+    case 'televisions':
       if (answers.screen_size) {
         filters.must.attributes.screenSize = answers.screen_size;
       }
@@ -191,7 +191,7 @@ function convertAnswersToFilters(
       }
       break;
       
-    case 'dishwasher':
+    case 'dishwashers':
       if (answers.installation_type) {
         filters.must.attributes.installationType = answers.installation_type;
       }
@@ -203,7 +203,7 @@ function convertAnswersToFilters(
       }
       break;
       
-    case 'washing-machine':
+    case 'washing-machines':
       if (answers.load_capacity) {
         filters.must.attributes.loadCapacity = answers.load_capacity;
       }
@@ -212,6 +212,114 @@ function convertAnswersToFilters(
       }
       if (answers.installation) {
         filters.must.attributes.installation = answers.installation;
+      }
+      break;
+      
+    case 'headphones':
+      if (answers.question1) {
+        filters.must.attributes.headphoneType = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.useCase = answers.question2;
+      }
+      if (answers.question3) {
+        filters.must.attributes.features = [answers.question3];
+      }
+      break;
+      
+    case 'earphones':
+      if (answers.question1) {
+        filters.must.attributes.earphonesStyle = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.useCase = answers.question2;
+      }
+      if (answers.question3) {
+        filters.must.attributes.features = [answers.question3];
+      }
+      break;
+      
+    case 'robot-vacuums':
+      if (answers.question1) {
+        filters.must.attributes.cleaningNeeds = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.navigation = answers.question2;
+      }
+      if (answers.question3) {
+        filters.must.attributes.features = [answers.question3];
+      }
+      break;
+      
+    case 'refrigerators':
+      if (answers.question1) {
+        filters.must.attributes.capacity = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.iceWaterDispenser = answers.question2;
+      }
+      if (answers.question3) {
+        filters.must.attributes.efficiency = answers.question3;
+      }
+      break;
+      
+    case 'microwaves':
+      if (answers.question1) {
+        filters.must.attributes.installationType = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.capacityPower = answers.question2;
+      }
+      if (answers.question3) {
+        filters.must.attributes.features = [answers.question3];
+      }
+      break;
+      
+    case 'electric-kettles':
+      if (answers.question1) {
+        filters.must.attributes.capacity = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.features = [answers.question2];
+      }
+      if (answers.question3) {
+        filters.must.attributes.material = answers.question3;
+      }
+      break;
+      
+    case 'toasters':
+      if (answers.question1) {
+        filters.must.attributes.slots = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.functions = answers.question2;
+      }
+      if (answers.question3) {
+        filters.must.attributes.designPreference = answers.question3;
+      }
+      break;
+      
+    case 'coffee-makers':
+      if (answers.question1) {
+        filters.must.attributes.brewingMethod = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.brewSize = answers.question2;
+      }
+      if (answers.question3) {
+        filters.must.attributes.features = [answers.question3];
+      }
+      break;
+      
+    case 'other':
+      if (answers.question1) {
+        filters.must.attributes.primaryUse = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.priority = answers.question2;
+      }
+      if (answers.question3) {
+        filters.must.attributes.experienceLevel = answers.question3;
       }
       break;
   }
@@ -287,7 +395,7 @@ function parseTextToRecommendations(
 function generateFallbackRecommendations(category: string, budget: number): ProductRecommendation[] {
   // Generate category-specific fallback recommendations based on budget
   switch (category) {
-    case 'soundbar':
+    case 'soundbars':
       return [
         {
           sku: 'SB-HN-001',
@@ -342,7 +450,7 @@ function generateFallbackRecommendations(category: string, budget: number): Prod
         }
       ];
 
-    case 'television':
+    case 'televisions':
       if (budget >= 1000) {
         return [
           {
@@ -459,7 +567,7 @@ function generateFallbackRecommendations(category: string, budget: number): Prod
         ];
       }
 
-    case 'dishwasher':
+    case 'dishwashers':
       return [
         {
           sku: 'DW-HN-001',
@@ -517,7 +625,7 @@ function generateFallbackRecommendations(category: string, budget: number): Prod
         }
       ];
 
-    case 'washing-machine':
+    case 'washing-machines':
       return [
         {
           sku: 'WM-HN-001',
@@ -572,6 +680,230 @@ function generateFallbackRecommendations(category: string, budget: number): Prod
             'Steam function reduces wrinkles and allergens'
           ],
           rating: 4.1
+        }
+      ];
+
+    case 'headphones':
+      return [
+        {
+          sku: 'HP-HN-001',
+          name: 'Sony WH-1000XM5 Wireless Headphones',
+          price: Math.min(349, budget),
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 2
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Industry-leading noise cancellation technology',
+            'Excellent sound quality with balanced audio',
+            'Long 30-hour battery life for all-day use'
+          ],
+          rating: 4.8
+        },
+        {
+          sku: 'HP-HN-002',
+          name: 'Bose QuietComfort 45 Headphones',
+          price: Math.min(299, budget),
+          availability: {
+            inStock: true,
+            stores: ['Dublin', 'Cork', 'Galway'],
+            deliveryDays: 3
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Legendary Bose noise cancellation',
+            'Comfortable for long listening sessions',
+            'Excellent build quality and durability'
+          ],
+          rating: 4.6
+        }
+      ];
+
+    case 'earphones':
+      return [
+        {
+          sku: 'EP-HN-001',
+          name: 'Apple AirPods Pro (2nd Generation)',
+          price: Math.min(249, budget),
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 1
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Active noise cancellation in compact design',
+            'Seamless Apple ecosystem integration',
+            'Excellent call quality and convenience'
+          ],
+          rating: 4.7
+        },
+        {
+          sku: 'EP-HN-002',
+          name: 'Samsung Galaxy Buds2 Pro',
+          price: Math.min(199, budget),
+          availability: {
+            inStock: true,
+            stores: ['Dublin', 'Cork', 'Belfast'],
+            deliveryDays: 2
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Great Android compatibility with premium sound',
+            'Effective noise cancellation for the price',
+            'Comfortable secure fit for active use'
+          ],
+          rating: 4.4
+        }
+      ];
+
+    case 'robot-vacuums':
+      return [
+        {
+          sku: 'RV-HN-001',
+          name: 'iRobot Roomba i7+ Robot Vacuum',
+          price: Math.min(899, budget),
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 4
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Smart mapping learns your home layout',
+            'Self-emptying base for 60 days hands-free',
+            'Excellent cleaning performance on all surfaces'
+          ],
+          rating: 4.5
+        }
+      ];
+
+    case 'refrigerators':
+      return [
+        {
+          sku: 'RF-HN-001',
+          name: 'Samsung RS68A8842S9 American Style Fridge Freezer',
+          price: Math.min(1299, budget),
+          energyLabel: 'E',
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 7
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Large 617L capacity perfect for families',
+            'Water and ice dispenser for convenience',
+            'Reliable Samsung build quality'
+          ],
+          rating: 4.3
+        }
+      ];
+
+    case 'microwaves':
+      return [
+        {
+          sku: 'MW-HN-001',
+          name: 'Panasonic NN-SF464MBPQ Solo Microwave',
+          price: Math.min(149, budget),
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 3
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Reliable Panasonic inverter technology',
+            'Compact design perfect for most kitchens',
+            'Easy-to-use controls with preset programs'
+          ],
+          rating: 4.2
+        }
+      ];
+
+    case 'electric-kettles':
+      return [
+        {
+          sku: 'EK-HN-001',
+          name: 'Russell Hobbs Legacy Kettle',
+          price: Math.min(49, budget),
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 2
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Fast boiling with 3000W power',
+            'Stylish design that complements any kitchen',
+            'Excellent value for money'
+          ],
+          rating: 4.1
+        }
+      ];
+
+    case 'toasters':
+      return [
+        {
+          sku: 'TO-HN-001',
+          name: 'Breville VTT470 4-Slice Toaster',
+          price: Math.min(89, budget),
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 2
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            '4-slice capacity perfect for families',
+            'Variable browning control for perfect toast',
+            'Reliable Breville quality and performance'
+          ],
+          rating: 4.2
+        }
+      ];
+
+    case 'coffee-makers':
+      return [
+        {
+          sku: 'CM-HN-001',
+          name: 'DeLonghi Magnifica S ECAM22.110.B',
+          price: Math.min(399, budget),
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 4
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Bean-to-cup convenience with built-in grinder',
+            'Customizable coffee strength and temperature',
+            'Easy maintenance with automatic cleaning'
+          ],
+          rating: 4.4
+        }
+      ];
+
+    case 'other':
+      return [
+        {
+          sku: 'OT-HN-001',
+          name: 'Product recommendations based on your custom category',
+          price: Math.min(199, budget),
+          availability: {
+            inStock: true,
+            stores: ['Harvey Norman stores'],
+            deliveryDays: 3
+          },
+          url: 'https://www.harveynorman.ie',
+          reasons: [
+            'Tailored to your specific requirements',
+            'Quality products from trusted brands',
+            'Excellent value within your budget'
+          ],
+          rating: 4.0
         }
       ];
 

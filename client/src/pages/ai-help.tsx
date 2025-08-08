@@ -790,7 +790,7 @@ export default function AIHelpPage() {
         mapsTo: 'displayTech'
       }
     ],
-    'dishwasher': [
+    'dishwashers': [
       {
         id: 'installation_type',
         label: 'Installation type needed?',
@@ -826,7 +826,7 @@ export default function AIHelpPage() {
         mapsTo: 'preferredFeatures'
       }
     ],
-    'washing-machine': [
+    'washing-machines': [
       {
         id: 'load_capacity',
         label: 'What load capacity do you need?',
@@ -1168,12 +1168,21 @@ export default function AIHelpPage() {
                           What type of product are you looking for?
                         </p>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
                           {[
-                            { id: 'soundbar', label: '🔊 Soundbars', desc: 'Enhance your TV audio' },
-                            { id: 'television', label: '📺 Televisions', desc: 'Smart TVs & displays' },
-                            { id: 'dishwasher', label: '🍽️ Dishwashers', desc: 'Kitchen appliances' },
-                            { id: 'washing-machine', label: '👔 Washing Machines', desc: 'Laundry appliances' }
+                            { id: 'soundbars', label: '🔊 Soundbars', desc: 'Enhance your TV audio' },
+                            { id: 'televisions', label: '📺 Televisions', desc: 'Smart TVs & displays' },
+                            { id: 'dishwashers', label: '🍽️ Dishwashers', desc: 'Kitchen appliances' },
+                            { id: 'washing-machines', label: '👔 Washing Machines', desc: 'Laundry appliances' },
+                            { id: 'headphones', label: '🎧 Headphones', desc: 'Audio equipment' },
+                            { id: 'earphones', label: '🎵 Earphones', desc: 'Portable audio' },
+                            { id: 'robot-vacuums', label: '🤖 Robot Vacuums', desc: 'Smart cleaning' },
+                            { id: 'refrigerators', label: '🧊 Refrigerators', desc: 'Kitchen cooling' },
+                            { id: 'microwaves', label: '📱 Microwaves', desc: 'Kitchen heating' },
+                            { id: 'electric-kettles', label: '☕ Electric Kettles', desc: 'Hot water & tea' },
+                            { id: 'toasters', label: '🍞 Toasters', desc: 'Breakfast appliances' },
+                            { id: 'coffee-makers', label: '☕ Coffee Makers', desc: 'Coffee & espresso' },
+                            { id: 'other', label: '🔧 Other', desc: 'Custom category' }
                           ].map((category) => (
                             <button
                               key={category.id}

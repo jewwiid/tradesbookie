@@ -865,6 +865,230 @@ export default function AIHelpPage() {
         mapsTo: 'installation'
       }
     ],
+    'earphones': [
+      {
+        id: 'main_use',
+        label: "What's your main use for earphones?",
+        type: 'single',
+        options: [
+          { id: 'commuting', label: 'Daily commuting' },
+          { id: 'fitness', label: 'Exercise and fitness' }
+        ],
+        mapsTo: 'mainUse'
+      },
+      {
+        id: 'priority_balance',
+        label: 'How important is wireless convenience vs. sound quality?',
+        type: 'single',
+        options: [
+          { id: 'wireless_priority', label: 'Wireless freedom is essential' },
+          { id: 'sound_priority', label: 'Best sound quality matters most' }
+        ],
+        mapsTo: 'priorityBalance'
+      },
+      {
+        id: 'daily_priority',
+        label: "What's your priority for daily use?",
+        type: 'single',
+        options: [
+          { id: 'battery_focus', label: 'Long battery life' },
+          { id: 'connectivity_focus', label: 'Quick pairing and calls' }
+        ],
+        mapsTo: 'dailyPriority'
+      }
+    ],
+    'headphones': [
+      {
+        id: 'usage_location',
+        label: 'Where will you use these headphones most?',
+        type: 'single',
+        options: [
+          { id: 'home_entertainment', label: 'Home entertainment and relaxation' },
+          { id: 'work_calls', label: 'Work from home and calls' }
+        ],
+        mapsTo: 'usageLocation'
+      },
+      {
+        id: 'lifestyle_priority',
+        label: "What's more important for your lifestyle?",
+        type: 'single',
+        options: [
+          { id: 'noise_cancelling', label: 'Noise cancelling for focus' },
+          { id: 'awareness_mode', label: 'Awareness of surroundings' }
+        ],
+        mapsTo: 'lifestylePriority'
+      },
+      {
+        id: 'comfort_vs_portability',
+        label: 'How do you prioritize comfort vs. portability?',
+        type: 'single',
+        options: [
+          { id: 'comfort_priority', label: 'Maximum comfort for long sessions' },
+          { id: 'portability_priority', label: 'Foldable and travel-friendly' }
+        ],
+        mapsTo: 'comfortVsPortability'
+      }
+    ],
+    'soundbars': [
+      {
+        id: 'space_setup',
+        label: 'What describes your space and setup needs?',
+        type: 'single',
+        options: [
+          { id: 'simple_upgrade', label: 'Simple TV sound upgrade' },
+          { id: 'home_theatre', label: 'Cinematic home theatre' }
+        ],
+        mapsTo: 'spaceSetup'
+      },
+      {
+        id: 'listening_priority',
+        label: "What's most important for your listening?",
+        type: 'single',
+        options: [
+          { id: 'clear_dialogue', label: 'Clear speech and dialogue' },
+          { id: 'powerful_effects', label: 'Powerful bass and effects' }
+        ],
+        mapsTo: 'listeningPriority'
+      },
+      {
+        id: 'living_space',
+        label: 'How does this fit your living space?',
+        type: 'single',
+        options: [
+          { id: 'apartment_friendly', label: 'Apartment-friendly volume control' },
+          { id: 'full_volume_house', label: 'House with space for full volume' }
+        ],
+        mapsTo: 'livingSpace'
+      }
+    ],
+    'robot-vacuums': [
+      {
+        id: 'floor_type',
+        label: "What describes your home's floors?",
+        type: 'single',
+        options: [
+          { id: 'hard_floors', label: 'Mostly hard floors' },
+          { id: 'carpets_rugs', label: 'Carpets and rugs throughout' }
+        ],
+        mapsTo: 'floorType'
+      },
+      {
+        id: 'management_style',
+        label: 'How do you prefer to manage your cleaning?',
+        type: 'single',
+        options: [
+          { id: 'full_automation', label: 'Set it and forget it' },
+          { id: 'manual_control', label: 'Control when and where it cleans' }
+        ],
+        mapsTo: 'managementStyle'
+      },
+      {
+        id: 'household_routine',
+        label: 'What fits your household routine?',
+        type: 'single',
+        options: [
+          { id: 'clean_while_out', label: "Clean while I'm out" },
+          { id: 'clean_while_home', label: "Clean when I'm home" }
+        ],
+        mapsTo: 'householdRoutine'
+      }
+    ],
+    'refrigerators': [
+      {
+        id: 'capacity_needs',
+        label: 'What capacity suits your household?',
+        type: 'single',
+        options: [
+          { id: 'couple_small_family', label: 'Couple or small family' },
+          { id: 'large_family', label: 'Large family or entertaining' }
+        ],
+        mapsTo: 'capacityNeeds'
+      },
+      {
+        id: 'cost_priority',
+        label: "What's your priority for ongoing costs?",
+        type: 'single',
+        options: [
+          { id: 'lowest_bills', label: 'Lowest electricity bills' },
+          { id: 'convenience_features', label: 'Maximum convenience features' }
+        ],
+        mapsTo: 'costPriority'
+      },
+      {
+        id: 'kitchen_layout',
+        label: 'What fits your kitchen layout?',
+        type: 'single',
+        options: [
+          { id: 'standard_kitchen', label: 'Standard kitchen space' },
+          { id: 'large_kitchen', label: 'Large kitchen or utility area' }
+        ],
+        mapsTo: 'kitchenLayout'
+      }
+    ],
+    'coffee-makers': [
+      {
+        id: 'consumption_level',
+        label: 'How much coffee does your household drink?',
+        type: 'single',
+        options: [
+          { id: 'light_consumption', label: '1-2 cups daily' },
+          { id: 'heavy_consumption', label: 'Multiple cups throughout day' }
+        ],
+        mapsTo: 'consumptionLevel'
+      },
+      {
+        id: 'main_priority',
+        label: "What's your priority?",
+        type: 'single',
+        options: [
+          { id: 'convenience_speed', label: 'Convenience and speed' },
+          { id: 'taste_control', label: 'Best coffee taste and control' }
+        ],
+        mapsTo: 'mainPriority'
+      },
+      {
+        id: 'kitchen_fit',
+        label: 'How does this fit your kitchen?',
+        type: 'single',
+        options: [
+          { id: 'limited_space', label: 'Limited counter space' },
+          { id: 'dedicated_station', label: 'Dedicated coffee station' }
+        ],
+        mapsTo: 'kitchenFit'
+      }
+    ],
+    'kettles': [
+      {
+        id: 'capacity_need',
+        label: 'What capacity do you need?',
+        type: 'single',
+        options: [
+          { id: 'small_capacity', label: '1-2 people' },
+          { id: 'large_capacity', label: 'Family or entertaining' }
+        ],
+        mapsTo: 'capacityNeed'
+      },
+      {
+        id: 'feature_priority',
+        label: 'What features matter most?',
+        type: 'single',
+        options: [
+          { id: 'energy_efficiency', label: 'Energy efficiency' },
+          { id: 'speed_convenience', label: 'Speed and convenience' }
+        ],
+        mapsTo: 'featurePriority'
+      },
+      {
+        id: 'design_preference',
+        label: 'What design works for your kitchen?',
+        type: 'single',
+        options: [
+          { id: 'modern_stylish', label: 'Modern and stylish' },
+          { id: 'practical_durable', label: 'Practical and durable' }
+        ],
+        mapsTo: 'designPreference'
+      }
+    ],
     'other': [
       {
         id: 'product_type',

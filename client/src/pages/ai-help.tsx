@@ -98,6 +98,7 @@ export default function AIHelpPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [findAnswers, setFindAnswers] = useState<Record<string, string>>({});
   const [maxBudget, setMaxBudget] = useState<number>(1000);
+  const [customProductInput, setCustomProductInput] = useState('');
   const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);
 
   // Scroll to top when component mounts
@@ -703,6 +704,7 @@ export default function AIHelpPage() {
     setSelectedCategory('');
     setFindAnswers({});
     setMaxBudget(1000);
+    setCustomProductInput('');
     setRecommendations(null);
     setFindProductStep(0);
   };
@@ -862,18 +864,58 @@ export default function AIHelpPage() {
         ],
         mapsTo: 'installation'
       }
+    ],
+    'other': [
+      {
+        id: 'product_type',
+        label: 'What product are you looking for?',
+        type: 'single',
+        options: [
+          { id: 'smart_home', label: 'Smart home devices' },
+          { id: 'gaming', label: 'Gaming equipment' },
+          { id: 'office', label: 'Office equipment' },
+          { id: 'custom', label: 'Something else (specify in next step)' }
+        ],
+        mapsTo: 'productType'
+      },
+      {
+        id: 'budget_range',
+        label: 'What is your budget range?',
+        type: 'single',
+        options: [
+          { id: 'under_200', label: 'Under €200' },
+          { id: '200_500', label: '€200 - €500' },
+          { id: '500_1000', label: '€500 - €1,000' },
+          { id: 'over_1000', label: 'Over €1,000' }
+        ],
+        mapsTo: 'budgetRange'
+      },
+      {
+        id: 'priority_feature',
+        label: 'What matters most to you?',
+        type: 'single',
+        options: [
+          { id: 'value_money', label: 'Best value for money' },
+          { id: 'latest_tech', label: 'Latest technology' },
+          { id: 'reliability', label: 'Reliability and durability' },
+          { id: 'brand_reputation', label: 'Brand reputation' }
+        ],
+        mapsTo: 'priorityFeature'
+      }
     ]
   };
 
   const canProceedToQuestions = selectedCategory.trim() !== '';
   const getCurrentFindQuestions = () => {
-    console.log('Selected category:', selectedCategory);
-    console.log('Available question categories:', Object.keys(findProductQuestions));
-    const questions = findProductQuestions[selectedCategory] || [];
-    console.log('Questions found:', questions.length);
-    return questions;
+    return findProductQuestions[selectedCategory] || [];
   };
-  const canProceedToResults = getCurrentFindQuestions().every(q => findAnswers[q.id]);
+  const canProceedToResults = getCurrentFindQuestions().every(q => {
+    // For 'other' category with custom product type, also require custom input
+    if (selectedCategory === 'other' && q.id === 'product_type' && findAnswers[q.id] === 'custom') {
+      return findAnswers[q.id] && customProductInput.trim() !== '';
+    }
+    return findAnswers[q.id];
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -1300,6 +1342,22 @@ export default function AIHelpPage() {
                                     </button>
                                   ))}
                                 </div>
+                                
+                                {/* Custom product input for 'other' category when 'custom' is selected */}
+                                {selectedCategory === 'other' && question.id === 'product_type' && 
+                                 findAnswers[question.id] === 'custom' && (
+                                  <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <label className="block text-sm font-medium text-blue-900 mb-2">
+                                      What specific product are you looking for?
+                                    </label>
+                                    <Input
+                                      value={customProductInput}
+                                      onChange={(e) => setCustomProductInput(e.target.value)}
+                                      placeholder="e.g., Air fryer, Robot lawnmower, Electric scooter..."
+                                      className="w-full"
+                                    />
+                                  </div>
+                                )}
                               </CardContent>
                             </Card>
                           ))}
@@ -1314,11 +1372,20 @@ export default function AIHelpPage() {
                             Previous
                           </Button>
                           <Button
-                            onClick={() => getRecommendations.mutate({ 
-                              category: selectedCategory, 
-                              answers: findAnswers, 
-                              budget: maxBudget 
-                            })}
+                            onClick={() => {
+                              // Include custom product input if provided
+                              const enhancedAnswers = { 
+                                ...findAnswers,
+                                ...(selectedCategory === 'other' && customProductInput.trim() && {
+                                  customProduct: customProductInput.trim()
+                                })
+                              };
+                              getRecommendations.mutate({ 
+                                category: selectedCategory, 
+                                answers: enhancedAnswers, 
+                                budget: maxBudget 
+                              });
+                            }}
                             disabled={!canProceedToResults || getRecommendations.isPending}
                             className="w-full bg-green-600 hover:bg-green-700"
                           >

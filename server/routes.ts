@@ -36,6 +36,7 @@ import { requestPasswordReset, resetPassword } from "./passwordResetService";
 import { askQuestion, getPopularQuestions, updateFaqAnswer, deactivateFaqAnswer } from "./faqService";
 import { compareTVModels } from "./tvComparisonService";
 import { compareElectronicProducts } from "./electronicProductComparisonService";
+import { getProductRecommendations } from "./productRecommendationService";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -10209,6 +10210,35 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       console.error("Error comparing electronic products:", error);
       res.status(500).json({ 
         error: "Failed to compare electronic products", 
+        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      });
+    }
+  });
+
+  // AI Product Recommendation endpoint
+  app.post("/api/ai/recommend", async (req, res) => {
+    try {
+      const { category, answers, maxBudgetEUR } = req.body;
+      
+      if (!category || !answers || !maxBudgetEUR) {
+        return res.status(400).json({ 
+          error: "Category, answers, and maxBudgetEUR are required" 
+        });
+      }
+
+      console.log(`🎯 Finding products for category: ${category} with budget: €${maxBudgetEUR}`);
+      
+      const recommendations = await getProductRecommendations(
+        category, 
+        answers, 
+        maxBudgetEUR
+      );
+      
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error getting product recommendations:", error);
+      res.status(500).json({ 
+        error: "Failed to get product recommendations", 
         message: error instanceof Error ? error.message : "Unknown error occurred" 
       });
     }

@@ -36,6 +36,28 @@ interface ElectronicProductComparison {
   budget_consideration: string;
 }
 
+interface ProductRecommendation {
+  sku: string;
+  name: string;
+  price: number;
+  energyLabel?: string;
+  availability: {
+    inStock: boolean;
+    stores: string[];
+    deliveryDays: number;
+  };
+  url: string;
+  image?: string;
+  reasons: string[];
+  rating?: number;
+}
+
+interface RecommendationResponse {
+  recommendations: ProductRecommendation[];
+  searchSummary: string;
+  filters: any;
+}
+
 interface QuestionnaireAnswers {
   question1: string;
   question2: string;
@@ -69,6 +91,13 @@ export default function AIHelpPage() {
   });
   const [productComparison, setProductComparison] = useState<ElectronicProductComparison | null>(null);
   const [currentStep, setCurrentStep] = useState(0); // 0: category, 1: models, 2: questions
+
+  // Find My Product State
+  const [findProductStep, setFindProductStep] = useState(0); // 0: category, 1: questions, 2: results
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [findAnswers, setFindAnswers] = useState<Record<string, string>>({});
+  const [maxBudget, setMaxBudget] = useState<number>(1000);
+  const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -648,6 +677,199 @@ export default function AIHelpPage() {
     setCurrentStep(0);
   };
 
+  // Find My Product functions
+  const getRecommendations = useMutation({
+    mutationFn: async ({ category, answers, budget }: {
+      category: string;
+      answers: Record<string, string>;
+      budget: number;
+    }) => {
+      const response = await fetch('/api/ai/recommend', {
+        method: 'POST',
+        body: JSON.stringify({ category, answers, maxBudgetEUR: budget }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) throw new Error('Recommendation failed');
+      return response.json();
+    },
+    onSuccess: (data: RecommendationResponse) => {
+      setRecommendations(data);
+      setFindProductStep(2);
+    }
+  });
+
+  const resetFindProduct = () => {
+    setSelectedCategory('');
+    setFindAnswers({});
+    setMaxBudget(1000);
+    setRecommendations(null);
+    setFindProductStep(0);
+  };
+
+  const handleFindAnswer = (questionId: string, value: string) => {
+    setFindAnswers(prev => ({ ...prev, [questionId]: value }));
+  };
+
+  // Question bank for Find My Product
+  const findProductQuestions: Record<string, Array<{
+    id: string;
+    label: string;
+    type: 'single' | 'multiple';
+    options: Array<{ id: string; label: string; }>;
+    mapsTo: string;
+  }>> = {
+    'soundbar': [
+      {
+        id: 'room_profile',
+        label: 'Where will you use it?',
+        type: 'single',
+        options: [
+          { id: 'small_tv', label: 'Small room / bedroom' },
+          { id: 'living_tv', label: 'Living room' },
+          { id: 'open_plan', label: 'Open-plan / large space' }
+        ],
+        mapsTo: 'roomSize'
+      },
+      {
+        id: 'connection_type',
+        label: 'How will you connect it?',
+        type: 'single',
+        options: [
+          { id: 'hdmi_arc', label: 'HDMI ARC/eARC (recommended)' },
+          { id: 'optical', label: 'Optical cable' },
+          { id: 'bluetooth', label: 'Bluetooth wireless' }
+        ],
+        mapsTo: 'connection'
+      },
+      {
+        id: 'sound_preference',
+        label: 'What type of sound do you prefer?',
+        type: 'single',
+        options: [
+          { id: 'dialogue_clear', label: 'Clear dialogue for TV/movies' },
+          { id: 'bass_heavy', label: 'Deep bass for music/action' },
+          { id: 'balanced', label: 'Balanced sound for everything' }
+        ],
+        mapsTo: 'soundProfile'
+      }
+    ],
+    'television': [
+      {
+        id: 'screen_size',
+        label: 'What screen size do you prefer?',
+        type: 'single',
+        options: [
+          { id: 'under_50', label: 'Under 50 inches' },
+          { id: '50_to_65', label: '50-65 inches' },
+          { id: 'over_65', label: 'Over 65 inches' }
+        ],
+        mapsTo: 'screenSize'
+      },
+      {
+        id: 'primary_use',
+        label: 'Primary use for your TV?',
+        type: 'single',
+        options: [
+          { id: 'general_tv', label: 'General TV viewing' },
+          { id: 'gaming', label: 'Gaming (PlayStation, Xbox)' },
+          { id: 'streaming', label: 'Netflix, Prime Video, etc.' },
+          { id: 'sports', label: 'Sports and live events' }
+        ],
+        mapsTo: 'primaryUse'
+      },
+      {
+        id: 'display_tech',
+        label: 'Display technology preference?',
+        type: 'single',
+        options: [
+          { id: 'any', label: 'Best value for my budget' },
+          { id: 'oled', label: 'OLED (perfect blacks)' },
+          { id: 'qled', label: 'QLED (bright colors)' },
+          { id: 'led', label: 'LED (budget friendly)' }
+        ],
+        mapsTo: 'displayTech'
+      }
+    ],
+    'dishwasher': [
+      {
+        id: 'installation_type',
+        label: 'Installation type needed?',
+        type: 'single',
+        options: [
+          { id: 'built_in', label: 'Built-in (integrated with kitchen)' },
+          { id: 'freestanding', label: 'Freestanding' },
+          { id: 'slimline', label: 'Slimline (compact width)' }
+        ],
+        mapsTo: 'installationType'
+      },
+      {
+        id: 'noise_level',
+        label: 'How important is quiet operation?',
+        type: 'single',
+        options: [
+          { id: 'very_quiet', label: 'Very important (open plan kitchen)' },
+          { id: 'moderate', label: 'Somewhat important' },
+          { id: 'not_important', label: 'Not a priority' }
+        ],
+        mapsTo: 'noiseLevel'
+      },
+      {
+        id: 'features',
+        label: 'Most important features?',
+        type: 'single',
+        options: [
+          { id: 'adjustable_racks', label: 'Adjustable racks & cutlery tray' },
+          { id: 'enhanced_drying', label: 'Enhanced drying system' },
+          { id: 'quick_wash', label: 'Quick wash cycles' },
+          { id: 'energy_efficient', label: 'Energy efficient (A+ rating)' }
+        ],
+        mapsTo: 'preferredFeatures'
+      }
+    ],
+    'washing-machine': [
+      {
+        id: 'load_capacity',
+        label: 'What load capacity do you need?',
+        type: 'single',
+        options: [
+          { id: '6kg', label: '6kg (1-2 people)' },
+          { id: '8kg', label: '8kg (3-4 people)' },
+          { id: '10kg_plus', label: '10kg+ (large family)' }
+        ],
+        mapsTo: 'loadCapacity'
+      },
+      {
+        id: 'wash_features',
+        label: 'Important washing features?',
+        type: 'single',
+        options: [
+          { id: 'quick_wash', label: 'Quick wash cycles' },
+          { id: 'steam', label: 'Steam cleaning' },
+          { id: 'allergen', label: 'Anti-allergy programs' },
+          { id: 'eco_friendly', label: 'Eco-friendly efficiency' }
+        ],
+        mapsTo: 'washFeatures'
+      },
+      {
+        id: 'installation',
+        label: 'Installation preference?',
+        type: 'single',
+        options: [
+          { id: 'freestanding', label: 'Freestanding' },
+          { id: 'integrated', label: 'Integrated (built-in)' },
+          { id: 'either', label: 'Either is fine' }
+        ],
+        mapsTo: 'installation'
+      }
+    ]
+  };
+
+  const canProceedToQuestions = selectedCategory.trim() !== '';
+  const getCurrentFindQuestions = () => {
+    return findProductQuestions[selectedCategory] || [];
+  };
+  const canProceedToResults = getCurrentFindQuestions().every(q => findAnswers[q.id]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navigation />
@@ -721,6 +943,18 @@ export default function AIHelpPage() {
               <DollarSign className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
               <span className="hidden sm:inline">Product Comparison Tool</span>
               <span className="sm:hidden">Products</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('find')}
+              className={`px-3 sm:px-4 py-2 rounded-md font-medium text-xs sm:text-sm transition-colors flex items-center whitespace-nowrap ${
+                activeTab === 'find'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <CheckCircle className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">Find My Product</span>
+              <span className="sm:hidden">Find Product</span>
             </button>
           </div>
         </div>
@@ -911,6 +1145,296 @@ export default function AIHelpPage() {
                       >
                         Book TV Consultation
                       </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : activeTab === 'find' ? (
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 h-full flex flex-col">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 text-center px-2 flex-shrink-0">
+                🎯 Find My Perfect Product
+              </h2>
+              <div className="flex-1 overflow-y-auto">
+                {!recommendations ? (
+                  <>
+                    {/* Step 1: Category Selection */}
+                    {findProductStep === 0 && (
+                      <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                        <h3 className="text-lg font-bold text-blue-900 mb-4 text-center">
+                          Step 1: Choose Product Category
+                        </h3>
+                        <p className="text-blue-700 text-center mb-6">
+                          What type of product are you looking for?
+                        </p>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                          {[
+                            { id: 'soundbar', label: '🔊 Soundbars', desc: 'Enhance your TV audio' },
+                            { id: 'television', label: '📺 Televisions', desc: 'Smart TVs & displays' },
+                            { id: 'dishwasher', label: '🍽️ Dishwashers', desc: 'Kitchen appliances' },
+                            { id: 'washing-machine', label: '👔 Washing Machines', desc: 'Laundry appliances' }
+                          ].map((category) => (
+                            <button
+                              key={category.id}
+                              onClick={() => setSelectedCategory(category.id)}
+                              className={`p-4 rounded-lg border-2 text-left transition-all ${
+                                selectedCategory === category.id
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-gray-300 hover:border-blue-300 hover:bg-blue-25'
+                              }`}
+                            >
+                              <div className="text-lg font-semibold mb-1">{category.label}</div>
+                              <div className="text-sm text-gray-600">{category.desc}</div>
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Maximum Budget (€)
+                          </label>
+                          <div className="flex items-center space-x-4">
+                            <input
+                              type="range"
+                              min="200"
+                              max="3000"
+                              step="100"
+                              value={maxBudget}
+                              onChange={(e) => setMaxBudget(parseInt(e.target.value))}
+                              className="flex-1"
+                            />
+                            <span className="text-lg font-semibold text-blue-600 min-w-[80px]">
+                              €{maxBudget}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={() => setFindProductStep(1)}
+                          disabled={!canProceedToQuestions}
+                          className="w-full bg-blue-600 hover:bg-blue-700"
+                        >
+                          Next: Answer Questions
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Step 2: Questions */}
+                    {findProductStep === 1 && selectedCategory && (
+                      <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                        <h3 className="text-lg font-bold text-green-900 mb-4 text-center">
+                          Step 2: Tell Us Your Preferences
+                        </h3>
+                        <p className="text-green-700 text-center mb-6">
+                          Help us find the perfect {selectedCategory.replace('-', ' ')} for you
+                        </p>
+                        
+                        <div className="space-y-6">
+                          {getCurrentFindQuestions().map((question, index) => (
+                            <Card key={question.id}>
+                              <CardHeader>
+                                <CardTitle className="text-base">
+                                  Question {index + 1}: {question.label}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-3">
+                                  {question.options.map((option) => (
+                                    <button
+                                      key={option.id}
+                                      onClick={() => handleFindAnswer(question.id, option.id)}
+                                      className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
+                                        findAnswers[question.id] === option.id
+                                          ? 'border-green-500 bg-green-50'
+                                          : 'border-gray-300 hover:border-green-300'
+                                      }`}
+                                    >
+                                      <div className="flex items-center">
+                                        <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                                          findAnswers[question.id] === option.id
+                                            ? 'border-green-500 bg-green-500'
+                                            : 'border-gray-300'
+                                        }`}>
+                                          {findAnswers[question.id] === option.id && (
+                                            <div className="w-full h-full rounded-full bg-white scale-50"></div>
+                                          )}
+                                        </div>
+                                        <span className="font-medium">{option.label}</span>
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+
+                        <div className="mt-6 space-y-3">
+                          <Button
+                            onClick={() => setFindProductStep(0)}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            Previous
+                          </Button>
+                          <Button
+                            onClick={() => getRecommendations.mutate({ 
+                              category: selectedCategory, 
+                              answers: findAnswers, 
+                              budget: maxBudget 
+                            })}
+                            disabled={!canProceedToResults || getRecommendations.isPending}
+                            className="w-full bg-green-600 hover:bg-green-700"
+                          >
+                            {getRecommendations.isPending ? (
+                              <div className="flex items-center justify-center">
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                                Finding Products...
+                              </div>
+                            ) : (
+                              'Find My Perfect Product'
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="text-center mt-8">
+                      <Button
+                        onClick={resetFindProduct}
+                        variant="outline"
+                        className="text-gray-600 hover:text-gray-800"
+                      >
+                        Reset & Start Over
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  /* Recommendation Results */
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <Button
+                        onClick={resetFindProduct}
+                        variant="outline"
+                        className="mb-4"
+                      >
+                        Find Different Product
+                      </Button>
+                    </div>
+
+                    {/* Search Summary */}
+                    <Card className="border-blue-300 bg-blue-50">
+                      <CardHeader>
+                        <CardTitle className="flex items-center text-blue-800">
+                          <CheckCircle className="w-5 h-5 mr-2" />
+                          Search Results
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-blue-700 leading-relaxed">{recommendations.searchSummary}</p>
+                      </CardContent>
+                    </Card>
+
+                    {/* Product Recommendations */}
+                    <div className="grid gap-6">
+                      {recommendations.recommendations.map((product, index) => (
+                        <Card key={product.sku} className={`border-2 ${
+                          index === 0 ? 'border-green-300 bg-green-50' : 'border-gray-200'
+                        }`}>
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1">
+                                {index === 0 && (
+                                  <Badge className="bg-green-100 text-green-800 mb-2">
+                                    🏆 Top Recommendation
+                                  </Badge>
+                                )}
+                                <CardTitle className="text-lg">{product.name}</CardTitle>
+                                <div className="flex items-center mt-2">
+                                  <span className="text-2xl font-bold text-green-600">€{product.price}</span>
+                                  {product.energyLabel && (
+                                    <Badge variant="secondary" className="ml-3">
+                                      Energy: {product.energyLabel}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                              {product.image && (
+                                <img 
+                                  src={product.image} 
+                                  alt={product.name}
+                                  className="w-24 h-24 object-cover rounded-lg ml-4"
+                                />
+                              )}
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-4">
+                              {/* Availability */}
+                              <div>
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  product.availability.inStock 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {product.availability.inStock ? '✅ In Stock' : '❌ Out of Stock'}
+                                </span>
+                                {product.availability.deliveryDays && (
+                                  <span className="ml-2 text-sm text-gray-600">
+                                    Delivery: {product.availability.deliveryDays} days
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Reasons */}
+                              <div>
+                                <h4 className="font-semibold text-gray-900 mb-2">Why this matches you:</h4>
+                                <ul className="space-y-1">
+                                  {product.reasons.map((reason, idx) => (
+                                    <li key={idx} className="flex items-start">
+                                      <span className="text-green-500 mr-2 flex-shrink-0">•</span>
+                                      <span className="text-sm text-gray-700">{reason}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              {/* Rating */}
+                              {product.rating && (
+                                <div className="flex items-center">
+                                  <span className="text-sm font-medium text-gray-600 mr-2">Rating:</span>
+                                  <div className="flex">
+                                    {[...Array(5)].map((_, i) => (
+                                      <span
+                                        key={i}
+                                        className={`text-lg ${
+                                          i < product.rating! ? 'text-yellow-400' : 'text-gray-300'
+                                        }`}
+                                      >
+                                        ★
+                                      </span>
+                                    ))}
+                                  </div>
+                                  <span className="ml-2 text-sm text-gray-600">{product.rating}/5</span>
+                                </div>
+                              )}
+
+                              {/* View Product Button */}
+                              <div className="pt-2">
+                                <a
+                                  href={product.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center justify-center w-full px-4 py-2 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                                >
+                                  View on Harvey Norman
+                                </a>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
                   </div>
                 )}

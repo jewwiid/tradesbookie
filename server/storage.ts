@@ -5,7 +5,8 @@ import {
   scheduleNegotiations, declinedRequests, emailTemplates, bannedUsers,
   leadQualityTracking, antiManipulation, customerVerification, resources,
   platformSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
-  consultations, downloadableGuides, videoTutorials,
+  consultations, downloadableGuides, videoTutorials, productCategories,
+  qrCodeScans, aiProductRecommendations, choiceFlowTracking,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -31,7 +32,11 @@ import {
   type PasswordResetToken, type InsertPasswordResetToken,
   type TvSetupBooking, type InsertTvSetupBooking,
   type DownloadableGuide, type InsertDownloadableGuide,
-  type VideoTutorial, type InsertVideoTutorial
+  type VideoTutorial, type InsertVideoTutorial,
+  type ProductCategory, type InsertProductCategory,
+  type QrCodeScan, type InsertQrCodeScan,
+  type AiProductRecommendation, type InsertAiProductRecommendation,
+  type ChoiceFlowTracking, type InsertChoiceFlowTracking
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql } from "drizzle-orm";
@@ -283,6 +288,45 @@ export interface IStorage {
   getConsultation(id: number): Promise<Consultation | undefined>;
   getAllConsultations(): Promise<Consultation[]>;
   updateConsultation(id: number, updates: Partial<InsertConsultation>): Promise<Consultation | undefined>;
+
+  // Product Categories for QR Code Flyers
+  createProductCategory(category: InsertProductCategory): Promise<ProductCategory>;
+  getProductCategory(id: number): Promise<ProductCategory | undefined>;
+  getProductCategoryBySlug(slug: string): Promise<ProductCategory | undefined>;
+  getProductCategoryByQrCodeId(qrCodeId: string): Promise<ProductCategory | undefined>;
+  getAllProductCategories(): Promise<ProductCategory[]>;
+  getActiveProductCategories(): Promise<ProductCategory[]>;
+  updateProductCategory(id: number, updates: Partial<InsertProductCategory>): Promise<ProductCategory>;
+  deleteProductCategory(id: number): Promise<boolean>;
+  incrementCategoryScanCount(id: number): Promise<void>;
+  incrementCategoryRecommendationCount(id: number): Promise<void>;
+  incrementCategoryConversionCount(id: number): Promise<void>;
+
+  // QR Code Scan Tracking
+  createQrCodeScan(scan: InsertQrCodeScan): Promise<QrCodeScan>;
+  getQrCodeScan(id: number): Promise<QrCodeScan | undefined>;
+  getQrCodeScansByCategory(categoryId: number): Promise<QrCodeScan[]>;
+  getQrCodeScansBySession(sessionId: string): Promise<QrCodeScan[]>;
+  getCategoryScanStats(categoryId: number, days?: number): Promise<{ totalScans: number; uniqueUsers: number; dailyScans: Array<{date: string, count: number}> }>;
+
+  // AI Product Recommendations Tracking
+  createAiProductRecommendation(recommendation: InsertAiProductRecommendation): Promise<AiProductRecommendation>;
+  getAiProductRecommendation(id: number): Promise<AiProductRecommendation | undefined>;
+  getRecommendationsByCategory(categoryId: number): Promise<AiProductRecommendation[]>;
+  getRecommendationsBySession(sessionId: string): Promise<AiProductRecommendation[]>;
+  updateRecommendationEngagement(id: number, engagement: string, selectedProduct?: string): Promise<void>;
+  markRecommendationConverted(id: number, bookingId: number): Promise<void>;
+  getCategoryRecommendationStats(categoryId: number, days?: number): Promise<{ totalRecommendations: number; conversions: number; engagementBreakdown: Record<string, number> }>;
+
+  // Choice Flow Tracking
+  createChoiceFlowTracking(flow: InsertChoiceFlowTracking): Promise<ChoiceFlowTracking>;
+  getChoiceFlowTracking(id: number): Promise<ChoiceFlowTracking | undefined>;
+  getChoiceFlowsByCategory(categoryId: number): Promise<ChoiceFlowTracking[]>;
+  getChoiceFlowsBySession(sessionId: string): Promise<ChoiceFlowTracking[]>;
+  updateChoiceFlowStep(id: number, currentStep: number, responses: Record<string, any>): Promise<void>;
+  completeChoiceFlow(id: number, timeSpentMinutes: number): Promise<void>;
+  markChoiceFlowExit(id: number, exitStep: number, exitReason: string): Promise<void>;
+  getCategoryFlowStats(categoryId: number, days?: number): Promise<{ totalFlows: number; completionRate: number; avgTimeSpent: number; dropOffByStep: Record<number, number> }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1971,6 +2015,318 @@ export class DatabaseStorage implements IStorage {
       .where(eq(consultations.id, id))
       .returning();
     return result;
+  }
+
+  // Product Categories for QR Code Flyers implementation
+  async createProductCategory(category: InsertProductCategory): Promise<ProductCategory> {
+    const [result] = await db.insert(productCategories).values(category).returning();
+    return result;
+  }
+
+  async getProductCategory(id: number): Promise<ProductCategory | undefined> {
+    const [result] = await db.select().from(productCategories).where(eq(productCategories.id, id));
+    return result;
+  }
+
+  async getProductCategoryBySlug(slug: string): Promise<ProductCategory | undefined> {
+    const [result] = await db.select().from(productCategories).where(eq(productCategories.slug, slug));
+    return result;
+  }
+
+  async getProductCategoryByQrCodeId(qrCodeId: string): Promise<ProductCategory | undefined> {
+    const [result] = await db.select().from(productCategories).where(eq(productCategories.qrCodeId, qrCodeId));
+    return result;
+  }
+
+  async getAllProductCategories(): Promise<ProductCategory[]> {
+    return await db.select().from(productCategories).orderBy(productCategories.displayOrder, desc(productCategories.createdAt));
+  }
+
+  async getActiveProductCategories(): Promise<ProductCategory[]> {
+    return await db.select().from(productCategories)
+      .where(eq(productCategories.isActive, true))
+      .orderBy(productCategories.displayOrder, desc(productCategories.createdAt));
+  }
+
+  async updateProductCategory(id: number, updates: Partial<InsertProductCategory>): Promise<ProductCategory> {
+    const [result] = await db.update(productCategories)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(productCategories.id, id))
+      .returning();
+    return result;
+  }
+
+  async deleteProductCategory(id: number): Promise<boolean> {
+    const result = await db.delete(productCategories).where(eq(productCategories.id, id));
+    return result.rowCount ? result.rowCount > 0 : false;
+  }
+
+  async incrementCategoryScanCount(id: number): Promise<void> {
+    await db.update(productCategories)
+      .set({ totalScans: sql`${productCategories.totalScans} + 1` })
+      .where(eq(productCategories.id, id));
+  }
+
+  async incrementCategoryRecommendationCount(id: number): Promise<void> {
+    await db.update(productCategories)
+      .set({ totalRecommendations: sql`${productCategories.totalRecommendations} + 1` })
+      .where(eq(productCategories.id, id));
+  }
+
+  async incrementCategoryConversionCount(id: number): Promise<void> {
+    await db.update(productCategories)
+      .set({ totalConversions: sql`${productCategories.totalConversions} + 1` })
+      .where(eq(productCategories.id, id));
+  }
+
+  // QR Code Scan Tracking implementation
+  async createQrCodeScan(scan: InsertQrCodeScan): Promise<QrCodeScan> {
+    const [result] = await db.insert(qrCodeScans).values(scan).returning();
+    return result;
+  }
+
+  async getQrCodeScan(id: number): Promise<QrCodeScan | undefined> {
+    const [result] = await db.select().from(qrCodeScans).where(eq(qrCodeScans.id, id));
+    return result;
+  }
+
+  async getQrCodeScansByCategory(categoryId: number): Promise<QrCodeScan[]> {
+    return await db.select().from(qrCodeScans)
+      .where(eq(qrCodeScans.categoryId, categoryId))
+      .orderBy(desc(qrCodeScans.scannedAt));
+  }
+
+  async getQrCodeScansBySession(sessionId: string): Promise<QrCodeScan[]> {
+    return await db.select().from(qrCodeScans)
+      .where(eq(qrCodeScans.sessionId, sessionId))
+      .orderBy(desc(qrCodeScans.scannedAt));
+  }
+
+  async getCategoryScanStats(categoryId: number, days = 30): Promise<{ totalScans: number; uniqueUsers: number; dailyScans: Array<{date: string, count: number}> }> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Get total scans and unique users
+    const [stats] = await db
+      .select({
+        totalScans: sql<number>`COUNT(*)`,
+        uniqueUsers: sql<number>`COUNT(DISTINCT ${qrCodeScans.userId})`
+      })
+      .from(qrCodeScans)
+      .where(and(
+        eq(qrCodeScans.categoryId, categoryId),
+        sql`${qrCodeScans.scannedAt} >= ${startDate}`
+      ));
+
+    // Get daily scan counts
+    const dailyScans = await db
+      .select({
+        date: sql<string>`DATE(${qrCodeScans.scannedAt})`,
+        count: sql<number>`COUNT(*)`
+      })
+      .from(qrCodeScans)
+      .where(and(
+        eq(qrCodeScans.categoryId, categoryId),
+        sql`${qrCodeScans.scannedAt} >= ${startDate}`
+      ))
+      .groupBy(sql`DATE(${qrCodeScans.scannedAt})`)
+      .orderBy(sql`DATE(${qrCodeScans.scannedAt})`);
+
+    return {
+      totalScans: stats?.totalScans || 0,
+      uniqueUsers: stats?.uniqueUsers || 0,
+      dailyScans: dailyScans || []
+    };
+  }
+
+  // AI Product Recommendations Tracking implementation
+  async createAiProductRecommendation(recommendation: InsertAiProductRecommendation): Promise<AiProductRecommendation> {
+    const [result] = await db.insert(aiProductRecommendations).values(recommendation).returning();
+    return result;
+  }
+
+  async getAiProductRecommendation(id: number): Promise<AiProductRecommendation | undefined> {
+    const [result] = await db.select().from(aiProductRecommendations).where(eq(aiProductRecommendations.id, id));
+    return result;
+  }
+
+  async getRecommendationsByCategory(categoryId: number): Promise<AiProductRecommendation[]> {
+    return await db.select().from(aiProductRecommendations)
+      .where(eq(aiProductRecommendations.categoryId, categoryId))
+      .orderBy(desc(aiProductRecommendations.createdAt));
+  }
+
+  async getRecommendationsBySession(sessionId: string): Promise<AiProductRecommendation[]> {
+    return await db.select().from(aiProductRecommendations)
+      .where(eq(aiProductRecommendations.sessionId, sessionId))
+      .orderBy(desc(aiProductRecommendations.createdAt));
+  }
+
+  async updateRecommendationEngagement(id: number, engagement: string, selectedProduct?: string): Promise<void> {
+    const updates: any = { userEngagement: engagement };
+    if (selectedProduct) {
+      updates.userSelectedProduct = selectedProduct;
+    }
+    
+    await db.update(aiProductRecommendations)
+      .set(updates)
+      .where(eq(aiProductRecommendations.id, id));
+  }
+
+  async markRecommendationConverted(id: number, bookingId: number): Promise<void> {
+    await db.update(aiProductRecommendations)
+      .set({ 
+        bookingCreated: true, 
+        bookingId: bookingId,
+        userEngagement: 'booking_initiated'
+      })
+      .where(eq(aiProductRecommendations.id, id));
+  }
+
+  async getCategoryRecommendationStats(categoryId: number, days = 30): Promise<{ totalRecommendations: number; conversions: number; engagementBreakdown: Record<string, number> }> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Get total recommendations and conversions
+    const [stats] = await db
+      .select({
+        totalRecommendations: sql<number>`COUNT(*)`,
+        conversions: sql<number>`COUNT(CASE WHEN ${aiProductRecommendations.bookingCreated} = true THEN 1 END)`
+      })
+      .from(aiProductRecommendations)
+      .where(and(
+        eq(aiProductRecommendations.categoryId, categoryId),
+        sql`${aiProductRecommendations.createdAt} >= ${startDate}`
+      ));
+
+    // Get engagement breakdown
+    const engagementStats = await db
+      .select({
+        engagement: aiProductRecommendations.userEngagement,
+        count: sql<number>`COUNT(*)`
+      })
+      .from(aiProductRecommendations)
+      .where(and(
+        eq(aiProductRecommendations.categoryId, categoryId),
+        sql`${aiProductRecommendations.createdAt} >= ${startDate}`
+      ))
+      .groupBy(aiProductRecommendations.userEngagement);
+
+    const engagementBreakdown: Record<string, number> = {};
+    engagementStats.forEach(stat => {
+      if (stat.engagement) {
+        engagementBreakdown[stat.engagement] = stat.count;
+      }
+    });
+
+    return {
+      totalRecommendations: stats?.totalRecommendations || 0,
+      conversions: stats?.conversions || 0,
+      engagementBreakdown
+    };
+  }
+
+  // Choice Flow Tracking implementation
+  async createChoiceFlowTracking(flow: InsertChoiceFlowTracking): Promise<ChoiceFlowTracking> {
+    const [result] = await db.insert(choiceFlowTracking).values(flow).returning();
+    return result;
+  }
+
+  async getChoiceFlowTracking(id: number): Promise<ChoiceFlowTracking | undefined> {
+    const [result] = await db.select().from(choiceFlowTracking).where(eq(choiceFlowTracking.id, id));
+    return result;
+  }
+
+  async getChoiceFlowsByCategory(categoryId: number): Promise<ChoiceFlowTracking[]> {
+    return await db.select().from(choiceFlowTracking)
+      .where(eq(choiceFlowTracking.categoryId, categoryId))
+      .orderBy(desc(choiceFlowTracking.createdAt));
+  }
+
+  async getChoiceFlowsBySession(sessionId: string): Promise<ChoiceFlowTracking[]> {
+    return await db.select().from(choiceFlowTracking)
+      .where(eq(choiceFlowTracking.sessionId, sessionId))
+      .orderBy(desc(choiceFlowTracking.createdAt));
+  }
+
+  async updateChoiceFlowStep(id: number, currentStep: number, responses: Record<string, any>): Promise<void> {
+    await db.update(choiceFlowTracking)
+      .set({ 
+        currentStep,
+        questionResponses: responses,
+        updatedAt: new Date()
+      })
+      .where(eq(choiceFlowTracking.id, id));
+  }
+
+  async completeChoiceFlow(id: number, timeSpentMinutes: number): Promise<void> {
+    await db.update(choiceFlowTracking)
+      .set({ 
+        flowCompleted: true,
+        completedAt: new Date(),
+        timeSpentMinutes,
+        updatedAt: new Date()
+      })
+      .where(eq(choiceFlowTracking.id, id));
+  }
+
+  async markChoiceFlowExit(id: number, exitStep: number, exitReason: string): Promise<void> {
+    await db.update(choiceFlowTracking)
+      .set({ 
+        exitStep,
+        exitReason,
+        updatedAt: new Date()
+      })
+      .where(eq(choiceFlowTracking.id, id));
+  }
+
+  async getCategoryFlowStats(categoryId: number, days = 30): Promise<{ totalFlows: number; completionRate: number; avgTimeSpent: number; dropOffByStep: Record<number, number> }> {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Get total flows, completion rate, and average time spent
+    const [stats] = await db
+      .select({
+        totalFlows: sql<number>`COUNT(*)`,
+        completedFlows: sql<number>`COUNT(CASE WHEN ${choiceFlowTracking.flowCompleted} = true THEN 1 END)`,
+        avgTimeSpent: sql<number>`AVG(CASE WHEN ${choiceFlowTracking.timeSpentMinutes} IS NOT NULL THEN ${choiceFlowTracking.timeSpentMinutes} END)`
+      })
+      .from(choiceFlowTracking)
+      .where(and(
+        eq(choiceFlowTracking.categoryId, categoryId),
+        sql`${choiceFlowTracking.createdAt} >= ${startDate}`
+      ));
+
+    // Get drop-off by step
+    const dropOffStats = await db
+      .select({
+        exitStep: choiceFlowTracking.exitStep,
+        count: sql<number>`COUNT(*)`
+      })
+      .from(choiceFlowTracking)
+      .where(and(
+        eq(choiceFlowTracking.categoryId, categoryId),
+        sql`${choiceFlowTracking.createdAt} >= ${startDate}`,
+        sql`${choiceFlowTracking.exitStep} IS NOT NULL`
+      ))
+      .groupBy(choiceFlowTracking.exitStep);
+
+    const dropOffByStep: Record<number, number> = {};
+    dropOffStats.forEach(stat => {
+      if (stat.exitStep !== null) {
+        dropOffByStep[stat.exitStep] = stat.count;
+      }
+    });
+
+    const totalFlows = stats?.totalFlows || 0;
+    const completedFlows = stats?.completedFlows || 0;
+
+    return {
+      totalFlows,
+      completionRate: totalFlows > 0 ? (completedFlows / totalFlows) * 100 : 0,
+      avgTimeSpent: stats?.avgTimeSpent || 0,
+      dropOffByStep
+    };
   }
 }
 

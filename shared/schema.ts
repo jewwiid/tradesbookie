@@ -894,6 +894,113 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Product Categories for QR Code Flyers - TV/Electronic product categories for in-store marketing
+export const productCategories = pgTable("product_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "Gaming TVs", "OLED TVs", "Budget TVs"
+  slug: text("slug").notNull().unique(), // URL-friendly version for routing
+  description: text("description").notNull(),
+  
+  // QR Code details
+  qrCodeId: text("qr_code_id").notNull().unique(), // Unique identifier for QR tracking
+  qrCodeUrl: text("qr_code_url").notNull(), // Generated QR code image URL
+  
+  // Category configuration for AI recommendations
+  priceRange: jsonb("price_range").notNull().default({}), // {min: 500, max: 2000}
+  preferredFeatures: jsonb("preferred_features").notNull().default([]), // ["gaming", "hdr", "4k"]
+  targetUseCase: text("target_use_case").notNull(), // "gaming", "movies", "general", "budget"
+  recommendedBrands: jsonb("recommended_brands").notNull().default([]), // ["Sony", "Samsung", "LG"]
+  
+  // Visual and marketing
+  iconEmoji: text("icon_emoji").notNull().default("📺"), // Visual identifier for flyers
+  backgroundColor: text("background_color").notNull().default("#f3f4f6"), // Flyer background color
+  textColor: text("text_color").notNull().default("#000000"), // Flyer text color
+  
+  // Tracking and analytics
+  totalScans: integer("total_scans").default(0),
+  totalRecommendations: integer("total_recommendations").default(0),
+  totalConversions: integer("total_conversions").default(0), // Users who completed the flow
+  
+  // Management
+  isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0), // For ordering in admin
+  createdBy: text("created_by"), // Admin who created it
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// QR Code Scans Tracking - Detailed analytics for each QR code scan
+export const qrCodeScans = pgTable("qr_code_scans", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id").references(() => productCategories.id).notNull(),
+  
+  // Session and user tracking
+  sessionId: text("session_id").notNull(), // Unique session identifier
+  userId: integer("user_id").references(() => users.id), // If user registers/logs in
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  
+  // Location and source
+  scanLocation: text("scan_location"), // Store location if provided
+  referrerUrl: text("referrer_url"), // Where they came from
+  deviceType: text("device_type"), // mobile, tablet, desktop
+  
+  // Timestamp
+  scannedAt: timestamp("scanned_at").defaultNow(),
+});
+
+// AI Product Recommendations Tracking - Track each AI recommendation generated
+export const aiProductRecommendations = pgTable("ai_product_recommendations", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id").references(() => productCategories.id).notNull(),
+  scanId: integer("scan_id").references(() => qrCodeScans.id),
+  sessionId: text("session_id").notNull(),
+  userId: integer("user_id").references(() => users.id), // If user is logged in
+  
+  // Recommendation details
+  questionsAnswered: jsonb("questions_answered").notNull().default({}), // User's questionnaire responses
+  recommendedProducts: jsonb("recommended_products").notNull().default([]), // AI-generated recommendations
+  aiAnalysis: text("ai_analysis"), // AI reasoning for recommendations
+  
+  // User interaction
+  userSelectedProduct: text("user_selected_product"), // Which product user was interested in
+  userEngagement: text("user_engagement").default("viewed"), // viewed, interested, booking_initiated
+  
+  // Conversion tracking
+  bookingCreated: boolean("booking_created").default(false),
+  bookingId: integer("booking_id").references(() => bookings.id), // If user created booking
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Product Recommendation Choice Flow - Track user's journey through questionnaire
+export const choiceFlowTracking = pgTable("choice_flow_tracking", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id").references(() => productCategories.id).notNull(),
+  scanId: integer("scan_id").references(() => qrCodeScans.id),
+  sessionId: text("session_id").notNull(),
+  
+  // Flow progression
+  currentStep: integer("current_step").default(1), // Which question they're on
+  totalSteps: integer("total_steps").default(5), // Total questions in flow
+  
+  // Individual question responses
+  questionResponses: jsonb("question_responses").notNull().default({}), // {step1: "answer", step2: "answer"}
+  
+  // Flow completion
+  flowCompleted: boolean("flow_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  timeSpentMinutes: integer("time_spent_minutes"), // Total time in flow
+  
+  // Exit tracking
+  exitStep: integer("exit_step"), // Which step user left on
+  exitReason: text("exit_reason"), // timeout, manual_exit, error, completion
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 
 
 export const platformSettingsRelations = relations(platformSettings, ({ one }) => ({
@@ -913,6 +1020,55 @@ export const firstLeadVouchersRelations = relations(firstLeadVouchers, ({ one, m
 
 export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
   // No direct relations since userId can reference either users or installers based on userType
+}));
+
+export const productCategoriesRelations = relations(productCategories, ({ one, many }) => ({
+  qrCodeScans: many(qrCodeScans),
+  aiProductRecommendations: many(aiProductRecommendations),
+  choiceFlowTracking: many(choiceFlowTracking),
+}));
+
+export const qrCodeScansRelations = relations(qrCodeScans, ({ one, many }) => ({
+  category: one(productCategories, {
+    fields: [qrCodeScans.categoryId],
+    references: [productCategories.id],
+  }),
+  user: one(users, {
+    fields: [qrCodeScans.userId],
+    references: [users.id],
+  }),
+  aiProductRecommendations: many(aiProductRecommendations),
+  choiceFlowTracking: many(choiceFlowTracking),
+}));
+
+export const aiProductRecommendationsRelations = relations(aiProductRecommendations, ({ one }) => ({
+  category: one(productCategories, {
+    fields: [aiProductRecommendations.categoryId],
+    references: [productCategories.id],
+  }),
+  scan: one(qrCodeScans, {
+    fields: [aiProductRecommendations.scanId],
+    references: [qrCodeScans.id],
+  }),
+  user: one(users, {
+    fields: [aiProductRecommendations.userId],
+    references: [users.id],
+  }),
+  booking: one(bookings, {
+    fields: [aiProductRecommendations.bookingId],
+    references: [bookings.id],
+  }),
+}));
+
+export const choiceFlowTrackingRelations = relations(choiceFlowTracking, ({ one }) => ({
+  category: one(productCategories, {
+    fields: [choiceFlowTracking.categoryId],
+    references: [productCategories.id],
+  }),
+  scan: one(qrCodeScans, {
+    fields: [choiceFlowTracking.scanId],
+    references: [qrCodeScans.id],
+  }),
 }));
 
 
@@ -1088,7 +1244,8 @@ export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTo
 
 export const insertAntiManipulationSchema = createInsertSchema(antiManipulation).omit({
   id: true,
-  flaggedAt: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Common type exports
@@ -1228,7 +1385,6 @@ export const insertReferralCodeSchema = createInsertSchema(referralCodes).omit({
 export const insertReferralUsageSchema = createInsertSchema(referralUsage).omit({
   id: true,
   createdAt: true,
-  updatedAt: true,
 });
 
 export type ReferralSettings = typeof referralSettings.$inferSelect;
@@ -1256,6 +1412,63 @@ export const passwordResetConfirmSchema = z.object({
   message: "Passwords don't match",
   path: ["confirmPassword"],
 });
+
+// Product Categories and QR Code Tracking Schemas
+export const insertProductCategorySchema = createInsertSchema(productCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  qrCodeUrl: true, // Generated automatically
+  totalScans: true,
+  totalRecommendations: true,
+  totalConversions: true,
+});
+
+export const insertQrCodeScanSchema = createInsertSchema(qrCodeScans).omit({
+  id: true,
+  scannedAt: true,
+});
+
+export const insertAiProductRecommendationSchema = createInsertSchema(aiProductRecommendations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertChoiceFlowTrackingSchema = createInsertSchema(choiceFlowTracking).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Product Category form schema with validation
+export const productCategoryFormSchema = insertProductCategorySchema.extend({
+  name: z.string().min(1, "Category name is required"),
+  slug: z.string().min(1, "URL slug is required").regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, and hyphens"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  targetUseCase: z.string().min(1, "Target use case is required"),
+  priceRange: z.object({
+    min: z.number().min(0, "Minimum price must be positive"),
+    max: z.number().min(0, "Maximum price must be positive"),
+  }).refine(data => data.max > data.min, {
+    message: "Maximum price must be greater than minimum price",
+  }),
+  preferredFeatures: z.array(z.string()).default([]),
+  recommendedBrands: z.array(z.string()).default([]),
+});
+
+// Type exports for new tables
+export type ProductCategory = typeof productCategories.$inferSelect;
+export type InsertProductCategory = z.infer<typeof insertProductCategorySchema>;
+export type ProductCategoryFormData = z.infer<typeof productCategoryFormSchema>;
+
+export type QrCodeScan = typeof qrCodeScans.$inferSelect;
+export type InsertQrCodeScan = z.infer<typeof insertQrCodeScanSchema>;
+
+export type AiProductRecommendation = typeof aiProductRecommendations.$inferSelect;
+export type InsertAiProductRecommendation = z.infer<typeof insertAiProductRecommendationSchema>;
+
+export type ChoiceFlowTracking = typeof choiceFlowTracking.$inferSelect;
+export type InsertChoiceFlowTracking = z.infer<typeof insertChoiceFlowTrackingSchema>;
 
 export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
 export type PasswordResetConfirm = z.infer<typeof passwordResetConfirmSchema>;

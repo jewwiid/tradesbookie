@@ -47,6 +47,8 @@ import CustomerResources from "@/pages/customer-resources";
 import AIHelpPage from "@/pages/ai-help";
 import ConsultationBooking from "@/pages/consultation-booking";
 import ConsultationSuccess from "@/pages/consultation-success";
+import AdminProductCategories from "@/pages/AdminProductCategories";
+import FindProduct from "@/pages/FindProduct";
 
 
 function Router() {
@@ -81,6 +83,7 @@ function Router() {
       <Route path="/consultation" component={ConsultationBooking} />
       <Route path="/consultation-booking" component={ConsultationBooking} />
       <Route path="/consultation-success" component={ConsultationSuccess} />
+      <Route path="/find-product/:categorySlug" component={FindProduct} />
 
       <Route path="/demo-login" component={DemoLogin} />
       
@@ -101,6 +104,7 @@ function Router() {
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin-dashboard" component={AdminDashboard} />
+      <Route path="/admin/product-categories" component={AdminProductCategories} />
       <Route path="/booking-confirmation" component={BookingConfirmation} />
       <Route path="/checkout/:bookingId?" component={Checkout} />
       <Route path="/credit-checkout" component={CreditCheckout} />

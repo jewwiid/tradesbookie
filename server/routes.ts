@@ -5,7 +5,7 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 import { 
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
-  insertResourceSchema, tvSetupBookingFormSchema, users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers
+  insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -38,6 +38,7 @@ import { compareTVModels } from "./tvComparisonService";
 import { compareElectronicProducts } from "./electronicProductComparisonService";
 import { getProductRecommendations } from "./productRecommendationService";
 import { getProductInfo } from "./productInfoService";
+import { QRCodeService } from "./qrCodeService";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -10492,6 +10493,343 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     console.log('🛑 Server shutting down, cleaning up lead expiry monitoring...');
     LeadExpiryService.stopExpiryMonitoring();
     process.exit(0);
+  });
+
+  // ================================
+  // PRODUCT CATEGORY QR CODE SYSTEM
+  // ================================
+
+  // Get all product categories (public endpoint)
+  app.get('/api/product-categories', async (req, res) => {
+    try {
+      const categories = await storage.getActiveProductCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error('Error fetching product categories:', error);
+      res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+  });
+
+  // Get single product category by slug or ID
+  app.get('/api/product-categories/:identifier', async (req, res) => {
+    try {
+      const { identifier } = req.params;
+      
+      // Try to find by slug first, then by ID
+      let category = await storage.getProductCategoryBySlug(identifier);
+      
+      if (!category && !isNaN(Number(identifier))) {
+        category = await storage.getProductCategory(Number(identifier));
+      }
+
+      if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+
+      res.json(category);
+    } catch (error) {
+      console.error('Error fetching product category:', error);
+      res.status(500).json({ error: 'Failed to fetch category' });
+    }
+  });
+
+  // Track QR code scan (public endpoint)
+  app.post('/api/qr-scan/:qrCodeId', async (req, res) => {
+    try {
+      const { qrCodeId } = req.params;
+      const sessionId = req.sessionID;
+      const userAgent = req.get('User-Agent');
+      const ipAddress = req.ip;
+      const userId = req.session.user?.id;
+
+      const result = await QRCodeService.trackQRCodeScan(
+        qrCodeId, 
+        sessionId, 
+        userAgent, 
+        ipAddress, 
+        userId
+      );
+
+      if (!result.success) {
+        return res.status(404).json({ error: result.error });
+      }
+
+      res.json({ success: true, categoryId: result.categoryId });
+    } catch (error) {
+      console.error('Error tracking QR scan:', error);
+      res.status(500).json({ error: 'Failed to track scan' });
+    }
+  });
+
+  // Admin endpoints for product category management
+  app.post('/api/admin/product-categories', async (req, res) => {
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    try {
+      // Validate the request body
+      const validatedData = insertProductCategorySchema.parse(req.body);
+
+      // Generate QR code for this category
+      const { qrCodeId, qrCodeUrl } = await QRCodeService.generateCategoryQRCode(0, validatedData.slug);
+
+      // Create the category with the QR code ID
+      const categoryData = {
+        ...validatedData,
+        qrCodeId,
+        qrCodeUrl,
+        totalScans: 0,
+        totalRecommendations: 0,
+        totalConversions: 0,
+        isActive: true
+      };
+
+      const category = await storage.createProductCategory(categoryData);
+
+      // Update the QR code with the actual category ID
+      await QRCodeService.generateCategoryQRCode(category.id, category.slug);
+
+      res.json(category);
+    } catch (error) {
+      console.error('Error creating product category:', error);
+      res.status(500).json({ error: 'Failed to create category' });
+    }
+  });
+
+  // Get all product categories for admin
+  app.get('/api/admin/product-categories', async (req, res) => {
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    try {
+      const categories = await storage.getAllProductCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error('Error fetching all product categories:', error);
+      res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+  });
+
+  // Update product category
+  app.put('/api/admin/product-categories/:id', async (req, res) => {
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    try {
+      const categoryId = parseInt(req.params.id);
+      const updates = req.body;
+
+      // If slug is being updated, regenerate QR code
+      if (updates.slug) {
+        const { qrCodeId, qrCodeUrl } = await QRCodeService.generateCategoryQRCode(categoryId, updates.slug);
+        updates.qrCodeId = qrCodeId;
+        updates.qrCodeUrl = qrCodeUrl;
+      }
+
+      const category = await storage.updateProductCategory(categoryId, updates);
+      res.json(category);
+    } catch (error) {
+      console.error('Error updating product category:', error);
+      res.status(500).json({ error: 'Failed to update category' });
+    }
+  });
+
+  // Delete product category
+  app.delete('/api/admin/product-categories/:id', async (req, res) => {
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    try {
+      const categoryId = parseInt(req.params.id);
+      const success = await storage.deleteProductCategory(categoryId);
+      
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ error: 'Category not found' });
+      }
+    } catch (error) {
+      console.error('Error deleting product category:', error);
+      res.status(500).json({ error: 'Failed to delete category' });
+    }
+  });
+
+  // Generate flyer for category
+  app.get('/api/admin/product-categories/:id/flyer', async (req, res) => {
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    try {
+      const categoryId = parseInt(req.params.id);
+      const category = await storage.getProductCategory(categoryId);
+      
+      if (!category) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+
+      const flyerSVG = QRCodeService.generateFlyerSVG({
+        name: category.name,
+        description: category.description,
+        iconEmoji: category.iconEmoji,
+        backgroundColor: category.backgroundColor,
+        textColor: category.textColor,
+        qrCodeUrl: category.qrCodeUrl
+      });
+
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.send(flyerSVG);
+    } catch (error) {
+      console.error('Error generating flyer:', error);
+      res.status(500).json({ error: 'Failed to generate flyer' });
+    }
+  });
+
+  // Generate bulk flyers for all categories
+  app.get('/api/admin/product-categories/bulk-flyer', async (req, res) => {
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    try {
+      const categories = await storage.getActiveProductCategories();
+      
+      const flyerData = categories.map(category => ({
+        name: category.name,
+        description: category.description,
+        iconEmoji: category.iconEmoji,
+        backgroundColor: category.backgroundColor,
+        textColor: category.textColor,
+        qrCodeUrl: category.qrCodeUrl
+      }));
+
+      const bulkFlyerSVG = QRCodeService.generateBulkFlyerSVG(flyerData);
+
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.send(bulkFlyerSVG);
+    } catch (error) {
+      console.error('Error generating bulk flyer:', error);
+      res.status(500).json({ error: 'Failed to generate bulk flyer' });
+    }
+  });
+
+  // Get analytics for a category
+  app.get('/api/admin/product-categories/:id/analytics', async (req, res) => {
+    if (!req.session.user?.isAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    try {
+      const categoryId = parseInt(req.params.id);
+      const days = parseInt(req.query.days as string) || 30;
+
+      const [scanStats, recommendationStats, flowStats] = await Promise.all([
+        storage.getCategoryScanStats(categoryId, days),
+        storage.getCategoryRecommendationStats(categoryId, days),
+        storage.getCategoryFlowStats(categoryId, days)
+      ]);
+
+      res.json({
+        scans: scanStats,
+        recommendations: recommendationStats,
+        flows: flowStats
+      });
+    } catch (error) {
+      console.error('Error fetching category analytics:', error);
+      res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+  });
+
+  // Track AI product recommendation
+  app.post('/api/ai-recommendations', async (req, res) => {
+    try {
+      const sessionId = req.sessionID;
+      const userId = req.session.user?.id;
+      
+      const recommendationData = {
+        ...req.body,
+        sessionId,
+        userId: userId || null
+      };
+
+      const recommendation = await storage.createAiProductRecommendation(recommendationData);
+      
+      // Increment category recommendation count
+      if (recommendation.categoryId) {
+        await storage.incrementCategoryRecommendationCount(recommendation.categoryId);
+      }
+
+      res.json(recommendation);
+    } catch (error) {
+      console.error('Error tracking AI recommendation:', error);
+      res.status(500).json({ error: 'Failed to track recommendation' });
+    }
+  });
+
+  // Update recommendation engagement
+  app.put('/api/ai-recommendations/:id/engagement', async (req, res) => {
+    try {
+      const recommendationId = parseInt(req.params.id);
+      const { engagement, selectedProduct } = req.body;
+
+      await storage.updateRecommendationEngagement(recommendationId, engagement, selectedProduct);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating recommendation engagement:', error);
+      res.status(500).json({ error: 'Failed to update engagement' });
+    }
+  });
+
+  // Track choice flow
+  app.post('/api/choice-flow', async (req, res) => {
+    try {
+      const sessionId = req.sessionID;
+      const userId = req.session.user?.id;
+      
+      const flowData = {
+        ...req.body,
+        sessionId,
+        userId: userId || null
+      };
+
+      const flow = await storage.createChoiceFlowTracking(flowData);
+      res.json(flow);
+    } catch (error) {
+      console.error('Error tracking choice flow:', error);
+      res.status(500).json({ error: 'Failed to track choice flow' });
+    }
+  });
+
+  // Update choice flow step
+  app.put('/api/choice-flow/:id/step', async (req, res) => {
+    try {
+      const flowId = parseInt(req.params.id);
+      const { currentStep, responses } = req.body;
+
+      await storage.updateChoiceFlowStep(flowId, currentStep, responses);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating choice flow step:', error);
+      res.status(500).json({ error: 'Failed to update step' });
+    }
+  });
+
+  // Complete choice flow
+  app.put('/api/choice-flow/:id/complete', async (req, res) => {
+    try {
+      const flowId = parseInt(req.params.id);
+      const { timeSpentMinutes } = req.body;
+
+      await storage.completeChoiceFlow(flowId, timeSpentMinutes);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error completing choice flow:', error);
+      res.status(500).json({ error: 'Failed to complete flow' });
+    }
   });
 
   return httpServer;

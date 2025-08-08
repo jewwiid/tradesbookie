@@ -216,6 +216,75 @@ export default function FindProduct() {
     );
   }
 
+  // Fetch all categories when no specific category is provided
+  const { data: allCategories, isLoading: allCategoriesLoading } = useQuery<ProductCategory[]>({
+    queryKey: ['/api/product-categories'],
+    enabled: !categorySlug
+  });
+
+  if (!categorySlug) {
+    // Show category selection page
+    if (allCategoriesLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Find Your Perfect TV
+            </h1>
+            <p className="text-gray-600">
+              Choose a product category to get personalized recommendations
+            </p>
+            <Badge variant="secondary" className="mt-2">
+              Powered by Harvey Norman
+            </Badge>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {allCategories?.map((cat: ProductCategory) => (
+              <Card 
+                key={cat.id}
+                className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
+                onClick={() => setLocation(`/find-product/${cat.slug}`)}
+                style={{ 
+                  backgroundColor: cat.backgroundColor + '15',
+                  borderColor: cat.backgroundColor + '40'
+                }}
+              >
+                <CardHeader className="text-center pb-2">
+                  <div className="text-4xl mb-2">{cat.iconEmoji}</div>
+                  <CardTitle className="text-lg">{cat.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <CardDescription className="text-center text-sm">
+                    {cat.description}
+                  </CardDescription>
+                  <Button 
+                    className="w-full mt-4"
+                    style={{ 
+                      backgroundColor: cat.backgroundColor,
+                      color: cat.textColor
+                    }}
+                  >
+                    Start Finding
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!category) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -227,7 +296,10 @@ export default function FindProduct() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => setLocation('/')} className="w-full">
+            <Button onClick={() => setLocation('/find-product')} className="w-full mb-2">
+              Choose Different Category
+            </Button>
+            <Button onClick={() => setLocation('/')} variant="outline" className="w-full">
               Go to Homepage
             </Button>
           </CardContent>

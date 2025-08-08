@@ -867,7 +867,11 @@ export default function AIHelpPage() {
 
   const canProceedToQuestions = selectedCategory.trim() !== '';
   const getCurrentFindQuestions = () => {
-    return findProductQuestions[selectedCategory] || [];
+    console.log('Selected category:', selectedCategory);
+    console.log('Available question categories:', Object.keys(findProductQuestions));
+    const questions = findProductQuestions[selectedCategory] || [];
+    console.log('Questions found:', questions.length);
+    return questions;
   };
   const canProceedToResults = getCurrentFindQuestions().every(q => findAnswers[q.id]);
 
@@ -1192,8 +1196,8 @@ export default function AIHelpPage() {
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
                           {[
-                            { id: 'soundbars', label: '🔊 Soundbars', desc: 'Enhance your TV audio' },
-                            { id: 'televisions', label: '📺 Televisions', desc: 'Smart TVs & displays' },
+                            { id: 'soundbar', label: '🔊 Soundbars', desc: 'Enhance your TV audio' },
+                            { id: 'television', label: '📺 Televisions', desc: 'Smart TVs & displays' },
                             { id: 'dishwashers', label: '🍽️ Dishwashers', desc: 'Kitchen appliances' },
                             { id: 'washing-machines', label: '👔 Washing Machines', desc: 'Laundry appliances' },
                             { id: 'headphones', label: '🎧 Headphones', desc: 'Audio equipment' },

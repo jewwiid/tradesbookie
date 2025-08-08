@@ -10,16 +10,18 @@ import { Badge } from '@/components/ui/badge';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
-interface TVComparison {
-  winner: string;
-  verdict: string;
-  model1_name: string;
-  model1_rating: number;
-  model1_review: string;
-  model2_name: string;
-  model2_rating: number;
-  model2_review: string;
-  key_differences: string[];
+interface ProductInfo {
+  name: string;
+  brand: string;
+  rating: number;
+  price: string;
+  overview: string;
+  pros: string[];
+  cons: string[];
+  keyFeatures: string[];
+  specifications: Record<string, string>;
+  expertRecommendation: string;
+  valueForMoney: string;
 }
 
 interface ElectronicProductComparison {
@@ -75,9 +77,8 @@ interface CategoryQuestion {
 
 export default function AIHelpPage() {
   const [activeTab, setActiveTab] = useState('chat');
-  const [model1, setModel1] = useState('');
-  const [model2, setModel2] = useState('');
-  const [comparison, setComparison] = useState<TVComparison | null>(null);
+  const [productModel, setProductModel] = useState('');
+  const [productInfo, setProductInfo] = useState<ProductInfo | null>(null);
   
   // Electronic Product Comparison State
   const [product1, setProduct1] = useState('');
@@ -104,18 +105,18 @@ export default function AIHelpPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const compareModels = useMutation({
-    mutationFn: async ({ model1, model2 }: { model1: string; model2: string }) => {
-      const response = await fetch('/api/ai/compare-tvs', {
+  const getProductInfo = useMutation({
+    mutationFn: async ({ model }: { model: string }) => {
+      const response = await fetch('/api/ai/product-info', {
         method: 'POST',
-        body: JSON.stringify({ model1, model2 }),
+        body: JSON.stringify({ model }),
         headers: { 'Content-Type': 'application/json' }
       });
-      if (!response.ok) throw new Error('Comparison failed');
+      if (!response.ok) throw new Error('Failed to get product info');
       return response.json();
     },
-    onSuccess: (data: TVComparison) => {
-      setComparison(data);
+    onSuccess: (data: ProductInfo) => {
+      setProductInfo(data);
     }
   });
 
@@ -139,9 +140,9 @@ export default function AIHelpPage() {
     }
   });
 
-  const handleCompare = () => {
-    if (model1.trim() && model2.trim()) {
-      compareModels.mutate({ model1: model1.trim(), model2: model2.trim() });
+  const handleGetProductInfo = () => {
+    if (productModel.trim()) {
+      getProductInfo.mutate({ model: productModel.trim() });
     }
   };
 
@@ -928,9 +929,9 @@ export default function AIHelpPage() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <ArrowRightLeft className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">TV Model Comparison</span>
-              <span className="sm:hidden">Compare TVs</span>
+              <CheckCircle className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">Product Info</span>
+              <span className="sm:hidden">Product Info</span>
             </button>
             <button
               onClick={() => setActiveTab('electronics')}
@@ -973,177 +974,198 @@ export default function AIHelpPage() {
           ) : activeTab === 'compare' ? (
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 h-full flex flex-col">
               <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 text-center px-2 flex-shrink-0">
-                Compare TV Models with AI Analysis
+                Get Product Information & Reviews
               </h2>
               <div className="flex-1 overflow-y-auto">
-                {/* TV Model Input Section */}
+                {/* Product Model Input Section */}
                 <div className="mb-6">
                   {/* Model Number Disclaimer */}
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
                     <p className="text-sm text-amber-800 text-center">
-                      <strong>Tip:</strong> The model number or product code can be found underneath the price on the ticket shown in store.
+                      <strong>Tip:</strong> Enter any product model number from TVs, soundbars, or other electronics to get detailed information.
                     </p>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        First TV Model
-                      </label>
-                      <Input
-                        placeholder="e.g., Samsung QN55Q60TAFXZA"
-                        value={model1}
-                        onChange={(e) => setModel1(e.target.value)}
-                        className="w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Second TV Model
-                      </label>
-                      <Input
-                        placeholder="e.g., LG OLED55C1PUB"
-                        value={model2}
-                        onChange={(e) => setModel2(e.target.value)}
-                        className="w-full"
-                      />
-                    </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Product Model or Name
+                    </label>
+                    <Input
+                      placeholder="e.g., Samsung QN55Q60TAFXZA, Sony WH-1000XM5, LG OLED55C1PUB"
+                      value={productModel}
+                      onChange={(e) => setProductModel(e.target.value)}
+                      className="w-full"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && productModel.trim()) {
+                          handleGetProductInfo();
+                        }
+                      }}
+                    />
                   </div>
                   <Button
-                    onClick={handleCompare}
-                    disabled={!model1.trim() || !model2.trim() || compareModels.isPending}
+                    onClick={handleGetProductInfo}
+                    disabled={!productModel.trim() || getProductInfo.isPending}
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
-                    {compareModels.isPending ? (
+                    {getProductInfo.isPending ? (
                       <div className="flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                         Analyzing
                         <span className="animate-pulse">...</span>
                       </div>
                     ) : (
-                      'Compare TVs'
+                      'Get Product Info'
                     )}
                   </Button>
                 </div>
 
-                {/* Comparison Results */}
-                {comparison && (
-                  <div className="space-y-4">
-                    {/* Winner Badge */}
-                    {comparison.winner && (
-                      <div className="text-center">
-                        <Badge className="bg-green-100 text-green-800 px-4 py-2 text-base">
-                          🏆 Winner: {comparison.winner}
-                        </Badge>
-                      </div>
-                    )}
-
-                    {/* Verdict */}
+                {/* Product Information Results */}
+                {productInfo && (
+                  <div className="space-y-6">
+                    {/* Product Header */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="flex items-center">
-                          <ArrowRightLeft className="w-5 h-5 mr-2" />
-                          AI Verdict
+                        <CardTitle className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900">{productInfo.name}</h3>
+                            <p className="text-sm text-gray-600 mt-1">{productInfo.brand}</p>
+                          </div>
+                          <div className="text-right">
+                            <div className="flex items-center">
+                              <div className="flex mr-2">
+                                {[...Array(5)].map((_, i) => (
+                                  <span
+                                    key={i}
+                                    className={`text-lg ${
+                                      i < productInfo.rating ? 'text-yellow-400' : 'text-gray-300'
+                                    }`}
+                                  >
+                                    ★
+                                  </span>
+                                ))}
+                              </div>
+                              <span className="text-sm font-medium text-gray-600">
+                                {productInfo.rating}/5
+                              </span>
+                            </div>
+                            <p className="text-lg font-bold text-blue-600 mt-1">{productInfo.price}</p>
+                          </div>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-gray-700 leading-relaxed">{comparison.verdict}</p>
+                        <p className="text-gray-700 leading-relaxed">{productInfo.overview}</p>
                       </CardContent>
                     </Card>
 
-                    {/* Individual Reviews */}
+                    {/* Pros and Cons */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Card>
                         <CardHeader>
-                          <CardTitle className="text-lg">{comparison.model1_name}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="mb-3">
-                            <div className="flex items-center mb-2">
-                              <span className="text-sm font-medium text-gray-600">Rating:</span>
-                              <div className="ml-2 flex">
-                                {[...Array(5)].map((_, i) => (
-                                  <span
-                                    key={i}
-                                    className={`text-lg ${
-                                      i < comparison.model1_rating ? 'text-yellow-400' : 'text-gray-300'
-                                    }`}
-                                  >
-                                    ★
-                                  </span>
-                                ))}
-                              </div>
-                              <span className="ml-2 text-sm text-gray-600">
-                                {comparison.model1_rating}/5
-                              </span>
-                            </div>
-                          </div>
-                          <p className="text-gray-700 text-sm leading-relaxed">{comparison.model1_review}</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-lg">{comparison.model2_name}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="mb-3">
-                            <div className="flex items-center mb-2">
-                              <span className="text-sm font-medium text-gray-600">Rating:</span>
-                              <div className="ml-2 flex">
-                                {[...Array(5)].map((_, i) => (
-                                  <span
-                                    key={i}
-                                    className={`text-lg ${
-                                      i < comparison.model2_rating ? 'text-yellow-400' : 'text-gray-300'
-                                    }`}
-                                  >
-                                    ★
-                                  </span>
-                                ))}
-                              </div>
-                              <span className="ml-2 text-sm text-gray-600">
-                                {comparison.model2_rating}/5
-                              </span>
-                            </div>
-                          </div>
-                          <p className="text-gray-700 text-sm leading-relaxed">{comparison.model2_review}</p>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    {/* Key Differences */}
-                    {comparison.key_differences && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Key Differences</CardTitle>
+                          <CardTitle className="flex items-center text-green-700">
+                            <CheckCircle className="w-5 h-5 mr-2" />
+                            Pros
+                          </CardTitle>
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2">
-                            {comparison.key_differences.map((diff: string, index: number) => (
+                            {productInfo.pros.map((pro: string, index: number) => (
                               <li key={index} className="flex items-start">
-                                <span className="text-blue-500 mr-2 flex-shrink-0">•</span>
-                                <span className="text-gray-700 text-sm">{diff}</span>
+                                <span className="text-green-500 mr-2 flex-shrink-0">✓</span>
+                                <span className="text-gray-700 text-sm">{pro}</span>
                               </li>
                             ))}
                           </ul>
                         </CardContent>
                       </Card>
-                    )}
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="flex items-center text-red-700">
+                            <MessageCircle className="w-5 h-5 mr-2" />
+                            Cons
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ul className="space-y-2">
+                            {productInfo.cons.map((con: string, index: number) => (
+                              <li key={index} className="flex items-start">
+                                <span className="text-red-500 mr-2 flex-shrink-0">✗</span>
+                                <span className="text-gray-700 text-sm">{con}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Key Features */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Key Features</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {productInfo.keyFeatures.map((feature: string, index: number) => (
+                            <div key={index} className="flex items-start">
+                              <span className="text-blue-500 mr-2 flex-shrink-0">•</span>
+                              <span className="text-gray-700 text-sm">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Specifications */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Specifications</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {Object.entries(productInfo.specifications).map(([key, value]) => (
+                            <div key={key} className="flex justify-between border-b border-gray-100 pb-2">
+                              <span className="text-sm font-medium text-gray-600">{key}:</span>
+                              <span className="text-sm text-gray-800">{value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Expert Recommendation & Value */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-blue-700">Expert Recommendation</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-gray-700 text-sm leading-relaxed">{productInfo.expertRecommendation}</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-purple-700">Value for Money</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-gray-700 text-sm leading-relaxed">{productInfo.valueForMoney}</p>
+                        </CardContent>
+                      </Card>
+                    </div>
 
                     {/* Book Consultation Button */}
                     <div className="text-center mt-6 pt-4 border-t border-gray-200">
                       <p className="text-gray-600 mb-3 text-sm">
-                        Need personalized advice about these TV models?
+                        Need personalized advice about this product?
                       </p>
                       <Button
                         onClick={() => {
-                          const tvDetails = `${comparison.model1_name} vs ${comparison.model2_name} - Winner: ${comparison.winner}`;
-                          window.location.href = `/consultation-booking?tv=${encodeURIComponent(tvDetails)}`;
+                          const productDetails = `${productInfo.name} - ${productInfo.brand}`;
+                          window.location.href = `/consultation-booking?product=${encodeURIComponent(productDetails)}`;
                         }}
                         className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2"
                       >
-                        Book TV Consultation
+                        Book Product Consultation
                       </Button>
                     </div>
                   </div>
@@ -1824,18 +1846,18 @@ export default function AIHelpPage() {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
               <Button
                 onClick={() => {
-                  if (comparison || productComparison) {
+                  if (productInfo || productComparison) {
                     window.location.href = "/consultation-booking";
                   }
                 }}
-                disabled={!comparison && !productComparison}
+                disabled={!productInfo && !productComparison}
                 className={`px-4 py-2 font-medium rounded-lg transition-colors text-sm ${
-                  comparison || productComparison
+                  productInfo || productComparison
                     ? "bg-orange-600 text-white hover:bg-orange-700"
                     : "bg-gray-400 text-gray-200 cursor-not-allowed"
                 }`}
               >
-                {comparison || productComparison ? "Book Consultation" : "Use AI Tools First"}
+                {productInfo || productComparison ? "Book Consultation" : "Use AI Tools First"}
               </Button>
               <a
                 href="mailto:support@tradesbook.ie"

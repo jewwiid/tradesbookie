@@ -37,6 +37,7 @@ import { askQuestion, getPopularQuestions, updateFaqAnswer, deactivateFaqAnswer 
 import { compareTVModels } from "./tvComparisonService";
 import { compareElectronicProducts } from "./electronicProductComparisonService";
 import { getProductRecommendations } from "./productRecommendationService";
+import { getProductInfo } from "./productInfoService";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -10239,6 +10240,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       console.error("Error getting product recommendations:", error);
       res.status(500).json({ 
         error: "Failed to get product recommendations", 
+        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      });
+    }
+  });
+
+  // AI Product Information endpoint
+  app.post("/api/ai/product-info", async (req, res) => {
+    try {
+      const { model } = req.body;
+      
+      if (!model) {
+        return res.status(400).json({ 
+          error: "Product model is required" 
+        });
+      }
+
+      console.log(`🔍 Getting product info for: ${model}`);
+      
+      const productInfo = await getProductInfo(model);
+      
+      res.json(productInfo);
+    } catch (error) {
+      console.error("Error getting product info:", error);
+      res.status(500).json({ 
+        error: "Failed to get product information", 
         message: error instanceof Error ? error.message : "Unknown error occurred" 
       });
     }

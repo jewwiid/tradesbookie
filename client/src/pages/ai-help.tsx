@@ -1057,7 +1057,7 @@ export default function AIHelpPage() {
         mapsTo: 'kitchenFit'
       }
     ],
-    'kettles': [
+    'electric-kettles': [
       {
         id: 'capacity_need',
         label: 'What capacity do you need?',
@@ -1087,6 +1087,70 @@ export default function AIHelpPage() {
           { id: 'practical_durable', label: 'Practical and durable' }
         ],
         mapsTo: 'designPreference'
+      }
+    ],
+    'microwaves': [
+      {
+        id: 'household_size',
+        label: 'What suits your household size?',
+        type: 'single',
+        options: [
+          { id: 'individual_couple', label: 'Individual or couple' },
+          { id: 'family_household', label: 'Family household' }
+        ],
+        mapsTo: 'householdSize'
+      },
+      {
+        id: 'primary_use',
+        label: 'What will you use it for most?',
+        type: 'single',
+        options: [
+          { id: 'basic_heating', label: 'Basic reheating and defrosting' },
+          { id: 'cooking_convenience', label: 'Cooking and convenience meals' }
+        ],
+        mapsTo: 'primaryUse'
+      },
+      {
+        id: 'space_features',
+        label: 'What matters most for your kitchen?',
+        type: 'single',
+        options: [
+          { id: 'compact_space', label: 'Compact size for limited space' },
+          { id: 'advanced_features', label: 'Advanced cooking features' }
+        ],
+        mapsTo: 'spaceFeatures'
+      }
+    ],
+    'toasters': [
+      {
+        id: 'household_needs',
+        label: 'What describes your breakfast needs?',
+        type: 'single',
+        options: [
+          { id: 'basic_toasting', label: 'Basic bread toasting' },
+          { id: 'family_breakfast', label: 'Family breakfast preparation' }
+        ],
+        mapsTo: 'householdNeeds'
+      },
+      {
+        id: 'toaster_type',
+        label: 'What type of toaster do you prefer?',
+        type: 'single',
+        options: [
+          { id: 'pop_up_toaster', label: 'Traditional pop-up toaster' },
+          { id: 'toaster_oven', label: 'Toaster oven (multi-function)' }
+        ],
+        mapsTo: 'toasterType'
+      },
+      {
+        id: 'feature_priority',
+        label: 'What features are most important?',
+        type: 'single',
+        options: [
+          { id: 'speed_simplicity', label: 'Speed and simplicity' },
+          { id: 'versatility_control', label: 'Versatility and precise control' }
+        ],
+        mapsTo: 'featurePriority'
       }
     ],
     'other': [

@@ -162,15 +162,24 @@ ANALYSIS REQUIREMENTS:
    - Replacement value analysis
    - Labor and call-out fees in Ireland
 
+CRITICAL: Generate 4-6 comprehensive scenarios covering different types of failures that Product Care covers.
+Include a variety of scenarios such as:
+- Electrical/electronic failures (surge damage, component failures)
+- Mechanical wear and tear issues
+- Accidental damage scenarios (if applicable to category)
+- Environmental damage (dust, humidity, overheating)
+- Age-related component deterioration
+- Category-specific issues (food spoilage for fridges, laundry costs for washing machines, etc.)
+
 OUTPUT FORMAT (JSON):
 {
   "criticalScenarios": [
     {
-      "scenario": "Specific realistic failure scenario",
+      "scenario": "Specific realistic failure scenario with details",
       "likelihood": "High/Medium/Low",
-      "potentialCost": "€XX-€XXX range or specific amount",
-      "howProductCareHelps": "Detailed explanation of coverage benefits",
-      "timeframe": "When this typically occurs",
+      "potentialCost": "€XX-€XXX range or specific amount with reasoning",
+      "howProductCareHelps": "Detailed explanation of specific coverage benefits and process",
+      "timeframe": "When this typically occurs in product lifecycle",
       "preventiveMeasures": ["Optional prevention tips"]
     }
   ],
@@ -212,11 +221,11 @@ Usage: ${userContext.usage || 'Not specified'}
 Environment: ${userContext.environment || 'Not specified'}
 Experience: ${userContext.experience || 'Not specified'}` : ''}
 
-Provide a comprehensive critical analysis of why Product Care would benefit this specific product, with realistic scenarios and cost considerations.`
+Provide a comprehensive critical analysis with 4-6 different realistic failure scenarios that Product Care would cover for this specific product. Include various types of failures: electrical/electronic, mechanical wear, environmental damage, accidental damage (if applicable), and category-specific issues. Make each scenario detailed with specific cost estimates and clear explanations of how Product Care helps.`
         }
       ],
-      max_tokens: 2000,
-      temperature: 0.3
+      max_tokens: 3000,
+      temperature: 0.2
     });
 
     const analysisText = response.choices[0].message.content;
@@ -242,18 +251,88 @@ Provide a comprehensive critical analysis of why Product Care would benefit this
   }
 }
 
-function parseTextToAnalysis(text: string, productInfo: any): ProductCareAnalysis {
-  // Extract scenarios from text when JSON parsing fails
-  const scenarios: ProductCareScenario[] = [
-    {
-      scenario: `${productInfo.category} component failure or malfunction`,
+function generateCategorySpecificScenarios(productInfo: any): ProductCareScenario[] {
+  const category = productInfo.category.toLowerCase();
+  const baseScenarios: ProductCareScenario[] = [];
+
+  // Universal scenarios for all electronics
+  baseScenarios.push({
+    scenario: `Power surge damage to ${productInfo.name} during electrical storm`,
+    likelihood: 'Medium',
+    potentialCost: '€200-€500 for board replacement or full unit replacement',
+    howProductCareHelps: 'Surge protection coverage included - covers electrical damage from power fluctuations and surges at no extra cost',
+    timeframe: 'Can occur at any time, especially during Irish weather events',
+    preventiveMeasures: ['Use surge protectors', 'Unplug during storms']
+  });
+
+  baseScenarios.push({
+    scenario: 'Component failure after manufacturer warranty expires',
+    likelihood: 'High',
+    potentialCost: '€150-€400 including parts, labor, and call-out fees',
+    howProductCareHelps: 'All repair costs covered including authorized technician visits and genuine parts replacement',
+    timeframe: 'Most common 2-4 years after purchase when warranty ends',
+    preventiveMeasures: ['Follow maintenance guidelines', 'Regular cleaning']
+  });
+
+  // Category-specific scenarios
+  if (category.includes('tv') || category.includes('television') || category.includes('display')) {
+    baseScenarios.push({
+      scenario: 'Screen crack from accidental impact or child/pet damage',
       likelihood: 'Medium',
-      potentialCost: '€150-€400',
-      howProductCareHelps: 'Covers all repair costs including parts, labor, and call-out fees',
-      timeframe: 'Typically occurs after warranty expires (2-4 years)',
-      preventiveMeasures: ['Regular maintenance', 'Proper usage according to manual']
-    }
-  ];
+      potentialCost: '€300-€800 for screen replacement (often 60-70% of new TV cost)',
+      howProductCareHelps: 'Accidental damage coverage for 12 months - covers screen replacement with admin fee only (€25-€100)',
+      timeframe: 'Most common in first 2 years of ownership',
+      preventiveMeasures: ['Wall mounting', 'Child safety measures']
+    });
+
+    baseScenarios.push({
+      scenario: 'Internal overheating causing display or processing failures',
+      likelihood: 'Medium',
+      potentialCost: '€200-€450 for main board or cooling system repairs',
+      howProductCareHelps: 'Covers dust build-up and internal overheating damage - includes cleaning and component replacement',
+      timeframe: 'Usually occurs after 3-5 years, especially in dusty environments',
+      preventiveMeasures: ['Regular dusting of vents', 'Adequate ventilation space']
+    });
+  }
+
+  if (category.includes('fridge') || category.includes('freezer') || category.includes('refrigerat')) {
+    baseScenarios.push({
+      scenario: 'Compressor failure leading to cooling system breakdown',
+      likelihood: 'Medium',
+      potentialCost: '€400-€700 for compressor replacement plus lost food',
+      howProductCareHelps: 'Covers compressor repairs AND up to €500 food spoilage compensation for any food lost due to covered faults',
+      timeframe: 'Common 4-6 years after purchase',
+      preventiveMeasures: ['Regular coil cleaning', 'Avoid overloading']
+    });
+  }
+
+  if (category.includes('washing') || category.includes('dryer') || category.includes('laundry')) {
+    baseScenarios.push({
+      scenario: 'Motor or drum bearing failure causing loud noises and poor performance',
+      likelihood: 'Medium',
+      potentialCost: '€250-€500 for motor/bearing replacement and labor',
+      howProductCareHelps: 'Covers mechanical failures AND up to €150 laundry expenses if repair takes over 10 days',
+      timeframe: 'Typically 4-7 years with regular use',
+      preventiveMeasures: ['Balanced loads', 'Regular cleaning cycles']
+    });
+  }
+
+  // Add more scenarios based on available knowledge base
+  baseScenarios.push({
+    scenario: 'Wear and tear causing multiple component degradation',
+    likelihood: 'High',
+    potentialCost: '€100-€300 for multiple small repairs that add up',
+    howProductCareHelps: 'Covers wear and tear damage that manufacturer warranties exclude - all parts and labor included',
+    timeframe: 'Progressive degradation typically starts year 3-4',
+    preventiveMeasures: ['Proper usage according to manual', 'Regular maintenance']
+  });
+
+  return baseScenarios.slice(0, 6); // Return up to 6 scenarios
+}
+
+function parseTextToAnalysis(text: string, productInfo: any): ProductCareAnalysis {
+  // Generate comprehensive scenarios when JSON parsing fails
+  const scenarios: ProductCareScenario[] = generateCategorySpecificScenarios(productInfo);
 
   const riskAssessment: RiskAssessment = {
     overallRiskLevel: 'Medium',
@@ -281,24 +360,8 @@ function parseTextToAnalysis(text: string, productInfo: any): ProductCareAnalysi
 }
 
 function generateFallbackAnalysis(productInfo: any): ProductCareAnalysis {
-  const scenarios: ProductCareScenario[] = [
-    {
-      scenario: `Power surge damage to ${productInfo.name}`,
-      likelihood: 'Medium',
-      potentialCost: '€200-€500',
-      howProductCareHelps: 'Surge protection coverage included - full repair or replacement covered',
-      timeframe: 'Can occur at any time, especially during storms',
-      preventiveMeasures: ['Use surge protectors', 'Unplug during electrical storms']
-    },
-    {
-      scenario: 'Component failure after manufacturer warranty expires',
-      likelihood: 'High',
-      potentialCost: '€150-€400',
-      howProductCareHelps: 'All parts, labor, and call-out fees covered by Product Care',
-      timeframe: 'Most common 2-4 years after purchase',
-      preventiveMeasures: ['Follow maintenance guidelines', 'Keep in suitable environment']
-    }
-  ];
+  // Use the same comprehensive scenario generation as the text parser
+  const scenarios: ProductCareScenario[] = generateCategorySpecificScenarios(productInfo);
 
   return {
     criticalScenarios: scenarios,

@@ -17,18 +17,22 @@ A sophisticated TV and product installation referral platform that leverages int
 
 ### Enhanced Product Care Section with AI Analysis
 - **Created AI-powered Product Care Analysis Service** (`server/productCareAnalysisService.ts`)
-  - Uses GPT-4o to analyze products and identify realistic failure scenarios
-  - References Harvey Norman Product Care documentation for accurate coverage details
+  - Uses GPT-4o to analyze products and generate 4-6 comprehensive failure scenarios per product
+  - References updated Harvey Norman Product Care documentation for accurate coverage details
   - Employs critical thinking to assess risk levels, potential costs, and how Product Care helps
   - Considers Irish market context (power surges, humidity, repair costs)
+  - Generates multiple scenario types: electrical/electronic failures, mechanical wear, environmental damage, accidental damage, and category-specific issues
+  - Enhanced with comprehensive fallback analysis providing detailed scenarios even when AI fails
 
 - **Enhanced ProductCareCarousel Component** (`client/src/pages/ai-help.tsx`)
-  - Displays intelligent, product-specific risk scenarios instead of generic slides
+  - Displays multiple intelligent, product-specific risk scenarios with carousel navigation
   - Shows likelihood ratings (High/Medium/Low) with appropriate risk indicators
   - Provides detailed cost breakdown of potential issues vs Product Care coverage
   - Includes personalized recommendations based on product analysis
-  - Falls back to static slides if AI analysis fails or no product info available
+  - Enhanced error handling with bounds checking and fallback values
+  - Replaced "Get Protection Now" button with "Consider Adding Protection" text
   - Added "Get AI Risk Analysis" button for on-demand analysis
+  - Multiple scenario support with proper slide navigation
 
 - **Added API Endpoint** (`/api/ai/product-care-analysis`)
   - Accepts product information and optional user context

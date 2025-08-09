@@ -479,14 +479,11 @@ export default function AIHelpPage() {
             </div>
           )}
 
-          {/* CTA button */}
+          {/* Consider Adding Protection text */}
           <div className="mt-4 text-center">
-            <Button 
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-              onClick={() => window.open('https://www.harveynorman.ie/product-care/', '_blank')}
-            >
-              {analysis ? 'Get Protection Now' : 'Learn More About Product Care'}
-            </Button>
+            <p className="text-sm font-medium text-orange-800 bg-orange-50 py-2 px-4 rounded-lg border border-orange-200">
+              Consider Adding Protection
+            </p>
           </div>
         </CardContent>
       </Card>

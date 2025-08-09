@@ -2418,21 +2418,54 @@ export default function AIHelpPage() {
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
               <Button
                 onClick={() => {
-                  if (productInfo || productComparison) {
-                    window.location.href = "/consultation-booking";
+                  if (productInfo || productComparison || recommendations) {
+                    // Pre-fill consultation booking with product data
+                    const productData = encodeURIComponent(JSON.stringify({
+                      hasProductInfo: !!productInfo,
+                      hasComparison: !!productComparison,
+                      hasRecommendations: !!recommendations,
+                      category: selectedCategory,
+                      productName: productInfo?.name || productComparison?.winner || recommendations?.recommendations?.[0]?.name,
+                      timestamp: new Date().toISOString()
+                    }));
+                    window.location.href = `/consultation-booking?productData=${productData}`;
                   }
                 }}
-                disabled={!productInfo && !productComparison}
+                disabled={!productInfo && !productComparison && !recommendations}
                 className={`px-4 py-2 font-medium rounded-lg transition-colors text-sm ${
-                  productInfo || productComparison
+                  productInfo || productComparison || recommendations
                     ? "bg-orange-600 text-white hover:bg-orange-700"
                     : "bg-gray-400 text-gray-200 cursor-not-allowed"
                 }`}
               >
-                {productInfo || productComparison ? "Book Consultation" : "Use AI Tools First"}
+                {productInfo || productComparison || recommendations ? "Book Consultation" : "Use AI Tools First"}
               </Button>
               <a
-                href="mailto:support@tradesbook.ie"
+                href={(() => {
+                  // Generate pre-filled email with product recommendation details
+                  const subject = "Product Recommendation Support Request";
+                  let body = "Hello,\n\nI need help with my product recommendation:\n\n";
+                  
+                  if (recommendations && recommendations.recommendations?.length > 0) {
+                    body += `Category: ${selectedCategory?.replace('-', ' ') || 'Not specified'}\n`;
+                    body += `Top Recommendation: ${recommendations.recommendations[0].name}\n`;
+                    body += `Price: €${recommendations.recommendations[0].price}\n`;
+                    body += `Reasons: ${recommendations.recommendations[0].reasons.join(', ')}\n\n`;
+                  } else if (productInfo) {
+                    body += `Product: ${productInfo.name}\n`;
+                    body += `Brand: ${productInfo.brand}\n`;
+                    body += `Price: ${productInfo.price}\n\n`;
+                  } else if (productComparison) {
+                    body += `Comparison Winner: ${productComparison.winner}\n`;
+                    body += `Category: ${productCategory?.replace('-', ' ') || 'Not specified'}\n\n`;
+                  } else {
+                    body += "I used the AI Help tools but need additional assistance.\n\n";
+                  }
+                  
+                  body += "Please help me with:\n- \n\nThank you!";
+                  
+                  return `mailto:support@tradesbook.ie?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                })()}
                 className="inline-flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 bg-white text-gray-700 font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm sm:text-base"
               >
                 Contact Support

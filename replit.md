@@ -1,65 +1,79 @@
-# tradesbook.ie - TV Installation Service Platform
+# TV and Product Installation Referral Platform
 
 ## Overview
-tradesbook.ie is a full-stack web application that connects customers with professional TV installers via an intelligent booking system. Key features include AI-powered room analysis for installation recommendations, dynamic pricing, QR code tracking for bookings, and multi-role dashboards for customers, installers, and administrators. The platform has transitioned to a lead generation marketplace model, where installers pay a fixed fee for customer leads, and customers pay installers directly. This shifts the platform's revenue source from commissions to lead connection fees, enhancing predictability and scalability.
+A sophisticated TV and product installation referral platform that leverages intelligent technological solutions to connect service providers with customers through an advanced booking and lead management system.
 
-## Recent Updates (August 2025)
-✓ **Multi-TV Booking System**: Enhanced platform to support 1-5 TV installations per booking with individual pricing calculations
-✓ **Accurate Booking Management**: Fixed booking value and lead fee calculations in admin dashboard to show real amounts
-✓ **Comprehensive Booking Details**: Enhanced admin interface to display complete booking information including multi-TV details, pricing breakdowns, and all metadata
-✓ **Server-Side Pricing Integration**: Updated booking creation to properly calculate pricing for both single and multi-TV installations using current pricing tiers
-✓ **Unified Authentication Experience**: Updated TV installation booking page to include comprehensive authentication options (Harvey Norman invoice, guest booking, OAuth) matching homepage's "Book Faster Than Ever" section
-✓ **Enhanced Booking Tracker**: Upgraded tracking system to support multiple Harvey Norman invoice formats (both HN-GAL-009876 and HNGAL009876), QR codes, and booking references with comprehensive error handling
-✓ **Installer Dashboard Authentication Fix**: Resolved authentication flow issues by properly separating OAuth and installer session authentication, ensuring all installers can access dashboard regardless of admin status with clear error handling and navigation
-✓ **Intelligent Priority System**: Implemented three-tier priority system (Standard/Urgent/Emergency) with automatic urgency detection based on scheduling timeline - same day bookings show as Emergency, within 48 hours as Urgent
-✓ **Accurate Booking Time Display**: Fixed preferred time display to show actual client-requested time slots (09:00-11:00, 11:00-13:00, etc.) instead of "Flexible" fallback text in installer dashboard
-✓ **Product Care Carousel**: Added interactive carousel showcasing Harvey Norman Product Care benefits with category-specific content for TV, refrigerators, earphones, and all other product categories. Features auto-advancing slides, manual navigation, and integration into both Find Product and Product Comparison results
-✓ **QR Code Link Display**: Fixed admin dashboard to show QR code URLs for each product category with copy functionality, enabling direct links to AI Help questionnaires
+## Key Technologies
+- React.js with TypeScript frontend
+- Node.js backend with enhanced authentication
+- PostgreSQL database with Drizzle ORM
+- Tailwind CSS for responsive design
+- AI-powered personalized product recommendations
+- Advanced mobile-responsive UI
+- Comprehensive product category questionnaires
+- **NEW: AI-powered Product Care analysis with critical thinking**
+
+## Recent Changes (January 2025)
+
+### Enhanced Product Care Section with AI Analysis
+- **Created AI-powered Product Care Analysis Service** (`server/productCareAnalysisService.ts`)
+  - Uses GPT-4o to analyze products and identify realistic failure scenarios
+  - References Harvey Norman Product Care documentation for accurate coverage details
+  - Employs critical thinking to assess risk levels, potential costs, and how Product Care helps
+  - Considers Irish market context (power surges, humidity, repair costs)
+
+- **Enhanced ProductCareCarousel Component** (`client/src/pages/ai-help.tsx`)
+  - Displays intelligent, product-specific risk scenarios instead of generic slides
+  - Shows likelihood ratings (High/Medium/Low) with appropriate risk indicators
+  - Provides detailed cost breakdown of potential issues vs Product Care coverage
+  - Includes personalized recommendations based on product analysis
+  - Falls back to static slides if AI analysis fails or no product info available
+  - Added "Get AI Risk Analysis" button for on-demand analysis
+
+- **Added API Endpoint** (`/api/ai/product-care-analysis`)
+  - Accepts product information and optional user context
+  - Returns comprehensive risk assessment and scenarios
+  - Integrated with existing product information workflow
+
+### Key Features of AI Product Care Analysis
+- **Critical Scenario Analysis**: Identifies realistic product failure scenarios with likelihood assessments
+- **Cost-Benefit Analysis**: Shows potential savings vs coverage cost with specific monetary estimates
+- **Risk Assessment**: Evaluates overall risk level and primary risk factors
+- **Environmental Considerations**: Accounts for Irish climate and power conditions
+- **Personalized Recommendations**: Tailored advice based on product category and specifications
+
+### Integration Points
+- Works with existing Product Information lookup system
+- Enhances Product Recommendations section with intelligent care analysis
+- Compatible with Product Comparison tool results
+- Uses real Harvey Norman Product Care terms and conditions
 
 ## User Preferences
-Preferred communication style: Simple, everyday language.
-Store recommendations: Only mention Harvey Norman for TV purchases, do not recommend other retailers like Currys, DID Electrical, or Amazon.ie.
-Technical analysis sources: Use RTINGS.com for TV measurements, professional reviews, and technical performance data in AI recommendations.
+- Focus on practical, actionable intelligence over generic information
+- Provide realistic cost estimates and scenarios
+- Use critical thinking to identify genuine value propositions
+- Maintain professional, informative communication style
 
-## System Architecture
-The application uses a modern full-stack architecture.
+## Project Architecture
+The application follows a modern full-stack architecture with AI-enhanced features:
 
-**Frontend**: React 18 with TypeScript, Vite, Wouter for routing, Radix UI primitives, and Tailwind CSS with shadcn/ui for styling. State management uses React Query for server state and local component state. Forms are handled with React Hook Form and Zod validation.
+### Backend Services
+- **Product Care Analysis Service**: AI-powered risk assessment and scenario generation
+- **Product Information Service**: Perplexity API integration for detailed product data
+- **AI Services**: OpenAI GPT-4o integration for intelligent analysis
+- **Authentication**: Multiple methods including invoice-based login
+- **Database**: PostgreSQL with Drizzle ORM for data persistence
 
-**Backend**: Node.js with Express.js, serving API endpoints and static files. It manages file uploads, AI integration, and business logic. Session-based authentication is used with multi-role support (Customer, Installer, Admin), including OIDC integration for Replit authentication. Secure session storage is in PostgreSQL.
+### Frontend Components  
+- **Enhanced Product Care Carousel**: Dynamic AI analysis with fallback static content
+- **Product Information Display**: Comprehensive product details and recommendations
+- **AI Help Assistant**: Multi-tab interface for product discovery and comparison
 
-**Database**: PostgreSQL with Drizzle ORM, hosted on Neon Database for serverless hosting. The schema supports multi-tenant architecture with Users, Installers, Bookings, Fee Structures, and Job Assignments.
+### Key Improvements Made
+1. **Intelligence over Static Content**: Product care now uses AI analysis instead of hardcoded slides
+2. **Critical Thinking Implementation**: AI evaluates real product risks and provides reasoned recommendations  
+3. **User-Centric Design**: Shows relevant scenarios and costs specific to each product
+4. **Comprehensive Coverage**: References actual Harvey Norman Product Care terms and benefits
+5. **Graceful Degradation**: Falls back to static content if AI analysis fails
 
-**AI Integration**: OpenAI GPT-4o is used for AI room analysis, installation recommendations, and TV placement visualization.
-
-**Deployment**: Configured for Replit with autoscaling.
-
-**Key Features & Design Decisions**:
-- **Authentication**: Dual authentication architecture: OAuth for customers/admins, and email/password for installers. Simplified authentication options include Harvey Norman invoice lookup and guest booking. Email verification system for new signups.
-- **Lead Generation Model**: Customers book for free; installers pay fixed lead fees. Installer wallet system for credit management and transaction tracking.
-- **Installer Matching**: Uber-style real-time installer matching with an interactive map, availability toggles, distance-based job matching, and urgency levels. Email and SMS notifications for booking confirmations.
-- **AI-Powered Recommendations**: AI room analysis for installation previews, TV placement suggestions, personalized 5-question TV recommendation questionnaire, and AI Help Assistant with live TV model comparison using Perplexity's agent mode for current market data.
-- **Admin Dashboard**: Comprehensive dashboard for managing users, installers, bookings, lead pricing, and platform insights. Includes real-time analytics for bookings, revenue, and user activity.
-- **Review System**: Comprehensive customer review system with star ratings and verified purchase badges for installers.
-- **Payment Processing**: Stripe integration for installer credit payments and TV setup credentials with secure checkout, discount handling, and webhook support.
-- **Email System**: Google Workspace Email Integration for professional HTML email templates across all platform communications (booking confirmations, installer notifications, admin alerts).
-- **Security**: Contact information protection to prevent direct contact bypass.
-
-## External Dependencies
-- **@neondatabase/serverless**: Serverless PostgreSQL connection.
-- **drizzle-orm**: Type-safe database ORM.
-- **@tanstack/react-query**: Server state management.
-- **@radix-ui/react-***: Accessible UI primitives.
-- **openai**: AI integration for room analysis.
-- **qrcode**: QR code generation for booking tracking.
-- **multer**: Multipart form data handling.
-- **bcrypt**: Password hashing.
-- **stripe**: Payment processing.
-- **nodemailer**: Email sending.
-- **passport**: Authentication middleware.
-- **express-session**: Session management.
-- **Wouter**: Client-side routing.
-- **Tailwind CSS**: Utility-first styling.
-- **React Hook Form**: Form validation.
-- **Zod**: Schema validation.
-- **Leaflet/OpenStreetMap**: Interactive maps and geocoding.
+The enhanced product care section now provides users with intelligent, product-specific analysis that helps them understand the genuine value of extended protection coverage based on their specific product and usage context.

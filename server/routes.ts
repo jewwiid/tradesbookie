@@ -38,6 +38,7 @@ import { compareTVModels } from "./tvComparisonService";
 import { compareElectronicProducts } from "./electronicProductComparisonService";
 import { getProductRecommendations } from "./productRecommendationService";
 import { getProductInfo } from "./productInfoService";
+import { analyzeProductCare } from "./productCareAnalysisService";
 import { QRCodeService } from "./qrCodeService";
 
 // Auto-refund service for expired leads
@@ -10266,6 +10267,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       console.error("Error getting product info:", error);
       res.status(500).json({ 
         error: "Failed to get product information", 
+        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      });
+    }
+  });
+
+  // AI Product Care Analysis endpoint
+  app.post("/api/ai/product-care-analysis", async (req, res) => {
+    try {
+      const { productInfo, userContext } = req.body;
+      
+      if (!productInfo || !productInfo.name || !productInfo.category) {
+        return res.status(400).json({ 
+          error: "Product information with name and category is required" 
+        });
+      }
+
+      console.log(`🛡️ Analyzing product care for: ${productInfo.name} (${productInfo.category})`);
+      
+      const analysis = await analyzeProductCare(productInfo, userContext);
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error analyzing product care:", error);
+      res.status(500).json({ 
+        error: "Failed to analyze product care", 
         message: error instanceof Error ? error.message : "Unknown error occurred" 
       });
     }

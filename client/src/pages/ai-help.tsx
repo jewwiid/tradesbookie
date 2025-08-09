@@ -208,28 +208,115 @@ export default function AIHelpPage() {
     }
   }, []);
 
-  // Product Care carousel component
-  const ProductCareCarousel = ({ category }: { category: string }) => {
+  // Enhanced AI-powered Product Care Analysis component
+  interface ProductCareAnalysis {
+    criticalScenarios: Array<{
+      scenario: string;
+      likelihood: 'High' | 'Medium' | 'Low';
+      potentialCost: string;
+      howProductCareHelps: string;
+      timeframe: string;
+      preventiveMeasures?: string[];
+    }>;
+    riskAssessment: {
+      overallRiskLevel: 'High' | 'Medium' | 'Low';
+      primaryRisks: string[];
+      environmentalFactors: string[];
+      usagePatternRisks: string[];
+    };
+    personalizedRecommendations: string[];
+    costBenefitAnalysis: {
+      potentialSavings: string;
+      worstCaseScenario: string;
+      recommendedCoverage: string;
+      reasoning: string;
+    };
+  }
+
+  const ProductCareCarousel = ({ category, productInfo }: { category: string; productInfo?: ProductInfo }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
-    const slides = productCareSlides[category] || productCareSlides['television']; // fallback to TV
+    const [analysis, setAnalysis] = useState<ProductCareAnalysis | null>(null);
+    const [isLoadingAnalysis, setIsLoadingAnalysis] = useState(false);
+    const [showAIAnalysis, setShowAIAnalysis] = useState(false);
+    
+    // Fallback to static slides if no product info or analysis fails
+    const staticSlides = productCareSlides[category] || productCareSlides['television'];
+
+    // Get AI analysis when productInfo is available
+    useEffect(() => {
+      if (productInfo && showAIAnalysis) {
+        setIsLoadingAnalysis(true);
+        
+        const userContext = {
+          usage: 'general home use',
+          environment: 'Irish home environment',
+          experience: 'average user'
+        };
+
+        fetch('/api/ai/product-care-analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            productInfo: {
+              name: productInfo.name,
+              brand: productInfo.brand,
+              category: category,
+              price: productInfo.price,
+              keyFeatures: productInfo.keyFeatures,
+              specifications: productInfo.specifications,
+              pros: productInfo.pros,
+              cons: productInfo.cons
+            },
+            userContext
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          setAnalysis(data);
+          setIsLoadingAnalysis(false);
+        })
+        .catch(error => {
+          console.error('Product care analysis error:', error);
+          setIsLoadingAnalysis(false);
+        });
+      }
+    }, [productInfo, category, showAIAnalysis]);
 
     const nextSlide = () => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
+      const totalSlides = analysis?.criticalScenarios.length || staticSlides.length;
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
     };
 
     const prevSlide = () => {
-      setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+      const totalSlides = analysis?.criticalScenarios.length || staticSlides.length;
+      setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
     };
 
+    // Auto-advance slides
     useEffect(() => {
       const timer = setInterval(() => {
         nextSlide();
-      }, 4000); // Auto-advance every 4 seconds
-
+      }, 5000); // 5 seconds for more complex content
       return () => clearInterval(timer);
-    }, [currentSlide]);
+    }, [currentSlide, analysis]);
 
-    if (!slides || slides.length === 0) return null;
+    const getRiskColor = (level: string) => {
+      switch (level.toLowerCase()) {
+        case 'high': return 'text-red-600';
+        case 'medium': return 'text-yellow-600';
+        case 'low': return 'text-green-600';
+        default: return 'text-gray-600';
+      }
+    };
+
+    const getLikelihoodIcon = (likelihood: string) => {
+      switch (likelihood.toLowerCase()) {
+        case 'high': return '🔥';
+        case 'medium': return '⚠️';
+        case 'low': return '💡';
+        default: return '🛡️';
+      }
+    };
 
     return (
       <Card className="mt-4 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200">
@@ -241,70 +328,148 @@ export default function AIHelpPage() {
             </CardTitle>
           </div>
           <p className="text-sm text-center text-orange-700 font-medium">
-            Protect your investment with extra coverage
+            {productInfo ? `Smart Protection Analysis for ${productInfo.name}` : 'Protect your investment with extra coverage'}
           </p>
+          
+          {productInfo && !showAIAnalysis && (
+            <div className="text-center mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAIAnalysis(true)}
+                className="text-orange-700 border-orange-300 hover:bg-orange-100"
+              >
+                Get AI Risk Analysis
+              </Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
-          <div className="relative">
-            <div className="flex items-center justify-center min-h-[120px] px-4">
-              <div className="text-center max-w-md">
-                <div className="text-3xl mb-2">{slides[currentSlide].icon}</div>
-                <h4 className="font-semibold text-gray-900 mb-2">
-                  {slides[currentSlide].title}
-                </h4>
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {slides[currentSlide].description}
-                </p>
+          {isLoadingAnalysis ? (
+            <div className="flex items-center justify-center min-h-[120px]">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-600">Analyzing product risks...</p>
               </div>
             </div>
-            
-            {/* Navigation buttons */}
-            <div className="flex justify-between items-center mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={prevSlide}
-                className="flex items-center space-x-1 border-orange-200 hover:bg-orange-50"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Previous</span>
-              </Button>
-              
-              {/* Slide indicators */}
-              <div className="flex space-x-2">
-                {slides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentSlide 
-                        ? 'bg-orange-500' 
-                        : 'bg-gray-300 hover:bg-gray-400'
-                    }`}
-                  />
-                ))}
+          ) : analysis?.criticalScenarios.length ? (
+            <div className="relative">
+              {/* AI-Generated Scenario Analysis */}
+              <div className="min-h-[140px] px-4">
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-3">
+                    <span className="text-2xl mr-2">
+                      {getLikelihoodIcon(analysis.criticalScenarios[currentSlide].likelihood)}
+                    </span>
+                    <Badge className={`${getRiskColor(analysis.criticalScenarios[currentSlide].likelihood)} bg-transparent border`}>
+                      {analysis.criticalScenarios[currentSlide].likelihood} Risk
+                    </Badge>
+                  </div>
+                  
+                  <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                    {analysis.criticalScenarios[currentSlide].scenario}
+                  </h4>
+                  
+                  <div className="space-y-2 text-xs">
+                    <div className="bg-white p-2 rounded-lg border border-orange-100">
+                      <p className="font-medium text-red-700 mb-1">Potential Cost Without Protection:</p>
+                      <p className="text-gray-700">{analysis.criticalScenarios[currentSlide].potentialCost}</p>
+                    </div>
+                    
+                    <div className="bg-white p-2 rounded-lg border border-orange-100">
+                      <p className="font-medium text-green-700 mb-1">How Product Care Helps:</p>
+                      <p className="text-gray-700">{analysis.criticalScenarios[currentSlide].howProductCareHelps}</p>
+                    </div>
+                    
+                    <div className="text-gray-600">
+                      <p><strong>Timeline:</strong> {analysis.criticalScenarios[currentSlide].timeframe}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
               
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={nextSlide}
-                className="flex items-center space-x-1 border-orange-200 hover:bg-orange-50"
-              >
-                <span>Next</span>
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
+              {/* Navigation */}
+              <div className="flex justify-between items-center mt-4">
+                <Button variant="outline" size="sm" onClick={prevSlide} className="border-orange-200 hover:bg-orange-50">
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                
+                <div className="flex space-x-1">
+                  {analysis.criticalScenarios.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentSlide ? 'bg-orange-500' : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+                
+                <Button variant="outline" size="sm" onClick={nextSlide} className="border-orange-200 hover:bg-orange-50">
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
 
-            {/* CTA button */}
-            <div className="mt-4 text-center">
-              <Button 
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white"
-                onClick={() => window.open('https://www.harveynorman.ie/product-care/', '_blank')}
-              >
-                Learn More About Product Care
-              </Button>
+              {/* AI Recommendations */}
+              {analysis.personalizedRecommendations.length > 0 && (
+                <div className="mt-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-xs font-medium text-blue-800 mb-1">AI Recommendation:</p>
+                  <p className="text-xs text-blue-700">
+                    {analysis.personalizedRecommendations[0]}
+                  </p>
+                </div>
+              )}
             </div>
+          ) : (
+            <div className="relative">
+              {/* Static Slides Fallback */}
+              <div className="flex items-center justify-center min-h-[120px] px-4">
+                <div className="text-center max-w-md">
+                  <div className="text-3xl mb-2">{staticSlides[currentSlide]?.icon || '🛡️'}</div>
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    {staticSlides[currentSlide]?.title || 'Product Protection'}
+                  </h4>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    {staticSlides[currentSlide]?.description || 'Professional protection for your investment'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center mt-4">
+                <Button variant="outline" size="sm" onClick={prevSlide} className="border-orange-200 hover:bg-orange-50">
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Previous</span>
+                </Button>
+                
+                <div className="flex space-x-2">
+                  {staticSlides.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentSlide ? 'bg-orange-500' : 'bg-gray-300 hover:bg-gray-400'
+                      }`}
+                    />
+                  ))}
+                </div>
+                
+                <Button variant="outline" size="sm" onClick={nextSlide} className="border-orange-200 hover:bg-orange-50">
+                  <span>Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* CTA button */}
+          <div className="mt-4 text-center">
+            <Button 
+              className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+              onClick={() => window.open('https://www.harveynorman.ie/product-care/', '_blank')}
+            >
+              {analysis ? 'Get Protection Now' : 'Learn More About Product Care'}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -1693,21 +1858,24 @@ export default function AIHelpPage() {
                     </div>
 
                     {/* Product Care Carousel for Find Product Info */}
-                    <ProductCareCarousel category={
-                      productInfo?.name?.toLowerCase().includes('tv') || productInfo?.name?.toLowerCase().includes('television') ? 'television' :
-                      productInfo?.name?.toLowerCase().includes('soundbar') ? 'soundbar' :
-                      productInfo?.name?.toLowerCase().includes('refrigerator') || productInfo?.name?.toLowerCase().includes('fridge') ? 'refrigerators' :
-                      productInfo?.name?.toLowerCase().includes('washing machine') ? 'washing-machines' :
-                      productInfo?.name?.toLowerCase().includes('dishwasher') ? 'dishwashers' :
-                      productInfo?.name?.toLowerCase().includes('headphone') ? 'headphones' :
-                      productInfo?.name?.toLowerCase().includes('earphone') || productInfo?.name?.toLowerCase().includes('earbud') ? 'earphones' :
-                      productInfo?.name?.toLowerCase().includes('vacuum') ? 'robot-vacuums' :
-                      productInfo?.name?.toLowerCase().includes('microwave') ? 'microwaves' :
-                      productInfo?.name?.toLowerCase().includes('kettle') ? 'electric-kettles' :
-                      productInfo?.name?.toLowerCase().includes('toaster') ? 'toasters' :
-                      productInfo?.name?.toLowerCase().includes('coffee') ? 'coffee-makers' :
-                      'television' // fallback
-                    } />
+                    <ProductCareCarousel 
+                      category={
+                        productInfo?.name?.toLowerCase().includes('tv') || productInfo?.name?.toLowerCase().includes('television') ? 'television' :
+                        productInfo?.name?.toLowerCase().includes('soundbar') ? 'soundbar' :
+                        productInfo?.name?.toLowerCase().includes('refrigerator') || productInfo?.name?.toLowerCase().includes('fridge') ? 'refrigerators' :
+                        productInfo?.name?.toLowerCase().includes('washing machine') ? 'washing-machines' :
+                        productInfo?.name?.toLowerCase().includes('dishwasher') ? 'dishwashers' :
+                        productInfo?.name?.toLowerCase().includes('headphone') ? 'headphones' :
+                        productInfo?.name?.toLowerCase().includes('earphone') || productInfo?.name?.toLowerCase().includes('earbud') ? 'earphones' :
+                        productInfo?.name?.toLowerCase().includes('vacuum') ? 'robot-vacuums' :
+                        productInfo?.name?.toLowerCase().includes('microwave') ? 'microwaves' :
+                        productInfo?.name?.toLowerCase().includes('kettle') ? 'electric-kettles' :
+                        productInfo?.name?.toLowerCase().includes('toaster') ? 'toasters' :
+                        productInfo?.name?.toLowerCase().includes('coffee') ? 'coffee-makers' :
+                        'television' // fallback
+                      }
+                      productInfo={productInfo}
+                    />
 
                     {/* Sales Staff CTA */}
                     <div className="text-center mt-6 pt-4 border-t border-gray-200">
@@ -2033,7 +2201,24 @@ export default function AIHelpPage() {
                           </Card>
                           
                           {/* Product Care Carousel - Only show for first product recommendation */}
-                          {index === 0 && <ProductCareCarousel category={selectedCategory} />}
+                          {index === 0 && (
+                            <ProductCareCarousel 
+                              category={selectedCategory} 
+                              productInfo={{
+                                name: product.name,
+                                brand: product.name.split(' ')[0] || 'Unknown',
+                                rating: product.rating || 4.0,
+                                price: `€${product.price}`,
+                                overview: `Product information for ${product.name}`,
+                                pros: product.reasons || [],
+                                cons: [],
+                                keyFeatures: [],
+                                specifications: {},
+                                expertRecommendation: product.reasons?.[0] || '',
+                                valueForMoney: 'Good value in this price range'
+                              }}
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
@@ -2334,7 +2519,22 @@ export default function AIHelpPage() {
                   </Card>
 
                   {/* Product Care Carousel for comparison results */}
-                  <ProductCareCarousel category={productCategory} />
+                  <ProductCareCarousel 
+                    category={productCategory}
+                    productInfo={{
+                      name: `${productComparison.model1_name} vs ${productComparison.model2_name}`,
+                      brand: productComparison.model1_name.split(' ')[0] || 'Electronics',
+                      rating: Math.max(productComparison.model1_rating, productComparison.model2_rating),
+                      price: 'Varies by model',
+                      overview: `Comparison between ${productComparison.model1_name} and ${productComparison.model2_name}`,
+                      pros: productComparison.key_differences,
+                      cons: [],
+                      keyFeatures: [],
+                      specifications: {},
+                      expertRecommendation: productComparison.personalized_recommendation,
+                      valueForMoney: productComparison.budget_consideration
+                    }}
+                  />
 
                   {/* Individual Reviews */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

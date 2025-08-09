@@ -126,13 +126,17 @@ export async function analyzeProductCare(
     experience?: string;
   }
 ): Promise<ProductCareAnalysis> {
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: `You are a product risk assessment expert analyzing products for Product Care recommendations. Your role is to use critical thinking and deep analysis to identify potential failure scenarios and explain how Product Care coverage would help users avoid unexpected costs.
+  // Try up to 3 times to get a valid response
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      console.log(`Product Care analysis attempt ${attempt} for ${productInfo.name}`);
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are a product risk assessment expert analyzing products for Product Care recommendations. Your role is to use critical thinking and deep analysis to identify potential failure scenarios and explain how Product Care coverage would help users avoid unexpected costs.
 
 KNOWLEDGE BASE:
 ${PRODUCT_CARE_KNOWLEDGE_BASE}
@@ -162,7 +166,7 @@ ANALYSIS REQUIREMENTS:
    - Replacement value analysis
    - Labor and call-out fees in Ireland
 
-CRITICAL: Generate 4-6 comprehensive scenarios covering different types of failures that Product Care covers.
+CRITICAL: Generate exactly 4-6 comprehensive scenarios covering different types of failures that Product Care covers.
 Include a variety of scenarios such as:
 - Electrical/electronic failures (surge damage, component failures)
 - Mechanical wear and tear issues
@@ -171,7 +175,9 @@ Include a variety of scenarios such as:
 - Age-related component deterioration
 - Category-specific issues (food spoilage for fridges, laundry costs for washing machines, etc.)
 
-OUTPUT FORMAT (JSON):
+YOU MUST RETURN ONLY VALID JSON. NO MARKDOWN, NO EXPLANATIONS, NO ADDITIONAL TEXT.
+
+JSON STRUCTURE:
 {
   "criticalScenarios": [
     {
@@ -201,10 +207,10 @@ OUTPUT FORMAT (JSON):
 }
 
 Be analytical, realistic, and focus on genuine value proposition. Avoid generic statements.`
-        },
-        {
-          role: "user",
-          content: `Analyze this product for Product Care recommendations:
+          },
+          {
+            role: "user",
+            content: `Analyze this product for Product Care recommendations:
 
 PRODUCT DETAILS:
 Name: ${productInfo.name}
@@ -221,166 +227,72 @@ Usage: ${userContext.usage || 'Not specified'}
 Environment: ${userContext.environment || 'Not specified'}
 Experience: ${userContext.experience || 'Not specified'}` : ''}
 
-Provide a comprehensive critical analysis with 4-6 different realistic failure scenarios that Product Care would cover for this specific product. Include various types of failures: electrical/electronic, mechanical wear, environmental damage, accidental damage (if applicable), and category-specific issues. Make each scenario detailed with specific cost estimates and clear explanations of how Product Care helps.`
+RESPOND WITH VALID JSON ONLY - NO MARKDOWN OR ADDITIONAL TEXT.
+
+Provide exactly 4-6 different realistic failure scenarios that Product Care would cover for this specific product.`
+          }
+        ],
+        max_tokens: 3500,
+        temperature: 0.1
+      });
+
+      const analysisText = response.choices[0].message.content;
+      
+      if (!analysisText) {
+        console.error(`Attempt ${attempt}: No analysis received from OpenAI`);
+        continue;
+      }
+
+      // Clean the response text - remove any markdown formatting
+      let cleanedText = analysisText.trim();
+      if (cleanedText.startsWith('```json')) {
+        cleanedText = cleanedText.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+      }
+      if (cleanedText.startsWith('```')) {
+        cleanedText = cleanedText.replace(/```\s*/g, '').replace(/```\s*$/g, '');
+      }
+
+      // Validate JSON structure
+      try {
+        const analysis = JSON.parse(cleanedText);
+        
+        // Validate required fields exist
+        if (!analysis.criticalScenarios || !Array.isArray(analysis.criticalScenarios)) {
+          throw new Error('Invalid criticalScenarios structure');
         }
-      ],
-      max_tokens: 3000,
-      temperature: 0.2
-    });
+        
+        if (analysis.criticalScenarios.length < 4 || analysis.criticalScenarios.length > 6) {
+          throw new Error(`Invalid number of scenarios: ${analysis.criticalScenarios.length}`);
+        }
 
-    const analysisText = response.choices[0].message.content;
-    
-    if (!analysisText) {
-      throw new Error("No analysis received from OpenAI");
+        // Validate each scenario has required fields
+        for (const scenario of analysis.criticalScenarios) {
+          if (!scenario.scenario || !scenario.likelihood || !scenario.potentialCost || !scenario.howProductCareHelps || !scenario.timeframe) {
+            throw new Error('Missing required scenario fields');
+          }
+        }
+
+        console.log(`✅ Successfully parsed Product Care analysis on attempt ${attempt}`);
+        return analysis as ProductCareAnalysis;
+        
+      } catch (parseError) {
+        console.error(`Attempt ${attempt}: JSON parsing failed:`, parseError);
+        console.error(`Response text: ${cleanedText.substring(0, 200)}...`);
+        
+        if (attempt === 3) {
+          throw parseError; // Re-throw on final attempt
+        }
+        continue;
+      }
+
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error);
+      if (attempt === 3) {
+        throw error; // Re-throw on final attempt
+      }
     }
-
-    // Try to parse as JSON
-    try {
-      const analysis = JSON.parse(analysisText);
-      return analysis as ProductCareAnalysis;
-    } catch (parseError) {
-      // Fallback: create structured response from text
-      return parseTextToAnalysis(analysisText, productInfo);
-    }
-
-  } catch (error) {
-    console.error('Product Care analysis error:', error);
-    
-    // Provide fallback analysis
-    return generateFallbackAnalysis(productInfo);
-  }
-}
-
-function generateCategorySpecificScenarios(productInfo: any): ProductCareScenario[] {
-  const category = productInfo.category.toLowerCase();
-  const baseScenarios: ProductCareScenario[] = [];
-
-  // Universal scenarios for all electronics
-  baseScenarios.push({
-    scenario: `Power surge damage to ${productInfo.name} during electrical storm`,
-    likelihood: 'Medium',
-    potentialCost: '€200-€500 for board replacement or full unit replacement',
-    howProductCareHelps: 'Surge protection coverage included - covers electrical damage from power fluctuations and surges at no extra cost',
-    timeframe: 'Can occur at any time, especially during Irish weather events',
-    preventiveMeasures: ['Use surge protectors', 'Unplug during storms']
-  });
-
-  baseScenarios.push({
-    scenario: 'Component failure after manufacturer warranty expires',
-    likelihood: 'High',
-    potentialCost: '€150-€400 including parts, labor, and call-out fees',
-    howProductCareHelps: 'All repair costs covered including authorized technician visits and genuine parts replacement',
-    timeframe: 'Most common 2-4 years after purchase when warranty ends',
-    preventiveMeasures: ['Follow maintenance guidelines', 'Regular cleaning']
-  });
-
-  // Category-specific scenarios
-  if (category.includes('tv') || category.includes('television') || category.includes('display')) {
-    baseScenarios.push({
-      scenario: 'Screen crack from accidental impact or child/pet damage',
-      likelihood: 'Medium',
-      potentialCost: '€300-€800 for screen replacement (often 60-70% of new TV cost)',
-      howProductCareHelps: 'Accidental damage coverage for 12 months - covers screen replacement with admin fee only (€25-€100)',
-      timeframe: 'Most common in first 2 years of ownership',
-      preventiveMeasures: ['Wall mounting', 'Child safety measures']
-    });
-
-    baseScenarios.push({
-      scenario: 'Internal overheating causing display or processing failures',
-      likelihood: 'Medium',
-      potentialCost: '€200-€450 for main board or cooling system repairs',
-      howProductCareHelps: 'Covers dust build-up and internal overheating damage - includes cleaning and component replacement',
-      timeframe: 'Usually occurs after 3-5 years, especially in dusty environments',
-      preventiveMeasures: ['Regular dusting of vents', 'Adequate ventilation space']
-    });
   }
 
-  if (category.includes('fridge') || category.includes('freezer') || category.includes('refrigerat')) {
-    baseScenarios.push({
-      scenario: 'Compressor failure leading to cooling system breakdown',
-      likelihood: 'Medium',
-      potentialCost: '€400-€700 for compressor replacement plus lost food',
-      howProductCareHelps: 'Covers compressor repairs AND up to €500 food spoilage compensation for any food lost due to covered faults',
-      timeframe: 'Common 4-6 years after purchase',
-      preventiveMeasures: ['Regular coil cleaning', 'Avoid overloading']
-    });
-  }
-
-  if (category.includes('washing') || category.includes('dryer') || category.includes('laundry')) {
-    baseScenarios.push({
-      scenario: 'Motor or drum bearing failure causing loud noises and poor performance',
-      likelihood: 'Medium',
-      potentialCost: '€250-€500 for motor/bearing replacement and labor',
-      howProductCareHelps: 'Covers mechanical failures AND up to €150 laundry expenses if repair takes over 10 days',
-      timeframe: 'Typically 4-7 years with regular use',
-      preventiveMeasures: ['Balanced loads', 'Regular cleaning cycles']
-    });
-  }
-
-  // Add more scenarios based on available knowledge base
-  baseScenarios.push({
-    scenario: 'Wear and tear causing multiple component degradation',
-    likelihood: 'High',
-    potentialCost: '€100-€300 for multiple small repairs that add up',
-    howProductCareHelps: 'Covers wear and tear damage that manufacturer warranties exclude - all parts and labor included',
-    timeframe: 'Progressive degradation typically starts year 3-4',
-    preventiveMeasures: ['Proper usage according to manual', 'Regular maintenance']
-  });
-
-  return baseScenarios.slice(0, 6); // Return up to 6 scenarios
-}
-
-function parseTextToAnalysis(text: string, productInfo: any): ProductCareAnalysis {
-  // Generate comprehensive scenarios when JSON parsing fails
-  const scenarios: ProductCareScenario[] = generateCategorySpecificScenarios(productInfo);
-
-  const riskAssessment: RiskAssessment = {
-    overallRiskLevel: 'Medium',
-    primaryRisks: ['Component wear and tear', 'Electrical issues'],
-    environmentalFactors: ['Irish humidity', 'Power fluctuations'],
-    usagePatternRisks: ['Heavy daily use', 'Improper handling']
-  };
-
-  const costBenefitAnalysis: CostBenefitAnalysis = {
-    potentialSavings: 'Up to €300-€500 in repair costs',
-    worstCaseScenario: 'Complete product failure requiring replacement',
-    recommendedCoverage: '3-year coverage for optimal value',
-    reasoning: 'Provides protection during post-warranty period when failures are most common'
-  };
-
-  return {
-    criticalScenarios: scenarios,
-    riskAssessment,
-    personalizedRecommendations: [
-      'Consider Product Care to avoid unexpected repair bills',
-      'Extended coverage provides peace of mind for premium products'
-    ],
-    costBenefitAnalysis
-  };
-}
-
-function generateFallbackAnalysis(productInfo: any): ProductCareAnalysis {
-  // Use the same comprehensive scenario generation as the text parser
-  const scenarios: ProductCareScenario[] = generateCategorySpecificScenarios(productInfo);
-
-  return {
-    criticalScenarios: scenarios,
-    riskAssessment: {
-      overallRiskLevel: 'Medium',
-      primaryRisks: ['Post-warranty failures', 'Power-related damage'],
-      environmentalFactors: ['Irish weather conditions', 'Voltage fluctuations'],
-      usagePatternRisks: ['Daily wear and tear', 'Accidental damage']
-    },
-    personalizedRecommendations: [
-      `For a ${productInfo.category} in this price range, Product Care provides valuable protection against common failures`,
-      'Consider 3-year coverage to bridge the gap after manufacturer warranty expires',
-      'Ireland-based support team ensures quick resolution of any issues'
-    ],
-    costBenefitAnalysis: {
-      potentialSavings: 'Potentially €300-€600 in repair costs',
-      worstCaseScenario: 'Complete replacement needed outside warranty period',
-      recommendedCoverage: '3-year extended protection',
-      reasoning: 'Cost of coverage typically less than one major repair incident'
-    }
-  };
+  // This should never be reached due to re-throwing on final attempt
+  throw new Error('All retry attempts failed - AI analysis service unavailable');
 }

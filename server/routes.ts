@@ -10297,14 +10297,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       console.log(`🛡️ Analyzing product care for: ${productInfo.name} (${productInfo.category})`);
       
+      // The enhanced analyzeProductCare function now has built-in retry logic
+      // and proper validation to minimize failures
       const analysis = await analyzeProductCare(productInfo, userContext);
+      
+      console.log(`✅ Product care analysis completed successfully with ${analysis.criticalScenarios.length} scenarios`);
       
       res.json(analysis);
     } catch (error) {
-      console.error("Error analyzing product care:", error);
+      console.error("❌ Product Care analysis failed after all retries:", error);
       res.status(500).json({ 
         error: "Failed to analyze product care", 
-        message: error instanceof Error ? error.message : "Unknown error occurred" 
+        message: error instanceof Error ? error.message : "AI analysis service unavailable",
+        details: "Please ensure OpenAI API is available and try again"
       });
     }
   });

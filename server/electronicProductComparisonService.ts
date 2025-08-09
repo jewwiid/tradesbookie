@@ -26,17 +26,25 @@ export async function compareElectronicProducts(
   product1: string, 
   product2: string, 
   productCategory: string,
-  questionnaire: QuestionnaireAnswers
+  questionnaire: QuestionnaireAnswers | Record<string, never>
 ): Promise<ProductComparisonResult> {
   
-  const personalizedContext = `
+  // Check if questionnaire is empty (skip questions mode)
+  const hasQuestionnaire = questionnaire && typeof questionnaire === 'object' && 
+    Object.keys(questionnaire).length > 0 && 
+    'question1' in questionnaire && questionnaire.question1;
+  
+  const personalizedContext = hasQuestionnaire ? `
 User Profile based on ${productCategory} category questions:
-- Answer 1: ${questionnaire.question1}
-- Answer 2: ${questionnaire.question2}
-- Answer 3: ${questionnaire.question3}
+- Answer 1: ${(questionnaire as QuestionnaireAnswers).question1}
+- Answer 2: ${(questionnaire as QuestionnaireAnswers).question2}
+- Answer 3: ${(questionnaire as QuestionnaireAnswers).question3}
+` : `
+General comparison requested for ${productCategory} category (no specific user preferences provided).
+Focus on objective technical specifications, performance benchmarks, and overall value proposition.
 `;
 
-  const prompt = `Compare these two ${productCategory} products and provide a comprehensive analysis with current 2024-2025 market information, personalized for this specific user:
+  const prompt = `Compare these two ${productCategory} products and provide a comprehensive analysis with current 2024-2025 market information${hasQuestionnaire ? ', personalized for this specific user' : ' with objective analysis'}:
 
 ${personalizedContext}
 
@@ -45,31 +53,31 @@ Product 2: ${product2}
 Category: ${productCategory}
 
 I need a detailed comparison with the following structure:
-1. Overall winner and reasoning based on current market data AND user's specific needs
+1. Overall winner and reasoning based on current market data${hasQuestionnaire ? ' AND user\'s specific needs' : ''}
 2. Individual reviews for each product with ratings (1-5 stars)
 3. Key differences between the products
-4. A comprehensive verdict explaining which is better for THIS SPECIFIC USER and why
-5. Personalized recommendation based on their usage, experience level, and priorities
-6. Budget consideration for this user's priorities
+4. A comprehensive verdict explaining which is better${hasQuestionnaire ? ' for THIS SPECIFIC USER and why' : ' and why'}
+5. ${hasQuestionnaire ? 'Personalized recommendation based on their usage, experience level, and priorities' : 'General recommendation based on typical use cases and market position'}
+6. ${hasQuestionnaire ? 'Budget consideration for this user\'s priorities' : 'Budget consideration and value proposition'}
 
 Focus on current information including:
 - Performance benchmarks and real-world testing data
 - Build quality and design
 - Current market pricing and value for money
-- User experience and ease of use (especially considering their technical experience level)
-- Feature set and how it aligns with their stated usage and priorities
+- User experience and ease of use
+- Feature set and capabilities
 - Current availability in Irish/European market
 - Latest reviews and reliability data from expert sources
 - 2024-2025 model updates and improvements
 - Compatibility and ecosystem considerations
 - Long-term value and future-proofing
 
-Tailor the comparison specifically to their answers for ${productCategory}:
-- Question 1 response: ${questionnaire.question1}
-- Question 2 response: ${questionnaire.question2}
-- Question 3 response: ${questionnaire.question3}
+${hasQuestionnaire ? `Tailor the comparison specifically to their answers for ${productCategory}:
+- Question 1 response: ${(questionnaire as QuestionnaireAnswers).question1}
+- Question 2 response: ${(questionnaire as QuestionnaireAnswers).question2}
+- Question 3 response: ${(questionnaire as QuestionnaireAnswers).question3}
 
-Use these specific responses to provide highly personalized recommendations that align with their stated preferences for this product category.
+Use these specific responses to provide highly personalized recommendations that align with their stated preferences for this product category.` : `Provide a comprehensive, objective comparison suitable for general consumers interested in ${productCategory} products.`}
 
 Please provide current pricing information and availability status. Respond with valid JSON in this exact format:
 {

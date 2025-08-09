@@ -10195,19 +10195,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { product1, product2, productCategory, questionnaire } = req.body;
       
-      if (!product1 || !product2 || !productCategory || !questionnaire) {
+      if (!product1 || !product2 || !productCategory) {
         return res.status(400).json({ 
-          error: "Product 1, Product 2, product category, and questionnaire answers are required" 
+          error: "Product 1, Product 2, and product category are required" 
         });
       }
 
-      if (!questionnaire.question1 || !questionnaire.question2 || !questionnaire.question3) {
-        return res.status(400).json({ 
-          error: "Questionnaire must include answers to all three category questions" 
-        });
+      // Check if this is a skip-questions comparison (empty questionnaire)
+      const isSkipComparison = !questionnaire || Object.keys(questionnaire).length === 0 || 
+        !questionnaire.question1 || !questionnaire.question2 || !questionnaire.question3;
+
+      if (!isSkipComparison) {
+        // Normal comparison with questionnaire validation
+        if (!questionnaire.question1 || !questionnaire.question2 || !questionnaire.question3) {
+          return res.status(400).json({ 
+            error: "Questionnaire must include answers to all three category questions" 
+          });
+        }
       }
 
-      const comparison = await compareElectronicProducts(product1, product2, productCategory, questionnaire);
+      const comparison = await compareElectronicProducts(
+        product1, 
+        product2, 
+        productCategory, 
+        isSkipComparison ? {} : questionnaire
+      );
       res.json(comparison);
     } catch (error) {
       console.error("Error comparing electronic products:", error);

@@ -181,6 +181,7 @@ export default function AIHelpPage() {
   });
   const [productComparison, setProductComparison] = useState<ElectronicProductComparison | null>(null);
   const [currentStep, setCurrentStep] = useState(0); // 0: category, 1: models, 2: questions
+  const [isComparing, setIsComparing] = useState(false);
 
   // Find My Product State
   const [findProductStep, setFindProductStep] = useState(0); // 0: category, 1: questions, 2: results
@@ -2365,6 +2366,65 @@ export default function AIHelpPage() {
                         >
                           Next: Answer Questions
                         </Button>
+                        
+                        {/* Skip Questions Option */}
+                        <div className="relative">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-300"></div>
+                          </div>
+                          <div className="relative flex justify-center text-sm">
+                            <span className="px-3 bg-green-50 text-gray-500">or</span>
+                          </div>
+                        </div>
+                        
+                        <Button
+                          onClick={async () => {
+                            if (!canProceedFromModels) return;
+                            
+                            setIsComparing(true);
+                            
+                            try {
+                              const response = await fetch('/api/ai/compare-electronics', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  product1,
+                                  product2,
+                                  category: productCategory === 'other' ? customCategory : productCategory,
+                                  questionnaire: {} // Empty questionnaire for direct comparison
+                                })
+                              });
+                              
+                              if (response.ok) {
+                                const data = await response.json();
+                                setProductComparison(data);
+                                setCurrentStep(3); // Skip to results
+                              } else {
+                                console.error('Comparison failed');
+                              }
+                            } catch (error) {
+                              console.error('Error comparing products:', error);
+                            } finally {
+                              setIsComparing(false);
+                            }
+                          }}
+                          disabled={!canProceedFromModels || isComparing}
+                          variant="outline"
+                          className="w-full border-2 border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400"
+                        >
+                          {isComparing ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2"></div>
+                              Comparing Products...
+                            </>
+                          ) : (
+                            'Skip Questions & Compare Now'
+                          )}
+                        </Button>
+                        
+                        <p className="text-xs text-center text-gray-500 mt-2">
+                          Skip the questionnaire for a quick, general comparison based on product specs and features
+                        </p>
                       </div>
                     </div>
                   )}

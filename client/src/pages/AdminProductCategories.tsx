@@ -283,6 +283,27 @@ export default function AdminProductCategories() {
                 QR Code Preview
               </div>
 
+              {/* QR Code URL Display */}
+              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                <div className="text-xs font-semibold text-gray-700 uppercase tracking-wide">QR Code Link</div>
+                <div className="text-xs text-gray-600 break-all font-mono bg-white p-2 rounded border">
+                  {window.location.origin}/ai-help?category={category.slug}&find=true
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    const url = `${window.location.origin}/ai-help?category=${category.slug}&find=true`;
+                    navigator.clipboard.writeText(url);
+                    toast({ title: 'QR code link copied to clipboard!' });
+                  }}
+                >
+                  <QrCode className="h-3 w-3 mr-1" />
+                  Copy QR Link
+                </Button>
+              </div>
+
               <div className="flex flex-wrap gap-1">
                 <Button 
                   size="sm" 

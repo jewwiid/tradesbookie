@@ -194,6 +194,18 @@ export default function AIHelpPage() {
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Handle URL parameters for QR code links
+    const urlParams = new URLSearchParams(window.location.search);
+    const categoryParam = urlParams.get('category');
+    const findParam = urlParams.get('find');
+    
+    if (categoryParam && findParam === 'true') {
+      // Switch to Find Product tab and set category
+      setCurrentView('find');
+      setSelectedCategory(categoryParam);
+      setFindProductStep(1); // Skip category selection, go to questions
+    }
   }, []);
 
   // Product Care carousel component

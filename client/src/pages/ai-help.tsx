@@ -1,7 +1,7 @@
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import AIHelpWidget from "@/components/AIHelpWidget";
-import { MessageCircle, Zap, Clock, CheckCircle, ArrowRightLeft, DollarSign } from "lucide-react";
+import { MessageCircle, Zap, Clock, CheckCircle, ArrowRightLeft, DollarSign, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,6 +60,95 @@ interface RecommendationResponse {
   filters: any;
 }
 
+interface ProductCareSlide {
+  title: string;
+  description: string;
+  icon: string;
+}
+
+// Product Care carousel data based on Harvey Norman Product Care benefits
+const productCareSlides: Record<string, ProductCareSlide[]> = {
+  'television': [
+    { title: 'Cracked screen? Covered (12 months)', description: 'Drops, knocks and accidents happen—Accidental Damage includes cracked screens for the first 12 months.', icon: '🛡️' },
+    { title: 'Beat the Irish power surge', description: 'Protection against electrical interference and voltage spikes that can fry boards.', icon: '⚡' },
+    { title: "If we can't fix it, we replace it", description: 'New-for-old (spec-for-spec) if repair isn\'t economical.', icon: '🔄' },
+    { title: 'Real-world wear & tear covered', description: 'Dust build-up and internal overheating are included.', icon: '🏠' },
+    { title: 'Hassle-free claims, Ireland-based team', description: 'Register online or call—parts, labour and call-out covered.', icon: '☎️' }
+  ],
+  'earphones': [
+    { title: 'Beyond basic warranty', description: 'Defects and electrical/mechanical faults covered.', icon: '🛡️' },
+    { title: 'Accidental drops/liquid (12 months)', description: 'First-year mishaps included.', icon: '💧' },
+    { title: 'Worldwide assistance (up to €300)', description: 'Travel light, worry less.', icon: '🌍' },
+    { title: 'Simple claims, real people', description: 'Online portal + Ireland-based team.', icon: '👥' }
+  ],
+  'headphones': [
+    { title: 'Beyond basic warranty', description: 'Defects and electrical/mechanical faults covered.', icon: '🛡️' },
+    { title: 'Accidental drops/liquid (12 months)', description: 'First-year mishaps included.', icon: '💧' },
+    { title: 'Worldwide assistance (up to €300)', description: 'Travel light, worry less.', icon: '🌍' },
+    { title: 'Simple claims, real people', description: 'Online portal + Ireland-based team.', icon: '👥' }
+  ],
+  'soundbar': [
+    { title: 'Surge-safe sound', description: 'Covers failures from electrical surges and interference.', icon: '⚡' },
+    { title: 'No-lemon confidence', description: 'Replacement after repeat qualified repairs.', icon: '🔄' },
+    { title: 'Ireland-based support, simple claims', description: 'Speak to a human or file online in minutes.', icon: '☎️' },
+    { title: 'Authorised repairer network', description: 'Fixed right the first time.', icon: '✅' }
+  ],
+  'soundbars': [
+    { title: 'Surge-safe sound', description: 'Covers failures from electrical surges and interference.', icon: '⚡' },
+    { title: 'No-lemon confidence', description: 'Replacement after repeat qualified repairs.', icon: '🔄' },
+    { title: 'Ireland-based support, simple claims', description: 'Speak to a human or file online in minutes.', icon: '☎️' },
+    { title: 'Authorised repairer network', description: 'Fixed right the first time.', icon: '✅' }
+  ],
+  'refrigerators': [
+    { title: 'Protect what\'s inside—food cover up to €500', description: 'If a covered fault spoils food, we reimburse (limits apply).', icon: '🧊' },
+    { title: 'Parts, labour, call-out—all included', description: 'No surprise repair bills.', icon: '💰' },
+    { title: 'Surge & wear-and-tear coverage', description: 'From power spikes to internal overheating and dust.', icon: '⚡' },
+    { title: 'Replace if not economical to repair', description: 'New-for-old if we can\'t fix it.', icon: '🔄' }
+  ],
+  'washing-machines': [
+    { title: 'Laundry bills covered if we\'re delayed', description: 'If out of service 10+ days after you notify us, we\'ll cover laundry costs up to €150 (limits apply).', icon: '👔' },
+    { title: 'Wear-and-tear & mechanical faults included', description: 'Protection goes beyond manufacturer defects.', icon: '🔧' },
+    { title: 'Surge protection', description: 'Power-related failures covered.', icon: '⚡' },
+    { title: 'New-for-old replacement when uneconomical', description: 'We\'ll replace if a repair doesn\'t make sense.', icon: '🔄' }
+  ],
+  'dishwashers': [
+    { title: 'Wear-and-tear & mechanical faults included', description: 'Protection goes beyond manufacturer defects.', icon: '🔧' },
+    { title: 'Surge protection', description: 'Power-related failures covered.', icon: '⚡' },
+    { title: 'New-for-old replacement when uneconomical', description: 'We\'ll replace if a repair doesn\'t make sense.', icon: '🔄' },
+    { title: 'Parts, labour, call-out—all included', description: 'No surprise repair bills.', icon: '💰' }
+  ],
+  'robot-vacuums': [
+    { title: 'Back-up for motors & electronics', description: 'Mechanical/electrical failures and defects covered beyond maker warranty.', icon: '🤖' },
+    { title: 'Dust & overheating? Covered', description: 'Real-life home use is messy—we\'ve got it.', icon: '🏠' },
+    { title: 'Surge protection', description: 'Power blips won\'t become your problem.', icon: '⚡' },
+    { title: 'Replace if it\'s not worth fixing', description: 'New-for-old when repair isn\'t economical.', icon: '🔄' }
+  ],
+  'microwaves': [
+    { title: 'Surge & wear-and-tear coverage', description: 'From power spikes to internal overheating and dust.', icon: '⚡' },
+    { title: 'Parts, labour, call-out—all included', description: 'No surprise repair bills.', icon: '💰' },
+    { title: 'Replace if not economical to repair', description: 'New-for-old if we can\'t fix it.', icon: '🔄' },
+    { title: 'Authorised repairer network', description: 'Fixed right the first time.', icon: '✅' }
+  ],
+  'electric-kettles': [
+    { title: 'Surge & wear-and-tear coverage', description: 'From power spikes to internal overheating and dust.', icon: '⚡' },
+    { title: 'Parts, labour, call-out—all included', description: 'No surprise repair bills.', icon: '💰' },
+    { title: 'Replace if not economical to repair', description: 'New-for-old if we can\'t fix it.', icon: '🔄' },
+    { title: 'Simple claims, real people', description: 'Online portal + Ireland-based team.', icon: '👥' }
+  ],
+  'toasters': [
+    { title: 'Surge & wear-and-tear coverage', description: 'From power spikes to internal overheating and dust.', icon: '⚡' },
+    { title: 'Parts, labour, call-out—all included', description: 'No surprise repair bills.', icon: '💰' },
+    { title: 'Replace if not economical to repair', description: 'New-for-old if we can\'t fix it.', icon: '🔄' },
+    { title: 'Simple claims, real people', description: 'Online portal + Ireland-based team.', icon: '👥' }
+  ],
+  'coffee-makers': [
+    { title: 'Surge & wear-and-tear coverage', description: 'From power spikes to internal overheating and dust.', icon: '⚡' },
+    { title: 'Parts, labour, call-out—all included', description: 'No surprise repair bills.', icon: '💰' },
+    { title: 'Replace if not economical to repair', description: 'New-for-old if we can\'t fix it.', icon: '🔄' },
+    { title: 'Simple claims, real people', description: 'Online portal + Ireland-based team.', icon: '👥' }
+  ]
+};
+
 interface QuestionnaireAnswers {
   question1: string;
   question2: string;
@@ -99,12 +188,116 @@ export default function AIHelpPage() {
   const [findAnswers, setFindAnswers] = useState<Record<string, string>>({});
   const [maxBudget, setMaxBudget] = useState<number>(1000);
   const [customProductInput, setCustomProductInput] = useState('');
+  const [productCareSlideIndex, setProductCareSlideIndex] = useState(0);
   const [recommendations, setRecommendations] = useState<RecommendationResponse | null>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  // Product Care carousel component
+  const ProductCareCarousel = ({ category }: { category: string }) => {
+    const [currentSlide, setCurrentSlide] = useState(0);
+    const slides = productCareSlides[category] || productCareSlides['television']; // fallback to TV
+
+    const nextSlide = () => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    };
+
+    const prevSlide = () => {
+      setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    };
+
+    useEffect(() => {
+      const timer = setInterval(() => {
+        nextSlide();
+      }, 4000); // Auto-advance every 4 seconds
+
+      return () => clearInterval(timer);
+    }, [currentSlide]);
+
+    if (!slides || slides.length === 0) return null;
+
+    return (
+      <Card className="mt-4 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-center space-x-2">
+            <Shield className="w-5 h-5 text-orange-600" />
+            <CardTitle className="text-lg text-center text-orange-900">
+              Harvey Norman Product Care
+            </CardTitle>
+          </div>
+          <p className="text-sm text-center text-orange-700 font-medium">
+            Protect your investment with extra coverage
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="relative">
+            <div className="flex items-center justify-center min-h-[120px] px-4">
+              <div className="text-center max-w-md">
+                <div className="text-3xl mb-2">{slides[currentSlide].icon}</div>
+                <h4 className="font-semibold text-gray-900 mb-2">
+                  {slides[currentSlide].title}
+                </h4>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {slides[currentSlide].description}
+                </p>
+              </div>
+            </div>
+            
+            {/* Navigation buttons */}
+            <div className="flex justify-between items-center mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={prevSlide}
+                className="flex items-center space-x-1 border-orange-200 hover:bg-orange-50"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Previous</span>
+              </Button>
+              
+              {/* Slide indicators */}
+              <div className="flex space-x-2">
+                {slides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSlide(index)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      index === currentSlide 
+                        ? 'bg-orange-500' 
+                        : 'bg-gray-300 hover:bg-gray-400'
+                    }`}
+                  />
+                ))}
+              </div>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={nextSlide}
+                className="flex items-center space-x-1 border-orange-200 hover:bg-orange-50"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+
+            {/* CTA button */}
+            <div className="mt-4 text-center">
+              <Button 
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                onClick={() => window.open('https://www.harveynorman.ie/product-care/', '_blank')}
+              >
+                Learn More About Product Care
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   const getProductInfo = useMutation({
     mutationFn: async ({ model }: { model: string }) => {
@@ -1729,85 +1922,90 @@ export default function AIHelpPage() {
                     {/* Product Recommendations */}
                     <div className="grid gap-6">
                       {recommendations.recommendations.map((product, index) => (
-                        <Card key={product.sku} className={`border-2 ${
-                          index === 0 ? 'border-green-300 bg-green-50' : 'border-gray-200'
-                        }`}>
-                          <CardHeader>
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                {index === 0 && (
-                                  <Badge className="bg-green-100 text-green-800 mb-2">
-                                    🏆 Top Recommendation
-                                  </Badge>
-                                )}
-                                <CardTitle className="text-lg">{product.name}</CardTitle>
-                                <div className="flex items-center mt-2">
-                                  <span className="text-2xl font-bold text-green-600">€{product.price}</span>
-                                  {product.energyLabel && (
-                                    <Badge variant="secondary" className="ml-3">
-                                      Energy: {product.energyLabel}
+                        <div key={product.sku}>
+                          <Card className={`border-2 ${
+                            index === 0 ? 'border-green-300 bg-green-50' : 'border-gray-200'
+                          }`}>
+                            <CardHeader>
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  {index === 0 && (
+                                    <Badge className="bg-green-100 text-green-800 mb-2">
+                                      🏆 Top Recommendation
                                     </Badge>
                                   )}
-                                </div>
-                              </div>
-                              {product.image && (
-                                <img 
-                                  src={product.image} 
-                                  alt={product.name}
-                                  className="w-24 h-24 object-cover rounded-lg ml-4"
-                                />
-                              )}
-                            </div>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              {/* Reasons */}
-                              <div>
-                                <h4 className="font-semibold text-gray-900 mb-2">Why this matches you:</h4>
-                                <ul className="space-y-1">
-                                  {product.reasons.map((reason, idx) => (
-                                    <li key={idx} className="flex items-start">
-                                      <span className="text-green-500 mr-2 flex-shrink-0">•</span>
-                                      <span className="text-sm text-gray-700">{reason}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-
-                              {/* Rating */}
-                              {product.rating && (
-                                <div className="flex items-center">
-                                  <span className="text-sm font-medium text-gray-600 mr-2">Rating:</span>
-                                  <div className="flex">
-                                    {[...Array(5)].map((_, i) => (
-                                      <span
-                                        key={i}
-                                        className={`text-lg ${
-                                          i < product.rating! ? 'text-yellow-400' : 'text-gray-300'
-                                        }`}
-                                      >
-                                        ★
-                                      </span>
-                                    ))}
+                                  <CardTitle className="text-lg">{product.name}</CardTitle>
+                                  <div className="flex items-center mt-2">
+                                    <span className="text-2xl font-bold text-green-600">€{product.price}</span>
+                                    {product.energyLabel && (
+                                      <Badge variant="secondary" className="ml-3">
+                                        Energy: {product.energyLabel}
+                                      </Badge>
+                                    )}
                                   </div>
-                                  <span className="ml-2 text-sm text-gray-600">{product.rating}/5</span>
                                 </div>
-                              )}
-
-                              {/* View Product Button */}
-                              <div className="pt-2">
-                                <a
-                                  href={product.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center justify-center w-full px-4 py-2 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
-                                >
-                                  View on Harvey Norman
-                                </a>
+                                {product.image && (
+                                  <img 
+                                    src={product.image} 
+                                    alt={product.name}
+                                    className="w-24 h-24 object-cover rounded-lg ml-4"
+                                  />
+                                )}
                               </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-4">
+                                {/* Reasons */}
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 mb-2">Why this matches you:</h4>
+                                  <ul className="space-y-1">
+                                    {product.reasons.map((reason, idx) => (
+                                      <li key={idx} className="flex items-start">
+                                        <span className="text-green-500 mr-2 flex-shrink-0">•</span>
+                                        <span className="text-sm text-gray-700">{reason}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+
+                                {/* Rating */}
+                                {product.rating && (
+                                  <div className="flex items-center">
+                                    <span className="text-sm font-medium text-gray-600 mr-2">Rating:</span>
+                                    <div className="flex">
+                                      {[...Array(5)].map((_, i) => (
+                                        <span
+                                          key={i}
+                                          className={`text-lg ${
+                                            i < product.rating! ? 'text-yellow-400' : 'text-gray-300'
+                                          }`}
+                                        >
+                                          ★
+                                        </span>
+                                      ))}
+                                    </div>
+                                    <span className="ml-2 text-sm text-gray-600">{product.rating}/5</span>
+                                  </div>
+                                )}
+
+                                {/* View Product Button */}
+                                <div className="pt-2">
+                                  <a
+                                    href={product.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center w-full px-4 py-2 bg-orange-600 text-white font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                                  >
+                                    View on Harvey Norman
+                                  </a>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Product Care Carousel - Only show for first product recommendation */}
+                          {index === 0 && <ProductCareCarousel category={selectedCategory} />}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -2105,6 +2303,9 @@ export default function AIHelpPage() {
                       <p className="text-orange-700 leading-relaxed">{productComparison.budget_consideration}</p>
                     </CardContent>
                   </Card>
+
+                  {/* Product Care Carousel for comparison results */}
+                  <ProductCareCarousel category={comparisonCategory} />
 
                   {/* Individual Reviews */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

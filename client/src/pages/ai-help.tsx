@@ -1692,10 +1692,27 @@ export default function AIHelpPage() {
                       </Card>
                     </div>
 
-                    {/* Book Consultation Button */}
+                    {/* Product Care Carousel for Find Product Info */}
+                    <ProductCareCarousel category={
+                      productInfo?.name?.toLowerCase().includes('tv') || productInfo?.name?.toLowerCase().includes('television') ? 'television' :
+                      productInfo?.name?.toLowerCase().includes('soundbar') ? 'soundbar' :
+                      productInfo?.name?.toLowerCase().includes('refrigerator') || productInfo?.name?.toLowerCase().includes('fridge') ? 'refrigerators' :
+                      productInfo?.name?.toLowerCase().includes('washing machine') ? 'washing-machines' :
+                      productInfo?.name?.toLowerCase().includes('dishwasher') ? 'dishwashers' :
+                      productInfo?.name?.toLowerCase().includes('headphone') ? 'headphones' :
+                      productInfo?.name?.toLowerCase().includes('earphone') || productInfo?.name?.toLowerCase().includes('earbud') ? 'earphones' :
+                      productInfo?.name?.toLowerCase().includes('vacuum') ? 'robot-vacuums' :
+                      productInfo?.name?.toLowerCase().includes('microwave') ? 'microwaves' :
+                      productInfo?.name?.toLowerCase().includes('kettle') ? 'electric-kettles' :
+                      productInfo?.name?.toLowerCase().includes('toaster') ? 'toasters' :
+                      productInfo?.name?.toLowerCase().includes('coffee') ? 'coffee-makers' :
+                      'television' // fallback
+                    } />
+
+                    {/* Sales Staff CTA */}
                     <div className="text-center mt-6 pt-4 border-t border-gray-200">
-                      <p className="text-gray-600 mb-3 text-sm">
-                        Need personalized advice about this product?
+                      <p className="text-gray-600 mb-3 text-sm font-medium">
+                        Speak with a sales staff member - there's always a deal to be made!
                       </p>
                       <Button
                         onClick={() => {

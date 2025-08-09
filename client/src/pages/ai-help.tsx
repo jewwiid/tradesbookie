@@ -247,6 +247,7 @@ export default function AIHelpPage() {
     useEffect(() => {
       if (productInfo && showAIAnalysis) {
         setIsLoadingAnalysis(true);
+        setCurrentSlide(0); // Reset slide when starting analysis
         
         const userContext = {
           usage: 'general home use',
@@ -273,24 +274,39 @@ export default function AIHelpPage() {
         })
         .then(response => response.json())
         .then(data => {
-          setAnalysis(data);
+          if (data && data.criticalScenarios && Array.isArray(data.criticalScenarios)) {
+            setAnalysis(data);
+            setCurrentSlide(0); // Reset to first slide
+          } else {
+            console.error('Invalid analysis data structure:', data);
+            setAnalysis(null);
+          }
           setIsLoadingAnalysis(false);
         })
         .catch(error => {
           console.error('Product care analysis error:', error);
+          setAnalysis(null);
           setIsLoadingAnalysis(false);
         });
       }
     }, [productInfo, category, showAIAnalysis]);
 
     const nextSlide = () => {
-      const totalSlides = analysis?.criticalScenarios.length || staticSlides.length;
-      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+      const totalSlides = (analysis?.criticalScenarios?.length && analysis.criticalScenarios.length > 0) 
+        ? analysis.criticalScenarios.length 
+        : staticSlides.length;
+      if (totalSlides > 0) {
+        setCurrentSlide((prev) => (prev + 1) % totalSlides);
+      }
     };
 
     const prevSlide = () => {
-      const totalSlides = analysis?.criticalScenarios.length || staticSlides.length;
-      setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+      const totalSlides = (analysis?.criticalScenarios?.length && analysis.criticalScenarios.length > 0) 
+        ? analysis.criticalScenarios.length 
+        : staticSlides.length;
+      if (totalSlides > 0) {
+        setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+      }
     };
 
     // Auto-advance slides
@@ -353,37 +369,37 @@ export default function AIHelpPage() {
                 <p className="text-sm text-gray-600">Analyzing product risks...</p>
               </div>
             </div>
-          ) : analysis?.criticalScenarios.length ? (
+          ) : analysis?.criticalScenarios?.length && analysis.criticalScenarios[currentSlide] ? (
             <div className="relative">
               {/* AI-Generated Scenario Analysis */}
               <div className="min-h-[140px] px-4">
                 <div className="text-center">
                   <div className="flex items-center justify-center mb-3">
                     <span className="text-2xl mr-2">
-                      {getLikelihoodIcon(analysis.criticalScenarios[currentSlide].likelihood)}
+                      {getLikelihoodIcon(analysis.criticalScenarios[currentSlide]?.likelihood || 'medium')}
                     </span>
-                    <Badge className={`${getRiskColor(analysis.criticalScenarios[currentSlide].likelihood)} bg-transparent border`}>
-                      {analysis.criticalScenarios[currentSlide].likelihood} Risk
+                    <Badge className={`${getRiskColor(analysis.criticalScenarios[currentSlide]?.likelihood || 'medium')} bg-transparent border`}>
+                      {analysis.criticalScenarios[currentSlide]?.likelihood || 'Medium'} Risk
                     </Badge>
                   </div>
                   
                   <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                    {analysis.criticalScenarios[currentSlide].scenario}
+                    {analysis.criticalScenarios[currentSlide]?.scenario || 'Risk scenario analysis'}
                   </h4>
                   
                   <div className="space-y-2 text-xs">
                     <div className="bg-white p-2 rounded-lg border border-orange-100">
                       <p className="font-medium text-red-700 mb-1">Potential Cost Without Protection:</p>
-                      <p className="text-gray-700">{analysis.criticalScenarios[currentSlide].potentialCost}</p>
+                      <p className="text-gray-700">{analysis.criticalScenarios[currentSlide]?.potentialCost || 'Cost varies by issue'}</p>
                     </div>
                     
                     <div className="bg-white p-2 rounded-lg border border-orange-100">
                       <p className="font-medium text-green-700 mb-1">How Product Care Helps:</p>
-                      <p className="text-gray-700">{analysis.criticalScenarios[currentSlide].howProductCareHelps}</p>
+                      <p className="text-gray-700">{analysis.criticalScenarios[currentSlide]?.howProductCareHelps || 'Protection against unexpected issues'}</p>
                     </div>
                     
                     <div className="text-gray-600">
-                      <p><strong>Timeline:</strong> {analysis.criticalScenarios[currentSlide].timeframe}</p>
+                      <p><strong>Timeline:</strong> {analysis.criticalScenarios[currentSlide]?.timeframe || 'Varies by usage'}</p>
                     </div>
                   </div>
                 </div>

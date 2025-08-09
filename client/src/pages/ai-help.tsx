@@ -202,7 +202,7 @@ export default function AIHelpPage() {
     
     if (categoryParam && findParam === 'true') {
       // Switch to Find Product tab and set category
-      setCurrentView('find');
+      setActiveTab('find');
       setSelectedCategory(categoryParam);
       setFindProductStep(1); // Skip category selection, go to questions
     }
@@ -2317,7 +2317,7 @@ export default function AIHelpPage() {
                   </Card>
 
                   {/* Product Care Carousel for comparison results */}
-                  <ProductCareCarousel category={comparisonCategory} />
+                  <ProductCareCarousel category={productCategory} />
 
                   {/* Individual Reviews */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -13,6 +13,8 @@ tradesbook.ie is a full-stack web application that connects customers with profe
 ✓ **Installer Dashboard Authentication Fix**: Resolved authentication flow issues by properly separating OAuth and installer session authentication, ensuring all installers can access dashboard regardless of admin status with clear error handling and navigation
 ✓ **Intelligent Priority System**: Implemented three-tier priority system (Standard/Urgent/Emergency) with automatic urgency detection based on scheduling timeline - same day bookings show as Emergency, within 48 hours as Urgent
 ✓ **Accurate Booking Time Display**: Fixed preferred time display to show actual client-requested time slots (09:00-11:00, 11:00-13:00, etc.) instead of "Flexible" fallback text in installer dashboard
+✓ **Product Care Carousel**: Added interactive carousel showcasing Harvey Norman Product Care benefits with category-specific content for TV, refrigerators, earphones, and all other product categories. Features auto-advancing slides, manual navigation, and integration into both Find Product and Product Comparison results
+✓ **QR Code Link Display**: Fixed admin dashboard to show QR code URLs for each product category with copy functionality, enabling direct links to AI Help questionnaires
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

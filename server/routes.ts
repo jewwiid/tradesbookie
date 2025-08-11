@@ -5083,11 +5083,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Harvey Norman sample data initialization
-  app.post('/api/harvey-norman/initialize-samples', async (req, res) => {
+  // Retailer sample data initialization
+  app.post('/api/retail-partner/initialize-samples', async (req, res) => {
     try {
-      const { harveyNormanInvoiceService } = await import('./harveyNormanInvoiceService');
-      await harveyNormanInvoiceService.createSampleInvoices();
+      const { RetailerInvoiceService } = await import('./retailerInvoiceService');
+      const retailerInvoiceService = new RetailerInvoiceService();
+      await retailerInvoiceService.createSampleInvoices();
       res.json({ success: true, message: 'Sample invoices initialized' });
     } catch (error) {
       console.error('Error initializing sample invoices:', error);
@@ -5095,7 +5096,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Harvey Norman Invoice Authentication API
+  // Retailer Invoice Authentication API
   app.post('/api/auth/invoice-login', async (req, res) => {
     try {
       const { invoiceNumber } = req.body;
@@ -5104,16 +5105,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invoice number is required" });
       }
 
-      const { harveyNormanInvoiceService } = await import('./harveyNormanInvoiceService');
+      const { RetailerInvoiceService } = await import('./retailerInvoiceService');
+      const retailerInvoiceService = new RetailerInvoiceService();
       
       // Validate invoice format first
-      if (!harveyNormanInvoiceService.isValidInvoiceFormat(invoiceNumber)) {
+      if (!retailerInvoiceService.isValidInvoiceFormat(invoiceNumber)) {
         return res.status(400).json({ 
-          error: "Invalid invoice format. Please enter your invoice number (format: HN-[STORE]-[NUMBER] or HN[STORE][NUMBER])" 
+          error: "Invalid invoice format. Please enter your invoice number" 
         });
       }
 
-      const result = await harveyNormanInvoiceService.loginWithInvoice(invoiceNumber);
+      const result = await retailerInvoiceService.loginWithInvoice(invoiceNumber);
       
       if (result.success && result.user) {
         // First, logout any existing user session to ensure clean state

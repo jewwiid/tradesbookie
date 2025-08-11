@@ -1,5 +1,5 @@
 import { db } from './db';
-import { harveyNormanInvoices, users } from '../shared/schema';
+import { retailerInvoices, users } from '../shared/schema';
 import { eq } from 'drizzle-orm';
 
 export interface InvoiceLoginResult {
@@ -15,22 +15,22 @@ export interface InvoiceLoginResult {
   isNewRegistration?: boolean;
 }
 
-export class HarveyNormanInvoiceService {
+export class RetailerInvoiceService {
   /**
-   * Login or register user using Harvey Norman invoice number
+   * Login or register user using retailer invoice number
    */
   async loginWithInvoice(invoiceNumber: string): Promise<InvoiceLoginResult> {
     try {
       // Look up invoice in database
       const invoice = await db.select()
-        .from(harveyNormanInvoices)
-        .where(eq(harveyNormanInvoices.invoiceNumber, invoiceNumber))
+        .from(retailerInvoices)
+        .where(eq(retailerInvoices.invoiceNumber, invoiceNumber))
         .limit(1);
 
       if (invoice.length === 0) {
         return {
           success: false,
-          message: "Invoice number not found. Please check your Harvey Norman receipt and try again."
+          message: "Invoice number not found. Please check your receipt and try again."
         };
       }
 
@@ -53,7 +53,7 @@ export class HarveyNormanInvoiceService {
           await db.update(users)
             .set({ 
               registrationMethod: 'invoice',
-              harveyNormanInvoiceNumber: invoiceNumber,
+              retailerInvoiceNumber: invoiceNumber,
               invoiceVerified: true 
             })
             .where(eq(users.id, user.id));
@@ -72,7 +72,7 @@ export class HarveyNormanInvoiceService {
           lastName,
           role: 'customer',
           registrationMethod: 'invoice',
-          harveyNormanInvoiceNumber: invoiceNumber,
+          retailerInvoiceNumber: invoiceNumber,
           invoiceVerified: true,
           emailVerified: true, // Auto-verify for invoice users
         };
@@ -91,9 +91,9 @@ export class HarveyNormanInvoiceService {
       }
 
       // Mark invoice as used for registration
-      await db.update(harveyNormanInvoices)
+      await db.update(retailerInvoices)
         .set({ isUsedForRegistration: true })
-        .where(eq(harveyNormanInvoices.id, invoiceData.id));
+        .where(eq(retailerInvoices.id, invoiceData.id));
 
       return {
         success: true,
@@ -105,8 +105,8 @@ export class HarveyNormanInvoiceService {
           role: user.role
         },
         message: isNewRegistration 
-          ? "Welcome! Your account has been created using your Harvey Norman purchase."
-          : "Welcome back! Logged in using your Harvey Norman invoice.",
+          ? "Welcome! Your account has been created using your purchase receipt."
+          : "Welcome back! Logged in using your receipt.",
         isNewRegistration
       };
 
@@ -226,12 +226,12 @@ export class HarveyNormanInvoiceService {
       for (const invoice of sampleInvoices) {
         // Check if invoice already exists
         const existing = await db.select()
-          .from(harveyNormanInvoices)
-          .where(eq(harveyNormanInvoices.invoiceNumber, invoice.invoiceNumber))
+          .from(retailerInvoices)
+          .where(eq(retailerInvoices.invoiceNumber, invoice.invoiceNumber))
           .limit(1);
 
         if (existing.length === 0) {
-          await db.insert(harveyNormanInvoices).values(invoice);
+          await db.insert(retailerInvoices).values(invoice);
           console.log(`Created sample invoice: ${invoice.invoiceNumber}`);
         }
       }
@@ -306,4 +306,4 @@ export class HarveyNormanInvoiceService {
   }
 }
 
-export const harveyNormanInvoiceService = new HarveyNormanInvoiceService();
+export const retailerInvoiceService = new RetailerInvoiceService();

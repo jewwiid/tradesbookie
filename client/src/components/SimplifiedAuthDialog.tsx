@@ -289,27 +289,10 @@ export default function SimplifiedAuthDialog({
                     className="mt-1"
                   />
                   <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs text-gray-600">
-                    <p className="font-medium mb-2 text-blue-800">Format: HN-[STORE]-[NUMBER]</p>
-                    <p className="mb-2">All store codes:</p>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                      <span>BLA (Blanchardstown)</span>
-                      <span>CKM (Carrickmines)</span>
-                      <span>CRK (Cork)</span>
-                      <span>CAS (Castlebar)</span>
-                      <span>DRO (Drogheda)</span>
-                      <span>FON (Fonthill)</span>
-                      <span>GAL (Galway)</span>
-                      <span>KIN (Kinsale Road)</span>
-                      <span>LIM (Limerick)</span>
-                      <span>LIT (Little Island)</span>
-                      <span>NAA (Naas)</span>
-                      <span>RAT (Rathfarnham)</span>
-                      <span>SLI (Sligo)</span>
-                      <span>SWO (Swords)</span>
-                      <span>TAL (Tallaght)</span>
-                      <span>TRA (Tralee)</span>
-                      <span>WAT (Waterford)</span>
-                    </div>
+                    <p className="font-medium mb-1 text-blue-800">Invoice Format Examples:</p>
+                    <p className="mb-2">• Receipt number from your electrical store purchase</p>
+                    <p className="mb-2">• Order confirmation number</p>
+                    <p>• Any reference number from your TV purchase receipt</p>
                   </div>
                 </div>
                 <Button 

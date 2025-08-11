@@ -3501,8 +3501,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Harvey Norman Sales Staff Referral Routes
-  app.post("/api/harvey-norman/create-code", async (req, res) => {
+  // Retail Partner Sales Staff Referral Routes
+  app.post("/api/retail-partner/create-code", async (req, res) => {
     try {
       const { salesStaffName, salesStaffStore, customCode } = req.body;
       
@@ -3518,12 +3518,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(newCode);
     } catch (error) {
-      console.error("Error creating Harvey Norman referral code:", error);
+      console.error("Error creating retail partner referral code:", error);
       res.status(500).json({ message: "Failed to create referral code" });
     }
   });
 
-  app.post("/api/harvey-norman/validate", async (req, res) => {
+  app.post("/api/retail-partner/validate", async (req, res) => {
     try {
       const { referralCode, bookingAmount } = req.body;
       
@@ -3538,17 +3538,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(result);
     } catch (error) {
-      console.error("Error validating Harvey Norman referral code:", error);
+      console.error("Error validating retail partner referral code:", error);
       res.status(500).json({ message: "Failed to validate referral code" });
     }
   });
 
-  app.get("/api/harvey-norman/codes", async (req, res) => {
+  app.get("/api/retail-partner/codes", async (req, res) => {
     try {
       const codes = await harveyNormanReferralService.getAllSalesStaffCodes();
       res.json(codes);
     } catch (error) {
-      console.error("Error fetching Harvey Norman referral codes:", error);
+      console.error("Error fetching retail partner referral codes:", error);
       res.status(500).json({ message: "Failed to fetch referral codes" });
     }
   });

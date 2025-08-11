@@ -34,8 +34,8 @@ export const users = pgTable("users", {
   emailVerificationToken: varchar("email_verification_token"),
   emailVerificationExpires: timestamp("verification_token_expires"),
   
-  // Harvey Norman invoice-based authentication
-  harveyNormanInvoiceNumber: varchar("harvey_norman_invoice"),
+  // Retailer invoice-based authentication
+  retailerInvoiceNumber: varchar("retailer_invoice"),
   invoiceVerified: boolean("invoice_verified").default(false),
   registrationMethod: varchar("registration_method").default("oauth"), // oauth, invoice, guest, email
   
@@ -43,8 +43,8 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Harvey Norman invoice lookup table for simplified customer login
-export const harveyNormanInvoices = pgTable("harvey_norman_invoices", {
+// Retailer invoice lookup table for simplified customer login
+export const retailerInvoices = pgTable("retailer_invoices", {
   id: serial("id").primaryKey(),
   invoiceNumber: varchar("invoice_number").unique().notNull(),
   customerEmail: varchar("customer_email").notNull(),
@@ -320,7 +320,7 @@ export const referralCodes = pgTable("referral_codes", {
   userId: text("user_id"), // Nullable for sales staff codes
   referralCode: text("referral_code").notNull().unique(),
   referralType: text("referral_type").notNull().default("customer"), // "customer" or "sales_staff"
-  salesStaffName: text("sales_staff_name"), // For Harvey Norman staff
+  salesStaffName: text("sales_staff_name"), // For retail partner staff
   salesStaffStore: text("sales_staff_store"), // Store location
   totalReferrals: integer("total_referrals").notNull().default(0),
   totalEarnings: decimal("total_earnings", { precision: 10, scale: 2 }).notNull().default("0.00"), // In euros (subsidy amounts for staff codes)
@@ -1079,7 +1079,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
 });
 
-export const insertHarveyNormanInvoiceSchema = createInsertSchema(harveyNormanInvoices).omit({
+export const insertRetailerInvoiceSchema = createInsertSchema(retailerInvoices).omit({
   id: true,
   createdAt: true,
 });
@@ -1334,8 +1334,8 @@ export const insertScheduleNegotiationSchema = createInsertSchema(scheduleNegoti
 
 // Additional Types
 export type UpsertUser = typeof users.$inferInsert;
-export type HarveyNormanInvoice = typeof harveyNormanInvoices.$inferSelect;
-export type InsertHarveyNormanInvoice = z.infer<typeof insertHarveyNormanInvoiceSchema>;
+export type RetailerInvoice = typeof retailerInvoices.$inferSelect;
+export type InsertRetailerInvoice = z.infer<typeof insertRetailerInvoiceSchema>;
 
 export type InstallerRegister = z.infer<typeof installerRegisterSchema>;
 export type InstallerLogin = z.infer<typeof installerLoginSchema>;

@@ -4941,36 +4941,31 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
   const salesStaffName = form.watch("salesStaffName");
   const salesStaffStore = form.watch("salesStaffStore");
 
-  // Store abbreviations mapping
-  const storeAbbreviations: { [key: string]: string } = {
-    'Blanchardstown': 'BLA',
-    'Carrickmines': 'CKM',
-    'Cork': 'CRK',
-    'Castlebar': 'CAS',
-    'Drogheda': 'DRO',
-    'Fonthill': 'FON',
-    'Galway': 'GAL',
-    'Kinsale Road': 'KIN',
-    'Limerick': 'LIM',
-    'Little Island': 'LIT',
-    'Naas': 'NAA',
-    'Rathfarnham': 'RAT',
-    'Sligo': 'SLI',
-    'Swords': 'SWO',
-    'Tallaght': 'TAL',
-    'Tralee': 'TRA',
-    'Waterford': 'WAT'
+  // Generic store code generation function
+  const generateStoreCode = (storeName: string): string => {
+    // Create a 3-letter code from the store name
+    const cleanName = storeName.replace(/[^a-zA-Z\s]/g, '').trim();
+    const words = cleanName.split(/\s+/);
+    
+    if (words.length === 1) {
+      // Single word: take first 3 letters
+      return words[0].substring(0, 3).toUpperCase();
+    } else {
+      // Multiple words: take first letter of each word, pad if needed
+      const initials = words.map(word => word.charAt(0)).join('').substring(0, 3);
+      return initials.padEnd(3, words[0].charAt(1) || 'X').toUpperCase();
+    }
   };
 
   // Auto-generate codes based on type
   React.useEffect(() => {
     if (referralType === 'sales_staff' && salesStaffName && salesStaffStore && !code) {
-      const storeCode = storeAbbreviations[salesStaffStore] || 'UNK';
+      const storeCode = generateStoreCode(salesStaffStore);
       const nameCode = salesStaffName.replace(/[^a-zA-Z]/g, '').substring(0, 4).toUpperCase();
-      const generatedCode = `HN${storeCode}${nameCode}`;
+      const generatedCode = `RT${storeCode}${nameCode}`; // RT = Retail Trade
       form.setValue('code', generatedCode);
     } else if (referralType === 'customer' && !code) {
-      // Generate customer referral code without HN prefix
+      // Generate customer referral code
       const timestamp = Date.now().toString(36).toUpperCase();
       const randomChars = Math.random().toString(36).substring(2, 6).toUpperCase();
       const generatedCode = `TB${timestamp.slice(-4)}${randomChars}`;

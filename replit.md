@@ -15,6 +15,31 @@ A sophisticated TV and product installation referral platform that leverages int
 
 ## Recent Changes (January 2025)
 
+### Platform Rebranding for Multi-Retailer Support (August 2025)
+- **Removed Harvey Norman Exclusivity**: Updated all customer-facing interfaces to use generic "Invoice" terminology
+  - Homepage card title changed from "Harvey Norman Invoice" to "Invoice"
+  - Authentication dialog updated from "Harvey Norman Customer" to "Invoice Customer"
+  - Removed hardcoded Harvey Norman store codes and locations from invoice input form
+  - Updated placeholder text and error messages to be retailer-agnostic
+  - Generic invoice format examples instead of specific store code mappings
+
+- **Database Schema Updates**:
+  - Renamed `harveyNormanInvoices` table to `retailerInvoices` for generic support
+  - Updated `users.harveyNormanInvoiceNumber` to `users.retailerInvoiceNumber`
+  - Changed schema comments to reference "retail partner" instead of specific retailer
+
+- **API Endpoints Generalized**:
+  - Updated routes from `/api/harvey-norman/*` to `/api/retail-partner/*`
+  - Generic referral code generation using "RT" prefix (Retail Trade) instead of "HN"
+  - Smart store code generation from any retailer name instead of hardcoded mappings
+
+- **Admin Dashboard Updates**:
+  - Removed hardcoded Harvey Norman store abbreviations
+  - Implemented dynamic store code generation for any electrical retailer
+  - Updated referral code prefixes to be retailer-agnostic
+
+**Business Benefit**: Platform can now be pitched to any electrical retailer in Ireland without exclusivity concerns
+
 ### Enhanced Product Care Section with AI Analysis
 - **Created AI-powered Product Care Analysis Service** (`server/productCareAnalysisService.ts`)
   - Uses GPT-4o to analyze products and generate exactly 4-6 comprehensive failure scenarios per product

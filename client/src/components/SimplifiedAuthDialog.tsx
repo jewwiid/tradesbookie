@@ -54,7 +54,7 @@ export default function SimplifiedAuthDialog({
     setActiveTab(defaultTab);
   }, [defaultTab]);
 
-  // Harvey Norman Invoice Login
+  // Invoice Login
   const invoiceLoginMutation = useMutation({
     mutationFn: async (data: { invoiceNumber: string }) => {
       const response = await apiRequest('POST', '/api/auth/invoice-login', data);
@@ -68,8 +68,8 @@ export default function SimplifiedAuthDialog({
       toast({
         title: data.isNewRegistration ? "Account Created!" : "Welcome back!",
         description: data.isNewRegistration 
-          ? `Your account has been created using Harvey Norman invoice ${data.invoiceNumber}. You can now book your TV installation.`
-          : `Signed in using Harvey Norman invoice ${data.invoiceNumber}. Any bookings you make will be tracked to this invoice.`,
+          ? `Your account has been created using invoice ${data.invoiceNumber}. You can now book your TV installation.`
+          : `Signed in using invoice ${data.invoiceNumber}. Any bookings you make will be tracked to this invoice.`,
       });
       onSuccess(data.user);
       onClose();
@@ -114,7 +114,7 @@ export default function SimplifiedAuthDialog({
     if (!invoiceNumber.trim()) {
       toast({
         title: "Invoice Number Required",
-        description: "Please enter your Harvey Norman invoice number",
+        description: "Please enter your invoice number",
         variant: "destructive",
       });
       return;
@@ -261,7 +261,7 @@ export default function SimplifiedAuthDialog({
 
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'invoice' | 'guest' | 'email' | 'oauth')} className="w-full mt-4">
           <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="invoice" className="text-xs">Harvey Norman</TabsTrigger>
+            <TabsTrigger value="invoice" className="text-xs">Invoice</TabsTrigger>
             <TabsTrigger value="guest" className="text-xs">Quick Start</TabsTrigger>
             <TabsTrigger value="email" className="text-xs">Email</TabsTrigger>
             <TabsTrigger value="oauth" className="text-xs">Social Account</TabsTrigger>
@@ -272,7 +272,7 @@ export default function SimplifiedAuthDialog({
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-2">
                   <Receipt className="w-5 h-5 text-green-600" />
-                  <CardTitle className="text-lg">Harvey Norman Customer</CardTitle>
+                  <CardTitle className="text-lg">Invoice Customer</CardTitle>
                 </div>
                 <p className="text-sm text-muted-foreground">
                   Already purchased a TV? Use your receipt to book installation instantly
@@ -283,7 +283,7 @@ export default function SimplifiedAuthDialog({
                   <Label htmlFor="invoice">Invoice Number</Label>
                   <Input
                     id="invoice"
-                    placeholder="Enter your Harvey Norman invoice number"
+                    placeholder="Enter your invoice number"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
                     className="mt-1"

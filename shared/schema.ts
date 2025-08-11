@@ -165,8 +165,13 @@ export const bookings = pgTable("bookings", {
   referralCode: text("referral_code"),
   referralDiscount: decimal("referral_discount", { precision: 8, scale: 2 }).default("0.00"),
   
-  // Harvey Norman invoice tracking for invoice-authenticated bookings
-  invoiceNumber: text("invoice_number"), // Harvey Norman invoice used for authentication
+  // Store information from retailer detection
+  purchaseStoreCode: varchar("purchase_store_code"), // Store where customer bought TV/product (CKM, DUB, etc.)
+  purchaseStoreName: varchar("purchase_store_name"), // Full store name (Harvey Norman Carrickmines)
+  retailerCode: varchar("retailer_code"), // HN, CR, DD, PC, AR, EX
+  
+  // Retailer invoice tracking for invoice-authenticated bookings
+  invoiceNumber: text("invoice_number"), // Retailer invoice used for authentication
   invoiceSessionId: text("invoice_session_id"), // Unique session identifier for invoice login
   
   // Demo flag to hide test bookings from real installers
@@ -1290,6 +1295,11 @@ export const tvSetupBookingFormSchema = z.object({
   }),
   additionalNotes: z.string().optional(),
   referralCode: z.string().optional(),
+  
+  // Store information from retailer detection
+  purchaseStoreCode: z.string().optional(),
+  purchaseStoreName: z.string().optional(),
+  retailerCode: z.string().optional(),
 }).refine((data) => {
   // If it's a smart TV, then TV OS is required
   if (data.isSmartTv === "yes" && (!data.tvOs || data.tvOs.length === 0)) {

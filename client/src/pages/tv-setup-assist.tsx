@@ -24,6 +24,7 @@ import { tvSetupBookingFormSchema, type TvSetupBookingForm } from "@shared/schem
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import SimplifiedAuthDialog from "@/components/SimplifiedAuthDialog";
+import StoreSelector from "@/components/booking/StoreSelector";
 import { useAuth } from '@/hooks/useAuth';
 
 if (!import.meta.env.VITE_STRIPE_PUBLIC_KEY) {
@@ -705,8 +706,20 @@ export default function TvSetupAssist() {
                   />
                 </div>
 
-                {/* Referral Code Section */}
+                {/* Store Selection Section */}
                 <div className="border-t pt-6 space-y-4">
+                  <StoreSelector 
+                    onStoreSelect={(storeInfo) => {
+                      form.setValue("purchaseStoreCode", storeInfo.storeCode);
+                      form.setValue("purchaseStoreName", storeInfo.storeName);
+                      form.setValue("retailerCode", storeInfo.retailerCode);
+                    }}
+                    referralCode={referralCode}
+                  />
+                </div>
+
+                {/* Referral Code Section */}
+                <div className="space-y-4">
                   <div>
                     <Label htmlFor="referralCode">Staff Referral Code (Optional)</Label>
                     <div className="flex gap-2 mt-1">
@@ -719,7 +732,7 @@ export default function TvSetupAssist() {
                           form.setValue("referralCode", value);
                         }}
                         onBlur={() => validateReferralCode(referralCode)}
-                        placeholder="Enter staff referral code (e.g. HNCKMMIKE)"
+                        placeholder="Enter staff referral code (e.g. HNCKMMIKE, CRDUBSARAH, DDGALMIKE)"
                         className={cn(
                           "flex-1",
                           referralCode && referralValidation.isValid && "border-green-500",
@@ -755,7 +768,7 @@ export default function TvSetupAssist() {
                     )}
                     
                     <p className="text-sm text-gray-600 mt-1">
-                      Have a Harvey Norman staff referral? Enter their code for €10 off
+                      Have a staff referral from any electrical store? Enter their code for €10 off
                     </p>
                   </div>
 

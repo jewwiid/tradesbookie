@@ -3605,6 +3605,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update retailer store locations (Admin only)
+  app.put("/api/retail-partner/retailers/:code/stores", async (req, res) => {
+    try {
+      const { code } = req.params;
+      const { storeLocations } = req.body;
+
+      if (!storeLocations || typeof storeLocations !== 'object') {
+        return res.status(400).json({ message: "Valid store locations object required" });
+      }
+
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      const updated = retailerDetectionService.updateStoreLocations(code.toUpperCase(), storeLocations);
+      
+      if (updated) {
+        res.json({ 
+          success: true, 
+          message: `Store locations updated for ${code}`,
+          storeLocations 
+        });
+      } else {
+        res.status(404).json({ message: "Retailer not found" });
+      }
+    } catch (error) {
+      console.error("Error updating store locations:", error);
+      res.status(500).json({ message: "Failed to update store locations" });
+    }
+  });
+
   // Detect retailer from referral code or invoice
   app.post("/api/retail-partner/detect", async (req, res) => {
     try {

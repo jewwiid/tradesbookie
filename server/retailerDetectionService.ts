@@ -362,6 +362,42 @@ export class RetailerDetectionService {
       };
     }
   }
+
+  /**
+   * Update store locations for a retailer (Admin functionality)
+   */
+  updateStoreLocations(retailerCode: string, newStoreLocations: Record<string, string>): boolean {
+    if (this.retailers[retailerCode]) {
+      this.retailers[retailerCode].storeLocations = { 
+        ...this.retailers[retailerCode].storeLocations,
+        ...newStoreLocations 
+      };
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Add new store location to a retailer
+   */
+  addStoreLocation(retailerCode: string, storeCode: string, storeName: string): boolean {
+    if (this.retailers[retailerCode]) {
+      this.retailers[retailerCode].storeLocations[storeCode] = storeName;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Remove store location from a retailer
+   */
+  removeStoreLocation(retailerCode: string, storeCode: string): boolean {
+    if (this.retailers[retailerCode] && this.retailers[retailerCode].storeLocations[storeCode]) {
+      delete this.retailers[retailerCode].storeLocations[storeCode];
+      return true;
+    }
+    return false;
+  }
 }
 
 // Create singleton instance

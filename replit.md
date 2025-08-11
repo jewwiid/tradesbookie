@@ -33,12 +33,22 @@ A sophisticated TV and product installation referral platform that leverages int
   - Generic referral code generation using "RT" prefix (Retail Trade) instead of "HN"
   - Smart store code generation from any retailer name instead of hardcoded mappings
 
+- **Smart Retailer Detection System**: 
+  - **Created comprehensive retailer detection service** (`server/retailerDetectionService.ts`)
+  - **Supports major Irish electrical retailers**: Harvey Norman (HN), Currys (CR), DID Electrical (DD), Power City (PC), Argos (AR), Expert (EX)
+  - **Intelligent referral code parsing**: Automatically detects retailer from codes like HNCKMDOUG, CRDUBSARAH, DDGALMIKE, PCLIMJOHN
+  - **Invoice format recognition**: Handles multiple invoice formats per retailer (HN-CKM-123456, CR-DUB-789123, DID-987456, PWR-123789)
+  - **Dynamic store mapping**: Each retailer has configurable store locations and codes
+  - **Enhanced APIs**: `/api/retail-partner/detect`, `/api/retail-partner/retailers` for retailer information
+  - **Color-coded retailers**: Each retailer has brand colors for UI consistency
+
 - **Admin Dashboard Updates**:
   - Removed hardcoded Harvey Norman store abbreviations
   - Implemented dynamic store code generation for any electrical retailer
   - Updated referral code prefixes to be retailer-agnostic
+  - Enhanced referral code display with retailer branding and store information
 
-**Business Benefit**: Platform can now be pitched to any electrical retailer in Ireland without exclusivity concerns
+**Business Benefit**: Platform can now be pitched to any electrical retailer in Ireland without exclusivity concerns. Booking system automatically recognizes retailer codes (HN=Harvey Norman, CR=Currys, DD=DID, PC=Power City, etc.) and provides retailer-specific branding and validation.
 
 ### Enhanced Product Care Section with AI Analysis
 - **Created AI-powered Product Care Analysis Service** (`server/productCareAnalysisService.ts`)

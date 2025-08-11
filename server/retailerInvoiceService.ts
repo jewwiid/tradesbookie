@@ -120,10 +120,11 @@ export class RetailerInvoiceService {
   }
 
   /**
-   * Add sample invoice data for testing
+   * Add sample invoice data for testing with multiple retailers
    */
   async createSampleInvoices(): Promise<void> {
     const sampleInvoices = [
+      // Harvey Norman invoices
       {
         invoiceNumber: 'HN-CKM-2576597',
         customerEmail: 'jude.okun@email.com',
@@ -219,6 +220,81 @@ export class RetailerInvoiceService {
         purchaseAmount: '399.99',
         storeName: 'Harvey Norman Waterford',
         storeCode: 'WAT'
+      },
+      // Currys invoices
+      {
+        invoiceNumber: 'CR-DUB-789123',
+        customerEmail: 'emma.clarke@email.com',
+        customerName: 'Emma Clarke',
+        customerPhone: '0851789123',
+        purchaseDate: new Date('2025-07-10'),
+        tvModel: 'LG 55" OLED C3',
+        tvSize: '55"',
+        purchaseAmount: '1299.99',
+        storeName: 'Currys PC World Dublin',
+        storeCode: 'DUB'
+      },
+      {
+        invoiceNumber: 'CR-CRK-456789',
+        customerEmail: 'james.murphy@email.com',
+        customerName: 'James Murphy',
+        customerPhone: '0862456789',
+        purchaseDate: new Date('2025-07-15'),
+        tvModel: 'Samsung 65" Neo QLED',
+        tvSize: '65"',
+        purchaseAmount: '1599.99',
+        storeName: 'Currys PC World Cork',
+        storeCode: 'CRK'
+      },
+      // DID Electrical invoices
+      {
+        invoiceNumber: 'DD-GAL-321654',
+        customerEmail: 'mary.ryan@email.com',
+        customerName: 'Mary Ryan',
+        customerPhone: '0873321654',
+        purchaseDate: new Date('2025-07-20'),
+        tvModel: 'Sony 50" Bravia XR',
+        tvSize: '50"',
+        purchaseAmount: '899.99',
+        storeName: 'DID Electrical Galway',
+        storeCode: 'GAL'
+      },
+      {
+        invoiceNumber: 'DID-987456',
+        customerEmail: 'peter.walsh@email.com',
+        customerName: 'Peter Walsh',
+        customerPhone: '0864987456',
+        purchaseDate: new Date('2025-07-25'),
+        tvModel: 'Hisense 43" ULED',
+        tvSize: '43"',
+        purchaseAmount: '549.99',
+        storeName: 'DID Electrical Dublin',
+        storeCode: 'DUB'
+      },
+      // Power City invoices
+      {
+        invoiceNumber: 'PC-LIM-654321',
+        customerEmail: 'sarah.collins@email.com',
+        customerName: 'Sarah Collins',
+        customerPhone: '0855654321',
+        purchaseDate: new Date('2025-08-01'),
+        tvModel: 'TCL 55" QLED',
+        tvSize: '55"',
+        purchaseAmount: '699.99',
+        storeName: 'Power City Limerick',
+        storeCode: 'LIM'
+      },
+      {
+        invoiceNumber: 'PWR-123789',
+        customerEmail: 'david.kelly@email.com',
+        customerName: 'David Kelly',
+        customerPhone: '0876123789',
+        purchaseDate: new Date('2025-08-05'),
+        tvModel: 'Philips 48" OLED',
+        tvSize: '48"',
+        purchaseAmount: '999.99',
+        storeName: 'Power City Dublin',
+        storeCode: 'DUB'
       }
     ];
 

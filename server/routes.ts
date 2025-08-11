@@ -3504,16 +3504,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Retail Partner Sales Staff Referral Routes
   app.post("/api/retail-partner/create-code", async (req, res) => {
     try {
-      const { salesStaffName, salesStaffStore, customCode } = req.body;
+      const { salesStaffName, salesStaffStore, customCode, retailerCode } = req.body;
       
       if (!salesStaffName || !salesStaffStore) {
         return res.status(400).json({ message: "Sales staff name and store required" });
       }
       
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      
+      // Generate retailer-specific code or use custom code
+      const referralCode = customCode || retailerDetectionService.generateReferralCode(
+        retailerCode || 'RT', // Default to generic RT if no retailer specified
+        salesStaffStore,
+        salesStaffName
+      );
+      
       const newCode = await harveyNormanReferralService.createSalesStaffCode(
         salesStaffName,
         salesStaffStore,
-        customCode
+        referralCode
       );
       
       res.json(newCode);
@@ -3531,10 +3540,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Referral code and booking amount required" });
       }
       
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      
+      // Detect retailer from referral code
+      const parsedCode = retailerDetectionService.detectRetailerFromReferralCode(referralCode);
+      
       const result = await harveyNormanReferralService.validateAndCalculateDiscount(
         referralCode,
         parseFloat(bookingAmount)
       );
+      
+      // Enhance result with retailer information
+      if (result.success && parsedCode) {
+        result.retailerInfo = parsedCode.retailerInfo;
+        result.storeName = retailerDetectionService.getStoreName(
+          parsedCode.retailerCode, 
+          parsedCode.storeCode
+        );
+        result.staffName = parsedCode.staffName;
+      }
       
       res.json(result);
     } catch (error) {
@@ -3546,10 +3570,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/retail-partner/codes", async (req, res) => {
     try {
       const codes = await harveyNormanReferralService.getAllSalesStaffCodes();
-      res.json(codes);
+      
+      // Enhance codes with retailer information
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      const enhancedCodes = codes.map(code => {
+        const parsedCode = retailerDetectionService.detectRetailerFromReferralCode(code.referralCode);
+        return {
+          ...code,
+          retailerInfo: parsedCode?.retailerInfo,
+          storeName: parsedCode ? retailerDetectionService.getStoreName(
+            parsedCode.retailerCode, 
+            parsedCode.storeCode
+          ) : code.salesStaffStore,
+          staffName: parsedCode?.staffName || code.salesStaffName
+        };
+      });
+      
+      res.json(enhancedCodes);
     } catch (error) {
       console.error("Error fetching retail partner referral codes:", error);
       res.status(500).json({ message: "Failed to fetch referral codes" });
+    }
+  });
+
+  // Get all supported retailers
+  app.get("/api/retail-partner/retailers", async (req, res) => {
+    try {
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      const retailers = retailerDetectionService.getAllRetailers();
+      res.json(retailers);
+    } catch (error) {
+      console.error("Error fetching retailers:", error);
+      res.status(500).json({ message: "Failed to fetch retailers" });
+    }
+  });
+
+  // Detect retailer from referral code or invoice
+  app.post("/api/retail-partner/detect", async (req, res) => {
+    try {
+      const { code, type } = req.body; // type: 'referral' or 'invoice'
+      
+      if (!code || !type) {
+        return res.status(400).json({ message: "Code and type required" });
+      }
+      
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      
+      let result = null;
+      if (type === 'referral') {
+        result = retailerDetectionService.detectRetailerFromReferralCode(code);
+      } else if (type === 'invoice') {
+        result = retailerDetectionService.detectRetailerFromInvoice(code);
+      }
+      
+      if (result) {
+        res.json({
+          success: true,
+          detected: true,
+          ...result
+        });
+      } else {
+        res.json({
+          success: true,
+          detected: false,
+          message: "Retailer could not be detected from the provided code"
+        });
+      }
+    } catch (error) {
+      console.error("Error detecting retailer:", error);
+      res.status(500).json({ message: "Failed to detect retailer" });
     }
   });
 
@@ -5105,17 +5194,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invoice number is required" });
       }
 
-      const { RetailerInvoiceService } = await import('./retailerInvoiceService');
-      const retailerInvoiceService = new RetailerInvoiceService();
+      const { retailerDetectionService } = await import('./retailerDetectionService');
       
-      // Validate invoice format first
-      if (!retailerInvoiceService.isValidInvoiceFormat(invoiceNumber)) {
-        return res.status(400).json({ 
-          error: "Invalid invoice format. Please enter your invoice number" 
-        });
-      }
-
-      const result = await retailerInvoiceService.loginWithInvoice(invoiceNumber);
+      // Use enhanced retailer detection service for login
+      const result = await retailerDetectionService.loginWithInvoice(invoiceNumber);
       
       if (result.success && result.user) {
         // First, logout any existing user session to ensure clean state

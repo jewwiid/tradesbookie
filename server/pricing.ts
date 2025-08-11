@@ -18,15 +18,34 @@ export interface ServiceTier {
   leadFee: number; // What installer pays to access this lead
 }
 
+// Base installer earnings (same as frontend)
+const INSTALLER_EARNINGS: Record<string, number> = {
+  'table-top-small': 89,
+  'table-top-large': 109,
+  'bronze': 109,
+  'silver': 159,
+  'silver-large': 259,
+  'gold': 259,
+  'gold-large': 359
+};
+
+// Commission rate (15%)
+const COMMISSION_RATE = 0.15;
+
+// Calculate customer price (installer earnings + commission)
+function calculateCustomerPrice(installerEarnings: number): number {
+  return Math.round(installerEarnings / (1 - COMMISSION_RATE));
+}
+
 // Customer price estimates (what customers expect to pay installers directly)
 const CUSTOMER_ESTIMATES: Record<string, number> = {
-  'table-top-small': 60,
-  'table-top-large': 85,
-  'bronze': 120,
-  'silver': 180,
-  'silver-large': 280,
-  'gold': 250,
-  'gold-large': 380
+  'table-top-small': calculateCustomerPrice(INSTALLER_EARNINGS['table-top-small']),
+  'table-top-large': calculateCustomerPrice(INSTALLER_EARNINGS['table-top-large']),
+  'bronze': calculateCustomerPrice(INSTALLER_EARNINGS['bronze']),
+  'silver': calculateCustomerPrice(INSTALLER_EARNINGS['silver']),
+  'silver-large': calculateCustomerPrice(INSTALLER_EARNINGS['silver-large']),
+  'gold': calculateCustomerPrice(INSTALLER_EARNINGS['gold']),
+  'gold-large': calculateCustomerPrice(INSTALLER_EARNINGS['gold-large'])
 };
 
 // Lead fees (what installers pay platform to access jobs)
@@ -159,6 +178,7 @@ export function calculateBookingPricing(
     throw new Error(`Unknown service type: ${serviceType}`);
   }
 
+  // Now using correct customer pricing that includes commission
   const estimatedPrice = serviceTier.customerEstimate;
   const addonsPrice = addons.reduce((sum, addon) => sum + addon.price, 0);
   const totalEstimate = estimatedPrice + addonsPrice;

@@ -243,18 +243,18 @@ export default function BookingConfirmation() {
             <CardContent className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Base Service:</span>
-                <span className="font-medium">{formatPrice(parseFloat(booking.basePrice || '0'))}</span>
+                <span className="font-medium">{formatPrice(parseFloat(booking.estimatedPrice || '0'))}</span>
               </div>
-              {booking.addonTotal && parseFloat(booking.addonTotal) > 0 && (
+              {booking.estimatedAddonsPrice && parseFloat(booking.estimatedAddonsPrice) > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Add-ons:</span>
-                  <span className="font-medium">{formatPrice(parseFloat(booking.addonTotal))}</span>
+                  <span className="font-medium">{formatPrice(parseFloat(booking.estimatedAddonsPrice))}</span>
                 </div>
               )}
               <Separator />
               <div className="flex justify-between text-lg font-semibold">
                 <span>Total:</span>
-                <span>{formatPrice(parseFloat(booking.totalPrice || '0'))}</span>
+                <span>{formatPrice(parseFloat(booking.estimatedTotal || '0'))}</span>
               </div>
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <div className="text-sm text-yellow-800">

@@ -1,13 +1,20 @@
-# Google OAuth Setup Required
+# Google OAuth Setup Required - URGENT
 
-## Issue
-The OAuth authentication has been successfully migrated from deprecated Replit OAuth to Google OAuth, but the production deployment needs these configuration updates:
+## Current Status
+✅ **OAuth Working**: Google authentication is functioning correctly
+❌ **Missing URI**: Need to add redirect URI to Google Cloud Console
 
-## Required Google OAuth Configuration
+## IMMEDIATE ACTION REQUIRED
 
-### 1. Authorized Redirect URIs
-Add these URIs to your Google Cloud Console OAuth 2.0 Client:
+Google OAuth error shows this exact URI needs to be added:
+```
+https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/callback
+```
 
+### 1. Add Redirect URI to Google Cloud Console
+**Client ID**: `276784219000-dns7ns07aq97jo479v2rvv1ipen5odtd.apps.googleusercontent.com`
+
+Add these URIs to your Google OAuth 2.0 Client:
 ```
 https://tradesbook.ie/api/callback
 https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/callback

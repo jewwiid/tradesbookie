@@ -73,6 +73,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import QRCode from "@/components/QRCode";
+import TradesPersonOnboarding from "@/components/admin/TradesPersonOnboarding";
 import PricingManagement from "@/components/admin/PricingManagement";
 import WallMountPricingManagement from "@/components/admin/WallMountPricingManagement";
 import FraudPreventionDashboard from "@/components/FraudPreventionDashboard";
@@ -6079,6 +6080,10 @@ export default function AdminDashboard() {
               <Users className="w-4 h-4" />
               <span>Users</span>
             </TabsTrigger>
+            <TabsTrigger value="onboarding" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <UserCheck className="w-4 h-4" />
+              <span>Onboarding</span>
+            </TabsTrigger>
             <TabsTrigger value="installers" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Shield className="w-4 h-4" />
               <span>Installers</span>
@@ -6159,6 +6164,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="users" className="space-y-6">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="onboarding" className="space-y-6">
+            <TradesPersonOnboarding />
           </TabsContent>
 
           <TabsContent value="installers" className="space-y-6">

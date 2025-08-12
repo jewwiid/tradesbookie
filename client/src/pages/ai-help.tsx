@@ -1659,9 +1659,9 @@ export default function AIHelpPage() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              <DollarSign className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
-              <span className="hidden sm:inline">Product Comparison Tool</span>
-              <span className="sm:hidden">Products</span>
+              <ArrowRightLeft className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <span className="hidden sm:inline">Product Compare</span>
+              <span className="sm:hidden">Compare</span>
             </button>
             <button
               onClick={() => setActiveTab('find')}
@@ -2243,7 +2243,7 @@ export default function AIHelpPage() {
           ) : (
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-3 sm:p-6 h-full flex flex-col">
               <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 text-center px-2 flex-shrink-0">
-                Product Comparison Tool
+                Product Compare Tool
               </h2>
               <div className="flex-1 overflow-y-auto">
                 {/* Electronic Product Comparison Steps */}

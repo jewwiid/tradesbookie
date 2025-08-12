@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Shield, Settings } from "lucide-react";
 
 export default function CookiePolicy() {
   return (
@@ -227,11 +228,34 @@ export default function CookiePolicy() {
         </Card>
       </div>
 
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-800">
-          <strong>Note:</strong> By continuing to use our website, you consent to our use of cookies 
-          as described in this policy. You can change your cookie settings at any time through your browser.
-        </p>
+      <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 mt-1">
+            <Shield className="w-5 h-5 text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+              Manage Your Cookie Preferences
+            </h4>
+            <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">
+              We respect your privacy and give you full control over how cookies are used on our website. 
+              You can customize your preferences at any time through our cookie management system.
+            </p>
+            <div className="flex gap-3">
+              <Link href="/cookie-preferences">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Manage Cookie Preferences
+                </Button>
+              </Link>
+              <Link href="/gdpr-compliance">
+                <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-900">
+                  View Your Rights
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

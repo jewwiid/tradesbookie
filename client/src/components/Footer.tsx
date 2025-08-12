@@ -1,5 +1,7 @@
 import { Link } from "wouter";
-import { Shield, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, MessageCircle } from "lucide-react";
+import { Shield, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, MessageCircle, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { resetCookieConsent } from "@/lib/cookieManager";
 
 export default function Footer() {
   return (
@@ -160,6 +162,10 @@ export default function Footer() {
             </Link>
             <Link href="/gdpr-compliance" className="text-gray-400 hover:text-white transition-colors">
               GDPR Compliance
+            </Link>
+            <Link href="/cookie-preferences" className="text-gray-400 hover:text-white transition-colors inline-flex items-center">
+              <Settings className="w-4 h-4 mr-1" />
+              Cookie Settings
             </Link>
           </div>
         </div>

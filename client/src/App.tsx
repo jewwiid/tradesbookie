@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ProtectedBooking } from "@/components/ProtectedBooking";
+import CookieConsent from "@/components/CookieConsent";
 import Home from "@/pages/Home";
 import HowItWorks from "@/pages/how-it-works";
 import Pricing from "@/pages/pricing";
@@ -27,6 +28,7 @@ import PrivacyPolicy from "@/pages/privacy-policy";
 import TermsOfService from "@/pages/TermsOfService";
 import CookiePolicy from "@/pages/CookiePolicy";
 import GDPRCompliance from "@/pages/GDPRCompliance";
+import CookiePreferences from "@/pages/cookie-preferences";
 import NotFound from "@/pages/not-found";
 import ReviewPage from "@/pages/review-page";
 import ReferralPage from "@/pages/referral-page";
@@ -67,6 +69,7 @@ function Router() {
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/cookie-policy" component={CookiePolicy} />
+      <Route path="/cookie-preferences" component={CookiePreferences} />
       <Route path="/gdpr-compliance" component={GDPRCompliance} />
       <Route path="/track/:qrCode" component={QRTracking} />
       <Route path="/review/:qrCode" component={ReviewPage} />
@@ -122,6 +125,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <CookieConsent />
       </TooltipProvider>
     </QueryClientProvider>
   );

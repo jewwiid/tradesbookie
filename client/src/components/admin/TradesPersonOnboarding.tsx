@@ -274,18 +274,20 @@ export default function TradesPersonOnboarding() {
 
     setIsGeneratingAI(true);
     try {
-      const response: any = await apiRequest("/api/admin/onboarding/generate-ai-template", "POST", {
+      const response = await apiRequest("POST", "/api/admin/onboarding/generate-ai-template", {
         tradeSkill: emailTemplateData.tradeSkill,
         templateName: emailTemplateData.templateName,
         tone: aiOptions.tone,
         focus: aiOptions.focus
       });
+      
+      const responseData = await response.json();
 
       setEmailTemplateData(prev => ({
         ...prev,
-        subject: response.subject,
-        content: response.content,
-        templateName: prev.templateName || response.templateName
+        subject: responseData.subject,
+        content: responseData.content,
+        templateName: prev.templateName || responseData.templateName
       }));
 
       toast({
@@ -317,13 +319,14 @@ export default function TradesPersonOnboarding() {
 
   const handleLoadPresetTemplate = async (tradeSkill: string) => {
     try {
-      const response: any = await apiRequest(`/api/admin/onboarding/preset-template/${tradeSkill}`, "GET");
+      const response = await apiRequest("GET", `/api/admin/onboarding/preset-template/${tradeSkill}`);
+      const responseData = await response.json();
       
       setEmailTemplateData(prev => ({
         ...prev,
-        subject: response.subject,
-        content: response.content,
-        templateName: response.templateName
+        subject: responseData.subject,
+        content: responseData.content,
+        templateName: responseData.templateName
       }));
 
       toast({

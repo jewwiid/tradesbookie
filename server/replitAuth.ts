@@ -16,23 +16,30 @@ const getOidcConfig = memoize(
   async () => {
     try {
       // Use Google OAuth as Replit's OIDC endpoint is deprecated
-      const issuerUrl = process.env.ISSUER_URL ?? "https://accounts.google.com";
-      const clientId = process.env.GOOGLE_CLIENT_ID || process.env.REPL_ID!;
+      const issuerUrl = "https://accounts.google.com";
+      const clientId = process.env.GOOGLE_CLIENT_ID!;
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
+      
       console.log("OIDC Discovery - Issuer:", issuerUrl, "Client ID:", clientId);
+      
+      if (!clientId || !clientSecret) {
+        throw new Error("Google OAuth credentials not configured. Missing GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET.");
+      }
       
       const config = await client.discovery(
         new URL(issuerUrl),
-        clientId
+        clientId,
+        clientSecret
       );
       
-      console.log("OIDC discovery successful");
+      console.log("Google OAuth discovery successful");
       return config;
     } catch (error) {
       console.error("OIDC discovery failed:", error);
       throw error;
     }
   },
-  { maxAge: 3600 * 1000 }
+  { maxAge: 60 * 1000, preFetch: true } // Reduced cache time and enable prefetch
 );
 
 export function getSession() {

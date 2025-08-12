@@ -79,6 +79,7 @@ import FraudPreventionDashboard from "@/components/FraudPreventionDashboard";
 import TvSetupManagement from "@/components/admin/TvSetupManagement";
 import DownloadableGuidesManagement from "@/components/admin/DownloadableGuidesManagement";
 import VideoTutorialsManagement from "@/components/admin/VideoTutorialsManagement";
+import StoreManagement from "@/components/admin/StoreManagement";
 
 interface AdminStats {
   totalBookings: number;
@@ -6142,6 +6143,10 @@ export default function AdminDashboard() {
               <Camera className="w-4 h-4" />
               <span>Video Tutorials</span>
             </TabsTrigger>
+            <TabsTrigger value="stores" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <MapPin className="w-4 h-4" />
+              <span>Stores</span>
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Settings className="w-4 h-4" />
               <span>Settings</span>
@@ -6219,6 +6224,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="video-tutorials" className="space-y-6">
             <VideoTutorialsManagement />
+          </TabsContent>
+
+          <TabsContent value="stores" className="space-y-6">
+            <StoreManagement />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

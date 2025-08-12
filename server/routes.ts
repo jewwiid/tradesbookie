@@ -10987,6 +10987,229 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Tradesperson Onboarding API Routes
+  
+  // Create onboarding invitation
+  app.post('/api/admin/onboarding/create-invitation', async (req, res) => {
+    try {
+      const invitationData = {
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
+        businessName: req.body.businessName,
+        county: req.body.county,
+        tradeSkill: req.body.tradeSkill,
+        adminNotes: req.body.adminNotes,
+        createdBy: (req.session as any).user?.email || 'admin'
+      };
+
+      const invitation = await storage.createOnboardingInvitation(invitationData);
+      
+      // TODO: Send invitation email using existing email service
+      // await sendTradesPersonInvitationEmail(invitation);
+      
+      res.json(invitation);
+    } catch (error) {
+      console.error('Error creating onboarding invitation:', error);
+      res.status(500).json({ error: 'Failed to create invitation' });
+    }
+  });
+
+  // Get all onboarding invitations
+  app.get('/api/admin/onboarding/invitations', async (req, res) => {
+    try {
+      const invitations = await storage.getAllOnboardingInvitations();
+      res.json(invitations);
+    } catch (error) {
+      console.error('Error fetching onboarding invitations:', error);
+      res.status(500).json({ error: 'Failed to fetch invitations' });
+    }
+  });
+
+  // Resend invitation
+  app.post('/api/admin/onboarding/resend-invitation/:id', async (req, res) => {
+    try {
+      const invitationId = parseInt(req.params.id);
+      const invitation = await storage.getOnboardingInvitation(invitationId);
+      
+      if (!invitation) {
+        return res.status(404).json({ error: 'Invitation not found' });
+      }
+
+      await storage.resendOnboardingInvitation(invitationId);
+      
+      // TODO: Resend invitation email
+      // await sendTradesPersonInvitationEmail(invitation);
+      
+      res.json({ success: true, message: 'Invitation resent successfully' });
+    } catch (error) {
+      console.error('Error resending invitation:', error);
+      res.status(500).json({ error: 'Failed to resend invitation' });
+    }
+  });
+
+  // Register installer directly on behalf
+  app.post('/api/admin/onboarding/register-installer', async (req, res) => {
+    try {
+      const { name, email, phone, businessName, county, tradeSkill, password } = req.body;
+      
+      // Check if installer already exists
+      const existingInstaller = await storage.getInstallerByEmail(email);
+      if (existingInstaller) {
+        return res.status(400).json({ error: 'Installer with this email already exists' });
+      }
+
+      // Hash password
+      const bcrypt = require('bcrypt');
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      // Create installer
+      const installerData = {
+        contactName: name,
+        email,
+        phone,
+        businessName,
+        county,
+        tradeSkill,
+        passwordHash,
+        approvalStatus: 'approved', // Auto-approve admin-registered installers
+        profileCompleted: false,
+        registeredBy: 'admin'
+      };
+
+      const installer = await storage.createInstaller(installerData);
+      
+      // TODO: Send welcome email with login credentials
+      // await sendInstallerWelcomeEmail(installer, password);
+      
+      res.json({ success: true, installer: { ...installer, passwordHash: undefined } });
+    } catch (error) {
+      console.error('Error registering installer:', error);
+      res.status(500).json({ error: 'Failed to register installer' });
+    }
+  });
+
+  // Create email template
+  app.post('/api/admin/onboarding/create-email-template', async (req, res) => {
+    try {
+      const templateData = {
+        templateName: req.body.templateName,
+        tradeSkill: req.body.tradeSkill,
+        subject: req.body.subject,
+        content: req.body.content,
+        isActive: true
+      };
+
+      const template = await storage.createTradesPersonEmailTemplate(templateData);
+      res.json(template);
+    } catch (error) {
+      console.error('Error creating email template:', error);
+      res.status(500).json({ error: 'Failed to create email template' });
+    }
+  });
+
+  // Get all email templates
+  app.get('/api/admin/onboarding/email-templates', async (req, res) => {
+    try {
+      const templates = await storage.getAllTradesPersonEmailTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching email templates:', error);
+      res.status(500).json({ error: 'Failed to fetch email templates' });
+    }
+  });
+
+  // Onboarding landing page - handle invitation token
+  app.get('/api/onboarding/:token', async (req, res) => {
+    try {
+      const { token } = req.params;
+      const invitation = await storage.getOnboardingInvitationByToken(token);
+      
+      if (!invitation) {
+        return res.status(404).json({ error: 'Invalid or expired invitation' });
+      }
+
+      // Update invitation status to 'opened' if still 'sent'
+      if (invitation.status === 'sent') {
+        await storage.updateOnboardingInvitationStatus(invitation.id, 'opened');
+      }
+
+      // Return invitation data for the onboarding form
+      res.json({
+        invitation: {
+          id: invitation.id,
+          name: invitation.name,
+          email: invitation.email,
+          phone: invitation.phone,
+          businessName: invitation.businessName,
+          county: invitation.county,
+          tradeSkill: invitation.tradeSkill
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching invitation:', error);
+      res.status(500).json({ error: 'Failed to fetch invitation' });
+    }
+  });
+
+  // Complete onboarding process
+  app.post('/api/onboarding/:token/complete', async (req, res) => {
+    try {
+      const { token } = req.params;
+      const invitation = await storage.getOnboardingInvitationByToken(token);
+      
+      if (!invitation) {
+        return res.status(404).json({ error: 'Invalid or expired invitation' });
+      }
+
+      const { password, ...profileData } = req.body;
+      
+      // Check if installer already exists
+      const existingInstaller = await storage.getInstallerByEmail(invitation.email);
+      if (existingInstaller) {
+        return res.status(400).json({ error: 'Account already exists for this email' });
+      }
+
+      // Hash password
+      const bcrypt = require('bcrypt');
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      // Create installer account
+      const installerData = {
+        contactName: invitation.name,
+        email: invitation.email,
+        phone: invitation.phone,
+        businessName: invitation.businessName,
+        county: invitation.county,
+        tradeSkill: invitation.tradeSkill,
+        passwordHash,
+        ...profileData,
+        approvalStatus: 'pending',
+        profileCompleted: true,
+        registeredViaInvitation: true
+      };
+
+      const installer = await storage.createInstaller(installerData);
+      
+      // Update invitation status
+      await storage.updateOnboardingInvitationStatus(invitation.id, 'profile_completed');
+      
+      // Link invitation to created installer
+      await db.update(onboardingInvitations)
+        .set({ createdInstallerId: installer.id })
+        .where(eq(onboardingInvitations.id, invitation.id));
+
+      res.json({ 
+        success: true, 
+        message: 'Onboarding completed successfully! Your application is under review.',
+        installer: { ...installer, passwordHash: undefined }
+      });
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      res.status(500).json({ error: 'Failed to complete onboarding' });
+    }
+  });
+
   return httpServer;
 }
 

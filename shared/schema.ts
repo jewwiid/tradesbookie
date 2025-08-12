@@ -609,6 +609,61 @@ export const leadRefunds = pgTable("lead_refunds", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+
+
+// Onboarding invitations for tradespeople
+export const onboardingInvitations = pgTable("onboarding_invitations", {
+  id: serial("id").primaryKey(),
+  
+  // Invited person details
+  name: varchar("name", { length: 200 }).notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 50 }),
+  businessName: varchar("business_name", { length: 200 }),
+  county: varchar("county", { length: 50 }),
+  tradeSkill: varchar("trade_skill", { length: 100 }).notNull(), // carpenter, electrician, plumber, joiner, painter, general_handyman, tv_specialist
+  
+  // Invitation details  
+  invitationToken: varchar("invitation_token", { length: 100 }).notNull().unique(),
+  invitationUrl: text("invitation_url").notNull(),
+  emailTemplateUsed: varchar("email_template_used", { length: 100 }),
+  
+  // Status tracking
+  status: varchar("status", { length: 50 }).default("sent"), // sent, opened, profile_started, profile_completed, approved, declined
+  emailSent: boolean("email_sent").default(false),
+  emailSentAt: timestamp("email_sent_at"),
+  emailOpenedAt: timestamp("email_opened_at"),
+  profileStartedAt: timestamp("profile_started_at"),
+  profileCompletedAt: timestamp("profile_completed_at"),
+  
+  // Created installer
+  createdInstallerId: integer("created_installer_id").references(() => installers.id),
+  
+  // Admin tracking
+  createdBy: varchar("created_by", { length: 100 }).notNull(), // Admin who sent invitation
+  adminNotes: text("admin_notes"),
+  
+  expiresAt: timestamp("expires_at").notNull(), // 30 days from creation
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tradesperson email templates with skill-specific content
+export const tradesPersonEmailTemplates = pgTable("trades_person_email_templates", {
+  id: serial("id").primaryKey(),
+  templateName: varchar("template_name", { length: 200 }).notNull(),
+  tradeSkill: varchar("trade_skill", { length: 100 }).notNull(), // carpenter, electrician, plumber, etc.
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  
+  // Template variables available: {{name}}, {{tradeSkill}}, {{invitationUrl}}, {{platformBenefits}}, {{estimatedEarnings}}
+  isActive: boolean("is_active").default(true),
+  createdBy: varchar("created_by", { length: 100 }).notNull(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -1622,10 +1677,33 @@ export const insertFaqAnswerSchema = createInsertSchema(faqAnswers).omit({
   updatedAt: true,
 });
 
+// Onboarding Invitations Schema
+export const insertOnboardingInvitationSchema = createInsertSchema(onboardingInvitations).omit({
+  id: true,
+  invitationToken: true,
+  invitationUrl: true,
+  createdInstallerId: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Tradesperson Email Templates Schema
+export const insertTradesPersonEmailTemplateSchema = createInsertSchema(tradesPersonEmailTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type BannedUser = typeof bannedUsers.$inferSelect;
 export type FaqAnswer = typeof faqAnswers.$inferSelect;
 export type InsertFaqAnswer = z.infer<typeof insertFaqAnswerSchema>;
 export type InsertBannedUser = z.infer<typeof insertBannedUserSchema>;
+
+// Onboarding types
+export type OnboardingInvitation = typeof onboardingInvitations.$inferSelect;
+export type TradesPersonEmailTemplate = typeof tradesPersonEmailTemplates.$inferSelect;
+export type InsertOnboardingInvitation = z.infer<typeof insertOnboardingInvitationSchema>;
+export type InsertTradesPersonEmailTemplate = z.infer<typeof insertTradesPersonEmailTemplateSchema>;
 
 // Platform settings and voucher types
 export type PlatformSettings = typeof platformSettings.$inferSelect;

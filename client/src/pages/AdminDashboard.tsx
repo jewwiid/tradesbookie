@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Home, Calendar, TrendingUp, Euro, Users, Wallet, Phone } from "lucide-react";
+import { Settings, Home, Calendar, TrendingUp, Euro, Users, Wallet, Phone, UserPlus } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { useLocation } from "wouter";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TradesPersonOnboarding from "@/components/admin/TradesPersonOnboarding";
 
 export default function AdminDashboard() {
   const [, setLocation] = useLocation();
@@ -94,9 +96,30 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="onboarding" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Tradesperson Onboarding
+            </TabsTrigger>
+            <TabsTrigger value="installers" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Installer Management
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Platform Settings
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            {/* Stats Cards */}
+            {stats && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -292,11 +315,39 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Harvey Norman Sales Staff Referral Management */}
-          <div className="lg:col-span-3 mt-8">
-            <HarveyNormanReferralManagement />
+            {/* Harvey Norman Sales Staff Referral Management */}
+            <div className="lg:col-span-3 mt-8">
+              <HarveyNormanReferralManagement />
+            </div>
           </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="onboarding" className="space-y-6">
+            <TradesPersonOnboarding />
+          </TabsContent>
+
+          <TabsContent value="installers" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Installer Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Installer approval and management features will be available here.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Platform Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Platform configuration and settings will be available here.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

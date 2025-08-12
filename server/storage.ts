@@ -7,6 +7,7 @@ import {
   platformSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
   consultations, downloadableGuides, videoTutorials, productCategories,
   qrCodeScans, aiProductRecommendations, choiceFlowTracking,
+  onboardingInvitations, tradesPersonEmailTemplates,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -36,7 +37,9 @@ import {
   type ProductCategory, type InsertProductCategory,
   type QrCodeScan, type InsertQrCodeScan,
   type AiProductRecommendation, type InsertAiProductRecommendation,
-  type ChoiceFlowTracking, type InsertChoiceFlowTracking
+  type ChoiceFlowTracking, type InsertChoiceFlowTracking,
+  type OnboardingInvitation, type InsertOnboardingInvitation,
+  type TradesPersonEmailTemplate, type InsertTradesPersonEmailTemplate
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, sql } from "drizzle-orm";
@@ -320,6 +323,23 @@ export interface IStorage {
 
   // Choice Flow Tracking
   createChoiceFlowTracking(flow: InsertChoiceFlowTracking): Promise<ChoiceFlowTracking>;
+
+  // Tradesperson Onboarding operations
+  createOnboardingInvitation(invitation: InsertOnboardingInvitation): Promise<OnboardingInvitation>;
+  getOnboardingInvitation(id: number): Promise<OnboardingInvitation | undefined>;
+  getOnboardingInvitationByToken(token: string): Promise<OnboardingInvitation | undefined>;
+  getAllOnboardingInvitations(): Promise<OnboardingInvitation[]>;
+  updateOnboardingInvitationStatus(id: number, status: string): Promise<void>;
+  resendOnboardingInvitation(id: number): Promise<void>;
+  deleteOnboardingInvitation(id: number): Promise<void>;
+
+  // Tradesperson Email Templates operations
+  createTradesPersonEmailTemplate(template: InsertTradesPersonEmailTemplate): Promise<TradesPersonEmailTemplate>;
+  getTradesPersonEmailTemplate(id: number): Promise<TradesPersonEmailTemplate | undefined>;
+  getTradesPersonEmailTemplatesBySkill(tradeSkill: string): Promise<TradesPersonEmailTemplate[]>;
+  getAllTradesPersonEmailTemplates(): Promise<TradesPersonEmailTemplate[]>;
+  updateTradesPersonEmailTemplate(id: number, updates: Partial<InsertTradesPersonEmailTemplate>): Promise<TradesPersonEmailTemplate>;
+  deleteTradesPersonEmailTemplate(id: number): Promise<void>;
   getChoiceFlowTracking(id: number): Promise<ChoiceFlowTracking | undefined>;
   getChoiceFlowsByCategory(categoryId: number): Promise<ChoiceFlowTracking[]>;
   getChoiceFlowsBySession(sessionId: string): Promise<ChoiceFlowTracking[]>;
@@ -2327,6 +2347,88 @@ export class DatabaseStorage implements IStorage {
       avgTimeSpent: stats?.avgTimeSpent || 0,
       dropOffByStep
     };
+  }
+
+  // Tradesperson Onboarding operations implementation
+  async createOnboardingInvitation(invitation: InsertOnboardingInvitation): Promise<OnboardingInvitation> {
+    const token = nanoid(32);
+    const baseUrl = process.env.DOMAIN || "https://tradesbook.ie";
+    const invitationUrl = `${baseUrl}/onboarding/${token}`;
+    
+    const [created] = await db.insert(onboardingInvitations).values({
+      ...invitation,
+      invitationToken: token,
+      invitationUrl: invitationUrl,
+      status: 'sent',
+      emailSent: false,
+    }).returning();
+    
+    return created;
+  }
+
+  async getOnboardingInvitation(id: number): Promise<OnboardingInvitation | undefined> {
+    const [invitation] = await db.select().from(onboardingInvitations).where(eq(onboardingInvitations.id, id));
+    return invitation;
+  }
+
+  async getOnboardingInvitationByToken(token: string): Promise<OnboardingInvitation | undefined> {
+    const [invitation] = await db.select().from(onboardingInvitations).where(eq(onboardingInvitations.invitationToken, token));
+    return invitation;
+  }
+
+  async getAllOnboardingInvitations(): Promise<OnboardingInvitation[]> {
+    return await db.select().from(onboardingInvitations).orderBy(desc(onboardingInvitations.createdAt));
+  }
+
+  async updateOnboardingInvitationStatus(id: number, status: string): Promise<void> {
+    await db.update(onboardingInvitations)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(onboardingInvitations.id, id));
+  }
+
+  async resendOnboardingInvitation(id: number): Promise<void> {
+    await db.update(onboardingInvitations)
+      .set({ emailSent: false, updatedAt: new Date() })
+      .where(eq(onboardingInvitations.id, id));
+  }
+
+  async deleteOnboardingInvitation(id: number): Promise<void> {
+    await db.delete(onboardingInvitations).where(eq(onboardingInvitations.id, id));
+  }
+
+  // Tradesperson Email Templates operations implementation
+  async createTradesPersonEmailTemplate(template: InsertTradesPersonEmailTemplate): Promise<TradesPersonEmailTemplate> {
+    const [created] = await db.insert(tradesPersonEmailTemplates).values(template).returning();
+    return created;
+  }
+
+  async getTradesPersonEmailTemplate(id: number): Promise<TradesPersonEmailTemplate | undefined> {
+    const [template] = await db.select().from(tradesPersonEmailTemplates).where(eq(tradesPersonEmailTemplates.id, id));
+    return template;
+  }
+
+  async getTradesPersonEmailTemplatesBySkill(tradeSkill: string): Promise<TradesPersonEmailTemplate[]> {
+    return await db.select().from(tradesPersonEmailTemplates)
+      .where(and(
+        eq(tradesPersonEmailTemplates.tradeSkill, tradeSkill),
+        eq(tradesPersonEmailTemplates.isActive, true)
+      ));
+  }
+
+  async getAllTradesPersonEmailTemplates(): Promise<TradesPersonEmailTemplate[]> {
+    return await db.select().from(tradesPersonEmailTemplates).orderBy(desc(tradesPersonEmailTemplates.createdAt));
+  }
+
+  async updateTradesPersonEmailTemplate(id: number, updates: Partial<InsertTradesPersonEmailTemplate>): Promise<TradesPersonEmailTemplate> {
+    const [updated] = await db.update(tradesPersonEmailTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(tradesPersonEmailTemplates.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTradesPersonEmailTemplate(id: number): Promise<void> {
+    await db.delete(tradesPersonEmailTemplates).where(eq(tradesPersonEmailTemplates.id, id));
   }
 }
 

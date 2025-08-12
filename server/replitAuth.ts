@@ -15,8 +15,9 @@ if (!process.env.REPLIT_DOMAINS) {
 const getOidcConfig = memoize(
   async () => {
     try {
-      const issuerUrl = process.env.ISSUER_URL ?? "https://replit.com/oidc";
-      const clientId = process.env.REPL_ID!;
+      // Use Google OAuth as Replit's OIDC endpoint is deprecated
+      const issuerUrl = process.env.ISSUER_URL ?? "https://accounts.google.com";
+      const clientId = process.env.GOOGLE_CLIENT_ID || process.env.REPL_ID!;
       console.log("OIDC Discovery - Issuer:", issuerUrl, "Client ID:", clientId);
       
       const config = await client.discovery(
@@ -260,42 +261,42 @@ export async function setupAuth(app: Express) {
   for (const domain of domains) {
     const strategy = new Strategy(
       {
-        name: `replitauth:${domain}`,
+        name: `googleauth:${domain}`,
         config,
-        scope: "openid email profile offline_access",
+        scope: "openid email profile",
         callbackURL: `https://${domain}/api/callback`,
       },
       verify,
     );
     passport.use(strategy);
-    console.log(`Registered OAuth strategy for domain: ${domain} with callback: https://${domain}/api/callback`);
+    console.log(`Registered Google OAuth strategy for domain: ${domain} with callback: https://${domain}/api/callback`);
   }
   
   // Register strategy for production tradesbook.ie domain
   const productionStrategy = new Strategy(
     {
-      name: `replitauth:tradesbook.ie`,
+      name: `googleauth:tradesbook.ie`,
       config,
-      scope: "openid email profile offline_access",
+      scope: "openid email profile",
       callbackURL: `https://tradesbook.ie/api/callback`,
     },
     verify,
   );
   passport.use(productionStrategy);
-  console.log(`Registered OAuth strategy for production domain: tradesbook.ie with callback: https://tradesbook.ie/api/callback`);
+  console.log(`Registered Google OAuth strategy for production domain: tradesbook.ie with callback: https://tradesbook.ie/api/callback`);
   
   // Register strategy for localhost development
   const localhostStrategy = new Strategy(
     {
-      name: `replitauth:localhost`,
+      name: `googleauth:localhost`,
       config,
-      scope: "openid email profile offline_access",
+      scope: "openid email profile",
       callbackURL: `http://localhost:5000/api/callback`,
     },
     verify,
   );
   passport.use(localhostStrategy);
-  console.log(`Registered OAuth strategy for localhost with callback: http://localhost:5000/api/callback`);
+  console.log(`Registered Google OAuth strategy for localhost with callback: http://localhost:5000/api/callback`);
 
   console.log("OAuth strategies registered successfully, setting up passport serialization...");
 
@@ -324,14 +325,14 @@ export async function setupAuth(app: Express) {
   // Helper function to determine strategy name
   function getStrategyName(hostname: string): string | null {
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'replitauth:localhost';
+      return 'googleauth:localhost';
     } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
-      return `replitauth:${hostname}`;
+      return `googleauth:${hostname}`;
     } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
-      return 'replitauth:tradesbook.ie';
+      return 'googleauth:tradesbook.ie';
     } else {
       const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
-      return registeredDomain ? `replitauth:${registeredDomain}` : null;
+      return registeredDomain ? `googleauth:${registeredDomain}` : null;
     }
   }
 
@@ -350,14 +351,14 @@ export async function setupAuth(app: Express) {
     const hostname = req.hostname;
     
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      strategyName = 'replitauth:localhost';
+      strategyName = 'googleauth:localhost';
     } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
-      strategyName = `replitauth:${hostname}`;
+      strategyName = `googleauth:${hostname}`;
     } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
-      strategyName = 'replitauth:tradesbook.ie';
+      strategyName = 'googleauth:tradesbook.ie';
     } else {
       const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
-      strategyName = `replitauth:${registeredDomain}`;
+      strategyName = `googleauth:${registeredDomain}`;
     }
     
     console.log("Using callback strategy:", strategyName);

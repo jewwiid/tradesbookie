@@ -381,14 +381,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine strategy based on hostname
       function getStrategyName(hostname: string): string | null {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
-          return 'replitauth:localhost';
+          return 'googleauth:localhost';
         } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
-          return `replitauth:${hostname}`;
+          return `googleauth:${hostname}`;
         } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
-          return 'replitauth:tradesbook.ie';
+          return 'googleauth:tradesbook.ie';
         } else {
           const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
-          return registeredDomain ? `replitauth:${registeredDomain}` : null;
+          return registeredDomain ? `googleauth:${registeredDomain}` : null;
         }
       }
       
@@ -423,7 +423,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Use passport authenticate - should redirect to OAuth provider
         console.log("About to call passport.authenticate for login...");
         passport.authenticate(strategyName, { 
-          scope: "openid email profile offline_access"
+          scope: "openid email profile "
           // Removed prompt parameter as it's not supported by Replit OAuth
         })(req, res, (authErr) => {
           if (authErr) {
@@ -459,14 +459,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine strategy based on hostname
       function getStrategyName(hostname: string): string | null {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
-          return 'replitauth:localhost';
+          return 'googleauth:localhost';
         } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
-          return `replitauth:${hostname}`;
+          return `googleauth:${hostname}`;
         } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
-          return 'replitauth:tradesbook.ie';
+          return 'googleauth:tradesbook.ie';
         } else {
           const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
-          return registeredDomain ? `replitauth:${registeredDomain}` : null;
+          return registeredDomain ? `googleauth:${registeredDomain}` : null;
         }
       }
       
@@ -500,7 +500,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log("About to call passport.authenticate for account selection...");
         passport.authenticate(strategyName, { 
-          scope: "openid email profile offline_access",
+          scope: "openid email profile ",
           // Add timestamp to force fresh request and clear cached auth state
           state: `account_selection_${Date.now()}`
         })(req, res, next);
@@ -657,14 +657,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Determine strategy based on hostname (matching login route exactly)
       function getStrategyName(hostname: string): string | null {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
-          return 'replitauth:localhost';
+          return 'googleauth:localhost';
         } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
-          return `replitauth:${hostname}`;
+          return `googleauth:${hostname}`;
         } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
-          return 'replitauth:tradesbook.ie';
+          return 'googleauth:tradesbook.ie';
         } else {
           const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
-          return registeredDomain ? `replitauth:${registeredDomain}` : null;
+          return registeredDomain ? `googleauth:${registeredDomain}` : null;
         }
       }
       
@@ -685,7 +685,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         console.log("About to call passport.authenticate for signup...");
         passport.authenticate(strategyName, { 
-          scope: "openid email profile offline_access"
+          scope: "openid email profile "
         })(req, res, next);
       });
       

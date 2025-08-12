@@ -15,6 +15,20 @@ A sophisticated TV and product installation referral platform that leverages int
 
 ## Recent Changes (January 2025)
 
+### OAuth Authentication System Migration (August 2025)
+- **Critical Fix**: Resolved authentication failures by migrating from deprecated Replit OAuth to Google OAuth
+  - **Issue**: Replit deprecated their manual OIDC endpoint (`https://replit.com/oidc`) in favor of AI Agent-only "Replit Auth"
+  - **Solution**: Updated authentication system to use Google OAuth (`https://accounts.google.com`)
+  - **Changes Made**:
+    - Updated OIDC discovery endpoint in `server/replitAuth.ts`
+    - Changed all strategy names from `replitauth:*` to `googleauth:*`
+    - Removed deprecated `offline_access` scope
+    - Updated callback and route handlers throughout `server/routes.ts`
+  - **Business Benefit**: Stable, enterprise-grade authentication that won't break due to platform changes
+  - **Status**: ✅ Successfully tested - OAuth login now redirects properly to Google authentication
+
+**Technical Note**: While Replit offers their new "Replit Auth" system, it only works through AI Agent prompts and would require rebuilding the sophisticated multi-retailer user management system. Google OAuth provides better stability and maintains all existing functionality.
+
 ### Platform Rebranding for Multi-Retailer Support (August 2025)
 - **Removed Harvey Norman Exclusivity**: Updated all customer-facing interfaces to use generic "Invoice" terminology
   - Homepage card title changed from "Harvey Norman Invoice" to "Invoice"

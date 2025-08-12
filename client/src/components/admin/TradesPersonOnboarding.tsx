@@ -25,7 +25,11 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Copy
+  Copy,
+  Bot,
+  Sparkles,
+  FileText,
+  Loader2
 } from "lucide-react";
 
 // Trade skills with their TV installation relevance
@@ -108,6 +112,12 @@ export default function TradesPersonOnboarding() {
     tradeSkill: "",
     subject: "",
     content: ""
+  });
+
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [aiOptions, setAiOptions] = useState({
+    tone: 'professional' as 'professional' | 'friendly' | 'persuasive',
+    focus: 'opportunity' as 'earnings' | 'flexibility' | 'skills' | 'opportunity'
   });
 
   const [bulkInviteData, setBulkInviteData] = useState({
@@ -250,6 +260,71 @@ export default function TradesPersonOnboarding() {
       return;
     }
     createTemplateMutation.mutate(emailTemplateData);
+  };
+
+  const handleGenerateAITemplate = async () => {
+    if (!emailTemplateData.tradeSkill) {
+      toast({
+        title: "Trade Skill Required",
+        description: "Please select a trade skill before generating AI content.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGeneratingAI(true);
+    try {
+      const response: any = await apiRequest("/api/admin/onboarding/generate-ai-template", "POST", {
+        tradeSkill: emailTemplateData.tradeSkill,
+        templateName: emailTemplateData.templateName,
+        tone: aiOptions.tone,
+        focus: aiOptions.focus
+      });
+
+      setEmailTemplateData(prev => ({
+        ...prev,
+        subject: response.subject,
+        content: response.content,
+        templateName: prev.templateName || response.templateName
+      }));
+
+      toast({
+        title: "AI Template Generated",
+        description: "Your personalized email template has been created successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate AI template. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  const handleLoadPresetTemplate = async (tradeSkill: string) => {
+    try {
+      const response: any = await apiRequest(`/api/admin/onboarding/preset-template/${tradeSkill}`, "GET");
+      
+      setEmailTemplateData(prev => ({
+        ...prev,
+        subject: response.subject,
+        content: response.content,
+        templateName: response.templateName
+      }));
+
+      toast({
+        title: "Preset Template Loaded",
+        description: `${tradeSkill} template has been loaded successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Load Failed",
+        description: "Failed to load preset template. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -572,13 +647,119 @@ export default function TradesPersonOnboarding() {
               </div>
 
               <div>
-                <Label htmlFor="content">Email Content</Label>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="content">Email Content</Label>
+                  <div className="flex gap-2">
+                    {/* AI Options Panel */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                          <Bot className="h-4 w-4" />
+                          AI Options
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5" />
+                            AI Generation Options
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label>Email Tone</Label>
+                            <Select 
+                              value={aiOptions.tone} 
+                              onValueChange={(value) => setAiOptions(prev => ({ ...prev, tone: value as any }))}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="professional">Professional</SelectItem>
+                                <SelectItem value="friendly">Friendly</SelectItem>
+                                <SelectItem value="persuasive">Persuasive</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Primary Focus</Label>
+                            <Select 
+                              value={aiOptions.focus} 
+                              onValueChange={(value) => setAiOptions(prev => ({ ...prev, focus: value as any }))}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="opportunity">Business Opportunity</SelectItem>
+                                <SelectItem value="earnings">Income Potential</SelectItem>
+                                <SelectItem value="flexibility">Work Flexibility</SelectItem>
+                                <SelectItem value="skills">Skill Utilization</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* Use AI Button */}
+                    <Button 
+                      onClick={handleGenerateAITemplate}
+                      disabled={isGeneratingAI || !emailTemplateData.tradeSkill}
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center gap-2"
+                    >
+                      {isGeneratingAI ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4" />
+                      )}
+                      {isGeneratingAI ? "Generating..." : "Use AI"}
+                    </Button>
+
+                    {/* Preset Templates Button */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Presets
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <FileText className="h-5 w-5" />
+                            Preset Email Templates
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                          {TRADE_SKILLS.map((skill) => (
+                            <div key={skill.value} className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
+                                 onClick={() => handleLoadPresetTemplate(skill.value)}>
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-medium">{skill.label}</h4>
+                                <Badge variant="outline">Preset</Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 mb-2">{skill.relevance}</p>
+                              <Button size="sm" className="w-full">
+                                Load {skill.label} Template
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+                
                 <Textarea
                   id="content"
                   value={emailTemplateData.content}
                   onChange={(e) => setEmailTemplateData(prev => ({ ...prev, content: e.target.value }))}
                   placeholder="Hi {{name}}, As a skilled {{tradeSkill}}, you have the perfect foundation to earn additional income through TV installation services..."
-                  rows={10}
+                  rows={12}
                 />
                 <div className="text-sm text-gray-500 mt-2">
                   Available variables: {"{"}{"name"}, {"{"}{"tradeSkill"}, {"{"}{"invitationUrl"}, {"{"}{"platformBenefits"}, {"{"}{"estimatedEarnings"}
@@ -604,11 +785,11 @@ export default function TradesPersonOnboarding() {
             <CardContent>
               {templatesLoading ? (
                 <div className="text-center py-4">Loading templates...</div>
-              ) : emailTemplates.length === 0 ? (
+              ) : (emailTemplates as TradesPersonEmailTemplate[]).length === 0 ? (
                 <div className="text-center py-4 text-gray-500">No email templates created yet</div>
               ) : (
                 <div className="space-y-4">
-                  {emailTemplates.map((template: TradesPersonEmailTemplate) => (
+                  {(emailTemplates as TradesPersonEmailTemplate[]).map((template: TradesPersonEmailTemplate) => (
                     <div key={template.id} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">{template.templateName}</h4>
@@ -645,11 +826,11 @@ export default function TradesPersonOnboarding() {
             <CardContent>
               {invitationsLoading ? (
                 <div className="text-center py-4">Loading invitations...</div>
-              ) : invitations.length === 0 ? (
+              ) : (invitations as TradesPersonInvitation[]).length === 0 ? (
                 <div className="text-center py-4 text-gray-500">No invitations sent yet</div>
               ) : (
                 <div className="space-y-4">
-                  {invitations.map((invitation: TradesPersonInvitation) => (
+                  {(invitations as TradesPersonInvitation[]).map((invitation: TradesPersonInvitation) => (
                     <div key={invitation.id} className="border rounded-lg p-4">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">

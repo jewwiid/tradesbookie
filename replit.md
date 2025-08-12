@@ -43,6 +43,29 @@ A sophisticated TV and product installation referral platform that leverages int
   - **Frontend Components**: Both forgot-password.tsx and reset-password.tsx fully functional with proper error handling
   - **Status**: ✅ Complete password reset flow tested and operational for both customer and installer accounts
 
+### AI-Powered Tradesperson Email Templates (August 2025)
+- **Enhanced Onboarding System**: Added AI-powered email template creation with comprehensive preset templates
+  - **AI Template Generation Service** (`server/aiEmailTemplateService.ts`):
+    - Uses GPT-4o to create personalized email templates for each trade skill
+    - Customizable tone (professional/friendly/persuasive) and focus (earnings/flexibility/skills/opportunity)
+    - Trade-specific context awareness with realistic earnings and skill relevance
+    - Smart variable integration ({{name}}, {{tradeSkill}}, {{invitationUrl}})
+  - **Preset Template Library**: 7 professionally crafted templates for each trade skill:
+    - Carpenter: Custom mounting and media center focus (€150-300/installation)
+    - Electrician: Smart TV wiring and electrical safety (€200-400/installation)
+    - Plumber: Drilling expertise and secure mounting (€120-250/installation)
+    - Joiner: Premium custom solutions and built-ins (€180-350/installation)
+    - Painter: Wall assessment and finishing work (€100-200/installation)
+    - General Handyman: Versatile all-round services (€150-280/installation)
+    - TV Specialist: Professional installation expertise (€200-450/installation)
+  - **Enhanced UI Features**:
+    - "Use AI" button for intelligent template generation
+    - AI Options panel with tone and focus customization
+    - Preset Templates browser with one-click loading
+    - Real-time generation with loading states and error handling
+  - **API Endpoints**: `/generate-ai-template`, `/preset-template/:skill`, `/preset-templates`
+  - **Status**: ✅ Fully operational with tested AI generation and preset template loading
+
 **Technical Note**: While Replit offers their new "Replit Auth" system, it only works through AI Agent prompts and would require rebuilding the sophisticated multi-retailer user management system. Google OAuth provides better stability and maintains all existing functionality.
 
 ### Platform Rebranding for Multi-Retailer Support (August 2025)

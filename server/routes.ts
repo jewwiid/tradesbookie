@@ -40,6 +40,7 @@ import { getProductRecommendations } from "./productRecommendationService";
 import { getProductInfo } from "./productInfoService";
 import { analyzeProductCare } from "./productCareAnalysisService";
 import { QRCodeService } from "./qrCodeService";
+import { generateEmailTemplate, getPresetTemplate, getAllPresetTemplates } from "./aiEmailTemplateService";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -11116,6 +11117,58 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error('Error fetching email templates:', error);
       res.status(500).json({ error: 'Failed to fetch email templates' });
+    }
+  });
+
+  // AI-powered email template generation
+  app.post('/api/admin/onboarding/generate-ai-template', async (req, res) => {
+    try {
+      const { tradeSkill, templateName, tone, focus } = req.body;
+      
+      if (!tradeSkill) {
+        return res.status(400).json({ error: 'Trade skill is required' });
+      }
+      
+      const aiTemplate = await generateEmailTemplate({
+        tradeSkill,
+        templateName,
+        tone: tone || 'professional',
+        focus: focus || 'opportunity'
+      });
+      
+      res.json(aiTemplate);
+    } catch (error) {
+      console.error('Error generating AI email template:', error);
+      res.status(500).json({ error: error.message || 'Failed to generate AI email template' });
+    }
+  });
+
+  // Get preset template for a specific trade skill
+  app.get('/api/admin/onboarding/preset-template/:tradeSkill', async (req, res) => {
+    try {
+      const { tradeSkill } = req.params;
+      
+      const presetTemplate = getPresetTemplate(tradeSkill);
+      
+      if (!presetTemplate) {
+        return res.status(404).json({ error: 'No preset template found for this trade skill' });
+      }
+      
+      res.json(presetTemplate);
+    } catch (error) {
+      console.error('Error fetching preset template:', error);
+      res.status(500).json({ error: 'Failed to fetch preset template' });
+    }
+  });
+
+  // Get all available preset templates
+  app.get('/api/admin/onboarding/preset-templates', async (req, res) => {
+    try {
+      const presetTemplates = getAllPresetTemplates();
+      res.json(presetTemplates);
+    } catch (error) {
+      console.error('Error fetching preset templates:', error);
+      res.status(500).json({ error: 'Failed to fetch preset templates' });
     }
   });
 

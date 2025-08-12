@@ -1,0 +1,216 @@
+=== OAUTH LOGIN REQUEST START ===
+Login request from hostname: 3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Login query params: {}
+Current user: undefined
+Is authenticated: false
+Session ID: NLReqsQrRKDCIb0Io27OWdyIEaxLNCEL
+Using OAuth strategy: googleauth:3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Available strategies: [
+  'session',
+  'googleauth:3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev',
+  'googleauth:tradesbook.ie',
+  'googleauth:localhost'
+]
+About to call passport.authenticate for login...
+7:42:18 PM [express] GET /api/login 302 in 177ms
+Callback request from hostname: 3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Callback query params: {
+  code: '4/0AVMBsJiE3rce4sbm4YagGQjMoiic6YSqJp4f6oWNyXP0wFSdOTjTIM_N8w73tpJLYGNNFQ',
+  scope: 'email profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid',
+  authuser: '0',
+  prompt: 'none'
+}
+Using callback strategy: googleauth:3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Starting OAuth verification process
+User claims: { sub: '107198246226937517255', email: 'jude.okun@gmail.com' }
+Intended role for user: customer
+Auth action: login
+OAuth verification failed: error: value "107198246226937510000" is out of range for type integer
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getUser (/home/runner/workspace/server/storage.ts:355:20)
+    at async upsertUser (/home/runner/workspace/server/replitAuth.ts:82:24)
+    at async Strategy.verify (/home/runner/workspace/server/replitAuth.ts:230:28) {
+  length: 164,
+  severity: 'ERROR',
+  code: '22003',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'numutils.c',
+  line: '611',
+  routine: 'pg_strtoint32_safe'
+}
+Passport authentication error: error: value "107198246226937510000" is out of range for type integer
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getUser (/home/runner/workspace/server/storage.ts:355:20)
+    at async upsertUser (/home/runner/workspace/server/replitAuth.ts:82:24)
+    at async Strategy.verify (/home/runner/workspace/server/replitAuth.ts:230:28) {
+  length: 164,
+  severity: 'ERROR',
+  code: '22003',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'numutils.c',
+  line: '611',
+  routine: 'pg_strtoint32_safe'
+}
+7:42:21 PM [express] GET /api/callback 302 in 248ms
+GET /api/auth/user - Session ID: NLReqsQrRKDCIb0Io27OWdyIEaxLNCEL
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-08-19T19:42:18.710Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: false
+  },
+  authAction: 'login',
+  intendedRole: 'customer',
+  'accounts.google.com': { code_verifier: 'Yrtz8wTNbXFUvIMlk_a6mpE9iAICBTpZ02IWuI1MDLc' }
+}
+7:42:28 PM [express] GET /api/installers/profile 401 in 115ms :: {"error":"Not authenticated"}
+7:42:28 PM [express] GET /api/auth/user 401 in 115ms :: {"message":"Unauthorized"}
+7:42:28 PM [express] GET /api/service-tiers 304 in 174ms :: [{"id":1,"key":"table-top-small","name":…
+7:42:28 PM [express] GET /api/reviews 304 in 171ms :: []
+7:42:29 PM [express] GET /api/installers 304 in 399ms :: [{"id":11,"businessName":"Tradesbook.ie","s…
+GET /api/auth/user - Session ID: NLReqsQrRKDCIb0Io27OWdyIEaxLNCEL
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-08-19T19:42:18.710Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: false
+  },
+  authAction: 'login',
+  intendedRole: 'customer',
+  'accounts.google.com': { code_verifier: 'Yrtz8wTNbXFUvIMlk_a6mpE9iAICBTpZ02IWuI1MDLc' }
+}
+7:42:52 PM [express] GET /api/auth/user 401 in 115ms :: {"message":"Unauthorized"}
+7:42:52 PM [express] GET /api/installers/profile 401 in 119ms :: {"error":"Not authenticated"}
+7:42:53 PM [express] GET /api/reviews 304 in 173ms :: []
+7:42:53 PM [express] GET /api/service-tiers 304 in 174ms :: [{"id":1,"key":"table-top-small","name":…
+7:42:53 PM [express] GET /api/installers 304 in 404ms :: [{"id":11,"businessName":"Tradesbook.ie","s…
+=== OAUTH LOGIN REQUEST START ===
+Login request from hostname: 3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Login query params: {}
+Current user: undefined
+Is authenticated: false
+Session ID: NLReqsQrRKDCIb0Io27OWdyIEaxLNCEL
+Using OAuth strategy: googleauth:3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Available strategies: [
+  'session',
+  'googleauth:3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev',
+  'googleauth:tradesbook.ie',
+  'googleauth:localhost'
+]
+About to call passport.authenticate for login...
+7:43:01 PM [express] GET /api/login 302 in 177ms
+Callback request from hostname: 3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Callback query params: {
+  code: '4/0AVMBsJjfc5SmWKmC84yCSXRSHsCTLNX5pCsq2tQpg0Z9WcniQyaVcmsztj4-sGd2d4HscA',
+  scope: 'email profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid',
+  authuser: '0',
+  prompt: 'none'
+}
+Using callback strategy: googleauth:3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Starting OAuth verification process
+User claims: { sub: '107198246226937517255', email: 'jude.okun@gmail.com' }
+Intended role for user: customer
+Auth action: login
+OAuth verification failed: error: value "107198246226937510000" is out of range for type integer
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getUser (/home/runner/workspace/server/storage.ts:355:20)
+    at async upsertUser (/home/runner/workspace/server/replitAuth.ts:82:24)
+    at async Strategy.verify (/home/runner/workspace/server/replitAuth.ts:230:28) {
+  length: 164,
+  severity: 'ERROR',
+  code: '22003',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'numutils.c',
+  line: '611',
+  routine: 'pg_strtoint32_safe'
+}
+Passport authentication error: error: value "107198246226937510000" is out of range for type integer
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getUser (/home/runner/workspace/server/storage.ts:355:20)
+    at async upsertUser (/home/runner/workspace/server/replitAuth.ts:82:24)
+    at async Strategy.verify (/home/runner/workspace/server/replitAuth.ts:230:28) {
+  length: 164,
+  severity: 'ERROR',
+  code: '22003',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: "unnamed portal parameter $1 = '...'",
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'numutils.c',
+  line: '611',
+  routine: 'pg_strtoint32_safe'
+}
+7:43:04 PM [express] GET /api/callback 302 in 242ms
+GET /api/auth/user - Session ID: NLReqsQrRKDCIb0Io27OWdyIEaxLNCEL
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-08-19T19:43:01.430Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: false
+  },
+  authAction: 'login',
+  intendedRole: 'customer',
+  'accounts.google.com': { code_verifier: '0fU4B4KKAcXSD4cvevGQ1q8x-GQ2EluQGl5Ox2t0ioE' }
+}
+7:43:12 PM [express] GET /api/auth/user 401 in 118ms :: {"message":"Unauthorized"}
+7:43:12 PM [express] GET /api/installers/profile 401 in 126ms :: {"error":"Not authenticated"}
+7:43:12 PM [express] GET /api/service-tiers 304 in 181ms :: [{"id":1,"key":"table-top-small","name":…
+7:43:12 PM [express] GET /api/reviews 304 in 475ms :: []
+7:43:12 PM [express] GET /api/installers 304 in 405ms :: [{"id":11,"businessName":"Tradesbook.ie","s…

@@ -249,12 +249,12 @@ export interface IStorage {
   getAllManipulationRecords(): Promise<AntiManipulation[]>;
 
   // Password reset operations
-  createPasswordResetToken(userId: number, tokenHash: string, expiresAt: Date, userType: 'customer' | 'installer'): Promise<PasswordResetToken>;
+  createPasswordResetToken(userId: string | number, tokenHash: string, expiresAt: Date, userType: 'customer' | 'installer'): Promise<PasswordResetToken>;
   getPasswordResetToken(tokenHash: string, userType: 'customer' | 'installer'): Promise<PasswordResetToken | undefined>;
   markPasswordResetTokenAsUsed(tokenHash: string): Promise<void>;
   deletePasswordResetToken(tokenHash: string): Promise<void>;
   deleteExpiredPasswordResetTokens(): Promise<void>;
-  updateUserPassword(userId: number, newPasswordHash: string): Promise<void>;
+  updateUserPassword(userId: string | number, newPasswordHash: string): Promise<void>;
   updateInstallerPassword(userId: number, newPasswordHash: string): Promise<void>;
 
   // TV Setup booking operations
@@ -1702,9 +1702,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Password reset operations
-  async createPasswordResetToken(userId: number, tokenHash: string, expiresAt: Date, userType: 'customer' | 'installer'): Promise<PasswordResetToken> {
+  async createPasswordResetToken(userId: string | number, tokenHash: string, expiresAt: Date, userType: 'customer' | 'installer'): Promise<PasswordResetToken> {
     const [token] = await db.insert(passwordResetTokens).values({
-      userId,
+      userId: typeof userId === 'string' ? parseInt(userId) : userId,
       tokenHash,
       expiresAt,
       userType,
@@ -1746,13 +1746,13 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
-  async updateUserPassword(userId: number, newPasswordHash: string): Promise<void> {
+  async updateUserPassword(userId: string | number, newPasswordHash: string): Promise<void> {
     await db.update(users)
       .set({ 
         passwordHash: newPasswordHash,
         updatedAt: new Date()
       })
-      .where(eq(users.id, userId.toString()));
+      .where(eq(users.id, typeof userId === 'number' ? userId.toString() : userId));
   }
 
   async updateInstallerPassword(userId: number, newPasswordHash: string): Promise<void> {

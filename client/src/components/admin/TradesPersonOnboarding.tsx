@@ -293,9 +293,21 @@ export default function TradesPersonOnboarding() {
         description: "Your personalized email template has been created successfully.",
       });
     } catch (error) {
+      console.error('Error generating AI template:', error);
+      
+      // Get detailed error message
+      let errorMessage = "Failed to generate AI template. Please try again.";
+      if (error && typeof error === 'object') {
+        if ('message' in error) {
+          errorMessage = (error as any).message;
+        } else if ('error' in error) {
+          errorMessage = (error as any).error;
+        }
+      }
+      
       toast({
-        title: "Generation Failed",
-        description: "Failed to generate AI template. Please try again.",
+        title: "Generation Failed", 
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -319,9 +331,21 @@ export default function TradesPersonOnboarding() {
         description: `${tradeSkill} template has been loaded successfully.`,
       });
     } catch (error) {
+      console.error('Error loading preset template:', error);
+      
+      // Get detailed error message
+      let errorMessage = "Failed to load preset template. Please try again.";
+      if (error && typeof error === 'object') {
+        if ('message' in error) {
+          errorMessage = (error as any).message;
+        } else if ('error' in error) {
+          errorMessage = (error as any).error;
+        }
+      }
+      
       toast({
         title: "Load Failed",
-        description: "Failed to load preset template. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     }

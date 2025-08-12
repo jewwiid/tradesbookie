@@ -1,0 +1,118 @@
+=== OAUTH LOGIN REQUEST START ===
+Login request from hostname: 3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Login query params: {}
+Current user: undefined
+Is authenticated: false
+Session ID: NLReqsQrRKDCIb0Io27OWdyIEaxLNCEL
+Using OAuth strategy: googleauth:3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Available strategies: [
+  'session',
+  'googleauth:3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev',
+  'googleauth:tradesbook.ie',
+  'googleauth:localhost'
+]
+About to call passport.authenticate for login...
+express deprecated req.host: Use req.hostname instead file:/home/runner/workspace/node_modules/openid-client/build/passport.js:224:49
+7:49:37 PM [express] GET /api/login 302 in 550ms
+Callback request from hostname: 3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Callback query params: {
+  code: '4/0AVMBsJiGF0ww1Iv0j1GUIGd1jDcmSi5yTj1-J8i35XBJ9GsxEGINgiyDOPssisoyHICbTg',
+  scope: 'email profile openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+  authuser: '0',
+  prompt: 'none'
+}
+Using callback strategy: googleauth:3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev
+Starting OAuth verification process
+User claims: { sub: '107198246226937517255', email: 'jude.okun@gmail.com' }
+Intended role for user: customer
+Auth action: login
+User attempted login but account doesn't exist, creating new account: jude.okun@gmail.com
+Creating new customer user via OAuth: jude.okun@gmail.com
+OAuth verification failed: error: duplicate key value violates unique constraint "users_email_key"
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.upsertUser (/home/runner/workspace/server/storage.ts:384:20)
+    at async upsertUser (/home/runner/workspace/server/replitAuth.ts:131:5)
+    at async Strategy.verify (/home/runner/workspace/server/replitAuth.ts:230:28) {
+  length: 211,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (email)=(jude.okun@gmail.com) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'users',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'users_email_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+Passport authentication error: error: duplicate key value violates unique constraint "users_email_key"
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.upsertUser (/home/runner/workspace/server/storage.ts:384:20)
+    at async upsertUser (/home/runner/workspace/server/replitAuth.ts:131:5)
+    at async Strategy.verify (/home/runner/workspace/server/replitAuth.ts:230:28) {
+  length: 211,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (email)=(jude.okun@gmail.com) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'users',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'users_email_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+7:49:39 PM [express] GET /api/callback 302 in 316ms
+GET /api/auth/user - Session ID: NLReqsQrRKDCIb0Io27OWdyIEaxLNCEL
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-08-19T19:49:37.145Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: false
+  },
+  authAction: 'login',
+  intendedRole: 'customer',
+  'accounts.google.com': { code_verifier: '3ovj92npTBgQ9l6tVZ7DHVSvfIrCQvG16T9CeKWfqI8' }
+}
+7:49:47 PM [express] GET /api/auth/user 401 in 115ms :: {"message":"Unauthorized"}
+7:49:47 PM [express] GET /api/installers/profile 401 in 114ms :: {"error":"Not authenticated"}
+7:49:48 PM [express] GET /api/reviews 304 in 174ms :: []
+7:49:48 PM [express] GET /api/service-tiers 304 in 182ms :: [{"id":1,"key":"table-top-small","name":…
+7:49:48 PM [express] GET /api/installers 304 in 413ms :: [{"id":11,"businessName":"Tradesbook.ie","s…
+GET /api/auth/user - Session ID: sST-jjuEsNhVpsU2OCcJHJ9Oh92HiRYb
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-08-19T19:50:59.687Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: false
+  }
+}
+7:50:59 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Unauthorized"}
+7:50:59 PM [express] GET /api/installers/profile 401 in 1ms :: {"error":"Not authenticated"}
+7:51:00 PM [express] GET /api/service-tiers 304 in 372ms :: [{"id":1,"key":"table-top-small","name":…
+7:51:00 PM [express] GET /api/reviews 304 in 383ms :: []
+7:51:00 PM [express] GET /api/installers 304 in 605ms :: [{"id":11,"businessName":"Tradesbook.ie","s…

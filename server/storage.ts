@@ -381,6 +381,24 @@ export class DatabaseStorage implements IStorage {
       role: isAdminEmail ? 'admin' : 'customer',
     };
 
+    // Check if user exists by email first (for OAuth migration)
+    const existingUserByEmail = await this.getUserByEmail(userData.email);
+    
+    if (existingUserByEmail) {
+      // Update existing user with new OAuth ID and data
+      const [user] = await db
+        .update(users)
+        .set({
+          id: userDataWithRole.id, // Update to Google OAuth ID
+          ...userDataWithRole,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.email, userData.email))
+        .returning();
+      return user;
+    }
+
+    // Create new user if doesn't exist
     const [user] = await db
       .insert(users)
       .values(userDataWithRole)

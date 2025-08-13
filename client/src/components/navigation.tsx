@@ -5,7 +5,8 @@ import { useInstallerAuth } from '@/hooks/useInstallerAuth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
-import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X, Wrench, FileText, MessageCircle } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tv, Menu, Home, Calendar, Settings, User, Shield, MapPin, LogIn, UserPlus, X, Wrench, FileText, MessageCircle, ChevronDown } from 'lucide-react';
 import SimplifiedAuthDialog from './SimplifiedAuthDialog';
 
 interface NavigationProps {
@@ -55,12 +56,36 @@ export default function Navigation({ isInstallerContext = false, installerProfil
               <div className="hidden md:flex items-center justify-start flex-1">
                 {!isAdmin && !isInstallerContext && (
                   <div className="flex items-center space-x-6">
-                    <Link 
-                      href="/tv-installation" 
-                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      TV Installation
-                    </Link>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5 flex items-center gap-1">
+                          Services
+                          <ChevronDown className="h-4 w-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-56">
+                        <DropdownMenuItem asChild>
+                          <Link href="/tv-installation" className="flex items-center gap-2 px-3 py-2 text-sm">
+                            <Tv className="h-4 w-4" />
+                            TV Installation
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="#" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
+                            <Shield className="h-4 w-4" />
+                            Smart Home Setup
+                            <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded">Coming Soon</span>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="#" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 cursor-not-allowed">
+                            <Wrench className="h-4 w-4" />
+                            General Installation
+                            <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded">Coming Soon</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Link 
                       href="/how-it-works" 
                       className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
@@ -230,43 +255,69 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                     {/* Navigation Links */}
                     <div className="flex-1 py-4 overflow-y-auto">
                       {!isAdmin && !currentlyInstallerAuthenticated && (
-                        <div className="space-y-2 px-4">
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">
-                            Navigation
+                        <>
+                          <div className="space-y-2 px-4">
+                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">
+                              Services
+                            </div>
+                            <Link 
+                              href="/tv-installation" 
+                              className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              <Tv className="h-5 w-5 mr-4 flex-shrink-0" />
+                              TV Installation
+                            </Link>
+                            <div className="flex items-center py-4 px-4 text-gray-400 cursor-not-allowed rounded-lg text-base min-h-[48px]">
+                              <Shield className="h-5 w-5 mr-4 flex-shrink-0" />
+                              Smart Home Setup
+                              <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded">Coming Soon</span>
+                            </div>
+                            <div className="flex items-center py-4 px-4 text-gray-400 cursor-not-allowed rounded-lg text-base min-h-[48px]">
+                              <Wrench className="h-5 w-5 mr-4 flex-shrink-0" />
+                              General Installation
+                              <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded">Coming Soon</span>
+                            </div>
                           </div>
-                          <Link 
-                            href="/how-it-works" 
-                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <Home className="h-5 w-5 mr-4 flex-shrink-0" />
-                            How it Works
-                          </Link>
-                          <Link 
-                            href="/resources" 
-                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <FileText className="h-5 w-5 mr-4 flex-shrink-0" />
-                            Resources
-                          </Link>
-                          <Link 
-                            href="/booking-tracker" 
-                            className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <Calendar className="h-5 w-5 mr-4 flex-shrink-0" />
-                            Track Booking
-                          </Link>
-                          <Link 
-                            href="/ai-help" 
-                            className="flex items-center py-4 px-4 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors text-base min-h-[48px] font-medium"
-                            onClick={() => setMobileMenuOpen(false)}
-                          >
-                            <MessageCircle className="h-5 w-5 mr-4 flex-shrink-0" />
-                            AI Help Assistant
-                          </Link>
-                        </div>
+                          
+                          <div className="space-y-2 px-4 mt-6">
+                            <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">
+                              Navigation
+                            </div>
+                            <Link 
+                              href="/how-it-works" 
+                              className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              <Home className="h-5 w-5 mr-4 flex-shrink-0" />
+                              How it Works
+                            </Link>
+                            <Link 
+                              href="/resources" 
+                              className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              <FileText className="h-5 w-5 mr-4 flex-shrink-0" />
+                              Resources
+                            </Link>
+                            <Link 
+                              href="/booking-tracker" 
+                              className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              <Calendar className="h-5 w-5 mr-4 flex-shrink-0" />
+                              Track Booking
+                            </Link>
+                            <Link 
+                              href="/ai-help" 
+                              className="flex items-center py-4 px-4 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors text-base min-h-[48px] font-medium"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              <MessageCircle className="h-5 w-5 mr-4 flex-shrink-0" />
+                              AI Help Assistant
+                            </Link>
+                          </div>
+                        </>
                       )}
 
                       {/* Admin Section */}

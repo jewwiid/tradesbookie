@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, ExternalLink, Star, Shield, Gift, Info, FileText, BookOpen } from "lucide-react";
+import { Plus, Edit, Trash2, ExternalLink, Star, Shield, Gift, Info, FileText, BookOpen, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -77,6 +77,7 @@ export default function ResourcesManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [deleteResourceId, setDeleteResourceId] = useState<number | null>(null);
+  const [aiUrl, setAiUrl] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -174,6 +175,35 @@ export default function ResourcesManagement() {
     },
   });
 
+  // AI Content Generation mutation
+  const generateAIContentMutation = useMutation({
+    mutationFn: (url: string) => apiRequest("POST", "/api/admin/resources/generate-content", { url }),
+    onSuccess: (data: any) => {
+      const generatedContent = data.data;
+      setFormData(prev => ({
+        ...prev,
+        title: generatedContent.title,
+        description: generatedContent.description,
+        content: generatedContent.content,
+        category: generatedContent.category,
+        type: generatedContent.type,
+        externalUrl: aiUrl, // Set the URL that was used for generation
+      }));
+      setAiUrl(""); // Clear the AI URL input
+      toast({ 
+        title: "Content generated successfully", 
+        description: "AI has filled in the title, description, and content fields"
+      });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error generating content", 
+        description: error.message || "Failed to generate content from URL",
+        variant: "destructive" 
+      });
+    },
+  });
+
   const resetForm = () => {
     setFormData({
       title: "",
@@ -192,6 +222,32 @@ export default function ResourcesManagement() {
       tags: [],
       isActive: true,
     });
+    setAiUrl("");
+  };
+
+  const handleGenerateAIContent = () => {
+    if (!aiUrl.trim()) {
+      toast({ 
+        title: "URL required", 
+        description: "Please enter a URL to generate content from",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Basic URL validation
+    try {
+      new URL(aiUrl);
+    } catch {
+      toast({ 
+        title: "Invalid URL", 
+        description: "Please enter a valid URL (e.g., https://example.com)",
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    generateAIContentMutation.mutate(aiUrl);
   };
 
   const handleEdit = (resource: Resource) => {
@@ -274,6 +330,51 @@ export default function ResourcesManagement() {
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* AI Content Generation Section */}
+              {!editingResource && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="h-5 w-5 text-blue-600" />
+                    <h4 className="font-medium text-blue-900">AI Content Generation</h4>
+                  </div>
+                  <p className="text-sm text-blue-700 mb-3">
+                    Paste a URL below and let AI automatically fill in the title, description, and content fields.
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="https://example.com/article-or-guide"
+                      value={aiUrl}
+                      onChange={(e) => setAiUrl(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleGenerateAIContent}
+                      disabled={generateAIContentMutation.isPending}
+                      className="shrink-0"
+                    >
+                      {generateAIContentMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Generate
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {generateAIContentMutation.isPending && (
+                    <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Analyzing content and generating fields...
+                    </p>
+                  )}
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title *</Label>

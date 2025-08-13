@@ -41,6 +41,7 @@ import { getProductInfo } from "./productInfoService";
 import { analyzeProductCare } from "./productCareAnalysisService";
 import { QRCodeService } from "./qrCodeService";
 import { generateEmailTemplate, getPresetTemplate, getAllPresetTemplates } from "./aiEmailTemplateService";
+import { AIContentService } from "./services/aiContentService";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -8945,6 +8946,38 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Error fetching admin resources:", error);
       res.status(500).json({ message: "Failed to fetch resources" });
+    }
+  });
+
+  // AI Content Generation for Resources (admin only)
+  app.post("/api/admin/resources/generate-content", isAdmin, async (req, res) => {
+    try {
+      const { url } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({ message: "URL is required" });
+      }
+
+      // Validate URL format
+      try {
+        new URL(url);
+      } catch {
+        return res.status(400).json({ message: "Invalid URL format" });
+      }
+
+      console.log(`Generating AI content for URL: ${url}`);
+      const generatedContent = await AIContentService.generateContentFromUrl(url);
+      
+      res.json({
+        success: true,
+        data: generatedContent
+      });
+    } catch (error) {
+      console.error("Error generating AI content:", error);
+      res.status(500).json({ 
+        success: false,
+        message: error.message || "Failed to generate content from URL" 
+      });
     }
   });
 

@@ -36,7 +36,49 @@ The application employs a modern full-stack architecture with AI-enhanced featur
 - **Graceful Degradation:** The AI Product Care feature includes fallback mechanisms to static content if AI analysis fails.
 
 ## External Dependencies
-- **OpenAI GPT-4o:** Used for AI-powered personalized email template generation and comprehensive product care analysis.
+- **OpenAI GPT-4o:** Used for AI-powered personalized email template generation, comprehensive product care analysis, and automated resource content generation from URLs.
 - **Perplexity API:** Integrated for detailed product data retrieval within the Product Information Service.
 - **Google OAuth:** Utilized for secure user authentication.
 - **Gmail Service:** Configured for sending password reset emails.
+
+## Recent Changes (August 2025)
+
+### AI-Powered Content Generation (August 2025)
+- **New Feature**: Integrated GPT-4o AI content generation for Create New Resource module
+  - **Functionality**: Admin users can paste any URL and AI automatically fills Title, Description, and Content fields
+  - **Implementation**:
+    - Created `AIContentService` with advanced web scraping and content analysis
+    - Added `/api/admin/resources/generate-content` endpoint with admin authentication
+    - Enhanced ResourcesManagement dialog with prominent AI generation UI
+    - Intelligent content categorization and type detection
+  - **User Experience**:
+    - Gradient blue interface with Sparkles icon for visual appeal
+    - Real-time loading states and comprehensive error handling
+    - Auto-populates External URL field with source link
+    - Only shows in Create mode (not Edit) to prevent overwriting existing content
+  - **Technical Features**:
+    - HTML content extraction and cleaning
+    - URL validation and error handling
+    - Category mapping (setup-guides, troubleshooting, video-tutorials, faqs, maintenance)
+    - Type detection (guide, faq, video, checklist, manual)
+    - Graceful fallback for failed generations
+  - **Status**: ✅ Fully implemented with GPT-4o integration
+
+### Admin Dashboard Consolidation (August 2025)
+- **Unified Resource Management Interface**: Successfully consolidated duplicate admin dashboard tabs for better user experience
+  - **Problem**: Three separate tabs ("General Resources", "TV Setup Help", "TV Setup") with overlapping functionality and different dialog forms
+  - **Solution**: 
+    - Consolidated "General Resources" and "TV Setup Help" into single "Resource Management" tab
+    - Renamed "TV Setup" to "TV Setup Bookings" for clarity
+    - Removed duplicate CustomerResourcesManagement component with simpler dialog forms
+    - Enhanced ResourcesManagement component now handles both CRUD operations and external link functionality
+  - **User Benefits**:
+    - Single comprehensive interface for all resource management
+    - Consistent dialog forms with full feature set (external URLs, brands, priorities, etc.)
+    - Reduced confusion from duplicate interfaces
+    - Better organization with clear separation between resource management and booking management
+  - **Technical Implementation**: 
+    - Fixed TypeScript errors in ResourcesManagement component
+    - Added comprehensive header explaining unified functionality
+    - Feature badges showing External Links, CRUD Operations, Content Management, Brand Specific capabilities
+  - **Status**: ✅ Complete consolidation with improved admin workflow

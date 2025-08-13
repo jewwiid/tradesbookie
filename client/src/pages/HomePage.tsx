@@ -5,7 +5,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ServiceTierCard from "@/components/ServiceTierCard";
-import { Tv, Camera, Calendar, Wrench, CheckCircle, Sparkles, Bolt, Sun, Home, Euro, Phone } from "lucide-react";
+import CollapsibleSection from "@/components/CollapsibleSection";
+import { Tv, Camera, Calendar, Wrench, CheckCircle, Sparkles, Bolt, Sun, Home, Euro, Phone, Shield, Clock, Users } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -129,28 +130,42 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="text-center lg:text-left">
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-                See Your TV on the Wall{" "}
+                Professional Trade Services{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                  Before You Book
+                  Made Simple
                 </span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Upload a photo of your room and our AI will show you exactly how your new TV will look mounted on your wall. Professional installation guaranteed.
+                Connect with certified tradespeople for professional installations. Get AI room previews, expert product recommendations, and guaranteed quality work.
               </p>
-              <Link href="/booking">
-                <Button size="lg" className="inline-flex items-center bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
-                  <Sparkles className="w-6 h-6 mr-3" />
-                  Start AI Preview
-                </Button>
-              </Link>
+              <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+                <Link href="/booking">
+                  <Button size="lg" className="inline-flex items-center bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-2xl text-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    AI Room Preview
+                  </Button>
+                </Link>
+                <Link href="/tv-setup-assist">
+                  <Button size="lg" variant="outline" className="inline-flex items-center px-6 py-3 rounded-2xl text-lg font-semibold border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-300">
+                    <Wrench className="w-5 h-5 mr-2" />
+                    TV Setup Help
+                  </Button>
+                </Link>
+                <Link href="/ai-help">
+                  <Button size="lg" variant="outline" className="inline-flex items-center px-6 py-3 rounded-2xl text-lg font-semibold border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white transition-all duration-300">
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    AI Product Helper
+                  </Button>
+                </Link>
+              </div>
               <div className="mt-8 flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500">
                 <div className="flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-                  AI Room Preview
+                  AI Technology
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
-                  Professional Install
+                  Certified Tradespeople
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
@@ -163,14 +178,14 @@ export default function HomePage() {
               <div className="relative w-full aspect-[3/2] rounded-3xl shadow-2xl overflow-hidden">
                 <img 
                   src="/attached_assets/2_1754160490051.png" 
-                  alt="Modern furnished living room ready for TV installation" 
+                  alt="Modern furnished living room ready for professional installation services" 
                   className="w-full h-full object-cover" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                 <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl p-4">
                   <div className="flex items-center space-x-3">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-medium text-gray-800">AI Preview Ready</span>
+                    <span className="text-sm font-medium text-gray-800">Services Available</span>
                   </div>
                 </div>
               </div>
@@ -179,152 +194,256 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Service Tiers Section */}
+      {/* Service Sections */}
       <section id="pricing" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Our Services Overview */}
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Choose Your Installation Service</h2>
-            <p className="text-xl text-gray-600 mb-4">Connect with certified installers for professional TV mounting services</p>
-            <div className="inline-flex items-center px-4 py-2 bg-green-50 border border-green-200 rounded-full">
-              <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-              <span className="text-green-800 font-medium">Free booking • Pay installer directly</span>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Our Services</h2>
+            <p className="text-xl text-gray-600">Professional installation services for your home</p>
+          </div>
+          
+          {/* Service Types Cards */}
+          <div className="grid md:grid-cols-3 gap-8 mb-12">
+            {/* TV Installation */}
+            <Link href="/booking">
+              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-primary/10">
+                    <Tv className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">TV Installation</h3>
+                  <p className="text-gray-600 mb-4">Professional mounting, setup, and cable management</p>
+                  <div className="text-sm text-primary font-medium">From €60</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* TV Setup Assistant */}
+            <Link href="/tv-setup-assist">
+              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-secondary/10">
+                    <Sparkles className="h-8 w-8 text-secondary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">TV Setup Assistant</h3>
+                  <p className="text-gray-600 mb-4">Smart configuration and app installation service</p>
+                  <div className="text-sm text-secondary font-medium">From €30</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* AI Product Helper */}
+            <Link href="/ai-help">
+              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-green-100">
+                    <Sparkles className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Product Helper</h3>
+                  <p className="text-gray-600 mb-4">Find the perfect TV and products for your needs</p>
+                  <div className="text-sm text-green-600 font-medium">Free</div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+
+          {/* Collapsible TV Installation Options */}
+          <CollapsibleSection 
+            title="TV Installation Options" 
+            subtitle="Connect with certified installers for professional TV mounting services"
+            className="mb-12"
+          >
+            <div className="mb-8">
+              <div className="inline-flex items-center px-4 py-2 bg-green-50 border border-green-200 rounded-full mx-auto">
+                <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+                <span className="text-green-800 font-medium">Free booking • Pay installer directly</span>
+              </div>
             </div>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {/* Table Mount Small */}
-            <Card className="relative hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100 rounded-lg border">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
-                    <Tv className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Table Mount</h3>
-                  <p className="text-gray-600 mb-4">Basic table setup for TVs up to 43"</p>
-                  
-                  <div className="text-center mb-4">
-                    <div className="text-2xl font-bold text-blue-600 mb-1">From €60</div>
-                    <div className="text-sm text-gray-500">Estimated cost</div>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div>✓ Basic table setup</div>
-                    <div>✓ WiFi connection included</div>
-                    <div>✓ Professional installer</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Bronze Wall Mount */}
-            <Card className="relative hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100 rounded-lg border">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
-                    <Home className="h-6 w-6 text-amber-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Bronze Mount</h3>
-                  <p className="text-gray-600 mb-4">Wall mounting for most TV sizes</p>
-                  
-                  <div className="text-center mb-4">
-                    <div className="text-2xl font-bold text-amber-600 mb-1">From €120</div>
-                    <div className="text-sm text-gray-500">Estimated cost</div>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div>✓ Professional wall mount</div>
-                    <div>✓ Cable management</div>
-                    <div>✓ WiFi setup included</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Silver Premium */}
-            <Card className="relative hover:shadow-lg transition-all duration-300">
-              <Badge className="absolute -top-3 right-4 bg-primary text-white">
-                Popular
-              </Badge>
-              <CardContent className="p-6 bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200 rounded-lg border">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
-                    <CheckCircle className="h-6 w-6 text-gray-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Silver Premium</h3>
-                  <p className="text-gray-600 mb-4">Premium installation with extras</p>
-                  
-                  <div className="text-center mb-4">
-                    <div className="text-2xl font-bold text-gray-600 mb-1">From €180</div>
-                    <div className="text-sm text-gray-500">Estimated cost</div>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div>✓ Premium wall mount</div>
-                    <div>✓ Full cable concealment</div>
-                    <div>✓ Smart TV setup</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Gold Premium Large */}
-            <Card className="relative hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200 rounded-lg border">
-                <div className="text-center">
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
-                    <Sparkles className="h-6 w-6 text-yellow-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Gold Premium</h3>
-                  <p className="text-gray-600 mb-4">Ultimate installation experience</p>
-                  
-                  <div className="text-center mb-4">
-                    <div className="text-2xl font-bold text-yellow-600 mb-1">From €380</div>
-                    <div className="text-sm text-gray-500">Estimated cost</div>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div>✓ Premium large TV mount</div>
-                    <div>✓ Complete home theater</div>
-                    <div>✓ Soundbar installation</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="text-center">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 max-w-4xl mx-auto">
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0">
-                  <Euro className="w-8 h-8 text-blue-600" />
-                </div>
-                <div className="text-left">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-2">How Our New Pricing Works</h3>
-                  <div className="grid md:grid-cols-3 gap-4 text-sm text-blue-800">
-                    <div>
-                      <div className="font-medium mb-1">1. Book for Free</div>
-                      <div>Create your installation request with no upfront cost</div>
+            
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {/* Table Mount Small */}
+              <Card className="relative hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100 rounded-lg border">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
+                      <Tv className="h-6 w-6 text-blue-600" />
                     </div>
-                    <div>
-                      <div className="font-medium mb-1">2. Get Matched</div>
-                      <div>Local certified installers bid on your project</div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Table Mount</h3>
+                    <p className="text-gray-600 mb-4">Basic table setup for TVs up to 43"</p>
+                    
+                    <div className="text-center mb-4">
+                      <div className="text-2xl font-bold text-blue-600 mb-1">From €60</div>
+                      <div className="text-sm text-gray-500">Estimated cost</div>
                     </div>
-                    <div>
-                      <div className="font-medium mb-1">3. Pay Installer</div>
-                      <div>Pay your chosen installer directly when job is complete</div>
+                    
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div>✓ Basic table setup</div>
+                      <div>✓ WiFi connection included</div>
+                      <div>✓ Professional installer</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Bronze Wall Mount */}
+              <Card className="relative hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100 rounded-lg border">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
+                      <Home className="h-6 w-6 text-amber-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Bronze Mount</h3>
+                    <p className="text-gray-600 mb-4">Wall mounting for most TV sizes</p>
+                    
+                    <div className="text-center mb-4">
+                      <div className="text-2xl font-bold text-amber-600 mb-1">From €120</div>
+                      <div className="text-sm text-gray-500">Estimated cost</div>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div>✓ Professional wall mount</div>
+                      <div>✓ Cable management</div>
+                      <div>✓ WiFi setup included</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Silver Premium */}
+              <Card className="relative hover:shadow-lg transition-all duration-300">
+                <Badge className="absolute -top-3 right-4 bg-primary text-white">
+                  Popular
+                </Badge>
+                <CardContent className="p-6 bg-gradient-to-br from-gray-50 to-slate-50 border-gray-200 rounded-lg border">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
+                      <CheckCircle className="h-6 w-6 text-gray-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Silver Premium</h3>
+                    <p className="text-gray-600 mb-4">Premium installation with extras</p>
+                    
+                    <div className="text-center mb-4">
+                      <div className="text-2xl font-bold text-gray-600 mb-1">From €180</div>
+                      <div className="text-sm text-gray-500">Estimated cost</div>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div>✓ Premium wall mount</div>
+                      <div>✓ Full cable concealment</div>
+                      <div>✓ Smart TV setup</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Gold Premium Large */}
+              <Card className="relative hover:shadow-lg transition-all duration-300">
+                <CardContent className="p-6 bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-200 rounded-lg border">
+                  <div className="text-center">
+                    <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-white/50">
+                      <Sparkles className="h-6 w-6 text-yellow-600" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Gold Premium</h3>
+                    <p className="text-gray-600 mb-4">Ultimate installation experience</p>
+                    
+                    <div className="text-center mb-4">
+                      <div className="text-2xl font-bold text-yellow-600 mb-1">From €380</div>
+                      <div className="text-sm text-gray-500">Estimated cost</div>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div>✓ Premium large TV mount</div>
+                      <div>✓ Complete home theater</div>
+                      <div>✓ Soundbar installation</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+            
+            <div className="text-center">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8 max-w-4xl mx-auto">
+                <div className="flex items-start space-x-4">
+                  <div className="flex-shrink-0">
+                    <Euro className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-semibold text-blue-900 mb-2">How Our Pricing Works</h3>
+                    <div className="grid md:grid-cols-3 gap-4 text-sm text-blue-800">
+                      <div>
+                        <div className="font-medium mb-1">1. Book for Free</div>
+                        <div>Create your installation request with no upfront cost</div>
+                      </div>
+                      <div>
+                        <div className="font-medium mb-1">2. Get Matched</div>
+                        <div>Local certified installers bid on your project</div>
+                      </div>
+                      <div>
+                        <div className="font-medium mb-1">3. Pay Installer</div>
+                        <div>Pay your chosen installer directly when job is complete</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+              
+              <Link href="/booking">
+                <Button size="lg" className="bg-primary hover:bg-primary/90">
+                  Start Free Booking
+                  <Camera className="ml-2 w-5 h-5" />
+                </Button>
+              </Link>
             </div>
-            
-            <Link href="/booking">
-              <Button size="lg" className="bg-primary hover:bg-primary/90">
-                Start Free Booking
-                <Camera className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
+          </CollapsibleSection>
+
+          {/* Collapsible Why Choose Professional Installation */}
+          <CollapsibleSection 
+            title="Why Choose Professional Installation?" 
+            subtitle="Benefits of using certified installers vs DIY"
+            className="mb-12"
+          >
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-green-100">
+                  <Shield className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Safety & Expertise</h3>
+                <ul className="text-gray-600 space-y-2 text-left">
+                  <li>• Proper wall stud detection</li>
+                  <li>• Correct mounting hardware</li>
+                  <li>• Safety from wall damage</li>
+                  <li>• Insurance coverage</li>
+                </ul>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-blue-100">
+                  <Clock className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Time & Convenience</h3>
+                <ul className="text-gray-600 space-y-2 text-left">
+                  <li>• Quick professional setup</li>
+                  <li>• No tool purchases needed</li>
+                  <li>• Cable management included</li>
+                  <li>• Clean, finished look</li>
+                </ul>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-purple-100">
+                  <Users className="h-8 w-8 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Certified Network</h3>
+                <ul className="text-gray-600 space-y-2 text-left">
+                  <li>• Vetted professionals only</li>
+                  <li>• Quality guarantee</li>
+                  <li>• Customer reviews</li>
+                  <li>• Support after installation</li>
+                </ul>
+              </div>
+            </div>
+          </CollapsibleSection>
         </div>
       </section>
 

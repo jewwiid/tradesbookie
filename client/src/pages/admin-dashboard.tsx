@@ -6121,8 +6121,8 @@ export default function AdminDashboard() {
               <span>Email Templates</span>
             </TabsTrigger>
             <TabsTrigger value="resources" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
-              <Home className="w-4 h-4" />
-              <span>General Resources</span>
+              <BookOpen className="w-4 h-4" />
+              <span>Resource Management</span>
             </TabsTrigger>
             <TabsTrigger value="fraud-prevention" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Shield className="w-4 h-4" />
@@ -6134,11 +6134,7 @@ export default function AdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="tv-setup" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Tv className="w-4 h-4" />
-              <span>TV Setup</span>
-            </TabsTrigger>
-            <TabsTrigger value="customer-resources" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
-              <BookOpen className="w-4 h-4" />
-              <span>TV Setup Help</span>
+              <span>TV Setup Bookings</span>
             </TabsTrigger>
             <TabsTrigger value="downloadable-guides" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Upload className="w-4 h-4" />
@@ -6208,7 +6204,25 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="resources" className="space-y-6">
-            <ResourcesManagement />
+            <div className="space-y-6">
+              {/* Unified Resource Management Header */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <BookOpen className="w-5 h-5 mr-2" />
+                    Unified Resource Management
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Manage all customer resources including guides, tutorials, warranties, and TV setup help in one place. 
+                    Create resources with external links, upload downloadable content, and manage both CRUD operations and link functionality.
+                  </p>
+                </CardHeader>
+              </Card>
+              
+              {/* Resource Management Components */}
+              <ResourcesManagement />
+              <CustomerResourcesManagement />
+            </div>
           </TabsContent>
 
           <TabsContent value="fraud-prevention" className="space-y-6">
@@ -6221,10 +6235,6 @@ export default function AdminDashboard() {
 
           <TabsContent value="tv-setup" className="space-y-6">
             <TvSetupManagement />
-          </TabsContent>
-
-          <TabsContent value="customer-resources" className="space-y-6">
-            <CustomerResourcesManagement />
           </TabsContent>
 
           <TabsContent value="downloadable-guides" className="space-y-6">

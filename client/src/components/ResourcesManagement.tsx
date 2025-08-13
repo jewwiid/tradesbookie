@@ -76,6 +76,7 @@ const brandOptions = [
 export default function ResourcesManagement() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [deleteResourceId, setDeleteResourceId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -98,7 +99,7 @@ export default function ResourcesManagement() {
   const queryClient = useQueryClient();
 
   // Fetch all resources
-  const { data: resources, isLoading } = useQuery({
+  const { data: resources, isLoading } = useQuery<Resource[]>({
     queryKey: ["/api/admin/resources"],
   });
 
@@ -450,7 +451,7 @@ export default function ResourcesManagement() {
       </div>
 
       <div className="grid gap-4">
-        {resources?.map((resource: Resource) => (
+        {(resources || []).map((resource: Resource) => (
           <Card key={resource.id}>
             <CardHeader className="pb-3">
               <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
@@ -553,7 +554,7 @@ export default function ResourcesManagement() {
         ))}
       </div>
 
-      {(!resources || resources.length === 0) && (
+      {(!resources || (resources as Resource[]).length === 0) && (
         <Card>
           <CardContent className="text-center py-8">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />

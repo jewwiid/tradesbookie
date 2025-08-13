@@ -7,6 +7,7 @@ import * as schema from "@shared/schema";
 neonConfig.webSocketConstructor = ws;
 neonConfig.useSecureWebSocket = true;
 neonConfig.pipelineConnect = false;
+neonConfig.pipelineTLS = false;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -17,9 +18,9 @@ if (!process.env.DATABASE_URL) {
 // Create pool with proper configuration for serverless
 export const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  max: 1, // Reduce max connections for serverless
+  idleTimeoutMillis: 10000, // Reduce idle timeout
+  connectionTimeoutMillis: 5000, // Reduce connection timeout
 });
 
 export const db = drizzle({ client: pool, schema });
@@ -27,9 +28,11 @@ export const db = drizzle({ client: pool, schema });
 // Initialize database tables
 export async function initializeDatabase() {
   try {
-    // Test the connection first
+    // Test the connection first with a shorter timeout
     console.log("Testing database connection...");
-    await pool.query('SELECT 1');
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
     console.log("Database connection successful");
 
     // Use npm run db:push instead of manual table creation

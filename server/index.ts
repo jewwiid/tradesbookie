@@ -44,19 +44,20 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Initialize database tables
-  await initializeDatabase();
-  
-  // Create mock profiles for testing
   try {
-    await createMockProfiles();
-    await createTestInstallationData();
-  } catch (error) {
-    // Profiles might already exist, continue
-    console.log("Mock profiles setup:", error);
-  }
-  
-  const server = await registerRoutes(app);
+    // Initialize database tables
+    await initializeDatabase();
+    
+    // Create mock profiles for testing
+    try {
+      await createMockProfiles();
+      await createTestInstallationData();
+    } catch (error) {
+      // Profiles might already exist, continue
+      console.log("Mock profiles setup:", error);
+    }
+    
+    const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -79,11 +80,15 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${port}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
 })();

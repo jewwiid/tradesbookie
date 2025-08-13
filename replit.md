@@ -1,193 +1,7 @@
 # TV and Product Installation Referral Platform
 
 ## Overview
-A sophisticated TV and product installation referral platform that leverages intelligent technological solutions to connect service providers with customers through an advanced booking and lead management system.
-
-## Key Technologies
-- React.js with TypeScript frontend
-- Node.js backend with enhanced authentication
-- PostgreSQL database with Drizzle ORM
-- Tailwind CSS for responsive design
-- AI-powered personalized product recommendations
-- Advanced mobile-responsive UI
-- Comprehensive product category questionnaires
-- **NEW: AI-powered Product Care analysis with critical thinking**
-
-## Recent Changes (August 2025)
-
-### Admin Dashboard Duplicate Tabs Resolution (August 13, 2025)
-- **Fixed Critical UI Issue**: Resolved duplicate tabs showing identical content in admin dashboard
-  - **Issue**: "TV Setup Help" and "General Resources" tabs displayed the same customer resource management interface
-  - **Root Cause**: Duplicate resource management components (`ResourcesManagement` and `CustomerResourcesManagement`) both accessing same API endpoint
-  - **Solution**: 
-    - Removed duplicate "TV Setup Help" tab from admin dashboard interface
-    - Consolidated resource management to single "Customer Resources" tab using `ResourcesManagement` component
-    - Cleaned up corrupted duplicate code that caused compilation errors
-    - Rebuilt clean admin dashboard with proper component structure
-  - **Result**: Clean admin dashboard with distinct tabs:
-    - Overview: Dashboard metrics and quick actions
-    - Bookings: Booking management (stub)
-    - Customer Resources: Functional resource management
-    - TV Setup: Setup management (stub)
-    - Platform Settings: Settings management (stub)
-    - System: System management (stub)
-  - **Status**: ✅ Duplicate content issue resolved, application compiles and runs without errors
-
-### OAuth Authentication System Migration (August 2025)
-- **Critical Fix**: Resolved authentication failures by migrating from deprecated Replit OAuth to Google OAuth
-  - **Issue**: Replit deprecated their manual OIDC endpoint (`https://replit.com/oidc`) in favor of AI Agent-only "Replit Auth"
-  - **Solution**: Updated authentication system to use Google OAuth (`https://accounts.google.com`)
-  - **Changes Made**:
-    - Updated OIDC discovery endpoint in `server/replitAuth.ts`
-    - Changed all strategy names from `replitauth:*` to `googleauth:*`
-    - Removed deprecated `offline_access` scope
-    - Updated callback and route handlers throughout `server/routes.ts`
-  - **Business Benefit**: Stable, enterprise-grade authentication that won't break due to platform changes
-  - **Status**: ✅ Successfully tested - OAuth login now redirects properly to Google authentication
-
-### Password Reset System Verification (August 2025)
-- **Comprehensive Testing Completed**: Full password reset functionality verified and operational
-  - **Issues Fixed**:
-    - Created missing `password_reset_tokens` database table with proper schema
-    - Fixed user ID type mismatch between string (users) and integer (password reset tokens)
-    - Updated storage methods to handle both string and numeric user IDs
-    - Verified all API endpoints: `/request`, `/verify-token`, `/confirm`
-  - **Security Features Confirmed**:
-    - Tokens are properly hashed using SHA-256 before database storage
-    - 1-hour token expiration enforced
-    - No user existence disclosure (proper security practice)
-    - One-time token usage with proper cleanup
-  - **Email Integration**: Gmail service properly configured and functional for sending reset links
-  - **Frontend Components**: Both forgot-password.tsx and reset-password.tsx fully functional with proper error handling
-  - **Status**: ✅ Complete password reset flow tested and operational for both customer and installer accounts
-
-### AI-Powered Tradesperson Email Templates (August 2025)
-- **Enhanced Onboarding System**: Added AI-powered email template creation with comprehensive preset templates
-  - **AI Template Generation Service** (`server/aiEmailTemplateService.ts`):
-    - Uses GPT-4o to create personalized email templates for each trade skill
-    - Customizable tone (professional/friendly/persuasive) and focus (earnings/flexibility/skills/opportunity)
-    - Trade-specific context awareness with realistic earnings and skill relevance
-    - Smart variable integration ({{name}}, {{tradeSkill}}, {{invitationUrl}})
-  - **Preset Template Library**: 7 professionally crafted templates for each trade skill:
-    - Carpenter: Custom mounting and media center focus (€150-300/installation)
-    - Electrician: Smart TV wiring and electrical safety (€200-400/installation)
-    - Plumber: Drilling expertise and secure mounting (€120-250/installation)
-    - Joiner: Premium custom solutions and built-ins (€180-350/installation)
-    - Painter: Wall assessment and finishing work (€100-200/installation)
-    - General Handyman: Versatile all-round services (€150-280/installation)
-    - TV Specialist: Professional installation expertise (€200-450/installation)
-  - **Enhanced UI Features**:
-    - "Use AI" button for intelligent template generation
-    - AI Options panel with tone and focus customization
-    - Preset Templates browser with one-click loading
-    - Real-time generation with loading states and error handling
-  - **API Endpoints**: `/generate-ai-template`, `/preset-template/:skill`, `/preset-templates`
-  - **Status**: ✅ Fully operational with tested AI generation and preset template loading
-
-### Website Restructuring - TV Installation Landing Page (August 2025)
-- **Created Dedicated TV Installation Page** (`client/src/pages/tv-installation.tsx`):
-  - **Comprehensive service showcase** with all TV installation options (Table Top, Bronze, Silver, Gold, Platinum)
-  - **Enhanced user experience** with detailed service descriptions and transparent pricing
-  - **Professional value proposition** sections explaining why to choose professional installation
-  - **Step-by-step "How It Works"** process guide with visual elements
-  - **Call-to-action optimization** with multiple booking entry points
-  - **Responsive design** with mobile-first approach and professional styling
-  
-- **Homepage Restructuring** (`client/src/pages/Home.tsx`):
-  - **Removed TV installation sections** to reduce homepage clutter and improve focus
-  - **Created "Our Services" overview** section with TV Installation as primary service card
-  - **Updated navigation** with prominent "TV Installation" link in main menu
-  - **Maintained platform benefits** while directing TV-specific content to dedicated page
-  - **Improved user journey** from homepage exploration to specialized TV service booking
-  
-- **Navigation Enhancement** (`client/src/components/navigation.tsx`):
-  - **Added TV Installation link** prominently in main navigation menu
-  - **Improved service discoverability** with dedicated navigation path
-  - **Maintained consistent styling** with existing navigation components
-  
-- **Business Benefits**:
-  - **Cleaner homepage** focused on platform overview and multi-service potential
-  - **Dedicated conversion path** for TV installation services with improved SEO potential
-  - **Better user experience** with specialized content and reduced decision fatigue
-  - **Scalable architecture** ready for additional service-specific landing pages (Smart Home, General Installation)
-  
-- **Status**: ✅ Complete TV installation landing page with navigation integration and homepage restructuring
-
-**Technical Note**: While Replit offers their new "Replit Auth" system, it only works through AI Agent prompts and would require rebuilding the sophisticated multi-retailer user management system. Google OAuth provides better stability and maintains all existing functionality.
-
-### Platform Rebranding for Multi-Retailer Support (August 2025)
-- **Removed Harvey Norman Exclusivity**: Updated all customer-facing interfaces to use generic "Invoice" terminology
-  - Homepage card title changed from "Harvey Norman Invoice" to "Invoice"
-  - Authentication dialog updated from "Harvey Norman Customer" to "Invoice Customer"
-  - Removed hardcoded Harvey Norman store codes and locations from invoice input form
-  - Updated placeholder text and error messages to be retailer-agnostic
-  - Generic invoice format examples instead of specific store code mappings
-
-- **Database Schema Updates**:
-  - Renamed `harveyNormanInvoices` table to `retailerInvoices` for generic support
-  - Updated `users.harveyNormanInvoiceNumber` to `users.retailerInvoiceNumber`
-  - Changed schema comments to reference "retail partner" instead of specific retailer
-
-- **API Endpoints Generalized**:
-  - Updated routes from `/api/harvey-norman/*` to `/api/retail-partner/*`
-  - Generic referral code generation using "RT" prefix (Retail Trade) instead of "HN"
-  - Smart store code generation from any retailer name instead of hardcoded mappings
-
-- **Smart Retailer Detection System**: 
-  - **Created comprehensive retailer detection service** (`server/retailerDetectionService.ts`)
-  - **Supports major Irish electrical retailers**: Harvey Norman (HN), Currys (CR), DID Electrical (DD), Power City (PC), Argos (AR), Expert (EX)
-  - **Intelligent referral code parsing**: Automatically detects retailer from codes like HNCKMDOUG, CRDUBSARAH, DDGALMIKE, PCLIMJOHN
-  - **Invoice format recognition**: Handles multiple invoice formats per retailer (HN-CKM-123456, CR-DUB-789123, DID-987456, PWR-123789)
-  - **Dynamic store mapping**: Each retailer has configurable store locations and codes
-  - **Enhanced APIs**: `/api/retail-partner/detect`, `/api/retail-partner/retailers` for retailer information
-  - **Color-coded retailers**: Each retailer has brand colors for UI consistency
-
-- **Admin Dashboard Updates**:
-  - Removed hardcoded Harvey Norman store abbreviations
-  - Implemented dynamic store code generation for any electrical retailer
-  - Updated referral code prefixes to be retailer-agnostic
-  - Enhanced referral code display with retailer branding and store information
-
-**Business Benefit**: Platform can now be pitched to any electrical retailer in Ireland without exclusivity concerns. Booking system automatically recognizes retailer codes (HN=Harvey Norman, CR=Currys, DD=DID, PC=Power City, etc.) and provides retailer-specific branding and validation.
-
-### Enhanced Product Care Section with AI Analysis
-- **Created AI-powered Product Care Analysis Service** (`server/productCareAnalysisService.ts`)
-  - Uses GPT-4o to analyze products and generate exactly 4-6 comprehensive failure scenarios per product
-  - References updated Harvey Norman Product Care documentation for accurate coverage details
-  - Employs critical thinking to assess risk levels, potential costs, and how Product Care helps
-  - Considers Irish market context (power surges, humidity, repair costs)
-  - Generates multiple scenario types: electrical/electronic failures, mechanical wear, environmental damage, accidental damage, and category-specific issues
-  - **Enhanced reliability**: 3-attempt retry logic with strict JSON validation to eliminate fallback scenarios
-  - **Improved AI prompts**: Structured prompts ensuring consistent JSON responses
-  - **Better error handling**: Comprehensive logging and validation to catch issues early
-
-- **Enhanced ProductCareCarousel Component** (`client/src/pages/ai-help.tsx`)
-  - Displays multiple intelligent, product-specific risk scenarios with carousel navigation
-  - Shows likelihood ratings (High/Medium/Low) with appropriate risk indicators
-  - Provides detailed cost breakdown of potential issues vs Product Care coverage
-  - Includes personalized recommendations based on product analysis
-  - Enhanced error handling with bounds checking and fallback values
-  - Replaced "Get Protection Now" button with "Consider Adding Protection" text
-  - Added "Get AI Risk Analysis" button for on-demand analysis
-  - Multiple scenario support with proper slide navigation
-
-- **Added API Endpoint** (`/api/ai/product-care-analysis`)
-  - Accepts product information and optional user context
-  - Returns comprehensive risk assessment and scenarios
-  - Integrated with existing product information workflow
-
-### Key Features of AI Product Care Analysis
-- **Critical Scenario Analysis**: Identifies realistic product failure scenarios with likelihood assessments
-- **Cost-Benefit Analysis**: Shows potential savings vs coverage cost with specific monetary estimates
-- **Risk Assessment**: Evaluates overall risk level and primary risk factors
-- **Environmental Considerations**: Accounts for Irish climate and power conditions
-- **Personalized Recommendations**: Tailored advice based on product category and specifications
-
-### Integration Points
-- Works with existing Product Information lookup system
-- Enhances Product Recommendations section with intelligent care analysis
-- Compatible with Product Comparison tool results
-- Uses real Harvey Norman Product Care terms and conditions
+A sophisticated TV and product installation referral platform connecting service providers with customers through an advanced booking and lead management system. The platform aims to be a multi-retailer solution, moving beyond single-retailer exclusivity, to address the broader Irish electrical retail market. It leverages AI for personalized recommendations, product care analysis, and streamlined operational workflows, offering comprehensive service showcases and transparent pricing. The business vision is to provide a scalable architecture ready for additional service-specific landing pages and improved user journeys, positioning itself as a central hub for installation services.
 
 ## User Preferences
 - Focus on practical, actionable intelligence over generic information
@@ -195,26 +9,32 @@ A sophisticated TV and product installation referral platform that leverages int
 - Use critical thinking to identify genuine value propositions
 - Maintain professional, informative communication style
 
-## Project Architecture
-The application follows a modern full-stack architecture with AI-enhanced features:
+## System Architecture
+The application employs a modern full-stack architecture with AI-enhanced features, focusing on modularity and scalability.
 
-### Backend Services
-- **Product Care Analysis Service**: AI-powered risk assessment and scenario generation
-- **Product Information Service**: Perplexity API integration for detailed product data
-- **AI Services**: OpenAI GPT-4o integration for intelligent analysis
-- **Authentication**: Multiple methods including invoice-based login
-- **Database**: PostgreSQL with Drizzle ORM for data persistence
+**UI/UX Decisions:**
+- **Responsive Design:** Utilizes Tailwind CSS for a mobile-first approach and professional styling across all interfaces.
+- **Dedicated Landing Pages:** Creation of specialized service pages (e.g., TV Installation) to reduce homepage clutter, improve focus, and optimize conversion paths.
+- **Dynamic Content:** AI-powered carousels and information displays for personalized user experiences, with graceful degradation to static content if AI analysis fails.
+- **Retailer Branding:** Dynamic display of retailer-specific branding and store information based on intelligent detection.
 
-### Frontend Components  
-- **Enhanced Product Care Carousel**: Dynamic AI analysis with fallback static content
-- **Product Information Display**: Comprehensive product details and recommendations
-- **AI Help Assistant**: Multi-tab interface for product discovery and comparison
+**Technical Implementations:**
+- **Frontend:** React.js with TypeScript for robust and scalable UI development.
+- **Backend:** Node.js with enhanced authentication, supporting multiple authentication methods including invoice-based login.
+- **Database:** PostgreSQL with Drizzle ORM for data persistence, featuring schema designed for multi-retailer support.
+- **AI Integration:** OpenAI GPT-4o for intelligent analysis, email template generation, and comprehensive product care analysis. This includes critical scenario analysis, cost-benefit analysis, and personalized recommendations.
+- **Authentication System:** Migration to Google OAuth for stable, enterprise-grade authentication.
+- **Password Reset:** Comprehensive and secure password reset flow with token hashing, expiration, and email integration.
 
-### Key Improvements Made
-1. **Intelligence over Static Content**: Product care now uses AI analysis instead of hardcoded slides
-2. **Critical Thinking Implementation**: AI evaluates real product risks and provides reasoned recommendations  
-3. **User-Centric Design**: Shows relevant scenarios and costs specific to each product
-4. **Comprehensive Coverage**: References actual Harvey Norman Product Care terms and benefits
-5. **Graceful Degradation**: Falls back to static content if AI analysis fails
+**Feature Specifications & System Design Choices:**
+- **Multi-Retailer Support:** Platform re-branding and architectural changes to support any electrical retailer in Ireland. This includes generic "Invoice" terminology, `retailerInvoices` database schema, generalized API endpoints, and a sophisticated retailer detection service.
+- **AI-Powered Product Care Analysis:** A service that generates 4-6 comprehensive failure scenarios per product, assessing risk levels, potential costs, and how Product Care mitigates these. It incorporates critical thinking, considers the Irish market context, and integrates with existing product information systems.
+- **AI-Powered Tradesperson Email Templates:** An enhanced onboarding system utilizing AI to create personalized email templates for each trade skill, with customizable tone and focus, and a comprehensive preset template library.
+- **Website Restructuring:** Dedicated landing pages for specific services (e.g., TV Installation) and a restructured homepage to improve user journey and service discoverability.
 
-The enhanced product care section now provides users with intelligent, product-specific analysis that helps them understand the genuine value of extended protection coverage based on their specific product and usage context.
+## External Dependencies
+- **OpenAI GPT-4o:** Used for AI-powered product care analysis, personalized product recommendations, and tradesperson email template generation.
+- **Perplexity API:** Integrated for detailed product information lookup.
+- **Google OAuth:** Utilized for user authentication.
+- **PostgreSQL:** The primary database for data storage and retrieval, managed with Drizzle ORM.
+- **Gmail Service:** Configured for sending password reset links and other transactional emails.

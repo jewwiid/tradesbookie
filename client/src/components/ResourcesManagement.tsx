@@ -569,3 +569,5 @@ export default function ResourcesManagement() {
     </div>
   );
 }
+
+export { ResourcesManagement };

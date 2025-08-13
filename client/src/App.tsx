@@ -51,6 +51,7 @@ import ConsultationBooking from "@/pages/consultation-booking";
 import ConsultationSuccess from "@/pages/consultation-success";
 import AdminProductCategories from "@/pages/AdminProductCategories";
 import FindProduct from "@/pages/FindProduct";
+import TVInstallation from "@/pages/tv-installation";
 
 
 function Router() {
@@ -58,6 +59,7 @@ function Router() {
     <Switch>
       {/* Public routes - accessible without authentication */}
       <Route path="/" component={Home} />
+      <Route path="/tv-installation" component={TVInstallation} />
       <Route path="/how-it-works" component={HowItWorks} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/our-installers" component={OurInstallers} />

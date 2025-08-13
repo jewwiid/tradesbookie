@@ -56,6 +56,12 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                 {!isAdmin && !isInstallerContext && (
                   <div className="flex items-center space-x-6">
                     <Link 
+                      href="/tv-installation" 
+                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                    >
+                      TV Installation
+                    </Link>
+                    <Link 
                       href="/how-it-works" 
                       className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
                     >

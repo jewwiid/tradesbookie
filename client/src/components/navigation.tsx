@@ -86,12 +86,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Link 
-                      href="/how-it-works" 
-                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
-                    >
-                      How it Works
-                    </Link>
+
                     <Link 
                       href="/resources" 
                       className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
@@ -284,14 +279,7 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                             <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">
                               Navigation
                             </div>
-                            <Link 
-                              href="/how-it-works" 
-                              className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              <Home className="h-5 w-5 mr-4 flex-shrink-0" />
-                              How it Works
-                            </Link>
+
                             <Link 
                               href="/resources" 
                               className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"

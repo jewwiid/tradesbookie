@@ -15,6 +15,24 @@ A sophisticated TV and product installation referral platform that leverages int
 
 ## Recent Changes (August 2025)
 
+### Admin Dashboard Duplicate Tabs Resolution (August 13, 2025)
+- **Fixed Critical UI Issue**: Resolved duplicate tabs showing identical content in admin dashboard
+  - **Issue**: "TV Setup Help" and "General Resources" tabs displayed the same customer resource management interface
+  - **Root Cause**: Duplicate resource management components (`ResourcesManagement` and `CustomerResourcesManagement`) both accessing same API endpoint
+  - **Solution**: 
+    - Removed duplicate "TV Setup Help" tab from admin dashboard interface
+    - Consolidated resource management to single "Customer Resources" tab using `ResourcesManagement` component
+    - Cleaned up corrupted duplicate code that caused compilation errors
+    - Rebuilt clean admin dashboard with proper component structure
+  - **Result**: Clean admin dashboard with distinct tabs:
+    - Overview: Dashboard metrics and quick actions
+    - Bookings: Booking management (stub)
+    - Customer Resources: Functional resource management
+    - TV Setup: Setup management (stub)
+    - Platform Settings: Settings management (stub)
+    - System: System management (stub)
+  - **Status**: ✅ Duplicate content issue resolved, application compiles and runs without errors
+
 ### OAuth Authentication System Migration (August 2025)
 - **Critical Fix**: Resolved authentication failures by migrating from deprecated Replit OAuth to Google OAuth
   - **Issue**: Replit deprecated their manual OIDC endpoint (`https://replit.com/oidc`) in favor of AI Agent-only "Replit Auth"

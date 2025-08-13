@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import Navigation from "@/components/navigation";
 import ServiceTierCard from "@/components/ServiceTierCard";
+import CollapsibleSection from "@/components/CollapsibleSection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building, Receipt, User, Zap, AlertTriangle, Home as HomeIcon, Clock, CreditCard, FileText, MessageCircle } from "lucide-react";
+import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, LogOut, Building, Receipt, User, Zap, AlertTriangle, Home as HomeIcon, Clock, CreditCard, FileText, MessageCircle, Sparkles } from "lucide-react";
 import tvSetupImage from "@assets/IMG_1807_1753964075870.jpeg";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -265,24 +266,24 @@ export default function Home() {
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight mx-auto lg:mx-0">
                 Ireland's Leading{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                  Home Improvement Platform
+                  Trade Services Platform
                 </span>
               </h1>
               <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed mx-auto lg:mx-0 max-w-none">
-                Tradesbook.ie connects you with Ireland's certified TV installation professionals. Book instantly, track your service, and get expert setup for all your entertainment needs.
+                Connect with certified tradespeople across Ireland. AI-powered matching, instant booking, and expert installations for your home improvement needs.
               </p>
               
               {/* Button Container - Stack vertically on small screens, horizontal on larger */}
               <div className="isolate relative z-50 flex flex-col gap-4 mb-8 w-full">
                 <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-                  <Link href="/tv-recommendation" className="flex-1 min-w-0">
+                  <Link href="/ai-help" className="flex-1 min-w-0">
                     <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-purple-500/20">
-                      <span className="whitespace-nowrap">Find My Perfect TV</span>
+                      <span className="whitespace-nowrap">AI Product Helper</span>
                     </Button>
                   </Link>
                   <Link href="/booking" className="flex-1 min-w-0">
                     <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-primary to-secondary text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-blue-500/20">
-                      <span className="whitespace-nowrap">Book TV Installation</span>
+                      <span className="whitespace-nowrap">Book Installation</span>
                     </Button>
                   </Link>
                   <Link href="/tv-setup-assist" className="flex-1 min-w-0">
@@ -297,15 +298,15 @@ export default function Home() {
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3 text-sm text-gray-500 relative z-20">
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                  <span>Certified Installers</span>
+                  <span>AI Technology</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                  <span>Certified Tradespeople</span>
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
                   <span>Instant Booking</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                  <span>Live Tracking</span>
                 </div>
               </div>
             </div>
@@ -364,6 +365,65 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Our Services Overview Section */}
+      <section className="py-12 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-4">
+              Our Services
+            </h2>
+            <p className="text-lg text-gray-600">
+              Currently available services for your home improvement needs
+            </p>
+          </div>
+          
+          {/* Service Types Cards */}
+          <div className="grid md:grid-cols-3 gap-8 mb-8">
+            {/* TV Installation */}
+            <Link href="/booking">
+              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-primary/10">
+                    <Tv className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">TV Installation</h3>
+                  <p className="text-gray-600 mb-4">Professional mounting, setup, and cable management</p>
+                  <div className="text-sm text-primary font-medium">From €60</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* TV Setup Assistant */}
+            <Link href="/tv-setup-assist">
+              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-emerald-500/10">
+                    <Wrench className="h-8 w-8 text-emerald-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">TV Setup Assistant</h3>
+                  <p className="text-gray-600 mb-4">Smart configuration and app installation service</p>
+                  <div className="text-sm text-emerald-600 font-medium">From €30</div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* AI Product Helper */}
+            <Link href="/ai-help">
+              <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-purple-500/10">
+                    <Sparkles className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Product Helper</h3>
+                  <p className="text-gray-600 mb-4">Find the perfect products for your needs</p>
+                  <div className="text-sm text-purple-600 font-medium">Free</div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Track Your Booking Section */}
       <section className="py-12 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -372,7 +432,7 @@ export default function Home() {
               Track Your Booking
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              Already booked? Track your installation progress and view booking details
+              Already booked? Track your service progress and view booking details
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link href="/booking-tracker">
@@ -392,30 +452,27 @@ export default function Home() {
       {/* Service Tiers Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Choose Your Installation Service
-            </h2>
-            <p className="text-xl text-gray-600">
-              Professional TV mounting and installation services with transparent pricing
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-            {serviceTiers.map((tier) => (
-              <ServiceTierCard 
-                key={tier.key}
-                name={tier.name}
-                description={tier.description}
-                detailedDescription={tier.detailedDescription}
-                icon={tier.icon}
-                gradient={tier.gradient}
-                border={tier.border}
-                popular={tier.popular}
-                pricing={tier.pricing}
-              />
-            ))}
-          </div>
+          <CollapsibleSection 
+            title="TV Installation Options" 
+            subtitle="Professional TV mounting and installation services with transparent pricing"
+            className="mb-12"
+          >
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+              {serviceTiers.map((tier) => (
+                <ServiceTierCard 
+                  key={tier.key}
+                  name={tier.name}
+                  description={tier.description}
+                  detailedDescription={tier.detailedDescription}
+                  icon={tier.icon}
+                  gradient={tier.gradient}
+                  border={tier.border}
+                  popular={tier.popular}
+                  pricing={tier.pricing}
+                />
+              ))}
+            </div>
+          </CollapsibleSection>
         </div>
       </section>
 

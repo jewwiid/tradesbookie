@@ -449,32 +449,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Service Tiers Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <CollapsibleSection 
-            title="TV Installation Options" 
-            subtitle="Professional TV mounting and installation services with transparent pricing"
-            className="mb-12"
-          >
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-              {serviceTiers.map((tier) => (
-                <ServiceTierCard 
-                  key={tier.key}
-                  name={tier.name}
-                  description={tier.description}
-                  detailedDescription={tier.detailedDescription}
-                  icon={tier.icon}
-                  gradient={tier.gradient}
-                  border={tier.border}
-                  popular={tier.popular}
-                  pricing={tier.pricing}
-                />
-              ))}
-            </div>
-          </CollapsibleSection>
-        </div>
-      </section>
+
 
       {/* Simplified Authentication Section */}
       <section className="py-16 bg-gradient-to-br from-emerald-50 to-blue-50">

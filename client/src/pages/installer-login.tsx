@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Wrench, ArrowLeft, User, Lock, Eye, EyeOff, AlertCircle, CheckCircle2, KeyboardIcon } from "lucide-react";
+import { Wrench, ArrowLeft, User, Lock, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function InstallerLogin() {
   const [, setLocation] = useLocation();
@@ -27,32 +27,7 @@ export default function InstallerLogin() {
     profileCompleted: boolean 
   } | null>(null);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Alt + D for demo credentials
-      if (e.altKey && e.key === 'd') {
-        e.preventDefault();
-        setFormData({
-          email: "test@tradesbook.ie",
-          password: "demo123"
-        });
-        setValidationErrors({});
-        toast({
-          title: "Demo Credentials Loaded",
-          description: "Press Enter to sign in with demo account",
-        });
-      }
-      // Alt + R for registration
-      if (e.altKey && e.key === 'r') {
-        e.preventDefault();
-        setLocation('/installer-service-selection');
-      }
-    };
 
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [setLocation, toast]);
 
   // Validation functions
   const validateEmail = (email: string): string | undefined => {
@@ -212,25 +187,7 @@ export default function InstallerLogin() {
               </div>
             </div>
 
-            {/* Keyboard Shortcuts Help */}
-            <Card className="bg-gray-50 border-gray-200">
-              <CardContent className="p-4">
-                <div className="flex items-center mb-3">
-                  <KeyboardIcon className="w-5 h-5 text-gray-500 mr-2" />
-                  <h4 className="font-medium text-gray-700">Keyboard Shortcuts</h4>
-                </div>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex justify-between items-center">
-                    <span>Load demo credentials</span>
-                    <kbd className="px-2 py-1 bg-gray-200 rounded text-xs font-mono">Alt + D</kbd>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Go to registration</span>
-                    <kbd className="px-2 py-1 bg-gray-200 rounded text-xs font-mono">Alt + R</kbd>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+
           </div>
 
           {/* Center Column - Login Form */}

@@ -97,6 +97,14 @@ The application employs a modern full-stack architecture with AI-enhanced featur
   - **Admin Verification Service**: Created `InvoiceVerificationService` for secure admin-controlled invoice additions
   - **Status**: ✅ Fully secured - only pre-verified invoices can authenticate, prevents unauthorized access
 
+### Fixed Installer Revenue Calculation (August 2025)
+- **Corrected Lead Map Revenue Display**: Fixed the "Potential Revenue" calculation in the installer dashboard Live Lead Map to properly factor in lead fees
+  - **Issue**: Revenue display was only showing total `estimatedEarnings` without subtracting the required `leadFee` installers must pay
+  - **Solution**: Updated calculation to show net revenue: `(estimatedEarnings - leadFee)` for accurate financial projections
+  - **User Experience**: Changed label from "Potential Revenue" to "Net Potential Revenue" for clarity
+  - **Impact**: Installers now see realistic profit expectations when evaluating available leads
+  - **Status**: ✅ Fully resolved - installer dashboard now shows accurate net revenue calculations
+
 ## Recent Changes (August 2025)
 
 ### Multi-Retailer Interface Updates (August 2025)

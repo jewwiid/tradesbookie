@@ -414,8 +414,8 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
               <div className="text-emerald-100 text-xs">Available Leads</div>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-xl px-4 py-2">
-              <div className="text-white text-lg font-bold">€{requests.reduce((sum, r) => sum + (Number(r.estimatedEarnings) || 0), 0)}</div>
-              <div className="text-emerald-100 text-xs">Potential Revenue</div>
+              <div className="text-white text-lg font-bold">€{requests.reduce((sum, r) => sum + (Number(r.estimatedEarnings) || 0) - (Number(r.leadFee) || 0), 0)}</div>
+              <div className="text-emerald-100 text-xs">Net Potential Revenue</div>
             </div>
           </div>
         </div>

@@ -9966,6 +9966,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/installers/:id/first-lead-eligibility', async (req, res) => {
     try {
       const { id } = req.params;
+      
+      // Validate installer ID
+      if (!id || id === 'undefined' || isNaN(parseInt(id))) {
+        return res.status(400).json({ error: 'Invalid installer ID' });
+      }
+      
       const voucher = await storage.getFirstLeadVoucher(parseInt(id));
       
       // Check if they have platform setting enabled for first lead vouchers

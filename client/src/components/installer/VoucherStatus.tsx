@@ -23,8 +23,14 @@ export default function VoucherStatus({ installerId }: VoucherStatusProps) {
   // Fetch voucher eligibility
   const { data: voucherEligibility, isLoading } = useQuery<VoucherEligibility>({
     queryKey: [`/api/installers/${installerId}/first-lead-eligibility`],
+    enabled: !!installerId, // Only query if installerId is defined
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  // Don't render anything if installerId is not available
+  if (!installerId) {
+    return null;
+  }
 
   if (isLoading) {
     return (

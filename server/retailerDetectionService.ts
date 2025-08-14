@@ -555,6 +555,86 @@ export class RetailerDetectionService {
     }
     return false;
   }
+
+  /**
+   * Add a new retailer/franchise
+   */
+  addRetailer(retailerData: {
+    code: string;
+    name: string;
+    fullName: string;
+    color: string;
+    invoiceFormats?: string[];
+    referralCodePrefix?: string;
+    storeLocations?: Record<string, string>;
+  }): boolean {
+    const code = retailerData.code.toUpperCase();
+    
+    // Check if retailer already exists
+    if (this.retailers[code]) {
+      return false;
+    }
+
+    // Create retailer with defaults
+    this.retailers[code] = {
+      code,
+      name: retailerData.name,
+      fullName: retailerData.fullName,
+      color: retailerData.color,
+      invoiceFormats: retailerData.invoiceFormats || [`${code}-{STORE}-{NUMBER}`, `${code}{STORE}{NUMBER}`],
+      referralCodePrefix: retailerData.referralCodePrefix || code,
+      storeLocations: retailerData.storeLocations || {}
+    };
+
+    return true;
+  }
+
+  /**
+   * Update an existing retailer/franchise
+   */
+  updateRetailer(code: string, updates: {
+    name?: string;
+    fullName?: string;
+    color?: string;
+    invoiceFormats?: string[];
+    referralCodePrefix?: string;
+  }): boolean {
+    const upperCode = code.toUpperCase();
+    
+    if (!this.retailers[upperCode]) {
+      return false;
+    }
+
+    // Update only provided fields
+    Object.keys(updates).forEach(key => {
+      if (updates[key] !== undefined) {
+        this.retailers[upperCode][key] = updates[key];
+      }
+    });
+
+    return true;
+  }
+
+  /**
+   * Delete a retailer/franchise and all its store locations
+   */
+  deleteRetailer(code: string): boolean {
+    const upperCode = code.toUpperCase();
+    
+    if (!this.retailers[upperCode]) {
+      return false;
+    }
+
+    delete this.retailers[upperCode];
+    return true;
+  }
+
+  /**
+   * Check if retailer code exists
+   */
+  retailerExists(code: string): boolean {
+    return !!this.retailers[code.toUpperCase()];
+  }
 }
 
 // Create singleton instance

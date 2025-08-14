@@ -3612,6 +3612,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new retailer (Admin only)
+  app.post("/api/retail-partner/retailers", async (req, res) => {
+    try {
+      const { code, name, fullName, color, invoiceFormats, referralCodePrefix, storeLocations } = req.body;
+
+      if (!code || !name || !fullName || !color) {
+        return res.status(400).json({ message: "Code, name, fullName, and color are required" });
+      }
+
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      
+      // Check if retailer already exists
+      if (retailerDetectionService.retailerExists(code)) {
+        return res.status(409).json({ message: "Retailer with this code already exists" });
+      }
+
+      const created = retailerDetectionService.addRetailer({
+        code,
+        name,
+        fullName,
+        color,
+        invoiceFormats,
+        referralCodePrefix,
+        storeLocations
+      });
+      
+      if (created) {
+        res.status(201).json({ 
+          success: true, 
+          message: `Retailer ${code} created successfully`,
+          retailer: retailerDetectionService.getRetailer(code.toUpperCase())
+        });
+      } else {
+        res.status(400).json({ message: "Failed to create retailer" });
+      }
+    } catch (error) {
+      console.error("Error creating retailer:", error);
+      res.status(500).json({ message: "Failed to create retailer" });
+    }
+  });
+
+  // Update retailer (Admin only)
+  app.patch("/api/retail-partner/retailers/:code", async (req, res) => {
+    try {
+      const { code } = req.params;
+      const updates = req.body;
+
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      
+      const updated = retailerDetectionService.updateRetailer(code, updates);
+      
+      if (updated) {
+        res.json({ 
+          success: true, 
+          message: `Retailer ${code} updated successfully`,
+          retailer: retailerDetectionService.getRetailer(code.toUpperCase())
+        });
+      } else {
+        res.status(404).json({ message: "Retailer not found" });
+      }
+    } catch (error) {
+      console.error("Error updating retailer:", error);
+      res.status(500).json({ message: "Failed to update retailer" });
+    }
+  });
+
+  // Delete retailer (Admin only)
+  app.delete("/api/retail-partner/retailers/:code", async (req, res) => {
+    try {
+      const { code } = req.params;
+
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      
+      const deleted = retailerDetectionService.deleteRetailer(code);
+      
+      if (deleted) {
+        res.json({ 
+          success: true, 
+          message: `Retailer ${code} deleted successfully`
+        });
+      } else {
+        res.status(404).json({ message: "Retailer not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting retailer:", error);
+      res.status(500).json({ message: "Failed to delete retailer" });
+    }
+  });
+
   // Update retailer store locations (Admin only)
   app.put("/api/retail-partner/retailers/:code/stores", async (req, res) => {
     try {

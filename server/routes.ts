@@ -23,7 +23,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-06-20",
+  apiVersion: "2025-07-30.basil",
 });
 
 import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail, sendInstallerApprovalEmail, sendInstallerRejectionEmail, sendTvSetupBookingConfirmation, sendTvSetupAdminNotification } from "./gmailService";
@@ -71,8 +71,8 @@ class LeadExpiryService {
 
       // Filter by expiry date (assignments older than 5 days)
       const actuallyExpired = expiredLeads.filter(item => {
-        const assignedDate = new Date(item.jobAssignment.assignedDate);
-        return assignedDate < expiryDate;
+        const assignedDate = item.jobAssignment.assignedDate ? new Date(item.jobAssignment.assignedDate) : null;
+        return assignedDate && assignedDate < expiryDate;
       });
 
       if (actuallyExpired.length === 0) {
@@ -86,10 +86,12 @@ class LeadExpiryService {
       const expiredByBooking = new Map<number, typeof actuallyExpired>();
       for (const item of actuallyExpired) {
         const bookingId = item.jobAssignment.bookingId;
-        if (!expiredByBooking.has(bookingId)) {
+        if (bookingId && !expiredByBooking.has(bookingId)) {
           expiredByBooking.set(bookingId, []);
         }
-        expiredByBooking.get(bookingId)!.push(item);
+        if (bookingId) {
+          expiredByBooking.get(bookingId)!.push(item);
+        }
       }
 
       let totalRefunded = 0;
@@ -111,19 +113,22 @@ class LeadExpiryService {
               .where(eq(jobAssignments.id, jobAssignment.id));
 
             // Process refund
-            const leadFee = parseFloat(jobAssignment.leadFee);
-            const wallet = await storage.getInstallerWallet(jobAssignment.installerId);
+            const leadFee = jobAssignment.leadFee ? parseFloat(jobAssignment.leadFee) : 0;
+            const installerId = jobAssignment.installerId;
+            if (!installerId) continue;
+            
+            const wallet = await storage.getInstallerWallet(installerId);
             
             if (wallet && leadFee > 0) {
               const newBalance = parseFloat(wallet.balance) + leadFee;
               const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - leadFee);
               
-              await storage.updateInstallerWalletBalance(jobAssignment.installerId, newBalance);
-              await storage.updateInstallerWalletTotalSpent(jobAssignment.installerId, totalSpent);
+              await storage.updateInstallerWalletBalance(installerId, newBalance);
+              await storage.updateInstallerWalletTotalSpent(installerId, totalSpent);
               
               // Add refund transaction record
               await storage.addInstallerTransaction({
-                installerId: jobAssignment.installerId,
+                installerId: installerId,
                 type: 'refund',
                 amount: leadFee.toString(),
                 description: `Auto-refund for expired lead #${bookingId} (${this.EXPIRY_DAYS} day limit)`,
@@ -134,7 +139,7 @@ class LeadExpiryService {
               totalRefunded++;
               totalAmount += leadFee;
               
-              console.log(`💰 Refunded €${leadFee} to installer ${jobAssignment.installerId} for expired lead ${bookingId}`);
+              console.log(`💰 Refunded €${leadFee} to installer ${installerId} for expired lead ${bookingId}`);
             }
           }
           
@@ -381,7 +386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Determine strategy based on hostname
-      function getStrategyName(hostname: string): string | null {
+      const getStrategyName = (hostname: string): string | null => {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
           return 'googleauth:localhost';
         } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
@@ -392,7 +397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
           return registeredDomain ? `googleauth:${registeredDomain}` : null;
         }
-      }
+      };
       
       const strategyName = getStrategyName(req.hostname);
       if (!strategyName) {
@@ -657,7 +662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Determine strategy based on hostname (matching login route exactly)
-      function getStrategyName(hostname: string): string | null {
+      const getStrategyName = (hostname: string): string | null => {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
           return 'googleauth:localhost';
         } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
@@ -668,7 +673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const registeredDomain = process.env.REPLIT_DOMAINS?.split(',')[0];
           return registeredDomain ? `googleauth:${registeredDomain}` : null;
         }
-      }
+      };
       
       const strategyName = getStrategyName(req.hostname);
       if (!strategyName) {

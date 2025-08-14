@@ -5279,6 +5279,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile Update API - allows users to update their profile information
+  app.put('/api/auth/profile', requireAuth, async (req, res) => {
+    try {
+      const { firstName, lastName, phone, email } = req.body;
+      
+      if (!firstName || !lastName) {
+        return res.status(400).json({ error: "First name and last name are required" });
+      }
+
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
+      // Update user profile in database
+      const updatedUser = await storage.updateUserProfile(userId, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone?.trim() || null,
+        email: email?.trim() || req.user.email // Keep existing email if not provided
+      });
+
+      res.json({
+        success: true,
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          phone: updatedUser.phone,
+          role: updatedUser.role
+        },
+        message: "Profile updated successfully"
+      });
+    } catch (error) {
+      console.error("Profile update error:", error);
+      res.status(500).json({ error: "Unable to update profile at this time" });
+    }
+  });
+
   // Guest Booking API - allows booking with just email/phone
   app.post('/api/auth/guest-booking', async (req, res) => {
     try {

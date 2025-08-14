@@ -52,6 +52,7 @@ import ConsultationSuccess from "@/pages/consultation-success";
 import AdminProductCategories from "@/pages/AdminProductCategories";
 import FindProduct from "@/pages/FindProduct";
 import TVInstallation from "@/pages/tv-installation";
+import CustomerProfileSetup from "@/pages/customer-profile-setup";
 
 
 function Router() {
@@ -101,6 +102,7 @@ function Router() {
       </Route>
       <Route path="/customer/:qrCode?" component={CustomerDashboard} />
       <Route path="/customer-dashboard" component={CustomerDashboard} />
+      <Route path="/customer-profile-setup" component={CustomerProfileSetup} />
       <Route path="/installer-registration" component={InstallerRegistration} />
       <Route path="/installer-login" component={InstallerLogin} />
       <Route path="/installer-pending" component={InstallerPending} />

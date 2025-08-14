@@ -71,8 +71,29 @@ export default function SimplifiedAuthDialog({
           ? `Your account has been created using invoice ${data.invoiceNumber}. You can now book your TV installation.`
           : `Signed in using invoice ${data.invoiceNumber}. Any bookings you make will be tracked to this invoice.`,
       });
-      onSuccess(data.user);
-      onClose();
+      
+      // Check if profile needs completion after invoice login
+      const needsProfileCompletion = !data.user.firstName || !data.user.lastName || !data.user.phone;
+      
+      if (needsProfileCompletion && data.isNewRegistration) {
+        // New users from invoice should complete their profile
+        toast({
+          title: "Complete Your Profile",
+          description: "Please add your contact details to finish setting up your account.",
+          variant: "default",
+        });
+        
+        onSuccess(data.user);
+        onClose();
+        
+        // Navigate to profile setup after a short delay
+        setTimeout(() => {
+          window.location.href = '/customer-profile-setup';
+        }, 1000);
+      } else {
+        onSuccess(data.user);
+        onClose();
+      }
     },
     onError: (error: Error) => {
       toast({

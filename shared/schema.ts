@@ -24,6 +24,7 @@ export const users = pgTable("users", {
   email: varchar("email").unique(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
+  phone: varchar("phone"), // Phone number for customer contact
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role").default("customer"), // customer, admin
   
@@ -1399,7 +1400,12 @@ export const insertScheduleNegotiationSchema = createInsertSchema(scheduleNegoti
 });
 
 // Additional Types
+export type User = typeof users.$inferSelect;
 export type UpsertUser = typeof users.$inferInsert;
+export type Booking = typeof bookings.$inferSelect;
+export type Installer = typeof installers.$inferSelect;
+export type InsertBooking = typeof insertBookingSchema._type;
+export type InsertInstaller = typeof insertInstallerSchema._type;
 export type RetailerInvoice = typeof retailerInvoices.$inferSelect;
 export type InsertRetailerInvoice = z.infer<typeof insertRetailerInvoiceSchema>;
 

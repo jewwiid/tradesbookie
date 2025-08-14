@@ -1,16 +1,28 @@
-import { useState } from "react";
-import { Link } from "wouter";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Shield, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
+import { Loader2, Shield, CheckCircle, AlertCircle, ArrowLeft, Tv, Home, Car, Lightbulb, Wind } from "lucide-react";
 import { PasswordStrengthMeter, PasswordMatchIndicator } from "@/components/PasswordStrengthMeter";
 import { calculatePasswordStrength } from "@/utils/passwordStrength";
 
+const serviceTypes: Record<string, { name: string; icon: React.ComponentType<any>; color: string }> = {
+  'tv-installation': { name: 'TV Installation', icon: Tv, color: 'text-blue-600' },
+  'home-security': { name: 'Home Security Systems', icon: Shield, color: 'text-green-600' },
+  'smart-home': { name: 'Smart Home Setup', icon: Home, color: 'text-purple-600' },
+  'electrical': { name: 'Electrical Services', icon: Lightbulb, color: 'text-yellow-600' },
+  'hvac': { name: 'HVAC Installation', icon: Wind, color: 'text-cyan-600' },
+  'automotive': { name: 'Automotive Electronics', icon: Car, color: 'text-red-600' }
+};
+
 export default function InstallerRegistration() {
+  const [, setLocation] = useLocation();
+  const [selectedServiceType, setSelectedServiceType] = useState<string>('');
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -28,6 +40,15 @@ export default function InstallerRegistration() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [success, setSuccess] = useState(false);
   const { toast } = useToast();
+
+  // Get service type from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const serviceParam = urlParams.get('service');
+    if (serviceParam && serviceTypes[serviceParam]) {
+      setSelectedServiceType(serviceParam);
+    }
+  }, []);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -201,290 +222,347 @@ export default function InstallerRegistration() {
     );
   }
 
+  const selectedService = selectedServiceType ? serviceTypes[selectedServiceType] : null;
+  const ServiceIcon = selectedService?.icon;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-4">
-        <Link href="/" className="inline-flex items-center text-primary hover:text-primary/80">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Home
-        </Link>
-        <Card className="w-full">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Installer Registration</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Join our network of professional TV installers
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Link href="/installer-service-selection" className="inline-flex items-center text-primary hover:text-primary/80 mb-6">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Service Selection
+          </Link>
+          
+          {selectedService && ServiceIcon && (
+            <div className="flex items-center justify-center mb-6">
+              <div className={`w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center mr-4`}>
+                <ServiceIcon className={`w-8 h-8 ${selectedService.color}`} />
+              </div>
+              <div className="text-left">
+                <h1 className="text-3xl font-bold text-gray-900">{selectedService.name}</h1>
+                <p className="text-gray-600">Installer Registration</p>
+              </div>
+            </div>
+          )}
+          
+          {!selectedService && (
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Installer Registration</h1>
+              <p className="text-gray-600">Join our network of professional installers</p>
+            </div>
+          )}
+        </div>
+
+        {/* Registration Form */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-center text-xl">Create Your Installer Account</CardTitle>
+            <p className="text-center text-gray-600 text-sm">
+              Complete all fields to register as a professional installer
             </p>
           </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  type="text"
-                  value={formData.firstName}
-                  onChange={handleInputChange("firstName")}
-                  className={errors.firstName ? "border-red-500" : ""}
-                  placeholder="John"
-                  disabled={isLoading}
-                />
-                {errors.firstName && (
-                  <p className="text-sm text-red-500 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.firstName}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  type="text"
-                  value={formData.lastName}
-                  onChange={handleInputChange("lastName")}
-                  className={errors.lastName ? "border-red-500" : ""}
-                  placeholder="Smith"
-                  disabled={isLoading}
-                />
-                {errors.lastName && (
-                  <p className="text-sm text-red-500 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.lastName}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="businessName">Business Name</Label>
-              <Input
-                id="businessName"
-                type="text"
-                value={formData.businessName}
-                onChange={handleInputChange("businessName")}
-                className={errors.businessName ? "border-red-500" : ""}
-                placeholder="e.g. Smith TV Installation Services"
-                disabled={isLoading}
-              />
-              {errors.businessName && (
-                <p className="text-sm text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.businessName}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleInputChange("phone")}
-                className={errors.phone ? "border-red-500" : ""}
-                placeholder="087 123 4567"
-                disabled={isLoading}
-              />
-              {errors.phone && (
-                <p className="text-sm text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.phone}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <Label className="text-base font-medium">Business Address</Label>
+          <CardContent className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
               
-              <div className="space-y-2">
-                <Label htmlFor="streetAddress">Street Address</Label>
-                <Input
-                  id="streetAddress"
-                  type="text"
-                  value={formData.streetAddress}
-                  onChange={handleInputChange("streetAddress")}
-                  className={errors.streetAddress ? "border-red-500" : ""}
-                  placeholder="123 Main Street"
-                  disabled={isLoading}
-                />
-                {errors.streetAddress && (
-                  <p className="text-sm text-red-500 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.streetAddress}
-                  </p>
-                )}
-              </div>
+              {/* Service Type Display */}
+              {selectedService && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="flex items-center">
+                    <Badge className="bg-blue-100 text-blue-800">Selected Service</Badge>
+                    <span className="ml-3 font-semibold text-blue-900">{selectedService.name}</span>
+                  </div>
+                </div>
+              )}
 
-              <div className="grid grid-cols-2 gap-4">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Personal Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName" className="text-sm font-medium">First Name</Label>
+                    <Input
+                      id="firstName"
+                      type="text"
+                      value={formData.firstName}
+                      onChange={handleInputChange("firstName")}
+                      className={`h-11 ${errors.firstName ? "border-red-500" : ""}`}
+                      placeholder="John"
+                      disabled={isLoading}
+                    />
+                    {errors.firstName && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.firstName}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName" className="text-sm font-medium">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      type="text"
+                      value={formData.lastName}
+                      onChange={handleInputChange("lastName")}
+                      className={`h-11 ${errors.lastName ? "border-red-500" : ""}`}
+                      placeholder="Smith"
+                      disabled={isLoading}
+                    />
+                    {errors.lastName && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.lastName}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="town">Town/City</Label>
+                  <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
                   <Input
-                    id="town"
-                    type="text"
-                    value={formData.town}
-                    onChange={handleInputChange("town")}
-                    className={errors.town ? "border-red-500" : ""}
-                    placeholder="Dublin"
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange("email")}
+                    className={`h-11 ${errors.email ? "border-red-500" : ""}`}
+                    placeholder="your.email@example.com"
                     disabled={isLoading}
                   />
-                  {errors.town && (
+                  {errors.email && (
                     <p className="text-sm text-red-500 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
-                      {errors.town}
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Business Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Business Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="businessName" className="text-sm font-medium">Business Name</Label>
+                    <Input
+                      id="businessName"
+                      type="text"
+                      value={formData.businessName}
+                      onChange={handleInputChange("businessName")}
+                      className={`h-11 ${errors.businessName ? "border-red-500" : ""}`}
+                      placeholder="e.g. Smith Installation Services"
+                      disabled={isLoading}
+                    />
+                    {errors.businessName && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.businessName}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange("phone")}
+                      className={`h-11 ${errors.phone ? "border-red-500" : ""}`}
+                      placeholder="087 123 4567"
+                      disabled={isLoading}
+                    />
+                    {errors.phone && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Business Address */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Business Address</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="streetAddress" className="text-sm font-medium">Street Address</Label>
+                  <Input
+                    id="streetAddress"
+                    type="text"
+                    value={formData.streetAddress}
+                    onChange={handleInputChange("streetAddress")}
+                    className={`h-11 ${errors.streetAddress ? "border-red-500" : ""}`}
+                    placeholder="123 Main Street"
+                    disabled={isLoading}
+                  />
+                  {errors.streetAddress && (
+                    <p className="text-sm text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.streetAddress}
                     </p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="county">County</Label>
-                  <Input
-                    id="county"
-                    type="text"
-                    value={formData.county}
-                    onChange={handleInputChange("county")}
-                    className={errors.county ? "border-red-500" : ""}
-                    placeholder="Dublin"
-                    disabled={isLoading}
-                  />
-                  {errors.county && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {errors.county}
-                    </p>
-                  )}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="town" className="text-sm font-medium">Town/City</Label>
+                    <Input
+                      id="town"
+                      type="text"
+                      value={formData.town}
+                      onChange={handleInputChange("town")}
+                      className={`h-11 ${errors.town ? "border-red-500" : ""}`}
+                      placeholder="Dublin"
+                      disabled={isLoading}
+                    />
+                    {errors.town && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.town}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="county" className="text-sm font-medium">County</Label>
+                    <Input
+                      id="county"
+                      type="text"
+                      value={formData.county}
+                      onChange={handleInputChange("county")}
+                      className={`h-11 ${errors.county ? "border-red-500" : ""}`}
+                      placeholder="Dublin"
+                      disabled={isLoading}
+                    />
+                    {errors.county && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.county}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="eircode" className="text-sm font-medium">Eircode</Label>
+                    <Input
+                      id="eircode"
+                      type="text"
+                      value={formData.eircode}
+                      onChange={handleInputChange("eircode")}
+                      className={`h-11 ${errors.eircode ? "border-red-500" : ""}`}
+                      placeholder="D02 X285"
+                      disabled={isLoading}
+                      maxLength={8}
+                    />
+                    {errors.eircode && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.eircode}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="eircode">Eircode</Label>
-                <Input
-                  id="eircode"
-                  type="text"
-                  value={formData.eircode}
-                  onChange={handleInputChange("eircode")}
-                  className={errors.eircode ? "border-red-500" : ""}
-                  placeholder="D02 X285 or D02X285"
-                  disabled={isLoading}
-                  maxLength={8}
-                />
-                {errors.eircode && (
-                  <p className="text-sm text-red-500 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.eircode}
-                  </p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  3-character Routing Key + 4-character Unique Identifier
-                </p>
+              {/* Password Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Account Security</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={handleInputChange("password")}
+                      className={`h-11 ${errors.password ? "border-red-500" : ""}`}
+                      placeholder="Minimum 8 characters"
+                      disabled={isLoading}
+                    />
+                    {errors.password && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.password}
+                      </p>
+                    )}
+                    {formData.password && (
+                      <PasswordStrengthMeter 
+                        password={formData.password} 
+                        showRequirements={true}
+                        className="mt-2"
+                      />
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange("confirmPassword")}
+                      className={`h-11 ${errors.confirmPassword ? "border-red-500" : ""}`}
+                      placeholder="Re-enter your password"
+                      disabled={isLoading}
+                    />
+                    {errors.confirmPassword && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.confirmPassword}
+                      </p>
+                    )}
+                    <PasswordMatchIndicator 
+                      password={formData.password}
+                      confirmPassword={formData.confirmPassword}
+                      showMatch={formData.password.length > 0 && formData.confirmPassword.length > 0}
+                    />
+                  </div>
+                </div>
               </div>
+
+              {/* Submit Button */}
+              <div className="pt-6">
+                <Button 
+                  type="submit" 
+                  className="w-full h-12 bg-primary hover:bg-primary/90 text-lg font-semibold disabled:opacity-50" 
+                  disabled={isLoading || 
+                    (!formData.firstName || !formData.lastName || !formData.businessName || 
+                     !formData.email || !formData.password || !formData.confirmPassword ||
+                     formData.password !== formData.confirmPassword ||
+                     calculatePasswordStrength(formData.password).score === 0)}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    "Create Installer Account"
+                  )}
+                </Button>
+              </div>
+            </form>
+
+            {/* Footer Links */}
+            <div className="mt-8 pt-6 border-t text-center space-y-4">
+              <p className="text-sm text-gray-600">
+                Already have an account?{" "}
+                <Link href="/installer-login" className="text-primary hover:underline font-semibold">
+                  Sign in here
+                </Link>
+              </p>
+              
+              <Alert className="text-left">
+                <Shield className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  <strong>Next Steps:</strong> After registration, complete your profile and wait for admin approval (typically 24-48 hours) before accessing the installer dashboard.
+                </AlertDescription>
+              </Alert>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange("email")}
-                className={errors.email ? "border-red-500" : ""}
-                placeholder="your.email@example.com"
-                disabled={isLoading}
-              />
-              {errors.email && (
-                <p className="text-sm text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.email}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={formData.password}
-                onChange={handleInputChange("password")}
-                className={errors.password ? "border-red-500" : ""}
-                placeholder="Minimum 8 characters"
-                disabled={isLoading}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.password}
-                </p>
-              )}
-              {formData.password && (
-                <PasswordStrengthMeter 
-                  password={formData.password} 
-                  showRequirements={true}
-                  className="mt-2"
-                />
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleInputChange("confirmPassword")}
-                className={errors.confirmPassword ? "border-red-500" : ""}
-                placeholder="Re-enter your password"
-                disabled={isLoading}
-              />
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-500 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {errors.confirmPassword}
-                </p>
-              )}
-              <PasswordMatchIndicator 
-                password={formData.password}
-                confirmPassword={formData.confirmPassword}
-                showMatch={formData.password.length > 0 && formData.confirmPassword.length > 0}
-              />
-            </div>
-
-            <Button 
-              type="submit" 
-              className="w-full disabled:opacity-50" 
-              disabled={isLoading || 
-                (!formData.firstName || !formData.lastName || !formData.businessName || 
-                 !formData.email || !formData.password || !formData.confirmPassword ||
-                 formData.password !== formData.confirmPassword ||
-                 calculatePasswordStrength(formData.password).score === 0)}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                "Create Account"
-              )}
-            </Button>
-          </form>
-
-          <div className="mt-6 pt-4 border-t">
-            <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link href="/installer-login" className="text-primary hover:underline">
-                Sign in here
-              </Link>
-            </p>
-          </div>
-
-          <Alert className="mt-4">
-            <Shield className="h-4 w-4" />
-            <AlertDescription className="text-xs">
-              After registration, you'll need to complete your profile and wait for admin approval before accessing the installer dashboard.
-            </AlertDescription>
-          </Alert>
         </CardContent>
         </Card>
       </div>

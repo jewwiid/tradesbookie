@@ -46,7 +46,7 @@ export default function InstallerLogin() {
       // Alt + R for registration
       if (e.altKey && e.key === 'r') {
         e.preventDefault();
-        setLocation('/installer-registration');
+        setLocation('/installer-service-selection');
       }
     };
 
@@ -170,10 +170,10 @@ export default function InstallerLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-6">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center">
+        <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center text-primary hover:text-primary/80 mb-6">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -181,232 +181,254 @@ export default function InstallerLogin() {
           <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mx-auto mb-6">
             <Wrench className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Installer Login
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">
+            Installer Access Portal
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 mb-4 text-lg">
             Access your dashboard to manage bookings and track progress
           </p>
-          
-          {/* Help Text */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-            <div className="flex items-start">
-              <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" />
-              <div className="text-sm text-yellow-800">
-                <strong>Looking for customer access?</strong> 
-                <p className="mt-1">
-                  Customer bookings use the main site login. 
-                  <Link href="/" className="text-yellow-700 hover:text-yellow-900 underline ml-1">
-                    Return to homepage
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Login Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center">Sign In to Your Account</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="email" className="flex items-center">
-                  <User className="w-4 h-4 mr-2" />
-                  Email Address
-                </Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="installer@example.com"
-                    className={`pr-10 ${validationErrors.email ? 'border-red-500 focus:border-red-500' : ''}`}
-                  />
-                  {validationErrors.email && (
-                    <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-red-500" />
-                  )}
-                </div>
-                {validationErrors.email && (
-                  <p className="text-sm text-red-600 mt-1 flex items-center">
-                    <AlertCircle className="w-3 h-3 mr-1" />
-                    {validationErrors.email}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto">
+          
+          {/* Left Column - Customer Access Notice */}
+          <div className="lg:col-span-4 space-y-6">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+              <div className="flex items-start">
+                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
+                <div className="text-yellow-800">
+                  <h3 className="font-semibold text-lg mb-2">Looking for customer access?</h3>
+                  <p className="text-sm mb-3">
+                    Customer bookings and account management are available on the main website.
                   </p>
-                )}
-              </div>
-              
-              <div>
-                <Label htmlFor="password" className="flex items-center">
-                  <Lock className="w-4 h-4 mr-2" />
-                  Password
-                </Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    placeholder="••••••••"
-                    className={`pr-10 ${validationErrors.password ? 'border-red-500 focus:border-red-500' : ''}`}
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-4 h-4 text-gray-400" />
-                    ) : (
-                      <Eye className="w-4 h-4 text-gray-400" />
-                    )}
+                  <Button asChild variant="outline" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
+                    <Link href="/">
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Return to Homepage
+                    </Link>
                   </Button>
                 </div>
-                {validationErrors.password && (
-                  <p className="text-sm text-red-600 mt-1 flex items-center">
-                    <AlertCircle className="w-3 h-3 mr-1" />
-                    {validationErrors.password}
-                  </p>
-                )}
               </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-primary hover:bg-primary/90"
-                disabled={loginMutation.isPending}
-              >
-                {loginMutation.isPending ? "Signing In..." : "Sign In"}
-              </Button>
-            </form>
-            
-            {/* Forgot Password Link */}
-            <div className="text-center mt-4">
-              <Link href="/forgot-password">
-                <Button 
-                  variant="link" 
-                  className="text-sm text-gray-600 hover:text-primary"
-                >
-                  Forgot your password?
-                </Button>
-              </Link>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Approval Status Display */}
-        {pendingApproval && (
-          <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center mb-4">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                  <Lock className="w-6 h-6 text-orange-600" />
+            {/* Keyboard Shortcuts Help */}
+            <Card className="bg-gray-50 border-gray-200">
+              <CardContent className="p-4">
+                <div className="flex items-center mb-3">
+                  <KeyboardIcon className="w-5 h-5 text-gray-500 mr-2" />
+                  <h4 className="font-medium text-gray-700">Keyboard Shortcuts</h4>
                 </div>
-              </div>
-              <div className="text-center">
-                <h3 className="font-semibold text-orange-900 mb-2">
-                  Account Pending Approval
-                </h3>
-                <p className="text-sm text-orange-700 mb-4">
-                  {!pendingApproval.profileCompleted 
-                    ? "Please complete your profile first, then wait for admin approval to access the dashboard."
-                    : "Your profile is complete. Please wait for admin approval to access the dashboard."
-                  }
-                </p>
-                <div className="space-y-2">
-                  {!pendingApproval.profileCompleted && (
-                    <Button asChild variant="outline" className="w-full">
-                      <Link href="/installer-profile-setup">
-                        Complete Profile
-                      </Link>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <div className="flex justify-between items-center">
+                    <span>Load demo credentials</span>
+                    <kbd className="px-2 py-1 bg-gray-200 rounded text-xs font-mono">Alt + D</kbd>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>Go to registration</span>
+                    <kbd className="px-2 py-1 bg-gray-200 rounded text-xs font-mono">Alt + R</kbd>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Center Column - Login Form */}
+          <div className="lg:col-span-4">
+            <Card className="shadow-lg">
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-2xl">Sign In to Your Account</CardTitle>
+                <p className="text-gray-600 text-sm">Access your installer dashboard</p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="email" className="flex items-center text-sm font-medium">
+                      <User className="w-4 h-4 mr-2" />
+                      Email Address
+                    </Label>
+                    <div className="relative mt-2">
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        placeholder="installer@example.com"
+                        className={`h-12 ${validationErrors.email ? 'border-red-500 focus:border-red-500' : ''}`}
+                      />
+                      {validationErrors.email && (
+                        <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-red-500" />
+                      )}
+                    </div>
+                    {validationErrors.email && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        {validationErrors.email}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="password" className="flex items-center text-sm font-medium">
+                      <Lock className="w-4 h-4 mr-2" />
+                      Password
+                    </Label>
+                    <div className="relative mt-2">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
+                        placeholder="••••••••"
+                        className={`h-12 pr-12 ${validationErrors.password ? 'border-red-500 focus:border-red-500' : ''}`}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4 text-gray-400" />
+                        ) : (
+                          <Eye className="w-4 h-4 text-gray-400" />
+                        )}
+                      </Button>
+                    </div>
+                    {validationErrors.password && (
+                      <p className="text-sm text-red-600 mt-1 flex items-center">
+                        <AlertCircle className="w-3 h-3 mr-1" />
+                        {validationErrors.password}
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className="w-full h-12 bg-primary hover:bg-primary/90 text-lg font-semibold"
+                    disabled={loginMutation.isPending}
+                  >
+                    {loginMutation.isPending ? "Signing In..." : "Sign In"}
+                  </Button>
+                </form>
+                
+                {/* Forgot Password Link */}
+                <div className="text-center">
+                  <Link href="/forgot-password">
+                    <Button 
+                      variant="link" 
+                      className="text-sm text-gray-600 hover:text-primary"
+                    >
+                      Forgot your password?
                     </Button>
-                  )}
-                  <p className="text-xs text-orange-600">
-                    Status: {pendingApproval.approvalStatus}
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Registration & Demo */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Registration */}
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <User className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h3 className="font-semibold text-green-900 mb-2 text-lg">
+                    New to our platform?
+                  </h3>
+                  <p className="text-green-700 text-sm mb-4">
+                    Join our network of professional installers and start earning
+                  </p>
+                  <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+                    <Link href="/installer-service-selection">
+                      Create New Installer Account
+                    </Link>
+                  </Button>
+                  <p className="text-green-600 text-xs mt-3">
+                    Select service → Register → Complete profile → Get approved
                   </p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+
+            {/* Demo Access */}
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h3 className="font-semibold text-blue-900 mb-2 text-lg">Try Demo Access</h3>
+                  <p className="text-blue-700 text-sm mb-4">
+                    Explore the installer dashboard without registration
+                  </p>
+                  <div className="bg-blue-100 rounded-lg p-3 mb-4 text-xs">
+                    <p className="font-medium text-blue-800 mb-1">Demo credentials:</p>
+                    <p className="text-blue-700">test@tradesbook.ie</p>
+                    <p className="text-blue-700">demo123</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
+                    onClick={() => {
+                      setFormData({
+                        email: "test@tradesbook.ie",
+                        password: "demo123"
+                      });
+                      setValidationErrors({});
+                    }}
+                  >
+                    Fill Demo Credentials
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+        </div>
+
+        {/* Approval Status Display - Full Width */}
+        {pendingApproval && (
+          <div className="max-w-2xl mx-auto mt-8">
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <Lock className="w-6 h-6 text-orange-600" />
+                  </div>
+                </div>
+                <div className="text-center">
+                  <h3 className="font-semibold text-orange-900 mb-2 text-lg">
+                    Account Pending Approval
+                  </h3>
+                  <p className="text-sm text-orange-700 mb-4">
+                    {!pendingApproval.profileCompleted 
+                      ? "Please complete your profile first, then wait for admin approval to access the dashboard."
+                      : "Your profile is complete. Please wait for admin approval to access the dashboard."
+                    }
+                  </p>
+                  <div className="space-y-2">
+                    {!pendingApproval.profileCompleted && (
+                      <Button asChild variant="outline" className="w-full">
+                        <Link href="/installer-profile-setup">
+                          Complete Profile
+                        </Link>
+                      </Button>
+                    )}
+                    <p className="text-xs text-orange-600">
+                      Status: {pendingApproval.approvalStatus}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
-        {/* Registration Link */}
-        <div className="text-center">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <p className="text-green-800 text-sm font-medium mb-2">
-              New to our platform?
-            </p>
-            <Button asChild variant="outline" className="w-full border-green-300 text-green-700 hover:bg-green-50">
-              <Link href="/installer-registration">
-                Create New Installer Account
-              </Link>
-            </Button>
-            <p className="text-green-600 text-xs mt-2">
-              Create account → Complete profile → Wait for admin approval
-            </p>
-          </div>
-        </div>
-
-        {/* Demo Access */}
-        <div className="text-center">
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center mb-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-blue-600" />
-                </div>
-              </div>
-              <h3 className="font-semibold text-blue-900 mb-2">Try Demo Access</h3>
-              <p className="text-blue-700 text-sm mb-3">
-                Explore the installer dashboard without registration
-              </p>
-              <div className="bg-blue-100 rounded-lg p-3 mb-3 text-xs">
-                <p className="font-medium text-blue-800">Demo credentials:</p>
-                <p className="text-blue-700">Email: test@tradesbook.ie</p>
-                <p className="text-blue-700">Password: demo123</p>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                onClick={() => {
-                  setFormData({
-                    email: "test@tradesbook.ie",
-                    password: "demo123"
-                  });
-                  setValidationErrors({});
-                }}
-              >
-                Fill Demo Credentials
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Keyboard Shortcuts Help */}
-        <div className="text-center">
-          <Card className="bg-gray-50 border-gray-200">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-center mb-2">
-                <KeyboardIcon className="w-4 h-4 text-gray-500 mr-2" />
-                <h4 className="text-sm font-medium text-gray-700">Keyboard Shortcuts</h4>
-              </div>
-              <div className="grid grid-cols-1 gap-1 text-xs text-gray-600">
-                <div className="flex justify-between items-center">
-                  <span>Load demo credentials</span>
-                  <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Alt + D</kbd>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Go to registration</span>
-                  <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">Alt + R</kbd>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

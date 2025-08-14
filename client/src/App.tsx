@@ -16,6 +16,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import InstallerDashboard from "@/pages/installer-dashboard";
 import InstallerRegistration from "@/pages/installer-registration";
 import InstallerLogin from "@/pages/installer-login";
+import InstallerServiceSelection from "@/pages/installer-service-selection";
 import InstallerProfileSetup from "@/pages/installer-profile-setup";
 import InstallerPending from "@/pages/installer-pending";
 import QRTracking from "@/pages/qr-tracking";
@@ -105,6 +106,7 @@ function Router() {
       <Route path="/customer/:qrCode?" component={CustomerDashboard} />
       <Route path="/customer-dashboard" component={CustomerDashboard} />
       <Route path="/customer-profile-setup" component={CustomerProfileSetup} />
+      <Route path="/installer-service-selection" component={InstallerServiceSelection} />
       <Route path="/installer-registration" component={InstallerRegistration} />
       <Route path="/installer-login" component={InstallerLogin} />
       <Route path="/installer-pending" component={InstallerPending} />

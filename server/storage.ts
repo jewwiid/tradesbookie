@@ -1540,7 +1540,7 @@ export class DatabaseStorage implements IStorage {
         eq(resources.isActive, true),
         or(
           isNull(resources.expiryDate),
-          db.sql`expiry_date > ${now}`
+          sql`${resources.expiryDate} > ${now}`
         )
       ))
       .orderBy(desc(resources.priority), desc(resources.createdAt));
@@ -1555,7 +1555,7 @@ export class DatabaseStorage implements IStorage {
         eq(resources.featured, true),
         or(
           isNull(resources.expiryDate),
-          db.sql`expiry_date > ${now}`
+          sql`${resources.expiryDate} > ${now}`
         )
       ))
       .orderBy(desc(resources.priority), desc(resources.createdAt));
@@ -1570,7 +1570,7 @@ export class DatabaseStorage implements IStorage {
         eq(resources.category, category),
         or(
           isNull(resources.expiryDate),
-          db.sql`expiry_date > ${now}`
+          sql`${resources.expiryDate} > ${now}`
         )
       ))
       .orderBy(desc(resources.priority), desc(resources.createdAt));
@@ -1585,7 +1585,7 @@ export class DatabaseStorage implements IStorage {
         eq(resources.brand, brand),
         or(
           isNull(resources.expiryDate),
-          db.sql`expiry_date > ${now}`
+          sql`${resources.expiryDate} > ${now}`
         )
       ))
       .orderBy(desc(resources.priority), desc(resources.createdAt));

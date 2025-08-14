@@ -16,18 +16,20 @@ interface Resource {
   content: string;
   type: string;
   category: string;
-  brand?: string;
-  companyName?: string;
-  externalUrl?: string;
-  linkText: string;
-  imageUrl?: string;
-  iconType: string;
-  featured: boolean;
-  priority: number;
-  tags: string[];
-  isActive: boolean;
-  publishedAt: string;
-  createdAt: string;
+  brand?: string | null;
+  companyName?: string | null;
+  externalUrl?: string | null;
+  linkText?: string | null;
+  imageUrl?: string | null;
+  iconType?: string | null;
+  featured?: boolean | null;
+  priority?: number | null;
+  tags?: any;
+  isActive?: boolean | null;
+  publishedAt?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  expiryDate?: string | null;
 }
 
 const iconTypeMap = {

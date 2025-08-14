@@ -3885,7 +3885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get all open bookings that haven't been assigned to an installer
       const bookings = await storage.getAllBookings();
-      const availableRequests = bookings.filter(booking => {
+      const availableRequests = await Promise.all(bookings.filter(booking => {
         // Must be open and unassigned
         if (booking.status !== 'open' || booking.installerId) {
           return false;
@@ -3898,7 +3898,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Regular installers only see non-demo bookings
         return booking.isDemo !== true;
-      });
+      }).map(async (booking) => {
+        // Only show bookings from email-verified customers to ensure lead quality
+        if (booking.userId) {
+          try {
+            const customer = await storage.getUserById(booking.userId);
+            if (!customer || !customer.emailVerified) {
+              console.log(`Filtering out booking ${booking.id} - customer ${booking.userId} not email verified`);
+              return null; // Filter out unverified customers
+            }
+          } catch (error) {
+            console.log(`Error checking customer verification for booking ${booking.id}:`, error);
+            return null; // Filter out if we can't verify
+          }
+        }
+        return booking;
+      })).then(results => results.filter(booking => booking !== null));
 
       // Transform bookings with lead access protection
       const requests = availableRequests.map(booking => {
@@ -8489,7 +8504,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       // Get all unassigned bookings that can be purchased as leads
       const allBookings = await storage.getAllBookings();
-      const availableBookings = allBookings.filter(booking => {
+      const availableBookings = await Promise.all(allBookings.filter(booking => {
         // Basic filters for available leads
         const isAvailable = (booking.status === "open" || booking.status === "pending" || booking.status === "urgent" || booking.status === "confirmed") &&
           !booking.installerId && // Not assigned to any installer yet
@@ -8503,7 +8518,22 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           // Real installers should NOT see demo bookings
           return isAvailable && !booking.isDemo;
         }
-      });
+      }).map(async (booking) => {
+        // Only show bookings from email-verified customers to ensure lead quality
+        if (booking.userId && installerId !== 2) { // Skip verification check for demo installer
+          try {
+            const customer = await storage.getUserById(booking.userId);
+            if (!customer || !customer.emailVerified) {
+              console.log(`Filtering out booking ${booking.id} - customer ${booking.userId} not email verified`);
+              return null; // Filter out unverified customers
+            }
+          } catch (error) {
+            console.log(`Error checking customer verification for booking ${booking.id}:`, error);
+            return null; // Filter out if we can't verify
+          }
+        }
+        return booking;
+      })).then(results => results.filter(booking => booking !== null));
       
       // Add lead fees and profit calculations with distance calculation
       const leadsWithFees = await Promise.all(availableBookings.map(async booking => {

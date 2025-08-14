@@ -370,14 +370,12 @@ export class RetailerDetectionService {
             .where(eq(users.id, user.id));
         }
       } else {
-        // Create new user from invoice data
-        const userId = `invoice-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+        // Create new user from invoice data with proper integer ID
         const nameParts = invoice.customerName.split(' ');
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
 
         const newUserData = {
-          id: userId,
           email: invoice.customerEmail,
           firstName,
           lastName,
@@ -386,16 +384,47 @@ export class RetailerDetectionService {
           registrationMethod: 'invoice',
           retailerInvoiceNumber: invoiceNumber,
           invoiceVerified: true,
-          emailVerified: true
+          emailVerified: false // Require email verification even for invoice users
         };
 
         const [createdUser] = await db.insert(users)
-          .values(newUserData)
+          .values([newUserData])
           .returning();
         
         user = createdUser;
         isNewRegistration = true;
+        
+        // Send verification email for new invoice users
+        try {
+          const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
+          const verificationToken = await generateVerificationToken();
+          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+          
+          // Update user with verification token
+          await db.update(users)
+            .set({
+              emailVerificationToken: verificationToken,
+              emailVerificationExpires: expiresAt
+            })
+            .where(eq(users.id, createdUser.id));
+            
+          // Send verification email
+          await sendVerificationEmail(invoice.customerEmail, firstName, verificationToken);
+          console.log(`✅ Verification email sent to invoice user: ${invoice.customerEmail}`);
+        } catch (emailError) {
+          console.error('❌ Error sending verification email to invoice user:', emailError);
+          // Continue with user creation even if email fails
+        }
       }
+
+      // Mark invoice as used for registration
+      await db.update(retailerInvoices)
+        .set({ isUsedForRegistration: true })
+        .where(eq(retailerInvoices.id, invoice.id));
+
+      const welcomeMessage = isNewRegistration 
+        ? `Welcome to tradesbook.ie! We've created your account using your ${parsedInvoice.retailerInfo.name} purchase. Please verify your email address to complete your registration and allow installers to see your booking requests.`
+        : `Welcome back! You've been authenticated using your ${parsedInvoice.retailerInfo.name} purchase.`;
 
       return {
         success: true,
@@ -406,9 +435,10 @@ export class RetailerDetectionService {
           lastName: user.lastName,
           phone: user.phone,
           role: user.role,
-          registrationMethod: user.registrationMethod
+          registrationMethod: user.registrationMethod,
+          emailVerified: user.emailVerified
         },
-        message: `Welcome! Logged in using your ${parsedInvoice.retailerInfo.name} purchase.`,
+        message: welcomeMessage,
         retailerInfo: parsedInvoice.retailerInfo,
         isNewRegistration
       };

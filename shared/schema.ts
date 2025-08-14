@@ -667,6 +667,56 @@ export const tradesPersonEmailTemplates = pgTable("trades_person_email_templates
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Store Partner Applications - Stores wanting to join the platform
+export const storePartnerApplications = pgTable("store_partner_applications", {
+  id: serial("id").primaryKey(),
+  
+  // Store Information
+  storeName: varchar("store_name", { length: 200 }).notNull(),
+  businessName: varchar("business_name", { length: 200 }).notNull(),
+  websiteUrl: varchar("website_url", { length: 500 }),
+  
+  // Contact Details
+  contactName: varchar("contact_name", { length: 100 }).notNull(),
+  contactEmail: varchar("contact_email", { length: 150 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 20 }),
+  contactPosition: varchar("contact_position", { length: 100 }),
+  
+  // Business Details
+  businessRegistrationNumber: varchar("business_registration_number", { length: 50 }),
+  vatNumber: varchar("vat_number", { length: 50 }),
+  yearsInBusiness: varchar("years_in_business", { length: 20 }),
+  numberOfLocations: varchar("number_of_locations", { length: 10 }),
+  primaryProducts: text("primary_products"),
+  
+  // Geographic Information
+  headOfficeAddress: text("head_office_address"),
+  serviceAreas: text("service_areas"),
+  monthlyInvoiceVolume: varchar("monthly_invoice_volume", { length: 20 }),
+  installationServicesOffered: boolean("installation_services_offered").default(false),
+  currentInstallationPartners: text("current_installation_partners"),
+  reasonForJoining: text("reason_for_joining"),
+  
+  // Technical Requirements
+  invoiceFormat: varchar("invoice_format", { length: 100 }),
+  sampleInvoiceNumber: varchar("sample_invoice_number", { length: 50 }),
+  posSystemUsed: varchar("pos_system_used", { length: 100 }),
+  canProvideInvoiceData: boolean("can_provide_invoice_data").default(false),
+  
+  // Application Status
+  status: varchar("status", { length: 20 }).default("pending"),
+  adminNotes: text("admin_notes"),
+  reviewedBy: varchar("reviewed_by", { length: 100 }),
+  reviewedAt: timestamp("reviewed_at"),
+  
+  // Source tracking
+  submittedViaInvoice: varchar("submitted_via_invoice", { length: 50 }),
+  referralSource: varchar("referral_source", { length: 100 }),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),

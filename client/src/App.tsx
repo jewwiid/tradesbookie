@@ -53,6 +53,7 @@ import AdminProductCategories from "@/pages/AdminProductCategories";
 import FindProduct from "@/pages/FindProduct";
 import TVInstallation from "@/pages/tv-installation";
 import CustomerProfileSetup from "@/pages/customer-profile-setup";
+import StorePartnerSignup from "@/pages/store-partner-signup";
 
 
 function Router() {
@@ -91,6 +92,7 @@ function Router() {
       <Route path="/consultation-success" component={ConsultationSuccess} />
       <Route path="/find-product" component={FindProduct} />
       <Route path="/find-product/:categorySlug" component={FindProduct} />
+      <Route path="/store-partner-signup" component={StorePartnerSignup} />
 
       <Route path="/demo-login" component={DemoLogin} />
       

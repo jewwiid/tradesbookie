@@ -11446,6 +11446,78 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Store Partner Application Routes
+  app.post("/api/store-partner/apply", async (req, res) => {
+    try {
+      const application = req.body;
+      
+      // Insert the store partner application
+      const [newApplication] = await db.insert(storePartnerApplications)
+        .values({
+          storeName: application.storeName,
+          businessName: application.businessName,
+          websiteUrl: application.websiteUrl || null,
+          contactName: application.contactName,
+          contactEmail: application.contactEmail,
+          contactPhone: application.contactPhone,
+          contactPosition: application.contactPosition,
+          businessRegistrationNumber: application.businessRegistrationNumber || null,
+          vatNumber: application.vatNumber || null,
+          yearsInBusiness: application.yearsInBusiness,
+          numberOfLocations: application.numberOfLocations,
+          primaryProducts: application.primaryProducts,
+          headOfficeAddress: application.headOfficeAddress,
+          serviceAreas: application.serviceAreas,
+          monthlyInvoiceVolume: application.monthlyInvoiceVolume,
+          installationServicesOffered: application.installationServicesOffered || false,
+          currentInstallationPartners: application.currentInstallationPartners || null,
+          reasonForJoining: application.reasonForJoining,
+          invoiceFormat: application.invoiceFormat,
+          sampleInvoiceNumber: application.sampleInvoiceNumber,
+          posSystemUsed: application.posSystemUsed,
+          canProvideInvoiceData: application.canProvideInvoiceData || false,
+          submittedViaInvoice: application.submittedViaInvoice || null,
+          referralSource: application.referralSource || null,
+          status: "pending"
+        })
+        .returning();
+
+      console.log(`✅ New store partnership application received from ${application.storeName}`);
+      
+      res.json({ 
+        success: true,
+        applicationId: newApplication.id,
+        message: "Application submitted successfully! We'll review it within 2-3 business days."
+      });
+
+    } catch (error) {
+      console.error("Error submitting store partnership application:", error);
+      res.status(500).json({
+        error: "Failed to submit application. Please try again later."
+      });
+    }
+  });
+
+  // Get store partnership applications (admin only)
+  app.get("/api/admin/store-partner/applications", isAuthenticated, async (req, res) => {
+    try {
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const applications = await db.select()
+        .from(storePartnerApplications)
+        .orderBy(desc(storePartnerApplications.createdAt));
+
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching store partner applications:", error);
+      res.status(500).json({
+        error: "Failed to fetch applications"
+      });
+    }
+  });
+
   return httpServer;
 }
 

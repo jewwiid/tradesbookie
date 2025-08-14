@@ -341,6 +341,8 @@ export class RetailerDetectionService {
     isNewRegistration?: boolean;
     retailerInfo?: RetailerInfo;
     requiresVerification?: boolean;
+    showStoreSignup?: boolean;
+    unknownInvoice?: string;
   }> {
     try {
       // Detect retailer from invoice
@@ -348,7 +350,9 @@ export class RetailerDetectionService {
       if (!parsedInvoice) {
         return {
           success: false,
-          message: "Invalid invoice format. Please check your invoice number and try again."
+          message: "Invalid invoice format. This store is not currently supported. If you represent a store that would like to join our platform, please apply to become a partner store.",
+          showStoreSignup: true,
+          unknownInvoice: invoiceNumber
         };
       }
 
@@ -374,7 +378,8 @@ export class RetailerDetectionService {
           message: `This ${parsedInvoice.retailerInfo.name} invoice (${invoiceNumber}) is not in our system. For security, new invoices must be verified. Please contact support at support@tradesbook.ie with your invoice details, or use an invoice from a previous verified purchase.`,
           requiresVerification: true,
           invoiceNumber: invoiceNumber,
-          retailerInfo: parsedInvoice.retailerInfo
+          retailerInfo: parsedInvoice.retailerInfo,
+          showStoreSignup: true
         }
       } else {
         invoice = invoiceData[0];

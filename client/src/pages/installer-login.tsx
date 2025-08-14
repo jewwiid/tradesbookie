@@ -167,27 +167,9 @@ export default function InstallerLogin() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto">
           
-          {/* Left Column - Customer Access Notice */}
+          {/* Left Column - Empty for now */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-              <div className="flex items-start">
-                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
-                <div className="text-yellow-800">
-                  <h3 className="font-semibold text-lg mb-2">Looking for customer access?</h3>
-                  <p className="text-sm mb-3">
-                    Customer bookings and account management are available on the main website.
-                  </p>
-                  <Button asChild variant="outline" className="border-yellow-300 text-yellow-700 hover:bg-yellow-100">
-                    <Link href="/">
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Return to Homepage
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-
+            {/* Left column content can be added here if needed */}
           </div>
 
           {/* Center Column - Login Form */}
@@ -334,6 +316,24 @@ export default function InstallerLogin() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Customer Access Notice */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+              <div className="flex items-start">
+                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
+                <div className="text-yellow-800">
+                  <h3 className="font-semibold text-lg mb-2">Looking for customer access?</h3>
+                  <p className="text-sm mb-3">
+                    Book installation services and manage your bookings on our main platform.
+                  </p>
+                  <Button asChild variant="outline" className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-100">
+                    <Link href="/#booking">
+                      Book Faster Than Ever
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
 
             {/* Platform Info */}
             <Card className="bg-blue-50 border-blue-200">

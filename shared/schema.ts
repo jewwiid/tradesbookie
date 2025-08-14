@@ -760,6 +760,18 @@ export const storePartnerApplications = pgTable("store_partner_applications", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Installer Service Assignments - tracks which services each installer provides
+export const installerServiceAssignments = pgTable("installer_service_assignments", {
+  id: serial("id").primaryKey(),
+  installerId: integer("installer_id").references(() => installers.id).notNull(),
+  serviceTypeId: integer("service_type_id").references(() => serviceTypes.id).notNull(),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  assignedBy: text("assigned_by"), // Admin who assigned the service
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   bookings: many(bookings),
@@ -774,6 +786,7 @@ export const installersRelations = relations(installers, ({ one, many }) => ({
   transactions: many(installerTransactions),
   declinedRequests: many(declinedRequests),
   scheduleNegotiations: many(scheduleNegotiations),
+  serviceAssignments: many(installerServiceAssignments),
 }));
 
 export const bookingsRelations = relations(bookings, ({ one, many }) => ({
@@ -984,11 +997,23 @@ export const serviceTypesRelations = relations(serviceTypes, ({ one, many }) => 
     fields: [serviceTypes.id],
     references: [serviceMetrics.serviceTypeId],
   }),
+  installerAssignments: many(installerServiceAssignments),
 }));
 
 export const serviceMetricsRelations = relations(serviceMetrics, ({ one }) => ({
   serviceType: one(serviceTypes, {
     fields: [serviceMetrics.serviceTypeId],
+    references: [serviceTypes.id],
+  }),
+}));
+
+export const installerServiceAssignmentsRelations = relations(installerServiceAssignments, ({ one }) => ({
+  installer: one(installers, {
+    fields: [installerServiceAssignments.installerId],
+    references: [installers.id],
+  }),
+  serviceType: one(serviceTypes, {
+    fields: [installerServiceAssignments.serviceTypeId],
     references: [serviceTypes.id],
   }),
 }));
@@ -1830,6 +1855,14 @@ export const insertTradesPersonEmailTemplateSchema = createInsertSchema(tradesPe
   updatedAt: true,
 });
 
+// Installer Service Assignments Schema
+export const insertInstallerServiceAssignmentSchema = createInsertSchema(installerServiceAssignments).omit({
+  id: true,
+  assignedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type BannedUser = typeof bannedUsers.$inferSelect;
 export type FaqAnswer = typeof faqAnswers.$inferSelect;
 export type InsertFaqAnswer = z.infer<typeof insertFaqAnswerSchema>;
@@ -1840,6 +1873,10 @@ export type OnboardingInvitation = typeof onboardingInvitations.$inferSelect;
 export type TradesPersonEmailTemplate = typeof tradesPersonEmailTemplates.$inferSelect;
 export type InsertOnboardingInvitation = z.infer<typeof insertOnboardingInvitationSchema>;
 export type InsertTradesPersonEmailTemplate = z.infer<typeof insertTradesPersonEmailTemplateSchema>;
+
+// Service assignment types
+export type InstallerServiceAssignment = typeof installerServiceAssignments.$inferSelect;
+export type InsertInstallerServiceAssignment = z.infer<typeof insertInstallerServiceAssignmentSchema>;
 
 // Platform settings and voucher types
 export type PlatformSettings = typeof platformSettings.$inferSelect;

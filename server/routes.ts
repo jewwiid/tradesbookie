@@ -4921,32 +4921,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/installers", async (req, res) => {
     try {
+      const { serviceType } = req.query;
       const installers = await storage.getAllInstallers();
+      const allServiceAssignments = await storage.getAllInstallerServiceAssignments();
       
       // Return only public-safe installer information (hide contact details)
-      const publicInstallers = installers
+      let publicInstallers = installers
         .filter(installer => 
           installer.approvalStatus === 'approved' && 
           installer.isPubliclyVisible !== false &&
           installer.businessName !== 'Demo TV Services'
         )
-        .map(installer => ({
-          id: installer.id,
-          businessName: installer.businessName,
-          serviceArea: installer.serviceArea || installer.county,
-          bio: installer.bio,
-          yearsExperience: installer.yearsExperience,
-          expertise: installer.expertise,
-          profileImageUrl: installer.profileImageUrl,
-          insurance: installer.insurance,
-          certifications: installer.certifications,
-          isAvailable: installer.isAvailable, // Show availability status for badge system
-          // Hide contact details from public view
-          contactName: installer.contactName?.split(' ')[0] + " " + (installer.contactName?.split(' ')[1]?.[0] || '') + ".", // Show first name + last initial
-          email: "***@***.***", // Hidden
-          phone: "***-***-****", // Hidden
-          address: installer.county || "Ireland" // Only show county, not full address
-        }));
+        .map(installer => {
+          // Get services for this installer
+          const installerServices = allServiceAssignments.filter(assignment => 
+            assignment.installerId === installer.id && assignment.isActive
+          );
+
+          return {
+            id: installer.id,
+            businessName: installer.businessName,
+            serviceArea: installer.serviceArea || installer.county,
+            bio: installer.bio,
+            yearsExperience: installer.yearsExperience,
+            expertise: installer.expertise,
+            profileImageUrl: installer.profileImageUrl,
+            insurance: installer.insurance,
+            certifications: installer.certifications,
+            isAvailable: installer.isAvailable, // Show availability status for badge system
+            services: installerServices.map(assignment => ({
+              id: assignment.serviceType.id,
+              key: assignment.serviceType.key,
+              name: assignment.serviceType.name,
+              iconName: assignment.serviceType.iconName,
+              colorScheme: assignment.serviceType.colorScheme
+            })),
+            // Hide contact details from public view
+            contactName: installer.contactName?.split(' ')[0] + " " + (installer.contactName?.split(' ')[1]?.[0] || '') + ".", // Show first name + last initial
+            email: "***@***.***", // Hidden
+            phone: "***-***-****", // Hidden
+            address: installer.county || "Ireland" // Only show county, not full address
+          };
+        });
+
+      // Filter by service type if specified
+      if (serviceType && typeof serviceType === 'string') {
+        publicInstallers = publicInstallers.filter(installer => 
+          installer.services.some(service => service.key === serviceType)
+        );
+      }
       
       res.json(publicInstallers);
     } catch (error) {
@@ -12127,6 +12150,60 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error('Error updating service type status:', error);
       res.status(500).json({ message: 'Failed to update service type status' });
+    }
+  });
+
+  // Installer service assignment endpoints
+  app.get('/api/installer-service-assignments', async (req, res) => {
+    try {
+      const assignments = await storage.getAllInstallerServiceAssignments();
+      res.json(assignments);
+    } catch (error) {
+      console.error('Error fetching installer service assignments:', error);
+      res.status(500).json({ error: 'Failed to fetch installer service assignments' });
+    }
+  });
+
+  app.get('/api/installers/:id/services', async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const services = await storage.getInstallerServices(installerId);
+      res.json(services);
+    } catch (error) {
+      console.error('Error fetching installer services:', error);
+      res.status(500).json({ error: 'Failed to fetch installer services' });
+    }
+  });
+
+  app.post('/api/installers/:id/services', async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const { serviceTypeId, assignedBy } = req.body;
+      
+      const assignment = await storage.assignServiceToInstaller({
+        installerId,
+        serviceTypeId,
+        assignedBy,
+        isActive: true
+      });
+      
+      res.json(assignment);
+    } catch (error) {
+      console.error('Error assigning service to installer:', error);
+      res.status(500).json({ error: 'Failed to assign service to installer' });
+    }
+  });
+
+  app.delete('/api/installers/:installerId/services/:serviceTypeId', async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      const serviceTypeId = parseInt(req.params.serviceTypeId);
+      
+      await storage.removeServiceFromInstaller(installerId, serviceTypeId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error removing service from installer:', error);
+      res.status(500).json({ error: 'Failed to remove service from installer' });
     }
   });
 

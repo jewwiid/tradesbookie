@@ -346,6 +346,13 @@ export interface IStorage {
   updateJobsAvailable(serviceTypeKey: string, count: number): Promise<void>;
   updateInstallerCount(serviceTypeKey: string, count: number): Promise<void>;
   recalculateEarningsRange(serviceTypeKey: string): Promise<void>;
+  
+  // Installer service assignment operations
+  assignServiceToInstaller(assignment: InsertInstallerServiceAssignment): Promise<InstallerServiceAssignment>;
+  removeServiceFromInstaller(installerId: number, serviceTypeId: number): Promise<void>;
+  getInstallerServices(installerId: number): Promise<(InstallerServiceAssignment & { serviceType: SelectServiceType })[]>;
+  getInstallersByService(serviceTypeId: number): Promise<(InstallerServiceAssignment & { installer: Installer })[]>;
+  getAllInstallerServiceAssignments(): Promise<(InstallerServiceAssignment & { installer: Installer; serviceType: SelectServiceType })[]>;
 
   // Tradesperson Onboarding operations
   createOnboardingInvitation(invitation: InsertOnboardingInvitation): Promise<OnboardingInvitation>;

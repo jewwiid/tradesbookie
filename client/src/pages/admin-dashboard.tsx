@@ -119,6 +119,27 @@ interface User {
   emailVerified?: boolean;
 }
 
+interface ServiceType {
+  id: number;
+  key: string;
+  name: string;
+  description: string;
+  iconName: string;
+  colorScheme: string;
+  isActive: boolean;
+  setupTimeMinutes: number;
+}
+
+interface InstallerServiceAssignment {
+  id: number;
+  installerId: number;
+  serviceTypeId: number;
+  assignedAt: string;
+  assignedBy: string;
+  isActive: boolean;
+  serviceType: ServiceType;
+}
+
 interface Installer {
   id: number;
   businessName: string;
@@ -140,6 +161,8 @@ interface Installer {
   adminComments?: string;
   reviewedBy?: string;
   reviewedAt?: string;
+  // Service assignments
+  services?: InstallerServiceAssignment[];
 }
 
 interface SolarEnquiry {
@@ -984,7 +1007,10 @@ function InstallerApprovalForm({ installer, onApprove, onReject, onCancel, isLoa
 }
 
 // Installer Management Component
-function InstallerManagement() {
+function InstallerManagement({ installerServiceAssignments = [], serviceTypes = [] }: { 
+  installerServiceAssignments?: InstallerServiceAssignment[];
+  serviceTypes?: ServiceType[];
+}) {
   const [selectedInstaller, setSelectedInstaller] = useState<Installer | null>(null);
   const [showViewDialog, setShowViewDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -999,6 +1025,13 @@ function InstallerManagement() {
     queryKey: ["/api/admin/installers"],
     retry: false,
   });
+
+  // Create a helper function to get services for an installer
+  const getInstallerServices = (installerId: number) => {
+    return installerServiceAssignments.filter(assignment => 
+      assignment.installerId === installerId && assignment.isActive
+    );
+  };
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1331,6 +1364,7 @@ function InstallerManagement() {
               <TableHead>Business</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Area</TableHead>
+              <TableHead>Services</TableHead>
               <TableHead>Jobs</TableHead>
               <TableHead>Rating</TableHead>
               <TableHead>Earnings</TableHead>
@@ -1368,6 +1402,23 @@ function InstallerManagement() {
                   <div className="flex items-center">
                     <MapPin className="w-4 h-4 mr-1 text-gray-400" />
                     {installer.serviceArea || 'Not specified'}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {getInstallerServices(installer.id).length > 0 ? (
+                      getInstallerServices(installer.id).map((assignment) => (
+                        <Badge 
+                          key={assignment.id}
+                          variant="outline" 
+                          className="text-xs px-2 py-1 bg-blue-50 text-blue-700 border-blue-200"
+                        >
+                          {assignment.serviceType.name}
+                        </Badge>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">No services assigned</span>
+                    )}
                   </div>
                 </TableCell>
                 <TableCell>{installer.completedJobs}</TableCell>
@@ -5705,6 +5756,18 @@ export default function AdminDashboard() {
     retry: false,
   });
 
+  // Fetch installer service assignments for the installers tab
+  const { data: installerServiceAssignments = [] } = useQuery<InstallerServiceAssignment[]>({
+    queryKey: ['/api/installer-service-assignments'],
+    retry: false,
+  });
+
+  // Fetch all service types for the admin interface
+  const { data: serviceTypes = [] } = useQuery<ServiceType[]>({
+    queryKey: ['/api/service-types/active'],
+    retry: false,
+  });
+
   // Check if user is admin
   const isAdmin = user?.email === 'jude.okun@gmail.com' || 
                   user?.id === '42442296' ||
@@ -5864,7 +5927,10 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="installers" className="space-y-6">
-            <InstallerManagement />
+            <InstallerManagement 
+              installerServiceAssignments={installerServiceAssignments}
+              serviceTypes={serviceTypes}
+            />
           </TabsContent>
 
           <TabsContent value="bookings" className="space-y-6">

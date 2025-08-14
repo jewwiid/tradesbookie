@@ -9911,6 +9911,137 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Get booking cancellation history for customers
+  app.get('/api/customer/booking-history/:userId', async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+      }
+
+      // Get all bookings for this user
+      const bookings = await db.select()
+        .from(bookings)
+        .where(eq(bookings.userId, userId))
+        .orderBy(desc(bookings.createdAt));
+
+      // For each booking, get refund details if cancelled
+      const bookingsWithRefunds = await Promise.all(
+        bookings.map(async (booking) => {
+          const refundInfo = {
+            totalRefunded: 0,
+            refundedInstallers: 0,
+            refundTransactions: []
+          };
+
+          if (booking.status === 'cancelled') {
+            // Get all job assignments for this booking
+            const assignments = await storage.getBookingJobAssignments(booking.id);
+            
+            for (const assignment of assignments) {
+              if (assignment.leadFeeStatus === 'paid' && assignment.status === 'refunded') {
+                const refundAmount = parseFloat(assignment.leadFee || '0');
+                refundInfo.totalRefunded += refundAmount;
+                refundInfo.refundedInstallers++;
+
+                // Get the installer details
+                const installer = await storage.getInstaller(assignment.installerId);
+                refundInfo.refundTransactions.push({
+                  installerName: installer?.businessName || `Installer #${assignment.installerId}`,
+                  refundAmount: refundAmount,
+                  refundDate: assignment.updatedAt || booking.updatedAt
+                });
+              }
+            }
+          }
+
+          return {
+            ...booking,
+            refundInfo
+          };
+        })
+      );
+
+      res.json({
+        bookings: bookingsWithRefunds,
+        summary: {
+          totalBookings: bookings.length,
+          cancelledBookings: bookings.filter(b => b.status === 'cancelled').length,
+          completedBookings: bookings.filter(b => b.status === 'completed').length
+        }
+      });
+
+    } catch (error) {
+      console.error('Error fetching customer booking history:', error);
+      res.status(500).json({ message: 'Failed to fetch booking history' });
+    }
+  });
+
+  // Get installer refund history
+  app.get('/api/installer/:installerId/refund-history', requireInstallerAuth, async (req, res) => {
+    try {
+      const installer = req.installerUser;
+      const installerId = parseInt(req.params.installerId);
+
+      if (!installer || installer.id !== installerId) {
+        return res.status(401).json({ error: 'Unauthorized access' });
+      }
+
+      // Get all refund transactions for this installer
+      const refundTransactions = await db.select({
+        transaction: installerTransactions,
+        jobAssignment: jobAssignments,
+        booking: bookings
+      })
+        .from(installerTransactions)
+        .leftJoin(jobAssignments, eq(installerTransactions.jobAssignmentId, jobAssignments.id))
+        .leftJoin(bookings, eq(jobAssignments.bookingId, bookings.id))
+        .where(and(
+          eq(installerTransactions.installerId, installerId),
+          eq(installerTransactions.type, 'refund')
+        ))
+        .orderBy(desc(installerTransactions.createdAt));
+
+      const refundHistory = refundTransactions.map(({ transaction, jobAssignment, booking }) => ({
+        id: transaction.id,
+        amount: parseFloat(transaction.amount),
+        description: transaction.description,
+        refundDate: transaction.createdAt,
+        bookingId: booking?.id,
+        bookingAddress: booking?.address,
+        jobAssignmentId: jobAssignment?.id,
+        originalLeadFee: jobAssignment?.leadFee ? parseFloat(jobAssignment.leadFee) : 0,
+        refundReason: transaction.description.includes('Customer cancelled') ? 'Customer Cancellation' :
+                     transaction.description.includes('Installer withdrawal') ? 'Installer Withdrawal' :
+                     transaction.description.includes('expired lead') ? 'Lead Expired' :
+                     transaction.description.includes('refund') ? 'Platform Refund' : 'Other',
+        status: transaction.status
+      }));
+
+      const summary = {
+        totalRefunds: refundHistory.length,
+        totalRefundAmount: refundHistory.reduce((sum, refund) => sum + refund.amount, 0),
+        refundsByReason: {
+          customerCancellation: refundHistory.filter(r => r.refundReason === 'Customer Cancellation').length,
+          installerWithdrawal: refundHistory.filter(r => r.refundReason === 'Installer Withdrawal').length,
+          leadExpired: refundHistory.filter(r => r.refundReason === 'Lead Expired').length,
+          platformRefund: refundHistory.filter(r => r.refundReason === 'Platform Refund').length,
+          other: refundHistory.filter(r => r.refundReason === 'Other').length
+        }
+      };
+
+      res.json({
+        refunds: refundHistory,
+        summary
+      });
+
+    } catch (error) {
+      console.error('Error fetching installer refund history:', error);
+      res.status(500).json({ message: 'Failed to fetch refund history' });
+    }
+  });
+
   // Admin fraud prevention endpoints
   app.get('/api/admin/fraud-prevention/refund-requests', requireAuth, async (req, res) => {
     try {

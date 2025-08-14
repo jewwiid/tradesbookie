@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db } from "./db";
-import { retailerInvoices } from "../shared/schema";
+import { retailerInvoices, users } from "../shared/schema";
 
 export interface RetailerInfo {
   code: string;
@@ -347,11 +347,70 @@ export class RetailerDetectionService {
 
       const invoice = invoiceData[0];
 
+      // Check if user already exists with this email
+      const existingUser = await db.select()
+        .from(users)
+        .where(eq(users.email, invoice.customerEmail))
+        .limit(1);
+
+      let user;
+      let isNewRegistration = false;
+
+      if (existingUser.length > 0) {
+        // User exists, update registration method if needed
+        user = existingUser[0];
+        
+        if (user.registrationMethod !== 'invoice') {
+          await db.update(users)
+            .set({ 
+              registrationMethod: 'invoice',
+              retailerInvoiceNumber: invoiceNumber,
+              invoiceVerified: true 
+            })
+            .where(eq(users.id, user.id));
+        }
+      } else {
+        // Create new user from invoice data
+        const userId = `invoice-${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+        const nameParts = invoice.customerName.split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        const newUserData = {
+          id: userId,
+          email: invoice.customerEmail,
+          firstName,
+          lastName,
+          phone: invoice.customerPhone || null,
+          role: 'customer',
+          registrationMethod: 'invoice',
+          retailerInvoiceNumber: invoiceNumber,
+          invoiceVerified: true,
+          emailVerified: true
+        };
+
+        const [createdUser] = await db.insert(users)
+          .values(newUserData)
+          .returning();
+        
+        user = createdUser;
+        isNewRegistration = true;
+      }
+
       return {
         success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          phone: user.phone,
+          role: user.role,
+          registrationMethod: user.registrationMethod
+        },
         message: `Welcome! Logged in using your ${parsedInvoice.retailerInfo.name} purchase.`,
         retailerInfo: parsedInvoice.retailerInfo,
-        // Additional user login logic would go here
+        isNewRegistration
       };
 
     } catch (error) {

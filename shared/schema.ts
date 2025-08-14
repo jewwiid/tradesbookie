@@ -58,6 +58,8 @@ export const retailerInvoices = pgTable("retailer_invoices", {
   storeName: varchar("store_name"),
   storeCode: varchar("store_code"),
   isUsedForRegistration: boolean("is_used_for_registration").default(false),
+  retailerCode: varchar("retailer_code"),
+  productDetails: text("product_details"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

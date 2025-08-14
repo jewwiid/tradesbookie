@@ -86,6 +86,17 @@ The application employs a modern full-stack architecture with AI-enhanced featur
   - **Demo Compatibility**: Demo installer functionality preserved while applying verification to real installers
   - **Status**: ✅ Fully operational - invoice login creates verified users, lead filtering ensures quality
 
+### Secure Invoice Authentication System (August 2025)
+- **Implemented Proper Store Authentication**: Enhanced security to prevent fake invoice registrations
+  - **Security Enhancement**: System no longer auto-creates invoice records for unknown invoice numbers
+  - **Verification Requirement**: New invoices must be manually verified by support before system access
+  - **Fake Invoice Prevention**: Properly rejects attempts with non-existent invoices like HN-BLA-999999
+  - **Support Integration**: Clear messaging directs users to contact support@tradesbook.ie for invoice verification
+  - **Database Cleanup**: Removed automatically created fake invoice records from testing
+  - **Multi-Retailer Security**: Security applies to all supported retailers (Harvey Norman, Currys, RTV)
+  - **Admin Verification Service**: Created `InvoiceVerificationService` for secure admin-controlled invoice additions
+  - **Status**: ✅ Fully secured - only pre-verified invoices can authenticate, prevents unauthorized access
+
 ## Recent Changes (August 2025)
 
 ### Multi-Retailer Interface Updates (August 2025)

@@ -340,6 +340,7 @@ export class RetailerDetectionService {
     message: string;
     isNewRegistration?: boolean;
     retailerInfo?: RetailerInfo;
+    requiresVerification?: boolean;
   }> {
     try {
       // Detect retailer from invoice
@@ -361,43 +362,19 @@ export class RetailerDetectionService {
       let isNewInvoice = false;
 
       if (invoiceData.length === 0) {
-        // Invoice doesn't exist - this is a new customer trying to register
-        // We'll create a placeholder invoice record that they can complete later
-        console.log(`Creating new invoice record for ${invoiceNumber}`);
+        // SECURITY: Invoice doesn't exist in our verified database
+        // This could be either:
+        // 1. A legitimate new customer with a real invoice (needs manual verification)
+        // 2. Someone trying to create a fake invoice (security risk)
         
-        // Generate placeholder customer data based on retailer and store info
-        const storeName = this.getStoreName(parsedInvoice.retailerCode, parsedInvoice.storeCode);
-        const placeholderEmail = `customer.${invoiceNumber.toLowerCase().replace('-', '.')}@pending.verification`;
-        const placeholderName = `Customer ${parsedInvoice.retailerInfo.name}`;
+        console.log(`⚠️ Unknown invoice attempted: ${invoiceNumber} - requiring verification`);
         
-        const newInvoiceData = {
+        return {
+          success: false,
+          message: `This ${parsedInvoice.retailerInfo.name} invoice (${invoiceNumber}) is not in our system. For security, new invoices must be verified. Please contact support at support@tradesbook.ie with your invoice details, or use an invoice from a previous verified purchase.`,
+          requiresVerification: true,
           invoiceNumber: invoiceNumber,
-          customerEmail: placeholderEmail,
-          customerName: placeholderName,
-          customerPhone: null,
-          retailerCode: parsedInvoice.retailerCode,
-          storeCode: parsedInvoice.storeCode || 'UNKNOWN',
-          storeName: storeName,
-          purchaseAmount: null,
-          purchaseDate: new Date(),
-          isUsedForRegistration: false,
-          isPending: true // Mark as pending completion
-        };
-
-        try {
-          const [createdInvoice] = await db.insert(retailerInvoices)
-            .values(newInvoiceData)
-            .returning();
-          
-          invoice = createdInvoice;
-          isNewInvoice = true;
-          console.log(`✅ Created new invoice record: ${invoiceNumber}`);
-        } catch (error) {
-          console.error('Error creating invoice record:', error);
-          return {
-            success: false,
-            message: `Unable to process this ${parsedInvoice.retailerInfo.name} invoice. Please try again later.`
-          };
+          retailerInfo: parsedInvoice.retailerInfo
         }
       } else {
         invoice = invoiceData[0];

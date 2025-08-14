@@ -12156,7 +12156,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Installer service assignment endpoints
   app.get('/api/installer-service-assignments', async (req, res) => {
     try {
+      console.log('Starting to fetch installer service assignments...');
       const assignments = await storage.getAllInstallerServiceAssignments();
+      console.log('Successfully fetched assignments:', assignments.length);
       res.json(assignments);
     } catch (error) {
       console.error('Error fetching installer service assignments:', error);

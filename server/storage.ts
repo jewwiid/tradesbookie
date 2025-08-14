@@ -8,6 +8,7 @@ import {
   consultations, downloadableGuides, videoTutorials, productCategories,
   qrCodeScans, aiProductRecommendations, choiceFlowTracking,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics,
+  installerServiceAssignments,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -41,7 +42,8 @@ import {
   type OnboardingInvitation, type InsertOnboardingInvitation,
   type TradesPersonEmailTemplate, type InsertTradesPersonEmailTemplate,
   type SelectServiceType, type InsertServiceType,
-  type SelectServiceMetrics, type InsertServiceMetrics
+  type SelectServiceMetrics, type InsertServiceMetrics,
+  type InstallerServiceAssignment, type InsertInstallerServiceAssignment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, isNull, sql } from "drizzle-orm";
@@ -2723,6 +2725,74 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(serviceMetrics.serviceTypeId, serviceType.id));
     }
+  }
+
+  // Installer Service Assignment operations
+  async getAllInstallerServiceAssignments(): Promise<(InstallerServiceAssignment & { installer: Installer; serviceType: SelectServiceType })[]> {
+    try {
+      console.log('Step 1: Getting assignments...');
+      const assignments = await db.select().from(installerServiceAssignments);
+      console.log('Step 1 complete. Assignments found:', assignments.length);
+      
+      console.log('Step 2: Getting installers...');
+      const allInstallers = await db.select().from(installers);
+      console.log('Step 2 complete. Installers found:', allInstallers.length);
+      
+      console.log('Step 3: Getting service types...');
+      const allServiceTypes = await db.select().from(serviceTypes);
+      console.log('Step 3 complete. Service types found:', allServiceTypes.length);
+      
+      // Map assignments with their related data
+      const result = assignments.map(assignment => {
+        const installer = allInstallers.find(i => i.id === assignment.installerId);
+        const serviceType = allServiceTypes.find(st => st.id === assignment.serviceTypeId);
+        
+        return {
+          ...assignment,
+          installer: installer!,
+          serviceType: serviceType!
+        };
+      });
+      
+      console.log('Mapping complete. Returning', result.length, 'results');
+      return result;
+    } catch (error) {
+      console.error('Error in getAllInstallerServiceAssignments:', error);
+      throw error;
+    }
+  }
+
+  async getInstallerServices(installerId: number): Promise<(InstallerServiceAssignment & { serviceType: SelectServiceType })[]> {
+    const result = await db
+      .select({
+        assignment: installerServiceAssignments,
+        serviceType: serviceTypes
+      })
+      .from(installerServiceAssignments)
+      .leftJoin(serviceTypes, eq(installerServiceAssignments.serviceTypeId, serviceTypes.id))
+      .where(eq(installerServiceAssignments.installerId, installerId));
+
+    return result.map(row => ({
+      ...row.assignment,
+      serviceType: row.serviceType!
+    }));
+  }
+
+  async assignServiceToInstaller(assignment: InsertInstallerServiceAssignment): Promise<InstallerServiceAssignment> {
+    const [newAssignment] = await db
+      .insert(installerServiceAssignments)
+      .values(assignment)
+      .returning();
+    return newAssignment;
+  }
+
+  async removeServiceFromInstaller(installerId: number, serviceTypeId: number): Promise<void> {
+    await db
+      .delete(installerServiceAssignments)
+      .where(and(
+        eq(installerServiceAssignments.installerId, installerId),
+        eq(installerServiceAssignments.serviceTypeId, serviceTypeId)
+      ));
   }
 }
 

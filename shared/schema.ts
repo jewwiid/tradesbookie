@@ -101,9 +101,6 @@ export const installers = pgTable("installers", {
   vipGrantedAt: timestamp("vip_granted_at"), // When VIP status was granted
   vipNotes: text("vip_notes"), // Admin notes about VIP status
   
-  // Service specializations - linked to service metrics
-  serviceTypes: jsonb("service_types").default([]), // Array of service type IDs they specialize in
-  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

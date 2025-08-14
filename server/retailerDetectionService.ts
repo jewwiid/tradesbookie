@@ -138,6 +138,25 @@ export class RetailerDetectionService {
         'GAL': 'Galway',
         'LIM': 'Limerick'
       }
+    },
+    'RT': {
+      code: 'RT',
+      name: 'RTV',
+      fullName: 'Radio TV World',
+      color: '#ff4444',
+      invoiceFormats: ['RT-{STORE}-{NUMBER}', 'RT{STORE}{NUMBER}', 'RTV-{NUMBER}'],
+      referralCodePrefix: 'RT',
+      storeLocations: {
+        'DUB': 'Dublin',
+        'COR': 'Cork',
+        'GAL': 'Galway',
+        'LIM': 'Limerick',
+        'WAT': 'Waterford',
+        'ATH': 'Athlone',
+        'DRO': 'Drogheda',
+        'KIL': 'Kilkenny',
+        'BLA': 'Blanchardstown'
+      }
     }
   };
 
@@ -333,25 +352,65 @@ export class RetailerDetectionService {
       }
 
       // Look up invoice in database
-      const invoiceData = await db.select()
+      let invoiceData = await db.select()
         .from(retailerInvoices)
         .where(eq(retailerInvoices.invoiceNumber, invoiceNumber))
         .limit(1);
 
+      let invoice;
+      let isNewInvoice = false;
+
       if (invoiceData.length === 0) {
-        return {
-          success: false,
-          message: `No purchase record found for this ${parsedInvoice.retailerInfo.name} invoice. Please check the invoice number.`
+        // Invoice doesn't exist - this is a new customer trying to register
+        // We'll create a placeholder invoice record that they can complete later
+        console.log(`Creating new invoice record for ${invoiceNumber}`);
+        
+        // Generate placeholder customer data based on retailer and store info
+        const storeName = this.getStoreName(parsedInvoice.retailerCode, parsedInvoice.storeCode);
+        const placeholderEmail = `customer.${invoiceNumber.toLowerCase().replace('-', '.')}@pending.verification`;
+        const placeholderName = `Customer ${parsedInvoice.retailerInfo.name}`;
+        
+        const newInvoiceData = {
+          invoiceNumber: invoiceNumber,
+          customerEmail: placeholderEmail,
+          customerName: placeholderName,
+          customerPhone: null,
+          retailerCode: parsedInvoice.retailerCode,
+          storeCode: parsedInvoice.storeCode || 'UNKNOWN',
+          storeName: storeName,
+          purchaseAmount: null,
+          purchaseDate: new Date(),
+          isUsedForRegistration: false,
+          isPending: true // Mark as pending completion
         };
+
+        try {
+          const [createdInvoice] = await db.insert(retailerInvoices)
+            .values(newInvoiceData)
+            .returning();
+          
+          invoice = createdInvoice;
+          isNewInvoice = true;
+          console.log(`✅ Created new invoice record: ${invoiceNumber}`);
+        } catch (error) {
+          console.error('Error creating invoice record:', error);
+          return {
+            success: false,
+            message: `Unable to process this ${parsedInvoice.retailerInfo.name} invoice. Please try again later.`
+          };
+        }
+      } else {
+        invoice = invoiceData[0];
       }
 
-      const invoice = invoiceData[0];
-
-      // Check if user already exists with this email
-      const existingUser = await db.select()
-        .from(users)
-        .where(eq(users.email, invoice.customerEmail))
-        .limit(1);
+      // Check if user already exists with this email (skip for new placeholder invoices)
+      let existingUser = [];
+      if (!isNewInvoice) {
+        existingUser = await db.select()
+          .from(users)
+          .where(eq(users.email, invoice.customerEmail))
+          .limit(1);
+      }
 
       let user;
       let isNewRegistration = false;
@@ -371,20 +430,33 @@ export class RetailerDetectionService {
         }
       } else {
         // Create new user from invoice data with proper integer ID
-        const nameParts = invoice.customerName.split(' ');
-        const firstName = nameParts[0] || '';
-        const lastName = nameParts.slice(1).join(' ') || '';
+        let customerEmail, firstName, lastName;
+        
+        if (isNewInvoice) {
+          // For new invoices, we need to collect customer info
+          // Use a temporary email that will be updated during profile completion
+          customerEmail = `new.customer.${invoiceNumber.toLowerCase().replace('-', '.')}@temp.registration`;
+          firstName = 'New';
+          lastName = 'Customer';
+        } else {
+          // Use existing invoice data
+          const nameParts = invoice.customerName.split(' ');
+          customerEmail = invoice.customerEmail;
+          firstName = nameParts[0] || '';
+          lastName = nameParts.slice(1).join(' ') || '';
+        }
 
         const newUserData = {
-          email: invoice.customerEmail,
+          email: customerEmail,
           firstName,
           lastName,
           phone: invoice.customerPhone || null,
           role: 'customer',
           registrationMethod: 'invoice',
           retailerInvoiceNumber: invoiceNumber,
-          invoiceVerified: true,
-          emailVerified: false // Require email verification even for invoice users
+          invoiceVerified: !isNewInvoice, // New invoices need completion
+          emailVerified: false, // Always require email verification
+          profileCompleted: !isNewInvoice // New invoices need profile completion
         };
 
         const [createdUser] = await db.insert(users)
@@ -394,26 +466,29 @@ export class RetailerDetectionService {
         user = createdUser;
         isNewRegistration = true;
         
-        // Send verification email for new invoice users
-        try {
-          const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
-          const verificationToken = await generateVerificationToken();
-          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-          
-          // Update user with verification token
-          await db.update(users)
-            .set({
-              emailVerificationToken: verificationToken,
-              emailVerificationExpires: expiresAt
-            })
-            .where(eq(users.id, createdUser.id));
+        // Handle email verification for new users
+        if (!isNewInvoice && customerEmail && !customerEmail.includes('@temp.')) {
+          // Send verification email for existing invoice users with real emails
+          try {
+            const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
+            const verificationToken = await generateVerificationToken();
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
             
-          // Send verification email
-          await sendVerificationEmail(invoice.customerEmail, firstName, verificationToken);
-          console.log(`✅ Verification email sent to invoice user: ${invoice.customerEmail}`);
-        } catch (emailError) {
-          console.error('❌ Error sending verification email to invoice user:', emailError);
-          // Continue with user creation even if email fails
+            // Update user with verification token
+            await db.update(users)
+              .set({
+                emailVerificationToken: verificationToken,
+                emailVerificationExpires: expiresAt
+              })
+              .where(eq(users.id, createdUser.id));
+              
+            // Send verification email
+            await sendVerificationEmail(customerEmail, firstName, verificationToken);
+            console.log(`✅ Verification email sent to invoice user: ${customerEmail}`);
+          } catch (emailError) {
+            console.error('❌ Error sending verification email to invoice user:', emailError);
+            // Continue with user creation even if email fails
+          }
         }
       }
 
@@ -422,9 +497,17 @@ export class RetailerDetectionService {
         .set({ isUsedForRegistration: true })
         .where(eq(retailerInvoices.id, invoice.id));
 
-      const welcomeMessage = isNewRegistration 
-        ? `Welcome to tradesbook.ie! We've created your account using your ${parsedInvoice.retailerInfo.name} purchase. Please verify your email address to complete your registration and allow installers to see your booking requests.`
-        : `Welcome back! You've been authenticated using your ${parsedInvoice.retailerInfo.name} purchase.`;
+      let welcomeMessage;
+      let needsProfileCompletion = false;
+
+      if (isNewRegistration && isNewInvoice) {
+        welcomeMessage = `Welcome to tradesbook.ie! We've recognized your ${parsedInvoice.retailerInfo.name} invoice ${invoiceNumber}. Please complete your profile with your contact details to proceed.`;
+        needsProfileCompletion = true;
+      } else if (isNewRegistration) {
+        welcomeMessage = `Welcome to tradesbook.ie! We've created your account using your ${parsedInvoice.retailerInfo.name} purchase. Please verify your email address to complete your registration and allow installers to see your booking requests.`;
+      } else {
+        welcomeMessage = `Welcome back! You've been authenticated using your ${parsedInvoice.retailerInfo.name} purchase.`;
+      }
 
       return {
         success: true,
@@ -436,11 +519,14 @@ export class RetailerDetectionService {
           phone: user.phone,
           role: user.role,
           registrationMethod: user.registrationMethod,
-          emailVerified: user.emailVerified
+          emailVerified: user.emailVerified,
+          profileCompleted: user.profileCompleted || false
         },
         message: welcomeMessage,
         retailerInfo: parsedInvoice.retailerInfo,
-        isNewRegistration
+        isNewRegistration,
+        needsProfileCompletion,
+        invoiceNumber: invoiceNumber
       };
 
     } catch (error) {

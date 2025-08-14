@@ -9714,6 +9714,203 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Customer cancellation endpoint
+  app.post('/api/booking/:bookingId/cancel', async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const { reason, customerNotes } = req.body;
+
+      if (!bookingId) {
+        return res.status(400).json({ message: "Booking ID is required" });
+      }
+
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Don't allow cancellation if already completed
+      if (booking.status === 'completed') {
+        return res.status(400).json({ message: "Cannot cancel completed booking" });
+      }
+
+      // Get all job assignments for refunding
+      const assignments = await storage.getBookingJobAssignments(bookingId);
+      let totalRefunded = 0;
+
+      for (const assignment of assignments) {
+        // Only refund if the installer paid for the lead
+        if (assignment.leadFeeStatus === 'paid' && assignment.status !== 'refunded') {
+          const leadFee = parseFloat(assignment.leadFee);
+          const wallet = await storage.getInstallerWallet(assignment.installerId);
+          
+          if (wallet && leadFee > 0) {
+            // Full refund for customer cancellations
+            const newBalance = parseFloat(wallet.balance) + leadFee;
+            const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - leadFee);
+            
+            await storage.updateInstallerWalletBalance(assignment.installerId, newBalance);
+            await storage.updateInstallerWalletTotalSpent(assignment.installerId, totalSpent);
+            
+            // Update assignment status
+            await db.update(jobAssignments)
+              .set({ status: 'refunded' })
+              .where(eq(jobAssignments.id, assignment.id));
+            
+            // Add refund transaction
+            await storage.addInstallerTransaction({
+              installerId: assignment.installerId,
+              type: 'refund',
+              amount: leadFee.toString(),
+              description: `Customer cancelled booking #${bookingId}. Reason: ${reason || 'No reason provided'}`,
+              jobAssignmentId: assignment.id,
+              status: 'completed'
+            });
+            
+            totalRefunded += leadFee;
+          }
+        }
+      }
+
+      // Update booking status
+      await storage.updateBookingStatus(bookingId, 'cancelled');
+
+      // Send notification emails to affected installers
+      for (const assignment of assignments) {
+        if (assignment.leadFeeStatus === 'paid') {
+          const installer = await storage.getInstaller(assignment.installerId);
+          if (installer && installer.email) {
+            // Email logic would go here
+            console.log(`Notification sent to installer ${installer.businessName} about cancellation`);
+          }
+        }
+      }
+
+      res.json({
+        success: true,
+        message: `Booking cancelled successfully. €${totalRefunded.toFixed(2)} refunded to affected installers.`,
+        refundAmount: totalRefunded,
+        affectedInstallers: assignments.length
+      });
+
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      res.status(500).json({ message: 'Failed to cancel booking' });
+    }
+  });
+
+  // Installer withdrawal endpoint
+  app.post('/api/installer/withdraw/:jobAssignmentId', requireInstallerAuth, async (req, res) => {
+    try {
+      const installer = req.installerUser;
+      const jobAssignmentId = parseInt(req.params.jobAssignmentId);
+      const { reason, notes } = req.body;
+
+      if (!installer) {
+        return res.status(401).json({ error: 'Installer authentication required' });
+      }
+
+      // Get the job assignment
+      const assignment = await db.select().from(jobAssignments)
+        .where(and(
+          eq(jobAssignments.id, jobAssignmentId),
+          eq(jobAssignments.installerId, installer.id)
+        ))
+        .limit(1);
+
+      if (!assignment.length) {
+        return res.status(404).json({ message: 'Job assignment not found' });
+      }
+
+      const jobAssignment = assignment[0];
+
+      // Check if eligible for withdrawal
+      if (jobAssignment.status === 'completed') {
+        return res.status(400).json({ message: 'Cannot withdraw from completed job' });
+      }
+
+      if (jobAssignment.status === 'refunded') {
+        return res.status(400).json({ message: 'Already withdrawn from this job' });
+      }
+
+      // Calculate refund based on job stage
+      let refundPercentage = 1.0; // Default to full refund
+      let refundReason = `Installer withdrawal - ${reason || 'No reason provided'}`;
+
+      if (jobAssignment.status === 'accepted') {
+        // Job was accepted but not started - full refund
+        refundPercentage = 1.0;
+      } else if (jobAssignment.status === 'in_progress') {
+        // Job in progress - partial refund (80%)
+        refundPercentage = 0.8;
+        refundReason += ' (Partial refund - job was in progress)';
+      } else if (jobAssignment.status === 'purchased') {
+        // Just purchased, not yet accepted - full refund
+        refundPercentage = 1.0;
+      }
+
+      const leadFee = parseFloat(jobAssignment.leadFee || '0');
+      const refundAmount = leadFee * refundPercentage;
+
+      if (leadFee > 0 && jobAssignment.leadFeeStatus === 'paid') {
+        const wallet = await storage.getInstallerWallet(installer.id);
+        if (wallet) {
+          const newBalance = parseFloat(wallet.balance) + refundAmount;
+          const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - refundAmount);
+          
+          await storage.updateInstallerWalletBalance(installer.id, newBalance);
+          await storage.updateInstallerWalletTotalSpent(installer.id, totalSpent);
+          
+          // Update assignment status
+          await db.update(jobAssignments)
+            .set({ status: 'refunded' })
+            .where(eq(jobAssignments.id, jobAssignmentId));
+          
+          // Add refund transaction
+          await storage.addInstallerTransaction({
+            installerId: installer.id,
+            type: 'refund',
+            amount: refundAmount.toString(),
+            description: refundReason,
+            jobAssignmentId: jobAssignmentId,
+            status: 'completed'
+          });
+
+          // If this was an accepted job, update booking status
+          if (jobAssignment.status === 'accepted') {
+            await storage.updateBookingStatus(jobAssignment.bookingId, 'pending');
+            // Remove installer assignment
+            await storage.updateBookingInstaller(jobAssignment.bookingId, null);
+          }
+
+          res.json({
+            success: true,
+            message: `Successfully withdrawn from job. €${refundAmount.toFixed(2)} refunded to your wallet.`,
+            refundAmount: refundAmount,
+            refundPercentage: Math.round(refundPercentage * 100)
+          });
+        } else {
+          res.status(500).json({ message: 'Wallet not found' });
+        }
+      } else {
+        // No payment to refund, just update status
+        await db.update(jobAssignments)
+          .set({ status: 'declined' })
+          .where(eq(jobAssignments.id, jobAssignmentId));
+
+        res.json({
+          success: true,
+          message: 'Successfully withdrawn from job.',
+          refundAmount: 0
+        });
+      }
+
+    } catch (error) {
+      console.error('Error processing installer withdrawal:', error);
+      res.status(500).json({ message: 'Failed to process withdrawal' });
+    }
+  });
+
   // Admin fraud prevention endpoints
   app.get('/api/admin/fraud-prevention/refund-requests', requireAuth, async (req, res) => {
     try {

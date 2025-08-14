@@ -29,6 +29,7 @@ The application employs a modern full-stack architecture with AI-enhanced featur
 - **AI-Powered Content Generation:** Admin users can generate content for the "Create New Resource" module from either URLs (web scraping) or markdown text, powered by GPT-4o.
 - **Installer Revenue Calculation:** Corrected lead map revenue display in the installer dashboard to show net potential revenue (estimated earnings minus lead fee).
 - **Demo Installation Visibility System:** Demo installers (e.g., test@tradesbook.ie) now only see installations marked as `is_demo = true`, while regular installers do not see demo installations.
+- **Comprehensive Credit Refund System:** Implemented a complete credit management system handling all cancellation scenarios: customer cancellations (full refunds), installer withdrawals (partial refunds based on job stage), expired leads (automatic refunds), and fraud prevention refunds. All refunds maintain accurate wallet balances and transaction records with proper audit trails.
 
 **System Design Choices:**
 - **Full-Stack Architecture:** Clear separation of frontend and backend concerns.

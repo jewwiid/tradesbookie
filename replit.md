@@ -9,6 +9,15 @@ This project is a sophisticated TV and product installation referral platform co
 - Use critical thinking to identify genuine value propositions
 - Maintain professional, informative communication style
 
+## Recent Changes (August 14, 2025)
+- ✅ **Fixed Invoice Login Authentication**: Resolved "unable to process invoice login at this time" error by adding missing `retailer_code` and `product_details` columns to the `retailer_invoices` table
+- ✅ **Initialized Sample Data**: Successfully populated database with sample invoices to support testing
+- ✅ **Verified End-to-End Flow**: Confirmed that invoice authentication + booking creation works seamlessly
+  - Users can authenticate with invoice number (e.g., "HN-CKM-2576597")
+  - Authenticated users can create bookings that are properly linked to their invoices
+  - Bookings include `invoiceNumber` and `invoiceSessionId` for complete traceability
+- ✅ **Database Schema Sync**: Resolved schema misalignment between codebase and database tables
+
 ## System Architecture
 The application employs a modern full-stack architecture with AI-enhanced features, prioritizing a mobile-first, responsive design.
 

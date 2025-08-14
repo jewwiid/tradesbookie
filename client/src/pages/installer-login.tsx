@@ -270,16 +270,39 @@ export default function InstallerLogin() {
                   </Button>
                 </form>
                 
-                {/* Forgot Password Link */}
-                <div className="text-center">
-                  <Link href="/forgot-password">
+                {/* Demo Access & Forgot Password */}
+                <div className="space-y-3">
+                  <div className="text-center">
                     <Button 
-                      variant="link" 
-                      className="text-sm text-gray-600 hover:text-primary"
+                      type="button"
+                      variant="outline" 
+                      className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
+                      onClick={() => {
+                        setFormData({
+                          email: "test@tradesbook.ie",
+                          password: "demo123"
+                        });
+                        setValidationErrors({});
+                        toast({
+                          title: "Demo Credentials Loaded",
+                          description: "Click Sign In to access the demo account",
+                        });
+                      }}
                     >
-                      Forgot your password?
+                      Try Demo Access
                     </Button>
-                  </Link>
+                  </div>
+                  
+                  <div className="text-center">
+                    <Link href="/forgot-password">
+                      <Button 
+                        variant="link" 
+                        className="text-sm text-gray-600 hover:text-primary"
+                      >
+                        Forgot your password?
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -312,35 +335,31 @@ export default function InstallerLogin() {
               </CardContent>
             </Card>
 
-            {/* Demo Access */}
+            {/* Platform Info */}
             <Card className="bg-blue-50 border-blue-200">
               <CardContent className="p-6">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle2 className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h3 className="font-semibold text-blue-900 mb-2 text-lg">Try Demo Access</h3>
+                  <h3 className="font-semibold text-blue-900 mb-2 text-lg">Professional Platform</h3>
                   <p className="text-blue-700 text-sm mb-4">
-                    Explore the installer dashboard without registration
+                    Join Ireland's leading installation service platform
                   </p>
-                  <div className="bg-blue-100 rounded-lg p-3 mb-4 text-xs">
-                    <p className="font-medium text-blue-800 mb-1">Demo credentials:</p>
-                    <p className="text-blue-700">test@tradesbook.ie</p>
-                    <p className="text-blue-700">demo123</p>
+                  <div className="space-y-2 text-sm text-blue-800">
+                    <div className="flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 mr-2 text-blue-600" />
+                      <span>Verified customer leads</span>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 mr-2 text-blue-600" />
+                      <span>Secure payment processing</span>
+                    </div>
+                    <div className="flex items-center justify-center">
+                      <CheckCircle2 className="w-4 h-4 mr-2 text-blue-600" />
+                      <span>Professional support</span>
+                    </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
-                    onClick={() => {
-                      setFormData({
-                        email: "test@tradesbook.ie",
-                        password: "demo123"
-                      });
-                      setValidationErrors({});
-                    }}
-                  >
-                    Fill Demo Credentials
-                  </Button>
                 </div>
               </CardContent>
             </Card>

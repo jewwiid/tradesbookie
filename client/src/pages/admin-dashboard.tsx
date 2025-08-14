@@ -60,7 +60,8 @@ import {
   Image as ImageIcon,
   Tv,
   BookOpen,
-  CheckCircle
+  CheckCircle,
+  Zap
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
@@ -1143,6 +1144,22 @@ function InstallerManagement() {
     },
   });
 
+  const toggleVipStatusMutation = useMutation({
+    mutationFn: async ({ installerId, isVip, vipNotes }: { installerId: number; isVip: boolean; vipNotes?: string }) => {
+      await apiRequest(`/api/admin/installers/${installerId}/vip`, "PATCH", { isVip, vipNotes });
+    },
+    onSuccess: (_, { isVip }) => {
+      toast({ 
+        title: `Installer ${isVip ? 'granted' : 'removed'} VIP status successfully`,
+        description: isVip ? "Installer will now get leads for free" : "Installer will pay standard lead fees"
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to update installer VIP status", variant: "destructive" });
+    },
+  });
+
   const approveInstallerMutation = useMutation({
     mutationFn: async ({ installerId, score, comments }: { installerId: number; score: number; comments: string }) => {
       await apiRequest("PATCH", `/api/admin/installers/${installerId}/approve`, { 
@@ -1320,6 +1337,7 @@ function InstallerManagement() {
               <TableHead>Approval</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Visibility</TableHead>
+              <TableHead>VIP Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -1397,6 +1415,28 @@ function InstallerManagement() {
                         })
                       }
                       title={installer.isPubliclyVisible !== false ? "Hide from public view" : "Show in public view"}
+                    />
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Badge 
+                      variant={installer.isVip ? "default" : "outline"} 
+                      className={installer.isVip ? "bg-purple-600 text-white" : ""}
+                    >
+                      {installer.isVip ? "VIP" : "Standard"}
+                    </Badge>
+                    <Switch 
+                      checked={installer.isVip || false}
+                      onCheckedChange={(checked) => 
+                        toggleVipStatusMutation.mutate({
+                          installerId: installer.id,
+                          isVip: checked,
+                          vipNotes: checked ? "VIP status granted by admin" : undefined
+                        })
+                      }
+                      title={installer.isVip ? "Remove VIP status" : "Grant VIP status (free leads)"}
+                      className={installer.isVip ? "data-[state=checked]:bg-purple-600" : ""}
                     />
                   </div>
                 </TableCell>
@@ -5233,7 +5273,18 @@ function PlatformSettingsManagement() {
 
   const handleToggleFirstLeadVouchers = async () => {
     const voucherSetting = settings.find(s => s.key === 'first_lead_voucher_enabled');
+    const freeLeadsPromotion = settings.find(s => s.key === 'free_leads_promotion_enabled');
     const newValue = voucherSetting?.value === 'true' ? 'false' : 'true';
+    
+    // Check if Free Leads Promotion is running - can't enable both at same time
+    if (newValue === 'true' && freeLeadsPromotion?.value === 'true') {
+      toast({
+        title: "Cannot Enable Both Promotions",
+        description: "Free Leads Promotion is currently active. Please pause it first before enabling First Lead Vouchers.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (voucherSetting) {
       // Update existing setting
@@ -5254,7 +5305,42 @@ function PlatformSettingsManagement() {
     }
   };
 
+  const handleToggleFreeLeadsPromotion = async () => {
+    const freeLeadsPromotion = settings.find(s => s.key === 'free_leads_promotion_enabled');
+    const voucherSetting = settings.find(s => s.key === 'first_lead_voucher_enabled');
+    const newValue = freeLeadsPromotion?.value === 'true' ? 'false' : 'true';
+    
+    // Check if First Lead Voucher System is running - can't enable both at same time
+    if (newValue === 'true' && voucherSetting?.value === 'true') {
+      toast({
+        title: "Cannot Enable Both Promotions",
+        description: "First Lead Voucher System is currently active. Please disable it first before starting Free Leads Promotion.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (freeLeadsPromotion) {
+      // Update existing setting
+      updateSettingMutation.mutate({
+        key: 'free_leads_promotion_enabled',
+        value: newValue,
+        description: 'Enable or disable free leads promotion for all installers',
+        category: 'promotions'
+      });
+    } else {
+      // Create new setting
+      createSettingMutation.mutate({
+        key: 'free_leads_promotion_enabled',
+        value: newValue,
+        description: 'Enable or disable free leads promotion for all installers',
+        category: 'promotions'
+      });
+    }
+  };
+
   const isVoucherSystemEnabled = settings.find(s => s.key === 'first_lead_voucher_enabled')?.value === 'true';
+  const isFreeLeadsPromotionEnabled = settings.find(s => s.key === 'free_leads_promotion_enabled')?.value === 'true';
 
   if (isLoading) {
     return (
@@ -5274,9 +5360,62 @@ function PlatformSettingsManagement() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Platform Settings</h2>
-          <p className="text-gray-600">Manage platform configuration and first lead voucher system</p>
+          <p className="text-gray-600">Manage platform configuration, promotions, and installer benefits</p>
         </div>
       </div>
+
+      {/* Free Leads Promotion System */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Zap className="w-5 h-5 text-orange-600" />
+            <span>Free Leads Promotion</span>
+            {isFreeLeadsPromotionEnabled && (
+              <Badge variant="default" className="bg-orange-600">
+                ACTIVE
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between p-4 border rounded-lg bg-orange-50 dark:bg-orange-950/20">
+            <div>
+              <h3 className="font-medium">Enable Free Leads for All Installers</h3>
+              <p className="text-sm text-gray-600">
+                When active, all installers get leads for free (no lead fees charged)
+              </p>
+              <p className="text-xs text-orange-600 mt-1">
+                ⚠️ Cannot run simultaneously with First Lead Voucher System
+              </p>
+            </div>
+            <Button
+              onClick={handleToggleFreeLeadsPromotion}
+              variant={isFreeLeadsPromotionEnabled ? "default" : "outline"}
+              disabled={updateSettingMutation.isPending || createSettingMutation.isPending}
+              className={isFreeLeadsPromotionEnabled ? "bg-orange-600 hover:bg-orange-700" : ""}
+            >
+              {updateSettingMutation.isPending || createSettingMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : null}
+              {isFreeLeadsPromotionEnabled ? "ACTIVE - Click to Pause" : "Start Promotion"}
+            </Button>
+          </div>
+          
+          {isFreeLeadsPromotionEnabled && (
+            <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-green-800 dark:text-green-200">
+                  Free Leads Promotion is currently active
+                </span>
+              </div>
+              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                All installers are receiving leads without paying lead fees
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* First Lead Voucher System */}
       <Card>

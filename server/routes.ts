@@ -4125,23 +4125,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Booking not found" });
         }
         
-        // Calculate lead fee based on service type
-        const leadFee = getLeadFee(booking.serviceType);
+        // Check if installer should pay lead fee (VIP, Free Leads Promotion, or First Lead Voucher)
+        const shouldPayFee = await storage.shouldInstallerPayLeadFee(targetInstallerId);
         
-        // Check wallet balance
-        const wallet = await storage.getInstallerWallet(targetInstallerId);
-        if (!wallet) {
-          return res.status(400).json({ message: "Wallet not found" });
+        if (shouldPayFee) {
+          // Calculate lead fee based on service type
+          const leadFee = getLeadFee(booking.serviceType);
+          
+          // Check wallet balance
+          const wallet = await storage.getInstallerWallet(targetInstallerId);
+          if (!wallet) {
+            return res.status(400).json({ message: "Wallet not found" });
+          }
+          
+          const currentBalance = parseFloat(wallet.balance);
+          if (currentBalance < leadFee) {
+            return res.status(400).json({ 
+              message: "Insufficient wallet balance. Please add credits to purchase this lead.",
+              required: leadFee,
+              available: currentBalance 
+            });
+          }
+        } else {
+          console.log(`Installer ${targetInstallerId} is exempt from lead fees (VIP, Free Leads Promotion, or First Lead Voucher)`);
         }
         
-        const currentBalance = parseFloat(wallet.balance);
-        if (currentBalance < leadFee) {
-          return res.status(400).json({ 
-            message: "Insufficient wallet balance. Please add credits to purchase this lead.",
-            required: leadFee,
-            available: currentBalance 
-          });
-        }
+        // Determine lead fee and fee status based on exemption
+        const finalLeadFee = shouldPayFee ? getLeadFee(booking.serviceType) : 0;
+        const feeStatus = shouldPayFee ? "paid" : "exempt";
         
         // Create job assignment for demo lead purchase
         const jobAssignment = await storage.createJobAssignment({
@@ -4149,26 +4160,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
           installerId: targetInstallerId,
           status: "accepted",
           acceptedDate: new Date(),
-          leadFee: leadFee.toString(),
-          leadFeeStatus: "paid",
+          leadFee: finalLeadFee.toString(),
+          leadFeeStatus: feeStatus,
           leadPaidDate: new Date()
         });
         
-        // Deduct lead fee from wallet
-        const newBalance = currentBalance - leadFee;
-        const totalSpent = parseFloat(wallet.totalSpent) + leadFee;
-        await storage.updateInstallerWalletBalance(targetInstallerId, newBalance);
-        await storage.updateInstallerWalletTotalSpent(targetInstallerId, totalSpent);
+        let newBalance = parseFloat(wallet.balance);
+        let totalSpent = parseFloat(wallet.totalSpent);
         
-        // Add transaction record
-        await storage.addInstallerTransaction({
-          installerId: targetInstallerId,
-          type: "lead_purchase",
-          amount: (-leadFee).toString(),
-          description: `Purchased demo lead access for request #${requestId}`,
-          jobAssignmentId: jobAssignment.id,
-          status: "completed"
-        });
+        // Only deduct fee if installer should pay
+        if (shouldPayFee && finalLeadFee > 0) {
+          newBalance = currentBalance - finalLeadFee;
+          totalSpent = parseFloat(wallet.totalSpent) + finalLeadFee;
+          await storage.updateInstallerWalletBalance(targetInstallerId, newBalance);
+          await storage.updateInstallerWalletTotalSpent(targetInstallerId, totalSpent);
+          
+          // Add transaction record for paid lead
+          await storage.addInstallerTransaction({
+            installerId: targetInstallerId,
+            type: "lead_purchase",
+            amount: (-finalLeadFee).toString(),
+            description: `Purchased demo lead access for request #${requestId}`,
+            jobAssignmentId: jobAssignment.id,
+            status: "completed"
+          });
+        } else {
+          // Add transaction record for exempt lead
+          await storage.addInstallerTransaction({
+            installerId: targetInstallerId,
+            type: "lead_purchase",
+            amount: "0.00",
+            description: `Free demo lead access (VIP/Promotion/Voucher) for request #${requestId}`,
+            jobAssignmentId: jobAssignment.id,
+            status: "completed"
+          });
+        }
         
         return res.json({
           success: true,
@@ -4200,49 +4226,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Calculate lead fee
-      const leadFee = getLeadFee(booking.serviceType);
+      // Check if installer should pay lead fee (VIP, Free Leads Promotion, or First Lead Voucher)
+      const shouldPayFee = await storage.shouldInstallerPayLeadFee(targetInstallerId);
       
-      // Check wallet balance
+      // Get wallet for balance checking
       const wallet = await storage.getInstallerWallet(targetInstallerId);
       if (!wallet) {
         return res.status(400).json({ message: "Wallet not found" });
       }
       
       const currentBalance = parseFloat(wallet.balance);
-      if (currentBalance < leadFee) {
-        return res.status(400).json({ 
-          message: "Insufficient wallet balance. Please add credits to purchase this lead.",
-          required: leadFee,
-          available: currentBalance 
-        });
+      let finalLeadFee = 0;
+      let feeStatus = "exempt";
+      
+      if (shouldPayFee) {
+        // Calculate lead fee based on service type
+        finalLeadFee = getLeadFee(booking.serviceType);
+        feeStatus = "paid";
+        
+        // Check wallet balance only if fee is required
+        if (currentBalance < finalLeadFee) {
+          return res.status(400).json({ 
+            message: "Insufficient wallet balance. Please add credits to purchase this lead.",
+            required: finalLeadFee,
+            available: currentBalance 
+          });
+        }
+      } else {
+        console.log(`Installer ${targetInstallerId} is exempt from lead fees (VIP, Free Leads Promotion, or First Lead Voucher)`);
       }
       
-      // Create job assignment with "purchased" status
+      // Create job assignment with appropriate fee status
       const jobAssignment = await storage.createJobAssignment({
         bookingId: requestId,
         installerId: targetInstallerId,
         status: "purchased", // New status for purchased but not selected
-        leadFee: leadFee.toString(),
-        leadFeeStatus: "paid",
+        leadFee: finalLeadFee.toString(),
+        leadFeeStatus: feeStatus,
         leadPaidDate: new Date()
       });
       
-      // Deduct lead fee from wallet
-      const newBalance = currentBalance - leadFee;
-      const totalSpent = parseFloat(wallet.totalSpent) + leadFee;
-      await storage.updateInstallerWalletBalance(targetInstallerId, newBalance);
-      await storage.updateInstallerWalletTotalSpent(targetInstallerId, totalSpent);
+      let newBalance = currentBalance;
+      let totalSpent = parseFloat(wallet.totalSpent);
       
-      // Add transaction record
-      await storage.addInstallerTransaction({
-        installerId: targetInstallerId,
-        type: "lead_purchase",
-        amount: (-leadFee).toString(),
-        description: `Purchased lead access for request #${requestId}`,
-        jobAssignmentId: jobAssignment.id,
-        status: "completed"
-      });
+      // Only deduct fee if installer should pay
+      if (shouldPayFee && finalLeadFee > 0) {
+        newBalance = currentBalance - finalLeadFee;
+        totalSpent = parseFloat(wallet.totalSpent) + finalLeadFee;
+        await storage.updateInstallerWalletBalance(targetInstallerId, newBalance);
+        await storage.updateInstallerWalletTotalSpent(targetInstallerId, totalSpent);
+        
+        // Add transaction record for paid lead
+        await storage.addInstallerTransaction({
+          installerId: targetInstallerId,
+          type: "lead_purchase",
+          amount: (-finalLeadFee).toString(),
+          description: `Purchased lead access for request #${requestId}`,
+          jobAssignmentId: jobAssignment.id,
+          status: "completed"
+        });
+      } else {
+        // Add transaction record for exempt lead
+        await storage.addInstallerTransaction({
+          installerId: targetInstallerId,
+          type: "lead_purchase",
+          amount: "0.00",
+          description: `Free lead access (VIP/Promotion/Voucher) for request #${requestId}`,
+          jobAssignmentId: jobAssignment.id,
+          status: "completed"
+        });
+      }
       
       return res.json({
         success: true,
@@ -6350,6 +6403,50 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Error updating installer visibility:", error);
       res.status(500).json({ message: "Failed to update installer visibility" });
+    }
+  });
+
+  // Admin Actions - Toggle Installer VIP Status
+  app.patch("/api/admin/installers/:id/vip", isAdmin, async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const { isVip, vipNotes } = req.body;
+      const adminUserId = req.session.passport?.user || 'admin';
+      
+      console.log(`Updating installer ${installerId} VIP status to ${isVip ? 'VIP' : 'standard'}`);
+      
+      // Get installer to verify existence
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      // Update VIP status with admin tracking
+      const updateData: any = { 
+        isVip,
+        vipNotes: vipNotes || null
+      };
+      
+      if (isVip) {
+        // Grant VIP status
+        updateData.vipGrantedBy = adminUserId;
+        updateData.vipGrantedAt = new Date();
+      } else {
+        // Remove VIP status
+        updateData.vipGrantedBy = null;
+        updateData.vipGrantedAt = null;
+      }
+      
+      await storage.updateInstaller(installerId, updateData);
+      
+      res.json({ 
+        message: `Installer ${isVip ? 'granted' : 'removed'} VIP status successfully`,
+        isVip,
+        vipGrantedBy: isVip ? adminUserId : null
+      });
+    } catch (error) {
+      console.error("Error updating installer VIP status:", error);
+      res.status(500).json({ message: "Failed to update installer VIP status" });
     }
   });
 

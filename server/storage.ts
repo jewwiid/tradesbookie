@@ -231,6 +231,9 @@ export interface IStorage {
   createPlatformSetting(setting: InsertPlatformSettings): Promise<PlatformSettings>;
   updatePlatformSetting(key: string, updates: Partial<PlatformSettings>): Promise<PlatformSettings>;
   deletePlatformSetting(key: string): Promise<void>;
+  
+  // Lead fee exemption checking
+  shouldInstallerPayLeadFee(installerId: number): Promise<boolean>;
 
   // First lead voucher operations
   getInstallerVoucher(installerId: number): Promise<FirstLeadVoucher | undefined>;
@@ -2523,6 +2526,33 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTradesPersonEmailTemplate(id: number): Promise<void> {
     await db.delete(tradesPersonEmailTemplates).where(eq(tradesPersonEmailTemplates.id, id));
+  }
+
+  // Lead fee exemption checking - VIP and promotion system integration
+  async shouldInstallerPayLeadFee(installerId: number): Promise<boolean> {
+    // Check if installer is VIP (VIP installers don't pay fees)
+    const installer = await this.getInstaller(installerId);
+    if (installer?.isVip) {
+      return false;
+    }
+
+    // Check if free leads promotion is active
+    const freeLeadsPromotion = await this.getPlatformSetting('free_leads_promotion_enabled');
+    if (freeLeadsPromotion?.value === 'true') {
+      return false;
+    }
+
+    // Check if first lead voucher system is active and installer has an unused voucher
+    const firstLeadVoucherEnabled = await this.getPlatformSetting('first_lead_voucher_enabled');
+    if (firstLeadVoucherEnabled?.value === 'true') {
+      const isEligible = await this.checkVoucherEligibility(installerId);
+      if (isEligible) {
+        return false;
+      }
+    }
+
+    // Default: installer should pay lead fee
+    return true;
   }
 }
 

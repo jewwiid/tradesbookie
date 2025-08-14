@@ -95,6 +95,12 @@ export const installers = pgTable("installers", {
   reviewedBy: varchar("reviewed_by"), // Admin user ID who reviewed
   reviewedAt: timestamp("reviewed_at"), // When review was completed
   
+  // VIP System
+  isVip: boolean("is_vip").default(false), // VIP installers don't pay lead fees
+  vipGrantedBy: varchar("vip_granted_by"), // Admin user ID who granted VIP status
+  vipGrantedAt: timestamp("vip_granted_at"), // When VIP status was granted
+  vipNotes: text("vip_notes"), // Admin notes about VIP status
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

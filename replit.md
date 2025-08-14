@@ -75,6 +75,17 @@ The application employs a modern full-stack architecture with AI-enhanced featur
   - **Admin Dashboard**: Admin can tag installations as demo for testing and training purposes
   - **Status**: ✅ Fully operational - demo installer sees demo installations, regular installers see only real jobs
 
+### Critical Invoice Login & Lead Quality Enhancement (August 2025)
+- **Fixed Invoice Authentication System**: Resolved fundamental ID type mismatches and improved email verification flow
+  - **Database Fix**: Fixed string vs integer ID type conflict in `retailerDetectionService.ts` - now creates proper integer IDs
+  - **Enhanced Email Verification**: All new invoice users receive verification emails and must verify before bookings appear as leads
+  - **Lead Quality Filtering**: Installers only see bookings from email-verified customers, ensuring high-quality leads
+  - **Multi-Retailer Support**: Invoice login works for HN-GAL-009876, CR-DUB-123456, RT-BLA-555666 examples
+  - **Verification Flow**: New invoice users get welcome message explaining verification requirement
+  - **Anti-Spam Protection**: Unverified customers cannot generate visible leads, preventing spam registrations
+  - **Demo Compatibility**: Demo installer functionality preserved while applying verification to real installers
+  - **Status**: ✅ Fully operational - invoice login creates verified users, lead filtering ensures quality
+
 ## Recent Changes (August 2025)
 
 ### Multi-Retailer Interface Updates (August 2025)

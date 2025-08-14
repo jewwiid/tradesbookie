@@ -55,6 +55,15 @@ The application employs a modern full-stack architecture with AI-enhanced featur
   - **Session Management**: Proper Passport.js session handling for invoice-authenticated users
   - **Status**: ✅ Fully operational - invoice login creates users, profile completion flow working
 
+### Demo Installation Visibility System (August 2025)
+- **Fixed Demo Installer Filtering**: Demo installer (test@tradesbook.ie) now properly sees demo-tagged installations
+  - **Available Requests**: Demo accounts only see installations marked with `is_demo = true`
+  - **Past Leads**: Demo installers only see completed demo installations in their dashboard
+  - **Regular Installer Protection**: Non-demo installers never see demo installations, maintaining realistic experience
+  - **Database Structure**: `bookings.is_demo` boolean flag properly filters installations by account type
+  - **Admin Dashboard**: Admin can tag installations as demo for testing and training purposes
+  - **Status**: ✅ Fully operational - demo installer sees demo installations, regular installers see only real jobs
+
 ## Recent Changes (August 2025)
 
 ### Multi-Retailer Interface Updates (August 2025)

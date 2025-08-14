@@ -3885,9 +3885,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get all open bookings that haven't been assigned to an installer
       const bookings = await storage.getAllBookings();
-      const availableRequests = bookings.filter(booking => 
-        booking.status === 'open' && !booking.installerId
-      );
+      const availableRequests = bookings.filter(booking => {
+        // Must be open and unassigned
+        if (booking.status !== 'open' || booking.installerId) {
+          return false;
+        }
+        
+        // Demo accounts only see demo bookings
+        if (isDemoAccount) {
+          return booking.isDemo === true;
+        }
+        
+        // Regular installers only see non-demo bookings
+        return booking.isDemo !== true;
+      });
 
       // Transform bookings with lead access protection
       const requests = availableRequests.map(booking => {
@@ -7272,14 +7283,29 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       
+      // Check if installer is demo account
+      const installer = await storage.getInstaller(installerId);
+      const isDemoAccount = installer?.email === "test@tradesbook.ie";
+      
       // Get actual purchased leads from database
       const purchasedLeads = await storage.getInstallerPurchasedLeads(installerId);
       
       // For other installers, try to get from database
       const allBookings = await storage.getAllBookings();
-      const installerBookings = allBookings.filter(booking => 
-        booking.installerId === installerId
-      );
+      const installerBookings = allBookings.filter(booking => {
+        // Must be assigned to this installer
+        if (booking.installerId !== installerId) {
+          return false;
+        }
+        
+        // Demo accounts only see demo bookings
+        if (isDemoAccount) {
+          return booking.isDemo === true;
+        }
+        
+        // Regular installers only see non-demo bookings
+        return booking.isDemo !== true;
+      });
       
       // Transform bookings to past leads format
       const pastLeads = installerBookings.map(booking => {

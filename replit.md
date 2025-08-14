@@ -43,6 +43,20 @@ The application employs a modern full-stack architecture with AI-enhanced featur
 
 ## Recent Changes (August 2025)
 
+### Multi-Retailer Interface Updates (August 2025)
+- **Booking Page Invoice References**: Updated all hardcoded "Harvey Norman Invoice" references to use generic "Invoice" or "Retailer Invoice" terminology
+  - **Files Updated**: 
+    - `client/src/components/ProtectedBooking.tsx`: Changed card title and description from Harvey Norman-specific to generic invoice
+    - `client/src/pages/customer-dashboard.tsx`: Updated sign-in help text to reference "Retailer invoice" instead of Harvey Norman
+    - `client/src/pages/booking-tracker.tsx`: Updated tracking instructions and examples to show multiple retailer formats (HN, CR, RT)
+  - **Benefits**:
+    - Consistent multi-retailer experience across all booking flows
+    - Users no longer confused by Harvey Norman-specific references when using other retailers
+    - Platform properly reflects its multi-retailer capability
+    - Examples now show multiple retailer invoice formats (HN-GAL-009876, CR-DUB-123456, RT-BLA-555666)
+  - **Technical Implementation**: Maintains compatibility with existing retailer detection service while presenting generic interface
+  - **Status**: ✅ Complete - All booking page references updated to generic multi-retailer terminology
+
 ### AI-Powered Content Generation (August 2025)
 - **Enhanced Feature**: Dual-input AI content generation for Create New Resource module
   - **Functionality**: Admin users can generate content from either URLs OR markdown text

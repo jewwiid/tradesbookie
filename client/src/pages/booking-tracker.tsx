@@ -103,13 +103,13 @@ export default function BookingTracker() {
             Find Your Booking
           </CardTitle>
           <CardDescription>
-            Enter your QR code (e.g., BK-abc123xyz9), Harvey Norman invoice (e.g., HN-GAL-009876), or booking reference number
+            Enter your QR code (e.g., BK-abc123xyz9), retailer invoice (e.g., HN-GAL-009876, CR-DUB-123456), or booking reference number
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
             <Input
-              placeholder="BK-abc123xyz9, HN-GAL-009876, or booking reference"
+              placeholder="BK-abc123xyz9, HN-GAL-009876, CR-DUB-123456, or booking reference"
               value={trackingCode}
               onChange={(e) => setTrackingCode(e.target.value)}
               className="flex-1"
@@ -169,7 +169,7 @@ export default function BookingTracker() {
                         Try these other ways to find your booking:
                       </p>
                       <ul className="text-sm text-gray-600 space-y-1 mb-3">
-                        <li>• Harvey Norman invoice number</li>
+                        <li>• Retailer invoice number</li>
                         <li>• Email confirmation code</li>
                         <li>• Phone number used for booking</li>
                       </ul>
@@ -351,7 +351,7 @@ export default function BookingTracker() {
           <div>
             <h4 className="font-medium mb-2">How to find your tracking code:</h4>
             <ul className="list-disc list-inside space-y-1 text-gray-600">
-              <li><strong>Harvey Norman Invoice:</strong> Use your receipt number (e.g., HN-GAL-009876, HN-DUB-123456, HN-BLA-555666)</li>
+              <li><strong>Retailer Invoice:</strong> Use your receipt number (e.g., HN-GAL-009876, CR-DUB-123456, RT-BLA-555666)</li>
               <li><strong>QR Code:</strong> Check your booking confirmation email for the QR code (e.g., BK-abc123xyz9)</li>
               <li><strong>Guest Users:</strong> Check your email for the booking reference sent after confirmation</li>
             </ul>

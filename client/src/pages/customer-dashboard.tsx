@@ -348,7 +348,7 @@ export default function CustomerDashboard() {
                   <ul className="space-y-1">
                     <li>• Existing bookings</li>
                     <li>• A verified email account</li>
-                    <li>• Harvey Norman invoice</li>
+                    <li>• Retailer invoice</li>
                   </ul>
                 </div>
                 <Button onClick={handleSignIn} className="w-full">

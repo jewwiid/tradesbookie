@@ -12043,6 +12043,93 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Service Types and Metrics endpoints
+  app.get('/api/service-types', async (req, res) => {
+    try {
+      const serviceTypes = await storage.getAllServiceTypes();
+      res.json(serviceTypes);
+    } catch (error) {
+      console.error('Error fetching service types:', error);
+      res.status(500).json({ message: 'Failed to fetch service types' });
+    }
+  });
+
+  app.get('/api/service-types/active', async (req, res) => {
+    try {
+      const activeServiceTypes = await storage.getActiveServiceTypes();
+      res.json(activeServiceTypes);
+    } catch (error) {
+      console.error('Error fetching active service types:', error);
+      res.status(500).json({ message: 'Failed to fetch active service types' });
+    }
+  });
+
+  app.get('/api/service-metrics', async (req, res) => {
+    try {
+      const metrics = await storage.getServiceMetrics();
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error fetching service metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch service metrics' });
+    }
+  });
+
+  app.post('/api/service-metrics/update-jobs-available', async (req, res) => {
+    try {
+      const { serviceTypeKey, count } = req.body;
+      await storage.updateJobsAvailable(serviceTypeKey, count);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating jobs available:', error);
+      res.status(500).json({ message: 'Failed to update jobs available' });
+    }
+  });
+
+  app.post('/api/service-metrics/increment-completed', async (req, res) => {
+    try {
+      const { serviceTypeKey } = req.body;
+      await storage.incrementJobsCompleted(serviceTypeKey);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error incrementing completed jobs:', error);
+      res.status(500).json({ message: 'Failed to increment completed jobs' });
+    }
+  });
+
+  app.post('/api/service-metrics/update-installer-count', async (req, res) => {
+    try {
+      const { serviceTypeKey, count } = req.body;
+      await storage.updateInstallerCount(serviceTypeKey, count);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating installer count:', error);
+      res.status(500).json({ message: 'Failed to update installer count' });
+    }
+  });
+
+  app.post('/api/service-metrics/recalculate-earnings', async (req, res) => {
+    try {
+      const { serviceTypeKey } = req.body;
+      await storage.recalculateEarningsRange(serviceTypeKey);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error recalculating earnings:', error);
+      res.status(500).json({ message: 'Failed to recalculate earnings' });
+    }
+  });
+
+  app.patch('/api/service-types/:id/status', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body;
+      await storage.updateServiceTypeStatus(parseInt(id), isActive);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error updating service type status:', error);
+      res.status(500).json({ message: 'Failed to update service type status' });
+    }
+  });
+
   return httpServer;
 }
 

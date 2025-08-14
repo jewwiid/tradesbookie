@@ -101,8 +101,45 @@ export const installers = pgTable("installers", {
   vipGrantedAt: timestamp("vip_granted_at"), // When VIP status was granted
   vipNotes: text("vip_notes"), // Admin notes about VIP status
   
+  // Service specializations - linked to service metrics
+  serviceTypes: jsonb("service_types").default([]), // Array of service type IDs they specialize in
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Service Types and Real-time Metrics
+export const serviceTypes = pgTable("service_types", {
+  id: serial("id").primaryKey(),
+  key: varchar("key").unique().notNull(), // 'tv-installation', 'home-security', etc.
+  name: varchar("name").notNull(),
+  description: text("description").notNull(),
+  iconName: varchar("icon_name").notNull(), // Lucide icon name
+  colorScheme: jsonb("color_scheme").notNull(), // { color, bgColor, borderColor }
+  isActive: boolean("is_active").default(false),
+  setupTimeMinutes: integer("setup_time_minutes").default(5),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Real-time Service Metrics
+export const serviceMetrics = pgTable("service_metrics", {
+  id: serial("id").primaryKey(),
+  serviceTypeId: integer("service_type_id").references(() => serviceTypes.id).notNull(),
+  
+  // Live metrics updated from actual bookings and installations
+  totalJobsCompleted: integer("total_jobs_completed").default(0),
+  totalJobsAvailable: integer("total_jobs_available").default(0), // Active bookings awaiting assignment
+  avgEarningsLow: decimal("avg_earnings_low", { precision: 8, scale: 2 }).default("0"),
+  avgEarningsHigh: decimal("avg_earnings_high", { precision: 8, scale: 2 }).default("0"),
+  demandLevel: varchar("demand_level").default("medium"), // high, medium, low
+  
+  // Calculated metrics
+  totalInstallers: integer("total_installers").default(0), // Number of installers offering this service
+  
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Removed: feeStructures table no longer needed in lead generation model
@@ -941,6 +978,21 @@ export const resources = pgTable("resources", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Add relations for service tables
+export const serviceTypesRelations = relations(serviceTypes, ({ one, many }) => ({
+  metrics: one(serviceMetrics, {
+    fields: [serviceTypes.id],
+    references: [serviceMetrics.serviceTypeId],
+  }),
+}));
+
+export const serviceMetricsRelations = relations(serviceMetrics, ({ one }) => ({
+  serviceType: one(serviceTypes, {
+    fields: [serviceMetrics.serviceTypeId],
+    references: [serviceTypes.id],
+  }),
+}));
+
 export const resourcesRelations = relations(resources, ({ one }) => ({
   // No direct relations needed currently
 }));
@@ -1470,6 +1522,25 @@ export type InsertRetailerInvoice = z.infer<typeof insertRetailerInvoiceSchema>;
 export type InstallerRegister = z.infer<typeof installerRegisterSchema>;
 export type InstallerLogin = z.infer<typeof installerLoginSchema>;
 export type InstallerProfile = z.infer<typeof installerProfileSchema>;
+
+// Service Type Schemas
+export const insertServiceTypeSchema = createInsertSchema(serviceTypes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertServiceMetricsSchema = createInsertSchema(serviceMetrics).omit({
+  id: true,
+  createdAt: true,
+  lastUpdated: true,
+});
+
+export type InsertServiceType = z.infer<typeof insertServiceTypeSchema>;
+export type SelectServiceType = typeof serviceTypes.$inferSelect;
+
+export type InsertServiceMetrics = z.infer<typeof insertServiceMetricsSchema>;
+export type SelectServiceMetrics = typeof serviceMetrics.$inferSelect;
 
 // Removed: FeeStructure types no longer needed
 

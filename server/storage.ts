@@ -7,7 +7,7 @@ import {
   platformSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
   consultations, downloadableGuides, videoTutorials, productCategories,
   qrCodeScans, aiProductRecommendations, choiceFlowTracking,
-  onboardingInvitations, tradesPersonEmailTemplates,
+  onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -39,7 +39,9 @@ import {
   type AiProductRecommendation, type InsertAiProductRecommendation,
   type ChoiceFlowTracking, type InsertChoiceFlowTracking,
   type OnboardingInvitation, type InsertOnboardingInvitation,
-  type TradesPersonEmailTemplate, type InsertTradesPersonEmailTemplate
+  type TradesPersonEmailTemplate, type InsertTradesPersonEmailTemplate,
+  type SelectServiceType, type InsertServiceType,
+  type SelectServiceMetrics, type InsertServiceMetrics
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, isNull, sql } from "drizzle-orm";
@@ -327,6 +329,23 @@ export interface IStorage {
 
   // Choice Flow Tracking
   createChoiceFlowTracking(flow: InsertChoiceFlowTracking): Promise<ChoiceFlowTracking>;
+
+  // Service Types and Metrics operations
+  getAllServiceTypes(): Promise<SelectServiceType[]>;
+  getActiveServiceTypes(): Promise<SelectServiceType[]>;
+  getServiceTypeByKey(key: string): Promise<SelectServiceType | undefined>;
+  updateServiceTypeStatus(id: number, isActive: boolean): Promise<void>;
+  
+  // Service metrics operations
+  getServiceMetrics(): Promise<(SelectServiceMetrics & { serviceType: SelectServiceType })[]>;
+  getServiceMetricsByType(serviceTypeId: number): Promise<SelectServiceMetrics | undefined>;
+  updateServiceMetrics(serviceTypeId: number, metrics: Partial<InsertServiceMetrics>): Promise<void>;
+  
+  // Real-time tracking updates
+  incrementJobsCompleted(serviceTypeKey: string): Promise<void>;
+  updateJobsAvailable(serviceTypeKey: string, count: number): Promise<void>;
+  updateInstallerCount(serviceTypeKey: string, count: number): Promise<void>;
+  recalculateEarningsRange(serviceTypeKey: string): Promise<void>;
 
   // Tradesperson Onboarding operations
   createOnboardingInvitation(invitation: InsertOnboardingInvitation): Promise<OnboardingInvitation>;
@@ -2553,6 +2572,150 @@ export class DatabaseStorage implements IStorage {
 
     // Default: installer should pay lead fee
     return true;
+  }
+
+  // Service Types and Metrics implementations
+  async getAllServiceTypes(): Promise<SelectServiceType[]> {
+    return await db.select().from(serviceTypes).orderBy(serviceTypes.name);
+  }
+
+  async getActiveServiceTypes(): Promise<SelectServiceType[]> {
+    return await db
+      .select()
+      .from(serviceTypes)
+      .where(eq(serviceTypes.isActive, true))
+      .orderBy(serviceTypes.name);
+  }
+
+  async getServiceTypeByKey(key: string): Promise<SelectServiceType | undefined> {
+    const [serviceType] = await db
+      .select()
+      .from(serviceTypes)
+      .where(eq(serviceTypes.key, key));
+    return serviceType;
+  }
+
+  async updateServiceTypeStatus(id: number, isActive: boolean): Promise<void> {
+    await db
+      .update(serviceTypes)
+      .set({ isActive, updatedAt: new Date() })
+      .where(eq(serviceTypes.id, id));
+  }
+
+  async getServiceMetrics(): Promise<(SelectServiceMetrics & { serviceType: SelectServiceType })[]> {
+    const results = await db
+      .select({
+        id: serviceMetrics.id,
+        serviceTypeId: serviceMetrics.serviceTypeId,
+        totalJobsCompleted: serviceMetrics.totalJobsCompleted,
+        totalJobsAvailable: serviceMetrics.totalJobsAvailable,
+        avgEarningsLow: serviceMetrics.avgEarningsLow,
+        avgEarningsHigh: serviceMetrics.avgEarningsHigh,
+        demandLevel: serviceMetrics.demandLevel,
+        totalInstallers: serviceMetrics.totalInstallers,
+        lastUpdated: serviceMetrics.lastUpdated,
+        createdAt: serviceMetrics.createdAt,
+        serviceType: {
+          id: serviceTypes.id,
+          key: serviceTypes.key,
+          name: serviceTypes.name,
+          description: serviceTypes.description,
+          iconName: serviceTypes.iconName,
+          colorScheme: serviceTypes.colorScheme,
+          isActive: serviceTypes.isActive,
+          setupTimeMinutes: serviceTypes.setupTimeMinutes,
+          createdAt: serviceTypes.createdAt,
+          updatedAt: serviceTypes.updatedAt,
+        }
+      })
+      .from(serviceMetrics)
+      .innerJoin(serviceTypes, eq(serviceMetrics.serviceTypeId, serviceTypes.id))
+      .orderBy(serviceTypes.name);
+
+    return results as (SelectServiceMetrics & { serviceType: SelectServiceType })[];
+  }
+
+  async getServiceMetricsByType(serviceTypeId: number): Promise<SelectServiceMetrics | undefined> {
+    const [metrics] = await db
+      .select()
+      .from(serviceMetrics)
+      .where(eq(serviceMetrics.serviceTypeId, serviceTypeId));
+    return metrics;
+  }
+
+  async updateServiceMetrics(serviceTypeId: number, metrics: Partial<InsertServiceMetrics>): Promise<void> {
+    await db
+      .update(serviceMetrics)
+      .set({ ...metrics, lastUpdated: new Date() })
+      .where(eq(serviceMetrics.serviceTypeId, serviceTypeId));
+  }
+
+  async incrementJobsCompleted(serviceTypeKey: string): Promise<void> {
+    const serviceType = await this.getServiceTypeByKey(serviceTypeKey);
+    if (!serviceType) return;
+
+    await db
+      .update(serviceMetrics)
+      .set({ 
+        totalJobsCompleted: sql`${serviceMetrics.totalJobsCompleted} + 1`,
+        lastUpdated: new Date() 
+      })
+      .where(eq(serviceMetrics.serviceTypeId, serviceType.id));
+  }
+
+  async updateJobsAvailable(serviceTypeKey: string, count: number): Promise<void> {
+    const serviceType = await this.getServiceTypeByKey(serviceTypeKey);
+    if (!serviceType) return;
+
+    await db
+      .update(serviceMetrics)
+      .set({ 
+        totalJobsAvailable: count,
+        lastUpdated: new Date() 
+      })
+      .where(eq(serviceMetrics.serviceTypeId, serviceType.id));
+  }
+
+  async updateInstallerCount(serviceTypeKey: string, count: number): Promise<void> {
+    const serviceType = await this.getServiceTypeByKey(serviceTypeKey);
+    if (!serviceType) return;
+
+    await db
+      .update(serviceMetrics)
+      .set({ 
+        totalInstallers: count,
+        lastUpdated: new Date() 
+      })
+      .where(eq(serviceMetrics.serviceTypeId, serviceType.id));
+  }
+
+  async recalculateEarningsRange(serviceTypeKey: string): Promise<void> {
+    const serviceType = await this.getServiceTypeByKey(serviceTypeKey);
+    if (!serviceType) return;
+
+    // Get completed bookings for this service type to calculate real earnings
+    const completedBookings = await db
+      .select()
+      .from(bookings)
+      .where(and(
+        eq(bookings.status, 'completed'),
+        eq(bookings.serviceType, serviceTypeKey)
+      ));
+
+    if (completedBookings.length > 0) {
+      const earnings = completedBookings.map(b => parseFloat(b.estimatedTotal || '0'));
+      const minEarnings = Math.min(...earnings);
+      const maxEarnings = Math.max(...earnings);
+
+      await db
+        .update(serviceMetrics)
+        .set({ 
+          avgEarningsLow: minEarnings.toString(),
+          avgEarningsHigh: maxEarnings.toString(),
+          lastUpdated: new Date() 
+        })
+        .where(eq(serviceMetrics.serviceTypeId, serviceType.id));
+    }
   }
 }
 

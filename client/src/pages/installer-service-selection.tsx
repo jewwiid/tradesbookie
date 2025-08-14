@@ -128,10 +128,36 @@ export default function InstallerServiceSelection() {
   const { toast } = useToast();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  // Fetch available services from admin-managed list
-  const { data: services = defaultServices } = useQuery({
-    queryKey: ['/api/installer-services'],
-    enabled: false // For now, use default services until admin management is implemented
+  // Fetch real-time service metrics for earnings and job availability
+  const { data: serviceMetrics } = useQuery({
+    queryKey: ['/api/service-metrics'],
+    refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
+  });
+
+  // Fetch active service types from database
+  const { data: activeServiceTypes } = useQuery({
+    queryKey: ['/api/service-types/active'],
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Convert metrics to lookup map for easy access
+  const metricsMap = serviceMetrics?.reduce((acc: any, metric: any) => {
+    acc[metric.serviceType.key] = metric;
+    return acc;
+  }, {}) || {};
+
+  // Merge default services with real-time data
+  const services = defaultServices.map(service => {
+    const metrics = metricsMap[service.id];
+    const isActiveInDb = activeServiceTypes?.some((st: any) => st.key === service.id && st.isActive);
+    
+    return {
+      ...service,
+      active: isActiveInDb || service.id === 'tv-installation', // Keep TV installation always active
+      avgEarnings: metrics ? `€${metrics.avgEarningsLow}-${metrics.avgEarningsHigh}` : service.avgEarnings,
+      jobsAvailable: metrics ? metrics.totalJobsAvailable : service.jobsAvailable,
+      setupTime: service.active || isActiveInDb ? service.setupTime : 'Coming soon'
+    };
   });
 
   const handleServiceSelect = (serviceId: string) => {

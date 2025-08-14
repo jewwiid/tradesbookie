@@ -11,6 +11,7 @@ import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 
 interface User {
   id: number;
@@ -784,6 +785,14 @@ export default function CustomerDashboard() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Email Verification Banner */}
+        <EmailVerificationBanner user={{
+          id: String(user.id),
+          email: user.email,
+          emailVerified: user.emailVerified || false,
+          firstName: user.firstName
+        }} />
+        
         {/* Welcome Banner */}
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-8">
           <div className="flex items-center justify-between">

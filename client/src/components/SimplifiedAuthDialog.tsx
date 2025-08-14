@@ -304,16 +304,20 @@ export default function SimplifiedAuthDialog({
                   <Label htmlFor="invoice">Invoice Number</Label>
                   <Input
                     id="invoice"
-                    placeholder="Enter your invoice number"
+                    placeholder="e.g. HN-GAL-009876, CR-DUB-123456, or RT-BLA-555666"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
                     className="mt-1"
                   />
                   <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs text-gray-600">
-                    <p className="font-medium mb-1 text-blue-800">Invoice Format Examples:</p>
-                    <p className="mb-2">• Receipt number from your electrical store purchase</p>
-                    <p className="mb-2">• Order confirmation number</p>
-                    <p>• Any reference number from your TV purchase receipt</p>
+                    <p className="font-medium mb-1 text-blue-800">Supported Retailers & Format Examples:</p>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <p>• <span className="font-semibold">Harvey Norman:</span> HN-GAL-009876</p>
+                      <p>• <span className="font-semibold">Currys:</span> CR-DUB-123456</p>
+                      <p>• <span className="font-semibold">RTV:</span> RT-BLA-555666</p>
+                      <p>• <span className="font-semibold">DID Electrical:</span> DD-COR-789012</p>
+                    </div>
+                    <p className="text-xs">Find your invoice number on your receipt or order confirmation email</p>
                   </div>
                 </div>
                 <Button 

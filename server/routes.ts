@@ -9618,8 +9618,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { email, password, firstName, lastName } = req.body;
       
-      if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required" });
+      if (!email || !password || !firstName || !lastName) {
+        return res.status(400).json({ error: "Email, password, first name, and last name are required" });
       }
       
       // Check if user already exists
@@ -9632,18 +9632,38 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const bcrypt = require('bcrypt');
       const passwordHash = await bcrypt.hash(password, 10);
       
-      // Create user
+      // Generate email verification token
+      const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
+      const verificationToken = await generateVerificationToken();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+      
+      // Create user with verification token
       const user = await storage.upsertUser({
         email,
-        firstName: firstName || '',
-        lastName: lastName || '',
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         passwordHash,
         registrationMethod: 'email',
         emailVerified: false,
+        emailVerificationToken: verificationToken,
+        emailVerificationExpires: expiresAt,
         role: 'customer'
       });
       
-      // Log user in
+      // Send verification email
+      try {
+        const emailSent = await sendVerificationEmail(email, firstName.trim(), verificationToken);
+        if (emailSent) {
+          console.log(`✅ Verification email sent to: ${email}`);
+        } else {
+          console.log(`❌ Failed to send verification email to: ${email}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending verification email:', emailError);
+        // Continue with registration even if email fails
+      }
+      
+      // Log user in (even unverified users can access limited features)
       req.login(user, (err) => {
         if (err) {
           console.error('Login error after registration:', err);
@@ -9652,11 +9672,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         
         res.json({ 
           success: true, 
+          message: "Registration successful! Please check your email to verify your account.",
           user: { 
             id: user.id, 
             email: user.email, 
-            role: user.role 
-          } 
+            role: user.role,
+            emailVerified: user.emailVerified,
+            firstName: user.firstName,
+            lastName: user.lastName
+          },
+          requiresEmailVerification: true
         });
       });
       
@@ -9688,21 +9713,32 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.status(401).json({ error: "Invalid email or password" });
       }
       
-      // Log user in
+      // Log user in (allow unverified users to login with limited features)
       req.login(user, (err) => {
         if (err) {
           console.error('Login error:', err);
           return res.status(500).json({ error: "Login failed" });
         }
         
-        res.json({ 
+        const response: any = { 
           success: true, 
           user: { 
             id: user.id, 
             email: user.email, 
-            role: user.role 
+            role: user.role,
+            emailVerified: user.emailVerified,
+            firstName: user.firstName,
+            lastName: user.lastName
           } 
-        });
+        };
+
+        // Add verification reminder for unverified users
+        if (!user.emailVerified) {
+          response.message = "Please verify your email address to access all features.";
+          response.requiresEmailVerification = true;
+        }
+        
+        res.json(response);
       });
       
     } catch (error) {

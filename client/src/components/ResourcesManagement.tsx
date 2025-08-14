@@ -32,6 +32,7 @@ interface Resource {
   tags: string[];
   isActive: boolean;
   publishedAt: string;
+  expiryDate?: string;
   createdBy?: string;
   lastModifiedBy?: string;
   createdAt: string;
@@ -96,6 +97,7 @@ export default function ResourcesManagement() {
     priority: 0,
     tags: [] as string[],
     isActive: true,
+    expiryDate: "",
   });
 
   const { toast } = useToast();
@@ -234,6 +236,7 @@ export default function ResourcesManagement() {
       priority: 0,
       tags: [],
       isActive: true,
+      expiryDate: "",
     });
     setAiUrl("");
     setAiMarkdown("");
@@ -310,6 +313,7 @@ export default function ResourcesManagement() {
       priority: resource.priority,
       tags: resource.tags || [],
       isActive: resource.isActive,
+      expiryDate: resource.expiryDate ? new Date(resource.expiryDate).toISOString().split('T')[0] : "",
     });
     setDialogOpen(true);
   };
@@ -605,6 +609,19 @@ export default function ResourcesManagement() {
                     onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expiryDate">Expiry Date (Optional)</Label>
+                <Input
+                  id="expiryDate"
+                  type="date"
+                  value={formData.expiryDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, expiryDate: e.target.value }))}
+                />
+                <p className="text-xs text-gray-500">
+                  Set an expiry date for promotional content to be automatically removed when it expires.
+                </p>
               </div>
 
               <div className="flex items-center space-x-6">

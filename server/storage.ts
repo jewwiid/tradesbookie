@@ -42,7 +42,7 @@ import {
   type TradesPersonEmailTemplate, type InsertTradesPersonEmailTemplate
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, sql } from "drizzle-orm";
+import { eq, desc, and, or, isNull, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import bcrypt from "bcrypt";
 
@@ -1512,31 +1512,86 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveResources(): Promise<Resource[]> {
+    const now = new Date();
     return await db.select()
       .from(resources)
-      .where(eq(resources.isActive, true))
+      .where(and(
+        eq(resources.isActive, true),
+        or(
+          isNull(resources.expiryDate),
+          db.sql`expiry_date > ${now}`
+        )
+      ))
       .orderBy(desc(resources.priority), desc(resources.createdAt));
   }
 
   async getFeaturedResources(): Promise<Resource[]> {
+    const now = new Date();
     return await db.select()
       .from(resources)
-      .where(and(eq(resources.isActive, true), eq(resources.featured, true)))
+      .where(and(
+        eq(resources.isActive, true), 
+        eq(resources.featured, true),
+        or(
+          isNull(resources.expiryDate),
+          db.sql`expiry_date > ${now}`
+        )
+      ))
       .orderBy(desc(resources.priority), desc(resources.createdAt));
   }
 
   async getResourcesByCategory(category: string): Promise<Resource[]> {
+    const now = new Date();
     return await db.select()
       .from(resources)
-      .where(and(eq(resources.isActive, true), eq(resources.category, category)))
+      .where(and(
+        eq(resources.isActive, true), 
+        eq(resources.category, category),
+        or(
+          isNull(resources.expiryDate),
+          db.sql`expiry_date > ${now}`
+        )
+      ))
       .orderBy(desc(resources.priority), desc(resources.createdAt));
   }
 
   async getResourcesByBrand(brand: string): Promise<Resource[]> {
+    const now = new Date();
     return await db.select()
       .from(resources)
-      .where(and(eq(resources.isActive, true), eq(resources.brand, brand)))
+      .where(and(
+        eq(resources.isActive, true), 
+        eq(resources.brand, brand),
+        or(
+          isNull(resources.expiryDate),
+          db.sql`expiry_date > ${now}`
+        )
+      ))
       .orderBy(desc(resources.priority), desc(resources.createdAt));
+  }
+
+  async checkAndCleanExpiredResources(): Promise<void> {
+    const now = new Date();
+    
+    // Find all expired resources
+    const expiredResources = await db.select()
+      .from(resources)
+      .where(and(
+        eq(resources.isActive, true),
+        db.sql`expiry_date <= ${now}`
+      ));
+    
+    // Deactivate expired resources
+    if (expiredResources.length > 0) {
+      await db.update(resources)
+        .set({ isActive: false })
+        .where(and(
+          eq(resources.isActive, true),
+          db.sql`expiry_date <= ${now}`
+        ));
+      
+      console.log(`🗑️  Deactivated ${expiredResources.length} expired resources`);
+    }
   }
 
   async updateResource(id: number, updates: Partial<InsertResource>): Promise<Resource> {

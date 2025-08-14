@@ -872,6 +872,7 @@ export const resources = pgTable("resources", {
   // Status and visibility
   isActive: boolean("is_active").default(true),
   publishedAt: timestamp("published_at").defaultNow(),
+  expiryDate: timestamp("expiry_date"), // Optional expiry date for promotions
   
   // Admin tracking
   createdBy: text("created_by"), // Admin user who created it

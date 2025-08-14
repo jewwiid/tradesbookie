@@ -44,25 +44,28 @@ The application employs a modern full-stack architecture with AI-enhanced featur
 ## Recent Changes (August 2025)
 
 ### AI-Powered Content Generation (August 2025)
-- **New Feature**: Integrated GPT-4o AI content generation for Create New Resource module
-  - **Functionality**: Admin users can paste any URL and AI automatically fills Title, Description, and Content fields
+- **Enhanced Feature**: Dual-input AI content generation for Create New Resource module
+  - **Functionality**: Admin users can generate content from either URLs OR markdown text
+    - **URL Method**: Paste any URL and AI automatically scrapes and fills fields
+    - **Markdown Method**: Paste markdown content and AI transforms it into structured resource
   - **Implementation**:
-    - Created `AIContentService` with advanced web scraping and content analysis
-    - Added `/api/admin/resources/generate-content` endpoint with admin authentication
-    - Enhanced ResourcesManagement dialog with prominent AI generation UI
-    - Intelligent content categorization and type detection
+    - Enhanced `AIContentService` with both URL scraping and markdown processing
+    - Added dual input support to `/api/admin/resources/generate-content` endpoint
+    - Toggle switch UI for seamless switching between URL and markdown modes
+    - Separate validation and error handling for each input method
   - **User Experience**:
-    - Gradient blue interface with Sparkles icon for visual appeal
-    - Real-time loading states and comprehensive error handling
-    - Auto-populates External URL field with source link
-    - Only shows in Create mode (not Edit) to prevent overwriting existing content
+    - Elegant toggle switch to choose between URL and Markdown input methods
+    - Context-aware placeholder text and instructions for each mode
+    - Real-time loading states with method-specific messaging
+    - Comprehensive error handling and validation for both input types
+    - Only shows in Create mode to prevent overwriting existing content
   - **Technical Features**:
-    - HTML content extraction and cleaning
-    - URL validation and error handling
-    - Category mapping (setup-guides, troubleshooting, video-tutorials, faqs, maintenance)
-    - Type detection (guide, faq, video, checklist, manual)
-    - Graceful fallback for failed generations
-  - **Status**: ✅ Fully implemented with GPT-4o integration
+    - **URL Processing**: Enhanced web scraping, HTML cleaning, and fallback mechanisms
+    - **Markdown Processing**: Intelligent parsing and transformation of markdown to customer-friendly content
+    - Smart content categorization and type detection for both methods
+    - Graceful fallback handling for restricted or JavaScript-heavy websites
+    - Enhanced error messages and logging for debugging
+  - **Status**: ✅ Fully implemented with both URL and Markdown support using GPT-4o integration
 
 ### Admin Dashboard Consolidation (August 2025)
 - **Unified Resource Management Interface**: Successfully consolidated duplicate admin dashboard tabs for better user experience

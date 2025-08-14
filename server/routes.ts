@@ -8952,31 +8952,49 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // AI Content Generation for Resources (admin only)
   app.post("/api/admin/resources/generate-content", isAdmin, async (req, res) => {
     try {
-      const { url } = req.body;
+      const { url, markdown } = req.body;
       
-      if (!url) {
-        return res.status(400).json({ message: "URL is required" });
+      // Determine input method and validate
+      if (url && markdown) {
+        return res.status(400).json({ message: "Provide either URL or markdown content, not both" });
+      }
+      
+      if (!url && !markdown) {
+        return res.status(400).json({ message: "Either URL or markdown content is required" });
       }
 
-      // Validate URL format
-      try {
-        new URL(url);
-      } catch {
-        return res.status(400).json({ message: "Invalid URL format" });
-      }
+      let generatedContent;
 
-      console.log(`Generating AI content for URL: ${url}`);
-      const generatedContent = await AIContentService.generateContentFromUrl(url);
+      if (url) {
+        // URL method - validate URL format
+        try {
+          new URL(url);
+        } catch {
+          return res.status(400).json({ message: "Invalid URL format" });
+        }
+
+        console.log(`Generating AI content for URL: ${url}`);
+        generatedContent = await AIContentService.generateContentFromUrl(url);
+      } else {
+        // Markdown method - validate content length
+        if (markdown.trim().length < 50) {
+          return res.status(400).json({ message: "Markdown content must be at least 50 characters long" });
+        }
+
+        console.log(`Generating AI content from markdown (${markdown.length} chars)`);
+        generatedContent = await AIContentService.generateContentFromMarkdown(markdown);
+      }
       
       res.json({
         success: true,
-        data: generatedContent
+        data: generatedContent,
+        method: url ? 'url' : 'markdown'
       });
     } catch (error) {
       console.error("Error generating AI content:", error);
       res.status(500).json({ 
         success: false,
-        message: error.message || "Failed to generate content from URL" 
+        message: error.message || "Failed to generate content" 
       });
     }
   });

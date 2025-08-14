@@ -15,6 +15,63 @@ interface ContentGenerationResult {
 export class AIContentService {
   
   /**
+   * Generates content from markdown text
+   */
+  static async generateContentFromMarkdown(markdown: string): Promise<ContentGenerationResult> {
+    try {
+      if (!markdown || markdown.trim().length < 50) {
+        throw new Error('Markdown content must be at least 50 characters long');
+      }
+
+      console.log(`Generating AI content from markdown (${markdown.length} chars)`);
+
+      // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert content curator for a TV installation and product support platform. Analyze the provided markdown content and create structured resource information.
+
+Your task is to create:
+1. A clear, engaging title (max 80 characters) - extract or improve from markdown headers
+2. A concise description (max 200 characters) - brief summary for listings
+3. Detailed content (300-1500 words) - reformat markdown into customer-friendly guide
+4. Appropriate category from: setup-guides, troubleshooting, video-tutorials, faqs, maintenance
+5. Resource type from: guide, faq, video, checklist, manual
+
+Focus on making the content accessible to non-technical users. Convert technical markdown into clear, step-by-step instructions. Preserve important information while improving readability.
+
+Respond in JSON format with these exact keys: title, description, content, category, type`
+          },
+          {
+            role: "user",
+            content: `Transform this markdown content into structured resource information:\n\n${markdown.slice(0, 8000)}`
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 2000,
+        temperature: 0.3
+      });
+
+      const result = JSON.parse(completion.choices[0].message.content || '{}');
+      
+      // Validate and sanitize the response
+      return {
+        title: result.title || "Generated Resource from Markdown",
+        description: result.description || "Auto-generated resource description from markdown content",
+        content: result.content || "Auto-generated content from provided markdown",
+        category: this.validateCategory(result.category),
+        type: this.validateType(result.type)
+      };
+
+    } catch (error) {
+      console.error('AI Markdown Generation Error:', error);
+      throw new Error(`Failed to generate content from markdown: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
    * Scrapes content from a URL and generates resource description and content
    */
   static async generateContentFromUrl(url: string): Promise<ContentGenerationResult> {

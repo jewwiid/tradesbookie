@@ -78,6 +78,8 @@ export default function ResourcesManagement() {
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [deleteResourceId, setDeleteResourceId] = useState<number | null>(null);
   const [aiUrl, setAiUrl] = useState("");
+  const [aiMarkdown, setAiMarkdown] = useState("");
+  const [aiInputMethod, setAiInputMethod] = useState<'url' | 'markdown'>('url');
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -177,7 +179,13 @@ export default function ResourcesManagement() {
 
   // AI Content Generation mutation
   const generateAIContentMutation = useMutation({
-    mutationFn: (url: string) => apiRequest("POST", "/api/admin/resources/generate-content", { url }),
+    mutationFn: (input: string) => {
+      if (aiInputMethod === 'url') {
+        return apiRequest("POST", "/api/admin/resources/generate-content", { url: input });
+      } else {
+        return apiRequest("POST", "/api/admin/resources/generate-content", { markdown: input });
+      }
+    },
     onSuccess: (data: any) => {
       const generatedContent = data.data;
       setFormData(prev => ({
@@ -187,9 +195,14 @@ export default function ResourcesManagement() {
         content: generatedContent.content,
         category: generatedContent.category,
         type: generatedContent.type,
-        externalUrl: aiUrl, // Set the URL that was used for generation
+        externalUrl: aiInputMethod === 'url' ? aiUrl : '', // Set the URL only if using URL method
       }));
-      setAiUrl(""); // Clear the AI URL input
+      // Clear the appropriate input
+      if (aiInputMethod === 'url') {
+        setAiUrl("");
+      } else {
+        setAiMarkdown("");
+      }
       toast({ 
         title: "Content generated successfully", 
         description: "AI has filled in the title, description, and content fields"
@@ -223,31 +236,60 @@ export default function ResourcesManagement() {
       isActive: true,
     });
     setAiUrl("");
+    setAiMarkdown("");
+    setAiInputMethod('url');
   };
 
   const handleGenerateAIContent = () => {
-    if (!aiUrl.trim()) {
-      toast({ 
-        title: "URL required", 
-        description: "Please enter a URL to generate content from",
-        variant: "destructive" 
-      });
-      return;
-    }
+    if (aiInputMethod === 'url') {
+      if (!aiUrl.trim()) {
+        toast({ 
+          title: "URL required", 
+          description: "Please enter a URL to generate content from",
+          variant: "destructive" 
+        });
+        return;
+      }
 
-    // Basic URL validation
-    try {
-      new URL(aiUrl);
-    } catch {
-      toast({ 
-        title: "Invalid URL", 
-        description: "Please enter a valid URL (e.g., https://example.com)",
-        variant: "destructive" 
-      });
-      return;
-    }
+      // Basic URL validation
+      try {
+        new URL(aiUrl);
+      } catch {
+        toast({ 
+          title: "Invalid URL", 
+          description: "Please enter a valid URL (e.g., https://example.com)",
+          variant: "destructive" 
+        });
+        return;
+      }
 
-    generateAIContentMutation.mutate(aiUrl);
+      generateAIContentMutation.mutate(aiUrl);
+    } else {
+      if (!aiMarkdown.trim()) {
+        toast({ 
+          title: "Markdown content required", 
+          description: "Please paste markdown content to generate from",
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      if (aiMarkdown.trim().length < 50) {
+        toast({ 
+          title: "More content needed", 
+          description: "Please provide more detailed markdown content for better results",
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      // For markdown, we'll send a special request to the backend
+      generateAIContentMutation.mutate(aiMarkdown, { 
+        onMutate: () => {
+          // We'll handle this differently in the mutation
+        }
+      });
+    }
   };
 
   const handleEdit = (resource: Resource) => {
@@ -333,43 +375,92 @@ export default function ResourcesManagement() {
               {/* AI Content Generation Section */}
               {!editingResource && (
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="h-5 w-5 text-blue-600" />
-                    <h4 className="font-medium text-blue-900">AI Content Generation</h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-blue-600" />
+                      <h4 className="font-medium text-blue-900">AI Content Generation</h4>
+                    </div>
+                    {/* Method Toggle */}
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs ${aiInputMethod === 'url' ? 'text-blue-900 font-medium' : 'text-blue-600'}`}>URL</span>
+                      <Switch
+                        checked={aiInputMethod === 'markdown'}
+                        onCheckedChange={(checked) => setAiInputMethod(checked ? 'markdown' : 'url')}
+                      />
+                      <span className={`text-xs ${aiInputMethod === 'markdown' ? 'text-blue-900 font-medium' : 'text-blue-600'}`}>Markdown</span>
+                    </div>
                   </div>
-                  <p className="text-sm text-blue-700 mb-3">
-                    Paste a URL below and let AI automatically fill in the title, description, and content fields.
-                  </p>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="https://example.com/article-or-guide"
-                      value={aiUrl}
-                      onChange={(e) => setAiUrl(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button
-                      type="button"
-                      onClick={handleGenerateAIContent}
-                      disabled={generateAIContentMutation.isPending}
-                      className="shrink-0"
-                    >
-                      {generateAIContentMutation.isPending ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Generate
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                  
+                  {aiInputMethod === 'url' ? (
+                    <>
+                      <p className="text-sm text-blue-700 mb-3">
+                        Paste a URL below and let AI automatically fill in the title, description, and content fields.
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="https://example.com/article-or-guide"
+                          value={aiUrl}
+                          onChange={(e) => setAiUrl(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleGenerateAIContent}
+                          disabled={generateAIContentMutation.isPending}
+                          className="shrink-0"
+                        >
+                          {generateAIContentMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Generating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Generate
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-blue-700 mb-3">
+                        Paste markdown content below and let AI transform it into structured resource fields.
+                      </p>
+                      <div className="space-y-2">
+                        <Textarea
+                          placeholder="Paste your markdown content here...&#10;&#10;Example:&#10;# TV Wall Mounting Guide&#10;&#10;## What You'll Need&#10;- Wall mount bracket&#10;- Stud finder&#10;- Level&#10;&#10;## Steps&#10;1. Find the wall studs..."
+                          value={aiMarkdown}
+                          onChange={(e) => setAiMarkdown(e.target.value)}
+                          className="min-h-[120px] text-sm"
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleGenerateAIContent}
+                          disabled={generateAIContentMutation.isPending}
+                          className="w-full"
+                        >
+                          {generateAIContentMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Generating from Markdown...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Generate from Markdown
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                  
                   {generateAIContentMutation.isPending && (
                     <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
                       <Loader2 className="h-3 w-3 animate-spin" />
-                      Analyzing content and generating fields...
+                      {aiInputMethod === 'url' ? 'Analyzing webpage and generating fields...' : 'Processing markdown and generating fields...'}
                     </p>
                   )}
                 </div>

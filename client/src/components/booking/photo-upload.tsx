@@ -49,6 +49,7 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
         roomPhotoBase64: data.imageBase64,
         compressedRoomPhoto: data.compressedBase64,
         roomAnalysis: data.analysis,
+        photoStorageConsent: true, // Grant consent when user uploads photo
         compressionInfo: {
           originalSize: data.originalSize,
           compressedSize: data.compressedSize,

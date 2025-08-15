@@ -83,6 +83,7 @@ export default function SimplifiedAuthDialog({
           title: "Welcome back!",
           description: `Signed in using invoice ${data.invoiceNumber}.`,
         });
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
         onSuccess(data.user);
         onClose();
       } else {
@@ -119,6 +120,7 @@ export default function SimplifiedAuthDialog({
         title: "Profile Completed!",
         description: data.message,
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       onSuccess(data.user);
       onClose();
     },
@@ -146,6 +148,7 @@ export default function SimplifiedAuthDialog({
         title: "Welcome back!",
         description: data.message,
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       onSuccess(data.user);
       onClose();
     },
@@ -173,6 +176,7 @@ export default function SimplifiedAuthDialog({
         title: "Guest Account Created",
         description: data.message,
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       onSuccess(data.user);
       onClose();
     },

@@ -131,18 +131,24 @@ async function upsertUser(
     await storage.upsertUser(newUserData);
     
     // Send admin notification for new registration
-    const { sendAdminNotification } = await import('./gmailService');
-    await sendAdminNotification(
-      `New ${intendedRole || 'customer'} registration`,
-      `A new ${intendedRole || 'customer'} has registered on tradesbook.ie`,
-      {
-        name: `${claims["first_name"]} ${claims["last_name"]}`.trim(),
-        email: claims["email"],
-        role: intendedRole || 'customer',
-        registrationDate: new Date().toISOString(),
-        profileImageUrl: claims["profile_image_url"]
-      }
-    );
+    try {
+      const { sendAdminNotification } = await import('./gmailService');
+      await sendAdminNotification(
+        `New ${intendedRole || 'customer'} registration`,
+        `A new ${intendedRole || 'customer'} has registered on tradesbook.ie`,
+        {
+          name: `${claims["first_name"]} ${claims["last_name"]}`.trim(),
+          email: claims["email"],
+          role: intendedRole || 'customer',
+          registrationDate: new Date().toISOString(),
+          profileImageUrl: claims["profile_image_url"]
+        }
+      );
+      console.log("Admin notification sent for new OAuth user:", claims["email"]);
+    } catch (err) {
+      console.error("Failed to send admin notification for new OAuth user:", err);
+      // Don't throw - continue with user creation even if notification fails
+    }
     
     // Installer profiles are now created through email/password registration system
     // OAuth is only for customers and admins

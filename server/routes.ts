@@ -9675,27 +9675,35 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Preprocess the request body to handle date fields
       const processedBody = { ...req.body };
       
+      console.log('Original expiryDate:', processedBody.expiryDate, 'Type:', typeof processedBody.expiryDate);
+      
       // Handle expiryDate conversion
       if (processedBody.expiryDate) {
         if (typeof processedBody.expiryDate === 'string') {
           if (processedBody.expiryDate.trim() === '') {
             // Empty string should be null
+            console.log('Converting empty string to null');
             processedBody.expiryDate = null;
           } else {
             // Convert valid date string to Date object
             const dateValue = new Date(processedBody.expiryDate);
             if (isNaN(dateValue.getTime())) {
               // Invalid date
+              console.log('Invalid date, converting to null');
               processedBody.expiryDate = null;
             } else {
+              console.log('Converting date string to Date object:', dateValue);
               processedBody.expiryDate = dateValue;
             }
           }
         }
       } else {
         // Ensure null for missing or falsy values
+        console.log('No expiryDate provided, setting to null');
         processedBody.expiryDate = null;
       }
+      
+      console.log('Final expiryDate:', processedBody.expiryDate, 'Type:', typeof processedBody.expiryDate);
       
       const resourceData = insertResourceSchema.parse(processedBody);
       

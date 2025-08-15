@@ -177,8 +177,11 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   };
 
   const openDetailsDialog = (lead: PastLead) => {
+    console.log('Opening details dialog for lead:', lead);
+    console.log('Lead data:', JSON.stringify(lead, null, 2));
     setSelectedLead(lead);
     setShowDetailsDialog(true);
+    console.log('Dialog state set to true');
   };
 
   if (isLoading) {
@@ -440,6 +443,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
 
       {/* Complete Booking Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        {console.log('Dialog render - showDetailsDialog:', showDetailsDialog, 'selectedLead:', !!selectedLead)}
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full" aria-describedby="complete-booking-details">
           <DialogHeader>
             <DialogTitle className="text-lg sm:text-xl">Complete Booking Details</DialogTitle>
@@ -448,7 +452,12 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
             </DialogDescription>
           </DialogHeader>
           
-          {selectedLead && selectedLead.customerName && selectedLead.address ? (
+          {(() => {
+            console.log('Dialog content render - selectedLead exists:', !!selectedLead);
+            console.log('Dialog content render - customerName:', selectedLead?.customerName);
+            console.log('Dialog content render - address:', selectedLead?.address);
+            return selectedLead && selectedLead.customerName && selectedLead.address;
+          })() ? (
             <div className="space-y-4 sm:space-y-6">
               {/* Customer Information */}
               <div className="border rounded-lg p-3 sm:p-4">

@@ -4617,6 +4617,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/installer/:installerId/active-jobs", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
+      
+      // Validate installerId is a valid number
+      if (isNaN(installerId) || installerId <= 0) {
+        return res.status(400).json({ error: "Invalid installer ID" });
+      }
+      
       const jobs = await storage.getInstallerJobs(installerId);
       
       // Get full booking details for each job
@@ -7602,6 +7608,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       
+      // Validate installerId is a valid number
+      if (isNaN(installerId) || installerId <= 0) {
+        return res.status(400).json({ error: "Invalid installer ID" });
+      }
+      
       // Check if installer is demo account
       const installer = await storage.getInstaller(installerId);
       const isDemoAccount = installer?.email === "test@tradesbook.ie";
@@ -7684,6 +7695,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/installer/:installerId/update-lead-status", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
+      
+      // Validate installerId is a valid number
+      if (isNaN(installerId) || installerId <= 0) {
+        return res.status(400).json({ error: "Invalid installer ID" });
+      }
+      
       const { leadId, status, message } = req.body;
       
       if (!leadId || !status) {
@@ -8788,6 +8805,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/installer/:installerId/available-leads", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
+      
+      // Validate installerId is a valid number
+      if (isNaN(installerId) || installerId <= 0) {
+        return res.status(400).json({ error: "Invalid installer ID" });
+      }
       
       // Check if this is the demo account and if we have cached demo leads
       if (installerId === 2 && (global as any).demoLeadsCache && (global as any).demoLeadsCache[installerId]) {

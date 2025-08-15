@@ -48,30 +48,38 @@ const iconTypeOptions = [
   { value: "guide", label: "Guide", icon: BookOpen },
 ];
 
+// Resource format/structure
 const typeOptions = [
-  { value: "guide", label: "Guide" },
-  { value: "warranty", label: "Warranty" },
-  { value: "promotion", label: "Promotion" },
-  { value: "cashback", label: "Cashback" },
-  { value: "tutorial", label: "Tutorial" },
+  { value: "guide", label: "Step-by-Step Guide" },
+  { value: "faq", label: "FAQ" },
+  { value: "video", label: "Video Tutorial" },
+  { value: "checklist", label: "Checklist" },
+  { value: "manual", label: "Manual/Documentation" },
+  { value: "promotion", label: "Promotional Content" },
 ];
 
+// Subject matter/topic area
 const categoryOptions = [
-  { value: "general", label: "General" },
-  { value: "warranty", label: "Warranty" },
-  { value: "promotions", label: "Promotions" },
-  { value: "tutorials", label: "Tutorials" },
-  { value: "guides", label: "Guides" },
+  { value: "setup-installation", label: "Setup & Installation" },
+  { value: "troubleshooting", label: "Troubleshooting" },
+  { value: "warranty-support", label: "Warranty & Support" },
+  { value: "maintenance", label: "Maintenance & Care" },
+  { value: "promotions-offers", label: "Promotions & Offers" },
+  { value: "product-info", label: "Product Information" },
 ];
 
+// Manufacturer/retailer identification
 const brandOptions = [
+  { value: "", label: "Generic/No Brand" },
   { value: "Sony", label: "Sony" },
   { value: "Samsung", label: "Samsung" },
   { value: "LG", label: "LG" },
-  { value: "Harvey Norman", label: "Harvey Norman" },
   { value: "Philips", label: "Philips" },
   { value: "TCL", label: "TCL" },
   { value: "Hisense", label: "Hisense" },
+  { value: "Harvey Norman", label: "Harvey Norman" },
+  { value: "Currys", label: "Currys" },
+  { value: "DID Electrical", label: "DID Electrical" },
 ];
 
 export default function ResourcesManagement() {
@@ -86,7 +94,7 @@ export default function ResourcesManagement() {
     description: "",
     content: "",
     type: "guide",
-    category: "general",
+    category: "setup-installation",
     brand: "",
     companyName: "",
     externalUrl: "",
@@ -261,7 +269,7 @@ export default function ResourcesManagement() {
       description: "",
       content: "",
       type: "guide",
-      category: "general",
+      category: "setup-installation",
       brand: "",
       companyName: "",
       externalUrl: "",
@@ -524,7 +532,8 @@ export default function ResourcesManagement() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type">Resource Format</Label>
+                  <p className="text-xs text-gray-500">What kind of content format is this?</p>
                   <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -564,7 +573,8 @@ export default function ResourcesManagement() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category">Topic Area</Label>
+                  <p className="text-xs text-gray-500">What subject or area does this cover?</p>
                   <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                     <SelectTrigger>
                       <SelectValue />
@@ -579,7 +589,8 @@ export default function ResourcesManagement() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="brand">Brand</Label>
+                  <Label htmlFor="brand">Related Brand/Retailer</Label>
+                  <p className="text-xs text-gray-500">Which manufacturer or retailer does this relate to? (Optional)</p>
                   <Select value={formData.brand} onValueChange={(value) => setFormData(prev => ({ ...prev, brand: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select brand" />

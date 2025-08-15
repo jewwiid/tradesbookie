@@ -1878,6 +1878,8 @@ function BookingManagement() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [forceDelete, setForceDelete] = useState(false);
+  const [deletionInfo, setDeletionInfo] = useState<any>(null);
   const [editStatus, setEditStatus] = useState("");
   const [bookingPermissions, setBookingPermissions] = useState<any>({});
 
@@ -1909,16 +1911,46 @@ function BookingManagement() {
   });
 
   const deleteBookingMutation = useMutation({
-    mutationFn: async (bookingId: number) => {
-      await apiRequest("DELETE", `/api/admin/bookings/${bookingId}`);
+    mutationFn: async ({ bookingId, force }: { bookingId: number, force: boolean }) => {
+      const url = force ? `/api/admin/bookings/${bookingId}?force=true` : `/api/admin/bookings/${bookingId}`;
+      return await apiRequest("DELETE", url);
     },
-    onSuccess: () => {
-      toast({ title: "Booking deleted successfully" });
+    onSuccess: (data: any) => {
+      toast({ 
+        title: "Booking deleted successfully", 
+        description: `Booking ${data.qrCode} and all associated data removed${data.wasForceDelete ? ' (Force deleted)' : ''}`,
+        variant: "default"
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/bookings"] });
       setIsDeleteDialogOpen(false);
       setSelectedBooking(null);
+      setForceDelete(false);
+      setDeletionInfo(null);
     },
     onError: (error: any) => {
+      console.log('Delete error response:', error);
+      // Handle the special case where force delete is available
+      if (error.message && error.message.includes('Use force=true parameter to override')) {
+        try {
+          // Try to parse error response for additional info
+          const errorData = JSON.parse(error.message.split('400: ')[1] || '{}');
+          setDeletionInfo(errorData);
+          toast({
+            title: "Booking is in active state",
+            description: "You can force delete this booking if needed. Please review the details carefully.",
+            variant: "destructive"
+          });
+        } catch {
+          setDeletionInfo({ canForceDelete: true });
+          toast({
+            title: "Booking is in active state",
+            description: "You can force delete this booking if needed.",
+            variant: "destructive"
+          });
+        }
+        return; // Don't close dialog, allow user to choose force delete
+      }
+      
       toast({ 
         title: "Failed to delete booking", 
         description: error.message || "Deletion failed",
@@ -2001,8 +2033,18 @@ function BookingManagement() {
 
   const confirmDeleteBooking = () => {
     if (selectedBooking) {
-      deleteBookingMutation.mutate(selectedBooking.id);
+      deleteBookingMutation.mutate({
+        bookingId: selectedBooking.id,
+        force: forceDelete
+      });
     }
+  };
+
+  const resetDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setForceDelete(false);
+    setDeletionInfo(null);
+    setSelectedBooking(null);
   };
 
   const canModifyBooking = (booking: any) => {
@@ -2138,8 +2180,7 @@ function BookingManagement() {
                         variant="destructive" 
                         size="sm"
                         onClick={() => handleDeleteBooking(booking)}
-                        disabled={!canDeleteBooking(booking)}
-                        title={!canDeleteBooking(booking) ? "Cannot delete - booking assigned or in progress" : "Delete booking"}
+                        title="Delete booking and all associated data"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -2706,10 +2747,22 @@ function BookingManagement() {
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex items-center space-x-2 text-red-800">
                   <AlertTriangle className="w-5 h-5" />
-                  <span className="font-medium">Warning: Permanent Deletion</span>
+                  <span className="font-medium">Warning: Complete Data Deletion</span>
                 </div>
                 <p className="text-sm text-red-700 mt-2">
-                  This will permanently remove booking {selectedBooking.qrCode} from the database.
+                  This will permanently remove booking {selectedBooking.qrCode} and <strong>ALL associated data</strong> from the database including:
+                </p>
+                <ul className="text-sm text-red-700 mt-2 ml-4 list-disc space-y-1">
+                  <li>All job assignments and purchased leads</li>
+                  <li>Customer reviews and ratings</li>
+                  <li>Schedule negotiations</li>
+                  <li>Wallet transactions and refunds</li>
+                  <li>Photos (room photos, completion photos, AI previews)</li>
+                  <li>Notifications and system messages</li>
+                  <li>Fraud prevention reports</li>
+                  <li>Referral usage records</li>
+                </ul>
+                <p className="text-sm text-red-700 mt-2">
                   The customer will be notified via email about the cancellation.
                 </p>
               </div>
@@ -2718,42 +2771,59 @@ function BookingManagement() {
                 <h4 className="font-medium mb-2">Booking Details:</h4>
                 <div className="text-sm space-y-1">
                   <p><strong>Customer:</strong> {selectedBooking.contactName}</p>
+                  <p><strong>Email:</strong> {selectedBooking.contactEmail}</p>
                   <p><strong>Service:</strong> {selectedBooking.serviceType}</p>
                   <p><strong>Status:</strong> {selectedBooking.status}</p>
                   <p><strong>QR Code:</strong> {selectedBooking.qrCode}</p>
+                  {selectedBooking.installerId && (
+                    <p><strong>Assigned Installer:</strong> ID #{selectedBooking.installerId}</p>
+                  )}
                 </div>
               </div>
 
-              {!canDeleteBooking(selectedBooking) && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 text-yellow-800">
+              {deletionInfo && deletionInfo.canForceDelete && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 text-orange-800">
                     <AlertTriangle className="w-5 h-5" />
-                    <span className="font-medium">Cannot Delete</span>
+                    <span className="font-medium">Active Booking - Force Delete Available</span>
                   </div>
-                  <p className="text-sm text-yellow-700 mt-2">
-                    This booking cannot be deleted because it has been assigned to an installer or is in progress.
+                  <p className="text-sm text-orange-700 mt-2">
+                    This booking is currently <strong>{deletionInfo.currentStatus || 'active'}</strong> and {deletionInfo.assignedInstaller ? 'assigned to an installer' : 'in progress'}.
+                    You can force delete it, but this may impact the customer and installer experience.
                   </p>
+                  <div className="mt-3 flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="forceDelete"
+                      checked={forceDelete}
+                      onChange={(e) => setForceDelete(e.target.checked)}
+                      className="rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+                    />
+                    <label htmlFor="forceDelete" className="text-sm font-medium text-orange-800">
+                      I understand the risks and want to force delete this booking
+                    </label>
+                  </div>
                 </div>
               )}
 
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                <Button variant="outline" onClick={resetDeleteDialog}>
                   Cancel
                 </Button>
                 <Button 
                   variant="destructive" 
                   onClick={confirmDeleteBooking}
-                  disabled={deleteBookingMutation.isPending || !canDeleteBooking(selectedBooking)}
+                  disabled={deleteBookingMutation.isPending || (deletionInfo && deletionInfo.canForceDelete && !forceDelete)}
                 >
                   {deleteBookingMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Deleting...
+                      {forceDelete ? 'Force Deleting...' : 'Deleting...'}
                     </>
                   ) : (
                     <>
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete Booking
+                      {forceDelete ? 'Force Delete Booking' : 'Delete Booking'}
                     </>
                   )}
                 </Button>

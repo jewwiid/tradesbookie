@@ -6888,43 +6888,126 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Admin Actions - Delete Booking (only for unassigned bookings)
+  // Admin Actions - Delete Booking with Full Cascading Deletion
   app.delete("/api/admin/bookings/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);
+      const forceDelete = req.query.force === 'true'; // Allow force deletion with query parameter
       
-      // Get booking details to check if it can be deleted
+      // Get booking details
       const booking = await storage.getBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
       
-      // Only allow deletion if booking is not assigned or accepted by installer
-      if (booking.installerId || ['installer_accepted', 'in_progress', 'completed'].includes(booking.status)) {
+      // Check if booking can be safely deleted (unless force delete is requested)
+      if (!forceDelete && booking.installerId && ['installer_accepted', 'in_progress', 'completed'].includes(booking.status)) {
         return res.status(400).json({ 
-          message: "Cannot delete booking that has been assigned to or accepted by an installer" 
+          message: "Booking is in active state. Use force=true parameter to override.",
+          canForceDelete: true,
+          currentStatus: booking.status,
+          assignedInstaller: booking.installerId
         });
       }
       
-      // Delete related records first to avoid foreign key constraints
-      await db.delete(reviews).where(eq(reviews.bookingId, bookingId));
+      console.log(`🗑️ Admin deletion initiated for booking ${bookingId} (force: ${forceDelete})`);
       
-      // Delete the booking
-      await storage.deleteBooking(bookingId);
+      // Start transaction for safe deletion
+      await db.transaction(async (trx) => {
+        // 1. Delete all related records in proper order to avoid foreign key constraints
+        
+        // Delete reviews
+        await trx.delete(reviews).where(eq(reviews.bookingId, bookingId));
+        console.log(`✅ Deleted reviews for booking ${bookingId}`);
+        
+        // Delete job assignments and purchased leads
+        await trx.delete(jobAssignments).where(eq(jobAssignments.bookingId, bookingId));
+        console.log(`✅ Deleted job assignments for booking ${bookingId}`);
+        
+        // Delete schedule negotiations
+        const scheduleNegotiations = await import('@shared/schema').then(s => s.scheduleNegotiations);
+        await trx.delete(scheduleNegotiations).where(eq(scheduleNegotiations.bookingId, bookingId));
+        console.log(`✅ Deleted schedule negotiations for booking ${bookingId}`);
+        
+        // Delete wallet transactions
+        const walletTransactions = await import('@shared/schema').then(s => s.walletTransactions);
+        await trx.delete(walletTransactions).where(eq(walletTransactions.bookingId, bookingId));
+        console.log(`✅ Deleted wallet transactions for booking ${bookingId}`);
+        
+        // Delete installer refunds
+        const installerRefunds = await import('@shared/schema').then(s => s.installerRefunds);
+        await trx.delete(installerRefunds).where(eq(installerRefunds.bookingId, bookingId));
+        console.log(`✅ Deleted installer refunds for booking ${bookingId}`);
+        
+        // Delete notifications
+        const notifications = await import('@shared/schema').then(s => s.notifications);
+        await trx.delete(notifications).where(eq(notifications.bookingId, bookingId));
+        console.log(`✅ Deleted notifications for booking ${bookingId}`);
+        
+        // Delete performance refunds
+        const performanceRefunds = await import('@shared/schema').then(s => s.performanceRefunds);
+        await trx.delete(performanceRefunds).where(eq(performanceRefunds.bookingId, bookingId));
+        console.log(`✅ Deleted performance refunds for booking ${bookingId}`);
+        
+        // Delete fraud prevention reports
+        const fraudPreventionReports = await import('@shared/schema').then(s => s.fraudPreventionReports);
+        await trx.delete(fraudPreventionReports).where(eq(fraudPreventionReports.bookingId, bookingId));
+        console.log(`✅ Deleted fraud prevention reports for booking ${bookingId}`);
+        
+        // Delete referral usage records
+        await trx.delete(referralUsage).where(eq(referralUsage.usedForBookingId, bookingId));
+        console.log(`✅ Deleted referral usage for booking ${bookingId}`);
+        
+        // Delete new lead credits
+        const newLeadCredits = await import('@shared/schema').then(s => s.newLeadCredits);
+        await trx.delete(newLeadCredits).where(eq(newLeadCredits.bookingId, bookingId));
+        console.log(`✅ Deleted new lead credits for booking ${bookingId}`);
+        
+        // Finally delete the booking itself
+        await trx.delete(bookings).where(eq(bookings.id, bookingId));
+        console.log(`✅ Deleted booking ${bookingId}`);
+      });
+      
+      // Log deletion for audit trail
+      console.log(`🗑️ ADMIN DELETION COMPLETED - Booking ID: ${bookingId}, QR: ${booking.qrCode}, Customer: ${booking.customerEmail}, Force: ${forceDelete}`);
       
       // Notify customer about cancellation
       if (booking.customerEmail) {
-        await sendGmailEmail(
-          booking.customerEmail,
-          'Booking Cancelled - tradesbook.ie',
-          `Your TV installation booking (${booking.qrCode}) has been cancelled by our admin team. If you have any questions, please contact our support team.`
-        );
+        try {
+          await sendGmailEmail(
+            booking.customerEmail,
+            'Booking Cancelled - tradesbook.ie',
+            `Your TV installation booking (${booking.qrCode}) has been cancelled by our admin team. 
+            
+            ${forceDelete ? 'This was an administrative decision due to special circumstances.' : ''}
+            
+            If you have any questions about this cancellation, please contact our support team at support@tradesbook.ie.
+            
+            We apologize for any inconvenience caused.
+            
+            Best regards,
+            tradesbook.ie Team`
+          );
+        } catch (emailError) {
+          console.error("Failed to send deletion notification email:", emailError);
+          // Continue with deletion even if email fails
+        }
       }
       
-      res.json({ message: "Booking deleted successfully" });
+      res.json({ 
+        message: "Booking and all associated data deleted successfully",
+        deletedBookingId: bookingId,
+        qrCode: booking.qrCode,
+        wasForceDelete: forceDelete,
+        customerNotified: !!booking.customerEmail
+      });
+      
     } catch (error) {
-      console.error("Error deleting booking:", error);
-      res.status(500).json({ message: "Failed to delete booking" });
+      console.error("Error in admin booking deletion:", error);
+      res.status(500).json({ 
+        message: "Failed to delete booking", 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
 

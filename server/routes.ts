@@ -389,7 +389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const getStrategyName = (hostname: string): string | null => {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
           return 'googleauth:localhost';
-        } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+        } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev') || hostname.includes('replit.app')) {
           return `googleauth:${hostname}`;
         } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
           return 'googleauth:tradesbook.ie';
@@ -467,7 +467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       function getStrategyName(hostname: string): string | null {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
           return 'googleauth:localhost';
-        } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+        } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev') || hostname.includes('replit.app')) {
           return `googleauth:${hostname}`;
         } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
           return 'googleauth:tradesbook.ie';
@@ -665,7 +665,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const getStrategyName = (hostname: string): string | null => {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
           return 'googleauth:localhost';
-        } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+        } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev') || hostname.includes('replit.app')) {
           return `googleauth:${hostname}`;
         } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
           return 'googleauth:tradesbook.ie';

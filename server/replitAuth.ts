@@ -365,7 +365,7 @@ export async function setupAuth(app: Express) {
     
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       strategyName = 'googleauth:localhost';
-    } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev')) {
+    } else if (hostname.includes('replit.dev') || hostname.includes('spock.replit.dev') || hostname.includes('replit.app')) {
       strategyName = `googleauth:${hostname}`;
     } else if (hostname === 'tradesbook.ie' || hostname.includes('tradesbook.ie')) {
       strategyName = 'googleauth:tradesbook.ie';

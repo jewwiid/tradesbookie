@@ -12457,6 +12457,131 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Public showcase endpoint - displays completed installations without installer details
+  app.get('/api/installation-showcase', async (req, res) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const offset = (page - 1) * limit;
+
+      // Get completed bookings with both before/after photos AND reviews
+      const completedJobs = await db
+        .select({
+          id: bookings.id,
+          address: bookings.address,
+          tvSize: bookings.tvSize,
+          serviceType: bookings.serviceType,
+          tvInstallations: bookings.tvInstallations,
+          beforeAfterPhotos: bookings.beforeAfterPhotos,
+          qualityStars: bookings.qualityStars,
+          photoStars: bookings.photoStars,
+          reviewStars: bookings.reviewStars,
+          completedAt: bookings.updatedAt,
+          createdAt: bookings.createdAt
+        })
+        .from(bookings)
+        .where(and(
+          eq(bookings.status, 'completed'),
+          isNotNull(bookings.beforeAfterPhotos),
+          gt(bookings.reviewStars, 0) // Only jobs with customer reviews
+        ))
+        .orderBy(desc(bookings.updatedAt))
+        .limit(limit)
+        .offset(offset);
+
+      // Get reviews for these bookings (without reviewer personal info)
+      const bookingIds = completedJobs.map(job => job.id);
+      const jobReviews = await db
+        .select({
+          bookingId: reviews.bookingId,
+          rating: reviews.rating,
+          title: reviews.title,
+          comment: reviews.comment,
+          createdAt: reviews.createdAt
+        })
+        .from(reviews)
+        .where(inArray(reviews.bookingId, bookingIds));
+
+      // Combine jobs with their reviews
+      const showcaseData = completedJobs.map(job => {
+        const jobReview = jobReviews.find(review => review.bookingId === job.id);
+        
+        // Parse before/after photos
+        const beforeAfterPhotos = Array.isArray(job.beforeAfterPhotos) 
+          ? job.beforeAfterPhotos 
+          : [];
+
+        // Parse TV installations for multi-TV jobs
+        const tvInstallations = Array.isArray(job.tvInstallations) 
+          ? job.tvInstallations 
+          : [];
+
+        // Determine display information
+        const displayInfo = tvInstallations.length > 0 
+          ? {
+              tvCount: tvInstallations.length,
+              services: tvInstallations.map(tv => `${tv.tvSize} ${tv.serviceType}`).join(', '),
+              primaryService: tvInstallations[0]?.serviceType || 'TV Installation'
+            }
+          : {
+              tvCount: 1,
+              services: `${job.tvSize} ${job.serviceType}`,
+              primaryService: job.serviceType || 'TV Installation'
+            };
+
+        return {
+          id: job.id,
+          // Location info (keep general, remove specific address)
+          location: job.address ? job.address.split(',').slice(-2).join(',').trim() : 'Ireland',
+          
+          // Installation details
+          ...displayInfo,
+          
+          // Quality metrics
+          qualityStars: job.qualityStars || 0,
+          photoStars: job.photoStars || 0,
+          reviewStars: job.reviewStars || 0,
+          
+          // Photos (only show if they exist)
+          beforeAfterPhotos: beforeAfterPhotos.filter(photo => 
+            photo && photo.beforePhoto && photo.afterPhoto
+          ),
+          
+          // Customer review (anonymous)
+          review: jobReview ? {
+            rating: jobReview.rating,
+            title: jobReview.title,
+            comment: jobReview.comment,
+            date: jobReview.createdAt
+          } : null,
+          
+          // Completion date
+          completedAt: job.completedAt || job.createdAt
+        };
+      }).filter(job => 
+        // Only include jobs with both photos and reviews
+        job.beforeAfterPhotos.length > 0 && job.review
+      );
+
+      res.json({
+        installations: showcaseData,
+        totalCount: showcaseData.length,
+        page,
+        hasMore: showcaseData.length === limit
+      });
+
+    } catch (error) {
+      console.error('Error fetching installation showcase:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch installation showcase',
+        installations: [],
+        totalCount: 0,
+        page: 1,
+        hasMore: false
+      });
+    }
+  });
+
   return httpServer;
 }
 

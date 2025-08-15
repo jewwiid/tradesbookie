@@ -94,6 +94,12 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                       Resources
                     </Link>
                     <Link 
+                      href="/gallery" 
+                      className="text-gray-700 hover:text-primary transition-colors text-sm font-medium px-2 py-1 rounded-md hover:bg-primary/5"
+                    >
+                      Gallery
+                    </Link>
+                    <Link 
                       href="/ai-help" 
                       className="text-blue-600 hover:text-blue-700 transition-colors text-sm font-medium px-3 py-1 rounded-md hover:bg-blue-50 flex items-center gap-1"
                     >
@@ -287,6 +293,14 @@ export default function Navigation({ isInstallerContext = false, installerProfil
                             >
                               <FileText className="h-5 w-5 mr-4 flex-shrink-0" />
                               Resources
+                            </Link>
+                            <Link 
+                              href="/gallery" 
+                              className="flex items-center py-4 px-4 text-gray-700 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors text-base min-h-[48px]"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              <Camera className="h-5 w-5 mr-4 flex-shrink-0" />
+                              Gallery
                             </Link>
                             <Link 
                               href="/booking-tracker" 

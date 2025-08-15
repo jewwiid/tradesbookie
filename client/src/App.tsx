@@ -55,6 +55,7 @@ import FindProduct from "@/pages/FindProduct";
 import TVInstallation from "@/pages/tv-installation";
 import CustomerProfileSetup from "@/pages/customer-profile-setup";
 import StorePartnerSignup from "@/pages/store-partner-signup";
+import InstallationShowcase from "@/pages/installation-showcase";
 
 
 function Router() {
@@ -94,6 +95,8 @@ function Router() {
       <Route path="/find-product" component={FindProduct} />
       <Route path="/find-product/:categorySlug" component={FindProduct} />
       <Route path="/store-partner-signup" component={StorePartnerSignup} />
+      <Route path="/gallery" component={InstallationShowcase} />
+      <Route path="/showcase" component={InstallationShowcase} />
 
       <Route path="/demo-login" component={DemoLogin} />
       

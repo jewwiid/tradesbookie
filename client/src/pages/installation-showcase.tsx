@@ -3,8 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Star, MapPin, Calendar, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import { Star, MapPin, Calendar, ChevronLeft, ChevronRight, Heart, Lock, Eye } from 'lucide-react';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/hooks/useAuth';
+import Navigation from '@/components/navigation';
+import Footer from '@/components/Footer';
 
 interface BeforeAfterPhoto {
   tvIndex: number;
@@ -45,6 +48,7 @@ export default function InstallationShowcase() {
   const [, setLocation] = useLocation();
   const [page, setPage] = useState(1);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<{ [key: number]: number }>({});
+  const { user, isAuthenticated } = useAuth();
 
   // Fetch showcase data
   const { data: showcaseData, isLoading, error } = useQuery<ShowcaseResponse>({
@@ -81,6 +85,8 @@ export default function InstallationShowcase() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navigation />
+      
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-8">
@@ -91,6 +97,14 @@ export default function InstallationShowcase() {
             <p className="text-gray-600">
               Discover our completed TV installations with real customer reviews and before/after photos
             </p>
+            {!isAuthenticated && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-center space-x-2 text-blue-700">
+                  <Eye className="w-5 h-5" />
+                  <span className="text-sm font-medium">Sign in to view detailed installation photos and customer reviews</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -188,31 +202,70 @@ export default function InstallationShowcase() {
                     {/* Before/After Photos */}
                     {currentPhoto && (
                       <div className="relative">
-                        <div className="grid grid-cols-2 gap-1">
-                          {/* Before Photo */}
-                          <div className="relative">
-                            <img 
-                              src={`data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
-                              alt="Before installation"
-                              className="w-full h-64 sm:h-80 object-cover"
-                            />
-                            <div className="absolute top-2 left-2">
-                              <Badge className="bg-red-500 hover:bg-red-600">Before</Badge>
+                        {isAuthenticated ? (
+                          <div className="grid grid-cols-2 gap-1">
+                            {/* Before Photo */}
+                            <div className="relative">
+                              <img 
+                                src={`data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
+                                alt="Before installation"
+                                className="w-full h-64 sm:h-80 object-cover"
+                              />
+                              <div className="absolute top-2 left-2">
+                                <Badge className="bg-red-500 hover:bg-red-600">Before</Badge>
+                              </div>
                             </div>
-                          </div>
 
-                          {/* After Photo */}
-                          <div className="relative">
-                            <img 
-                              src={`data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
-                              alt="After installation"
-                              className="w-full h-64 sm:h-80 object-cover"
-                            />
-                            <div className="absolute top-2 left-2">
-                              <Badge className="bg-green-500 hover:bg-green-600">After</Badge>
+                            {/* After Photo */}
+                            <div className="relative">
+                              <img 
+                                src={`data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
+                                alt="After installation"
+                                className="w-full h-64 sm:h-80 object-cover"
+                              />
+                              <div className="absolute top-2 left-2">
+                                <Badge className="bg-green-500 hover:bg-green-600">After</Badge>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-1">
+                            {/* Blurred Preview for Non-authenticated Users */}
+                            <div className="relative">
+                              <img 
+                                src={`data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
+                                alt="Before installation preview"
+                                className="w-full h-64 sm:h-80 object-cover blur-lg"
+                              />
+                              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 text-center">
+                                  <Lock className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                                  <p className="text-sm font-medium text-gray-800">Sign in to view</p>
+                                </div>
+                              </div>
+                              <div className="absolute top-2 left-2">
+                                <Badge className="bg-red-500 hover:bg-red-600">Before</Badge>
+                              </div>
+                            </div>
+
+                            <div className="relative">
+                              <img 
+                                src={`data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
+                                alt="After installation preview"
+                                className="w-full h-64 sm:h-80 object-cover blur-lg"
+                              />
+                              <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                <div className="bg-white/90 backdrop-blur-sm rounded-lg p-4 text-center">
+                                  <Lock className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                                  <p className="text-sm font-medium text-gray-800">Sign in to view</p>
+                                </div>
+                              </div>
+                              <div className="absolute top-2 left-2">
+                                <Badge className="bg-green-500 hover:bg-green-600">After</Badge>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Photo Navigation */}
                         {hasMultiplePhotos && (
@@ -249,33 +302,79 @@ export default function InstallationShowcase() {
 
                     {/* Customer Review */}
                     <div className="p-6 pt-4">
-                      <div className="border-l-4 border-l-blue-500 pl-4 bg-gray-50 p-4 rounded-r-lg">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="flex">
-                            {Array.from({ length: 5 }, (_, i) => (
-                              <Star 
-                                key={i} 
-                                className={`w-4 h-4 ${
-                                  i < installation.review.rating 
-                                    ? 'text-yellow-400 fill-yellow-400' 
-                                    : 'text-gray-300'
-                                }`} 
-                              />
-                            ))}
+                      {isAuthenticated ? (
+                        <div className="border-l-4 border-l-blue-500 pl-4 bg-gray-50 p-4 rounded-r-lg">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <div className="flex">
+                              {Array.from({ length: 5 }, (_, i) => (
+                                <Star 
+                                  key={i} 
+                                  className={`w-4 h-4 ${
+                                    i < installation.review.rating 
+                                      ? 'text-yellow-400 fill-yellow-400' 
+                                      : 'text-gray-300'
+                                  }`} 
+                                />
+                              ))}
+                            </div>
+                            <span className="font-medium text-sm">{installation.review.rating}/5</span>
+                            <span className="text-gray-500 text-sm">• Customer Review</span>
                           </div>
-                          <span className="font-medium text-sm">{installation.review.rating}/5</span>
-                          <span className="text-gray-500 text-sm">• Customer Review</span>
+                          
+                          <h4 className="font-semibold mb-2">{installation.review.title}</h4>
+                          <p className="text-gray-700 text-sm leading-relaxed">
+                            {installation.review.comment}
+                          </p>
+                          
+                          <p className="text-xs text-gray-500 mt-3">
+                            Reviewed on {formatDate(installation.review.date)}
+                          </p>
                         </div>
-                        
-                        <h4 className="font-semibold mb-2">{installation.review.title}</h4>
-                        <p className="text-gray-700 text-sm leading-relaxed">
-                          {installation.review.comment}
-                        </p>
-                        
-                        <p className="text-xs text-gray-500 mt-3">
-                          Reviewed on {formatDate(installation.review.date)}
-                        </p>
-                      </div>
+                      ) : (
+                        <div className="border-l-4 border-l-gray-300 pl-4 bg-gray-50 p-4 rounded-r-lg relative">
+                          <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-r-lg flex items-center justify-center">
+                            <div className="text-center">
+                              <Lock className="w-6 h-6 text-gray-500 mx-auto mb-2" />
+                              <p className="text-sm font-medium text-gray-700">Sign in to read customer reviews</p>
+                              <Button 
+                                size="sm" 
+                                className="mt-2 bg-blue-600 hover:bg-blue-700"
+                                onClick={() => setLocation('/api/login')}
+                              >
+                                Sign In
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="blur-sm pointer-events-none">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <div className="flex">
+                                {Array.from({ length: 5 }, (_, i) => (
+                                  <Star 
+                                    key={i} 
+                                    className={`w-4 h-4 ${
+                                      i < installation.review.rating 
+                                        ? 'text-yellow-400 fill-yellow-400' 
+                                        : 'text-gray-300'
+                                    }`} 
+                                  />
+                                ))}
+                              </div>
+                              <span className="font-medium text-sm">{installation.review.rating}/5</span>
+                              <span className="text-gray-500 text-sm">• Customer Review</span>
+                            </div>
+                            
+                            <h4 className="font-semibold mb-2">{installation.review.title}</h4>
+                            <p className="text-gray-700 text-sm leading-relaxed">
+                              {installation.review.comment}
+                            </p>
+                            
+                            <p className="text-xs text-gray-500 mt-3">
+                              Reviewed on {formatDate(installation.review.date)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -315,6 +414,8 @@ export default function InstallationShowcase() {
           </div>
         )}
       </div>
+      
+      <Footer />
     </div>
   );
 }

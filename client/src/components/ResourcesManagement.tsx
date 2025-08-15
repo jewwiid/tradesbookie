@@ -189,22 +189,45 @@ export default function ResourcesManagement() {
       }
     },
     onSuccess: (data: any) => {
+      // Check if the response has the expected structure
+      if (!data || !data.data) {
+        toast({ 
+          title: "Error processing response", 
+          description: "Invalid response format from AI service",
+          variant: "destructive" 
+        });
+        return;
+      }
+
       const generatedContent = data.data;
+      
+      // Validate that the generated content has the required fields
+      if (!generatedContent || typeof generatedContent !== 'object') {
+        toast({ 
+          title: "Error processing content", 
+          description: "AI service returned invalid content format",
+          variant: "destructive" 
+        });
+        return;
+      }
+
       setFormData(prev => ({
         ...prev,
-        title: generatedContent.title,
-        description: generatedContent.description,
-        content: generatedContent.content,
-        category: generatedContent.category,
-        type: generatedContent.type,
+        title: generatedContent.title || prev.title,
+        description: generatedContent.description || prev.description,
+        content: generatedContent.content || prev.content,
+        category: generatedContent.category || prev.category,
+        type: generatedContent.type || prev.type,
         externalUrl: aiInputMethod === 'url' ? aiUrl : '', // Set the URL only if using URL method
       }));
+      
       // Clear the appropriate input
       if (aiInputMethod === 'url') {
         setAiUrl("");
       } else {
         setAiMarkdown("");
       }
+      
       toast({ 
         title: "Content generated successfully", 
         description: "AI has filled in the title, description, and content fields"
@@ -287,11 +310,7 @@ export default function ResourcesManagement() {
       }
 
       // For markdown, we'll send a special request to the backend
-      generateAIContentMutation.mutate(aiMarkdown, { 
-        onMutate: () => {
-          // We'll handle this differently in the mutation
-        }
-      });
+      generateAIContentMutation.mutate(aiMarkdown);
     }
   };
 

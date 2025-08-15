@@ -1,0 +1,169 @@
+Admin check - isAdminUser result: true
+Admin check passed - proceeding
+Error fetching users: error: column "completion_photos" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getAllBookings (/home/runner/workspace/server/storage.ts:837:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:6114:24) {
+  length: 118,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '380',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+12:27:30 PM [express] GET /api/admin/users 500 in 1052ms :: {"message":"Failed to fetch users"}
+Deserializing user ID: 107198246226937517255
+Deserialized user: {
+  id: '107198246226937517255',
+  email: 'jude.okun@gmail.com',
+  role: 'admin'
+}
+Deserializing user ID: 107198246226937517255
+Deserialized user: {
+  id: '107198246226937517255',
+  email: 'jude.okun@gmail.com',
+  role: 'admin'
+}
+12:27:35 PM [express] GET /api/logout 302 in 408ms
+12:27:40 PM [express] GET /api/installers/profile 401 in 1ms :: {"error":"Not authenticated"}
+GET /api/auth/user - Session ID: qF8v_nvFFZQxXUrh2-kjuDSCVz5Fjkxl
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-08-22T12:27:40.547Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: false
+  }
+}
+12:27:40 PM [express] GET /api/auth/user 401 in 0ms :: {"message":"Unauthorized"}
+12:27:40 PM [express] GET /api/service-tiers 304 in 61ms :: [{"id":1,"key":"table-top-small","name":"…
+12:27:40 PM [express] GET /api/reviews 304 in 63ms :: []
+Step 1: Getting assignments...
+Step 1 complete. Assignments found: 4
+Step 2: Getting installers...
+Step 2 complete. Installers found: 4
+Step 3: Getting service types...
+Step 3 complete. Service types found: 8
+Mapping complete. Returning 4 results
+GET /api/auth/user - Session ID: 2LLbKbh4_dP3KoZV_0FnU41SQx4XV4FR
+GET /api/auth/user - req.user: undefined
+GET /api/auth/user - isAuthenticated: false
+GET /api/auth/user - Session: Session {
+  cookie: {
+    path: '/',
+    _expires: 2025-08-22T12:27:44.675Z,
+    originalMaxAge: 604800000,
+    httpOnly: true,
+    secure: false
+  }
+}
+12:27:44 PM [express] GET /api/auth/user 401 in 3ms :: {"message":"Unauthorized"}
+12:27:44 PM [express] GET /api/installers/profile 401 in 0ms :: {"error":"Not authenticated"}
+12:27:44 PM [express] GET /api/service-tiers 304 in 63ms :: [{"id":1,"key":"table-top-small","name":"…
+12:27:44 PM [express] GET /api/reviews 304 in 61ms :: []
+Step 1: Getting assignments...
+Step 1 complete. Assignments found: 4
+Step 2: Getting installers...
+Step 2 complete. Installers found: 4
+Step 3: Getting service types...
+Step 3 complete. Service types found: 8
+Mapping complete. Returning 4 results
+12:27:45 PM [express] GET /api/installers 304 in 539ms :: [{"id":11,"businessName":"Tradesbook.ie","s…
+Demo account login detected - resetting leads for installer 23
+Error resetting demo leads: error: column "completion_photos" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getAllBookings (/home/runner/workspace/server/storage.ts:837:12)
+    at async resetDemoLeads (/home/runner/workspace/server/routes.ts:221:30)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:4793:9) {
+  length: 118,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '380',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+Demo account wallet reset to €0.00 for installer 23
+12:27:53 PM [express] POST /api/installers/login 200 in 915ms :: {"success":true,"installer":{"id":23…
+12:27:57 PM [express] POST /api/installer/availability 200 in 181ms :: {"success":true,"isAvailable":…
+12:27:57 PM [express] GET /api/installers/profile 200 in 190ms :: {"id":23,"email":"test@tradesbook.i…
+Error fetching past leads: error: column bookings.completion_photos does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getInstallerPurchasedLeads (/home/runner/workspace/server/storage.ts:740:27)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:7610:30) {
+  length: 125,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '633',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+12:27:57 PM [express] GET /api/installer/23/past-leads 500 in 243ms :: {"message":"Failed to fetch pa…
+12:27:58 PM [express] GET /api/installer/23/reviews 200 in 838ms :: {"averageRating":0,"totalReviews"…
+Error fetching available leads: error: column "completion_photos" does not exist
+    at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:102:18)
+    at async DatabaseStorage.getAllBookings (/home/runner/workspace/server/storage.ts:837:12)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:8810:27) {
+  length: 118,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '380',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+12:27:58 PM [express] GET /api/installer/23/available-leads 500 in 1044ms :: {"message":"Failed to fe…
+12:27:59 PM [express] GET /api/installers/23/first-lead-eligibility 304 in 1398ms :: {"eligible":fals…

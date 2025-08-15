@@ -781,6 +781,18 @@ export default function ResourcesManagement() {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
+              {resource.imageUrl && (
+                <div className="mb-3">
+                  <img 
+                    src={resource.imageUrl} 
+                    alt={resource.title}
+                    className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
               <p className="text-sm text-gray-700 mb-3">{resource.content}</p>
               {resource.externalUrl && (
                 <div className="flex items-center justify-between">

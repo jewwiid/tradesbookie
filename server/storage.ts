@@ -4,7 +4,7 @@ import {
   leadPricing, wallMountPricing, installerWallets, installerTransactions,
   scheduleNegotiations, declinedRequests, emailTemplates, bannedUsers,
   leadQualityTracking, antiManipulation, customerVerification, resources,
-  platformSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
+  platformSettings, performanceRefundSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
   consultations, downloadableGuides, videoTutorials, productCategories,
   qrCodeScans, aiProductRecommendations, choiceFlowTracking,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics,
@@ -29,6 +29,7 @@ import {
   type BannedUser, type InsertBannedUser,
   type Resource, type InsertResource,
   type PlatformSettings, type InsertPlatformSettings,
+  type PerformanceRefundSettings, type InsertPerformanceRefundSettings,
   type FirstLeadVoucher, type InsertFirstLeadVoucher,
   type AntiManipulation, type InsertAntiManipulation,
   type PasswordResetToken, type InsertPasswordResetToken,
@@ -235,6 +236,13 @@ export interface IStorage {
   createPlatformSetting(setting: InsertPlatformSettings): Promise<PlatformSettings>;
   updatePlatformSetting(key: string, updates: Partial<PlatformSettings>): Promise<PlatformSettings>;
   deletePlatformSetting(key: string): Promise<void>;
+
+  // Performance refund settings operations
+  getPerformanceRefundSettings(): Promise<PerformanceRefundSettings[]>;
+  getPerformanceRefundSettingByStarLevel(starLevel: number): Promise<PerformanceRefundSettings | undefined>;
+  createPerformanceRefundSetting(setting: InsertPerformanceRefundSettings): Promise<PerformanceRefundSettings>;
+  updatePerformanceRefundSetting(id: number, setting: Partial<InsertPerformanceRefundSettings>): Promise<PerformanceRefundSettings>;
+  deletePerformanceRefundSetting(id: number): Promise<boolean>;
   
   // Lead fee exemption checking
   shouldInstallerPayLeadFee(installerId: number): Promise<boolean>;
@@ -2793,6 +2801,42 @@ export class DatabaseStorage implements IStorage {
         eq(installerServiceAssignments.installerId, installerId),
         eq(installerServiceAssignments.serviceTypeId, serviceTypeId)
       ));
+  }
+
+  // Performance refund settings operations
+  async getPerformanceRefundSettings(): Promise<PerformanceRefundSettings[]> {
+    return await db.select().from(performanceRefundSettings)
+      .orderBy(performanceRefundSettings.starLevel);
+  }
+
+  async getPerformanceRefundSettingByStarLevel(starLevel: number): Promise<PerformanceRefundSettings | undefined> {
+    const [setting] = await db.select().from(performanceRefundSettings)
+      .where(eq(performanceRefundSettings.starLevel, starLevel));
+    return setting;
+  }
+
+  async createPerformanceRefundSetting(setting: InsertPerformanceRefundSettings): Promise<PerformanceRefundSettings> {
+    const [newSetting] = await db
+      .insert(performanceRefundSettings)
+      .values(setting)
+      .returning();
+    return newSetting;
+  }
+
+  async updatePerformanceRefundSetting(id: number, setting: Partial<InsertPerformanceRefundSettings>): Promise<PerformanceRefundSettings> {
+    const [updatedSetting] = await db
+      .update(performanceRefundSettings)
+      .set(setting)
+      .where(eq(performanceRefundSettings.id, id))
+      .returning();
+    return updatedSetting;
+  }
+
+  async deletePerformanceRefundSetting(id: number): Promise<boolean> {
+    const result = await db
+      .delete(performanceRefundSettings)
+      .where(eq(performanceRefundSettings.id, id));
+    return result.rowCount > 0;
   }
 }
 

@@ -180,6 +180,23 @@ export const bookings = pgTable("bookings", {
   completedPhotoUrl: text("completed_photo_url"), // Legacy single photo field
   completionPhotos: jsonb("completion_photos").default([]), // Array of completion photos for multi-TV installations
   
+  // Before and after photo system for star ratings
+  beforeAfterPhotos: jsonb("before_after_photos").default([]), // Array of before/after photo objects for each TV
+  photoCompletionRate: decimal("photo_completion_rate", { precision: 5, scale: 2 }).default("0.00"), // Percentage of TVs with before/after photos
+  
+  // Star rating system for quality assurance
+  qualityStars: integer("quality_stars").default(0), // 0-5 stars based on photo completion and customer review
+  photoStars: integer("photo_stars").default(0), // Stars from photo completion (0-3)
+  reviewStars: integer("review_stars").default(0), // Stars from customer review (0-2)
+  starCalculatedAt: timestamp("star_calculated_at"), // When stars were last calculated
+  
+  // Credit refund eligibility
+  eligibleForRefund: boolean("eligible_for_refund").default(false),
+  refundPercentage: decimal("refund_percentage", { precision: 5, scale: 2 }).default("0.00"),
+  refundAmount: decimal("refund_amount", { precision: 8, scale: 2 }).default("0.00"),
+  refundProcessed: boolean("refund_processed").default(false),
+  refundProcessedAt: timestamp("refund_processed_at"),
+  
   // Photo storage consent and analysis
   photoStorageConsent: boolean("photo_storage_consent").default(false),
   roomAnalysis: text("room_analysis"), // AI analysis text for installer reference
@@ -1057,9 +1074,20 @@ export const platformSettings = pgTable("platform_settings", {
   key: text("key").unique().notNull(), // setting identifier like 'first_lead_voucher_enabled'
   value: text("value").notNull(), // JSON string for complex values, simple string for basic ones
   description: text("description"), // Human-readable description of the setting
-  category: text("category").default("general"), // general, promotions, security, billing
+  category: text("category").default("general"), // general, promotions, security, billing, performance_refunds
   dataType: text("data_type").default("string"), // string, boolean, number, json
   isPublic: boolean("is_public").default(false), // Whether setting can be accessed by frontend
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Performance-based credit refund settings
+export const performanceRefundSettings = pgTable("performance_refund_settings", {
+  id: serial("id").primaryKey(),
+  starLevel: integer("star_level").notNull().unique(), // 1-5 stars
+  refundPercentage: decimal("refund_percentage", { precision: 5, scale: 2 }).notNull(), // Percentage of lead fee to refund
+  description: text("description").notNull(), // Description of what qualifies for this star level
+  isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1421,6 +1449,12 @@ export const videoTutorialFormSchema = insertVideoTutorialSchema.extend({
 });
 
 export const insertPlatformSettingsSchema = createInsertSchema(platformSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPerformanceRefundSettingsSchema = createInsertSchema(performanceRefundSettings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -1879,6 +1913,8 @@ export type InsertInstallerServiceAssignment = z.infer<typeof insertInstallerSer
 // Platform settings and voucher types
 export type PlatformSettings = typeof platformSettings.$inferSelect;
 export type InsertPlatformSettings = z.infer<typeof insertPlatformSettingsSchema>;
+export type PerformanceRefundSettings = typeof performanceRefundSettings.$inferSelect;
+export type InsertPerformanceRefundSettings = z.infer<typeof insertPerformanceRefundSettingsSchema>;
 export type FirstLeadVoucher = typeof firstLeadVouchers.$inferSelect;
 export type InsertFirstLeadVoucher = z.infer<typeof insertFirstLeadVoucherSchema>;
 export type AntiManipulation = typeof antiManipulation.$inferSelect;

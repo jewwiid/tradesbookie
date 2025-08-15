@@ -23,6 +23,7 @@ import VoucherStatus from "@/components/installer/VoucherStatus";
 import LeadPurchaseDialog from "@/components/installer/LeadPurchaseDialog";
 import QRScanner from "@/components/installer/QRScanner";
 import CompletionPhotoCapture from "@/components/installer/CompletionPhotoCapture";
+import BeforeAfterPhotoCapture from "@/components/installer/BeforeAfterPhotoCapture";
 
 import { 
   Bolt, 
@@ -1004,6 +1005,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [completionSuccess, setCompletionSuccess] = useState('');
   const [verificationData, setVerificationData] = useState<any>(null);
   const [showPhotoCapture, setShowPhotoCapture] = useState(false);
+  const [showBeforeAfterCapture, setShowBeforeAfterCapture] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const { toast } = useToast();
 
@@ -1033,11 +1035,11 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
       const tvCount = tvInstallations.length || 1; // Default to 1 for legacy bookings
       
       if (tvCount > 0) {
-        // Show photo capture workflow
-        setShowPhotoCapture(true);
+        // Show before/after photo capture workflow for star rating system
+        setShowBeforeAfterCapture(true);
         toast({
           title: "QR Code Verified!",
-          description: `Please capture ${tvCount} photo${tvCount > 1 ? 's' : ''} of the installed TV${tvCount > 1 ? 's' : ''} to complete the job.`,
+          description: `Please capture before and after photos for each TV installation to earn quality stars and qualify for credit refunds.`,
         });
       } else {
         // Fallback for legacy bookings without TV installations
@@ -1060,21 +1062,21 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
 
   // Job completion mutation (updated to include photos)
   const completeJobMutation = useMutation({
-    mutationFn: async (completionPhotos?: string[]) => {
+    mutationFn: async (beforeAfterPhotos?: any[]) => {
       if (!verificationData) throw new Error('No verification data available');
       
       const response = await apiRequest('POST', '/api/installer/complete-installation', {
         qrCode: verificationData.booking.qrCode,
         installerId,
         jobAssignmentId: verificationData.jobAssignmentId,
-        completionPhotos: completionPhotos || []
+        beforeAfterPhotos: beforeAfterPhotos || []
       });
       return response;
     },
     onSuccess: (data) => {
       setCompletionSuccess('Installation completed successfully! Payment will be handled directly with the customer.');
       setVerificationData(null);
-      setShowPhotoCapture(false);
+      setShowBeforeAfterCapture(false);
       setCurrentBooking(null);
       setScanError('');
       refetchCompletedJobs(); // Refresh completed jobs list
@@ -1100,16 +1102,16 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     verifyQRMutation.mutate(qrCode);
   };
 
-  const handleCompleteJob = (completionPhotos?: string[]) => {
-    completeJobMutation.mutate(completionPhotos);
+  const handleCompleteJob = (beforeAfterPhotos?: any[]) => {
+    completeJobMutation.mutate(beforeAfterPhotos);
   };
   
-  const handlePhotosCompleted = (photos: string[]) => {
+  const handleBeforeAfterPhotosCompleted = (photos: any[]) => {
     handleCompleteJob(photos);
   };
   
-  const handleCancelPhotoCapture = () => {
-    setShowPhotoCapture(false);
+  const handleCancelBeforeAfterCapture = () => {
+    setShowBeforeAfterCapture(false);
     setVerificationData(null);
     setCurrentBooking(null);
     setScanError('');
@@ -1135,12 +1137,12 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   return (
     <div className="space-y-6">
       {/* Conditional rendering: Photo Capture or QR Scanner */}
-      {showPhotoCapture && currentBooking ? (
-        <CompletionPhotoCapture
+      {showBeforeAfterCapture && currentBooking ? (
+        <BeforeAfterPhotoCapture
           bookingId={currentBooking.id}
           tvCount={Array.isArray(currentBooking.tvInstallations) ? currentBooking.tvInstallations.length : 1}
-          onPhotosCompleted={handlePhotosCompleted}
-          onCancel={handleCancelPhotoCapture}
+          onPhotosCompleted={handleBeforeAfterPhotosCompleted}
+          onCancel={handleCancelBeforeAfterCapture}
         />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

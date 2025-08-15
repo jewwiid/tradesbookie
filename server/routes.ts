@@ -10462,6 +10462,74 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Performance refund settings API (for star-based credit refunds)
+  app.get('/api/admin/performance-refund-settings', isAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getPerformanceRefundSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching performance refund settings:', error);
+      res.status(500).json({ error: 'Failed to fetch performance refund settings' });
+    }
+  });
+
+  app.post('/api/admin/performance-refund-settings', isAdmin, async (req, res) => {
+    try {
+      const { starLevel, refundPercentage, description, isActive } = req.body;
+      
+      if (!starLevel || refundPercentage === undefined) {
+        return res.status(400).json({ error: 'Star level and refund percentage are required' });
+      }
+      
+      const setting = await storage.createPerformanceRefundSetting({
+        starLevel,
+        refundPercentage,
+        description,
+        isActive: isActive !== false
+      });
+      
+      res.json(setting);
+    } catch (error) {
+      console.error('Error creating performance refund setting:', error);
+      res.status(500).json({ error: 'Failed to create performance refund setting' });
+    }
+  });
+
+  app.put('/api/admin/performance-refund-settings/:id', isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { starLevel, refundPercentage, description, isActive } = req.body;
+      
+      const setting = await storage.updatePerformanceRefundSetting(parseInt(id), {
+        starLevel,
+        refundPercentage,
+        description,
+        isActive
+      });
+      
+      res.json(setting);
+    } catch (error) {
+      console.error('Error updating performance refund setting:', error);
+      res.status(500).json({ error: 'Failed to update performance refund setting' });
+    }
+  });
+
+  app.delete('/api/admin/performance-refund-settings/:id', isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deletePerformanceRefundSetting(parseInt(id));
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Performance refund setting not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting performance refund setting:', error);
+      res.status(500).json({ error: 'Failed to delete performance refund setting' });
+    }
+  });
+
   // First lead vouchers API
   app.get('/api/admin/first-lead-vouchers', isAdmin, async (req, res) => {
     try {
@@ -10657,10 +10725,36 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
   
-  // Mark installation as complete via QR verification
+  // Upload before and after photos for star rating system
+  app.post('/api/installer/upload-before-after-photos', async (req, res) => {
+    try {
+      const { bookingId, photos } = req.body;
+      
+      if (!bookingId || !photos || !Array.isArray(photos)) {
+        return res.status(400).json({ error: 'Booking ID and photos array are required' });
+      }
+      
+      // Update the booking with before/after photos
+      await storage.updateBooking(bookingId, {
+        beforeAfterPhotos: photos
+      });
+      
+      res.json({ 
+        success: true, 
+        message: 'Before and after photos uploaded successfully',
+        photoCount: photos.length
+      });
+      
+    } catch (error: any) {
+      console.error('Error uploading before/after photos:', error);
+      res.status(500).json({ error: error.message || 'Failed to upload photos' });
+    }
+  });
+
+  // Mark installation as complete via QR verification with star calculation
   app.post('/api/installer/complete-installation', async (req, res) => {
     try {
-      const { qrCode, installerId, jobAssignmentId, completionPhotos } = req.body;
+      const { qrCode, installerId, jobAssignmentId, beforeAfterPhotos } = req.body;
       
       if (!qrCode || !installerId || !jobAssignmentId) {
         return res.status(400).json({ error: 'QR code, installer ID, and job assignment ID are required' });
@@ -10689,18 +10783,40 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const tvInstallations = Array.isArray(booking.tvInstallations) ? booking.tvInstallations : [];
       const tvCount = tvInstallations.length || 1; // Default to 1 for legacy bookings
       
-      // Validate completion photos are provided
-      if (!completionPhotos || !Array.isArray(completionPhotos) || completionPhotos.length !== tvCount) {
+      // Validate before/after photos are provided
+      if (!beforeAfterPhotos || !Array.isArray(beforeAfterPhotos) || beforeAfterPhotos.length !== tvCount) {
         return res.status(400).json({ 
-          error: `Completion photos required: ${tvCount} photos needed for ${tvCount} TV installation(s)`,
-          requiredPhotos: tvCount,
-          providedPhotos: completionPhotos ? completionPhotos.length : 0
+          error: `Before and after photos required: ${tvCount} photo sets needed for ${tvCount} TV installation(s)`,
+          requiredPhotoSets: tvCount,
+          providedPhotoSets: beforeAfterPhotos ? beforeAfterPhotos.length : 0
         });
       }
       
-      // Update booking with completion photos
-      await storage.updateBooking(booking.id, {
-        completionPhotos: completionPhotos
+      // Validate each TV has both before and after photos
+      const incompletePhotos = beforeAfterPhotos.filter(tvPhoto => !tvPhoto.beforePhoto || !tvPhoto.afterPhoto);
+      if (incompletePhotos.length > 0) {
+        return res.status(400).json({ 
+          error: `Incomplete photo sets: ${incompletePhotos.length} TV installations missing before or after photos`,
+          requiredPhotos: 'Each TV needs both before and after photos'
+        });
+      }
+      
+      // Calculate photo completion rate and stars
+      const photoCompletionRate = 100; // All photos completed if we reach this point
+      const photoStars = 3; // Maximum photo stars for complete before/after photos
+      
+      // Total stars will be updated when customer leaves a review (up to 5 total)
+      // Photo stars (0-3) + Review stars (0-2) = Total stars (0-5)
+      const totalStars = photoStars; // Will be updated to include review stars later
+      
+      // Update booking with before/after photos, completion status, and star ratings
+      await storage.updateBooking(booking.id, { 
+        beforeAfterPhotos,
+        photoCompletionRate,
+        photoStars,
+        qualityStars: totalStars,
+        starCalculatedAt: new Date(),
+        eligibleForRefund: true // Eligible for performance-based refund with 3+ stars
       });
       
       // Mark job as completed
@@ -10733,7 +10849,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         message: 'Installation marked as complete successfully',
         bookingId: booking.id,
         completedAt: new Date(),
-        photoCount: completionPhotos.length
+        photoCount: beforeAfterPhotos.length,
+        photoStars: photoStars,
+        totalStars: totalStars
       });
     } catch (error) {
       console.error('Error completing installation:', error);

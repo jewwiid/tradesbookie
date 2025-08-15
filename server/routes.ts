@@ -7472,13 +7472,68 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.status(401).json({ message: "User not authenticated" });
       }
 
+      const { bookingId, installerId, rating, title, comment, qrCode } = req.body;
+      
+      // Validate required fields
+      if (!bookingId || !installerId || !rating || !title || !comment) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      // Verify booking exists and belongs to user
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      if (booking.status !== 'completed') {
+        return res.status(400).json({ message: "Can only review completed installations" });
+      }
+      
+      // Check if user has already reviewed this booking
+      const existingReviews = await storage.getUserReviews(userId);
+      const hasReviewed = existingReviews.some(review => review.bookingId === bookingId);
+      
+      if (hasReviewed) {
+        return res.status(400).json({ message: "You have already reviewed this installation" });
+      }
+
+      // Create the review
       const reviewData = {
-        ...req.body,
-        userId
+        userId,
+        installerId,
+        bookingId,
+        rating: parseInt(rating),
+        title: title.trim(),
+        comment: comment.trim()
       };
 
       const review = await storage.createReview(reviewData);
-      res.json(review);
+      
+      // Calculate review stars (2 stars max from customer review)
+      // 5-star review = 2 review stars, 4-star = 1.5, 3-star = 1, 2-star = 0.5, 1-star = 0
+      const reviewStars = Math.max(0, Math.min(2, (rating - 1) * 0.5));
+      
+      // Get current photo stars and calculate total quality stars  
+      const photoStars = booking.photoStars || 0;
+      const totalQualityStars = photoStars + reviewStars;
+      
+      // Update booking with review stars and total quality stars
+      await storage.updateBooking(bookingId, {
+        reviewStars: Math.round(reviewStars * 10) / 10, // Round to 1 decimal place
+        qualityStars: Math.round(totalQualityStars * 10) / 10,
+        starCalculatedAt: new Date(),
+        eligibleForRefund: totalQualityStars >= 3 // Minimum 3 stars needed for refund eligibility
+      });
+      
+      console.log(`Review submitted for booking ${bookingId}: ${rating} stars -> ${reviewStars} review stars, ${totalQualityStars} total quality stars`);
+      
+      res.json({ 
+        success: true, 
+        review,
+        reviewStars,
+        totalQualityStars,
+        message: `Review submitted! Added ${reviewStars} review stars. Total quality: ${totalQualityStars}/5 stars.`
+      });
     } catch (error) {
       console.error("Error creating review:", error);
       res.status(500).json({ message: "Failed to create review" });
@@ -7493,6 +7548,41 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Error fetching installer reviews:", error);
       res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  // Get detailed installer review stats for mini-profile
+  app.get("/api/installer/:installerId/reviews", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      
+      // Get all reviews for this installer
+      const reviews = await storage.getInstallerReviews(installerId);
+      
+      // Calculate review statistics
+      const totalReviews = reviews.length;
+      const averageRating = totalReviews > 0 
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+        : 0;
+      
+      // Calculate rating distribution
+      const ratingDistribution = [5, 4, 3, 2, 1].map(rating => ({
+        rating,
+        count: reviews.filter(r => r.rating === rating).length,
+        percentage: totalReviews > 0 ? (reviews.filter(r => r.rating === rating).length / totalReviews) * 100 : 0
+      }));
+      
+      const reviewStats = {
+        averageRating: Math.round(averageRating * 10) / 10,
+        totalReviews,
+        ratingDistribution,
+        recentReviews: reviews.slice(0, 10) // Show 10 most recent reviews
+      };
+      
+      res.json(reviewStats);
+    } catch (error) {
+      console.error("Error fetching installer review stats:", error);
+      res.status(500).json({ message: "Failed to fetch review stats" });
     }
   });
 

@@ -122,6 +122,7 @@ export interface IStorage {
   createReview(review: InsertReview): Promise<Review>;
   getInstallerReviews(installerId: number): Promise<Review[]>;
   getUserReviews(userId: string): Promise<Review[]>;
+  getAllReviews(): Promise<Review[]>;
   getInstallerRating(installerId: number): Promise<{ averageRating: number; totalReviews: number }>;
 
   // Solar enquiry operations
@@ -2837,6 +2838,48 @@ export class DatabaseStorage implements IStorage {
       .delete(performanceRefundSettings)
       .where(eq(performanceRefundSettings.id, id));
     return result.rowCount > 0;
+  }
+
+  // Review operations
+  async createReview(review: InsertReview): Promise<Review> {
+    const [newReview] = await db
+      .insert(reviews)
+      .values(review)
+      .returning();
+    return newReview;
+  }
+
+  async getInstallerReviews(installerId: number): Promise<Review[]> {
+    return await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.installerId, installerId))
+      .orderBy(desc(reviews.createdAt));
+  }
+
+  async getUserReviews(userId: string): Promise<Review[]> {
+    return await db
+      .select()
+      .from(reviews)
+      .where(eq(reviews.userId, userId))
+      .orderBy(desc(reviews.createdAt));
+  }
+
+  async getAllReviews(): Promise<Review[]> {
+    return await db
+      .select()
+      .from(reviews)
+      .orderBy(desc(reviews.createdAt));
+  }
+
+  async getInstallerRating(installerId: number): Promise<{ averageRating: number; totalReviews: number }> {
+    const installerReviews = await this.getInstallerReviews(installerId);
+    const totalReviews = installerReviews.length;
+    const averageRating = totalReviews > 0 
+      ? installerReviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+      : 0;
+    
+    return { averageRating, totalReviews };
   }
 }
 

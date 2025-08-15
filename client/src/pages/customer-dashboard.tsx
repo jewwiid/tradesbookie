@@ -12,6 +12,8 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
+import ReviewInterface from '@/components/customer/ReviewInterface';
+import InstallerMiniProfile from '@/components/installer/InstallerMiniProfile';
 
 interface User {
   id: number;
@@ -55,7 +57,12 @@ interface Booking {
     averageRating: number;
     totalReviews: number;
     serviceArea: string;
+    isVip?: boolean;
   };
+  // Star system fields
+  qualityStars?: number;
+  photoStars?: number;
+  reviewStars?: number;
 }
 
 interface InterestedInstaller {
@@ -1197,8 +1204,9 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
   };
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
-      <CardContent className="pt-6">
+    <div>
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardContent className="pt-6">
         <div className="flex items-start justify-between mb-4">
           <div>
             <h3 className="font-semibold text-lg text-gray-900">
@@ -1361,5 +1369,17 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
         </div>
       </CardContent>
     </Card>
+    
+    {/* Review Interface for Completed Bookings */}
+    {booking.status === 'completed' && booking.installer && (
+      <ReviewInterface 
+        booking={booking}
+        onReviewSubmitted={() => {
+          // Refresh bookings to show updated stars
+          queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
+        }}
+      />
+    )}
+  </div>
   );
 }

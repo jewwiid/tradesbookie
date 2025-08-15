@@ -12463,6 +12463,29 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const offset = (page - 1) * limit;
+      const serviceType = req.query.serviceType as string;
+
+      // Build where conditions based on filters
+      const whereConditions = [
+        eq(bookings.status, 'completed'),
+        isNotNull(bookings.beforeAfterPhotos),
+        gt(bookings.reviewStars, 0) // Only jobs with customer reviews
+      ];
+
+      // Add service type filter if provided
+      if (serviceType && serviceType !== 'all') {
+        // Map frontend service types to backend values
+        const serviceTypeMapping: { [key: string]: string } = {
+          'tv-installation': 'TV Installation',
+          'smart-home': 'Smart Home Setup',
+          'general-install': 'General Installation'
+        };
+        
+        const mappedServiceType = serviceTypeMapping[serviceType];
+        if (mappedServiceType) {
+          whereConditions.push(eq(bookings.serviceType, mappedServiceType));
+        }
+      }
 
       // Get completed bookings with both before/after photos AND reviews
       const completedJobs = await db
@@ -12480,11 +12503,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           createdAt: bookings.createdAt
         })
         .from(bookings)
-        .where(and(
-          eq(bookings.status, 'completed'),
-          isNotNull(bookings.beforeAfterPhotos),
-          gt(bookings.reviewStars, 0) // Only jobs with customer reviews
-        ))
+        .where(and(...whereConditions))
         .orderBy(desc(bookings.updatedAt))
         .limit(limit)
         .offset(offset);

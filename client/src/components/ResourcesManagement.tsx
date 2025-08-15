@@ -188,7 +188,6 @@ export default function ResourcesManagement() {
       return await response.json();
     },
     onSuccess: (data: any) => {
-      console.log("AI Content Generation Response:", data);
       
       // Check if the response has the expected structure
       if (!data) {
@@ -354,10 +353,21 @@ export default function ResourcesManagement() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prepare data with proper date conversion and type handling
+    const submissionData = {
+      ...formData,
+      expiryDate: formData.expiryDate && formData.expiryDate.trim() !== '' ? new Date(formData.expiryDate) : null,
+      // Ensure empty strings are converted to null for optional fields
+      brand: formData.brand || null,
+      companyName: formData.companyName || null,
+      externalUrl: formData.externalUrl || null,
+      imageUrl: formData.imageUrl || null
+    };
+    
     if (editingResource) {
-      updateResourceMutation.mutate({ id: editingResource.id, data: formData });
+      updateResourceMutation.mutate({ id: editingResource.id, data: submissionData });
     } else {
-      createResourceMutation.mutate(formData);
+      createResourceMutation.mutate(submissionData);
     }
   };
 

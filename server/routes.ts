@@ -5481,6 +5481,171 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile completion for temporary invoice accounts
+  app.post('/api/auth/complete-invoice-profile', async (req, res) => {
+    try {
+      const { invoiceNumber, email, firstName, lastName, phone } = req.body;
+      
+      if (!invoiceNumber || !email || !firstName || !lastName) {
+        return res.status(400).json({ error: "Invoice number, email, first and last name are required" });
+      }
+
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      
+      // Find the temporary user by invoice number
+      const user = await storage.getUserByRetailerInvoice(invoiceNumber);
+      if (!user) {
+        return res.status(404).json({ error: "Temporary account not found for this invoice number" });
+      }
+
+      // Check if email is already in use by another account
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser && existingUser.id !== user.id) {
+        return res.status(400).json({ error: "Email is already registered to another account" });
+      }
+
+      // Update the temporary account with real customer details
+      const updatedUser = await storage.updateUserProfile(user.id, {
+        email: email.trim().toLowerCase(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone?.trim() || null,
+        profileCompleted: true,
+        emailVerified: false // Will need to verify the new email
+      });
+
+      // Send verification email for the new email address
+      try {
+        const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
+        const verificationToken = await generateVerificationToken();
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        
+        await storage.updateUser(user.id, {
+          emailVerificationToken: verificationToken,
+          emailVerificationExpires: expiresAt
+        });
+        
+        await sendVerificationEmail(email, firstName, verificationToken);
+        console.log(`✅ Verification email sent to completed profile: ${email}`);
+      } catch (emailError) {
+        console.error('❌ Error sending verification email:', emailError);
+        // Continue even if email fails
+      }
+
+      // Also create the retailer invoice record if it doesn't exist
+      const parsedInvoice = retailerDetectionService.detectRetailerFromInvoice(invoiceNumber);
+      if (parsedInvoice) {
+        try {
+          await storage.createRetailerInvoice({
+            invoiceNumber,
+            customerEmail: email,
+            customerName: `${firstName} ${lastName}`,
+            customerPhone: phone || null,
+            purchaseDate: new Date(),
+            storeName: parsedInvoice.storeCode ? parsedInvoice.retailerInfo.storeLocations?.[parsedInvoice.storeCode] : null,
+            storeCode: parsedInvoice.storeCode,
+            retailerCode: parsedInvoice.retailerCode,
+            isUsedForRegistration: true
+          });
+        } catch (invoiceError) {
+          console.error('Warning: Could not create retailer invoice record:', invoiceError);
+          // Don't fail the request if invoice creation fails
+        }
+      }
+
+      res.json({
+        success: true,
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          firstName: updatedUser.firstName,
+          lastName: updatedUser.lastName,
+          phone: updatedUser.phone,
+          role: updatedUser.role,
+          profileCompleted: true
+        },
+        message: "Profile completed successfully! Please check your email to verify your address."
+      });
+    } catch (error) {
+      console.error("Profile completion error:", error);
+      res.status(500).json({ error: "Unable to complete profile at this time" });
+    }
+  });
+
+  // Invoice + Email login for customers who completed their profile
+  app.post('/api/auth/invoice-email-login', async (req, res) => {
+    try {
+      const { invoiceNumber, email } = req.body;
+      
+      if (!invoiceNumber || !email) {
+        return res.status(400).json({ error: "Invoice number and email are required" });
+      }
+
+      // Find user by both invoice number and email
+      const user = await storage.getUserByRetailerInvoiceAndEmail(invoiceNumber, email.toLowerCase());
+      if (!user) {
+        return res.status(401).json({ 
+          error: "Invalid invoice number and email combination. Please check your details or complete your profile setup first." 
+        });
+      }
+
+      // Ensure the account has been completed
+      if (!user.profileCompleted) {
+        return res.status(400).json({ 
+          error: "Please complete your profile setup first using the invoice number." 
+        });
+      }
+
+      // Login the user
+      req.logout((logoutErr) => {
+        if (logoutErr) {
+          console.error('Logout error during invoice-email login:', logoutErr);
+        }
+        
+        req.session.regenerate((regenerateErr) => {
+          if (regenerateErr) {
+            console.error('Session regeneration error:', regenerateErr);
+            return res.status(500).json({ error: 'Failed to establish session' });
+          }
+          
+          req.login(user, (err) => {
+            if (err) {
+              console.error('Session login error:', err);
+              return res.status(500).json({ error: 'Failed to establish session' });
+            }
+            
+            // Set session data
+            (req.session as any).userId = user.id;
+            (req.session as any).isAuthenticated = true;
+            (req.session as any).authMethod = 'invoice-email';
+            (req.session as any).invoiceNumber = invoiceNumber;
+            
+            console.log(`Invoice-email login successful for ${invoiceNumber} / ${email}: User ${user.id}`);
+            
+            res.json({
+              success: true,
+              user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phone: user.phone,
+                role: user.role,
+                profileCompleted: user.profileCompleted,
+                emailVerified: user.emailVerified
+              },
+              message: "Welcome back! You've been logged in using your invoice and email.",
+              invoiceNumber: invoiceNumber
+            });
+          });
+        });
+      });
+    } catch (error) {
+      console.error("Invoice-email login error:", error);
+      res.status(500).json({ error: "Unable to process login at this time" });
+    }
+  });
+
   // Profile Update API - allows users to update their profile information
   app.put('/api/auth/profile', requireAuth, async (req, res) => {
     try {

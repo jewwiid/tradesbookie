@@ -366,31 +366,46 @@ export class RetailerDetectionService {
       let isNewInvoice = false;
 
       if (invoiceData.length === 0) {
-        // SECURITY: Invoice doesn't exist in our verified database
-        // This could be either:
-        // 1. A legitimate new customer with a real invoice (needs manual verification)
-        // 2. Someone trying to create a fake invoice (security risk)
+        // NEW FEATURE: Allow creating temporary account for new invoices
+        // Customer can login later using invoice number + email as password
+        console.log(`ℹ️ New invoice detected: ${invoiceNumber} - creating temporary account`);
         
-        console.log(`⚠️ Unknown invoice attempted: ${invoiceNumber} - requiring verification`);
-        
-        return {
-          success: false,
-          message: `This ${parsedInvoice.retailerInfo.name} invoice (${invoiceNumber}) is not in our system. For security, new invoices must be verified. Please contact support at support@tradesbook.ie with your invoice details, or use an invoice from a previous verified purchase.`,
-          requiresVerification: true,
+        isNewInvoice = true;
+        // Create a temporary placeholder invoice entry
+        invoice = {
+          id: 0, // Temporary - will be created during profile completion
           invoiceNumber: invoiceNumber,
-          retailerInfo: parsedInvoice.retailerInfo,
-          showStoreSignup: true
-        }
+          customerEmail: '', // Will be collected during profile completion
+          customerName: '', // Will be collected during profile completion
+          customerPhone: null,
+          purchaseDate: new Date(),
+          tvModel: null,
+          tvSize: null,
+          purchaseAmount: null,
+          storeName: parsedInvoice.storeCode ? parsedInvoice.retailerInfo.storeLocations?.[parsedInvoice.storeCode] : null,
+          storeCode: parsedInvoice.storeCode,
+          retailerCode: parsedInvoice.retailerCode,
+          isUsedForRegistration: false,
+          createdAt: new Date()
+        };
       } else {
         invoice = invoiceData[0];
       }
 
       // Check if user already exists with this email (skip for new placeholder invoices)
       let existingUser = [];
-      if (!isNewInvoice) {
+      if (!isNewInvoice && invoice.customerEmail) {
         existingUser = await db.select()
           .from(users)
           .where(eq(users.email, invoice.customerEmail))
+          .limit(1);
+      }
+      
+      // For new invoices, also check if a temporary user already exists for this invoice
+      if (isNewInvoice) {
+        existingUser = await db.select()
+          .from(users)
+          .where(eq(users.retailerInvoiceNumber, invoiceNumber))
           .limit(1);
       }
 
@@ -411,15 +426,14 @@ export class RetailerDetectionService {
             .where(eq(users.id, user.id));
         }
       } else {
-        // Create new user from invoice data with proper integer ID
+        // Create new user from invoice data
         let customerEmail, firstName, lastName;
         
         if (isNewInvoice) {
-          // For new invoices, we need to collect customer info
-          // Use a temporary email that will be updated during profile completion
-          customerEmail = `new.customer.${invoiceNumber.toLowerCase().replace('-', '.')}@temp.registration`;
-          firstName = 'New';
-          lastName = 'Customer';
+          // For new invoices, create temporary user that needs profile completion
+          customerEmail = `temp.${invoiceNumber.toLowerCase().replace(/[^a-z0-9]/g, '.')}@tradesbook.temp`;
+          firstName = 'Customer';
+          lastName = `[${invoiceNumber}]`;
         } else {
           // Use existing invoice data
           const nameParts = invoice.customerName.split(' ');
@@ -437,7 +451,7 @@ export class RetailerDetectionService {
           registrationMethod: 'invoice',
           retailerInvoiceNumber: invoiceNumber,
           invoiceVerified: !isNewInvoice, // New invoices need completion
-          emailVerified: false, // Always require email verification
+          emailVerified: !isNewInvoice, // New invoices need email setup
           profileCompleted: !isNewInvoice // New invoices need profile completion
         };
 
@@ -474,16 +488,18 @@ export class RetailerDetectionService {
         }
       }
 
-      // Mark invoice as used for registration
-      await db.update(retailerInvoices)
-        .set({ isUsedForRegistration: true })
-        .where(eq(retailerInvoices.id, invoice.id));
+      // Mark invoice as used for registration (skip for temporary new invoices)
+      if (!isNewInvoice && invoice.id) {
+        await db.update(retailerInvoices)
+          .set({ isUsedForRegistration: true })
+          .where(eq(retailerInvoices.id, invoice.id));
+      }
 
       let welcomeMessage;
       let needsProfileCompletion = false;
 
       if (isNewRegistration && isNewInvoice) {
-        welcomeMessage = `Welcome to tradesbook.ie! We've recognized your ${parsedInvoice.retailerInfo.name} invoice ${invoiceNumber}. Please complete your profile with your contact details to proceed.`;
+        welcomeMessage = `Welcome to tradesbook.ie! We've recognized your ${parsedInvoice.retailerInfo.name} invoice ${invoiceNumber}. You can now create bookings and login later using this invoice number and your email address. Please complete your profile to get started.`;
         needsProfileCompletion = true;
       } else if (isNewRegistration) {
         welcomeMessage = `Welcome to tradesbook.ie! We've created your account using your ${parsedInvoice.retailerInfo.name} purchase. Please verify your email address to complete your registration and allow installers to see your booking requests.`;
@@ -502,7 +518,8 @@ export class RetailerDetectionService {
           role: user.role,
           registrationMethod: user.registrationMethod,
           emailVerified: user.emailVerified,
-          profileCompleted: user.profileCompleted || false
+          profileCompleted: user.profileCompleted || false,
+          isTemporaryAccount: isNewInvoice // Flag to indicate this needs profile completion
         },
         message: welcomeMessage,
         retailerInfo: parsedInvoice.retailerInfo,

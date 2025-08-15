@@ -7,7 +7,7 @@ import {
   platformSettings, performanceRefundSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
   consultations, downloadableGuides, videoTutorials, productCategories,
   qrCodeScans, aiProductRecommendations, choiceFlowTracking,
-  onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics,
+  onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics, retailerInvoices,
   installerServiceAssignments,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
@@ -388,6 +388,21 @@ export interface IStorage {
   completeChoiceFlow(id: number, timeSpentMinutes: number): Promise<void>;
   markChoiceFlowExit(id: number, exitStep: number, exitReason: string): Promise<void>;
   getCategoryFlowStats(categoryId: number, days?: number): Promise<{ totalFlows: number; completionRate: number; avgTimeSpent: number; dropOffByStep: Record<number, number> }>;
+  
+  // Invoice-based user operations
+  getUserByRetailerInvoice(invoiceNumber: string): Promise<User | undefined>;
+  getUserByRetailerInvoiceAndEmail(invoiceNumber: string, email: string): Promise<User | undefined>;
+  createRetailerInvoice(invoiceData: {
+    invoiceNumber: string;
+    customerEmail: string;
+    customerName: string;
+    customerPhone?: string | null;
+    purchaseDate: Date;
+    storeName?: string | null;
+    storeCode?: string | null;
+    retailerCode?: string | null;
+    isUsedForRegistration?: boolean;
+  }): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2880,6 +2895,53 @@ export class DatabaseStorage implements IStorage {
       : 0;
     
     return { averageRating, totalReviews };
+  }
+
+  // Invoice-based user operations
+  async getUserByRetailerInvoice(invoiceNumber: string): Promise<User | undefined> {
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.retailerInvoiceNumber, invoiceNumber))
+      .limit(1);
+    return user;
+  }
+
+  async getUserByRetailerInvoiceAndEmail(invoiceNumber: string, email: string): Promise<User | undefined> {
+    const [user] = await db.select()
+      .from(users)
+      .where(
+        and(
+          eq(users.retailerInvoiceNumber, invoiceNumber),
+          eq(users.email, email.toLowerCase())
+        )
+      )
+      .limit(1);
+    return user;
+  }
+
+  async createRetailerInvoice(invoiceData: {
+    invoiceNumber: string;
+    customerEmail: string;
+    customerName: string;
+    customerPhone?: string | null;
+    purchaseDate: Date;
+    storeName?: string | null;
+    storeCode?: string | null;
+    retailerCode?: string | null;
+    isUsedForRegistration?: boolean;
+  }): Promise<any> {
+    const [newInvoice] = await db.insert(retailerInvoices).values({
+      invoiceNumber: invoiceData.invoiceNumber,
+      customerEmail: invoiceData.customerEmail,
+      customerName: invoiceData.customerName,
+      customerPhone: invoiceData.customerPhone,
+      purchaseDate: invoiceData.purchaseDate,
+      storeName: invoiceData.storeName,
+      storeCode: invoiceData.storeCode,
+      retailerCode: invoiceData.retailerCode,
+      isUsedForRegistration: invoiceData.isUsedForRegistration || false
+    }).returning();
+    return newInvoice;
   }
 }
 

@@ -165,15 +165,10 @@ export default function InstallerLogin() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto">
           
-          {/* Left Column - Empty for now */}
-          <div className="lg:col-span-4 space-y-6">
-            {/* Left column content can be added here if needed */}
-          </div>
-
-          {/* Center Column - Login Form */}
-          <div className="lg:col-span-4">
+          {/* Left Column - Login Form */}
+          <div className="space-y-6">
             <Card className="shadow-lg">
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-2xl">Sign In to Your Account</CardTitle>
@@ -290,8 +285,8 @@ export default function InstallerLogin() {
             </Card>
           </div>
 
-          {/* Right Column - Registration & Demo */}
-          <div className="lg:col-span-4 space-y-6">
+          {/* Right Column - Registration & Info */}
+          <div className="space-y-6">
             {/* Registration */}
             <Card className="bg-green-50 border-green-200">
               <CardContent className="p-6">

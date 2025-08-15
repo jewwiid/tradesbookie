@@ -693,12 +693,12 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
           <div className="flex gap-2">
             <Button
               size="sm"
-              variant="outline"
+              variant="default"
               onClick={() => setShowDetails(true)}
-              className="flex-1 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-300"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Eye className="w-4 h-4 mr-1" />
-              Details
+              View Full Details
             </Button>
             <Button
               size="sm"

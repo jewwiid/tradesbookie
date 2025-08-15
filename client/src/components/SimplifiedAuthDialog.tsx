@@ -38,6 +38,10 @@ export default function SimplifiedAuthDialog({
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   
+  // Invoice flow states
+  const [invoiceStep, setInvoiceStep] = useState<'initial' | 'profile-completion' | 'email-login'>('initial');
+  const [currentInvoiceInfo, setCurrentInvoiceInfo] = useState<any>(null);
+  
   // Email/Password authentication states
   const [emailAuthMode, setEmailAuthMode] = useState<'login' | 'register'>('login');
   const [emailAuthEmail, setEmailAuthEmail] = useState('');
@@ -54,8 +58,8 @@ export default function SimplifiedAuthDialog({
     setActiveTab(defaultTab);
   }, [defaultTab]);
 
-  // Invoice Login
-  const invoiceLoginMutation = useMutation({
+  // Initial Invoice Check
+  const invoiceCheckMutation = useMutation({
     mutationFn: async (data: { invoiceNumber: string }) => {
       const response = await apiRequest('POST', '/api/auth/invoice-login', data);
       if (!response.ok) {
@@ -65,39 +69,89 @@ export default function SimplifiedAuthDialog({
       return response.json();
     },
     onSuccess: (data) => {
-      toast({
-        title: data.isNewRegistration ? "Account Created!" : "Welcome back!",
-        description: data.isNewRegistration 
-          ? `Your account has been created using invoice ${data.invoiceNumber}. You can now book your TV installation.`
-          : `Signed in using invoice ${data.invoiceNumber}. Any bookings you make will be tracked to this invoice.`,
-      });
-      
-      // Check if profile needs completion after invoice login
-      const needsProfileCompletion = !data.user.firstName || !data.user.lastName || !data.user.phone;
-      
-      if (needsProfileCompletion && data.isNewRegistration) {
-        // New users from invoice should complete their profile
+      if (data.user?.isTemporaryAccount) {
+        // New invoice - show profile completion form
+        setCurrentInvoiceInfo(data);
+        setInvoiceStep('profile-completion');
         toast({
-          title: "Complete Your Profile",
-          description: "Please add your contact details to finish setting up your account.",
-          variant: "default",
+          title: "New Invoice Detected!",
+          description: data.message,
         });
-        
+      } else if (data.user?.profileCompleted) {
+        // Existing completed account - login successful
+        toast({
+          title: "Welcome back!",
+          description: `Signed in using invoice ${data.invoiceNumber}.`,
+        });
         onSuccess(data.user);
         onClose();
-        
-        // Navigate to profile setup after a short delay
-        setTimeout(() => {
-          window.location.href = '/customer-profile-setup';
-        }, 1000);
       } else {
-        onSuccess(data.user);
-        onClose();
+        // Existing account but profile not completed - show email login
+        setCurrentInvoiceInfo(data);
+        setInvoiceStep('email-login');
+        toast({
+          title: "Profile Setup Required",
+          description: "Please enter your email to continue with your account.",
+        });
       }
     },
     onError: (error: Error) => {
       toast({
         title: "Invoice Login Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Profile Completion for New Invoices
+  const profileCompletionMutation = useMutation({
+    mutationFn: async (data: { invoiceNumber: string; email: string; firstName: string; lastName: string; phone?: string }) => {
+      const response = await apiRequest('POST', '/api/auth/complete-invoice-profile', data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Profile completion failed');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Profile Completed!",
+        description: data.message,
+      });
+      onSuccess(data.user);
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Profile Completion Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Invoice + Email Login for Existing Users
+  const invoiceEmailLoginMutation = useMutation({
+    mutationFn: async (data: { invoiceNumber: string; email: string }) => {
+      const response = await apiRequest('POST', '/api/auth/invoice-email-login', data);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Login failed');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Welcome back!",
+        description: data.message,
+      });
+      onSuccess(data.user);
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Login Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -131,7 +185,7 @@ export default function SimplifiedAuthDialog({
     }
   });
 
-  const handleInvoiceLogin = () => {
+  const handleInvoiceCheck = () => {
     if (!invoiceNumber.trim()) {
       toast({
         title: "Invoice Number Required",
@@ -140,7 +194,49 @@ export default function SimplifiedAuthDialog({
       });
       return;
     }
-    invoiceLoginMutation.mutate({ invoiceNumber: invoiceNumber.trim() });
+    invoiceCheckMutation.mutate({ invoiceNumber: invoiceNumber.trim() });
+  };
+
+  const handleProfileCompletion = () => {
+    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
+      toast({
+        title: "Required Information Missing",
+        description: "Please fill in your name and email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    profileCompletionMutation.mutate({
+      invoiceNumber: invoiceNumber.trim(),
+      email: email.trim(),
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      phone: phone.trim() || undefined
+    });
+  };
+
+  const handleInvoiceEmailLogin = () => {
+    if (!email.trim()) {
+      toast({
+        title: "Email Required",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    invoiceEmailLoginMutation.mutate({
+      invoiceNumber: invoiceNumber.trim(),
+      email: email.trim()
+    });
+  };
+
+  const resetInvoiceFlow = () => {
+    setInvoiceStep('initial');
+    setCurrentInvoiceInfo(null);
+    setEmail('');
+    setFirstName('');
+    setLastName('');
+    setPhone('');
   };
 
   const handleGuestBooking = () => {
@@ -293,40 +389,164 @@ export default function SimplifiedAuthDialog({
               <CardHeader className="pb-3">
                 <div className="flex items-center space-x-2">
                   <Receipt className="w-5 h-5 text-green-600" />
-                  <CardTitle className="text-lg">Invoice Customer</CardTitle>
+                  <CardTitle className="text-lg">
+                    {invoiceStep === 'initial' && 'Invoice Customer'}
+                    {invoiceStep === 'profile-completion' && 'Complete Your Profile'}
+                    {invoiceStep === 'email-login' && 'Enter Your Email'}
+                  </CardTitle>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Already purchased a TV? Use your receipt to book installation instantly
+                  {invoiceStep === 'initial' && 'Already purchased a TV? Use your receipt to book installation instantly'}
+                  {invoiceStep === 'profile-completion' && 'Please provide your contact details to complete your account setup'}
+                  {invoiceStep === 'email-login' && 'Enter the email address associated with your account'}
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="invoice">Invoice Number</Label>
-                  <Input
-                    id="invoice"
-                    placeholder="e.g. HN-GAL-009876, CR-DUB-123456, or RT-BLA-555666"
-                    value={invoiceNumber}
-                    onChange={(e) => setInvoiceNumber(e.target.value)}
-                    className="mt-1"
-                  />
-                  <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs text-gray-600">
-                    <p className="font-medium mb-1 text-blue-800">Supported Retailers & Format Examples:</p>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <p>• <span className="font-semibold">Harvey Norman:</span> HN-GAL-009876</p>
-                      <p>• <span className="font-semibold">Currys:</span> CR-DUB-123456</p>
-                      <p>• <span className="font-semibold">RTV:</span> RT-BLA-555666</p>
-                      <p>• <span className="font-semibold">DID Electrical:</span> DD-COR-789012</p>
+                {invoiceStep === 'initial' && (
+                  <>
+                    <div>
+                      <Label htmlFor="invoice">Invoice Number</Label>
+                      <Input
+                        id="invoice"
+                        placeholder="e.g. HN-GAL-009876, CR-DUB-123456, or RT-BLA-555666"
+                        value={invoiceNumber}
+                        onChange={(e) => setInvoiceNumber(e.target.value)}
+                        className="mt-1"
+                      />
+                      <div className="mt-2 p-3 bg-blue-50 rounded-lg text-xs text-gray-600">
+                        <p className="font-medium mb-1 text-blue-800">Supported Retailers & Format Examples:</p>
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          <p>• <span className="font-semibold">Harvey Norman:</span> HN-GAL-009876</p>
+                          <p>• <span className="font-semibold">Currys:</span> CR-DUB-123456</p>
+                          <p>• <span className="font-semibold">RTV:</span> RT-BLA-555666</p>
+                          <p>• <span className="font-semibold">DID Electrical:</span> DD-COR-789012</p>
+                        </div>
+                        <p className="text-xs">Find your invoice number on your receipt or order confirmation email</p>
+                      </div>
                     </div>
-                    <p className="text-xs">Find your invoice number on your receipt or order confirmation email</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={handleInvoiceLogin}
-                  disabled={invoiceLoginMutation.isPending}
-                  className="w-full gradient-bg"
-                >
-                  {invoiceLoginMutation.isPending ? 'Booking...' : 'Book with Invoice Number'}
-                </Button>
+                    <Button 
+                      onClick={handleInvoiceCheck}
+                      disabled={invoiceCheckMutation.isPending}
+                      className="w-full gradient-bg"
+                    >
+                      {invoiceCheckMutation.isPending ? 'Checking...' : 'Continue with Invoice'}
+                    </Button>
+                  </>
+                )}
+
+                {invoiceStep === 'profile-completion' && (
+                  <>
+                    <div className="mb-4 p-3 bg-green-50 rounded-lg text-sm">
+                      <p className="font-medium text-green-800">Invoice: {invoiceNumber}</p>
+                      <p className="text-green-600 text-xs mt-1">Your {currentInvoiceInfo?.retailerInfo?.name} purchase has been verified!</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="profile-firstName">First Name *</Label>
+                        <Input
+                          id="profile-firstName"
+                          placeholder="John"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="profile-lastName">Last Name *</Label>
+                        <Input
+                          id="profile-lastName"
+                          placeholder="Smith"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="profile-email">Email Address *</Label>
+                      <Input
+                        id="profile-email"
+                        type="email"
+                        placeholder="john@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="profile-phone">Phone Number</Label>
+                      <Input
+                        id="profile-phone"
+                        type="tel"
+                        placeholder="+353 1 234 5678"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={resetInvoiceFlow}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        onClick={handleProfileCompletion}
+                        disabled={profileCompletionMutation.isPending}
+                        className="flex-1 gradient-bg"
+                      >
+                        {profileCompletionMutation.isPending ? 'Creating Account...' : 'Complete Profile'}
+                      </Button>
+                    </div>
+                  </>
+                )}
+
+                {invoiceStep === 'email-login' && (
+                  <>
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm">
+                      <p className="font-medium text-blue-800">Invoice: {invoiceNumber}</p>
+                      <p className="text-blue-600 text-xs mt-1">Please enter your email to sign in</p>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="login-email">Email Address</Label>
+                      <Input
+                        id="login-email"
+                        type="email"
+                        placeholder="john@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1"
+                      />
+                      <p className="text-xs text-gray-600 mt-1">
+                        Use the email address you provided when completing your profile
+                      </p>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={resetInvoiceFlow}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        onClick={handleInvoiceEmailLogin}
+                        disabled={invoiceEmailLoginMutation.isPending}
+                        className="flex-1 gradient-bg"
+                      >
+                        {invoiceEmailLoginMutation.isPending ? 'Signing In...' : 'Sign In'}
+                      </Button>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

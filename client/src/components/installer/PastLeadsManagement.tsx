@@ -19,7 +19,11 @@ import {
   Calendar,
   DollarSign,
   AlertCircle,
-  Hammer
+  Hammer,
+  Eye,
+  Tv,
+  Image,
+  FileText
 } from "lucide-react";
 
 interface PastLead {
@@ -40,6 +44,19 @@ interface PastLead {
   completedDate?: Date;
   customerNotes?: string;
   createdAt: string;
+  // Additional fields for complete booking details
+  needsWallMount?: boolean;
+  difficulty?: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  roomPhotoUrl?: string;
+  aiPreviewUrl?: string;
+  // Multi-TV support
+  tvInstallations?: any[];
+  tvQuantity?: number;
+  estimatedTotal?: string;
+  referralCode?: string;
+  referralDiscount?: string;
 }
 
 interface PurchasedLeadsManagementProps {
@@ -68,6 +85,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   const [selectedLead, setSelectedLead] = useState<PastLead | null>(null);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [newStatus, setNewStatus] = useState('');
   const [updateMessage, setUpdateMessage] = useState('');
   const [recentlyUpdatedLeads, setRecentlyUpdatedLeads] = useState<Set<number>>(new Set());
@@ -156,6 +174,11 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   const openScheduleDialog = (lead: PastLead) => {
     setSelectedLead(lead);
     setShowScheduleDialog(true);
+  };
+
+  const openDetailsDialog = (lead: PastLead) => {
+    setSelectedLead(lead);
+    setShowDetailsDialog(true);
   };
 
   if (isLoading) {
@@ -274,6 +297,15 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                     )}
                     
                     <div className="pt-2 border-t space-y-2">
+                      <Button
+                        onClick={() => openDetailsDialog(lead)}
+                        variant="default"
+                        size="sm"
+                        className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 mb-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View Complete Details
+                      </Button>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           onClick={() => openUpdateDialog(lead)}
@@ -402,6 +434,267 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
               customerName={selectedLead.customerName}
               isInstaller={true}
             />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Complete Booking Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full" aria-describedby="complete-booking-details">
+          <DialogHeader>
+            <DialogTitle className="text-lg sm:text-xl">Complete Booking Details</DialogTitle>
+            <DialogDescription id="complete-booking-details" className="text-sm sm:text-base">
+              Comprehensive information about this purchased installation
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedLead && (
+            <div className="space-y-4 sm:space-y-6">
+              {/* Customer Information */}
+              <div className="border rounded-lg p-3 sm:p-4">
+                <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
+                  <User className="w-5 h-5 text-green-600" />
+                  Customer Information
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Customer Name</label>
+                    <p className="text-sm sm:text-base break-words font-medium">{selectedLead.customerName}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Contact Phone</label>
+                    <p className="text-sm sm:text-base break-words">
+                      <a href={`tel:${selectedLead.customerPhone}`} className="text-blue-600 hover:underline">
+                        {selectedLead.customerPhone}
+                      </a>
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Email Address</label>
+                    <p className="text-sm sm:text-base break-words">
+                      <a href={`mailto:${selectedLead.customerEmail}`} className="text-blue-600 hover:underline">
+                        {selectedLead.customerEmail}
+                      </a>
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Installation Address</label>
+                    <p className="text-sm sm:text-base break-words">{selectedLead.address}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Details */}
+              <div className="border rounded-lg p-3 sm:p-4">
+                <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
+                  <Tv className="w-5 h-5 text-blue-600" />
+                  Service Specifications
+                </h3>
+                
+                {selectedLead.tvQuantity && selectedLead.tvQuantity > 1 && selectedLead.tvInstallations ? (
+                  /* Multi-TV Installation Details */
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Tv className="w-5 h-5 text-primary" />
+                      <span className="font-semibold text-base">Multiple TV Installation ({selectedLead.tvQuantity} TVs)</span>
+                    </div>
+                    
+                    {selectedLead.tvInstallations.map((tv: any, index: number) => (
+                      <div key={index} className="p-3 bg-gray-50 rounded-lg border-l-4 border-primary">
+                        <h4 className="font-medium text-sm mb-2">TV {index + 1} ({tv.location || `TV ${index + 1}`})</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+                          <div>
+                            <span className="font-medium text-gray-600">Size:</span> {tv.tvSize}"
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Service:</span> {tv.serviceType}
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Wall:</span> {tv.wallType}
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Mount:</span> {tv.mountType}
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-600">Wall Mount:</span> {tv.needsWallMount ? 'Required' : 'Not needed'}
+                          </div>
+                          {tv.basePrice && (
+                            <div>
+                              <span className="font-medium text-gray-600">Price:</span> €{tv.basePrice}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <div className="pt-2 border-t">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-xs sm:text-sm font-medium text-gray-600">Installation Difficulty</label>
+                          <p className="text-sm sm:text-base capitalize">{selectedLead.difficulty || 'Standard'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Single TV Installation Details */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">TV Size</label>
+                      <p className="text-sm sm:text-base font-bold">{selectedLead.tvSize}" Television</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Service Type</label>
+                      <p className="text-sm sm:text-base capitalize break-words">{selectedLead.serviceType?.replace('-', ' ') || 'Standard Installation'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Type</label>
+                      <p className="text-sm sm:text-base capitalize">{selectedLead.wallType}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Mount Type</label>
+                      <p className="text-sm sm:text-base capitalize">{selectedLead.mountType}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Mount Required</label>
+                      <p className="text-sm sm:text-base">{selectedLead.needsWallMount ? 'Yes' : 'No'}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Installation Difficulty</label>
+                      <p className="text-sm sm:text-base capitalize">{selectedLead.difficulty || 'Standard'}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Addons */}
+                {selectedLead.addons && selectedLead.addons.length > 0 && (
+                  <div className="mt-4 pt-3 border-t">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Add-on Services</label>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {selectedLead.addons.map((addon: string, index: number) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {addon}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Scheduling Information */}
+              <div className="border rounded-lg p-3 sm:p-4">
+                <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                  Scheduling Details
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Preferred Date</label>
+                    <p className="text-sm sm:text-base">
+                      {selectedLead.preferredDate 
+                        ? new Date(selectedLead.preferredDate).toLocaleDateString()
+                        : 'No preference specified'
+                      }
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Preferred Time</label>
+                    <p className="text-sm sm:text-base">{selectedLead.preferredTime || 'Any time'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Current Status</label>
+                    <Badge className={statusColors[selectedLead.status as keyof typeof statusColors]}>
+                      {statusLabels[selectedLead.status as keyof typeof statusLabels]}
+                    </Badge>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Lead Purchased</label>
+                    <p className="text-sm sm:text-base">{new Date(selectedLead.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Photos Section */}
+              {(selectedLead.roomPhotoUrl || selectedLead.aiPreviewUrl) && (
+                <div className="border rounded-lg p-3 sm:p-4">
+                  <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
+                    <Image className="w-5 h-5 text-indigo-600" />
+                    Room Photos & Preview
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {selectedLead.roomPhotoUrl && (
+                      <div className="space-y-2">
+                        <label className="text-xs sm:text-sm font-medium text-gray-600">Customer's Room Photo</label>
+                        <img 
+                          src={selectedLead.roomPhotoUrl} 
+                          alt="Customer's room photo" 
+                          className="w-full h-48 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+                    {selectedLead.aiPreviewUrl && (
+                      <div className="space-y-2">
+                        <label className="text-xs sm:text-sm font-medium text-gray-600">AI Installation Preview</label>
+                        <img 
+                          src={selectedLead.aiPreviewUrl} 
+                          alt="AI installation preview" 
+                          className="w-full h-48 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Pricing Information */}
+              <div className="border rounded-lg p-3 sm:p-4">
+                <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                  Pricing Details
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Estimated Price</label>
+                    <p className="text-sm sm:text-base font-semibold text-green-600">€{selectedLead.estimatedPrice}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Lead Fee (Your Cost)</label>
+                    <p className="text-sm sm:text-base font-medium text-blue-600">€{selectedLead.leadFee}</p>
+                  </div>
+                  {selectedLead.estimatedTotal && (
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Total Project Value</label>
+                      <p className="text-sm sm:text-base font-semibold">€{selectedLead.estimatedTotal}</p>
+                    </div>
+                  )}
+                  {selectedLead.referralCode && (
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Referral Code</label>
+                      <p className="text-sm sm:text-base">{selectedLead.referralCode}</p>
+                    </div>
+                  )}
+                  {selectedLead.referralDiscount && (
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Customer Discount</label>
+                      <p className="text-sm sm:text-base text-green-600">-€{selectedLead.referralDiscount}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Customer Notes */}
+              {selectedLead.customerNotes && (
+                <div className="border rounded-lg p-3 sm:p-4">
+                  <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-orange-600" />
+                    Customer Notes
+                  </h3>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-sm sm:text-base text-gray-700">{selectedLead.customerNotes}</p>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </DialogContent>
       </Dialog>

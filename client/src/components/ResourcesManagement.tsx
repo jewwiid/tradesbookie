@@ -356,13 +356,18 @@ export default function ResourcesManagement() {
     // Prepare data with proper date conversion and type handling
     const submissionData = {
       ...formData,
-      expiryDate: formData.expiryDate && formData.expiryDate.trim() !== '' ? new Date(formData.expiryDate) : null,
       // Ensure empty strings are converted to null for optional fields
       brand: formData.brand || null,
       companyName: formData.companyName || null,
       externalUrl: formData.externalUrl || null,
       imageUrl: formData.imageUrl || null
     };
+
+    // Only include expiryDate if it has a valid value
+    if (formData.expiryDate && formData.expiryDate.trim() !== '') {
+      submissionData.expiryDate = new Date(formData.expiryDate);
+    }
+    // Otherwise, don't include the field at all (undefined is better than null for optional fields)
     
     if (editingResource) {
       updateResourceMutation.mutate({ id: editingResource.id, data: submissionData });

@@ -448,7 +448,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
             </DialogDescription>
           </DialogHeader>
           
-          {selectedLead && (
+          {selectedLead && selectedLead.customerName && selectedLead.address ? (
             <div className="space-y-4 sm:space-y-6">
               {/* Customer Information */}
               <div className="border rounded-lg p-3 sm:p-4">
@@ -491,7 +491,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                   Service Specifications
                 </h3>
                 
-                {selectedLead.tvQuantity && selectedLead.tvQuantity > 1 && selectedLead.tvInstallations ? (
+                {selectedLead.tvQuantity && selectedLead.tvQuantity > 1 && selectedLead.tvInstallations && Array.isArray(selectedLead.tvInstallations) ? (
                   /* Multi-TV Installation Details */
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-4">
@@ -499,26 +499,26 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                       <span className="font-semibold text-base">Multiple TV Installation ({selectedLead.tvQuantity} TVs)</span>
                     </div>
                     
-                    {selectedLead.tvInstallations.map((tv: any, index: number) => (
+                    {(selectedLead.tvInstallations || []).map((tv: any, index: number) => (
                       <div key={index} className="p-3 bg-gray-50 rounded-lg border-l-4 border-primary">
-                        <h4 className="font-medium text-sm mb-2">TV {index + 1} ({tv.location || `TV ${index + 1}`})</h4>
+                        <h4 className="font-medium text-sm mb-2">TV {index + 1} ({tv?.location || `TV ${index + 1}`})</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
                           <div>
-                            <span className="font-medium text-gray-600">Size:</span> {tv.tvSize}"
+                            <span className="font-medium text-gray-600">Size:</span> {tv?.tvSize || 'Not specified'}"
                           </div>
                           <div>
-                            <span className="font-medium text-gray-600">Service:</span> {tv.serviceType}
+                            <span className="font-medium text-gray-600">Service:</span> {tv?.serviceType || 'Standard'}
                           </div>
                           <div>
-                            <span className="font-medium text-gray-600">Wall:</span> {tv.wallType}
+                            <span className="font-medium text-gray-600">Wall:</span> {tv?.wallType || 'Not specified'}
                           </div>
                           <div>
-                            <span className="font-medium text-gray-600">Mount:</span> {tv.mountType}
+                            <span className="font-medium text-gray-600">Mount:</span> {tv?.mountType || 'Not specified'}
                           </div>
                           <div>
-                            <span className="font-medium text-gray-600">Wall Mount:</span> {tv.needsWallMount ? 'Required' : 'Not needed'}
+                            <span className="font-medium text-gray-600">Wall Mount:</span> {tv?.needsWallMount ? 'Required' : 'Not needed'}
                           </div>
-                          {tv.basePrice && (
+                          {tv?.basePrice && (
                             <div>
                               <span className="font-medium text-gray-600">Price:</span> €{tv.basePrice}
                             </div>
@@ -708,6 +708,23 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                   </div>
                 </div>
               )}
+            </div>
+          ) : selectedLead ? (
+            <div className="text-center p-8">
+              <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Incomplete Lead Data</h3>
+              <p className="text-gray-600 mb-4">
+                This lead appears to have incomplete information. Please try refreshing the page or contact support if the issue persists.
+              </p>
+              <Button onClick={() => setShowDetailsDialog(false)} variant="outline">
+                Close
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center p-8">
+              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Lead Selected</h3>
+              <p className="text-gray-600">Unable to display lead details.</p>
             </div>
           )}
         </DialogContent>

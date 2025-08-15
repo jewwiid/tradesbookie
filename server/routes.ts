@@ -9672,7 +9672,32 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Create new resource (admin only)
   app.post("/api/admin/resources", isAdmin, async (req, res) => {
     try {
-      const resourceData = insertResourceSchema.parse(req.body);
+      // Preprocess the request body to handle date fields
+      const processedBody = { ...req.body };
+      
+      // Handle expiryDate conversion
+      if (processedBody.expiryDate) {
+        if (typeof processedBody.expiryDate === 'string') {
+          if (processedBody.expiryDate.trim() === '') {
+            // Empty string should be null
+            processedBody.expiryDate = null;
+          } else {
+            // Convert valid date string to Date object
+            const dateValue = new Date(processedBody.expiryDate);
+            if (isNaN(dateValue.getTime())) {
+              // Invalid date
+              processedBody.expiryDate = null;
+            } else {
+              processedBody.expiryDate = dateValue;
+            }
+          }
+        }
+      } else {
+        // Ensure null for missing or falsy values
+        processedBody.expiryDate = null;
+      }
+      
+      const resourceData = insertResourceSchema.parse(processedBody);
       
       // Add admin user information
       const user = req.user as any;
@@ -9698,7 +9723,33 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.put("/api/admin/resources/:id", isAdmin, async (req, res) => {
     try {
       const resourceId = parseInt(req.params.id);
-      const updateData = insertResourceSchema.partial().parse(req.body);
+      
+      // Preprocess the request body to handle date fields
+      const processedBody = { ...req.body };
+      
+      // Handle expiryDate conversion
+      if (processedBody.expiryDate) {
+        if (typeof processedBody.expiryDate === 'string') {
+          if (processedBody.expiryDate.trim() === '') {
+            // Empty string should be null
+            processedBody.expiryDate = null;
+          } else {
+            // Convert valid date string to Date object
+            const dateValue = new Date(processedBody.expiryDate);
+            if (isNaN(dateValue.getTime())) {
+              // Invalid date
+              processedBody.expiryDate = null;
+            } else {
+              processedBody.expiryDate = dateValue;
+            }
+          }
+        }
+      } else {
+        // Ensure null for missing or falsy values
+        processedBody.expiryDate = null;
+      }
+      
+      const updateData = insertResourceSchema.partial().parse(processedBody);
       
       // Add admin user information
       const user = req.user as any;

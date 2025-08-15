@@ -353,7 +353,7 @@ export default function ResourcesManagement() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Prepare data with proper date conversion and type handling
+    // Prepare data - backend now handles date conversion properly
     const submissionData = {
       ...formData,
       // Ensure empty strings are converted to null for optional fields
@@ -361,13 +361,8 @@ export default function ResourcesManagement() {
       companyName: formData.companyName || null,
       externalUrl: formData.externalUrl || null,
       imageUrl: formData.imageUrl || null
+      // expiryDate is sent as-is (string), backend will convert to Date or null
     };
-
-    // Only include expiryDate if it has a valid value
-    if (formData.expiryDate && formData.expiryDate.trim() !== '') {
-      submissionData.expiryDate = new Date(formData.expiryDate);
-    }
-    // Otherwise, don't include the field at all (undefined is better than null for optional fields)
     
     if (editingResource) {
       updateResourceMutation.mutate({ id: editingResource.id, data: submissionData });

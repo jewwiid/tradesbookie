@@ -1,0 +1,96 @@
+Error creating resource: ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "date",
+    "received": "string",
+    "path": [
+      "expiryDate"
+    ],
+    "message": "Expected date, received string"
+  }
+]
+    at get error [as error] (file:///home/runner/workspace/node_modules/zod/lib/index.mjs:587:31)
+    at ZodObject.parse (file:///home/runner/workspace/node_modules/zod/lib/index.mjs:663:22)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:9675:49)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at isAdmin (/home/runner/workspace/server/routes.ts:6216:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  issues: [
+    {
+      code: 'invalid_type',
+      expected: 'date',
+      received: 'string',
+      path: [Array],
+      message: 'Expected date, received string'
+    }
+  ],
+  addIssue: [Function (anonymous)],
+  addIssues: [Function (anonymous)],
+  errors: [
+    {
+      code: 'invalid_type',
+      expected: 'date',
+      received: 'string',
+      path: [Array],
+      message: 'Expected date, received string'
+    }
+  ]
+}
+4:26:59 PM [express] POST /api/admin/resources 400 in 888ms :: {"message":"Invalid resource data","e…
+Deserializing user ID: 107198246226937517255
+Deserialized user: {
+  id: '107198246226937517255',
+  email: 'jude.okun@gmail.com',
+  role: 'admin'
+}
+Admin check - Session ID: gHu54NRwRoc8roW3lwGY_mqT4K_7Ku0Q
+Admin check - Session passport: { user: '107198246226937517255' }
+Admin check - Session user ID: 107198246226937517255
+Admin check - User from DB: {
+  id: '107198246226937517255',
+  email: 'jude.okun@gmail.com',
+  role: 'admin'
+}
+Admin check - isAdminUser result: true
+Admin check passed - proceeding
+Error creating resource: ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "date",
+    "received": "string",
+    "path": [
+      "expiryDate"
+    ],
+    "message": "Expected date, received string"
+  }
+]
+    at get error [as error] (file:///home/runner/workspace/node_modules/zod/lib/index.mjs:587:31)
+    at ZodObject.parse (file:///home/runner/workspace/node_modules/zod/lib/index.mjs:663:22)
+    at <anonymous> (/home/runner/workspace/server/routes.ts:9675:49)
+    at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+    at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+    at isAdmin (/home/runner/workspace/server/routes.ts:6216:7)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  issues: [
+    {
+      code: 'invalid_type',
+      expected: 'date',
+      received: 'string',
+      path: [Array],
+      message: 'Expected date, received string'
+    }
+  ],
+  addIssue: [Function (anonymous)],
+  addIssues: [Function (anonymous)],
+  errors: [
+    {
+      code: 'invalid_type',
+      expected: 'date',
+      received: 'string',
+      path: [Array],
+      message: 'Expected date, received string'
+    }
+  ]
+}
+4:27:27 PM [express] POST /api/admin/resources 400 in 874ms :: {"message":"Invalid resource data","e…

@@ -541,7 +541,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">TV Size</label>
-                      <p className="text-sm sm:text-base font-bold">{selectedLead.tvSize}" Television</p>
+                      <p className="text-sm sm:text-base font-bold">{selectedLead.tvSize || 'Not specified'}" Television</p>
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">Service Type</label>
@@ -549,11 +549,11 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Type</label>
-                      <p className="text-sm sm:text-base capitalize">{selectedLead.wallType}</p>
+                      <p className="text-sm sm:text-base capitalize">{selectedLead.wallType || 'Not specified'}</p>
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">Mount Type</label>
-                      <p className="text-sm sm:text-base capitalize">{selectedLead.mountType}</p>
+                      <p className="text-sm sm:text-base capitalize">{selectedLead.mountType || 'Not specified'}</p>
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">Wall Mount Required</label>
@@ -567,13 +567,13 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                 )}
 
                 {/* Addons */}
-                {selectedLead.addons && selectedLead.addons.length > 0 && (
+                {selectedLead.addons && Array.isArray(selectedLead.addons) && selectedLead.addons.length > 0 && (
                   <div className="mt-4 pt-3 border-t">
                     <label className="text-xs sm:text-sm font-medium text-gray-600">Add-on Services</label>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {selectedLead.addons.map((addon: string, index: number) => (
                         <Badge key={index} variant="secondary" className="text-xs">
-                          {addon}
+                          {addon || 'Unknown addon'}
                         </Badge>
                       ))}
                     </div>
@@ -592,7 +592,13 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                     <label className="text-xs sm:text-sm font-medium text-gray-600">Preferred Date</label>
                     <p className="text-sm sm:text-base">
                       {selectedLead.preferredDate 
-                        ? new Date(selectedLead.preferredDate).toLocaleDateString()
+                        ? (() => {
+                            try {
+                              return new Date(selectedLead.preferredDate).toLocaleDateString();
+                            } catch {
+                              return 'Invalid date';
+                            }
+                          })()
                         : 'No preference specified'
                       }
                     </p>
@@ -609,7 +615,15 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs sm:text-sm font-medium text-gray-600">Lead Purchased</label>
-                    <p className="text-sm sm:text-base">{new Date(selectedLead.createdAt).toLocaleDateString()}</p>
+                    <p className="text-sm sm:text-base">
+                      {(() => {
+                        try {
+                          return selectedLead.createdAt ? new Date(selectedLead.createdAt).toLocaleDateString() : 'Unknown date';
+                        } catch {
+                          return 'Invalid date';
+                        }
+                      })()}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -655,11 +669,11 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   <div className="space-y-1">
                     <label className="text-xs sm:text-sm font-medium text-gray-600">Estimated Price</label>
-                    <p className="text-sm sm:text-base font-semibold text-green-600">€{selectedLead.estimatedPrice}</p>
+                    <p className="text-sm sm:text-base font-semibold text-green-600">€{selectedLead.estimatedPrice || '0'}</p>
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs sm:text-sm font-medium text-gray-600">Lead Fee (Your Cost)</label>
-                    <p className="text-sm sm:text-base font-medium text-blue-600">€{selectedLead.leadFee}</p>
+                    <p className="text-sm sm:text-base font-medium text-blue-600">€{selectedLead.leadFee || '0'}</p>
                   </div>
                   {selectedLead.estimatedTotal && (
                     <div className="space-y-1">

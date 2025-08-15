@@ -181,31 +181,45 @@ export default function ResourcesManagement() {
 
   // AI Content Generation mutation
   const generateAIContentMutation = useMutation({
-    mutationFn: (input: string) => {
-      if (aiInputMethod === 'url') {
-        return apiRequest("POST", "/api/admin/resources/generate-content", { url: input });
-      } else {
-        return apiRequest("POST", "/api/admin/resources/generate-content", { markdown: input });
-      }
+    mutationFn: async (input: string) => {
+      const response = await apiRequest("POST", "/api/admin/resources/generate-content", 
+        aiInputMethod === 'url' ? { url: input } : { markdown: input }
+      );
+      return await response.json();
     },
     onSuccess: (data: any) => {
+      console.log("AI Content Generation Response:", data);
+      
       // Check if the response has the expected structure
-      if (!data || !data.data) {
+      if (!data) {
         toast({ 
           title: "Error processing response", 
-          description: "Invalid response format from AI service",
+          description: "No response from AI service",
           variant: "destructive" 
         });
         return;
       }
 
-      const generatedContent = data.data;
+      // Handle different response formats - the API might return data directly or wrapped
+      let generatedContent = data.data || data;
       
       // Validate that the generated content has the required fields
       if (!generatedContent || typeof generatedContent !== 'object') {
+        console.error("Invalid content format:", generatedContent);
         toast({ 
           title: "Error processing content", 
           description: "AI service returned invalid content format",
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      // Check if we have at least a title to proceed
+      if (!generatedContent.title && !generatedContent.description && !generatedContent.content) {
+        console.error("Missing essential content fields:", generatedContent);
+        toast({ 
+          title: "Incomplete content", 
+          description: "AI service didn't generate sufficient content",
           variant: "destructive" 
         });
         return;

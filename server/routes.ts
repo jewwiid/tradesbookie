@@ -10579,6 +10579,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Upload completion photos for installed TVs
+  app.post('/api/installer/upload-completion-photos', upload.array('photos'), async (req, res) => {
+    try {
+      const { bookingId, photos } = req.body;
+      
+      if (!bookingId || !photos || !Array.isArray(photos)) {
+        return res.status(400).json({ error: 'Booking ID and photos array are required' });
+      }
+      
+      // Update booking with completion photos
+      await storage.updateBooking(parseInt(bookingId), {
+        completionPhotos: photos
+      });
+      
+      res.json({ success: true, photoCount: photos.length });
+    } catch (error) {
+      console.error('Error uploading completion photos:', error);
+      res.status(500).json({ error: 'Failed to upload completion photos' });
+    }
+  });
+
   // QR Code verification and job completion endpoints
   // Verify QR code belongs to installer's assigned job
   app.post('/api/installer/verify-qr-code', async (req, res) => {
@@ -10639,7 +10660,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Mark installation as complete via QR verification
   app.post('/api/installer/complete-installation', async (req, res) => {
     try {
-      const { qrCode, installerId, jobAssignmentId } = req.body;
+      const { qrCode, installerId, jobAssignmentId, completionPhotos } = req.body;
       
       if (!qrCode || !installerId || !jobAssignmentId) {
         return res.status(400).json({ error: 'QR code, installer ID, and job assignment ID are required' });
@@ -10663,6 +10684,24 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (!installerAssignment) {
         return res.status(403).json({ error: 'Invalid job assignment' });
       }
+      
+      // Get TV count from booking to validate photos
+      const tvInstallations = Array.isArray(booking.tvInstallations) ? booking.tvInstallations : [];
+      const tvCount = tvInstallations.length || 1; // Default to 1 for legacy bookings
+      
+      // Validate completion photos are provided
+      if (!completionPhotos || !Array.isArray(completionPhotos) || completionPhotos.length !== tvCount) {
+        return res.status(400).json({ 
+          error: `Completion photos required: ${tvCount} photos needed for ${tvCount} TV installation(s)`,
+          requiredPhotos: tvCount,
+          providedPhotos: completionPhotos ? completionPhotos.length : 0
+        });
+      }
+      
+      // Update booking with completion photos
+      await storage.updateBooking(booking.id, {
+        completionPhotos: completionPhotos
+      });
       
       // Mark job as completed
       await storage.updateJobStatus(jobAssignmentId, 'completed');
@@ -10693,7 +10732,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         success: true, 
         message: 'Installation marked as complete successfully',
         bookingId: booking.id,
-        completedAt: new Date()
+        completedAt: new Date(),
+        photoCount: completionPhotos.length
       });
     } catch (error) {
       console.error('Error completing installation:', error);

@@ -22,6 +22,7 @@ import InstallerReviews from "@/components/installer/InstallerReviews";
 import VoucherStatus from "@/components/installer/VoucherStatus";
 import LeadPurchaseDialog from "@/components/installer/LeadPurchaseDialog";
 import QRScanner from "@/components/installer/QRScanner";
+import CompletionPhotoCapture from "@/components/installer/CompletionPhotoCapture";
 
 import { 
   Bolt, 
@@ -1002,6 +1003,8 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [scanError, setScanError] = useState('');
   const [completionSuccess, setCompletionSuccess] = useState('');
   const [verificationData, setVerificationData] = useState<any>(null);
+  const [showPhotoCapture, setShowPhotoCapture] = useState(false);
+  const [currentBooking, setCurrentBooking] = useState<any>(null);
   const { toast } = useToast();
 
   // Fetch completed jobs
@@ -1022,11 +1025,27 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     },
     onSuccess: (data) => {
       setVerificationData(data);
+      setCurrentBooking(data.booking);
       setScanError('');
-      toast({
-        title: "QR Code Verified!",
-        description: `Found booking for ${data.booking.customerName} at ${data.booking.address}`,
-      });
+      
+      // Get TV count to determine if photos are needed
+      const tvInstallations = Array.isArray(data.booking?.tvInstallations) ? data.booking.tvInstallations : [];
+      const tvCount = tvInstallations.length || 1; // Default to 1 for legacy bookings
+      
+      if (tvCount > 0) {
+        // Show photo capture workflow
+        setShowPhotoCapture(true);
+        toast({
+          title: "QR Code Verified!",
+          description: `Please capture ${tvCount} photo${tvCount > 1 ? 's' : ''} of the installed TV${tvCount > 1 ? 's' : ''} to complete the job.`,
+        });
+      } else {
+        // Fallback for legacy bookings without TV installations
+        toast({
+          title: "QR Code Verified!",
+          description: `Found booking for ${data.booking.customerName} at ${data.booking.address}`,
+        });
+      }
     },
     onError: (error: any) => {
       setScanError(error.message || 'Failed to verify QR code');
@@ -1039,26 +1058,29 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     }
   });
 
-  // Job completion mutation
+  // Job completion mutation (updated to include photos)
   const completeJobMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (completionPhotos?: string[]) => {
       if (!verificationData) throw new Error('No verification data available');
       
       const response = await apiRequest('POST', '/api/installer/complete-installation', {
         qrCode: verificationData.booking.qrCode,
         installerId,
-        jobAssignmentId: verificationData.jobAssignmentId
+        jobAssignmentId: verificationData.jobAssignmentId,
+        completionPhotos: completionPhotos || []
       });
       return response;
     },
     onSuccess: (data) => {
       setCompletionSuccess('Installation completed successfully! Payment will be handled directly with the customer.');
       setVerificationData(null);
+      setShowPhotoCapture(false);
+      setCurrentBooking(null);
       setScanError('');
       refetchCompletedJobs(); // Refresh completed jobs list
       toast({
         title: "Installation Completed!",
-        description: "Job marked as complete. Payment handled directly with customer.",
+        description: "Job marked as complete with photos. Payment handled directly with customer.",
       });
     },
     onError: (error: any) => {
@@ -1078,8 +1100,24 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     verifyQRMutation.mutate(qrCode);
   };
 
-  const handleCompleteJob = () => {
-    completeJobMutation.mutate();
+  const handleCompleteJob = (completionPhotos?: string[]) => {
+    completeJobMutation.mutate(completionPhotos);
+  };
+  
+  const handlePhotosCompleted = (photos: string[]) => {
+    handleCompleteJob(photos);
+  };
+  
+  const handleCancelPhotoCapture = () => {
+    setShowPhotoCapture(false);
+    setVerificationData(null);
+    setCurrentBooking(null);
+    setScanError('');
+    toast({
+      title: "Photo capture cancelled",
+      description: "Job completion cancelled. You can scan the QR code again to retry.",
+      variant: "destructive",
+    });
   };
 
   if (!installerId) {
@@ -1096,14 +1134,22 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
 
   return (
     <div className="space-y-6">
-      {/* QR Scanner Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div>
-          <QRScanner 
-            onScanSuccess={handleQRScan}
-            onError={(error) => setScanError(error)}
-            isLoading={verifyQRMutation.isPending || completeJobMutation.isPending}
-          />
+      {/* Conditional rendering: Photo Capture or QR Scanner */}
+      {showPhotoCapture && currentBooking ? (
+        <CompletionPhotoCapture
+          bookingId={currentBooking.id}
+          tvCount={Array.isArray(currentBooking.tvInstallations) ? currentBooking.tvInstallations.length : 1}
+          onPhotosCompleted={handlePhotosCompleted}
+          onCancel={handleCancelPhotoCapture}
+        />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <QRScanner 
+              onScanSuccess={handleQRScan}
+              onError={(error) => setScanError(error)}
+              isLoading={verifyQRMutation.isPending || completeJobMutation.isPending}
+            />
           
           {/* Success/Error Messages */}
           {completionSuccess && (
@@ -1181,8 +1227,9 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
               </CardContent>
             </Card>
           )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Completed Jobs List */}
       <Card>

@@ -177,7 +177,8 @@ export const bookings = pgTable("bookings", {
   roomPhotoUrl: text("room_photo_url"),
   roomPhotoCompressedUrl: text("room_photo_compressed_url"), // Optimized version for bandwidth efficiency
   aiPreviewUrl: text("ai_preview_url"),
-  completedPhotoUrl: text("completed_photo_url"),
+  completedPhotoUrl: text("completed_photo_url"), // Legacy single photo field
+  completionPhotos: jsonb("completion_photos").default([]), // Array of completion photos for multi-TV installations
   
   // Photo storage consent and analysis
   photoStorageConsent: boolean("photo_storage_consent").default(false),

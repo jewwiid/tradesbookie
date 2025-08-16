@@ -452,17 +452,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Simplified Authentication Section */}
-      <section className="py-16 bg-gradient-to-br from-emerald-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Book Faster Than Ever
-            </h2>
-            <p className="text-xl text-gray-600">
-              New flexible authentication options to reduce booking friction
-            </p>
-          </div>
+      {/* Simplified Authentication Section - only show when not authenticated */}
+      {!isAuthenticated && (
+        <section className="py-16 bg-gradient-to-br from-emerald-50 to-blue-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+                Book Faster Than Ever
+              </h2>
+              <p className="text-xl text-gray-600">
+                New flexible authentication options to reduce booking friction
+              </p>
+            </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
@@ -539,10 +540,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-
-
-
+      )}
 
       {/* AI Help Assistant CTA Section */}
       <section className="py-16 bg-gradient-to-br from-blue-50 to-indigo-100">

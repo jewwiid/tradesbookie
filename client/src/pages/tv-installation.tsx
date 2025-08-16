@@ -7,9 +7,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tv, Camera, Calendar, Bolt, CheckCircle, Star, Medal, Award, Crown, MapPin, Wrench, Shield, AlertTriangle, Home as HomeIcon, Clock, CreditCard } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 import Footer from "@/components/Footer";
 
 export default function TVInstallation() {
+  const { isAuthenticated } = useAuth();
+  
   // Fetch dynamic pricing from backend
   const { data: apiServiceTiers, isLoading } = useQuery({
     queryKey: ['/api/service-tiers'],
@@ -184,14 +187,16 @@ export default function TVInstallation() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-4 text-lg"
-                onClick={() => window.location.href = '/booking'}
-              >
-                <Calendar className="w-5 h-5 mr-2" />
-                Book Installation Now
-              </Button>
+              {!isAuthenticated && (
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-4 text-lg"
+                  onClick={() => window.location.href = '/booking'}
+                >
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Book Installation Now
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 size="lg" 
@@ -234,15 +239,17 @@ export default function TVInstallation() {
             ))}
           </div>
 
-          <div className="text-center mt-12">
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-4"
-              onClick={() => window.location.href = '/booking'}
-            >
-              Start Your Booking
-            </Button>
-          </div>
+          {!isAuthenticated && (
+            <div className="text-center mt-12">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-4"
+                onClick={() => window.location.href = '/booking'}
+              >
+                Start Your Booking
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -388,16 +395,18 @@ export default function TVInstallation() {
             </div>
           </div>
           
-          <div className="text-center mt-12">
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white px-8 py-4"
-              onClick={() => window.location.href = '/booking'}
-            >
-              <Bolt className="w-5 h-5 mr-2" />
-              Get Started Now
-            </Button>
-          </div>
+          {!isAuthenticated && (
+            <div className="text-center mt-12">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white px-8 py-4"
+                onClick={() => window.location.href = '/booking'}
+              >
+                <Bolt className="w-5 h-5 mr-2" />
+                Get Started Now
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -411,13 +420,15 @@ export default function TVInstallation() {
             Join thousands of satisfied customers who chose professional installation over DIY hassles.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-4 text-lg"
-              onClick={() => window.location.href = '/booking'}
-            >
-              Book Your Installation
-            </Button>
+            {!isAuthenticated && (
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white px-8 py-4 text-lg"
+                onClick={() => window.location.href = '/booking'}
+              >
+                Book Your Installation
+              </Button>
+            )}
             <Button 
               variant="outline" 
               size="lg" 

@@ -167,6 +167,7 @@ export default function CustomerDashboard() {
   // Referral states
   const [referralCode, setReferralCode] = useState('');
   const [referralEarnings, setReferralEarnings] = useState(0);
+  const [generatingCode, setGeneratingCode] = useState(false);
   
   // Support states
   const [supportMessage, setSupportMessage] = useState('');
@@ -202,6 +203,14 @@ export default function CustomerDashboard() {
     queryKey: ['/api/auth/user/tv-setup-bookings'],
     enabled: !!user,
   });
+
+  // Get user's referral code from database
+  const { data: userReferralCode, isLoading: referralLoading } = useQuery<{id: number, referralCode: string, totalReferrals: number, totalEarnings: string}>(
+    {
+      queryKey: ['/api/referral/generate', user?.id],
+      enabled: !!user?.id,
+    }
+  );
 
   const handleResendVerification = async () => {
     if (!verificationEmail) {
@@ -1111,22 +1120,57 @@ export default function CustomerDashboard() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <Input 
-                        value={`TB${user.id}-${user.id.toString().slice(-6).toUpperCase()}`}
-                        readOnly
-                        className="bg-gray-50"
-                      />
-                      <Button 
-                        size="sm"
-                        onClick={() => {
-                          navigator.clipboard.writeText(`TB${user.id}-${user.id.toString().slice(-6).toUpperCase()}`);
-                          toast({ title: "Copied!", description: "Referral code copied" });
-                        }}
-                      >
-                        Copy
-                      </Button>
-                    </div>
+                    {referralLoading ? (
+                      <div className="text-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                        <p className="text-sm text-gray-600">Loading referral code...</p>
+                      </div>
+                    ) : userReferralCode ? (
+                      <div className="flex items-center space-x-2">
+                        <Input 
+                          value={userReferralCode.referralCode}
+                          readOnly
+                          className="bg-gray-50 font-mono"
+                        />
+                        <Button 
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(userReferralCode.referralCode);
+                            toast({ title: "Copied!", description: "Referral code copied to clipboard" });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-gray-600 mb-4">You don't have a referral code yet.</p>
+                        <Button 
+                          onClick={async () => {
+                            setGeneratingCode(true);
+                            try {
+                              await apiRequest('POST', '/api/referral/generate');
+                              // Refetch the referral code
+                              queryClient.invalidateQueries({ queryKey: ['/api/referral/generate', user?.id] });
+                              toast({ title: "Success!", description: "Your referral code has been generated" });
+                            } catch (error) {
+                              toast({ title: "Error", description: "Failed to generate referral code", variant: "destructive" });
+                            } finally {
+                              setGeneratingCode(false);
+                            }
+                          }}
+                          disabled={generatingCode}
+                          className="bg-green-500 hover:bg-green-600"
+                        >
+                          {generatingCode ? (
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Gift className="w-4 h-4 mr-2" />
+                          )}
+                          Generate My Referral Code
+                        </Button>
+                      </div>
+                    )}
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                       <h4 className="font-medium text-green-800 mb-2">How it works:</h4>
                       <ul className="text-sm text-green-700 space-y-1">
@@ -1147,8 +1191,15 @@ export default function CustomerDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-center p-6 bg-blue-50 rounded-lg">
-                      <div className="text-3xl font-bold text-blue-600">€{referralEarnings.toFixed(2)}</div>
+                      <div className="text-3xl font-bold text-blue-600">
+                        €{userReferralCode ? parseFloat(userReferralCode.totalEarnings).toFixed(2) : '0.00'}
+                      </div>
                       <p className="text-blue-700">Total Earnings</p>
+                      {userReferralCode && (
+                        <p className="text-sm text-blue-600 mt-2">
+                          {userReferralCode.totalReferrals} successful referral{userReferralCode.totalReferrals !== 1 ? 's' : ''}
+                        </p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

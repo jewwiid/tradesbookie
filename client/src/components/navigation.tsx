@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import { useInstallerAuth } from '@/hooks/useInstallerAuth';
 import { Button } from '@/components/ui/button';
+import { queryClient } from '@/lib/queryClient';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -20,6 +21,19 @@ export default function Navigation({ isInstallerContext = false, installerProfil
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const { user, isAuthenticated } = useAuth();
   const { installerProfile: globalInstallerProfile, isInstallerAuthenticated } = useInstallerAuth();
+
+  // Effect to handle post-authentication state updates
+  useEffect(() => {
+    // Check if we just came back from OAuth (look for common OAuth callback params)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasOAuthCallback = urlParams.has('code') || urlParams.has('state') || window.location.pathname.includes('/callback');
+    
+    if (hasOAuthCallback) {
+      // Invalidate auth queries to force refetch after OAuth callback
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installers/profile'] });
+    }
+  }, []);
 
   const isHome = location === '/';
   

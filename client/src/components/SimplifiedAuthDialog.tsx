@@ -84,8 +84,12 @@ export default function SimplifiedAuthDialog({
           description: `Signed in using invoice ${data.invoiceNumber}.`,
         });
         queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-        onSuccess(data.user);
-        onClose();
+        queryClient.invalidateQueries({ queryKey: ['/api/installers/profile'] });
+        // Small delay to ensure queries invalidate before success callback
+        setTimeout(() => {
+          onSuccess(data.user);
+          onClose();
+        }, 100);
       } else {
         // Existing account but profile not completed - show email login
         setCurrentInvoiceInfo(data);
@@ -121,8 +125,12 @@ export default function SimplifiedAuthDialog({
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      onSuccess(data.user);
-      onClose();
+      queryClient.invalidateQueries({ queryKey: ['/api/installers/profile'] });
+      // Small delay to ensure queries invalidate before success callback
+      setTimeout(() => {
+        onSuccess(data.user);
+        onClose();
+      }, 100);
     },
     onError: (error: Error) => {
       toast({
@@ -149,8 +157,12 @@ export default function SimplifiedAuthDialog({
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      onSuccess(data.user);
-      onClose();
+      queryClient.invalidateQueries({ queryKey: ['/api/installers/profile'] });
+      // Small delay to ensure queries invalidate before success callback
+      setTimeout(() => {
+        onSuccess(data.user);
+        onClose();
+      }, 100);
     },
     onError: (error: Error) => {
       toast({
@@ -177,8 +189,12 @@ export default function SimplifiedAuthDialog({
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      onSuccess(data.user);
-      onClose();
+      queryClient.invalidateQueries({ queryKey: ['/api/installers/profile'] });
+      // Small delay to ensure queries invalidate before success callback
+      setTimeout(() => {
+        onSuccess(data.user);
+        onClose();
+      }, 100);
     },
     onError: (error: Error) => {
       toast({
@@ -292,8 +308,12 @@ export default function SimplifiedAuthDialog({
         });
         
         queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-        onSuccess(data.user);
-        onClose();
+        queryClient.invalidateQueries({ queryKey: ['/api/installers/profile'] });
+        // Small delay to ensure queries invalidate before success callback
+        setTimeout(() => {
+          onSuccess(data.user);
+          onClose();
+        }, 100);
       } else {
         throw new Error(data.error || 'Authentication failed');
       }

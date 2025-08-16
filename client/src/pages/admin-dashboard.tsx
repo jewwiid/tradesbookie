@@ -5308,8 +5308,10 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
 function EmailPreferencesManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedFilter, setSelectedFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUserFilter, setSelectedUserFilter] = useState('all');
+  const [selectedInstallerFilter, setSelectedInstallerFilter] = useState('all');
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [installerSearchQuery, setInstallerSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedInstallers, setSelectedInstallers] = useState<string[]>([]);
   const [bulkEmailSubject, setBulkEmailSubject] = useState('');
@@ -5317,6 +5319,7 @@ function EmailPreferencesManagement() {
   const [sendingBulkEmail, setSendingBulkEmail] = useState(false);
   const [showBulkEmailDialog, setShowBulkEmailDialog] = useState(false);
   const [emailType, setEmailType] = useState<'general' | 'booking' | 'marketing'>('general');
+  const [targetAudience, setTargetAudience] = useState<'users' | 'installers' | 'both'>('users');
 
   // Fetch users with their email preferences
   const { data: usersWithPreferences = [], isLoading: loadingUsers } = useQuery({
@@ -5396,13 +5399,13 @@ function EmailPreferencesManagement() {
 
   // Send bulk email mutation
   const sendBulkEmailMutation = useMutation({
-    mutationFn: async ({ recipientIds, subject, message, emailType }: { 
-      recipientIds: string[], subject: string, message: string, emailType: string 
+    mutationFn: async ({ recipientIds, subject, message, emailType, targetAudience }: { 
+      recipientIds: string[], subject: string, message: string, emailType: string, targetAudience: string
     }) => {
       const response = await apiRequest('POST', '/api/admin/send-bulk-email', {
-        recipientIds, subject, message, emailType
+        recipientIds, subject, message, emailType, targetAudience
       });
-      return response;
+      return response.json();
     },
     onSuccess: (data) => {
       toast({ 
@@ -5413,6 +5416,7 @@ function EmailPreferencesManagement() {
       setBulkEmailSubject('');
       setBulkEmailMessage('');
       setSelectedUsers([]);
+      setSelectedInstallers([]);
     },
     onError: (error: any) => {
       toast({
@@ -5425,14 +5429,14 @@ function EmailPreferencesManagement() {
 
   // Filter users based on selected criteria
   const filteredUsers = usersWithPreferences.filter((user: any) => {
-    const matchesSearch = searchQuery === '' || 
-      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.lastName?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = userSearchQuery === '' || 
+      user.email?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      user.firstName?.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      user.lastName?.toLowerCase().includes(userSearchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
 
-    switch (selectedFilter) {
+    switch (selectedUserFilter) {
       case 'email-notifications-enabled':
         return user.emailNotifications === true;
       case 'email-notifications-disabled':
@@ -5456,6 +5460,43 @@ function EmailPreferencesManagement() {
     }
   });
 
+  // Filter installers based on selected criteria
+  const filteredInstallers = installersWithPreferences.filter((installer: any) => {
+    const matchesSearch = installerSearchQuery === '' || 
+      installer.email?.toLowerCase().includes(installerSearchQuery.toLowerCase()) ||
+      installer.businessName?.toLowerCase().includes(installerSearchQuery.toLowerCase()) ||
+      installer.contactName?.toLowerCase().includes(installerSearchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    switch (selectedInstallerFilter) {
+      case 'email-notifications-enabled':
+        return installer.emailNotifications === true;
+      case 'email-notifications-disabled':
+        return installer.emailNotifications === false;
+      case 'booking-updates-enabled':
+        return installer.bookingUpdates === true;
+      case 'booking-updates-disabled':
+        return installer.bookingUpdates === false;
+      case 'marketing-enabled':
+        return installer.marketingEmails === true;
+      case 'marketing-disabled':
+        return installer.marketingEmails === false;
+      case 'all-opted-out':
+        return !installer.emailNotifications && !installer.bookingUpdates && !installer.marketingEmails;
+      case 'active-only':
+        return installer.isActive === true;
+      case 'inactive-only':
+        return installer.isActive === false;
+      case 'approved-only':
+        return installer.approvalStatus === 'approved';
+      case 'pending-approval':
+        return installer.approvalStatus === 'pending';
+      default:
+        return true;
+    }
+  });
+
   const handleToggleUserSelection = (userId: string) => {
     setSelectedUsers(prev => 
       prev.includes(userId) 
@@ -5464,7 +5505,15 @@ function EmailPreferencesManagement() {
     );
   };
 
-  const handleSelectAll = () => {
+  const handleToggleInstallerSelection = (installerId: string) => {
+    setSelectedInstallers(prev => 
+      prev.includes(installerId.toString()) 
+        ? prev.filter(id => id !== installerId.toString())
+        : [...prev, installerId.toString()]
+    );
+  };
+
+  const handleSelectAllUsers = () => {
     if (selectedUsers.length === filteredUsers.length) {
       setSelectedUsers([]);
     } else {
@@ -5472,25 +5521,44 @@ function EmailPreferencesManagement() {
     }
   };
 
+  const handleSelectAllInstallers = () => {
+    if (selectedInstallers.length === filteredInstallers.length) {
+      setSelectedInstallers([]);
+    } else {
+      setSelectedInstallers(filteredInstallers.map(installer => installer.id.toString()));
+    }
+  };
+
   const handleSendBulkEmail = () => {
-    if (selectedUsers.length === 0) {
+    let recipientIds: string[] = [];
+    
+    if (targetAudience === 'users') {
+      recipientIds = selectedUsers;
+    } else if (targetAudience === 'installers') {
+      recipientIds = selectedInstallers;
+    } else if (targetAudience === 'both') {
+      recipientIds = [...selectedUsers, ...selectedInstallers.map(id => `installer_${id}`)];
+    }
+    
+    if (recipientIds.length === 0) {
       toast({
-        title: "No users selected",
-        description: "Please select at least one user to send the email to",
+        title: "No recipients selected",
+        description: "Please select at least one user or installer to send the email to",
         variant: "destructive"
       });
       return;
     }
 
     sendBulkEmailMutation.mutate({
-      recipientIds: selectedUsers,
+      recipientIds,
       subject: bulkEmailSubject,
       message: bulkEmailMessage,
-      emailType
+      emailType,
+      targetAudience
     });
   };
 
-  if (loadingUsers || loadingStats) {
+  if (loadingUsers || loadingInstallers || loadingStats) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="w-6 h-6 animate-spin mr-2" />
@@ -5510,28 +5578,40 @@ function EmailPreferencesManagement() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             <div className="text-center p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {preferenceStats?.emailNotifications?.enabled || 0}
+                {(preferenceStats?.users?.emailNotifications?.enabled || 0) + (preferenceStats?.installers?.emailNotifications?.enabled || 0)}
               </div>
-              <div className="text-sm text-green-700">Email Notifications On</div>
+              <div className="text-sm text-green-700">Email Notifications</div>
             </div>
             <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {preferenceStats?.bookingUpdates?.enabled || 0}
+                {(preferenceStats?.users?.bookingUpdates?.enabled || 0) + (preferenceStats?.installers?.bookingUpdates?.enabled || 0)}
               </div>
-              <div className="text-sm text-blue-700">Booking Updates On</div>
+              <div className="text-sm text-blue-700">Booking Updates</div>
             </div>
             <div className="text-center p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
-                {preferenceStats?.marketingEmails?.enabled || 0}
+                {(preferenceStats?.users?.marketingEmails?.enabled || 0) + (preferenceStats?.installers?.marketingEmails?.enabled || 0)}
               </div>
-              <div className="text-sm text-purple-700">Marketing Emails On</div>
+              <div className="text-sm text-purple-700">Marketing Emails</div>
+            </div>
+            <div className="text-center p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">
+                {preferenceStats?.users?.total || 0}
+              </div>
+              <div className="text-sm text-orange-700">Total Customers</div>
+            </div>
+            <div className="text-center p-4 bg-cyan-50 dark:bg-cyan-950/20 rounded-lg">
+              <div className="text-2xl font-bold text-cyan-600">
+                {preferenceStats?.installers?.total || 0}
+              </div>
+              <div className="text-sm text-cyan-700">Total Installers</div>
             </div>
             <div className="text-center p-4 bg-red-50 dark:bg-red-950/20 rounded-lg">
               <div className="text-2xl font-bold text-red-600">
-                {preferenceStats?.allOptedOut || 0}
+                {(preferenceStats?.users?.allOptedOut || 0) + (preferenceStats?.installers?.allOptedOut || 0)}
               </div>
               <div className="text-sm text-red-700">All Opted Out</div>
             </div>
@@ -5539,31 +5619,34 @@ function EmailPreferencesManagement() {
         </CardContent>
       </Card>
 
-      {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="w-5 h-5 mr-2" />
-            Filter & Search Users
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+      {/* 2-Column Layout for Customers and Installers */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* CUSTOMERS COLUMN */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Users className="w-5 h-5 mr-2 text-blue-600" />
+                <span>Customers ({filteredUsers.length})</span>
+              </div>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700">Customer</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Customer Filters and Search */}
+            <div className="space-y-3">
               <Input
-                placeholder="Search by name or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search customers by name or email..."
+                value={userSearchQuery}
+                onChange={(e) => setUserSearchQuery(e.target.value)}
                 className="w-full"
               />
-            </div>
-            <div className="flex-1">
-              <Select value={selectedFilter} onValueChange={setSelectedFilter}>
+              <Select value={selectedUserFilter} onValueChange={setSelectedUserFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter users..." />
+                  <SelectValue placeholder="Filter customers..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="all">All Customers</SelectItem>
                   <SelectItem value="verified-only">Email Verified Only</SelectItem>
                   <SelectItem value="unverified-only">Email Unverified Only</SelectItem>
                   <SelectItem value="email-notifications-enabled">Email Notifications: ON</SelectItem>
@@ -5576,141 +5659,325 @@ function EmailPreferencesManagement() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          
-          {/* Bulk Actions */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t">
-            <div className="flex items-center space-x-2">
+            
+            {/* Customer Bulk Actions */}
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAllUsers}
+                >
+                  {selectedUsers.length === filteredUsers.length ? 'Deselect All' : 'Select All'}
+                </Button>
+                {selectedUsers.length > 0 && (
+                  <span className="text-sm text-gray-600">
+                    {selectedUsers.length} selected
+                  </span>
+                )}
+              </div>
               <Button
-                variant="outline"
+                onClick={() => {
+                  setTargetAudience('users');
+                  setShowBulkEmailDialog(true);
+                }}
+                disabled={selectedUsers.length === 0}
                 size="sm"
-                onClick={handleSelectAll}
+                className="flex items-center space-x-2"
               >
-                {selectedUsers.length === filteredUsers.length ? 'Deselect All' : 'Select All'}
+                <Send className="w-4 h-4" />
+                <span>Email Customers</span>
               </Button>
-              {selectedUsers.length > 0 && (
-                <span className="text-sm text-gray-600">
-                  {selectedUsers.length} users selected
-                </span>
-              )}
+            </div>
+            
+            {/* Customer Table */}
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">Select</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead className="w-20">Status</TableHead>
+                    <TableHead className="w-16">Email</TableHead>
+                    <TableHead className="w-16">Book</TableHead>
+                    <TableHead className="w-16">Mark</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map((user: any) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selectedUsers.includes(user.id)}
+                          onChange={() => handleToggleUserSelection(user.id)}
+                          className="rounded border-gray-300"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {user.firstName && user.lastName 
+                              ? `${user.firstName} ${user.lastName}`
+                              : user.email
+                            }
+                          </div>
+                          <div className="text-xs text-gray-500">{user.email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={user.emailVerified ? "default" : "secondary"} className="text-xs">
+                          {user.emailVerified ? "Verified" : "Unverified"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={user.emailNotifications ?? true}
+                          onCheckedChange={(checked) => {
+                            updateUserPreferencesMutation.mutate({
+                              userId: user.id,
+                              preferences: { emailNotifications: checked }
+                            });
+                          }}
+                          disabled={updateUserPreferencesMutation.isPending}
+                          className="scale-75"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={user.bookingUpdates ?? true}
+                          onCheckedChange={(checked) => {
+                            updateUserPreferencesMutation.mutate({
+                              userId: user.id,
+                              preferences: { bookingUpdates: checked }
+                            });
+                          }}
+                          disabled={updateUserPreferencesMutation.isPending}
+                          className="scale-75"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={user.marketingEmails ?? false}
+                          onCheckedChange={(checked) => {
+                            updateUserPreferencesMutation.mutate({
+                              userId: user.id,
+                              preferences: { marketingEmails: checked }
+                            });
+                          }}
+                          disabled={updateUserPreferencesMutation.isPending}
+                          className="scale-75"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* INSTALLERS COLUMN */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <UserCheck className="w-5 h-5 mr-2 text-green-600" />
+                <span>Installers ({filteredInstallers.length})</span>
+              </div>
+              <Badge variant="secondary" className="bg-green-100 text-green-700">Installer</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Installer Filters and Search */}
+            <div className="space-y-3">
+              <Input
+                placeholder="Search installers by business or email..."
+                value={installerSearchQuery}
+                onChange={(e) => setInstallerSearchQuery(e.target.value)}
+                className="w-full"
+              />
+              <Select value={selectedInstallerFilter} onValueChange={setSelectedInstallerFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter installers..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Installers</SelectItem>
+                  <SelectItem value="active-only">Active Only</SelectItem>
+                  <SelectItem value="inactive-only">Inactive Only</SelectItem>
+                  <SelectItem value="approved-only">Approved Only</SelectItem>
+                  <SelectItem value="pending-approval">Pending Approval</SelectItem>
+                  <SelectItem value="email-notifications-enabled">Email Notifications: ON</SelectItem>
+                  <SelectItem value="email-notifications-disabled">Email Notifications: OFF</SelectItem>
+                  <SelectItem value="booking-updates-enabled">Booking Updates: ON</SelectItem>
+                  <SelectItem value="booking-updates-disabled">Booking Updates: OFF</SelectItem>
+                  <SelectItem value="marketing-enabled">Marketing Emails: ON</SelectItem>
+                  <SelectItem value="marketing-disabled">Marketing Emails: OFF</SelectItem>
+                  <SelectItem value="all-opted-out">All Communications: OFF</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Installer Bulk Actions */}
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAllInstallers}
+                >
+                  {selectedInstallers.length === filteredInstallers.length ? 'Deselect All' : 'Select All'}
+                </Button>
+                {selectedInstallers.length > 0 && (
+                  <span className="text-sm text-gray-600">
+                    {selectedInstallers.length} selected
+                  </span>
+                )}
+              </div>
+              <Button
+                onClick={() => {
+                  setTargetAudience('installers');
+                  setShowBulkEmailDialog(true);
+                }}
+                disabled={selectedInstallers.length === 0}
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <Send className="w-4 h-4" />
+                <span>Email Installers</span>
+              </Button>
+            </div>
+            
+            {/* Installer Table */}
+            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">Select</TableHead>
+                    <TableHead>Installer</TableHead>
+                    <TableHead className="w-20">Status</TableHead>
+                    <TableHead className="w-16">Email</TableHead>
+                    <TableHead className="w-16">Book</TableHead>
+                    <TableHead className="w-16">Mark</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredInstallers.map((installer: any) => (
+                    <TableRow key={installer.id}>
+                      <TableCell>
+                        <input
+                          type="checkbox"
+                          checked={selectedInstallers.includes(installer.id.toString())}
+                          onChange={() => handleToggleInstallerSelection(installer.id.toString())}
+                          className="rounded border-gray-300"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {installer.businessName || installer.contactName || 'Unknown Business'}
+                          </div>
+                          <div className="text-xs text-gray-500">{installer.email}</div>
+                          {installer.contactName && installer.businessName && (
+                            <div className="text-xs text-gray-400">{installer.contactName}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant={installer.isActive ? "default" : "secondary"} 
+                          className={`text-xs ${
+                            installer.approvalStatus === 'approved' ? 'bg-green-100 text-green-700' :
+                            installer.approvalStatus === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                            installer.approvalStatus === 'rejected' ? 'bg-red-100 text-red-700' :
+                            ''
+                          }`}
+                        >
+                          {installer.approvalStatus === 'approved' ? 'Approved' :
+                           installer.approvalStatus === 'pending' ? 'Pending' :
+                           installer.approvalStatus === 'rejected' ? 'Rejected' :
+                           installer.isActive ? 'Active' : 'Inactive'
+                          }
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={installer.emailNotifications ?? true}
+                          onCheckedChange={(checked) => {
+                            updateInstallerPreferencesMutation.mutate({
+                              installerId: installer.id.toString(),
+                              preferences: { emailNotifications: checked }
+                            });
+                          }}
+                          disabled={updateInstallerPreferencesMutation.isPending}
+                          className="scale-75"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={installer.bookingUpdates ?? true}
+                          onCheckedChange={(checked) => {
+                            updateInstallerPreferencesMutation.mutate({
+                              installerId: installer.id.toString(),
+                              preferences: { bookingUpdates: checked }
+                            });
+                          }}
+                          disabled={updateInstallerPreferencesMutation.isPending}
+                          className="scale-75"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={installer.marketingEmails ?? false}
+                          onCheckedChange={(checked) => {
+                            updateInstallerPreferencesMutation.mutate({
+                              installerId: installer.id.toString(),
+                              preferences: { marketingEmails: checked }
+                            });
+                          }}
+                          disabled={updateInstallerPreferencesMutation.isPending}
+                          className="scale-75"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Global Bulk Email Actions */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium">Combined Actions:</span>
+              <div className="flex items-center space-x-2">
+                {selectedUsers.length > 0 && (
+                  <Badge variant="secondary" className="bg-blue-50 text-blue-700">
+                    {selectedUsers.length} customers
+                  </Badge>
+                )}
+                {selectedInstallers.length > 0 && (
+                  <Badge variant="secondary" className="bg-green-50 text-green-700">
+                    {selectedInstallers.length} installers
+                  </Badge>
+                )}
+              </div>
             </div>
             <Button
-              onClick={() => setShowBulkEmailDialog(true)}
-              disabled={selectedUsers.length === 0}
+              onClick={() => {
+                setTargetAudience('both');
+                setShowBulkEmailDialog(true);
+              }}
+              disabled={selectedUsers.length === 0 && selectedInstallers.length === 0}
               className="flex items-center space-x-2"
             >
               <Send className="w-4 h-4" />
-              <span>Send Bulk Email</span>
+              <span>Email All Selected</span>
             </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Users Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center">
-              <UserCog className="w-5 h-5 mr-2" />
-              User Email Preferences ({filteredUsers.length})
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Select</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Email Status</TableHead>
-                  <TableHead>General</TableHead>
-                  <TableHead>Booking</TableHead>
-                  <TableHead>Marketing</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user: any) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <input
-                        type="checkbox"
-                        checked={selectedUsers.includes(user.id)}
-                        onChange={() => handleToggleUserSelection(user.id)}
-                        className="rounded border-gray-300"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">
-                          {user.firstName && user.lastName 
-                            ? `${user.firstName} ${user.lastName}`
-                            : user.email
-                          }
-                        </div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={user.emailVerified ? "default" : "secondary"}>
-                        {user.emailVerified ? "Verified" : "Unverified"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={user.emailNotifications ?? true}
-                        onCheckedChange={(checked) => {
-                          updateUserPreferencesMutation.mutate({
-                            userId: user.id,
-                            preferences: { emailNotifications: checked }
-                          });
-                        }}
-                        disabled={updateUserPreferencesMutation.isPending}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={user.bookingUpdates ?? true}
-                        onCheckedChange={(checked) => {
-                          updateUserPreferencesMutation.mutate({
-                            userId: user.id,
-                            preferences: { bookingUpdates: checked }
-                          });
-                        }}
-                        disabled={updateUserPreferencesMutation.isPending}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={user.marketingEmails ?? false}
-                        onCheckedChange={(checked) => {
-                          updateUserPreferencesMutation.mutate({
-                            userId: user.id,
-                            preferences: { marketingEmails: checked }
-                          });
-                        }}
-                        disabled={updateUserPreferencesMutation.isPending}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setSelectedUsers([user.id]);
-                          setEmailType('general');
-                          setShowBulkEmailDialog(true);
-                        }}
-                      >
-                        <Mail className="w-4 h-4 mr-1" />
-                        Email
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
           </div>
         </CardContent>
       </Card>
@@ -5721,8 +5988,10 @@ function EmailPreferencesManagement() {
           <DialogHeader>
             <DialogTitle>Send Bulk Email</DialogTitle>
             <DialogDescription>
-              Send an email to {selectedUsers.length} selected user(s). 
-              The system will respect individual user preferences and skip users who have opted out.
+              {targetAudience === 'users' && `Send an email to ${selectedUsers.length} selected customer(s).`}
+              {targetAudience === 'installers' && `Send an email to ${selectedInstallers.length} selected installer(s).`}
+              {targetAudience === 'both' && `Send an email to ${selectedUsers.length} customer(s) and ${selectedInstallers.length} installer(s).`}
+              <br />The system will respect individual preferences and skip recipients who have opted out.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

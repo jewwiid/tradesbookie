@@ -1141,7 +1141,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           u.bookingUpdates === false && 
           u.marketingEmails === false
         ).length,
-        totalUsers: allUsers.length
+        total: allUsers.length
       };
 
       // Get installer preference statistics
@@ -1164,12 +1164,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           enabled: allInstallers.filter(i => i.marketingEmails === true).length,
           disabled: allInstallers.filter(i => i.marketingEmails === false).length
         },
-        totalOptedOut: allInstallers.filter(i => 
+        allOptedOut: allInstallers.filter(i => 
           i.emailNotifications === false && 
           i.bookingUpdates === false && 
           i.marketingEmails === false
         ).length,
-        totalInstallers: allInstallers.length
+        total: allInstallers.length
       };
 
       const combinedStats = {
@@ -1220,7 +1220,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin: Send bulk email with preference filtering
+  // Admin: Send bulk email with preference filtering for users and installers
   app.post("/api/admin/send-bulk-email", isAuthenticated, async (req, res) => {
     try {
       const adminUserId = req.user?.id;
@@ -1234,7 +1234,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Admin access required" });
       }
 
-      const { recipientIds, subject, message, emailType } = req.body;
+      const { recipientIds, subject, message, emailType, targetAudience } = req.body;
 
       if (!recipientIds || !Array.isArray(recipientIds) || recipientIds.length === 0) {
         return res.status(400).json({ error: "Recipient IDs are required" });
@@ -1244,45 +1244,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Subject and message are required" });
       }
 
-      // Fetch recipient users with their preferences
-      const recipients = await db.select({
-        id: users.id,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        emailNotifications: users.emailNotifications,
-        bookingUpdates: users.bookingUpdates,
-        marketingEmails: users.marketingEmails
-      }).from(users);
-
-      // Filter recipients based on their preferences and email type
-      const filteredRecipients = recipients.filter(user => {
-        if (!recipientIds.includes(user.id)) return false;
-        
-        // Check if user has opted in for this email type
-        switch (emailType) {
-          case 'general':
-            return user.emailNotifications !== false; // Default to true if null
-          case 'booking':
-            return user.bookingUpdates !== false; // Default to true if null
-          case 'marketing':
-            return user.marketingEmails === true; // Default to false if null
-          default:
-            return true;
-        }
-      });
-
+      let allRecipients = [];
       let sentCount = 0;
       let errorCount = 0;
 
-      // Send emails to filtered recipients
-      for (const recipient of filteredRecipients) {
+      // Handle users (customers)
+      const userIds = recipientIds.filter(id => !id.toString().startsWith('installer_'));
+      if (userIds.length > 0 && (targetAudience === 'users' || targetAudience === 'both')) {
+        const userRecipients = await db.select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          emailNotifications: users.emailNotifications,
+          bookingUpdates: users.bookingUpdates,
+          marketingEmails: users.marketingEmails,
+          type: 'user' as const
+        }).from(users).where(eq(users.id, userIds[0])); // Will be filtered properly below
+        
+        // Get all users and then filter
+        const allUsers = await db.select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          emailNotifications: users.emailNotifications,
+          bookingUpdates: users.bookingUpdates,
+          marketingEmails: users.marketingEmails,
+          type: 'user' as const
+        }).from(users);
+        
+        const filteredUserRecipients = allUsers.filter(user => {
+          if (!userIds.includes(user.id)) return false;
+          
+          // Check if user has opted in for this email type
+          switch (emailType) {
+            case 'general':
+              return user.emailNotifications !== false;
+            case 'booking':
+              return user.bookingUpdates !== false;
+            case 'marketing':
+              return user.marketingEmails === true;
+            default:
+              return true;
+          }
+        });
+        
+        allRecipients.push(...filteredUserRecipients);
+      }
+
+      // Handle installers
+      const installerIds = recipientIds
+        .filter(id => id.toString().startsWith('installer_'))
+        .map(id => parseInt(id.toString().replace('installer_', '')));
+      const directInstallerIds = recipientIds.filter(id => !isNaN(parseInt(id)) && !id.toString().startsWith('installer_')).map(id => parseInt(id));
+      const allInstallerIds = [...installerIds, ...directInstallerIds];
+      
+      if (allInstallerIds.length > 0 && (targetAudience === 'installers' || targetAudience === 'both')) {
+        const allInstallersData = await db.select({
+          id: installers.id,
+          email: installers.email,
+          businessName: installers.businessName,
+          contactName: installers.contactName,
+          emailNotifications: installers.emailNotifications,
+          bookingUpdates: installers.bookingUpdates,
+          marketingEmails: installers.marketingEmails,
+          type: 'installer' as const
+        }).from(installers);
+        
+        const filteredInstallerRecipients = allInstallersData.filter(installer => {
+          if (!allInstallerIds.includes(installer.id)) return false;
+          
+          // Check if installer has opted in for this email type
+          switch (emailType) {
+            case 'general':
+              return installer.emailNotifications !== false;
+            case 'booking':
+              return installer.bookingUpdates !== false;
+            case 'marketing':
+              return installer.marketingEmails === true;
+            default:
+              return true;
+          }
+        });
+        
+        allRecipients.push(...filteredInstallerRecipients);
+      }
+
+      // Send emails to all filtered recipients
+      for (const recipient of allRecipients) {
         try {
-          const displayName = recipient.firstName && recipient.lastName 
-            ? `${recipient.firstName} ${recipient.lastName}`
-            : recipient.email.split('@')[0];
+          let displayName;
+          if (recipient.type === 'user') {
+            displayName = recipient.firstName && recipient.lastName 
+              ? `${recipient.firstName} ${recipient.lastName}`
+              : recipient.email.split('@')[0];
+          } else {
+            displayName = recipient.contactName || recipient.businessName || recipient.email.split('@')[0];
+          }
 
           const personalizedMessage = message.replace(/\{name\}/g, displayName);
+          const recipientType = recipient.type === 'user' ? 'customer' : 'installer';
           
           await sendGmailEmail({
             to: recipient.email,
@@ -1296,7 +1358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 </div>
                 <hr style="margin: 30px 0; border: 1px solid #eee;">
                 <p style="font-size: 12px; color: #666;">
-                  This email was sent to ${recipient.email} as part of our ${emailType} communications. 
+                  This email was sent to ${recipient.email} as part of our ${emailType} communications for ${recipientType}s. 
                   You can manage your email preferences in your account dashboard.
                 </p>
               </div>
@@ -1310,7 +1372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      const skippedCount = recipientIds.length - filteredRecipients.length;
+      const skippedCount = recipientIds.length - allRecipients.length;
 
       res.json({ 
         message: "Bulk email sent successfully",

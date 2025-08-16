@@ -288,12 +288,24 @@ export default function CustomerDashboard() {
   };
 
   const handleEditProfile = () => {
+    console.log('Edit Profile clicked, user:', user);
     if (user) {
       setProfileData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
         phone: user.phone || ''
+      });
+      setShowProfileEdit(true);
+      console.log('Profile edit dialog should open');
+    } else {
+      console.log('User object is undefined/null');
+      // Try to open dialog anyway with empty data
+      setProfileData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: ''
       });
       setShowProfileEdit(true);
     }

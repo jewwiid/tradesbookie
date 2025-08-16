@@ -363,6 +363,20 @@ export const ticketMessages = pgTable("ticket_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// AI Usage Tracking - tracks free AI requests per user per feature
+export const aiUsageTracking = pgTable("ai_usage_tracking", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id), // nullable for guest users
+  sessionId: varchar("session_id").notNull(), // for tracking guest usage
+  aiFeature: text("ai_feature").notNull(), // 'tv-preview', 'product-care', 'faq', 'product-info', etc.
+  freeUsageCount: integer("free_usage_count").default(0),
+  paidUsageCount: integer("paid_usage_count").default(0),
+  lastFreeUsage: timestamp("last_free_usage"),
+  lastPaidUsage: timestamp("last_paid_usage"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Installer wallet/credits system
 export const installerWallets = pgTable("installer_wallets", {
   id: serial("id").primaryKey(),
@@ -1999,8 +2013,16 @@ export const insertTicketMessageSchema = createInsertSchema(ticketMessages).omit
   createdAt: true,
 });
 
+export const insertAiUsageTrackingSchema = createInsertSchema(aiUsageTracking).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Support ticket types
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
 export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
+export type AiUsageTracking = typeof aiUsageTracking.$inferSelect;
+export type InsertAiUsageTracking = z.infer<typeof insertAiUsageTrackingSchema>;

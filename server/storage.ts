@@ -8,7 +8,7 @@ import {
   consultations, downloadableGuides, videoTutorials, productCategories,
   qrCodeScans, aiProductRecommendations, choiceFlowTracking,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics, retailerInvoices,
-  installerServiceAssignments, customerWallets, customerTransactions, supportTickets, ticketMessages,
+  installerServiceAssignments, customerWallets, customerTransactions, supportTickets, ticketMessages, aiUsageTracking,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -29,6 +29,7 @@ import {
   type CustomerTransaction, type InsertCustomerTransaction,
   type SupportTicket, type InsertSupportTicket,
   type TicketMessage, type InsertTicketMessage,
+  type AiUsageTracking, type InsertAiUsageTracking,
   type EmailTemplate, type InsertEmailTemplate,
   type BannedUser, type InsertBannedUser,
   type Resource, type InsertResource,
@@ -199,6 +200,13 @@ export interface IStorage {
   closeSupportTicket(id: number): Promise<void>;
   addTicketMessage(message: InsertTicketMessage): Promise<TicketMessage>;
   getTicketMessages(ticketId: number): Promise<TicketMessage[]>;
+
+  // AI Usage Tracking operations
+  getAiUsageTracking(userId: string | null, sessionId: string, aiFeature: string): Promise<AiUsageTracking | undefined>;
+  createAiUsageTracking(usage: InsertAiUsageTracking): Promise<AiUsageTracking>;
+  incrementAiUsage(userId: string | null, sessionId: string, aiFeature: string, isPaid: boolean): Promise<void>;
+  getUserAiUsageSummary(userId: string): Promise<{ feature: string; freeCount: number; paidCount: number; }[]>;
+  checkAiFreeUsageLimit(userId: string | null, sessionId: string, aiFeature: string, freeLimit?: number): Promise<{ canUseFree: boolean; usageCount: number; }>;
 
   // Lead payment operations
   updateJobAssignmentLeadFee(jobId: number, leadFee: number, paymentIntentId: string, status: string): Promise<void>;
@@ -1506,6 +1514,73 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(ticketMessages)
       .where(eq(ticketMessages.ticketId, ticketId))
       .orderBy(ticketMessages.createdAt);
+  }
+
+  // AI Usage Tracking operations
+  async getAiUsageTracking(userId: string | null, sessionId: string, aiFeature: string): Promise<AiUsageTracking | undefined> {
+    const [usage] = await db.select().from(aiUsageTracking)
+      .where(and(
+        userId ? eq(aiUsageTracking.userId, userId) : isNull(aiUsageTracking.userId),
+        eq(aiUsageTracking.sessionId, sessionId),
+        eq(aiUsageTracking.aiFeature, aiFeature)
+      ));
+    return usage;
+  }
+
+  async createAiUsageTracking(usage: InsertAiUsageTracking): Promise<AiUsageTracking> {
+    const [newUsage] = await db.insert(aiUsageTracking)
+      .values(usage)
+      .returning();
+    return newUsage;
+  }
+
+  async incrementAiUsage(userId: string | null, sessionId: string, aiFeature: string, isPaid: boolean): Promise<void> {
+    const existing = await this.getAiUsageTracking(userId, sessionId, aiFeature);
+    
+    if (existing) {
+      // Update existing record
+      await db.update(aiUsageTracking)
+        .set({
+          freeUsageCount: isPaid ? existing.freeUsageCount : (existing.freeUsageCount || 0) + 1,
+          paidUsageCount: isPaid ? (existing.paidUsageCount || 0) + 1 : existing.paidUsageCount,
+          lastFreeUsage: isPaid ? existing.lastFreeUsage : new Date(),
+          lastPaidUsage: isPaid ? new Date() : existing.lastPaidUsage,
+          updatedAt: new Date()
+        })
+        .where(eq(aiUsageTracking.id, existing.id));
+    } else {
+      // Create new record
+      await this.createAiUsageTracking({
+        userId,
+        sessionId,
+        aiFeature,
+        freeUsageCount: isPaid ? 0 : 1,
+        paidUsageCount: isPaid ? 1 : 0,
+        lastFreeUsage: isPaid ? null : new Date(),
+        lastPaidUsage: isPaid ? new Date() : null
+      });
+    }
+  }
+
+  async getUserAiUsageSummary(userId: string): Promise<{ feature: string; freeCount: number; paidCount: number; }[]> {
+    const usages = await db.select().from(aiUsageTracking)
+      .where(eq(aiUsageTracking.userId, userId));
+    
+    return usages.map(usage => ({
+      feature: usage.aiFeature,
+      freeCount: usage.freeUsageCount || 0,
+      paidCount: usage.paidUsageCount || 0
+    }));
+  }
+
+  async checkAiFreeUsageLimit(userId: string | null, sessionId: string, aiFeature: string, freeLimit: number = 3): Promise<{ canUseFree: boolean; usageCount: number; }> {
+    const usage = await this.getAiUsageTracking(userId, sessionId, aiFeature);
+    const usageCount = usage?.freeUsageCount || 0;
+    
+    return {
+      canUseFree: usageCount < freeLimit,
+      usageCount
+    };
   }
 
   // Lead payment operations

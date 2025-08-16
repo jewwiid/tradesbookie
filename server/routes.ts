@@ -42,6 +42,7 @@ import { analyzeProductCare } from "./productCareAnalysisService";
 import { QRCodeService } from "./qrCodeService";
 import { generateEmailTemplate, getPresetTemplate, getAllPresetTemplates } from "./aiEmailTemplateService";
 import { AIContentService } from "./services/aiContentService";
+import { checkAiCredits, recordAiUsage, AI_FEATURES, type AIRequest } from "./aiCreditMiddleware";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -1230,7 +1231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/generate-ai-preview", async (req, res) => {
+  app.post("/api/generate-ai-preview", checkAiCredits(AI_FEATURES.TV_PREVIEW), async (req: AIRequest, res) => {
     try {
       const { imageBase64, tvSize, mountType, wallType, selectedAddons } = req.body;
       
@@ -1250,6 +1251,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ message: result.error });
       }
 
+      // Record AI usage after successful generation
+      await recordAiUsage(req);
+      
       res.json(result);
     } catch (error) {
       console.error("Error generating AI preview:", error);
@@ -12062,7 +12066,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // AI FAQ/Q&A System endpoints
-  app.post("/api/faq/ask", async (req, res) => {
+  app.post("/api/faq/ask", checkAiCredits(AI_FEATURES.FAQ), async (req: AIRequest, res) => {
     try {
       const { question } = req.body;
       
@@ -12071,6 +12075,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
 
       const response = await askQuestion(question);
+      
+      // Record AI usage after successful response
+      await recordAiUsage(req);
+      
       res.json(response);
     } catch (error) {
       console.error("Error asking FAQ question:", error);
@@ -12093,7 +12101,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // AI TV Comparison endpoint
-  app.post("/api/ai/compare-tvs", async (req, res) => {
+  app.post("/api/ai/compare-tvs", checkAiCredits(AI_FEATURES.TV_COMPARISON), async (req: AIRequest, res) => {
     try {
       const { model1, model2 } = req.body;
       
@@ -12102,6 +12110,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
 
       const comparison = await compareTVModels(model1, model2);
+      
+      // Record AI usage after successful comparison
+      await recordAiUsage(req);
+      
       res.json(comparison);
     } catch (error) {
       console.error("Error comparing TV models:", error);
@@ -12182,7 +12194,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // AI Product Information endpoint
-  app.post("/api/ai/product-info", async (req, res) => {
+  app.post("/api/ai/product-info", checkAiCredits(AI_FEATURES.PRODUCT_INFO), async (req: AIRequest, res) => {
     try {
       const { model } = req.body;
       
@@ -12196,6 +12208,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       const productInfo = await getProductInfo(model);
       
+      // Record AI usage after successful response
+      await recordAiUsage(req);
+      
       res.json(productInfo);
     } catch (error) {
       console.error("Error getting product info:", error);
@@ -12207,7 +12222,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // AI Product Care Analysis endpoint
-  app.post("/api/ai/product-care-analysis", async (req, res) => {
+  app.post("/api/ai/product-care-analysis", checkAiCredits(AI_FEATURES.PRODUCT_CARE), async (req: AIRequest, res) => {
     try {
       const { productInfo, userContext } = req.body;
       
@@ -12224,6 +12239,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const analysis = await analyzeProductCare(productInfo, userContext);
       
       console.log(`✅ Product care analysis completed successfully with ${analysis.criticalScenarios.length} scenarios`);
+      
+      // Record AI usage after successful analysis
+      await recordAiUsage(req);
       
       res.json(analysis);
     } catch (error) {

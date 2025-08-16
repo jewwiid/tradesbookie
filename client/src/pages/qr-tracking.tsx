@@ -17,6 +17,7 @@ import {
   Loader2
 } from "lucide-react";
 import Navigation from "@/components/navigation";
+import ExpandableQRCode from "@/components/ExpandableQRCode";
 
 interface BookingDetails {
   id: number;
@@ -271,10 +272,18 @@ export default function QRTracking() {
             <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-gray-500">Booking Reference</label>
-                <p className="text-gray-900 font-mono font-semibold flex items-center">
+                <p className="text-gray-900 font-mono font-semibold flex items-center mb-3">
                   <QrCode className="w-4 h-4 mr-2 text-primary" />
                   {booking.qrCode}
                 </p>
+                <ExpandableQRCode 
+                  qrCode={booking.qrCode}
+                  bookingId={booking.id}
+                  showInline={true}
+                  title="Booking QR Code"
+                  description="Share this QR code with customers and installers for easy tracking"
+                  size={150}
+                />
               </div>
               {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
                 <div>

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import QRCode from "@/components/QRCode";
+import ExpandableQRCode from "@/components/ExpandableQRCode";
 import { Tv, Home, CheckCircle, Clock, Wrench } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 
@@ -85,11 +86,19 @@ export default function CustomerDashboard() {
         <Card className="mb-8">
           <CardContent className="p-6 text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Booking QR Code</h2>
-            <p className="text-gray-600 mb-6">Save this QR code to quickly access your booking details</p>
+            <p className="text-gray-600 mb-6">Save this QR code to quickly access your booking details and track installation progress</p>
             <div className="flex justify-center mb-4">
               <QRCode value={`${window.location.origin}/qr-tracking/${booking.qrCode}`} size={200} />
             </div>
-            <p className="text-sm text-gray-500">Booking ID: {booking.id}</p>
+            <p className="text-sm text-gray-500 mb-4">Booking ID: {booking.id}</p>
+            <div className="flex justify-center">
+              <ExpandableQRCode 
+                qrCode={booking.qrCode}
+                bookingId={booking.id}
+                title="Download Booking QR Code"
+                description="Download or share this QR code for easy installation tracking"
+              />
+            </div>
           </CardContent>
         </Card>
 

@@ -7,6 +7,7 @@ import { Wrench, Home, MapPin, Star, Euro, Calendar, Tv, Settings, Plus, Info } 
 import { formatPrice } from "@/lib/utils";
 import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import ExpandableQRCode from "@/components/ExpandableQRCode";
 
 export default function InstallerDashboard() {
   const [, setLocation] = useLocation();
@@ -260,6 +261,23 @@ export default function InstallerDashboard() {
                           src={job.status === 'completed' ? job.completedImage : job.aiPreview} 
                           alt={job.status === 'completed' ? 'Completed installation' : 'AI preview'}
                           className="w-full h-32 object-cover rounded-lg"
+                        />
+                      </div>
+                    </div>
+
+                    {/* QR Code Section */}
+                    <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-semibold text-blue-900 mb-1">Job QR Code</h4>
+                          <p className="text-xs text-blue-700">Use this QR code to track installation progress with the customer</p>
+                        </div>
+                        <ExpandableQRCode 
+                          qrCode={job.qrCode || job.bookingReference}
+                          bookingId={job.id}
+                          title="Job QR Code"
+                          description="Share this with customers to track installation progress"
+                          className="bg-white"
                         />
                       </div>
                     </div>

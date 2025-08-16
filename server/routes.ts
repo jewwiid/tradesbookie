@@ -3339,45 +3339,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/installer/bookings", async (req, res) => {
     try {
-      // Get all bookings with complete details including client selections
-      const allBookings = await storage.getAllBookings();
-      console.log('Total bookings retrieved:', allBookings.length);
+      const installerUser = (req as any).installerUser;
+      if (!installerUser) {
+        return res.status(401).json({ message: "Not authenticated as installer" });
+      }
       
-      // Transform bookings to include all client selection details for installers
-      const enhancedBookings = allBookings.map((booking, index) => {
-        console.log(`Processing booking ${index + 1}/${allBookings.length}:`, booking.id);
-        return {
-        id: booking.id,
-        customerName: booking.contactName,
-        customer: booking.contactName, // Fallback for compatibility
-        serviceTier: booking.serviceType,
-        service: `${booking.serviceType} - ${booking.tvSize}" TV`, // Fallback for compatibility
-        tvSize: booking.tvSize,
-        wallType: booking.wallType,
-        mountType: booking.mountType,
-        wallMount: booking.wallMountOption,
-        addons: Array.isArray(booking.addons) ? booking.addons : [],
-        address: booking.address,
-        preferredDate: booking.preferredDate,
-        date: booking.preferredDate, // Fallback for compatibility
-        installerEarnings: booking.estimatedPrice, // Use estimated price as earnings base
-        earning: booking.estimatedPrice?.toString(), // Fallback for compatibility
-        status: booking.status === 'pending' ? 'new' : booking.status,
-        difficulty: booking.roomAnalysis ? 'Standard' : 'Unknown', // Derive from room analysis
-        roomPhoto: booking.photoStorageConsent ? booking.roomPhotoUrl : null,
-        originalImage: booking.photoStorageConsent ? booking.roomPhotoUrl : null, // Fallback for compatibility
-        aiPreview: booking.aiPreviewUrl,
-        roomAnalysis: booking.roomAnalysis, // Always show analysis text for installer preparation
-        photoStorageConsent: booking.photoStorageConsent,
-        customerEmail: booking.contactEmail,
-        customerPhone: booking.contactPhone,
-        notes: booking.customerNotes,
-        qrCode: booking.qrCode,
-        createdAt: booking.createdAt,
-        totalPrice: booking.estimatedTotal
-        };
-      });
+      const installerId = installerUser.id;
 
+      // Get bookings where this installer has purchased leads (jobAssignments)
+      const installerAssignments = await storage.getInstallerJobAssignments(installerId);
+      console.log(`Found ${installerAssignments.length} job assignments for installer ${installerId}`);
+      
+      const enhancedBookings = [];
+      
+      for (const assignment of installerAssignments) {
+        try {
+          const booking = await storage.getBooking(assignment.bookingId);
+          if (!booking) continue;
+          
+          // Skip if customer has selected a different installer (job is no longer available to this installer)
+          if (booking.installerId && booking.installerId !== installerId) {
+            console.log(`Skipping booking ${booking.id} - customer selected different installer`);
+            continue;
+          }
+          
+          // Skip if job assignment is not in valid status for messaging
+          if (!['assigned', 'accepted'].includes(assignment.status)) {
+            continue;
+          }
+
+          enhancedBookings.push({
+            id: booking.id,
+            contactName: booking.contactName,
+            contactPhone: booking.contactPhone,
+            contactEmail: booking.contactEmail,
+            serviceType: booking.serviceType,
+            tvSize: booking.tvSize,
+            wallType: booking.wallType,
+            mountType: booking.mountType,
+            wallMountOption: booking.wallMountOption,
+            addons: Array.isArray(booking.addons) ? booking.addons : [],
+            address: booking.address,
+            preferredDate: booking.preferredDate,
+            estimatedPrice: booking.estimatedPrice,
+            estimatedTotal: booking.estimatedTotal,
+            status: booking.installerId === installerId ? booking.status : 'competing', // Special status for competitive phase
+            roomPhotoUrl: booking.photoStorageConsent ? booking.roomPhotoUrl : null,
+            aiPreviewUrl: booking.aiPreviewUrl,
+            roomAnalysis: booking.roomAnalysis,
+            photoStorageConsent: booking.photoStorageConsent,
+            customerNotes: booking.customerNotes,
+            qrCode: booking.qrCode,
+            createdAt: booking.createdAt,
+            // Job assignment specific fields
+            leadFee: assignment.leadFee,
+            assignmentStatus: assignment.status,
+            assignedDate: assignment.assignedDate,
+            isSelected: booking.installerId === installerId, // Whether customer has selected this installer
+          });
+        } catch (bookingError) {
+          console.error(`Error processing booking ${assignment.bookingId}:`, bookingError);
+        }
+      }
+
+      console.log(`Returning ${enhancedBookings.length} active bookings for installer ${installerId}`);
       res.json(enhancedBookings);
     } catch (error) {
       console.error("Error fetching installer bookings:", error);

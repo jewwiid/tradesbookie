@@ -1066,6 +1066,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
       case 'assigned': return 'bg-yellow-100 text-yellow-800';
       case 'in_progress': return 'bg-orange-100 text-orange-800';
       case 'completed': return 'bg-green-100 text-green-800';
+      case 'competing': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -1101,19 +1102,35 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     <div className="flex items-center space-x-2">
                       <h3 className="font-semibold text-lg">{booking.contactName}</h3>
                       <Badge className={getStatusColor(booking.status)}>
-                        {booking.status.replace('_', ' ')}
+                        {booking.status === 'competing' ? 'Bidding' : booking.status.replace('_', ' ')}
                       </Badge>
+                      {booking.isSelected && (
+                        <Badge className="bg-green-100 text-green-800">
+                          ✓ Selected
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2 text-gray-600">
                       <MapPin className="w-4 h-4" />
                       <span className="text-sm">{booking.address}</span>
                     </div>
+                    {booking.leadFee && (
+                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                        <Euro className="w-3 h-3" />
+                        <span>Lead fee: €{booking.leadFee}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="text-right space-y-1">
                     <div className="font-semibold text-green-600">{booking.estimatedTotal}</div>
                     {booking.createdAt && (
                       <div className="text-sm text-gray-500">
                         Created: {formatDate(booking.createdAt)}
+                      </div>
+                    )}
+                    {booking.status === 'competing' && (
+                      <div className="text-xs text-purple-600 font-medium">
+                        Multiple installers bidding
                       </div>
                     )}
                   </div>
@@ -1150,7 +1167,19 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                 {/* Messaging Section */}
                 <div className="border-t pt-4 space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="font-medium text-gray-900">Schedule Communication</h4>
+                    <div>
+                      <h4 className="font-medium text-gray-900">Schedule Communication</h4>
+                      {booking.status === 'competing' && (
+                        <p className="text-sm text-purple-600 mt-1">
+                          Send your best proposal to win this job
+                        </p>
+                      )}
+                      {booking.isSelected && (
+                        <p className="text-sm text-green-600 mt-1">
+                          Customer selected you! Coordinate the final details.
+                        </p>
+                      )}
+                    </div>
                     <ScheduleProposalForm
                       bookingId={booking.id}
                       installerId={installerId}

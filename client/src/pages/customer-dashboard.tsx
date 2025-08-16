@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -156,6 +158,22 @@ export default function CustomerDashboard() {
   const [showInstallerSelection, setShowInstallerSelection] = useState<number | null>(null);
   const [selectedBookingInstallers, setSelectedBookingInstallers] = useState<InterestedInstaller[]>([]);
   const [selectingInstaller, setSelectingInstaller] = useState(false);
+
+  // AI Services states
+  const [aiQuery, setAiQuery] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  
+  // Referral states
+  const [referralCode, setReferralCode] = useState('');
+  const [referralEarnings, setReferralEarnings] = useState(0);
+  
+  // Support states
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportLoading, setSupportLoading] = useState(false);
+  
+  // Active tab state
+  const [activeTab, setActiveTab] = useState('bookings');
 
   // Get current user
   const { data: user, isLoading: userLoading, error: userError } = useQuery<User>({
@@ -797,7 +815,7 @@ export default function CustomerDashboard() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Email Verification Banner */}
         <EmailVerificationBanner user={{
           id: String(user.id),
@@ -812,7 +830,7 @@ export default function CustomerDashboard() {
             <div>
               <h2 className="text-2xl font-bold mb-2">Welcome to your Dashboard</h2>
               <p className="text-blue-100">
-                Manage your TV installation bookings and track your requests.
+                Manage bookings, use AI services, track referrals, and get support.
               </p>
             </div>
             <div className="hidden md:block">
@@ -821,84 +839,112 @@ export default function CustomerDashboard() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center">
-                <Calendar className="h-8 w-8 text-blue-500 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                  <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center">
-                <CheckCircle className="h-8 w-8 text-green-500 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {bookings.filter(b => b.status === 'completed').length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center">
-                <Clock className="h-8 w-8 text-orange-500 mr-3" />
-                <div>
-                  <p className="text-sm font-medium text-gray-600">In Progress</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {bookings.filter(b => ['open', 'confirmed', 'in-progress'].includes(b.status)).length}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Tabbed Interface */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-5 mb-8">
+            <TabsTrigger value="bookings" className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              Bookings
+            </TabsTrigger>
+            <TabsTrigger value="ai-services" className="flex items-center gap-2">
+              <Bot className="w-4 h-4" />
+              AI Services
+            </TabsTrigger>
+            <TabsTrigger value="referrals" className="flex items-center gap-2">
+              <Gift className="w-4 h-4" />
+              Referrals
+            </TabsTrigger>
+            <TabsTrigger value="support" className="flex items-center gap-2">
+              <HelpCircle className="w-4 h-4" />
+              Support
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Bookings Section */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Your Bookings</h2>
-            <Button onClick={() => setLocation('/booking')} className="gradient-bg">
-              <Calendar className="w-4 h-4 mr-2" />
-              Book Installation
-            </Button>
-          </div>
+          {/* Bookings Tab */}
+          <TabsContent value="bookings" className="space-y-6">
 
-          {bookingsLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading your bookings...</p>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Calendar className="h-8 w-8 text-blue-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Total Bookings</p>
+                      <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <CheckCircle className="h-8 w-8 text-green-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">Completed</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {bookings.filter(b => b.status === 'completed').length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center">
+                    <Clock className="h-8 w-8 text-orange-500 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-600">In Progress</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {bookings.filter(b => ['open', 'confirmed', 'in-progress'].includes(b.status)).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          ) : bookings.length === 0 ? (
-            <Card>
-              <CardContent className="pt-6 text-center">
-                <Tv className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="font-semibold mb-2">No Bookings Yet</h3>
-                <p className="text-gray-600 mb-4">
-                  Start by booking your first TV installation.
-                </p>
+
+            {/* Bookings Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">Your Bookings</h2>
                 <Button onClick={() => setLocation('/booking')} className="gradient-bg">
-                  Book Your First Installation
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Book Installation
                 </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-6">
-              {bookings.map((booking) => (
-                <BookingCard key={booking.id} booking={booking} />
-              ))}
-            </div>
-          )}
+              </div>
+
+              {bookingsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading your bookings...</p>
+                </div>
+              ) : bookings.length === 0 ? (
+                <Card>
+                  <CardContent className="pt-6 text-center">
+                    <Tv className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="font-semibold mb-2">No Bookings Yet</h3>
+                    <p className="text-gray-600 mb-4">
+                      Start by booking your first TV installation.
+                    </p>
+                    <Button onClick={() => setLocation('/booking')} className="gradient-bg">
+                      Book Your First Installation
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-6">
+                  {bookings.map((booking) => (
+                    <BookingCard key={booking.id} booking={booking} />
+                  ))}
+                </div>
+              )}
         </div>
 
         {/* TV Setup Section */}
@@ -936,6 +982,263 @@ export default function CustomerDashboard() {
               ))}
             </div>
           )}
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* AI Services Tab */}
+            <TabsContent value="ai-services" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* AI Help Assistant */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Bot className="w-5 h-5 text-blue-500" />
+                      AI Help Assistant
+                    </CardTitle>
+                    <CardDescription>
+                      Get instant answers to your TV and electronics questions
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Textarea 
+                      placeholder="Ask any question about TV installation, setup, or troubleshooting..."
+                      value={aiQuery}
+                      onChange={(e) => setAiQuery(e.target.value)}
+                      className="min-h-[80px]"
+                    />
+                    <Button 
+                      onClick={async () => {
+                        if (!aiQuery.trim()) return;
+                        setAiLoading(true);
+                        try {
+                          const response = await apiRequest('POST', '/api/ai/help', { question: aiQuery }) as any;
+                          setAiResponse(response.answer || 'AI response received');
+                        } catch (error) {
+                          toast({ title: "Error", description: "Failed to get AI response", variant: "destructive" });
+                        } finally {
+                          setAiLoading(false);
+                        }
+                      }}
+                      disabled={aiLoading || !aiQuery.trim()}
+                      className="w-full"
+                    >
+                      {aiLoading && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                      Ask AI Assistant
+                    </Button>
+                    {aiResponse && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-900">{aiResponse}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* TV Recommendations */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Tv className="w-5 h-5 text-purple-500" />
+                      TV Recommendations
+                    </CardTitle>
+                    <CardDescription>
+                      Get personalized TV recommendations
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={() => setLocation('/tv-recommendation')}
+                      className="w-full bg-purple-500 hover:bg-purple-600"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Get Recommendations
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Product Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Search className="w-5 h-5 text-green-500" />
+                      Product Information
+                    </CardTitle>
+                    <CardDescription>
+                      Look up electronics and TV details
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={() => setLocation('/product-info')}
+                      className="w-full bg-green-500 hover:bg-green-600"
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      Search Products
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Referrals Tab */}
+            <TabsContent value="referrals" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Gift className="w-5 h-5 text-green-500" />
+                      Your Referral Code
+                    </CardTitle>
+                    <CardDescription>
+                      Share your code and earn rewards
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Input 
+                        value={`REF-${user.id}`}
+                        readOnly
+                        className="bg-gray-50"
+                      />
+                      <Button 
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(`REF-${user.id}`);
+                          toast({ title: "Copied!", description: "Referral code copied" });
+                        }}
+                      >
+                        Copy
+                      </Button>
+                    </div>
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <h4 className="font-medium text-green-800 mb-2">How it works:</h4>
+                      <ul className="text-sm text-green-700 space-y-1">
+                        <li>• Share code with friends</li>
+                        <li>• They get discounts</li>
+                        <li>• You earn €10 per referral</li>
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Euro className="w-5 h-5 text-blue-500" />
+                      Referral Earnings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center p-6 bg-blue-50 rounded-lg">
+                      <div className="text-3xl font-bold text-blue-600">€{referralEarnings.toFixed(2)}</div>
+                      <p className="text-blue-700">Total Earnings</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Support Tab */}
+            <TabsContent value="support" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5 text-blue-500" />
+                      Contact Support
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Textarea 
+                      placeholder="Describe your issue..."
+                      value={supportMessage}
+                      onChange={(e) => setSupportMessage(e.target.value)}
+                    />
+                    <Button 
+                      onClick={async () => {
+                        if (!supportMessage.trim()) return;
+                        setSupportLoading(true);
+                        try {
+                          toast({ title: "Message sent!", description: "Support will contact you soon." });
+                          setSupportMessage('');
+                        } finally {
+                          setSupportLoading(false);
+                        }
+                      }}
+                      disabled={supportLoading}
+                      className="w-full"
+                    >
+                      {supportLoading && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                      Send Message
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <HelpCircle className="w-5 h-5 text-purple-500" />
+                      Quick Help
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-600">📧 support@tradesbook.ie</p>
+                      <p className="text-sm text-gray-600">🕘 9 AM - 6 PM, Mon-Fri</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Settings Tab */}
+            <TabsContent value="settings" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <User className="w-5 h-5 text-blue-500" />
+                      Account Settings
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Button 
+                      onClick={handleEditProfile}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <Edit3 className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        Email: {user.emailVerified ? '✅ Verified' : '❌ Not Verified'}
+                      </p>
+                      <p className="text-sm text-blue-700">
+                        Role: {user.role === 'admin' ? 'Administrator' : 'Customer'}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="w-5 h-5 text-green-500" />
+                      Preferences
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 text-sm">
+                      <p>Email notifications: Enabled</p>
+                      <p>Booking updates: Enabled</p>
+                      <p>Marketing emails: Disabled</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 

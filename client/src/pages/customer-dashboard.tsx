@@ -1113,14 +1113,14 @@ export default function CustomerDashboard() {
                   <CardContent className="space-y-4">
                     <div className="flex items-center space-x-2">
                       <Input 
-                        value={`REF-${user.id}`}
+                        value={`TB${user.id}-${user.id.toString().slice(-6).toUpperCase()}`}
                         readOnly
                         className="bg-gray-50"
                       />
                       <Button 
                         size="sm"
                         onClick={() => {
-                          navigator.clipboard.writeText(`REF-${user.id}`);
+                          navigator.clipboard.writeText(`TB${user.id}-${user.id.toString().slice(-6).toUpperCase()}`);
                           toast({ title: "Copied!", description: "Referral code copied" });
                         }}
                       >

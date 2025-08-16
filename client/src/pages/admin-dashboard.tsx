@@ -61,7 +61,10 @@ import {
   Tv,
   BookOpen,
   CheckCircle,
-  Zap
+  Zap,
+  MailCheck,
+  UserCog,
+  Filter
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
@@ -5299,6 +5302,460 @@ function ReferralCodeForm({ code, onSubmit, onCancel, isLoading }: ReferralCodeF
 
 // REMOVED: CustomerResourcesManagement Component - consolidated into ResourcesManagement
 
+// Email Preferences Management Component
+function EmailPreferencesManagement() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [bulkEmailSubject, setBulkEmailSubject] = useState('');
+  const [bulkEmailMessage, setBulkEmailMessage] = useState('');
+  const [sendingBulkEmail, setSendingBulkEmail] = useState(false);
+  const [showBulkEmailDialog, setShowBulkEmailDialog] = useState(false);
+  const [emailType, setEmailType] = useState<'general' | 'booking' | 'marketing'>('general');
+
+  // Fetch users with their email preferences
+  const { data: usersWithPreferences = [], isLoading: loadingUsers } = useQuery({
+    queryKey: ['/api/admin/users-preferences'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/users-preferences', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch users');
+      return response.json();
+    }
+  });
+
+  // Fetch email preference statistics
+  const { data: preferenceStats, isLoading: loadingStats } = useQuery({
+    queryKey: ['/api/admin/email-preference-stats'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/email-preference-stats', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch stats');
+      return response.json();
+    }
+  });
+
+  // Update user preferences mutation
+  const updateUserPreferencesMutation = useMutation({
+    mutationFn: async ({ userId, preferences }: { userId: string, preferences: any }) => {
+      const response = await apiRequest(`/api/admin/users/${userId}/preferences`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preferences)
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast({ title: "User preferences updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users-preferences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/email-preference-stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update preferences",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Send bulk email mutation
+  const sendBulkEmailMutation = useMutation({
+    mutationFn: async ({ recipientIds, subject, message, emailType }: { 
+      recipientIds: string[], subject: string, message: string, emailType: string 
+    }) => {
+      const response = await apiRequest('/api/admin/send-bulk-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recipientIds, subject, message, emailType })
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: `Bulk email sent successfully`, 
+        description: `${data.sentCount} emails sent, ${data.skippedCount} skipped due to preferences`
+      });
+      setShowBulkEmailDialog(false);
+      setBulkEmailSubject('');
+      setBulkEmailMessage('');
+      setSelectedUsers([]);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send bulk email",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Filter users based on selected criteria
+  const filteredUsers = usersWithPreferences.filter((user: any) => {
+    const matchesSearch = searchQuery === '' || 
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.lastName?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    switch (selectedFilter) {
+      case 'email-notifications-enabled':
+        return user.emailNotifications === true;
+      case 'email-notifications-disabled':
+        return user.emailNotifications === false;
+      case 'booking-updates-enabled':
+        return user.bookingUpdates === true;
+      case 'booking-updates-disabled':
+        return user.bookingUpdates === false;
+      case 'marketing-enabled':
+        return user.marketingEmails === true;
+      case 'marketing-disabled':
+        return user.marketingEmails === false;
+      case 'all-opted-out':
+        return !user.emailNotifications && !user.bookingUpdates && !user.marketingEmails;
+      case 'verified-only':
+        return user.emailVerified === true;
+      case 'unverified-only':
+        return user.emailVerified === false;
+      default:
+        return true;
+    }
+  });
+
+  const handleToggleUserSelection = (userId: string) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedUsers.length === filteredUsers.length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(filteredUsers.map(user => user.id));
+    }
+  };
+
+  const handleSendBulkEmail = () => {
+    if (selectedUsers.length === 0) {
+      toast({
+        title: "No users selected",
+        description: "Please select at least one user to send the email to",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    sendBulkEmailMutation.mutate({
+      recipientIds: selectedUsers,
+      subject: bulkEmailSubject,
+      message: bulkEmailMessage,
+      emailType
+    });
+  };
+
+  if (loadingUsers || loadingStats) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="w-6 h-6 animate-spin mr-2" />
+        Loading email preferences...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Statistics Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <MailCheck className="w-5 h-5 mr-2" />
+            Email Preference Statistics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {preferenceStats?.emailNotifications?.enabled || 0}
+              </div>
+              <div className="text-sm text-green-700">Email Notifications On</div>
+            </div>
+            <div className="text-center p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {preferenceStats?.bookingUpdates?.enabled || 0}
+              </div>
+              <div className="text-sm text-blue-700">Booking Updates On</div>
+            </div>
+            <div className="text-center p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">
+                {preferenceStats?.marketingEmails?.enabled || 0}
+              </div>
+              <div className="text-sm text-purple-700">Marketing Emails On</div>
+            </div>
+            <div className="text-center p-4 bg-red-50 dark:bg-red-950/20 rounded-lg">
+              <div className="text-2xl font-bold text-red-600">
+                {preferenceStats?.allOptedOut || 0}
+              </div>
+              <div className="text-sm text-red-700">All Opted Out</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Filters and Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Filter className="w-5 h-5 mr-2" />
+            Filter & Search Users
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Input
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="flex-1">
+              <Select value={selectedFilter} onValueChange={setSelectedFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter users..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Users</SelectItem>
+                  <SelectItem value="verified-only">Email Verified Only</SelectItem>
+                  <SelectItem value="unverified-only">Email Unverified Only</SelectItem>
+                  <SelectItem value="email-notifications-enabled">Email Notifications: ON</SelectItem>
+                  <SelectItem value="email-notifications-disabled">Email Notifications: OFF</SelectItem>
+                  <SelectItem value="booking-updates-enabled">Booking Updates: ON</SelectItem>
+                  <SelectItem value="booking-updates-disabled">Booking Updates: OFF</SelectItem>
+                  <SelectItem value="marketing-enabled">Marketing Emails: ON</SelectItem>
+                  <SelectItem value="marketing-disabled">Marketing Emails: OFF</SelectItem>
+                  <SelectItem value="all-opted-out">All Communications: OFF</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          {/* Bulk Actions */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAll}
+              >
+                {selectedUsers.length === filteredUsers.length ? 'Deselect All' : 'Select All'}
+              </Button>
+              {selectedUsers.length > 0 && (
+                <span className="text-sm text-gray-600">
+                  {selectedUsers.length} users selected
+                </span>
+              )}
+            </div>
+            <Button
+              onClick={() => setShowBulkEmailDialog(true)}
+              disabled={selectedUsers.length === 0}
+              className="flex items-center space-x-2"
+            >
+              <Send className="w-4 h-4" />
+              <span>Send Bulk Email</span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Users Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center">
+              <UserCog className="w-5 h-5 mr-2" />
+              User Email Preferences ({filteredUsers.length})
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Select</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Email Status</TableHead>
+                  <TableHead>General</TableHead>
+                  <TableHead>Booking</TableHead>
+                  <TableHead>Marketing</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredUsers.map((user: any) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => handleToggleUserSelection(user.id)}
+                        className="rounded border-gray-300"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {user.firstName && user.lastName 
+                            ? `${user.firstName} ${user.lastName}`
+                            : user.email
+                          }
+                        </div>
+                        <div className="text-sm text-gray-500">{user.email}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={user.emailVerified ? "default" : "secondary"}>
+                        {user.emailVerified ? "Verified" : "Unverified"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={user.emailNotifications ?? true}
+                        onCheckedChange={(checked) => {
+                          updateUserPreferencesMutation.mutate({
+                            userId: user.id,
+                            preferences: { emailNotifications: checked }
+                          });
+                        }}
+                        disabled={updateUserPreferencesMutation.isPending}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={user.bookingUpdates ?? true}
+                        onCheckedChange={(checked) => {
+                          updateUserPreferencesMutation.mutate({
+                            userId: user.id,
+                            preferences: { bookingUpdates: checked }
+                          });
+                        }}
+                        disabled={updateUserPreferencesMutation.isPending}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={user.marketingEmails ?? false}
+                        onCheckedChange={(checked) => {
+                          updateUserPreferencesMutation.mutate({
+                            userId: user.id,
+                            preferences: { marketingEmails: checked }
+                          });
+                        }}
+                        disabled={updateUserPreferencesMutation.isPending}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setSelectedUsers([user.id]);
+                          setEmailType('general');
+                          setShowBulkEmailDialog(true);
+                        }}
+                      >
+                        <Mail className="w-4 h-4 mr-1" />
+                        Email
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Bulk Email Dialog */}
+      <Dialog open={showBulkEmailDialog} onOpenChange={setShowBulkEmailDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Send Bulk Email</DialogTitle>
+            <DialogDescription>
+              Send an email to {selectedUsers.length} selected user(s). 
+              The system will respect individual user preferences and skip users who have opted out.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Email Type</Label>
+              <Select value={emailType} onValueChange={(value: any) => setEmailType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General Notifications</SelectItem>
+                  <SelectItem value="booking">Booking Updates</SelectItem>
+                  <SelectItem value="marketing">Marketing/Promotional</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="text-xs text-gray-500 mt-1">
+                Users who have opted out of this email type will not receive the message
+              </div>
+            </div>
+            <div>
+              <Label>Subject</Label>
+              <Input
+                placeholder="Enter email subject..."
+                value={bulkEmailSubject}
+                onChange={(e) => setBulkEmailSubject(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Message</Label>
+              <Textarea
+                placeholder="Enter your email message..."
+                value={bulkEmailMessage}
+                onChange={(e) => setBulkEmailMessage(e.target.value)}
+                rows={6}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowBulkEmailDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSendBulkEmail}
+                disabled={!bulkEmailSubject || !bulkEmailMessage || sendBulkEmailMutation.isPending}
+              >
+                {sendBulkEmailMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
+                Send Email
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 // Platform Settings Management Component
 function PlatformSettingsManagement() {
   const { toast } = useToast();
@@ -5950,6 +6407,10 @@ export default function AdminDashboard() {
               <Mail className="w-4 h-4" />
               <span>Email Templates</span>
             </TabsTrigger>
+            <TabsTrigger value="email-preferences" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <MailCheck className="w-4 h-4" />
+              <span>Email Preferences</span>
+            </TabsTrigger>
             <TabsTrigger value="resources" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <BookOpen className="w-4 h-4" />
               <span>Resource Management</span>
@@ -6034,6 +6495,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="emails" className="space-y-6">
             <EmailTemplateManagement />
+          </TabsContent>
+
+          <TabsContent value="email-preferences" className="space-y-6">
+            <EmailPreferencesManagement />
           </TabsContent>
 
           <TabsContent value="resources" className="space-y-6">

@@ -1070,6 +1070,229 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Admin: Get all users with their email preferences
+  app.get("/api/admin/users-preferences", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session?.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      // Check if user is admin
+      const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      if (!user[0] || user[0].role !== 'admin') {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const allUsers = await db.select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        emailVerified: users.emailVerified,
+        emailNotifications: users.emailNotifications,
+        bookingUpdates: users.bookingUpdates,
+        marketingEmails: users.marketingEmails,
+        createdAt: users.createdAt,
+        registrationMethod: users.registrationMethod
+      }).from(users).orderBy(desc(users.createdAt));
+
+      res.json(allUsers);
+    } catch (error) {
+      console.error('Error fetching users with preferences:', error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Admin: Get email preference statistics
+  app.get("/api/admin/email-preference-stats", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.session?.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      // Check if user is admin
+      const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      if (!user[0] || user[0].role !== 'admin') {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const allUsers = await db.select({
+        emailNotifications: users.emailNotifications,
+        bookingUpdates: users.bookingUpdates,
+        marketingEmails: users.marketingEmails
+      }).from(users);
+
+      const stats = {
+        emailNotifications: {
+          enabled: allUsers.filter(u => u.emailNotifications === true).length,
+          disabled: allUsers.filter(u => u.emailNotifications === false).length
+        },
+        bookingUpdates: {
+          enabled: allUsers.filter(u => u.bookingUpdates === true).length,
+          disabled: allUsers.filter(u => u.bookingUpdates === false).length
+        },
+        marketingEmails: {
+          enabled: allUsers.filter(u => u.marketingEmails === true).length,
+          disabled: allUsers.filter(u => u.marketingEmails === false).length
+        },
+        allOptedOut: allUsers.filter(u => 
+          u.emailNotifications === false && 
+          u.bookingUpdates === false && 
+          u.marketingEmails === false
+        ).length,
+        totalUsers: allUsers.length
+      };
+
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching email preference stats:', error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Admin: Update user preferences
+  app.patch("/api/admin/users/:userId/preferences", isAuthenticated, async (req, res) => {
+    try {
+      const adminUserId = req.session?.user?.id;
+      if (!adminUserId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      // Check if user is admin
+      const adminUser = await db.select().from(users).where(eq(users.id, adminUserId)).limit(1);
+      if (!adminUser[0] || adminUser[0].role !== 'admin') {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const { userId } = req.params;
+      const preferences = req.body;
+      
+      // Update user preferences in the database
+      await db.update(users)
+        .set({
+          ...preferences,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      res.json({ 
+        message: "User preferences updated successfully",
+        userId,
+        preferences
+      });
+    } catch (error) {
+      console.error('Error updating user preferences:', error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Admin: Send bulk email with preference filtering
+  app.post("/api/admin/send-bulk-email", isAuthenticated, async (req, res) => {
+    try {
+      const adminUserId = req.session?.user?.id;
+      if (!adminUserId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      // Check if user is admin
+      const adminUser = await db.select().from(users).where(eq(users.id, adminUserId)).limit(1);
+      if (!adminUser[0] || adminUser[0].role !== 'admin') {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const { recipientIds, subject, message, emailType } = req.body;
+
+      if (!recipientIds || !Array.isArray(recipientIds) || recipientIds.length === 0) {
+        return res.status(400).json({ error: "Recipient IDs are required" });
+      }
+
+      if (!subject || !message) {
+        return res.status(400).json({ error: "Subject and message are required" });
+      }
+
+      // Fetch recipient users with their preferences
+      const recipients = await db.select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        emailNotifications: users.emailNotifications,
+        bookingUpdates: users.bookingUpdates,
+        marketingEmails: users.marketingEmails
+      }).from(users);
+
+      // Filter recipients based on their preferences and email type
+      const filteredRecipients = recipients.filter(user => {
+        if (!recipientIds.includes(user.id)) return false;
+        
+        // Check if user has opted in for this email type
+        switch (emailType) {
+          case 'general':
+            return user.emailNotifications !== false; // Default to true if null
+          case 'booking':
+            return user.bookingUpdates !== false; // Default to true if null
+          case 'marketing':
+            return user.marketingEmails === true; // Default to false if null
+          default:
+            return true;
+        }
+      });
+
+      let sentCount = 0;
+      let errorCount = 0;
+
+      // Send emails to filtered recipients
+      for (const recipient of filteredRecipients) {
+        try {
+          const displayName = recipient.firstName && recipient.lastName 
+            ? `${recipient.firstName} ${recipient.lastName}`
+            : recipient.email.split('@')[0];
+
+          const personalizedMessage = message.replace(/\{name\}/g, displayName);
+          
+          await sendGmailEmail({
+            to: recipient.email,
+            subject: subject,
+            html: `
+              <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #2563eb;">TradesBook</h2>
+                <p>Hello ${displayName},</p>
+                <div style="margin: 20px 0;">
+                  ${personalizedMessage.replace(/\n/g, '<br>')}
+                </div>
+                <hr style="margin: 30px 0; border: 1px solid #eee;">
+                <p style="font-size: 12px; color: #666;">
+                  This email was sent to ${recipient.email} as part of our ${emailType} communications. 
+                  You can manage your email preferences in your account dashboard.
+                </p>
+              </div>
+            `
+          });
+          
+          sentCount++;
+        } catch (emailError) {
+          console.error(`Failed to send email to ${recipient.email}:`, emailError);
+          errorCount++;
+        }
+      }
+
+      const skippedCount = recipientIds.length - filteredRecipients.length;
+
+      res.json({ 
+        message: "Bulk email sent successfully",
+        sentCount,
+        skippedCount,
+        errorCount,
+        totalRecipients: recipientIds.length
+      });
+    } catch (error) {
+      console.error('Error sending bulk email:', error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Email verification endpoints
   app.post("/api/auth/send-verification", async (req, res) => {
     try {

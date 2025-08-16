@@ -84,12 +84,38 @@ export async function sendVerificationEmail(
     </html>
   `;
 
+  const emailText = `Hello ${firstName}!
+
+Thank you for creating an account with tradesbook.ie. To complete your registration and start using our AI-powered TV installation booking service, please verify your email address.
+
+Verify your email by clicking this link:
+${verificationUrl}
+
+What happens after verification?
+✅ Unlimited AI room visualizations
+✅ Complete booking and payment process  
+✅ Booking history & QR tracking
+✅ Priority customer support
+✅ Exclusive discounts & referral rewards
+
+This verification link will expire in 24 hours.
+
+If you didn't create an account with us, please ignore this email.
+
+Best regards,
+The tradesbook.ie Team
+
+© 2025 tradesbook.ie - Professional TV Installation Services
+Contact Support: support@tradesbook.ie`;
+
   try {
     return await sendGmailEmail({
       to: email,
-      subject: 'Verify Your Email - Welcome to tradesbook.ie',
+      subject: 'Please verify your tradesbook.ie account',
       html: emailHtml,
-      from: 'noreply@tradesbook.ie'
+      text: emailText,
+      from: 'admin@tradesbook.ie',
+      replyTo: 'support@tradesbook.ie'
     });
   } catch (error) {
     console.error('Error sending verification email:', error);

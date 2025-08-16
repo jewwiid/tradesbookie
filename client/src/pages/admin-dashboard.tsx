@@ -85,6 +85,7 @@ import TvSetupManagement from "@/components/admin/TvSetupManagement";
 import DownloadableGuidesManagement from "@/components/admin/DownloadableGuidesManagement";
 import VideoTutorialsManagement from "@/components/admin/VideoTutorialsManagement";
 import StoreManagement from "@/components/admin/StoreManagement";
+import AiToolsManagement from "@/components/admin/AiToolsManagement";
 
 interface AdminStats {
   totalBookings: number;
@@ -6415,6 +6416,10 @@ export default function AdminDashboard() {
               <BookOpen className="w-4 h-4" />
               <span>Resource Management</span>
             </TabsTrigger>
+            <TabsTrigger value="ai-tools" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+              <Zap className="w-4 h-4" />
+              <span>AI Tools</span>
+            </TabsTrigger>
             <TabsTrigger value="fraud-prevention" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
               <Shield className="w-4 h-4" />
               <span>Fraud Prevention</span>
@@ -6534,6 +6539,10 @@ export default function AdminDashboard() {
               {/* Unified Resource Management Component */}
               <ResourcesManagement />
             </div>
+          </TabsContent>
+
+          <TabsContent value="ai-tools" className="space-y-6">
+            <AiToolsManagement />
           </TabsContent>
 
           <TabsContent value="fraud-prevention" className="space-y-6">

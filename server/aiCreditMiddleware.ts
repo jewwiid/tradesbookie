@@ -1,7 +1,63 @@
 import type { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 
-// AI Feature names for tracking
+// Dynamic AI tools cache
+let aiToolsCache: Map<string, { creditCost: number; isActive: boolean }> = new Map();
+let lastCacheUpdate = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Function to load AI tools from database
+async function loadAiTools(): Promise<Map<string, { creditCost: number; isActive: boolean }>> {
+  const now = Date.now();
+  
+  // Return cache if still valid
+  if (now - lastCacheUpdate < CACHE_DURATION && aiToolsCache.size > 0) {
+    return aiToolsCache;
+  }
+  
+  try {
+    const tools = await storage.getActiveAiTools();
+    const toolsMap = new Map();
+    
+    tools.forEach((tool: any) => {
+      toolsMap.set(tool.key, {
+        creditCost: tool.creditCost || 1,
+        isActive: tool.isActive
+      });
+    });
+    
+    aiToolsCache = toolsMap;
+    lastCacheUpdate = now;
+    
+    return toolsMap;
+  } catch (error) {
+    console.error('Error loading AI tools from database:', error);
+    // Return empty map if database query fails
+    return new Map();
+  }
+}
+
+/**
+ * Clear the AI tools cache - call this when tools are updated in admin
+ */
+export function clearAiToolsCache(): void {
+  aiToolsCache.clear();
+  lastCacheUpdate = 0;
+}
+
+/**
+ * Get all available AI tools (with caching)
+ */
+export async function getAvailableAiTools(): Promise<Array<{ key: string; creditCost: number; isActive: boolean }>> {
+  const toolsMap = await loadAiTools();
+  return Array.from(toolsMap.entries()).map(([key, config]) => ({
+    key,
+    creditCost: config.creditCost,
+    isActive: config.isActive
+  }));
+}
+
+// Legacy constants for backward compatibility
 export const AI_FEATURES = {
   TV_PREVIEW: 'tv-preview',
   PRODUCT_CARE: 'product-care',
@@ -9,16 +65,6 @@ export const AI_FEATURES = {
   PRODUCT_INFO: 'product-info',
   EMAIL_TEMPLATE: 'email-template',
   TV_COMPARISON: 'tv-comparison'
-} as const;
-
-// Credit costs per AI feature (in credits)
-export const AI_CREDIT_COSTS = {
-  [AI_FEATURES.TV_PREVIEW]: 1,
-  [AI_FEATURES.PRODUCT_CARE]: 1,
-  [AI_FEATURES.FAQ]: 1,
-  [AI_FEATURES.PRODUCT_INFO]: 1,
-  [AI_FEATURES.EMAIL_TEMPLATE]: 1,
-  [AI_FEATURES.TV_COMPARISON]: 1
 } as const;
 
 // Free usage limits per feature (3 free uses as requested)
@@ -45,7 +91,20 @@ export function checkAiCredits(aiFeature: string) {
       const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
       const userId = isAuthenticated ? (req as any).user?.id : null;
       const sessionId = req.sessionID || req.headers['x-session-id'] as string || 'anonymous';
-      const creditCost = AI_CREDIT_COSTS[aiFeature as keyof typeof AI_CREDIT_COSTS] || 1;
+      
+      // Load AI tools from database
+      const aiTools = await loadAiTools();
+      const toolConfig = aiTools.get(aiFeature);
+      
+      // Check if AI tool exists and is active
+      if (!toolConfig || !toolConfig.isActive) {
+        return res.status(404).json({
+          error: 'AI feature not available',
+          message: `The AI feature '${aiFeature}' is not currently available.`
+        });
+      }
+      
+      const creditCost = toolConfig.creditCost;
 
       // Check free usage limit
       const freeUsageCheck = await storage.checkAiFreeUsageLimit(userId, sessionId, aiFeature, FREE_USAGE_LIMIT);
@@ -144,6 +203,14 @@ export async function recordAiUsage(req: AIRequest): Promise<void> {
 
   const { userId, sessionId, aiFeature, canUseFree, creditCost } = req.aiUsage;
   const isPaidRequest = !canUseFree;
+  
+  // Verify tool is still active (in case it was disabled during request)
+  const aiTools = await loadAiTools();
+  const toolConfig = aiTools.get(aiFeature);
+  if (!toolConfig || !toolConfig.isActive) {
+    console.warn(`AI tool '${aiFeature}' is no longer active, skipping usage recording`);
+    return;
+  }
 
   try {
     // Record usage

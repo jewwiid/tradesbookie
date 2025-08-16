@@ -5,7 +5,7 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 import { 
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
-  insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers
+  insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, insertAiToolSchema, users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -97,7 +97,7 @@ import { analyzeProductCare } from "./productCareAnalysisService";
 import { QRCodeService } from "./qrCodeService";
 import { generateEmailTemplate, getPresetTemplate, getAllPresetTemplates } from "./aiEmailTemplateService";
 import { AIContentService } from "./services/aiContentService";
-import { checkAiCredits, recordAiUsage, AI_FEATURES, type AIRequest } from "./aiCreditMiddleware";
+import { checkAiCredits, recordAiUsage, AI_FEATURES, clearAiToolsCache, type AIRequest } from "./aiCreditMiddleware";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -13806,6 +13806,67 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         page: 1,
         hasMore: false
       });
+    }
+  });
+
+  // AI Tools Management API Endpoints
+  app.get("/api/admin/ai-tools", isAdmin, async (req, res) => {
+    try {
+      const tools = await storage.getAllAiTools();
+      res.json(tools);
+    } catch (error) {
+      console.error('Error fetching AI tools:', error);
+      res.status(500).json({ error: 'Failed to fetch AI tools' });
+    }
+  });
+
+  app.post("/api/admin/ai-tools", isAdmin, async (req, res) => {
+    try {
+      const toolData = insertAiToolSchema.parse(req.body);
+      const newTool = await storage.createAiTool(toolData);
+      clearAiToolsCache(); // Clear cache so new tool is available immediately
+      res.json(newTool);
+    } catch (error) {
+      console.error('Error creating AI tool:', error);
+      res.status(500).json({ error: 'Failed to create AI tool' });
+    }
+  });
+
+  app.put("/api/admin/ai-tools/:id", isAdmin, async (req, res) => {
+    try {
+      const toolId = parseInt(req.params.id);
+      const updates = insertAiToolSchema.partial().parse(req.body);
+      const updatedTool = await storage.updateAiTool(toolId, updates);
+      clearAiToolsCache(); // Clear cache so updates are reflected immediately
+      res.json(updatedTool);
+    } catch (error) {
+      console.error('Error updating AI tool:', error);
+      res.status(500).json({ error: 'Failed to update AI tool' });
+    }
+  });
+
+  app.patch("/api/admin/ai-tools/:id/status", isAdmin, async (req, res) => {
+    try {
+      const toolId = parseInt(req.params.id);
+      const { isActive } = req.body;
+      await storage.updateAiToolStatus(toolId, isActive);
+      clearAiToolsCache(); // Clear cache so status changes are reflected immediately
+      res.json({ success: true, message: 'AI tool status updated' });
+    } catch (error) {
+      console.error('Error updating AI tool status:', error);
+      res.status(500).json({ error: 'Failed to update AI tool status' });
+    }
+  });
+
+  app.delete("/api/admin/ai-tools/:id", isAdmin, async (req, res) => {
+    try {
+      const toolId = parseInt(req.params.id);
+      await storage.deleteAiTool(toolId);
+      clearAiToolsCache(); // Clear cache so deleted tool is no longer available
+      res.json({ success: true, message: 'AI tool deleted' });
+    } catch (error) {
+      console.error('Error deleting AI tool:', error);
+      res.status(500).json({ error: 'Failed to delete AI tool' });
     }
   });
 

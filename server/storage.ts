@@ -8,7 +8,7 @@ import {
   consultations, downloadableGuides, videoTutorials, productCategories,
   qrCodeScans, aiProductRecommendations, choiceFlowTracking,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics, retailerInvoices,
-  installerServiceAssignments, customerWallets, customerTransactions, supportTickets, ticketMessages, aiUsageTracking,
+  installerServiceAssignments, customerWallets, customerTransactions, supportTickets, ticketMessages, aiUsageTracking, aiTools,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -48,6 +48,7 @@ import {
   type OnboardingInvitation, type InsertOnboardingInvitation,
   type TradesPersonEmailTemplate, type InsertTradesPersonEmailTemplate,
   type SelectServiceType, type InsertServiceType,
+  type AiTool, type InsertAiTool,
   type SelectServiceMetrics, type InsertServiceMetrics,
   type InstallerServiceAssignment, type InsertInstallerServiceAssignment
 } from "@shared/schema";
@@ -435,6 +436,16 @@ export interface IStorage {
     retailerCode?: string | null;
     isUsedForRegistration?: boolean;
   }): Promise<any>;
+
+  // AI Tools management operations
+  getAllAiTools(): Promise<AiTool[]>;
+  getActiveAiTools(): Promise<AiTool[]>;
+  getAiTool(id: number): Promise<AiTool | undefined>;
+  getAiToolByKey(key: string): Promise<AiTool | undefined>;
+  createAiTool(tool: InsertAiTool): Promise<AiTool>;
+  updateAiTool(id: number, updates: Partial<InsertAiTool>): Promise<AiTool>;
+  deleteAiTool(id: number): Promise<void>;
+  updateAiToolStatus(id: number, isActive: boolean): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3167,6 +3178,57 @@ export class DatabaseStorage implements IStorage {
       isUsedForRegistration: invoiceData.isUsedForRegistration || false
     }).returning();
     return newInvoice;
+  }
+
+  // AI Tools management operations
+  async getAllAiTools(): Promise<AiTool[]> {
+    return await db.select().from(aiTools).orderBy(aiTools.name);
+  }
+
+  async getActiveAiTools(): Promise<AiTool[]> {
+    return await db.select().from(aiTools).where(eq(aiTools.isActive, true)).orderBy(aiTools.name);
+  }
+
+  async getAiTool(id: number): Promise<AiTool | undefined> {
+    const [tool] = await db.select().from(aiTools).where(eq(aiTools.id, id));
+    return tool;
+  }
+
+  async getAiToolByKey(key: string): Promise<AiTool | undefined> {
+    const [tool] = await db.select().from(aiTools).where(eq(aiTools.key, key));
+    return tool;
+  }
+
+  async createAiTool(tool: InsertAiTool): Promise<AiTool> {
+    const [newTool] = await db.insert(aiTools).values({
+      key: tool.key,
+      name: tool.name,
+      description: tool.description,
+      creditCost: tool.creditCost || 1,
+      isActive: tool.isActive ?? true,
+      iconName: tool.iconName || 'Zap',
+      category: tool.category || 'general',
+      endpoint: tool.endpoint
+    }).returning();
+    return newTool;
+  }
+
+  async updateAiTool(id: number, updates: Partial<InsertAiTool>): Promise<AiTool> {
+    const [updatedTool] = await db.update(aiTools)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(aiTools.id, id))
+      .returning();
+    return updatedTool;
+  }
+
+  async deleteAiTool(id: number): Promise<void> {
+    await db.delete(aiTools).where(eq(aiTools.id, id));
+  }
+
+  async updateAiToolStatus(id: number, isActive: boolean): Promise<void> {
+    await db.update(aiTools)
+      .set({ isActive, updatedAt: new Date() })
+      .where(eq(aiTools.id, id));
   }
 }
 

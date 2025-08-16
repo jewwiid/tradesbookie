@@ -335,13 +335,28 @@ export const customerWallets = pgTable("customer_wallets", {
 export const customerTransactions = pgTable("customer_transactions", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id").references(() => users.id).notNull(),
-  type: text("type").notNull(), // 'credit_purchase', 'booking_payment', 'refund', 'referral_earning'
+  type: text("type").notNull(), // 'credit_purchase', 'booking_payment', 'refund', 'referral_earning', 'ai_usage'
   amount: decimal("amount", { precision: 8, scale: 2 }).notNull(),
   description: text("description").notNull(),
   bookingId: integer("booking_id").references(() => bookings.id), // If related to booking
   paymentIntentId: text("payment_intent_id"), // Stripe payment ID
   status: text("status").default("completed"), // completed, pending, failed
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// AI Tools Management
+export const aiTools = pgTable("ai_tools", {
+  id: serial("id").primaryKey(),
+  key: varchar("key").unique().notNull(), // 'tv-preview', 'product-care', etc.
+  name: varchar("name").notNull(),
+  description: text("description").notNull(),
+  creditCost: integer("credit_cost").default(1),
+  isActive: boolean("is_active").default(true),
+  iconName: varchar("icon_name").default("Zap"), // Lucide icon name
+  category: varchar("category").default("general"), // general, tv, product, etc.
+  endpoint: varchar("endpoint"), // API endpoint for this tool
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Support tickets system
@@ -2024,6 +2039,12 @@ export const insertAiUsageTrackingSchema = createInsertSchema(aiUsageTracking).o
   updatedAt: true,
 });
 
+export const insertAiToolSchema = createInsertSchema(aiTools).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Support ticket types
 export type SupportTicket = typeof supportTickets.$inferSelect;
 export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
@@ -2031,3 +2052,5 @@ export type TicketMessage = typeof ticketMessages.$inferSelect;
 export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;
 export type AiUsageTracking = typeof aiUsageTracking.$inferSelect;
 export type InsertAiUsageTracking = z.infer<typeof insertAiUsageTrackingSchema>;
+export type AiTool = typeof aiTools.$inferSelect;
+export type InsertAiTool = z.infer<typeof insertAiToolSchema>;

@@ -1073,17 +1073,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin: Get all users with their email preferences
   app.get("/api/admin/users-preferences", isAuthenticated, async (req, res) => {
     try {
+      console.log('GET /api/admin/users-preferences - Starting request');
       const userId = req.session?.user?.id;
+      console.log('GET /api/admin/users-preferences - User ID:', userId);
+      
       if (!userId) {
+        console.log('GET /api/admin/users-preferences - No user ID found');
         return res.status(401).json({ error: "Authentication required" });
       }
 
       // Check if user is admin
+      console.log('GET /api/admin/users-preferences - Checking admin status');
       const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      console.log('GET /api/admin/users-preferences - User found:', user[0] ? { id: user[0].id, email: user[0].email, role: user[0].role } : 'No user');
+      
       if (!user[0] || user[0].role !== 'admin') {
+        console.log('GET /api/admin/users-preferences - Access denied for non-admin');
         return res.status(403).json({ error: "Admin access required" });
       }
 
+      console.log('GET /api/admin/users-preferences - Fetching all users with preferences');
       const allUsers = await db.select({
         id: users.id,
         email: users.email,
@@ -1097,6 +1106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         registrationMethod: users.registrationMethod
       }).from(users).orderBy(desc(users.createdAt));
 
+      console.log('GET /api/admin/users-preferences - Found users count:', allUsers.length);
       res.json(allUsers);
     } catch (error) {
       console.error('Error fetching users with preferences:', error);

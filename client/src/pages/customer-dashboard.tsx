@@ -288,7 +288,6 @@ export default function CustomerDashboard() {
   };
 
   const handleEditProfile = () => {
-    console.log('Edit Profile clicked, user:', user);
     if (user) {
       setProfileData({
         firstName: user.firstName || '',
@@ -297,9 +296,7 @@ export default function CustomerDashboard() {
         phone: user.phone || ''
       });
       setShowProfileEdit(true);
-      console.log('Profile edit dialog should open');
     } else {
-      console.log('User object is undefined/null');
       // Try to open dialog anyway with empty data
       setProfileData({
         firstName: '',
@@ -1913,12 +1910,8 @@ export default function CustomerDashboard() {
           </Tabs>
         </div>
       </div>
-    );
-
-    return (
-      <div>
+      
       {/* Profile Edit Dialog */}
-      {console.log('Rendering dialog, showProfileEdit state:', showProfileEdit)}
       <Dialog open={showProfileEdit} onOpenChange={setShowProfileEdit}>
         <DialogContent className="max-w-md" style={{ zIndex: 9999 }}>
           <DialogHeader>
@@ -1949,31 +1942,29 @@ export default function CustomerDashboard() {
               </div>
             </div>
             <div>
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
-                type="email"
                 value={profileData.email}
                 onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="Enter email address"
+                placeholder="Enter email"
+                disabled
               />
             </div>
             <div>
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
-                type="tel"
                 value={profileData.phone}
                 onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
-                placeholder="+353 1 234 5678"
+                placeholder="Enter phone number"
               />
             </div>
-            <div className="flex space-x-3 pt-4">
+            <div className="flex space-x-2 pt-4">
               <Button 
                 variant="outline" 
                 className="flex-1"
                 onClick={() => setShowProfileEdit(false)}
-                disabled={editingProfile}
               >
                 <X className="w-4 h-4 mr-2" />
                 Cancel
@@ -1991,8 +1982,7 @@ export default function CustomerDashboard() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    );
 }
 
 // TV Setup Card Component

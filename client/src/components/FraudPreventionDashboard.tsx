@@ -313,27 +313,27 @@ export default function FraudPreventionDashboard() {
                     <span>Phone Verified</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-24 bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${customerVerificationData?.phoneVerified || 0}%` }}></div>
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${customerVerificationData?.phoneVerified?.percentage || 0}%` }}></div>
                       </div>
-                      <span className="text-sm text-gray-600">{customerVerificationData?.phoneVerified || 0}%</span>
+                      <span className="text-sm text-gray-600">{customerVerificationData?.phoneVerified?.percentage || 0}%</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Email Verified</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-24 bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${customerVerificationData?.emailVerified || 0}%` }}></div>
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${customerVerificationData?.emailVerified?.percentage || 0}%` }}></div>
                       </div>
-                      <span className="text-sm text-gray-600">{customerVerificationData?.emailVerified || 0}%</span>
+                      <span className="text-sm text-gray-600">{customerVerificationData?.emailVerified?.percentage || 0}%</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Identity Verified</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-24 bg-gray-200 rounded-full h-2">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${customerVerificationData?.identityVerified || 0}%` }}></div>
+                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${customerVerificationData?.identityVerified?.percentage || 0}%` }}></div>
                       </div>
-                      <span className="text-sm text-gray-600">{customerVerificationData?.identityVerified || 0}%</span>
+                      <span className="text-sm text-gray-600">{customerVerificationData?.identityVerified?.percentage || 0}%</span>
                     </div>
                   </div>
                 </div>
@@ -351,21 +351,21 @@ export default function FraudPreventionDashboard() {
                       <div className="w-3 h-3 bg-green-500 rounded"></div>
                       <span>Low Risk</span>
                     </div>
-                    <span className="font-medium">{riskDistributionData?.lowRisk || 0}%</span>
+                    <span className="font-medium">{riskDistributionData?.lowRisk?.percentage || 0}%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-yellow-500 rounded"></div>
                       <span>Medium Risk</span>
                     </div>
-                    <span className="font-medium">{riskDistributionData?.mediumRisk || 0}%</span>
+                    <span className="font-medium">{riskDistributionData?.mediumRisk?.percentage || 0}%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-red-500 rounded"></div>
                       <span>High Risk</span>
                     </div>
-                    <span className="font-medium">{riskDistributionData?.highRisk || 0}%</span>
+                    <span className="font-medium">{riskDistributionData?.highRisk?.percentage || 0}%</span>
                   </div>
                 </div>
               </CardContent>

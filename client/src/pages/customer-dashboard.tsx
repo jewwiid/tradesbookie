@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -174,6 +174,16 @@ export default function CustomerDashboard() {
   
   // Active tab state
   const [activeTab, setActiveTab] = useState('bookings');
+  
+  // Messaging states
+  const [messageText, setMessageText] = useState('');
+  const [selectedInstaller, setSelectedInstaller] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  
+  // Wallet states
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [topUpAmount, setTopUpAmount] = useState('');
+  const [topUpLoading, setTopUpLoading] = useState(false);
 
   // Get current user
   const { data: user, isLoading: userLoading, error: userError } = useQuery<User>({
@@ -841,7 +851,7 @@ export default function CustomerDashboard() {
 
         {/* Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-7 mb-8">
             <TabsTrigger value="bookings" className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
               Bookings
@@ -853,6 +863,14 @@ export default function CustomerDashboard() {
             <TabsTrigger value="referrals" className="flex items-center gap-2">
               <Gift className="w-4 h-4" />
               Referrals
+            </TabsTrigger>
+            <TabsTrigger value="messaging" className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Messages
+            </TabsTrigger>
+            <TabsTrigger value="wallet" className="flex items-center gap-2">
+              <Wallet className="w-4 h-4" />
+              Wallet
             </TabsTrigger>
             <TabsTrigger value="support" className="flex items-center gap-2">
               <HelpCircle className="w-4 h-4" />
@@ -941,7 +959,7 @@ export default function CustomerDashboard() {
               ) : (
                 <div className="grid gap-6">
                   {bookings.map((booking) => (
-                    <BookingCard key={booking.id} booking={booking} />
+                    <BookingCard key={booking.id} booking={booking} onViewInstallers={handleViewInstallers} />
                   ))}
                 </div>
               )}
@@ -982,9 +1000,8 @@ export default function CustomerDashboard() {
               ))}
             </div>
           )}
-                </div>
-              </div>
-            </TabsContent>
+        </div>
+      </TabsContent>
 
             {/* AI Services Tab */}
             <TabsContent value="ai-services" className="space-y-6">
@@ -1185,6 +1202,181 @@ export default function CustomerDashboard() {
                     <div className="space-y-3">
                       <p className="text-sm text-gray-600">📧 support@tradesbook.ie</p>
                       <p className="text-sm text-gray-600">🕘 9 AM - 6 PM, Mon-Fri</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Messaging Tab */}
+            <TabsContent value="messaging" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MessageSquare className="w-5 h-5 text-blue-500" />
+                      Installer Messages
+                    </CardTitle>
+                    <CardDescription>
+                      Chat with your assigned installers
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {selectedInstaller ? (
+                      <div className="space-y-4">
+                        <div className="p-3 bg-blue-50 rounded-lg">
+                          <p className="text-sm font-medium text-blue-800">Chatting with: {selectedInstaller.businessName}</p>
+                        </div>
+                        <div className="h-64 border rounded-lg p-4 overflow-y-auto bg-gray-50">
+                          {messages.length === 0 ? (
+                            <p className="text-gray-500 text-center mt-8">No messages yet. Start the conversation!</p>
+                          ) : (
+                            messages.map((message, index) => (
+                              <div key={index} className="mb-2 p-2 bg-white rounded border">
+                                <p className="text-sm">{message.text}</p>
+                                <p className="text-xs text-gray-500">{message.timestamp}</p>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Type your message..."
+                            value={messageText}
+                            onChange={(e) => setMessageText(e.target.value)}
+                            onKeyPress={(e) => {
+                              if (e.key === 'Enter' && messageText.trim()) {
+                                setMessages(prev => [...prev, { text: messageText, timestamp: new Date().toLocaleString(), sender: 'customer' }]);
+                                setMessageText('');
+                              }
+                            }}
+                          />
+                          <Button
+                            onClick={() => {
+                              if (messageText.trim()) {
+                                setMessages(prev => [...prev, { text: messageText, timestamp: new Date().toLocaleString(), sender: 'customer' }]);
+                                setMessageText('');
+                              }
+                            }}
+                            disabled={!messageText.trim()}
+                          >
+                            <Send className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Active Chats</h3>
+                        <p className="text-gray-600 mb-4">
+                          Start messaging when you have an assigned installer
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Bell className="w-5 h-5 text-orange-500" />
+                      Recent Activity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3 text-sm">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-gray-600">Booking created successfully</span>
+                      </div>
+                      <div className="flex items-center space-x-3 text-sm">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span className="text-gray-600">Email verification completed</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Wallet Tab */}
+            <TabsContent value="wallet" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Wallet className="w-5 h-5 text-green-500" />
+                      Account Wallet
+                    </CardTitle>
+                    <CardDescription>
+                      Manage your account credits and payments
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="text-center p-6 bg-green-50 rounded-lg border border-green-200">
+                      <div className="text-3xl font-bold text-green-600 mb-1">
+                        €{walletBalance.toFixed(2)}
+                      </div>
+                      <p className="text-green-700 text-sm">Available Balance</p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <Label htmlFor="topup-amount">Top-up Amount</Label>
+                      <Input
+                        id="topup-amount"
+                        type="number"
+                        placeholder="Enter amount (€)"
+                        value={topUpAmount}
+                        onChange={(e) => setTopUpAmount(e.target.value)}
+                        min="10"
+                        step="10"
+                      />
+                      <Button 
+                        onClick={async () => {
+                          if (!topUpAmount || parseFloat(topUpAmount) < 10) {
+                            toast({ title: "Invalid amount", description: "Minimum top-up is €10", variant: "destructive" });
+                            return;
+                          }
+                          setTopUpLoading(true);
+                          try {
+                            // Simulate payment processing
+                            await new Promise(resolve => setTimeout(resolve, 2000));
+                            setWalletBalance(prev => prev + parseFloat(topUpAmount));
+                            setTopUpAmount('');
+                            toast({ title: "Success!", description: `€${topUpAmount} added to your wallet` });
+                          } catch (error) {
+                            toast({ title: "Payment failed", description: "Please try again", variant: "destructive" });
+                          } finally {
+                            setTopUpLoading(false);
+                          }
+                        }}
+                        disabled={topUpLoading || !topUpAmount || parseFloat(topUpAmount) < 10}
+                        className="w-full bg-green-500 hover:bg-green-600"
+                      >
+                        {topUpLoading && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Top Up Wallet
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-blue-500" />
+                      Transaction History
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="text-center py-8">
+                        <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Transactions</h3>
+                        <p className="text-gray-600">
+                          Your transaction history will appear here
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

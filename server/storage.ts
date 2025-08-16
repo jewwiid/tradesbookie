@@ -1724,6 +1724,31 @@ export class DatabaseStorage implements IStorage {
     return declined.map(item => item.bookingId);
   }
 
+  async getDeclinedRequestsWithDetailsForInstaller(installerId: number): Promise<any[]> {
+    const declined = await db.select({
+      id: declinedRequests.id,
+      bookingId: declinedRequests.bookingId,
+      declinedAt: declinedRequests.declinedAt,
+      booking: bookings
+    })
+      .from(declinedRequests)
+      .leftJoin(bookings, eq(declinedRequests.bookingId, bookings.id))
+      .where(eq(declinedRequests.installerId, installerId))
+      .orderBy(desc(declinedRequests.declinedAt));
+    
+    return declined.filter(item => item.booking !== null);
+  }
+
+  async removeDeclinedRequestForInstaller(installerId: number, bookingId: number): Promise<void> {
+    await db.delete(declinedRequests)
+      .where(
+        and(
+          eq(declinedRequests.installerId, installerId),
+          eq(declinedRequests.bookingId, bookingId)
+        )
+      );
+  }
+
   // Schedule negotiation operations
   async createScheduleNegotiation(negotiation: InsertScheduleNegotiation): Promise<ScheduleNegotiation> {
     const [newNegotiation] = await db.insert(scheduleNegotiations)

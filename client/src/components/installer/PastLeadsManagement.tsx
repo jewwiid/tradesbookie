@@ -23,7 +23,11 @@ import {
   Eye,
   Tv,
   Image,
-  FileText
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  RotateCcw,
+  Archive
 } from "lucide-react";
 
 interface PastLead {
@@ -44,6 +48,7 @@ interface PastLead {
   completedDate?: Date;
   customerNotes?: string;
   createdAt: string;
+  declinedAt?: string; // Added for passed leads tracking
   // Additional fields for complete booking details
   needsWallMount?: boolean;
   difficulty?: string;
@@ -89,6 +94,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   const [newStatus, setNewStatus] = useState('');
   const [updateMessage, setUpdateMessage] = useState('');
   const [recentlyUpdatedLeads, setRecentlyUpdatedLeads] = useState<Set<number>>(new Set());
+  const [showPassedLeads, setShowPassedLeads] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -114,6 +120,35 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   const { data: pastLeads = [], isLoading } = useQuery<PastLead[]>({
     queryKey: [`/api/installer/${installerId}/past-leads`],
     refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Fetch passed (declined) leads
+  const { data: passedLeads = [], isLoading: passedLeadsLoading } = useQuery<PastLead[]>({
+    queryKey: [`/api/installer/${installerId}/passed-leads`],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Retrieve passed lead mutation
+  const retrievePassedLeadMutation = useMutation({
+    mutationFn: async (requestId: number) => {
+      return apiRequest('POST', `/api/installer/${installerId}/retrieve-passed-lead/${requestId}`);
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Lead Retrieved",
+        description: "The passed lead has been successfully retrieved and is now available in your active leads.",
+      });
+      // Refresh both passed leads and available leads
+      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/passed-leads`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerId, 'available-leads'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to retrieve passed lead. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   // Update status mutation
@@ -332,6 +367,96 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
             </div>
           )}
         </CardContent>
+      </Card>
+
+      {/* Passed Leads Section */}
+      <Card>
+        <CardHeader>
+          <button
+            onClick={() => setShowPassedLeads(!showPassedLeads)}
+            className="w-full flex items-center justify-between text-left"
+          >
+            <CardTitle className="flex items-center gap-2">
+              <Archive className="w-5 h-5 text-orange-600" />
+              Passed Leads ({passedLeads.length})
+            </CardTitle>
+            {showPassedLeads ? (
+              <ChevronUp className="w-5 h-5 text-gray-500" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-500" />
+            )}
+          </button>
+        </CardHeader>
+        
+        {showPassedLeads && (
+          <CardContent>
+            <p className="text-gray-600 mb-4">
+              Leads you previously passed on. You can retrieve them back to your active leads list.
+            </p>
+            
+            {passedLeadsLoading ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+              </div>
+            ) : passedLeads.length === 0 ? (
+              <div className="text-center py-8">
+                <Archive className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Passed Leads</h3>
+                <p className="text-gray-500 text-sm">
+                  Leads you pass on will appear here, allowing you to retrieve them later if needed.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                {passedLeads.map((lead) => (
+                  <Card key={lead.id} className="border-orange-200 bg-orange-50/30">
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{lead.address}</h3>
+                          <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                            <Tv className="w-3 h-3" />
+                            {lead.tvSize}" • {lead.serviceType}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="border-orange-300 text-orange-800">
+                          Passed
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="text-sm text-gray-600">
+                          <p><strong>Price:</strong> €{lead.estimatedPrice}</p>
+                          <p><strong>Passed on:</strong> {lead.declinedAt ? new Date(lead.declinedAt).toLocaleDateString() : 'Unknown'}</p>
+                        </div>
+                        
+                        <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                          <p className="text-sm text-yellow-800">
+                            <strong>Customer details:</strong> {lead.customerName}
+                          </p>
+                          <p className="text-xs text-yellow-700 mt-1">
+                            Retrieve this lead to see full contact information
+                          </p>
+                        </div>
+                        
+                        <Button
+                          onClick={() => retrievePassedLeadMutation.mutate(lead.id)}
+                          disabled={retrievePassedLeadMutation.isPending}
+                          className="w-full flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                          size="sm"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                          {retrievePassedLeadMutation.isPending ? 'Retrieving...' : 'Retrieve Lead'}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        )}
       </Card>
 
       {/* Status Update Dialog */}

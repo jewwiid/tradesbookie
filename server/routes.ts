@@ -5245,6 +5245,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get passed (declined) leads for an installer
+  app.get("/api/installer/:installerId/passed-leads", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      
+      // Validate installerId is a valid number
+      if (isNaN(installerId) || installerId <= 0) {
+        return res.status(400).json({ error: "Invalid installer ID" });
+      }
+
+      // Check if installer is demo account
+      const installer = await storage.getInstaller(installerId);
+      const isDemoAccount = installer?.email === "test@tradesbook.ie";
+
+      if (isDemoAccount) {
+        // For demo account, return empty array since we remove from cache instead of tracking
+        res.json([]);
+      } else {
+        // For real installers, get declined requests with booking details
+        const declinedRequests = await storage.getDeclinedRequestsWithDetailsForInstaller(installerId);
+        
+        // Transform to match the client-side interface
+        const passedLeads = declinedRequests.map(declined => ({
+          id: declined.booking.id,
+          address: declined.booking.address,
+          customerName: "Lead Details Hidden", // Hide until retrieved
+          customerEmail: "Click to retrieve lead",
+          customerPhone: "Click to retrieve lead",
+          serviceType: declined.booking.serviceType,
+          tvSize: declined.booking.tvSize || "Not specified",
+          estimatedPrice: declined.booking.estimatedPrice || "0",
+          status: declined.booking.status,
+          createdAt: declined.booking.createdAt,
+          declinedAt: declined.declinedAt,
+          needsWallMount: declined.booking.needsWallMount,
+          wallType: declined.booking.wallType,
+          mountType: declined.booking.mountType,
+          difficulty: declined.booking.difficulty,
+          customerNotes: declined.booking.customerNotes
+        }));
+        
+        res.json(passedLeads);
+      }
+    } catch (error) {
+      console.error("Error fetching passed leads:", error);
+      res.status(500).json({ message: "Failed to fetch passed leads" });
+    }
+  });
+
+  // Retrieve a passed (declined) lead back to active leads
+  app.post("/api/installer/:installerId/retrieve-passed-lead/:requestId", async (req, res) => {
+    try {
+      const requestId = parseInt(req.params.requestId);
+      const installerId = parseInt(req.params.installerId);
+      
+      // Validate parameters
+      if (isNaN(installerId) || installerId <= 0 || isNaN(requestId) || requestId <= 0) {
+        return res.status(400).json({ error: "Invalid installer ID or request ID" });
+      }
+      
+      // Get installer ID from session for security
+      const session = req.session as any;
+      const sessionInstallerId = session.installerId;
+      
+      if (!sessionInstallerId || sessionInstallerId !== installerId) {
+        return res.status(401).json({ message: "Not authenticated or unauthorized" });
+      }
+
+      // Check if installer is demo account
+      const installer = await storage.getInstaller(installerId);
+      const isDemoAccount = installer?.email === "test@tradesbook.ie";
+
+      if (isDemoAccount) {
+        // For demo account, we can't retrieve since we don't track declined leads
+        return res.status(400).json({ message: "Demo account cannot retrieve passed leads" });
+      } else {
+        // For real installers, remove from declined requests to make it available again
+        await storage.removeDeclinedRequestForInstaller(installerId, requestId);
+        
+        // Get the booking details to return to client
+        const booking = await storage.getBooking(requestId);
+        if (!booking) {
+          return res.status(404).json({ message: "Lead not found" });
+        }
+        
+        res.json({ 
+          message: "Lead retrieved successfully",
+          lead: {
+            id: booking.id,
+            address: booking.address,
+            serviceType: booking.serviceType,
+            tvSize: booking.tvSize,
+            estimatedPrice: booking.estimatedPrice,
+            status: booking.status
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error retrieving passed lead:", error);
+      res.status(500).json({ message: "Failed to retrieve passed lead" });
+    }
+  });
+
   app.get("/api/installer/:installerId/active-jobs", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);

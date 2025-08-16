@@ -61,6 +61,16 @@ export function checkAiCredits(aiFeature: string) {
         if (!isAuthenticated) {
           requiresPayment = true;
         } else {
+          // Check if user has verified email
+          const user = await storage.getUser(userId);
+          if (!user?.emailVerified) {
+            return res.status(403).json({
+              error: 'Email verification required',
+              message: 'Please verify your email address before purchasing AI credits.',
+              requiresEmailVerification: true
+            });
+          }
+          
           // Check wallet balance
           const wallet = await storage.getCustomerWallet(userId);
           const balance = parseFloat(wallet?.balance || '0');
@@ -84,6 +94,16 @@ export function checkAiCredits(aiFeature: string) {
             creditCost
           });
         } else {
+          // Double-check email verification for authenticated users needing to pay
+          const user = await storage.getUser(userId);
+          if (!user?.emailVerified) {
+            return res.status(403).json({
+              error: 'Email verification required',
+              message: 'Please verify your email address before purchasing AI credits.',
+              requiresEmailVerification: true
+            });
+          }
+          
           return res.status(402).json({
             error: 'Insufficient credits',
             message: `You need ${creditCost} credit${creditCost > 1 ? 's' : ''} to use this AI feature. Please top up your wallet.`,
@@ -131,6 +151,13 @@ export async function recordAiUsage(req: AIRequest): Promise<void> {
 
     // Deduct credits if it was a paid request
     if (isPaidRequest && userId) {
+      // Verify email before deducting credits
+      const user = await storage.getUser(userId);
+      if (!user?.emailVerified) {
+        console.error('Attempted credit deduction for unverified user:', userId);
+        return; // Don't deduct credits for unverified users
+      }
+      
       const wallet = await storage.getCustomerWallet(userId);
       if (wallet) {
         const newBalance = parseFloat(wallet.balance) - creditCost;

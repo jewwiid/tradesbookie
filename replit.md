@@ -39,6 +39,7 @@ The application employs a modern full-stack architecture with AI-enhanced featur
 - **Installer Revenue Calculation:** Corrected lead map revenue display in the installer dashboard to show net potential revenue (estimated earnings minus lead fee).
 - **Demo Installation Visibility System:** Demo installers (e.g., test@tradesbook.ie) now only see installations marked as `is_demo = true`, while regular installers do not see demo installations.
 - **Comprehensive Credit Refund System:** Implemented a complete credit management system handling all cancellation scenarios: customer cancellations (full refunds), installer withdrawals (partial refunds based on job stage), expired leads (automatic refunds), and fraud prevention refunds. All refunds maintain accurate wallet balances and transaction records with proper audit trails.
+- **AI Credit System:** Implemented a comprehensive AI credit system with 3 free AI requests per feature for all users (tracked by session for guests), then 1 credit = 1 AI request pricing. Protects all AI endpoints (TV Preview, Product Care Analysis, FAQ, Product Info, TV Comparison). Requires verified email addresses for credit purchases and usage. Real-time usage tracking for both authenticated and guest users with automatic wallet integration.
 
 **System Design Choices:**
 - **Full-Stack Architecture:** Clear separation of frontend and backend concerns.

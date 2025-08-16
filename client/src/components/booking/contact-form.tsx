@@ -183,16 +183,21 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
         };
       }
 
-      // Create booking with appropriate payload
-      const bookingResponse = await apiRequest('POST', '/api/bookings', bookingPayload);
+      // Create booking with appropriate payload and endpoint
+      const endpoint = data.directBooking ? '/api/bookings/direct' : '/api/bookings';
+      const bookingResponse = await apiRequest('POST', endpoint, bookingPayload);
       
       return bookingResponse.json();
     },
     onSuccess: (response) => {
       const booking = response.booking || response;
+      const isDirect = response.directBooking || false;
+      
       toast({
         title: "Booking Created!",
-        description: "Your request has been submitted. We'll find an installer for you."
+        description: isDirect 
+          ? `Direct booking confirmed with ${booking.installer}. You will be contacted directly.`
+          : "Your request has been submitted. We'll find an installer for you."
       });
       // Redirect to booking confirmation page instead of payment
       setLocation(`/booking-confirmation?bookingId=${booking.id}`);

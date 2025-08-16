@@ -4,9 +4,10 @@ import Navigation from "@/components/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import InstallerProfile from "@/components/installer-profile";
 import InstallerLocationMap from "@/components/InstallerLocationMap";
-import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock, Eye } from "lucide-react";
+import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock, Eye, UserCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function OurInstallers() {
@@ -249,13 +250,22 @@ export default function OurInstallers() {
                       })()}
                     </div>
 
-                    {/* Action Button */}
-                    <Button 
-                      className="w-full" 
-                      onClick={() => window.location.href = '/booking'}
-                    >
-                      Book Installation
-                    </Button>
+                    {/* Action Buttons */}
+                    <div className="space-y-2">
+                      <Button 
+                        className="w-full bg-primary hover:bg-primary/90" 
+                        onClick={() => window.location.href = `/booking?installer=${installer.id}&direct=true`}
+                      >
+                        Book This Installer Directly
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="w-full text-xs" 
+                        onClick={() => window.location.href = '/booking'}
+                      >
+                        Book via Marketplace
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

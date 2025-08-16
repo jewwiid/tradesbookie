@@ -25,6 +25,18 @@ interface BookingData {
   tvInstallations?: TvInstallation[];
   currentTvIndex?: number;
   
+  // Direct installer booking support
+  directBooking?: boolean;
+  preselectedInstallerId?: number;
+  installerInfo?: {
+    id: number;
+    businessName: string;
+    contactName: string;
+    serviceArea: string;
+    profileImageUrl?: string;
+    isAvailable?: boolean;
+  };
+  
   // Legacy single TV fields (for backward compatibility)
   tvSize?: string;
   serviceType?: string;
@@ -85,6 +97,9 @@ interface BookingStore {
   calculateTotalPrice: () => number;
   getCurrentTv: () => TvInstallation | undefined;
   isMultiTvBooking: () => boolean;
+  // Direct installer booking methods
+  setDirectInstaller: (installerId: number, installerInfo: any) => void;
+  isDirectBooking: () => boolean;
 }
 
 export const useBookingData = create<BookingStore>()(
@@ -167,6 +182,22 @@ export const useBookingData = create<BookingStore>()(
       isMultiTvBooking: () => {
         const { bookingData } = get();
         return !!(bookingData.tvQuantity && bookingData.tvQuantity > 1 && bookingData.tvInstallations);
+      },
+      
+      // Direct installer booking methods
+      setDirectInstaller: (installerId: number, installerInfo: any) =>
+        set((state) => ({
+          bookingData: {
+            ...state.bookingData,
+            directBooking: true,
+            preselectedInstallerId: installerId,
+            installerInfo,
+          },
+        })),
+      
+      isDirectBooking: () => {
+        const { bookingData } = get();
+        return !!bookingData.directBooking;
       },
     }),
     {

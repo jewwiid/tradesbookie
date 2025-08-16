@@ -1497,6 +1497,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get individual installer details for direct booking
+  app.get("/api/installers/:id", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const installer = await storage.getInstaller(installerId);
+      
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      // Only return approved and publicly visible installers
+      if (installer.approvalStatus !== 'approved' || installer.isPubliclyVisible === false) {
+        return res.status(404).json({ message: "Installer not available" });
+      }
+      
+      // Return safe installer info for direct booking
+      const safeInstallerInfo = {
+        id: installer.id,
+        businessName: installer.businessName,
+        contactName: installer.contactName?.split(' ')[0] + " " + (installer.contactName?.split(' ')[1]?.[0] || '') + ".",
+        serviceArea: installer.serviceArea,
+        profileImageUrl: installer.profileImageUrl,
+        isAvailable: installer.isAvailable,
+        yearsExperience: installer.yearsExperience,
+        bio: installer.bio
+      };
+      
+      res.json(safeInstallerInfo);
+    } catch (error) {
+      console.error("Error fetching installer:", error);
+      res.status(500).json({ message: "Failed to fetch installer" });
+    }
+  });
+
+  // Direct installer booking endpoint
+  app.post("/api/bookings/direct", async (req, res) => {
+    try {
+      const bookingData = req.body;
+      console.log('Direct booking data:', JSON.stringify(bookingData, null, 2));
+      
+      // Validate that installerId is provided
+      if (!bookingData.preselectedInstallerId) {
+        return res.status(400).json({ message: "Installer ID is required for direct booking" });
+      }
+      
+      // Verify the installer exists and is available
+      const installer = await storage.getInstaller(bookingData.preselectedInstallerId);
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      if (installer.approvalStatus !== 'approved') {
+        return res.status(400).json({ message: "Installer is not approved for bookings" });
+      }
+      
+      // Create the booking with direct installer assignment
+      const insertBooking = {
+        ...bookingData,
+        installerId: bookingData.preselectedInstallerId,
+        status: 'confirmed',
+        isDirectBooking: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      // Remove the direct booking fields from the insert data
+      delete insertBooking.preselectedInstallerId;
+      delete insertBooking.directBooking;
+      delete insertBooking.installerInfo;
+      
+      const booking = await storage.createBooking(insertBooking);
+      
+      // Create a job assignment for direct booking (no lead fee)
+      await storage.createJobAssignment({
+        bookingId: booking.id,
+        installerId: installer.id,
+        status: "accepted",
+        leadFee: "0.00",
+        leadFeeStatus: "exempt",
+        assignedDate: new Date(),
+        acceptedDate: new Date()
+      });
+      
+      res.json({
+        booking: { ...booking, status: 'confirmed', installer: installer.businessName },
+        message: `Direct booking confirmed with ${installer.businessName}. You will be contacted directly.`,
+        directBooking: true
+      });
+      
+    } catch (error) {
+      console.error("Error creating direct booking:", error);
+      res.status(400).json({ message: "Failed to create direct booking", error: String(error) });
+    }
+  });
+
   app.get("/api/bookings/:id", async (req, res) => {
     try {
       const booking = await storage.getBooking(parseInt(req.params.id));

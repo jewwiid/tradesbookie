@@ -64,7 +64,8 @@ import {
   Zap,
   MailCheck,
   UserCog,
-  Filter
+  Filter,
+  Send
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
@@ -5343,12 +5344,8 @@ function EmailPreferencesManagement() {
   // Update user preferences mutation
   const updateUserPreferencesMutation = useMutation({
     mutationFn: async ({ userId, preferences }: { userId: string, preferences: any }) => {
-      const response = await apiRequest(`/api/admin/users/${userId}/preferences`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(preferences)
-      });
-      return response;
+      const response = await apiRequest('PATCH', `/api/admin/users/${userId}/preferences`, preferences);
+      return response.json();
     },
     onSuccess: () => {
       toast({ title: "User preferences updated successfully" });

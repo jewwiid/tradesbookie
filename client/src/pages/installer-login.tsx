@@ -312,54 +312,138 @@ export default function InstallerLogin() {
               </CardContent>
             </Card>
 
-            {/* Customer Access Notice */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-              <div className="flex items-start">
-                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
-                <div className="text-yellow-800">
-                  <h3 className="font-semibold text-lg mb-2">Looking for customer access?</h3>
-                  <p className="text-sm mb-3">
-                    Book installation services and manage your bookings on our main platform.
-                  </p>
-                  <Button asChild variant="outline" className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-100">
-                    <Link href="/#booking">
-                      Book Faster Than Ever
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
 
-            {/* Platform Info */}
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="font-semibold text-blue-900 mb-2 text-lg">Professional Platform</h3>
-                  <p className="text-blue-700 text-sm mb-4">
-                    Join Ireland's leading installation service platform
-                  </p>
-                  <div className="space-y-2 text-sm text-blue-800">
-                    <div className="flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 mr-2 text-blue-600" />
-                      <span>Verified customer leads</span>
-                    </div>
-                    <div className="flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 mr-2 text-blue-600" />
-                      <span>Secure payment processing</span>
-                    </div>
-                    <div className="flex items-center justify-center">
-                      <CheckCircle2 className="w-4 h-4 mr-2 text-blue-600" />
-                      <span>Professional support</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
+        </div>
+
+        {/* Professional Platform Info - Full Width */}
+        <div className="max-w-5xl mx-auto mt-12">
+          <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
+            <CardContent className="p-8">
+              <div className="text-center mb-8">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle2 className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-3xl font-bold text-gray-900 mb-2">Professional Installer Platform</h3>
+                <p className="text-lg text-gray-600">
+                  Join Ireland's leading installation service network and grow your business
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="text-center p-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-2xl font-bold text-green-600">€12-30</span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-1">Low Lead Costs</h4>
+                  <p className="text-sm text-gray-600">Pay only per qualified lead</p>
+                </div>
+                
+                <div className="text-center p-4">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-2xl font-bold text-blue-600">€400+</span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-1">High Earnings</h4>
+                  <p className="text-sm text-gray-600">Per installation potential</p>
+                </div>
+                
+                <div className="text-center p-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Wrench className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-1">AI Matching</h4>
+                  <p className="text-sm text-gray-600">Smart job recommendations</p>
+                </div>
+                
+                <div className="text-center p-4">
+                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Lock className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-1">Secure Payments</h4>
+                  <p className="text-sm text-gray-600">Protected by Stripe</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-4">Platform Features</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-start">
+                      <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium text-gray-900">Real-time Lead Updates</span>
+                        <p className="text-sm text-gray-600">Get instant notifications for new jobs via WebSockets</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium text-gray-900">Digital Wallet System</span>
+                        <p className="text-sm text-gray-600">Manage credits, track earnings, and view transaction history</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium text-gray-900">Customer Reviews & Ratings</span>
+                        <p className="text-sm text-gray-600">Build your reputation with verified customer feedback</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <CheckCircle2 className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <span className="font-medium text-gray-900">Professional Profile</span>
+                        <p className="text-sm text-gray-600">Showcase your expertise, experience, and service areas</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-4">How It Works</h4>
+                  <div className="space-y-4">
+                    <div className="flex items-start">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span className="text-sm font-bold text-blue-600">1</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-900">Register & Get Approved</span>
+                        <p className="text-sm text-gray-600">Complete your profile and wait for admin approval</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span className="text-sm font-bold text-blue-600">2</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-900">Browse Available Leads</span>
+                        <p className="text-sm text-gray-600">View customer requests matching your skills and location</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span className="text-sm font-bold text-blue-600">3</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-900">Purchase & Accept Jobs</span>
+                        <p className="text-sm text-gray-600">Buy leads that interest you and accept job assignments</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span className="text-sm font-bold text-blue-600">4</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-900">Complete & Get Paid</span>
+                        <p className="text-sm text-gray-600">Finish the installation and receive secure payment</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Approval Status Display - Full Width */}

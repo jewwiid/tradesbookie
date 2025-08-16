@@ -5369,10 +5369,8 @@ function EmailPreferencesManagement() {
     mutationFn: async ({ recipientIds, subject, message, emailType }: { 
       recipientIds: string[], subject: string, message: string, emailType: string 
     }) => {
-      const response = await apiRequest('/api/admin/send-bulk-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipientIds, subject, message, emailType })
+      const response = await apiRequest('POST', '/api/admin/send-bulk-email', {
+        recipientIds, subject, message, emailType
       });
       return response;
     },

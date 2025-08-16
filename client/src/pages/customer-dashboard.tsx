@@ -167,10 +167,8 @@ function CreditCardPaymentForm({ amount, onSuccess, onCancel, onError }: {
     
     const createPaymentIntent = async () => {
       try {
-        const response = await apiRequest('/api/customer/wallet/create-payment-intent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: parseFloat(amount) })
+        const response = await apiRequest('POST', '/api/customer/wallet/create-payment-intent', {
+          amount: parseFloat(amount)
         });
         
         if (!response.ok) {
@@ -220,10 +218,8 @@ function CreditCardPaymentForm({ amount, onSuccess, onCancel, onError }: {
     } else if (paymentIntent.status === 'succeeded') {
       // Payment succeeded, confirm with backend
       try {
-        const confirmResponse = await apiRequest('/api/customer/wallet/confirm-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ paymentIntentId: paymentIntent.id })
+        const confirmResponse = await apiRequest('POST', '/api/customer/wallet/confirm-payment', {
+          paymentIntentId: paymentIntent.id
         });
         
         if (!confirmResponse.ok) {

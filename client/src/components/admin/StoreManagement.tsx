@@ -52,12 +52,9 @@ export default function StoreManagement() {
   // Create new retailer mutation
   const createRetailerMutation = useMutation({
     mutationFn: async (retailerData: NewRetailerForm) => {
-      return apiRequest('/api/retail-partner/retailers', {
-        method: 'POST',
-        body: {
-          ...retailerData,
-          storeLocations: {} // Initialize with empty store locations
-        }
+      return apiRequest('POST', '/api/retail-partner/retailers', {
+        ...retailerData,
+        storeLocations: {} // Initialize with empty store locations
       });
     },
     onSuccess: () => {

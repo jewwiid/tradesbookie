@@ -110,7 +110,7 @@ export default function AiToolsManagement() {
   const { data: tools = [], isLoading } = useQuery({
     queryKey: ['/api/admin/ai-tools'],
     queryFn: async () => {
-      const response = await apiRequest('/api/admin/ai-tools');
+      const response = await apiRequest('GET', '/api/admin/ai-tools');
       if (!response.ok) throw new Error('Failed to fetch AI tools');
       return response.json();
     }
@@ -119,11 +119,7 @@ export default function AiToolsManagement() {
   // Create AI tool mutation
   const createToolMutation = useMutation({
     mutationFn: async (data: AiToolFormData) => {
-      const response = await apiRequest('/api/admin/ai-tools', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('POST', '/api/admin/ai-tools', data);
       if (!response.ok) throw new Error('Failed to create AI tool');
       return response.json();
     },
@@ -148,11 +144,7 @@ export default function AiToolsManagement() {
   // Update AI tool mutation
   const updateToolMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: Partial<AiToolFormData> }) => {
-      const response = await apiRequest(`/api/admin/ai-tools/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      const response = await apiRequest('PUT', `/api/admin/ai-tools/${id}`, data);
       if (!response.ok) throw new Error('Failed to update AI tool');
       return response.json();
     },
@@ -170,11 +162,7 @@ export default function AiToolsManagement() {
   // Toggle status mutation
   const toggleStatusMutation = useMutation({
     mutationFn: async ({ id, isActive }: { id: number; isActive: boolean }) => {
-      const response = await apiRequest(`/api/admin/ai-tools/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive })
-      });
+      const response = await apiRequest('PATCH', `/api/admin/ai-tools/${id}/status`, { isActive });
       if (!response.ok) throw new Error('Failed to update AI tool status');
       return response.json();
     },
@@ -190,9 +178,7 @@ export default function AiToolsManagement() {
   // Delete AI tool mutation
   const deleteToolMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await apiRequest(`/api/admin/ai-tools/${id}`, {
-        method: 'DELETE'
-      });
+      const response = await apiRequest('DELETE', `/api/admin/ai-tools/${id}`);
       if (!response.ok) throw new Error('Failed to delete AI tool');
       return response.json();
     },

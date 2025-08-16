@@ -85,10 +85,7 @@ export default function StorePartnerSignup() {
 
   const submitApplication = useMutation({
     mutationFn: (data: StoreApplicationForm) =>
-      apiRequest("/api/store-partner/apply", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("POST", "/api/store-partner/apply", data),
     onSuccess: () => {
       setIsSubmitted(true);
       toast({

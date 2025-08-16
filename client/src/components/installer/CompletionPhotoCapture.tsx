@@ -38,9 +38,8 @@ export default function CompletionPhotoCapture({
 
   const uploadPhotosMutation = useMutation({
     mutationFn: async (photos: string[]) => {
-      return apiRequest('/api/installer/upload-completion-photos', {
-        method: 'POST',
-        body: { bookingId, photos }
+      return apiRequest('POST', '/api/installer/upload-completion-photos', {
+        bookingId, photos
       });
     },
     onSuccess: () => {

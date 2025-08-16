@@ -58,10 +58,7 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
 
   const submitReviewMutation = useMutation({
     mutationFn: async (reviewData: any) => {
-      return apiRequest('/api/reviews', {
-        method: 'POST',
-        body: reviewData
-      });
+      return apiRequest('POST', '/api/reviews', reviewData);
     },
     onSuccess: (response) => {
       toast({

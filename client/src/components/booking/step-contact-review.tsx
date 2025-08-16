@@ -26,9 +26,8 @@ export function StepContactReview({ onSubmit, onBack, isSubmitting = false }: St
 
   const validateReferralMutation = useMutation({
     mutationFn: async (code: string) => {
-      const response = await apiRequest('/api/referral/validate', {
-        method: 'POST',
-        body: { code }
+      const response = await apiRequest('POST', '/api/referral/validate', {
+        code
       });
       return response;
     },

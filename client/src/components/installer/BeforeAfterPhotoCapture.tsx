@@ -48,9 +48,8 @@ export default function BeforeAfterPhotoCapture({
 
   const uploadPhotosMutation = useMutation({
     mutationFn: async (photos: BeforeAfterPhoto[]) => {
-      return apiRequest('/api/installer/upload-before-after-photos', {
-        method: 'POST',
-        body: { bookingId, photos }
+      return apiRequest('POST', '/api/installer/upload-before-after-photos', {
+        bookingId, photos
       });
     },
     onSuccess: () => {

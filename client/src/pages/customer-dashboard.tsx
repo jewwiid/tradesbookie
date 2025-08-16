@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -158,6 +159,14 @@ export default function CustomerDashboard() {
     email: '',
     phone: ''
   });
+
+  // User preferences state
+  const [preferences, setPreferences] = useState({
+    emailNotifications: true,
+    bookingUpdates: true,
+    marketingEmails: false
+  });
+  const [updatingPreferences, setUpdatingPreferences] = useState(false);
   const [showInstallerSelection, setShowInstallerSelection] = useState<number | null>(null);
   const [selectedBookingInstallers, setSelectedBookingInstallers] = useState<InterestedInstaller[]>([]);
   const [selectingInstaller, setSelectingInstaller] = useState(false);
@@ -308,6 +317,39 @@ export default function CustomerDashboard() {
     }
   };
 
+  // Handle preference changes
+  const handlePreferenceChange = async (preferenceKey: keyof typeof preferences, checked: boolean) => {
+    setUpdatingPreferences(true);
+    try {
+      // Update local state immediately for UI responsiveness
+      setPreferences(prev => ({ ...prev, [preferenceKey]: checked }));
+      
+      // Send update to backend
+      await apiRequest('PATCH', '/api/auth/preferences', { [preferenceKey]: checked });
+      
+      // Show success toast
+      toast({
+        title: "Preferences Updated",
+        description: "Your notification preferences have been saved.",
+      });
+      
+      // Invalidate user query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+    } catch (error) {
+      // Revert local state on error
+      setPreferences(prev => ({ ...prev, [preferenceKey]: !checked }));
+      
+      console.error('Error updating preferences:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update preferences. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingPreferences(false);
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (!user) return;
 
@@ -388,6 +430,19 @@ export default function CustomerDashboard() {
         </div>
       </div>
     );
+  }
+
+  // Update preferences state when user data loads
+  if (user && user.emailNotifications !== undefined) {
+    if (preferences.emailNotifications !== user.emailNotifications ||
+        preferences.bookingUpdates !== user.bookingUpdates ||
+        preferences.marketingEmails !== user.marketingEmails) {
+      setPreferences({
+        emailNotifications: user.emailNotifications ?? true,
+        bookingUpdates: user.bookingUpdates ?? true,
+        marketingEmails: user.marketingEmails ?? false
+      });
+    }
   }
 
   // Handle different user states
@@ -1899,10 +1954,42 @@ export default function CustomerDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3 text-sm">
-                      <p>Email notifications: Enabled</p>
-                      <p>Booking updates: Enabled</p>
-                      <p>Marketing emails: Disabled</p>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Email Notifications</Label>
+                          <p className="text-xs text-gray-500">General service and account notifications</p>
+                        </div>
+                        <Switch 
+                          checked={preferences.emailNotifications}
+                          onCheckedChange={(checked) => handlePreferenceChange('emailNotifications', checked)}
+                          disabled={updatingPreferences}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Booking Updates</Label>
+                          <p className="text-xs text-gray-500">Installation status and scheduling updates</p>
+                        </div>
+                        <Switch 
+                          checked={preferences.bookingUpdates}
+                          onCheckedChange={(checked) => handlePreferenceChange('bookingUpdates', checked)}
+                          disabled={updatingPreferences}
+                        />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label className="text-sm font-medium">Marketing Emails</Label>
+                          <p className="text-xs text-gray-500">Promotional offers and service updates</p>
+                        </div>
+                        <Switch 
+                          checked={preferences.marketingEmails}
+                          onCheckedChange={(checked) => handlePreferenceChange('marketingEmails', checked)}
+                          disabled={updatingPreferences}
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

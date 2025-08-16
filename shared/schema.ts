@@ -40,6 +40,11 @@ export const users = pgTable("users", {
   invoiceVerified: boolean("invoice_verified").default(false),
   registrationMethod: varchar("registration_method").default("oauth"), // oauth, invoice, guest, email
   
+  // User communication preferences
+  emailNotifications: boolean("email_notifications").default(true), // General email notifications
+  bookingUpdates: boolean("booking_updates").default(true), // Booking status updates
+  marketingEmails: boolean("marketing_emails").default(false), // Marketing and promotional emails
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

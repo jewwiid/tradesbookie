@@ -27,6 +27,61 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail, sendInstallerApprovalEmail, sendInstallerRejectionEmail, sendTvSetupBookingConfirmation, sendTvSetupAdminNotification } from "./gmailService";
+
+// Helper function to check if user has opted in to receive specific types of emails
+async function checkUserEmailPreferences(userId: string, emailType: 'general' | 'booking' | 'marketing'): Promise<boolean> {
+  try {
+    const user = await db.select({
+      emailNotifications: users.emailNotifications,
+      bookingUpdates: users.bookingUpdates,
+      marketingEmails: users.marketingEmails
+    }).from(users).where(eq(users.id, userId)).limit(1);
+    
+    if (!user || user.length === 0) {
+      console.log(`User ${userId} not found, defaulting to no email`);
+      return false;
+    }
+    
+    const userPrefs = user[0];
+    
+    switch (emailType) {
+      case 'general':
+        return userPrefs.emailNotifications ?? true;
+      case 'booking':
+        return userPrefs.bookingUpdates ?? true;
+      case 'marketing':
+        return userPrefs.marketingEmails ?? false;
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error(`Error checking email preferences for user ${userId}:`, error);
+    return false; // Err on the side of not sending emails if there's an error
+  }
+}
+
+// Helper function to check if user has opted in by email address
+async function checkUserEmailPreferencesByEmail(email: string, emailType: 'general' | 'booking' | 'marketing'): Promise<boolean> {
+  try {
+    const user = await db.select({
+      id: users.id,
+      emailNotifications: users.emailNotifications,
+      bookingUpdates: users.bookingUpdates,
+      marketingEmails: users.marketingEmails
+    }).from(users).where(eq(users.email, email)).limit(1);
+    
+    if (!user || user.length === 0) {
+      console.log(`User with email ${email} not found, defaulting to send for essential communications`);
+      // For users not in our system, we allow essential communications but not marketing
+      return emailType !== 'marketing';
+    }
+    
+    return checkUserEmailPreferences(user[0].id, emailType);
+  } catch (error) {
+    console.error(`Error checking email preferences for email ${email}:`, error);
+    return emailType !== 'marketing'; // Allow essential communications but block marketing on error
+  }
+}
 import { generateVerificationToken, sendVerificationEmail, verifyEmailToken, resendVerificationEmail } from "./emailVerificationService";
 import { harveyNormanReferralService } from "./harvestNormanReferralService";
 import { fraudPreventionService } from "./fraudPreventionService";
@@ -897,7 +952,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.user;
       console.log("Returning user data:", { id: user.id, email: user.email, role: user.role });
       
-      res.json(user);
+      res.json({
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        role: user.role,
+        emailVerified: user.emailVerified,
+        registrationMethod: user.registrationMethod,
+        emailNotifications: user.emailNotifications ?? true,
+        bookingUpdates: user.bookingUpdates ?? true,
+        marketingEmails: user.marketingEmails ?? false
+      });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -948,6 +1015,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user profile:", error);
       res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // User preferences update endpoint
+  app.patch('/api/auth/preferences', async (req: any, res) => {
+    try {
+      console.log("PATCH /api/auth/preferences - Session ID:", req.sessionID);
+      console.log("PATCH /api/auth/preferences - req.user:", req.user);
+      console.log("PATCH /api/auth/preferences - Preferences data:", req.body);
+      
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { emailNotifications, bookingUpdates, marketingEmails } = req.body;
+
+      // Validate input - at least one preference field should be provided
+      if (emailNotifications === undefined && bookingUpdates === undefined && marketingEmails === undefined) {
+        return res.status(400).json({ message: "At least one preference field must be provided" });
+      }
+
+      // Prepare update object with only provided fields
+      const updateData: any = {};
+      if (emailNotifications !== undefined) updateData.emailNotifications = emailNotifications;
+      if (bookingUpdates !== undefined) updateData.bookingUpdates = bookingUpdates;
+      if (marketingEmails !== undefined) updateData.marketingEmails = marketingEmails;
+
+      // Update user preferences in database
+      await db.update(users)
+        .set({
+          ...updateData,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, req.user.id));
+
+      console.log("User preferences updated successfully");
+      res.json({ message: "Preferences updated successfully" });
+    } catch (error) {
+      console.error("Preferences update error:", error);
+      res.status(500).json({ message: "Failed to update preferences" });
     }
   });
 

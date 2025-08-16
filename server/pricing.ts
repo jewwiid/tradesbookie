@@ -173,9 +173,24 @@ export function calculateBookingPricing(
   serviceType: string,
   addons: Array<{ key: string; name: string; price: number }> = []
 ): PricingResult {
-  const serviceTier = SERVICE_TIERS[serviceType];
+  // First try direct match with current service tier keys
+  let serviceTier = SERVICE_TIERS[serviceType];
+  
+  // If no direct match, try legacy mapping
+  if (!serviceTier && LEGACY_SERVICE_TYPE_MAPPING[serviceType]) {
+    const mappedKey = LEGACY_SERVICE_TYPE_MAPPING[serviceType];
+    serviceTier = SERVICE_TIERS[mappedKey];
+  }
+  
   if (!serviceTier) {
-    throw new Error(`Unknown service type: ${serviceType}`);
+    // Provide fallback pricing for completely unknown service types
+    console.warn(`Unknown service type: ${serviceType}, using fallback pricing`);
+    return {
+      estimatedPrice: 120,
+      addonsPrice: addons.reduce((sum, addon) => sum + addon.price, 0),
+      totalEstimate: 120 + addons.reduce((sum, addon) => sum + addon.price, 0),
+      leadFee: 15
+    };
   }
 
   // Now using correct customer pricing that includes commission
@@ -202,7 +217,8 @@ const LEGACY_SERVICE_TYPE_MAPPING: Record<string, string> = {
   'Table Mount Large': 'table-top-large',
   'Bronze Wall Mount': 'bronze',
   'Silver Wall Mount': 'silver',
-  'Gold Wall Mount': 'gold'
+  'Gold Wall Mount': 'gold',
+  'silver-premium': 'silver' // Map silver-premium to silver
 };
 
 export function getLeadFee(serviceType: string): number {

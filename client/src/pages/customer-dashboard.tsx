@@ -851,6 +851,7 @@ export default function CustomerDashboard() {
 
   // Full authenticated user - show complete dashboard
   return (
+    <>
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
@@ -1981,7 +1982,8 @@ export default function CustomerDashboard() {
           </div>
         </DialogContent>
       </Dialog>
-    );
+    </>
+  );
 }
 
 // TV Setup Card Component

@@ -9594,29 +9594,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Retrieve payment intent
       let paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
       
-      // For development/testing: if payment requires payment method, auto-confirm with test card
-      let isDevMode = process.env.STRIPE_SECRET_KEY?.includes('sk_test');
-      
-      if (paymentIntent.status === "requires_payment_method" || paymentIntent.status === "requires_confirmation") {
-        try {
-          // Confirm payment with test payment method for development
-          paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
-            payment_method: 'pm_card_visa', // Stripe test payment method
-            return_url: 'https://your-website.com/return' // Required for some payment methods
-          });
-        } catch (confirmError: any) {
-          console.log("Auto-confirmation failed:", confirmError.message);
-          
-          // In development mode, simulate success if auto-confirmation fails
-          if (isDevMode) {
-            console.log("Development mode: Simulating successful payment for testing");
-            // Create a mock successful status for development
-            paymentIntent = { ...paymentIntent, status: 'succeeded' as any };
-          }
-        }
-      }
-      
-      if (paymentIntent.status === "succeeded" || (isDevMode && paymentIntent.metadata?.creditAmount)) {
+      // Payment should have been confirmed by Stripe Elements on the frontend
+      if (paymentIntent.status === "succeeded") {
         const creditAmount = parseFloat(paymentIntent.metadata.creditAmount || "0");
         
         // Get current wallet
@@ -9659,57 +9638,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           }
         });
       } else {
-        // If we're in development mode and have a credit amount, allow it for testing
-        if (isDevMode && paymentIntent.metadata?.creditAmount) {
-          console.log("Development mode: Processing payment despite status:", paymentIntent.status);
-          const creditAmount = parseFloat(paymentIntent.metadata.creditAmount || "0");
-          
-          // Get current wallet
-          let wallet = await storage.getCustomerWallet(userId);
-          if (!wallet) {
-            wallet = await storage.createCustomerWallet({
-              userId,
-              balance: "0.00",
-              totalSpent: "0.00",
-              totalTopUps: "0.00"
-            });
-          }
-          
-          const currentBalance = parseFloat(wallet.balance);
-          const currentTotalTopUps = parseFloat(wallet.totalTopUps);
-          
-          // Update wallet balance
-          await storage.updateCustomerWalletBalance(userId, currentBalance + creditAmount);
-          await storage.updateCustomerWalletTotalTopUps(userId, currentTotalTopUps + creditAmount);
-          
-          // Add transaction record
-          await storage.addCustomerTransaction({
-            userId,
-            type: "credit_purchase",
-            amount: creditAmount.toString(),
-            description: `Added €${creditAmount} credits to wallet (dev mode)`,
-            paymentIntentId: paymentIntentId,
-            status: "completed"
-          });
-          
-          res.json({
-            success: true,
-            message: `Successfully added €${creditAmount} to your wallet (dev mode)`,
-            newBalance: currentBalance + creditAmount,
-            paymentIntent: {
-              id: paymentIntent.id,
-              amount: paymentIntent.amount / 100,
-              currency: paymentIntent.currency,
-              status: 'succeeded' // Override for development
-            }
-          });
-        } else {
-          res.status(400).json({
-            success: false,
-            message: "Payment not completed",
-            status: paymentIntent.status
-          });
-        }
+        res.status(400).json({
+          success: false,
+          message: "Payment not completed",
+          status: paymentIntent.status,
+          details: "Payment must be confirmed through Stripe Elements before calling this endpoint"
+        });
       }
     } catch (error: any) {
       console.error("Error confirming customer credit payment:", error);

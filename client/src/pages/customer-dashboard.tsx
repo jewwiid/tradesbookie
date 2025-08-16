@@ -10,8 +10,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+
+// Initialize Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51QSj2vLGZvKUWZLCtQl8HfOyevF4qPOJmcWjnF4bXgCgZLx8FDJKY0uAhklZjMvs3dz80jvQVgvJgjOcqvxQKFPw00Hf7N8Flv');
 import { Link, useLocation } from 'wouter';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
@@ -143,6 +148,155 @@ interface TvSetupBooking {
   completedAt?: string;
 }
 
+// Credit Card Payment Component
+function CreditCardPaymentForm({ amount, onSuccess, onCancel, onError }: {
+  amount: string;
+  onSuccess: (result: any) => void;
+  onCancel: () => void;
+  onError: (error: string) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [processing, setProcessing] = useState(false);
+  const [clientSecret, setClientSecret] = useState('');
+  const [paymentIntentId, setPaymentIntentId] = useState('');
+
+  // Create payment intent when component mounts
+  useEffect(() => {
+    if (!amount || parseFloat(amount) < 5) return;
+    
+    const createPaymentIntent = async () => {
+      try {
+        const response = await apiRequest('/api/customer/wallet/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: parseFloat(amount) })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create payment intent');
+        }
+        
+        const data = await response.json();
+        setClientSecret(data.clientSecret);
+        setPaymentIntentId(data.paymentIntentId);
+      } catch (error: any) {
+        onError(error.message);
+      }
+    };
+    
+    createPaymentIntent();
+  }, [amount]);
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements || !clientSecret) {
+      return;
+    }
+
+    setProcessing(true);
+
+    const card = elements.getElement(CardElement);
+    if (!card) {
+      setProcessing(false);
+      return;
+    }
+
+    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: card,
+        billing_details: {
+          // Add billing details if needed
+        },
+      }
+    });
+
+    if (error) {
+      console.error('Payment failed:', error);
+      onError(error.message || 'Payment failed');
+      setProcessing(false);
+    } else if (paymentIntent.status === 'succeeded') {
+      // Payment succeeded, confirm with backend
+      try {
+        const confirmResponse = await apiRequest('/api/customer/wallet/confirm-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ paymentIntentId: paymentIntent.id })
+        });
+        
+        if (!confirmResponse.ok) {
+          const errorData = await confirmResponse.json();
+          throw new Error(errorData.message || 'Payment confirmation failed');
+        }
+        
+        const confirmData = await confirmResponse.json();
+        onSuccess(confirmData);
+      } catch (confirmError: any) {
+        onError(confirmError.message);
+      }
+    }
+    
+    setProcessing(false);
+  };
+
+  const cardElementOptions = {
+    style: {
+      base: {
+        fontSize: '16px',
+        color: '#424770',
+        '::placeholder': {
+          color: '#aab7c4',
+        },
+      },
+      invalid: {
+        color: '#9e2146',
+      },
+    },
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="p-4 border rounded-lg">
+        <Label className="block text-sm font-medium mb-2">Card Information</Label>
+        <div className="p-3 border rounded bg-white">
+          <CardElement options={cardElementOptions} />
+        </div>
+      </div>
+      
+      <div className="flex space-x-3">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={processing}
+          className="flex-1"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          disabled={!stripe || processing || !clientSecret}
+          className="flex-1 bg-green-500 hover:bg-green-600"
+        >
+          {processing ? (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <CreditCard className="w-4 h-4 mr-2" />
+              Pay €{amount}
+            </>
+          )}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
 export default function CustomerDashboard() {
   const locationData = useLocation();
   const setLocation = locationData?.[1];
@@ -202,6 +356,9 @@ export default function CustomerDashboard() {
   // Wallet states
   const [topUpAmount, setTopUpAmount] = useState('');
   const [topUpLoading, setTopUpLoading] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [clientSecret, setClientSecret] = useState('');
+  const [paymentIntentId, setPaymentIntentId] = useState('');
 
   // Get current user
   const { data: user, isLoading: userLoading, error: userError } = useQuery<User>({
@@ -1800,69 +1957,54 @@ export default function CustomerDashboard() {
                       </div>
                       
                       <Button 
-                        onClick={async () => {
+                        onClick={() => {
                           if (!topUpAmount || parseFloat(topUpAmount) < 5) {
                             toast({ title: "Invalid amount", description: "Minimum top-up is €5", variant: "destructive" });
                             return;
                           }
-                          setTopUpLoading(true);
-                          try {
-                            // Create payment intent for customer credit top-up
-                            const paymentResponse = await apiRequest('POST', '/api/customer/wallet/create-payment-intent', {
-                              amount: parseFloat(topUpAmount)
-                            });
-                            
-                            if (!paymentResponse.ok) {
-                              const errorData = await paymentResponse.json();
-                              throw new Error(errorData.message || 'Failed to create payment');
-                            }
-                            
-                            const { clientSecret, paymentIntentId } = await paymentResponse.json();
-                            
-                            // For now, simulate successful payment (in real app, would integrate with Stripe Elements)
-                            // This is a simplified version - you'd typically use Stripe Elements for real payment processing
-                            await new Promise(resolve => setTimeout(resolve, 2000));
-                            
-                            // Confirm the payment
-                            const confirmResponse = await apiRequest('POST', '/api/customer/wallet/confirm-payment', {
-                              paymentIntentId
-                            });
-                            
-                            if (!confirmResponse.ok) {
-                              const errorData = await confirmResponse.json();
-                              throw new Error(errorData.message || 'Payment confirmation failed');
-                            }
-                            
-                            const confirmData = await confirmResponse.json();
-                            
-                            if (confirmData.success) {
-                              setTopUpAmount('');
-                              await refetchWallet(); // Refresh wallet data
-                              toast({ 
-                                title: "Success!", 
-                                description: confirmData.message || `€${topUpAmount} added to your wallet` 
-                              });
-                            } else {
-                              throw new Error(confirmData.message || 'Payment failed');
-                            }
-                          } catch (error: any) {
-                            console.error('Top-up error:', error);
-                            toast({ 
-                              title: "Payment failed", 
-                              description: error.message || "Please try again", 
-                              variant: "destructive" 
-                            });
-                          } finally {
-                            setTopUpLoading(false);
-                          }
+                          setShowPaymentForm(true);
                         }}
-                        disabled={topUpLoading || !topUpAmount || parseFloat(topUpAmount) < 5}
+                        disabled={!topUpAmount || parseFloat(topUpAmount) < 5}
                         className="w-full bg-green-500 hover:bg-green-600"
                       >
-                        {topUpLoading && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
                         <CreditCard className="w-4 h-4 mr-2" />
-                        Top Up Wallet
+                        Continue to Payment
                       </Button>
+                      
+                      {/* Stripe Payment Form Dialog */}
+                      <Dialog open={showPaymentForm} onOpenChange={setShowPaymentForm}>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Add Credits to Wallet</DialogTitle>
+                            <DialogDescription>
+                              Securely add €{topUpAmount} to your TradesBook wallet using your credit card.
+                            </DialogDescription>
+                          </DialogHeader>
+                          
+                          <Elements stripe={stripePromise}>
+                            <CreditCardPaymentForm
+                              amount={topUpAmount}
+                              onSuccess={async (result) => {
+                                setShowPaymentForm(false);
+                                setTopUpAmount('');
+                                await refetchWallet();
+                                toast({ 
+                                  title: "Success!", 
+                                  description: result.message || `€${topUpAmount} added to your wallet` 
+                                });
+                              }}
+                              onCancel={() => setShowPaymentForm(false)}
+                              onError={(error) => {
+                                toast({ 
+                                  title: "Payment failed", 
+                                  description: error, 
+                                  variant: "destructive" 
+                                });
+                              }}
+                            />
+                          </Elements>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </CardContent>
                 </Card>

@@ -1918,8 +1918,9 @@ export default function CustomerDashboard() {
     return (
       <div>
       {/* Profile Edit Dialog */}
+      {console.log('Rendering dialog, showProfileEdit state:', showProfileEdit)}
       <Dialog open={showProfileEdit} onOpenChange={setShowProfileEdit}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" style={{ zIndex: 9999 }}>
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
             <DialogDescription>

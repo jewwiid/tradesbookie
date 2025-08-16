@@ -24,6 +24,8 @@ import LeadPurchaseDialog from "@/components/installer/LeadPurchaseDialog";
 import QRScanner from "@/components/installer/QRScanner";
 import CompletionPhotoCapture from "@/components/installer/CompletionPhotoCapture";
 import BeforeAfterPhotoCapture from "@/components/installer/BeforeAfterPhotoCapture";
+import ScheduleProposalForm from "@/components/ScheduleProposalForm";
+import ScheduleNegotiation from "@/components/ScheduleNegotiation";
 
 import { 
   Bolt, 
@@ -999,6 +1001,181 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
 }
 
 // Job Completion Section Component
+// Active Jobs Section - where installers manage their assigned bookings and communicate with customers
+function ActiveJobsSection({ installerId }: { installerId?: number }) {
+  const { toast } = useToast();
+
+  // Fetch installer's assigned bookings
+  const { data: activeBookings = [], isLoading, refetch } = useQuery({
+    queryKey: [`/api/installer/bookings`],
+    enabled: !!installerId,
+    refetchInterval: 30000, // Refresh every 30 seconds for new messages
+  });
+
+  if (!installerId) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-gray-500">
+            Please complete your profile setup to access active jobs.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (activeBookings.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Wrench className="w-5 h-5" />
+            <span>Active Jobs</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 space-y-4">
+            <Wrench className="w-12 h-12 text-gray-400 mx-auto" />
+            <div>
+              <p className="text-gray-600 font-medium">No active jobs yet</p>
+              <p className="text-sm text-gray-500">When customers accept your proposals, they'll appear here.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'bg-blue-100 text-blue-800';
+      case 'assigned': return 'bg-yellow-100 text-yellow-800';
+      case 'in_progress': return 'bg-orange-100 text-orange-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-IE', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Wrench className="w-5 h-5" />
+            <span>Active Jobs ({activeBookings.length})</span>
+          </CardTitle>
+          <CardDescription>
+            Manage your assigned installations and communicate with customers about scheduling.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {activeBookings.map((booking: any) => (
+            <Card key={booking.id} className="border-l-4 border-l-blue-500">
+              <CardContent className="p-6 space-y-4">
+                {/* Booking Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-semibold text-lg">{booking.contactName}</h3>
+                      <Badge className={getStatusColor(booking.status)}>
+                        {booking.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center space-x-2 text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      <span className="text-sm">{booking.address}</span>
+                    </div>
+                  </div>
+                  <div className="text-right space-y-1">
+                    <div className="font-semibold text-green-600">{booking.estimatedTotal}</div>
+                    {booking.createdAt && (
+                      <div className="text-sm text-gray-500">
+                        Created: {formatDate(booking.createdAt)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Service Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Tv className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium">Service:</span>
+                      <span>{booking.serviceType}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Monitor className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium">TV Size:</span>
+                      <span>{booking.tvSize}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Phone className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium">Phone:</span>
+                      <span>{booking.contactPhone}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Mail className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium">Email:</span>
+                      <span>{booking.contactEmail}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Messaging Section */}
+                <div className="border-t pt-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">Schedule Communication</h4>
+                    <ScheduleProposalForm
+                      bookingId={booking.id}
+                      installerId={installerId}
+                      customerName={booking.contactName}
+                      customerAddress={booking.address}
+                      onProposalSent={() => refetch()}
+                    />
+                  </div>
+                  
+                  <ScheduleNegotiation
+                    bookingId={booking.id}
+                    installerId={installerId}
+                    userType="installer"
+                    customerName={booking.contactName}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [isScanning, setIsScanning] = useState(false);
   const [scanError, setScanError] = useState('');
@@ -1817,7 +1994,7 @@ export default function InstallerDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
         <Tabs defaultValue="requests" className="w-full">
           {/* Mobile-first responsive tabs */}
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 mb-6 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 mb-6 h-auto p-1">
             <TabsTrigger value="requests" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <NavigationIcon className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline">Lead Requests</span>
@@ -1827,6 +2004,11 @@ export default function InstallerDashboard() {
               <CheckCircle className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline">Purchased Leads</span>
               <span className="sm:hidden">Purchased</span>
+            </TabsTrigger>
+            <TabsTrigger value="active-jobs" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <Wrench className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Active Jobs</span>
+              <span className="sm:hidden">Jobs</span>
             </TabsTrigger>
             <TabsTrigger value="reviews" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <Star className="w-4 h-4 flex-shrink-0" />
@@ -2106,6 +2288,10 @@ export default function InstallerDashboard() {
 
           <TabsContent value="past-leads" className="space-y-6">
             <PastLeadsManagement installerId={installerProfile?.id} />
+          </TabsContent>
+
+          <TabsContent value="active-jobs" className="space-y-6">
+            <ActiveJobsSection installerId={installerProfile?.id} />
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-6">

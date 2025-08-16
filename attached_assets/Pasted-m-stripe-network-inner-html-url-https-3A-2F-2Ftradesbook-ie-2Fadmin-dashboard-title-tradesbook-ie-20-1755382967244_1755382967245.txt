@@ -1,0 +1,97 @@
+m.stripe.network/inner.html#url=https%3A%2F%2Ftradesbook.ie%2Fadmin-dashboard&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=&muid=8da43aaa-c5d5-4d2b-8140-822c98e183a833fdf6&sid=55d55f50-fecf-4112-938e-aaa88c85dd51461740&version=6&preview=false&__shared_params__[version]=basil:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+admin-dashboard:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+js.stripe.com/v3/controller-with-preconnect-43ba7ed1895faf8f56d412a714925e6a.html#__shared_params__[version]=basil&__shared_params__[light_experiment_assignments]=%7B%22token%22%3A%22f97bb2f1-9283-4362-9010-61285d696da8%22%2C%22assignments%22%3A%7B%7D%7D&apiKey=pk_test_51QSj2vLGZvKUWZLCtQl8HfOyevF4qPOJmcWjnF4bXgCgZLx8FDJKY0uAhklZjMvs3dz80jvQVgvJgjOcqvxQKFPw00Hf7N8Flv&apiVersion=2025-03-31.basil&stripeJsId=f97bb2f1-9283-4362-9010-61285d696da8&stripeObjId=sobj-20969f4a-7bbe-4865-b203-7570e4b4c062&firstStripeInstanceCreatedLatency=12&controllerCount=1&isCheckout=false&stripeJsLoadTime=1755382860865&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=8da43aaa-c5d5-4d2b-8140-822c98e183a833fdf6&mids[sid]=55d55f50-fecf-4112-938e-aaa88c85dd51461740&referrer=https%3A%2F%2Ftradesbook.ie%2Fadmin-dashboard&controllerId=__privateStripeController2411:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Ftradesbook.ie%2Fadmin-dashboard&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=&muid=8da43aaa-c5d5-4d2b-8140-822c98e183a833fdf6&sid=55d55f50-fecf-4112-938e-aaa88c85dd51461740&version=6&preview=false&__shared_params__[version]=basil:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+index-D9iCh6J1.js:40 Error: Minified React error #31; visit https://reactjs.org/docs/error-decoder.html?invariant=31&args[]=object%20with%20keys%20%7Bcount%2C%20percentage%7D for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at _x (index-D9iCh6J1.js:38:6327)
+    at x (index-D9iCh6J1.js:38:8116)
+    at N (index-D9iCh6J1.js:38:9269)
+    at v (index-D9iCh6J1.js:38:11347)
+    at xr (index-D9iCh6J1.js:40:1475)
+    at fA (index-D9iCh6J1.js:40:45767)
+    at hA (index-D9iCh6J1.js:40:39790)
+    at PV (index-D9iCh6J1.js:40:39718)
+    at zp (index-D9iCh6J1.js:40:39570)
+    at d0 (index-D9iCh6J1.js:40:35934)
+overrideMethod @ hook.js:608
+Xy @ index-D9iCh6J1.js:40
+GT.n.callback @ index-D9iCh6J1.js:40
+C1 @ index-D9iCh6J1.js:38
+U1 @ index-D9iCh6J1.js:40
+cA @ index-D9iCh6J1.js:40
+SV @ index-D9iCh6J1.js:40
+AV @ index-D9iCh6J1.js:40
+Io @ index-D9iCh6J1.js:40
+W1 @ index-D9iCh6J1.js:40
+xo @ index-D9iCh6J1.js:38
+(anonymous) @ index-D9iCh6J1.js:40
+index-D9iCh6J1.js:40 Error: Minified React error #31; visit https://reactjs.org/docs/error-decoder.html?invariant=31&args[]=object%20with%20keys%20%7Bcount%2C%20percentage%7D for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at _x (index-D9iCh6J1.js:38:6327)
+    at x (index-D9iCh6J1.js:38:8116)
+    at N (index-D9iCh6J1.js:38:9269)
+    at v (index-D9iCh6J1.js:38:11347)
+    at xr (index-D9iCh6J1.js:40:1475)
+    at fA (index-D9iCh6J1.js:40:45767)
+    at hA (index-D9iCh6J1.js:40:39790)
+    at PV (index-D9iCh6J1.js:40:39718)
+    at zp (index-D9iCh6J1.js:40:39570)
+    at d0 (index-D9iCh6J1.js:40:35934)
+overrideMethod @ hook.js:608
+Xy @ index-D9iCh6J1.js:40
+GT.n.callback @ index-D9iCh6J1.js:40
+C1 @ index-D9iCh6J1.js:38
+U1 @ index-D9iCh6J1.js:40
+cA @ index-D9iCh6J1.js:40
+SV @ index-D9iCh6J1.js:40
+AV @ index-D9iCh6J1.js:40
+Io @ index-D9iCh6J1.js:40
+W1 @ index-D9iCh6J1.js:40
+xo @ index-D9iCh6J1.js:38
+(anonymous) @ index-D9iCh6J1.js:40
+index-D9iCh6J1.js:40 Error: Minified React error #31; visit https://reactjs.org/docs/error-decoder.html?invariant=31&args[]=object%20with%20keys%20%7Bcount%2C%20percentage%7D for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at _x (index-D9iCh6J1.js:38:6327)
+    at x (index-D9iCh6J1.js:38:8116)
+    at N (index-D9iCh6J1.js:38:9269)
+    at v (index-D9iCh6J1.js:38:11347)
+    at xr (index-D9iCh6J1.js:40:1475)
+    at fA (index-D9iCh6J1.js:40:45767)
+    at hA (index-D9iCh6J1.js:40:39790)
+    at PV (index-D9iCh6J1.js:40:39718)
+    at zp (index-D9iCh6J1.js:40:39570)
+    at d0 (index-D9iCh6J1.js:40:35934)
+overrideMethod @ hook.js:608
+Xy @ index-D9iCh6J1.js:40
+GT.n.callback @ index-D9iCh6J1.js:40
+C1 @ index-D9iCh6J1.js:38
+U1 @ index-D9iCh6J1.js:40
+cA @ index-D9iCh6J1.js:40
+SV @ index-D9iCh6J1.js:40
+AV @ index-D9iCh6J1.js:40
+Io @ index-D9iCh6J1.js:40
+W1 @ index-D9iCh6J1.js:40
+xo @ index-D9iCh6J1.js:38
+(anonymous) @ index-D9iCh6J1.js:40
+index-D9iCh6J1.js:38 Uncaught Error: Minified React error #31; visit https://reactjs.org/docs/error-decoder.html?invariant=31&args[]=object%20with%20keys%20%7Bcount%2C%20percentage%7D for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at _x (index-D9iCh6J1.js:38:6327)
+    at x (index-D9iCh6J1.js:38:8116)
+    at N (index-D9iCh6J1.js:38:9269)
+    at v (index-D9iCh6J1.js:38:11347)
+    at xr (index-D9iCh6J1.js:40:1475)
+    at fA (index-D9iCh6J1.js:40:45767)
+    at hA (index-D9iCh6J1.js:40:39790)
+    at PV (index-D9iCh6J1.js:40:39718)
+    at zp (index-D9iCh6J1.js:40:39570)
+    at d0 (index-D9iCh6J1.js:40:35934)
+_x @ index-D9iCh6J1.js:38
+x @ index-D9iCh6J1.js:38
+N @ index-D9iCh6J1.js:38
+v @ index-D9iCh6J1.js:38
+xr @ index-D9iCh6J1.js:40
+fA @ index-D9iCh6J1.js:40
+hA @ index-D9iCh6J1.js:40
+PV @ index-D9iCh6J1.js:40
+zp @ index-D9iCh6J1.js:40
+d0 @ index-D9iCh6J1.js:40
+W1 @ index-D9iCh6J1.js:40
+xo @ index-D9iCh6J1.js:38
+(anonymous) @ index-D9iCh6J1.js:40

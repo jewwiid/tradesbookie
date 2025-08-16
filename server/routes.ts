@@ -12229,6 +12229,26 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // AI Credit Usage Summary endpoint
+  app.get('/api/ai/usage-summary', async (req: any, res) => {
+    try {
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const userId = req.user.id;
+      const summary = await import("./aiCreditMiddleware").then(m => m.getAiUsageSummary(userId));
+      
+      res.json(summary);
+    } catch (error) {
+      console.error('Error getting AI usage summary:', error);
+      res.status(500).json({ 
+        error: 'Failed to get usage summary',
+        message: 'Unable to retrieve AI usage information'
+      });
+    }
+  });
+
   // AI Product Care Analysis endpoint
   app.post("/api/ai/product-care-analysis", checkAiCredits(AI_FEATURES.PRODUCT_CARE), async (req: AIRequest, res) => {
     try {

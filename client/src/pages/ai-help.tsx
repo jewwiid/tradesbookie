@@ -1,6 +1,8 @@
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import AIHelpWidget from "@/components/AIHelpWidget";
+import CreditDisplay from "@/components/CreditDisplay";
+import CreditErrorHandler from "@/components/CreditErrorHandler";
 import { MessageCircle, Zap, Clock, CheckCircle, ArrowRightLeft, DollarSign, Shield, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProductInfo {
   name: string;
@@ -171,9 +174,11 @@ interface CategoryQuestion {
 }
 
 export default function AIHelpPage() {
+  const { isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('chat');
   const [productModel, setProductModel] = useState('');
   const [productInfo, setProductInfo] = useState<ProductInfo | null>(null);
+  const [creditError, setCreditError] = useState<any>(null);
   
   // Electronic Product Comparison State
   const [product1, setProduct1] = useState('');
@@ -278,12 +283,25 @@ export default function AIHelpPage() {
             userContext
           })
         })
-        .then(response => response.json())
+        .then(async response => {
+          if (!response.ok) {
+            if (response.status === 401 || response.status === 402 || response.status === 403) {
+              const errorData = await response.json();
+              setCreditError(errorData);
+              setAnalysis(null);
+              setIsLoadingAnalysis(false);
+              return null;
+            }
+            throw new Error('Product care analysis failed');
+          }
+          return response.json();
+        })
         .then(data => {
           if (data && data.criticalScenarios && Array.isArray(data.criticalScenarios)) {
             setAnalysis(data);
             setCurrentSlide(0); // Reset to first slide
-          } else {
+            setCreditError(null); // Clear any previous errors
+          } else if (data) {
             console.error('Invalid analysis data structure:', data);
             setAnalysis(null);
           }
@@ -503,7 +521,15 @@ export default function AIHelpPage() {
         body: JSON.stringify({ model }),
         headers: { 'Content-Type': 'application/json' }
       });
-      if (!response.ok) throw new Error('Failed to get product info');
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 402 || response.status === 403) {
+          const errorData = await response.json();
+          setCreditError(errorData);
+          throw new Error('Credit error');
+        }
+        throw new Error('Failed to get product info');
+      }
+      setCreditError(null); // Clear any previous errors
       return response.json();
     },
     onSuccess: (data: ProductInfo) => {
@@ -523,7 +549,15 @@ export default function AIHelpPage() {
         body: JSON.stringify({ product1, product2, productCategory, questionnaire }),
         headers: { 'Content-Type': 'application/json' }
       });
-      if (!response.ok) throw new Error('Electronic product comparison failed');
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 402 || response.status === 403) {
+          const errorData = await response.json();
+          setCreditError(errorData);
+          throw new Error('Credit error');
+        }
+        throw new Error('Electronic product comparison failed');
+      }
+      setCreditError(null); // Clear any previous errors
       return response.json();
     },
     onSuccess: (data: ElectronicProductComparison) => {
@@ -1127,7 +1161,15 @@ export default function AIHelpPage() {
         body: JSON.stringify({ category, answers, maxBudgetEUR: budget }),
         headers: { 'Content-Type': 'application/json' }
       });
-      if (!response.ok) throw new Error('Recommendation failed');
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 402 || response.status === 403) {
+          const errorData = await response.json();
+          setCreditError(errorData);
+          throw new Error('Credit error');
+        }
+        throw new Error('Recommendation failed');
+      }
+      setCreditError(null); // Clear any previous errors
       return response.json();
     },
     onSuccess: (data: RecommendationResponse) => {
@@ -1710,6 +1752,30 @@ export default function AIHelpPage() {
               <span className="font-medium text-sm">Expert Knowledge</span>
             </div>
           </div>
+          
+          {/* AI Credit Display */}
+          <div className="mt-6 max-w-md mx-auto">
+            <CreditDisplay showDetailed={false} />
+          </div>
+          
+          {/* Credit Error Handler */}
+          {creditError && (
+            <div className="mt-4 max-w-2xl mx-auto">
+              <CreditErrorHandler 
+                error={creditError}
+                onSignIn={() => window.location.href = '/api/login'}
+                onTopUp={() => {
+                  // TODO: Implement top up functionality
+                  console.log('Top up credits');
+                }}
+                onVerifyEmail={() => {
+                  // TODO: Implement email verification
+                  console.log('Verify email');
+                }}
+                featureName="AI Help"
+              />
+            </div>
+          )}
         </div>
 
         {/* Tab Navigation */}

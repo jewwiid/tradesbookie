@@ -339,6 +339,30 @@ export const customerTransactions = pgTable("customer_transactions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Support tickets system
+export const supportTickets = pgTable("support_tickets", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  subject: text("subject").notNull(),
+  status: text("status").notNull().default("open"), // open, in_progress, closed
+  priority: text("priority").notNull().default("medium"), // low, medium, high, urgent
+  category: text("category").notNull().default("general"), // general, booking, payment, technical
+  assignedTo: varchar("assigned_to").references(() => users.id), // Admin user assigned to ticket
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  closedAt: timestamp("closed_at"),
+});
+
+// Support ticket messages/responses
+export const ticketMessages = pgTable("ticket_messages", {
+  id: serial("id").primaryKey(),
+  ticketId: integer("ticket_id").references(() => supportTickets.id).notNull(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  message: text("message").notNull(),
+  isAdminReply: boolean("is_admin_reply").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Installer wallet/credits system
 export const installerWallets = pgTable("installer_wallets", {
   id: serial("id").primaryKey(),
@@ -1961,3 +1985,22 @@ export type CustomerWallet = typeof customerWallets.$inferSelect;
 export type InsertCustomerWallet = z.infer<typeof insertCustomerWalletSchema>;
 export type CustomerTransaction = typeof customerTransactions.$inferSelect;
 export type InsertCustomerTransaction = z.infer<typeof insertCustomerTransactionSchema>;
+
+// Support ticket insert schemas
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  closedAt: true,
+});
+
+export const insertTicketMessageSchema = createInsertSchema(ticketMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Support ticket types
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type TicketMessage = typeof ticketMessages.$inferSelect;
+export type InsertTicketMessage = z.infer<typeof insertTicketMessageSchema>;

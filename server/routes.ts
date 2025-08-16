@@ -9309,6 +9309,247 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Support ticket endpoints
+  // Create a support ticket (customer)
+  app.post("/api/support/tickets", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const { subject, message, category, priority } = req.body;
+      
+      if (!subject || !message) {
+        return res.status(400).json({ message: "Subject and message are required" });
+      }
+      
+      // Create the ticket
+      const ticket = await storage.createSupportTicket({
+        userId,
+        subject,
+        status: "open",
+        priority: priority || "medium",
+        category: category || "general"
+      });
+      
+      // Add the initial message
+      await storage.addTicketMessage({
+        ticketId: ticket.id,
+        userId,
+        message,
+        isAdminReply: false
+      });
+      
+      // Send email notification to admin
+      try {
+        const { sendGmailEmail } = await import('./gmailService');
+        await sendGmailEmail({
+          to: 'support@tradesbook.ie',
+          subject: `New Support Ticket #${ticket.id}: ${subject}`,
+          html: `
+            <h2>New Support Ticket Created</h2>
+            <p><strong>Ticket ID:</strong> #${ticket.id}</p>
+            <p><strong>From:</strong> ${(req as any).user.email}</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Category:</strong> ${category || 'general'}</p>
+            <p><strong>Priority:</strong> ${priority || 'medium'}</p>
+            <p><strong>Message:</strong></p>
+            <div style="padding: 15px; background-color: #f5f5f5; border-radius: 5px; margin: 10px 0;">
+              ${message.replace(/\n/g, '<br>')}
+            </div>
+            <p><a href="https://tradesbook.ie/admin#support">View in Admin Dashboard</a></p>
+          `
+        });
+      } catch (emailError) {
+        console.error("Failed to send support ticket notification:", emailError);
+      }
+      
+      res.json({ 
+        success: true, 
+        ticket,
+        message: "Support ticket created successfully" 
+      });
+    } catch (error: any) {
+      console.error("Error creating support ticket:", error);
+      res.status(500).json({ message: "Failed to create support ticket" });
+    }
+  });
+
+  // Get user's support tickets
+  app.get("/api/support/tickets", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const tickets = await storage.getUserSupportTickets(userId);
+      res.json(tickets);
+    } catch (error: any) {
+      console.error("Error fetching user support tickets:", error);
+      res.status(500).json({ message: "Failed to fetch support tickets" });
+    }
+  });
+
+  // Get ticket messages (customer)
+  app.get("/api/support/tickets/:ticketId/messages", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const ticketId = parseInt(req.params.ticketId);
+      
+      // Verify user owns this ticket
+      const ticket = await storage.getSupportTicket(ticketId);
+      if (!ticket || ticket.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const messages = await storage.getTicketMessages(ticketId);
+      res.json(messages);
+    } catch (error: any) {
+      console.error("Error fetching ticket messages:", error);
+      res.status(500).json({ message: "Failed to fetch ticket messages" });
+    }
+  });
+
+  // Add message to ticket (customer)
+  app.post("/api/support/tickets/:ticketId/messages", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      const ticketId = parseInt(req.params.ticketId);
+      const { message } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      // Verify user owns this ticket
+      const ticket = await storage.getSupportTicket(ticketId);
+      if (!ticket || ticket.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Add the message
+      const newMessage = await storage.addTicketMessage({
+        ticketId,
+        userId,
+        message,
+        isAdminReply: false
+      });
+      
+      // Update ticket status to open if it was closed
+      if (ticket.status === 'closed') {
+        await storage.updateSupportTicketStatus(ticketId, 'open');
+      }
+      
+      res.json({ 
+        success: true, 
+        message: newMessage,
+        notification: "Message sent successfully" 
+      });
+    } catch (error: any) {
+      console.error("Error adding ticket message:", error);
+      res.status(500).json({ message: "Failed to send message" });
+    }
+  });
+
+  // Admin endpoints
+  // Get all support tickets (admin only)
+  app.get("/api/admin/support/tickets", isAuthenticated, async (req, res) => {
+    try {
+      const userRole = (req as any).user.role;
+      if (userRole !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const tickets = await storage.getAllSupportTickets();
+      res.json(tickets);
+    } catch (error: any) {
+      console.error("Error fetching all support tickets:", error);
+      res.status(500).json({ message: "Failed to fetch support tickets" });
+    }
+  });
+
+  // Update ticket status (admin only)
+  app.put("/api/admin/support/tickets/:ticketId/status", isAuthenticated, async (req, res) => {
+    try {
+      const userRole = (req as any).user.role;
+      if (userRole !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const ticketId = parseInt(req.params.ticketId);
+      const { status, assignedTo } = req.body;
+      
+      await storage.updateSupportTicketStatus(ticketId, status, assignedTo);
+      
+      res.json({ 
+        success: true, 
+        message: "Ticket status updated successfully" 
+      });
+    } catch (error: any) {
+      console.error("Error updating ticket status:", error);
+      res.status(500).json({ message: "Failed to update ticket status" });
+    }
+  });
+
+  // Admin reply to ticket
+  app.post("/api/admin/support/tickets/:ticketId/reply", isAuthenticated, async (req, res) => {
+    try {
+      const userRole = (req as any).user.role;
+      if (userRole !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const ticketId = parseInt(req.params.ticketId);
+      const userId = (req as any).user.id;
+      const { message, status } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      
+      // Add admin reply
+      await storage.addTicketMessage({
+        ticketId,
+        userId,
+        message,
+        isAdminReply: true
+      });
+      
+      // Update ticket status if provided
+      if (status) {
+        await storage.updateSupportTicketStatus(ticketId, status, userId);
+      }
+      
+      // Send email notification to customer
+      try {
+        const ticket = await storage.getSupportTicket(ticketId);
+        const user = await storage.getUser(ticket?.userId || '');
+        
+        if (user?.email) {
+          const { sendGmailEmail } = await import('./gmailService');
+          await sendGmailEmail({
+            to: user.email,
+            subject: `Support Ticket #${ticketId} - New Response`,
+            html: `
+              <h2>Support Team Response</h2>
+              <p>Hello ${user.firstName || 'there'},</p>
+              <p>Our support team has responded to your ticket <strong>#${ticketId}</strong>:</p>
+              <div style="padding: 15px; background-color: #f0f9ff; border-radius: 5px; margin: 15px 0;">
+                ${message.replace(/\n/g, '<br>')}
+              </div>
+              <p><a href="https://tradesbook.ie/dashboard#support">View Full Conversation</a></p>
+              <p>Best regards,<br>Tradesbook Support Team</p>
+            `
+          });
+        }
+      } catch (emailError) {
+        console.error("Failed to send customer notification:", emailError);
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Reply sent successfully" 
+      });
+    } catch (error: any) {
+      console.error("Error sending admin reply:", error);
+      res.status(500).json({ message: "Failed to send reply" });
+    }
+  });
+
   // Get available leads for installer
   app.get("/api/installer/:installerId/available-leads", async (req, res) => {
     try {

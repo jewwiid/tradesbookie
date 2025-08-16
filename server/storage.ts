@@ -8,7 +8,7 @@ import {
   consultations, downloadableGuides, videoTutorials, productCategories,
   qrCodeScans, aiProductRecommendations, choiceFlowTracking,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics, retailerInvoices,
-  installerServiceAssignments, customerWallets, customerTransactions,
+  installerServiceAssignments, customerWallets, customerTransactions, supportTickets, ticketMessages,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -27,6 +27,8 @@ import {
   type InstallerTransaction, type InsertInstallerTransaction,
   type CustomerWallet, type InsertCustomerWallet,
   type CustomerTransaction, type InsertCustomerTransaction,
+  type SupportTicket, type InsertSupportTicket,
+  type TicketMessage, type InsertTicketMessage,
   type EmailTemplate, type InsertEmailTemplate,
   type BannedUser, type InsertBannedUser,
   type Resource, type InsertResource,
@@ -187,6 +189,16 @@ export interface IStorage {
   addCustomerTransaction(transaction: InsertCustomerTransaction): Promise<CustomerTransaction>;
   getCustomerTransactions(userId: string): Promise<CustomerTransaction[]>;
   getAllCustomerTransactions(): Promise<CustomerTransaction[]>;
+
+  // Support ticket operations
+  createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket>;
+  getSupportTicket(id: number): Promise<SupportTicket | undefined>;
+  getUserSupportTickets(userId: string): Promise<SupportTicket[]>;
+  getAllSupportTickets(): Promise<SupportTicket[]>;
+  updateSupportTicketStatus(id: number, status: string, assignedTo?: string): Promise<void>;
+  closeSupportTicket(id: number): Promise<void>;
+  addTicketMessage(message: InsertTicketMessage): Promise<TicketMessage>;
+  getTicketMessages(ticketId: number): Promise<TicketMessage[]>;
 
   // Lead payment operations
   updateJobAssignmentLeadFee(jobId: number, leadFee: number, paymentIntentId: string, status: string): Promise<void>;
@@ -1427,6 +1439,73 @@ export class DatabaseStorage implements IStorage {
   async getAllCustomerTransactions(): Promise<CustomerTransaction[]> {
     return await db.select().from(customerTransactions)
       .orderBy(desc(customerTransactions.createdAt));
+  }
+
+  // Support ticket operations
+  async createSupportTicket(ticket: InsertSupportTicket): Promise<SupportTicket> {
+    const [newTicket] = await db.insert(supportTickets)
+      .values(ticket)
+      .returning();
+    return newTicket;
+  }
+
+  async getSupportTicket(id: number): Promise<SupportTicket | undefined> {
+    const [ticket] = await db.select().from(supportTickets)
+      .where(eq(supportTickets.id, id));
+    return ticket;
+  }
+
+  async getUserSupportTickets(userId: string): Promise<SupportTicket[]> {
+    return await db.select().from(supportTickets)
+      .where(eq(supportTickets.userId, userId))
+      .orderBy(desc(supportTickets.createdAt));
+  }
+
+  async getAllSupportTickets(): Promise<SupportTicket[]> {
+    return await db.select().from(supportTickets)
+      .orderBy(desc(supportTickets.createdAt));
+  }
+
+  async updateSupportTicketStatus(id: number, status: string, assignedTo?: string): Promise<void> {
+    const updateData: Partial<typeof supportTickets.$inferInsert> = {
+      status,
+      updatedAt: new Date()
+    };
+    
+    if (assignedTo) {
+      updateData.assignedTo = assignedTo;
+    }
+    
+    if (status === 'closed') {
+      updateData.closedAt = new Date();
+    }
+    
+    await db.update(supportTickets)
+      .set(updateData)
+      .where(eq(supportTickets.id, id));
+  }
+
+  async closeSupportTicket(id: number): Promise<void> {
+    await db.update(supportTickets)
+      .set({ 
+        status: 'closed',
+        closedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(supportTickets.id, id));
+  }
+
+  async addTicketMessage(message: InsertTicketMessage): Promise<TicketMessage> {
+    const [newMessage] = await db.insert(ticketMessages)
+      .values(message)
+      .returning();
+    return newMessage;
+  }
+
+  async getTicketMessages(ticketId: number): Promise<TicketMessage[]> {
+    return await db.select().from(ticketMessages)
+      .where(eq(ticketMessages.ticketId, ticketId))
+      .orderBy(ticketMessages.createdAt);
   }
 
   // Lead payment operations

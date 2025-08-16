@@ -170,8 +170,14 @@ export default function CustomerDashboard() {
   const [generatingCode, setGeneratingCode] = useState(false);
   
   // Support states
+  const [supportSubject, setSupportSubject] = useState('');
   const [supportMessage, setSupportMessage] = useState('');
   const [supportLoading, setSupportLoading] = useState(false);
+  const [supportCategory, setSupportCategory] = useState('general');
+  const [supportPriority, setSupportPriority] = useState('medium');
+  const [selectedTicket, setSelectedTicket] = useState<any>(null);
+  const [ticketMessages, setTicketMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
   
   // Active tab state
   const [activeTab, setActiveTab] = useState('bookings');
@@ -217,6 +223,12 @@ export default function CustomerDashboard() {
     transactions: Array<{ id: number; type: string; amount: string; description: string; createdAt: string }>;
   }>({
     queryKey: ['/api/customer/wallet'],
+    enabled: !!user && user.role !== 'admin', // Only fetch for customer users
+  });
+
+  // Get user's support tickets
+  const { data: supportTickets = [], isLoading: ticketsLoading, refetch: refetchTickets } = useQuery<any[]>({
+    queryKey: ['/api/support/tickets'],
     enabled: !!user && user.role !== 'admin', // Only fetch for customer users
   });
 
@@ -1216,6 +1228,88 @@ export default function CustomerDashboard() {
 
             {/* Support Tab */}
             <TabsContent value="support" className="space-y-6">
+              {/* Existing Support Tickets */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-blue-500" />
+                    Your Support Tickets
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {ticketsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
+                      <span className="ml-2 text-gray-600">Loading tickets...</span>
+                    </div>
+                  ) : supportTickets && supportTickets.length > 0 ? (
+                    <div className="space-y-4">
+                      {supportTickets.map((ticket: any) => (
+                        <div key={ticket.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <h4 className="font-semibold text-lg">#{ticket.id}: {ticket.subject}</h4>
+                              <div className="flex items-center gap-4 mt-2">
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                  ticket.status === 'open' ? 'bg-green-100 text-green-800' :
+                                  ticket.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1).replace('_', ' ')}
+                                </span>
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                  ticket.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                                  ticket.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                                  ticket.priority === 'medium' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {ticket.priority.charAt(0).toUpperCase() + ticket.priority.slice(1)} Priority
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  {ticket.category.charAt(0).toUpperCase() + ticket.category.slice(1)}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-sm text-gray-500">
+                                {new Date(ticket.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              setSelectedTicket(ticket);
+                              // Fetch ticket messages
+                              try {
+                                const response = await apiRequest('GET', `/api/support/tickets/${ticket.id}/messages`);
+                                const messages = await response.json();
+                                setTicketMessages(messages);
+                              } catch (error) {
+                                console.error('Failed to fetch ticket messages:', error);
+                                setTicketMessages([]);
+                              }
+                            }}
+                          >
+                            <ChevronRight className="w-4 h-4 mr-1" />
+                            View Conversation
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No Support Tickets</h3>
+                      <p className="text-gray-600">
+                        You haven't created any support tickets yet. Use the form below to contact support.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
@@ -1225,28 +1319,110 @@ export default function CustomerDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <Textarea 
-                      placeholder="Describe your issue..."
-                      value={supportMessage}
-                      onChange={(e) => setSupportMessage(e.target.value)}
-                    />
-                    <Button 
-                      onClick={async () => {
-                        if (!supportMessage.trim()) return;
-                        setSupportLoading(true);
-                        try {
-                          toast({ title: "Message sent!", description: "Support will contact you soon." });
-                          setSupportMessage('');
-                        } finally {
-                          setSupportLoading(false);
-                        }
-                      }}
-                      disabled={supportLoading}
-                      className="w-full"
-                    >
-                      {supportLoading && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
-                      Send Message
-                    </Button>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="support-subject">Subject</Label>
+                        <Input
+                          id="support-subject"
+                          placeholder="Brief description of your issue"
+                          value={supportSubject}
+                          onChange={(e) => setSupportSubject(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="support-category">Category</Label>
+                          <select 
+                            id="support-category"
+                            value={supportCategory}
+                            onChange={(e) => setSupportCategory(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                          >
+                            <option value="general">General</option>
+                            <option value="booking">Booking Issue</option>
+                            <option value="payment">Payment Issue</option>
+                            <option value="technical">Technical Problem</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="support-priority">Priority</Label>
+                          <select 
+                            id="support-priority"
+                            value={supportPriority}
+                            onChange={(e) => setSupportPriority(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                          >
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="urgent">Urgent</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="support-message">Message</Label>
+                        <Textarea 
+                          id="support-message"
+                          placeholder="Describe your issue in detail..."
+                          value={supportMessage}
+                          onChange={(e) => setSupportMessage(e.target.value)}
+                          rows={4}
+                        />
+                      </div>
+                      
+                      <Button 
+                        onClick={async () => {
+                          if (!supportSubject.trim() || !supportMessage.trim()) {
+                            toast({ 
+                              title: "Missing information", 
+                              description: "Please provide both subject and message", 
+                              variant: "destructive" 
+                            });
+                            return;
+                          }
+                          setSupportLoading(true);
+                          try {
+                            const response = await apiRequest('POST', '/api/support/tickets', {
+                              subject: supportSubject,
+                              message: supportMessage,
+                              category: supportCategory,
+                              priority: supportPriority
+                            });
+                            
+                            if (response.ok) {
+                              const data = await response.json();
+                              toast({ 
+                                title: "Ticket created!", 
+                                description: `Your support ticket #${data.ticket.id} has been created. We'll respond soon.`
+                              });
+                              setSupportSubject('');
+                              setSupportMessage('');
+                              setSupportCategory('general');
+                              setSupportPriority('medium');
+                              await refetchTickets();
+                            } else {
+                              throw new Error('Failed to create ticket');
+                            }
+                          } catch (error: any) {
+                            toast({ 
+                              title: "Failed to create ticket", 
+                              description: error.message || "Please try again", 
+                              variant: "destructive" 
+                            });
+                          } finally {
+                            setSupportLoading(false);
+                          }
+                        }}
+                        disabled={supportLoading || !supportSubject.trim() || !supportMessage.trim()}
+                        className="w-full"
+                      >
+                        {supportLoading && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                        Create Support Ticket
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
 
@@ -1265,6 +1441,140 @@ export default function CustomerDashboard() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Support Ticket Conversation Dialog */}
+              <Dialog open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
+                <DialogContent className="max-w-2xl max-h-[80vh]">
+                  <DialogHeader>
+                    <DialogTitle>
+                      Support Ticket #{selectedTicket?.id}: {selectedTicket?.subject}
+                    </DialogTitle>
+                    <DialogDescription>
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          selectedTicket?.status === 'open' ? 'bg-green-100 text-green-800' :
+                          selectedTicket?.status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {selectedTicket?.status?.charAt(0).toUpperCase() + selectedTicket?.status?.slice(1).replace('_', ' ')}
+                        </span>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          selectedTicket?.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                          selectedTicket?.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                          selectedTicket?.priority === 'medium' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {selectedTicket?.priority?.charAt(0).toUpperCase() + selectedTicket?.priority?.slice(1)} Priority
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          Created: {new Date(selectedTicket?.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    {/* Messages */}
+                    <div className="max-h-96 overflow-y-auto space-y-3 border rounded-lg p-4 bg-gray-50">
+                      {ticketMessages.map((message: any) => (
+                        <div
+                          key={message.id}
+                          className={`p-3 rounded-lg max-w-[80%] ${
+                            message.isAdminReply 
+                              ? 'bg-blue-100 border-blue-200 ml-auto text-right' 
+                              : 'bg-white border-gray-200 mr-auto'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            {message.isAdminReply ? (
+                              <>
+                                <span className="text-sm font-medium text-blue-700">Support Team</span>
+                                <span className="text-xs text-blue-600">
+                                  {new Date(message.createdAt).toLocaleString()}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-sm font-medium text-gray-700">You</span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(message.createdAt).toLocaleString()}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          <p className="text-sm whitespace-pre-wrap">{message.message}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Reply Form */}
+                    {selectedTicket?.status !== 'closed' && (
+                      <div className="space-y-3">
+                        <Label htmlFor="new-message">Add Reply</Label>
+                        <Textarea
+                          id="new-message"
+                          placeholder="Type your reply..."
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          rows={3}
+                        />
+                        <Button
+                          onClick={async () => {
+                            if (!newMessage.trim()) {
+                              toast({
+                                title: "Missing Message",
+                                description: "Please enter a message to send.",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+
+                            try {
+                              const response = await apiRequest('POST', `/api/support/tickets/${selectedTicket.id}/messages`, {
+                                message: newMessage
+                              });
+                              
+                              const data = await response.json();
+                              if (data.success) {
+                                toast({
+                                  title: "Message Sent",
+                                  description: "Your reply has been sent to our support team."
+                                });
+                                
+                                // Add the new message to the local state
+                                setTicketMessages(prev => [...prev, data.message]);
+                                setNewMessage('');
+                                
+                                // Refresh tickets list to update status
+                                refetchTickets();
+                              }
+                            } catch (error: any) {
+                              toast({
+                                title: "Error",
+                                description: error.message || "Failed to send message",
+                                variant: "destructive"
+                              });
+                            }
+                          }}
+                          disabled={!newMessage.trim()}
+                          className="w-full"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Send Reply
+                        </Button>
+                      </div>
+                    )}
+
+                    {selectedTicket?.status === 'closed' && (
+                      <div className="p-4 bg-gray-100 rounded-lg text-center">
+                        <p className="text-sm text-gray-600">
+                          This ticket has been closed. Create a new ticket if you need further assistance.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             {/* Messaging Tab */}
@@ -1377,7 +1687,7 @@ export default function CustomerDashboard() {
                         {walletLoading ? (
                           <div className="animate-pulse bg-gray-200 h-8 w-20 mx-auto rounded"></div>
                         ) : (
-                          €{parseFloat(walletData?.wallet?.balance || '0').toFixed(2)}
+                          `€${parseFloat(walletData?.wallet?.balance || '0').toFixed(2)}`
                         )}
                       </div>
                       <p className="text-green-700 text-sm">Available Balance</p>

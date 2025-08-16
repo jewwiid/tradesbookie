@@ -270,13 +270,13 @@ export default function InstallerDashboard() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="text-sm font-semibold text-blue-900 mb-1">Job QR Code</h4>
-                          <p className="text-xs text-blue-700">Use this QR code to track installation progress with the customer</p>
+                          <p className="text-xs text-blue-700">Use this QR code to verify and complete the correct booking</p>
                         </div>
                         <ExpandableQRCode 
                           qrCode={job.qrCode || job.bookingReference}
                           bookingId={job.id}
                           title="Job QR Code"
-                          description="Share this with customers to track installation progress"
+                          description="Use this QR code to verify and complete the correct booking"
                           className="bg-white"
                         />
                       </div>

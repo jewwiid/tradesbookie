@@ -55,28 +55,26 @@ export default function ExpandableQRCode({
 
   if (showInline) {
     return (
-      <div className={`space-y-4 ${className}`}>
-        <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center space-x-2 p-0 h-auto text-primary hover:text-primary/80"
-          >
-            <QrCode className="w-4 h-4" />
-            <span className="text-sm font-medium">
-              {isExpanded ? 'Hide QR Code' : 'Show QR Code'}
-            </span>
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </Button>
-        </div>
+      <div className={`${className}`}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center space-x-2 p-0 h-auto text-primary hover:text-primary/80"
+        >
+          <QrCode className="w-4 h-4" />
+          <span className="text-sm font-medium">
+            {isExpanded ? 'Hide QR Code' : 'Show QR Code'}
+          </span>
+          {isExpanded ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </Button>
         
         {isExpanded && (
-          <div className="bg-white p-4 border rounded-lg text-center space-y-3">
+          <div className="mt-3 bg-gray-50 p-4 border rounded-lg text-center space-y-3">
             <QRCode value={qrCodeUrl} size={size} />
             <div className="space-y-2">
               <p className="text-sm text-gray-600">{description}</p>

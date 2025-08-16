@@ -281,7 +281,7 @@ export default function QRTracking() {
                   bookingId={booking.id}
                   showInline={true}
                   title="Booking QR Code"
-                  description="Share this QR code with customers and installers for easy tracking"
+                  description="Use this QR code to verify and track the correct booking completion"
                   size={150}
                 />
               </div>

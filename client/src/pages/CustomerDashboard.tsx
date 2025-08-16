@@ -96,7 +96,7 @@ export default function CustomerDashboard() {
                 qrCode={booking.qrCode}
                 bookingId={booking.id}
                 title="Download Booking QR Code"
-                description="Download or share this QR code for easy installation tracking"
+                description="Download this QR code to track your installation progress"
               />
             </div>
           </CardContent>

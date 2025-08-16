@@ -658,11 +658,12 @@ export default function AIHelpPage() {
       },
       {
         id: 'question2',
-        question: 'Ideal screen size?',
+        question: 'Primary viewing purpose?',
         options: [
-          { value: 'small', label: 'Under 50 inches' },
-          { value: 'medium', label: '55–65 inches' },
-          { value: 'large', label: '65 inches or larger' }
+          { value: 'gaming', label: 'Gaming & fast-action content' },
+          { value: 'movies', label: 'Movies & streaming entertainment' },
+          { value: 'sports', label: 'Sports & live TV' },
+          { value: 'general', label: 'General family viewing' }
         ]
       },
       {
@@ -750,11 +751,12 @@ export default function AIHelpPage() {
       },
       {
         id: 'question2',
-        question: 'Household size / load size?',
+        question: 'Important washing features?',
         options: [
-          { value: 'small', label: 'Small (1–2 people)' },
-          { value: 'medium', label: 'Medium (3–4 people)' },
-          { value: 'large', label: 'Large (5+ people or bulky loads)' }
+          { value: 'steam', label: 'Steam cleaning & wrinkle reduction' },
+          { value: 'sanitize', label: 'Sanitize cycles for allergies/babies' },
+          { value: 'quick-wash', label: 'Quick wash cycles for busy schedules' },
+          { value: 'stain-care', label: 'Stain removal & fabric care cycles' }
         ]
       },
       {
@@ -770,11 +772,12 @@ export default function AIHelpPage() {
     'refrigerators': [
       {
         id: 'question1',
-        question: 'Household size / capacity needs?',
+        question: 'Important refrigerator features?',
         options: [
-          { value: 'small', label: 'Small (1–2 people, up to ~300 L total)' },
-          { value: 'medium', label: 'Medium (3–4 people, ~300–500 L)' },
-          { value: 'large', label: 'Large (5+ people or extra storage, 500 L+)' }
+          { value: 'smart-temp', label: 'Smart temperature zones & freshness control' },
+          { value: 'organization', label: 'Flexible shelving & storage organization' },
+          { value: 'french-door', label: 'French door style with freezer drawer' },
+          { value: 'space-saving', label: 'Space-saving design for smaller kitchens' }
         ]
       },
       {
@@ -838,11 +841,12 @@ export default function AIHelpPage() {
       },
       {
         id: 'question2',
-        question: 'Capacity & power?',
+        question: 'Primary cooking use?',
         options: [
-          { value: 'compact', label: 'Compact (≤ ~25 L, ~700 W)' },
-          { value: 'mid-size', label: 'Mid-size (~25–40 L, ~1000 W)' },
-          { value: 'large', label: 'Large (>40 L, ≥1200 W)' }
+          { value: 'reheating', label: 'Mainly reheating & defrosting' },
+          { value: 'cooking', label: 'Actual cooking & meal prep' },
+          { value: 'baking', label: 'Baking & roasting (convection features)' },
+          { value: 'quick-meals', label: 'Quick meals & convenience foods' }
         ]
       },
       {
@@ -859,11 +863,12 @@ export default function AIHelpPage() {
     'electric-kettles': [
       {
         id: 'question1',
-        question: 'Capacity needed?',
+        question: 'Primary usage pattern?',
         options: [
-          { value: 'small', label: 'Small (under 1 L)' },
-          { value: 'medium', label: 'Medium (1–1.5 L)' },
-          { value: 'large', label: 'Large (over 1.5 L)' }
+          { value: 'tea-coffee', label: 'Tea & coffee brewing (precise temperatures)' },
+          { value: 'cooking', label: 'Cooking & food preparation' },
+          { value: 'quick-boil', label: 'Quick boiling for instant meals' },
+          { value: 'baby-care', label: 'Baby bottles & formula preparation' }
         ]
       },
       {
@@ -889,10 +894,12 @@ export default function AIHelpPage() {
     'toasters': [
       {
         id: 'question1',
-        question: 'How many slots?',
+        question: 'Toasting priorities?',
         options: [
-          { value: '2-slice', label: '2-slice' },
-          { value: '4-slice', label: '4-slice' }
+          { value: 'speed', label: 'Fast toasting for busy mornings' },
+          { value: 'consistency', label: 'Even browning & consistent results' },
+          { value: 'versatility', label: 'Versatile (bagels, pastries, thick bread)' },
+          { value: 'space-saving', label: 'Compact design for limited counter space' }
         ]
       },
       {
@@ -928,11 +935,12 @@ export default function AIHelpPage() {
       },
       {
         id: 'question2',
-        question: 'Typical brew size?',
+        question: 'Coffee drinking preferences?',
         options: [
-          { value: 'single', label: 'Single cup at a time' },
-          { value: 'small', label: '2–4 cups (small pot)' },
-          { value: 'large', label: '10+ cups (large pot)' }
+          { value: 'convenience', label: 'Quick & convenient (pods/capsules)' },
+          { value: 'fresh-grind', label: 'Fresh ground beans for best flavor' },
+          { value: 'programmable', label: 'Wake up to ready coffee (programmable)' },
+          { value: 'variety', label: 'Different coffee types (espresso, latte, etc.)' }
         ]
       },
       {

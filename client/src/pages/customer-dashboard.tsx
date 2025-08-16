@@ -142,7 +142,8 @@ interface TvSetupBooking {
 }
 
 export default function CustomerDashboard() {
-  const [, setLocation] = useLocation();
+  const locationData = useLocation();
+  const setLocation = locationData?.[1];
   const { toast } = useToast();
   const [showVerificationDialog, setShowVerificationDialog] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState('');
@@ -266,16 +267,22 @@ export default function CustomerDashboard() {
   };
 
   const handleSignUp = () => {
-    setLocation('/api/signup?returnTo=/customer-dashboard');
+    if (setLocation) {
+      setLocation('/api/signup?returnTo=/customer-dashboard');
+    }
   };
 
   const handleSignIn = () => {
-    setLocation('/api/login?returnTo=/customer-dashboard');
+    if (setLocation) {
+      setLocation('/api/login?returnTo=/customer-dashboard');
+    }
   };
 
   const handleUpgradeAccount = () => {
     setShowGuestUpgradeDialog(false);
-    setLocation('/api/signup?returnTo=/customer-dashboard');
+    if (setLocation) {
+      setLocation('/api/signup?returnTo=/customer-dashboard');
+    }
   };
 
   const handleEditProfile = () => {
@@ -384,7 +391,7 @@ export default function CustomerDashboard() {
                 <Tv className="h-8 w-8 text-primary mr-3" />
                 <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
               </div>
-              <Button variant="ghost" onClick={() => setLocation('/')}>
+              <Button variant="ghost" onClick={() => setLocation && setLocation('/')}>
                 <Home className="w-5 h-5" />
               </Button>
             </div>
@@ -457,7 +464,7 @@ export default function CustomerDashboard() {
                 <p className="text-sm text-gray-600 mb-4">
                   Have a QR code or booking ID? Track your installation without signing in.
                 </p>
-                <Button onClick={() => setLocation('/booking-tracker')} variant="outline">
+                <Button onClick={() => setLocation && setLocation('/booking-tracker')} variant="outline">
                   Track Booking
                 </Button>
               </div>
@@ -480,7 +487,7 @@ export default function CustomerDashboard() {
                 <Tv className="h-8 w-8 text-primary mr-3" />
                 <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
               </div>
-              <Button variant="ghost" onClick={() => setLocation('/')}>
+              <Button variant="ghost" onClick={() => setLocation && setLocation('/')}>
                 <Home className="w-5 h-5" />
               </Button>
             </div>
@@ -582,7 +589,7 @@ export default function CustomerDashboard() {
                 <Tv className="h-8 w-8 text-primary mr-3" />
                 <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
               </div>
-              <Button variant="ghost" onClick={() => setLocation('/')}>
+              <Button variant="ghost" onClick={() => setLocation && setLocation('/')}>
                 <Home className="w-5 h-5" />
               </Button>
             </div>
@@ -607,7 +614,7 @@ export default function CustomerDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">Your Bookings</h2>
-              <Button onClick={() => setLocation('/booking')} className="gradient-bg">
+              <Button onClick={() => setLocation && setLocation('/booking')} className="gradient-bg">
                 <Calendar className="w-4 h-4 mr-2" />
                 Book Installation
               </Button>
@@ -626,7 +633,7 @@ export default function CustomerDashboard() {
                   <p className="text-gray-600 mb-4">
                     Start by booking your first TV installation.
                   </p>
-                  <Button onClick={() => setLocation('/booking')} className="gradient-bg">
+                  <Button onClick={() => setLocation && setLocation('/booking')} className="gradient-bg">
                     Book Your First Installation
                   </Button>
                 </CardContent>
@@ -846,7 +853,7 @@ export default function CustomerDashboard() {
               <Button variant="ghost" size="sm" onClick={handleEditProfile}>
                 <Edit3 className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" onClick={() => setLocation('/')}>
+              <Button variant="ghost" onClick={() => setLocation && setLocation('/')}>
                 <Home className="w-5 h-5" />
               </Button>
             </div>
@@ -2123,7 +2130,8 @@ function TvSetupCard({ booking }: { booking: TvSetupBooking }) {
 
 // Booking Card Component
 function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewInstallers?: (bookingId: number) => void }) {
-  const [, setLocation] = useLocation();
+  const locationData = useLocation();
+  const setLocation = locationData?.[1];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -2322,7 +2330,7 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setLocation(`/track/${booking.qrCode}`)}
+                onClick={() => setLocation && setLocation(`/track/${booking.qrCode}`)}
               >
                 <QrCode className="w-4 h-4 mr-2" />
                 Track

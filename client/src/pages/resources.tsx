@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ExternalLink, Star, Shield, Gift, Info, FileText, BookOpen, Search, Filter } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { ExternalLink, Star, Shield, Gift, Info, FileText, BookOpen, Search, Filter, Eye, Calendar, Clock } from "lucide-react";
 
 interface Resource {
   id: number;
@@ -53,6 +54,8 @@ export default function Resources() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
+  const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Fetch resources
   const { data: resources, isLoading } = useQuery({
@@ -89,8 +92,36 @@ export default function Resources() {
     return categoryColors[category as keyof typeof categoryColors] || categoryColors.general;
   };
 
+  const openDetailModal = (resource: Resource) => {
+    setSelectedResource(resource);
+    setShowDetailModal(true);
+  };
+
   const ResourceCard = ({ resource }: { resource: Resource }) => (
     <Card className="h-full hover:shadow-lg transition-shadow">
+      {/* Resource Image */}
+      {resource.imageUrl && (
+        <div className="relative h-48 overflow-hidden rounded-t-lg">
+          <img 
+            src={resource.imageUrl} 
+            alt={resource.title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Hide image if it fails to load
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+          {resource.featured && (
+            <div className="absolute top-3 left-3">
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                <Star className="h-3 w-3 mr-1" />
+                Featured
+              </Badge>
+            </div>
+          )}
+        </div>
+      )}
+      
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
@@ -100,7 +131,7 @@ export default function Resources() {
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
                 <CardTitle className="text-lg">{resource.title}</CardTitle>
-                {resource.featured && (
+                {resource.featured && !resource.imageUrl && (
                   <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
                     <Star className="h-3 w-3 mr-1" />
                     Featured
@@ -125,21 +156,156 @@ export default function Resources() {
       </CardHeader>
       <CardContent className="pt-0">
         <p className="text-sm text-gray-700 mb-4 line-clamp-3">{resource.content}</p>
-        {resource.externalUrl && (
-          <Button asChild className="w-full">
-            <a
-              href={resource.externalUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center"
-            >
-              {getIcon(resource.iconType)}
-              <span className="ml-2">{resource.linkText}</span>
-            </a>
+        
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={() => openDetailModal(resource)}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            View Full Details
           </Button>
-        )}
+          
+          {resource.externalUrl && (
+            <Button asChild className="w-full">
+              <a
+                href={resource.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center"
+              >
+                {getIcon(resource.iconType)}
+                <span className="ml-2">{resource.linkText}</span>
+              </a>
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
+  );
+
+  const ResourceDetailModal = () => (
+    <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        {selectedResource && (
+          <div>
+            <DialogHeader>
+              <div className="flex items-start space-x-3 mb-4">
+                <div className="text-blue-600">
+                  {getIcon(selectedResource.iconType)}
+                </div>
+                <div className="flex-1">
+                  <DialogTitle className="text-2xl flex items-center gap-3">
+                    {selectedResource.title}
+                    {selectedResource.featured && (
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                        <Star className="h-4 w-4 mr-1" />
+                        Featured
+                      </Badge>
+                    )}
+                  </DialogTitle>
+                  <p className="text-gray-600 mt-2">{selectedResource.description}</p>
+                </div>
+              </div>
+            </DialogHeader>
+            
+            {/* Resource Image in Modal */}
+            {selectedResource.imageUrl && (
+              <div className="mb-6">
+                <img 
+                  src={selectedResource.imageUrl} 
+                  alt={selectedResource.title}
+                  className="w-full max-h-64 object-cover rounded-lg"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            
+            {/* Metadata */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  <Badge className={getCategoryColor(selectedResource.category)}>
+                    {selectedResource.category}
+                  </Badge>
+                  <Badge variant="outline">{selectedResource.type}</Badge>
+                  {selectedResource.brand && (
+                    <Badge variant="outline" className="font-medium">
+                      {selectedResource.brand}
+                    </Badge>
+                  )}
+                </div>
+                {selectedResource.companyName && (
+                  <p className="text-sm text-gray-600">
+                    <strong>Company:</strong> {selectedResource.companyName}
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-2 text-sm text-gray-600">
+                {selectedResource.publishedAt && (
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Published: {new Date(selectedResource.publishedAt).toLocaleDateString()}
+                  </div>
+                )}
+                {selectedResource.expiryDate && (
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 mr-2" />
+                    Expires: {new Date(selectedResource.expiryDate).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Full Content */}
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3">Details</h3>
+              <div className="prose max-w-none">
+                <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  {selectedResource.content}
+                </p>
+              </div>
+            </div>
+            
+            {/* Tags */}
+            {selectedResource.tags && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {(Array.isArray(selectedResource.tags) ? selectedResource.tags : []).map((tag: string, index: number) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* External Link */}
+            {selectedResource.externalUrl && (
+              <div className="flex justify-center">
+                <Button asChild className="w-full max-w-md">
+                  <a
+                    href={selectedResource.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center"
+                  >
+                    {getIcon(selectedResource.iconType)}
+                    <span className="ml-2">{selectedResource.linkText || 'Open Resource'}</span>
+                  </a>
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 
   return (
@@ -273,6 +439,9 @@ export default function Resources() {
       </section>
 
       <Footer />
+      
+      {/* Detail Modal */}
+      <ResourceDetailModal />
     </div>
   );
 }

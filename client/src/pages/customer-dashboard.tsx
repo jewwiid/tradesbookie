@@ -182,7 +182,6 @@ export default function CustomerDashboard() {
   const [messages, setMessages] = useState<any[]>([]);
   
   // Wallet states
-  const [walletBalance, setWalletBalance] = useState(0);
   const [topUpAmount, setTopUpAmount] = useState('');
   const [topUpLoading, setTopUpLoading] = useState(false);
 
@@ -211,6 +210,15 @@ export default function CustomerDashboard() {
       enabled: !!user?.id,
     }
   );
+
+  // Get customer wallet data
+  const { data: walletData, isLoading: walletLoading, refetch: refetchWallet } = useQuery<{
+    wallet: { balance: string; totalSpent: string; totalTopUps: string };
+    transactions: Array<{ id: number; type: string; amount: string; description: string; createdAt: string }>;
+  }>({
+    queryKey: ['/api/customer/wallet'],
+    enabled: !!user && user.role !== 'admin', // Only fetch for customer users
+  });
 
   const handleResendVerification = async () => {
     if (!verificationEmail) {
@@ -1366,7 +1374,11 @@ export default function CustomerDashboard() {
                   <CardContent className="space-y-4">
                     <div className="text-center p-6 bg-green-50 rounded-lg border border-green-200">
                       <div className="text-3xl font-bold text-green-600 mb-1">
-                        €{walletBalance.toFixed(2)}
+                        {walletLoading ? (
+                          <div className="animate-pulse bg-gray-200 h-8 w-20 mx-auto rounded"></div>
+                        ) : (
+                          €{parseFloat(walletData?.wallet?.balance || '0').toFixed(2)}
+                        )}
                       </div>
                       <p className="text-green-700 text-sm">Available Balance</p>
                     </div>
@@ -1390,13 +1402,51 @@ export default function CustomerDashboard() {
                           }
                           setTopUpLoading(true);
                           try {
-                            // Simulate payment processing
+                            // Create payment intent for customer credit top-up
+                            const paymentResponse = await apiRequest('POST', '/api/customer/wallet/create-payment-intent', {
+                              amount: parseFloat(topUpAmount)
+                            });
+                            
+                            if (!paymentResponse.ok) {
+                              const errorData = await paymentResponse.json();
+                              throw new Error(errorData.message || 'Failed to create payment');
+                            }
+                            
+                            const { clientSecret, paymentIntentId } = await paymentResponse.json();
+                            
+                            // For now, simulate successful payment (in real app, would integrate with Stripe Elements)
+                            // This is a simplified version - you'd typically use Stripe Elements for real payment processing
                             await new Promise(resolve => setTimeout(resolve, 2000));
-                            setWalletBalance(prev => prev + parseFloat(topUpAmount));
-                            setTopUpAmount('');
-                            toast({ title: "Success!", description: `€${topUpAmount} added to your wallet` });
-                          } catch (error) {
-                            toast({ title: "Payment failed", description: "Please try again", variant: "destructive" });
+                            
+                            // Confirm the payment
+                            const confirmResponse = await apiRequest('POST', '/api/customer/wallet/confirm-payment', {
+                              paymentIntentId
+                            });
+                            
+                            if (!confirmResponse.ok) {
+                              const errorData = await confirmResponse.json();
+                              throw new Error(errorData.message || 'Payment confirmation failed');
+                            }
+                            
+                            const confirmData = await confirmResponse.json();
+                            
+                            if (confirmData.success) {
+                              setTopUpAmount('');
+                              await refetchWallet(); // Refresh wallet data
+                              toast({ 
+                                title: "Success!", 
+                                description: confirmData.message || `€${topUpAmount} added to your wallet` 
+                              });
+                            } else {
+                              throw new Error(confirmData.message || 'Payment failed');
+                            }
+                          } catch (error: any) {
+                            console.error('Top-up error:', error);
+                            toast({ 
+                              title: "Payment failed", 
+                              description: error.message || "Please try again", 
+                              variant: "destructive" 
+                            });
                           } finally {
                             setTopUpLoading(false);
                           }
@@ -1421,13 +1471,60 @@ export default function CustomerDashboard() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <div className="text-center py-8">
-                        <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Transactions</h3>
-                        <p className="text-gray-600">
-                          Your transaction history will appear here
-                        </p>
-                      </div>
+                      {walletLoading ? (
+                        <div className="space-y-3">
+                          {[...Array(3)].map((_, i) => (
+                            <div key={i} className="animate-pulse">
+                              <div className="h-16 bg-gray-200 rounded-lg"></div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : walletData?.transactions && walletData.transactions.length > 0 ? (
+                        <div className="space-y-3 max-h-80 overflow-y-auto">
+                          {walletData.transactions.map((transaction) => (
+                            <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-full ${
+                                  transaction.type === 'credit_purchase' ? 'bg-green-100 text-green-600' :
+                                  transaction.type === 'booking_payment' ? 'bg-blue-100 text-blue-600' :
+                                  transaction.type === 'refund' ? 'bg-yellow-100 text-yellow-600' :
+                                  'bg-gray-100 text-gray-600'
+                                }`}>
+                                  {transaction.type === 'credit_purchase' ? <CreditCard className="w-4 h-4" /> :
+                                   transaction.type === 'booking_payment' ? <Tv className="w-4 h-4" /> :
+                                   transaction.type === 'refund' ? <RefreshCw className="w-4 h-4" /> :
+                                   <Euro className="w-4 h-4" />}
+                                </div>
+                                <div>
+                                  <p className="font-medium text-sm">{transaction.description}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(transaction.createdAt).toLocaleDateString('en-IE', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className={`font-semibold ${
+                                parseFloat(transaction.amount) > 0 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {parseFloat(transaction.amount) > 0 ? '+' : ''}€{Math.abs(parseFloat(transaction.amount)).toFixed(2)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Transactions</h3>
+                          <p className="text-gray-600">
+                            Your transaction history will appear here
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

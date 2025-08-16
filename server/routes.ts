@@ -9177,6 +9177,138 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Customer wallet endpoints
+  // Get customer wallet balance and transaction history
+  app.get("/api/customer/wallet", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req as any).user.id;
+      
+      // Get or create wallet
+      let wallet = await storage.getCustomerWallet(userId);
+      if (!wallet) {
+        wallet = await storage.createCustomerWallet({
+          userId,
+          balance: "0.00",
+          totalSpent: "0.00",
+          totalTopUps: "0.00"
+        });
+      }
+      
+      // Get transaction history
+      const transactions = await storage.getCustomerTransactions(userId);
+      
+      res.json({
+        wallet,
+        transactions
+      });
+    } catch (error: any) {
+      console.error("Error fetching customer wallet:", error);
+      res.status(500).json({ message: "Failed to fetch wallet information" });
+    }
+  });
+
+  // Create payment intent for customer credit top-up
+  app.post("/api/customer/wallet/create-payment-intent", isAuthenticated, async (req, res) => {
+    try {
+      const { amount } = req.body;
+      const userId = (req as any).user.id;
+      
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+      
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "eur",
+        metadata: {
+          type: "customer_credit_topup",
+          userId: userId,
+          creditAmount: amount.toString()
+        }
+      });
+      
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id
+      });
+    } catch (error: any) {
+      console.error("Error creating customer credit payment intent:", error);
+      res.status(500).json({ 
+        message: "Error creating payment intent: " + error.message 
+      });
+    }
+  });
+
+  // Confirm customer credit payment
+  app.post("/api/customer/wallet/confirm-payment", isAuthenticated, async (req, res) => {
+    try {
+      const { paymentIntentId } = req.body;
+      const userId = (req as any).user.id;
+      
+      if (!paymentIntentId) {
+        return res.status(400).json({ message: "Payment intent ID required" });
+      }
+      
+      // Retrieve payment intent to verify it's completed
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status === "succeeded") {
+        const creditAmount = parseFloat(paymentIntent.metadata.creditAmount || "0");
+        
+        // Get current wallet
+        let wallet = await storage.getCustomerWallet(userId);
+        if (!wallet) {
+          wallet = await storage.createCustomerWallet({
+            userId,
+            balance: "0.00",
+            totalSpent: "0.00",
+            totalTopUps: "0.00"
+          });
+        }
+        
+        const currentBalance = parseFloat(wallet.balance);
+        const currentTotalTopUps = parseFloat(wallet.totalTopUps);
+        
+        // Update wallet balance
+        await storage.updateCustomerWalletBalance(userId, currentBalance + creditAmount);
+        await storage.updateCustomerWalletTotalTopUps(userId, currentTotalTopUps + creditAmount);
+        
+        // Add transaction record
+        await storage.addCustomerTransaction({
+          userId,
+          type: "credit_purchase",
+          amount: creditAmount.toString(),
+          description: `Added €${creditAmount} credits to wallet`,
+          paymentIntentId: paymentIntentId,
+          status: "completed"
+        });
+        
+        res.json({
+          success: true,
+          message: `Successfully added €${creditAmount} to your wallet`,
+          newBalance: currentBalance + creditAmount,
+          paymentIntent: {
+            id: paymentIntent.id,
+            amount: paymentIntent.amount / 100,
+            currency: paymentIntent.currency,
+            status: paymentIntent.status
+          }
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: "Payment not completed",
+          status: paymentIntent.status
+        });
+      }
+    } catch (error: any) {
+      console.error("Error confirming customer credit payment:", error);
+      res.status(500).json({ 
+        message: "Error confirming payment: " + error.message 
+      });
+    }
+  });
+
   // Get available leads for installer
   app.get("/api/installer/:installerId/available-leads", async (req, res) => {
     try {

@@ -315,6 +315,30 @@ export const scheduleNegotiations = pgTable("schedule_negotiations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Customer wallet/credits system
+export const customerWallets = pgTable("customer_wallets", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  balance: decimal("balance", { precision: 8, scale: 2 }).default("0.00"), // Current credit balance
+  totalSpent: decimal("total_spent", { precision: 8, scale: 2 }).default("0.00"), // Total spent on services
+  totalTopUps: decimal("total_top_ups", { precision: 8, scale: 2 }).default("0.00"), // Total money added
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Customer transactions (credits, purchases, refunds)
+export const customerTransactions = pgTable("customer_transactions", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // 'credit_purchase', 'booking_payment', 'refund', 'referral_earning'
+  amount: decimal("amount", { precision: 8, scale: 2 }).notNull(),
+  description: text("description").notNull(),
+  bookingId: integer("booking_id").references(() => bookings.id), // If related to booking
+  paymentIntentId: text("payment_intent_id"), // Stripe payment ID
+  status: text("status").default("completed"), // completed, pending, failed
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Installer wallet/credits system
 export const installerWallets = pgTable("installer_wallets", {
   id: serial("id").primaryKey(),
@@ -1919,3 +1943,21 @@ export type FirstLeadVoucher = typeof firstLeadVouchers.$inferSelect;
 export type InsertFirstLeadVoucher = z.infer<typeof insertFirstLeadVoucherSchema>;
 export type AntiManipulation = typeof antiManipulation.$inferSelect;
 export type InsertAntiManipulation = z.infer<typeof insertAntiManipulationSchema>;
+
+// Customer wallet insert schemas
+export const insertCustomerWalletSchema = createInsertSchema(customerWallets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCustomerTransactionSchema = createInsertSchema(customerTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Customer wallet types
+export type CustomerWallet = typeof customerWallets.$inferSelect;
+export type InsertCustomerWallet = z.infer<typeof insertCustomerWalletSchema>;
+export type CustomerTransaction = typeof customerTransactions.$inferSelect;
+export type InsertCustomerTransaction = z.infer<typeof insertCustomerTransactionSchema>;

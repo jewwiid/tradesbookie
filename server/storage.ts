@@ -8,7 +8,7 @@ import {
   consultations, downloadableGuides, videoTutorials, productCategories,
   qrCodeScans, aiProductRecommendations, choiceFlowTracking,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics, retailerInvoices,
-  installerServiceAssignments,
+  installerServiceAssignments, customerWallets, customerTransactions,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -25,6 +25,8 @@ import {
   type ScheduleNegotiation, type InsertScheduleNegotiation,
   type InstallerWallet, type InsertInstallerWallet,
   type InstallerTransaction, type InsertInstallerTransaction,
+  type CustomerWallet, type InsertCustomerWallet,
+  type CustomerTransaction, type InsertCustomerTransaction,
   type EmailTemplate, type InsertEmailTemplate,
   type BannedUser, type InsertBannedUser,
   type Resource, type InsertResource,
@@ -175,6 +177,16 @@ export interface IStorage {
   getInstallerTransactions(installerId: number): Promise<InstallerTransaction[]>;
   getAllInstallerTransactions(): Promise<InstallerTransaction[]>;
   deleteInstallerTransaction(transactionId: number): Promise<void>;
+
+  // Customer wallet operations
+  getCustomerWallet(userId: string): Promise<CustomerWallet | undefined>;
+  createCustomerWallet(wallet: InsertCustomerWallet): Promise<CustomerWallet>;
+  updateCustomerWalletBalance(userId: string, amount: number): Promise<void>;
+  updateCustomerWalletTotalSpent(userId: string, amount: number): Promise<void>;
+  updateCustomerWalletTotalTopUps(userId: string, amount: number): Promise<void>;
+  addCustomerTransaction(transaction: InsertCustomerTransaction): Promise<CustomerTransaction>;
+  getCustomerTransactions(userId: string): Promise<CustomerTransaction[]>;
+  getAllCustomerTransactions(): Promise<CustomerTransaction[]>;
 
   // Lead payment operations
   updateJobAssignmentLeadFee(jobId: number, leadFee: number, paymentIntentId: string, status: string): Promise<void>;
@@ -1356,6 +1368,65 @@ export class DatabaseStorage implements IStorage {
   async deleteInstallerTransaction(transactionId: number): Promise<void> {
     await db.delete(installerTransactions)
       .where(eq(installerTransactions.id, transactionId));
+  }
+
+  // Customer wallet operations
+  async getCustomerWallet(userId: string): Promise<CustomerWallet | undefined> {
+    const [wallet] = await db.select().from(customerWallets)
+      .where(eq(customerWallets.userId, userId));
+    return wallet;
+  }
+
+  async createCustomerWallet(wallet: InsertCustomerWallet): Promise<CustomerWallet> {
+    const [newWallet] = await db.insert(customerWallets)
+      .values(wallet)
+      .returning();
+    return newWallet;
+  }
+
+  async updateCustomerWalletBalance(userId: string, amount: number): Promise<void> {
+    await db.update(customerWallets)
+      .set({ 
+        balance: amount.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(customerWallets.userId, userId));
+  }
+
+  async updateCustomerWalletTotalSpent(userId: string, amount: number): Promise<void> {
+    await db.update(customerWallets)
+      .set({ 
+        totalSpent: amount.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(customerWallets.userId, userId));
+  }
+
+  async updateCustomerWalletTotalTopUps(userId: string, amount: number): Promise<void> {
+    await db.update(customerWallets)
+      .set({ 
+        totalTopUps: amount.toString(),
+        updatedAt: new Date()
+      })
+      .where(eq(customerWallets.userId, userId));
+  }
+
+  async addCustomerTransaction(transaction: InsertCustomerTransaction): Promise<CustomerTransaction> {
+    const [newTransaction] = await db.insert(customerTransactions)
+      .values(transaction)
+      .returning();
+    return newTransaction;
+  }
+
+  async getCustomerTransactions(userId: string): Promise<CustomerTransaction[]> {
+    return await db.select().from(customerTransactions)
+      .where(eq(customerTransactions.userId, userId))
+      .orderBy(desc(customerTransactions.createdAt));
+  }
+
+  async getAllCustomerTransactions(): Promise<CustomerTransaction[]> {
+    return await db.select().from(customerTransactions)
+      .orderBy(desc(customerTransactions.createdAt));
   }
 
   // Lead payment operations

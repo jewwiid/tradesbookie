@@ -17,7 +17,7 @@ export async function sendVerificationEmail(
   firstName: string, 
   verificationToken: string
 ): Promise<boolean> {
-  const verificationUrl = `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/verify-email?token=${verificationToken}`;
+  const verificationUrl = `https://tradesbook.ie/verify-email?token=${verificationToken}`;
   
   const emailHtml = `
     <!DOCTYPE html>

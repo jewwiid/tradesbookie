@@ -70,6 +70,20 @@ export const AI_FEATURES = {
 // Free usage limits per feature - resets every 24 hours for authenticated users
 const FREE_USAGE_LIMIT = 3;
 
+// IP-based rate limiting to prevent abuse (requests per minute per IP)
+const IP_RATE_LIMIT = 10;
+const ipRequestCounts: Map<string, { count: number; resetTime: number }> = new Map();
+
+// Clean up old IP tracking data every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, data] of ipRequestCounts.entries()) {
+    if (now > data.resetTime) {
+      ipRequestCounts.delete(ip);
+    }
+  }
+}, 5 * 60 * 1000);
+
 export interface AIRequest extends Request {
   aiUsage?: {
     isAuthenticated: boolean;
@@ -91,6 +105,37 @@ export function checkAiCredits(aiFeature: string) {
       const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
       const userId = isAuthenticated ? (req as any).user?.id : null;
       const sessionId = req.sessionID || req.headers['x-session-id'] as string || 'anonymous';
+      const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+      
+      // IP-based rate limiting to prevent abuse
+      const now = Date.now();
+      const oneMinute = 60 * 1000;
+      const ipData = ipRequestCounts.get(clientIP) || { count: 0, resetTime: now + oneMinute };
+      
+      if (now > ipData.resetTime) {
+        // Reset counter for this IP
+        ipData.count = 1;
+        ipData.resetTime = now + oneMinute;
+      } else {
+        ipData.count++;
+      }
+      
+      ipRequestCounts.set(clientIP, ipData);
+      
+      // Block if too many requests from this IP
+      if (ipData.count > IP_RATE_LIMIT) {
+        console.warn('🚨 RATE LIMIT: Blocked IP', clientIP, 'exceeded', IP_RATE_LIMIT, 'requests/minute for AI feature:', aiFeature);
+        return res.status(429).json({
+          error: 'Rate limit exceeded',
+          message: `Too many AI requests from your IP address. Please wait before trying again.`,
+          retryAfter: Math.ceil((ipData.resetTime - now) / 1000),
+          rateLimitInfo: {
+            limit: IP_RATE_LIMIT,
+            window: '1 minute',
+            preventsFraud: true
+          }
+        });
+      }
       
       // Load AI tools from database
       const aiTools = await loadAiTools();
@@ -106,6 +151,24 @@ export function checkAiCredits(aiFeature: string) {
       
       const creditCost = toolConfig.creditCost;
 
+      // For authenticated users, ALWAYS check email verification first
+      // This prevents mass account creation to bypass limits
+      if (isAuthenticated) {
+        const user = await storage.getUser(userId);
+        if (!user?.emailVerified) {
+          // Log potential fraud attempt
+          console.warn('🚨 Blocked unverified user AI attempt:', userId, 'IP:', req.ip || 'unknown', 'Feature:', aiFeature);
+          
+          return res.status(403).json({
+            error: 'Email verification required',
+            message: 'Please verify your email address to use AI features. Unverified accounts cannot access AI tools to prevent abuse.',
+            requiresEmailVerification: true,
+            preventsFraud: true,
+            verificationHelp: 'Check your email for a verification link or request a new one from your account settings.'
+          });
+        }
+      }
+
       // Check free usage limit
       const freeUsageCheck = await storage.checkAiFreeUsageLimit(userId, sessionId, aiFeature, FREE_USAGE_LIMIT);
       
@@ -113,22 +176,14 @@ export function checkAiCredits(aiFeature: string) {
       let requiresPayment = false;
 
       if (freeUsageCheck.canUseFree) {
-        // Can use free quota
+        // Can use free quota (email already verified for authenticated users above)
         canProceed = true;
       } else {
         // Free quota exhausted, check if user is authenticated and has credits
         if (!isAuthenticated) {
           requiresPayment = true;
         } else {
-          // Check if user has verified email
-          const user = await storage.getUser(userId);
-          if (!user?.emailVerified) {
-            return res.status(403).json({
-              error: 'Email verification required',
-              message: 'Please verify your email address before purchasing AI credits.',
-              requiresEmailVerification: true
-            });
-          }
+          // User already verified above, check wallet balance
           
           // Check wallet balance
           const wallet = await storage.getCustomerWallet(userId);
@@ -146,23 +201,16 @@ export function checkAiCredits(aiFeature: string) {
         if (!isAuthenticated) {
           return res.status(401).json({
             error: 'Free usage limit exceeded',
-            message: `You've used your ${FREE_USAGE_LIMIT} free ${aiFeature.replace('-', ' ')} requests for this session. Please sign in to get ${FREE_USAGE_LIMIT} free requests daily that reset every 24 hours.`,
+            message: `You've used your ${FREE_USAGE_LIMIT} free ${aiFeature.replace('-', ' ')} requests for this session. Please sign in with a verified email to get ${FREE_USAGE_LIMIT} free requests daily that reset every 24 hours.`,
             freeUsageLimit: FREE_USAGE_LIMIT,
             usageCount: freeUsageCheck.usageCount,
             requiresSignIn: true,
+            requiresVerifiedEmail: true,
             creditCost,
             dailyReset: false // Guest users don't get daily reset
           });
         } else {
-          // Double-check email verification for authenticated users needing to pay
-          const user = await storage.getUser(userId);
-          if (!user?.emailVerified) {
-            return res.status(403).json({
-              error: 'Email verification required',
-              message: 'Please verify your email address before purchasing AI credits.',
-              requiresEmailVerification: true
-            });
-          }
+          // User already verified above, show payment requirement
           
           return res.status(402).json({
             error: 'Insufficient credits',
@@ -213,19 +261,21 @@ export async function recordAiUsage(req: AIRequest): Promise<void> {
     return;
   }
 
+  // Double-check email verification for authenticated users (fraud prevention)
+  if (userId) {
+    const user = await storage.getUser(userId);
+    if (!user?.emailVerified) {
+      console.error('🚨 FRAUD ALERT: Attempted AI usage by unverified user:', userId, 'IP:', req.ip || 'unknown');
+      return; // Don't record usage for unverified users
+    }
+  }
+
   try {
     // Record usage
     await storage.incrementAiUsage(userId, sessionId, aiFeature, isPaidRequest);
 
     // Deduct credits if it was a paid request
     if (isPaidRequest && userId) {
-      // Verify email before deducting credits
-      const user = await storage.getUser(userId);
-      if (!user?.emailVerified) {
-        console.error('Attempted credit deduction for unverified user:', userId);
-        return; // Don't deduct credits for unverified users
-      }
-      
       const wallet = await storage.getCustomerWallet(userId);
       if (wallet) {
         const newBalance = parseFloat(wallet.balance) - creditCost;

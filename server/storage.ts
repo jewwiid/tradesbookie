@@ -1653,6 +1653,8 @@ export class DatabaseStorage implements IStorage {
   async checkAiFreeUsageLimit(userId: string | null, sessionId: string, aiFeature: string, freeLimit: number = 3): Promise<{ canUseFree: boolean; usageCount: number; }> {
     if (userId) {
       // For authenticated users: check today's usage (resets every 24 hours)
+      // IMPORTANT: This method assumes email verification was already checked in middleware
+      // to prevent bypass through mass unverified account creation
       const now = new Date();
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
@@ -1675,6 +1677,7 @@ export class DatabaseStorage implements IStorage {
       };
     } else {
       // For guest users: check session-based usage (no daily reset)
+      // Limited to prevent abuse from rapid session creation
       const usage = await this.getAiUsageTracking(userId, sessionId, aiFeature);
       const usageCount = usage?.freeUsageCount || 0;
       

@@ -452,7 +452,10 @@ export default function CustomerDashboard() {
                 </p>
                 
                 <Button 
-                  onClick={() => setShowVerificationDialog(true)} 
+                  onClick={() => {
+                    setVerificationEmail(user.email || '');
+                    setShowVerificationDialog(true);
+                  }} 
                   className="w-full"
                   variant="outline"
                 >
@@ -479,9 +482,11 @@ export default function CustomerDashboard() {
                 <Input
                   id="verification-email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Your email address"
                   value={verificationEmail}
                   onChange={(e) => setVerificationEmail(e.target.value)}
+                  readOnly
+                  className="bg-gray-50"
                 />
               </div>
               <div className="flex space-x-3">

@@ -1144,7 +1144,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalUsers: allUsers.length
       };
 
-      res.json(stats);
+      // Get installer preference statistics
+      const allInstallers = await db.select({
+        emailNotifications: installers.emailNotifications,
+        bookingUpdates: installers.bookingUpdates,
+        marketingEmails: installers.marketingEmails
+      }).from(installers);
+
+      const installerStats = {
+        emailNotifications: {
+          enabled: allInstallers.filter(i => i.emailNotifications === true).length,
+          disabled: allInstallers.filter(i => i.emailNotifications === false).length
+        },
+        bookingUpdates: {
+          enabled: allInstallers.filter(i => i.bookingUpdates === true).length,
+          disabled: allInstallers.filter(i => i.bookingUpdates === false).length
+        },
+        marketingEmails: {
+          enabled: allInstallers.filter(i => i.marketingEmails === true).length,
+          disabled: allInstallers.filter(i => i.marketingEmails === false).length
+        },
+        totalOptedOut: allInstallers.filter(i => 
+          i.emailNotifications === false && 
+          i.bookingUpdates === false && 
+          i.marketingEmails === false
+        ).length,
+        totalInstallers: allInstallers.length
+      };
+
+      const combinedStats = {
+        users: stats,
+        installers: installerStats
+      };
+
+      res.json(combinedStats);
     } catch (error) {
       console.error('Error fetching email preference stats:', error);
       res.status(500).json({ error: "Internal server error" });
@@ -1288,6 +1321,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error sending bulk email:', error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Admin: Get installers with email preferences
+  app.get("/api/admin/installers-preferences", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      // Check if user is admin
+      const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      if (!user[0] || user[0].role !== 'admin') {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const allInstallers = await db.select({
+        id: installers.id,
+        email: installers.email,
+        businessName: installers.businessName,
+        contactName: installers.contactName,
+        emailNotifications: installers.emailNotifications,
+        bookingUpdates: installers.bookingUpdates,
+        marketingEmails: installers.marketingEmails,
+        createdAt: installers.createdAt,
+        isActive: installers.isActive
+      }).from(installers).orderBy(desc(installers.createdAt));
+
+      res.json(allInstallers);
+    } catch (error) {
+      console.error('Error fetching installers with preferences:', error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Admin: Update installer preferences
+  app.patch("/api/admin/installers/:installerId/preferences", isAuthenticated, async (req, res) => {
+    try {
+      const adminUserId = req.user?.id;
+      if (!adminUserId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+
+      // Check if user is admin
+      const adminUser = await db.select().from(users).where(eq(users.id, adminUserId)).limit(1);
+      if (!adminUser[0] || adminUser[0].role !== 'admin') {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const { installerId } = req.params;
+      const preferences = req.body;
+      
+      // Update installer preferences in the database
+      await db.update(installers)
+        .set({
+          emailNotifications: preferences.emailNotifications,
+          bookingUpdates: preferences.bookingUpdates,
+          marketingEmails: preferences.marketingEmails,
+          updatedAt: new Date()
+        })
+        .where(eq(installers.id, parseInt(installerId)));
+
+      res.json({ message: "Installer preferences updated successfully" });
+    } catch (error) {
+      console.error('Error updating installer preferences:', error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

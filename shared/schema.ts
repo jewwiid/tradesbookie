@@ -106,6 +106,11 @@ export const installers = pgTable("installers", {
   vipGrantedAt: timestamp("vip_granted_at"), // When VIP status was granted
   vipNotes: text("vip_notes"), // Admin notes about VIP status
   
+  // Email communication preferences
+  emailNotifications: boolean("email_notifications").default(true), // General email notifications
+  bookingUpdates: boolean("booking_updates").default(true), // Booking status updates
+  marketingEmails: boolean("marketing_emails").default(false), // Marketing and promotional emails
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

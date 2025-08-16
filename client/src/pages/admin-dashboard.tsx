@@ -5311,6 +5311,7 @@ function EmailPreferencesManagement() {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [selectedInstallers, setSelectedInstallers] = useState<string[]>([]);
   const [bulkEmailSubject, setBulkEmailSubject] = useState('');
   const [bulkEmailMessage, setBulkEmailMessage] = useState('');
   const [sendingBulkEmail, setSendingBulkEmail] = useState(false);
@@ -5325,6 +5326,18 @@ function EmailPreferencesManagement() {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch users');
+      return response.json();
+    }
+  });
+
+  // Fetch installers with their email preferences
+  const { data: installersWithPreferences = [], isLoading: loadingInstallers } = useQuery({
+    queryKey: ['/api/admin/installers-preferences'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/installers-preferences', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch installers');
       return response.json();
     }
   });
@@ -5355,6 +5368,26 @@ function EmailPreferencesManagement() {
     onError: (error: any) => {
       toast({
         title: "Failed to update preferences",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update installer preferences mutation
+  const updateInstallerPreferencesMutation = useMutation({
+    mutationFn: async ({ installerId, preferences }: { installerId: string, preferences: any }) => {
+      const response = await apiRequest('PATCH', `/api/admin/installers/${installerId}/preferences`, preferences);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Installer preferences updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/installers-preferences'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/email-preference-stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update installer preferences",
         description: error.message,
         variant: "destructive"
       });

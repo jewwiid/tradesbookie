@@ -2403,7 +2403,7 @@ export default function AIHelpPage() {
                                 body: JSON.stringify({
                                   product1,
                                   product2,
-                                  category: productCategory === 'other' ? customCategory : productCategory,
+                                  productCategory: productCategory === 'other' ? customCategory : productCategory,
                                   questionnaire: {} // Empty questionnaire for direct comparison
                                 })
                               });

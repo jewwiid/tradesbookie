@@ -116,6 +116,28 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
     }
   }, [bookingData.roomPhotoBase64, bookingData.aiPreviewUrl]);
 
+  // Auto-populate contact form with user profile data
+  useEffect(() => {
+    if (isAuthenticated && user && (!bookingData.contact?.name || !bookingData.contact?.email)) {
+      const fullName = user.firstName && user.lastName 
+        ? `${user.firstName} ${user.lastName}`.trim()
+        : user.firstName || user.lastName || '';
+      
+      updateBookingData({
+        contact: {
+          name: bookingData.contact?.name || fullName,
+          email: bookingData.contact?.email || user.email || '',
+          phone: bookingData.contact?.phone || user.phone || '',
+          address: bookingData.contact?.address || '',
+          streetAddress: bookingData.contact?.streetAddress || '',
+          town: bookingData.contact?.town || '',
+          county: bookingData.contact?.county || '',
+          eircode: bookingData.contact?.eircode || ''
+        }
+      });
+    }
+  }, [isAuthenticated, user, bookingData.contact?.name, bookingData.contact?.email]);
+
   const createBookingMutation = useMutation({
     mutationFn: async (data: any) => {
       // First create or get user

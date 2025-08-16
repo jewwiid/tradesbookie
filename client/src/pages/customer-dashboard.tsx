@@ -23,6 +23,7 @@ interface User {
   email: string;
   firstName?: string;
   lastName?: string;
+  phone?: string;
   role: string;
   emailVerified?: boolean;
   registrationMethod?: string;
@@ -154,7 +155,8 @@ export default function CustomerDashboard() {
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
-    email: ''
+    email: '',
+    phone: ''
   });
   const [showInstallerSelection, setShowInstallerSelection] = useState<number | null>(null);
   const [selectedBookingInstallers, setSelectedBookingInstallers] = useState<InterestedInstaller[]>([]);
@@ -290,7 +292,8 @@ export default function CustomerDashboard() {
       setProfileData({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
-        email: user.email || ''
+        email: user.email || '',
+        phone: user.phone || ''
       });
       setShowProfileEdit(true);
     }
@@ -1940,6 +1943,16 @@ export default function CustomerDashboard() {
                 value={profileData.email}
                 onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="Enter email address"
+              />
+            </div>
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={profileData.phone}
+                onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="+353 1 234 5678"
               />
             </div>
             <div className="flex space-x-3 pt-4">

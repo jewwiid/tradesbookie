@@ -917,19 +917,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const user = req.user;
-      const { firstName, lastName, email } = req.body;
+      const { firstName, lastName, email, phone } = req.body;
       
       // Validate input
       if (!firstName || !lastName || !email) {
         return res.status(400).json({ message: "First name, last name, and email are required" });
       }
       
-      // Update user profile
-      const updatedUser = await storage.updateUser(user.id, {
+      // Prepare update data
+      const updateData: any = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim()
-      });
+      };
+      
+      // Add phone if provided
+      if (phone !== undefined) {
+        updateData.phone = phone ? phone.trim() : null;
+      }
+      
+      // Update user profile
+      const updatedUser = await storage.updateUser(user.id, updateData);
       
       console.log("Profile updated successfully:", { id: updatedUser.id, email: updatedUser.email });
       

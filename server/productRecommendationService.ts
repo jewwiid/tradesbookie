@@ -236,6 +236,18 @@ function convertAnswersToFilters(
       }
       break;
       
+    case 'vacuums':
+      if (answers.question1) {
+        filters.must.attributes.vacuumType = answers.question1;
+      }
+      if (answers.question2) {
+        filters.must.attributes.cleaningSurface = answers.question2;
+      }
+      if (answers.question3) {
+        filters.must.attributes.features = [answers.question3];
+      }
+      break;
+      
     case 'robot-vacuums':
       if (answers.question1) {
         filters.must.attributes.cleaningNeeds = answers.question1;
@@ -751,6 +763,64 @@ function generateFallbackRecommendations(category: string, budget: number): Prod
             'Great Android compatibility with premium sound',
             'Effective noise cancellation for the price',
             'Comfortable secure fit for active use'
+          ],
+          rating: 4.4
+        }
+      ];
+
+    case 'vacuums':
+      return [
+        {
+          sku: 'VAC-HN-001',
+          name: 'Dyson V15 Detect Cordless Vacuum',
+          price: Math.min(749, budget),
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 3
+          },
+          url: 'https://www.harveynorman.ie/dyson-v15-detect',
+          reasons: [
+            'Laser dust detection technology',
+            'Up to 60 minutes runtime',
+            'HEPA filtration for allergies',
+            'Lightweight cordless design'
+          ],
+          rating: 4.6
+        },
+        {
+          sku: 'VAC-HN-002',
+          name: 'Shark Navigator Professional',
+          price: Math.min(249, budget),
+          availability: {
+            inStock: true,
+            stores: ['All Harvey Norman stores'],
+            deliveryDays: 2
+          },
+          url: 'https://www.harveynorman.ie/shark-navigator',
+          reasons: [
+            'Powerful suction for all surfaces',
+            'Anti-allergen complete seal',
+            'Lift-away canister',
+            'Great value for money'
+          ],
+          rating: 4.3
+        },
+        {
+          sku: 'VAC-HN-003',
+          name: 'Bissell CrossWave Pet Pro All-in-One',
+          price: Math.min(329, budget),
+          availability: {
+            inStock: true,
+            stores: ['Harvey Norman Dublin, Cork'],
+            deliveryDays: 5
+          },
+          url: 'https://www.harveynorman.ie/bissell-crosswave-pet',
+          reasons: [
+            'Vacuums and washes simultaneously',
+            'Perfect for pet hair removal',
+            'Works on all floor types',
+            'Reduces cleaning time significantly'
           ],
           rating: 4.4
         }

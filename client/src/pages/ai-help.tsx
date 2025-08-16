@@ -117,6 +117,12 @@ const productCareSlides: Record<string, ProductCareSlide[]> = {
     { title: 'New-for-old replacement when uneconomical', description: 'We\'ll replace if a repair doesn\'t make sense.', icon: '🔄' },
     { title: 'Parts, labour, call-out—all included', description: 'No surprise repair bills.', icon: '💰' }
   ],
+  'vacuums': [
+    { title: 'Motor & suction protection', description: 'Coverage for motor failures and loss of suction power.', icon: '🌪️' },
+    { title: 'Wear-and-tear included', description: 'Brush wear, hose damage, and filter issues covered.', icon: '🔧' },
+    { title: 'Surge protection', description: 'Power blips won\'t become your problem.', icon: '⚡' },
+    { title: 'Replace if not economical to repair', description: 'New-for-old when repair isn\'t worth it.', icon: '🔄' }
+  ],
   'robot-vacuums': [
     { title: 'Back-up for motors & electronics', description: 'Mechanical/electrical failures and defects covered beyond maker warranty.', icon: '🤖' },
     { title: 'Dust & overheating? Covered', description: 'Real-life home use is messy—we\'ve got it.', icon: '🏠' },
@@ -536,6 +542,7 @@ export default function AIHelpPage() {
     { value: 'earphones', label: 'Earphones' },
     { value: 'soundbars', label: 'Soundbars' },
     { value: 'televisions', label: 'Televisions' },
+    { value: 'vacuums', label: 'Vacuums' },
     { value: 'robot-vacuums', label: 'Robot Vacuums' },
     { value: 'washing-machines', label: 'Washing Machines' },
     { value: 'refrigerators', label: 'Refrigerators' },
@@ -665,6 +672,38 @@ export default function AIHelpPage() {
           { value: 'advanced', label: 'Advanced apps and voice control' },
           { value: 'basic', label: 'Basic built-in smart apps' },
           { value: 'none', label: 'Prefer a non-smart TV' }
+        ]
+      }
+    ],
+    'vacuums': [
+      {
+        id: 'question1',
+        question: 'Primary vacuum type preference?',
+        options: [
+          { value: 'upright', label: 'Upright vacuum' },
+          { value: 'canister', label: 'Canister vacuum' },
+          { value: 'stick', label: 'Stick/cordless vacuum' },
+          { value: 'handheld', label: 'Handheld vacuum' }
+        ]
+      },
+      {
+        id: 'question2',
+        question: 'Main cleaning surface?',
+        options: [
+          { value: 'carpet-only', label: 'Mainly carpets' },
+          { value: 'hard-floors', label: 'Mostly hard floors' },
+          { value: 'mixed-surfaces', label: 'Mixed surfaces (carpet + hard floors)' },
+          { value: 'pet-hair', label: 'Pet hair cleaning priority' }
+        ]
+      },
+      {
+        id: 'question3',
+        question: 'Important features for you?',
+        options: [
+          { value: 'bagless', label: 'Bagless convenience' },
+          { value: 'hepa-filter', label: 'HEPA filtration for allergies' },
+          { value: 'lightweight', label: 'Lightweight and maneuverable' },
+          { value: 'long-cord', label: 'Long cord/cordless runtime' }
         ]
       }
     ],
@@ -999,6 +1038,11 @@ export default function AIHelpPage() {
         return {
           first: 'e.g., Samsung QN55Q60TAFXZA, LG OLED55C1PUB',
           second: 'e.g., Sony XR55A80J, Hisense 55U8G'
+        };
+      case 'vacuums':
+        return {
+          first: 'e.g., Dyson V15 Detect, Shark Navigator',
+          second: 'e.g., Bissell CrossWave, Hoover Linx'
         };
       case 'robot-vacuums':
         return {
@@ -1343,6 +1387,42 @@ export default function AIHelpPage() {
           { id: 'full_volume_house', label: 'House with space for full volume' }
         ],
         mapsTo: 'livingSpace'
+      }
+    ],
+    'vacuums': [
+      {
+        id: 'vacuum_type',
+        label: 'What type of vacuum do you prefer?',
+        type: 'single',
+        options: [
+          { id: 'upright', label: 'Upright vacuum' },
+          { id: 'canister', label: 'Canister vacuum' },
+          { id: 'cordless', label: 'Cordless stick vacuum' }
+        ],
+        mapsTo: 'vacuumType'
+      },
+      {
+        id: 'primary_surface',
+        label: 'What do you clean most often?',
+        type: 'single',
+        options: [
+          { id: 'carpets', label: 'Carpets and rugs' },
+          { id: 'hard_floors', label: 'Hard floors (wood, tile, laminate)' },
+          { id: 'mixed', label: 'Both carpets and hard floors' }
+        ],
+        mapsTo: 'primarySurface'
+      },
+      {
+        id: 'special_needs',
+        label: 'Any special cleaning needs?',
+        type: 'single',
+        options: [
+          { id: 'pet_hair', label: 'Pet hair removal' },
+          { id: 'allergies', label: 'Allergy-friendly (HEPA filtration)' },
+          { id: 'stairs', label: 'Stairs and tight spaces' },
+          { id: 'general', label: 'General household cleaning' }
+        ],
+        mapsTo: 'specialNeeds'
       }
     ],
     'robot-vacuums': [
@@ -1936,6 +2016,7 @@ export default function AIHelpPage() {
                             { id: 'washing-machines', label: '👔 Washing Machines', desc: 'Laundry appliances' },
                             { id: 'headphones', label: '🎧 Headphones', desc: 'Audio equipment' },
                             { id: 'earphones', label: '🎵 Earphones', desc: 'Portable audio' },
+                            { id: 'vacuums', label: '🌪️ Vacuums', desc: 'Traditional cleaning' },
                             { id: 'robot-vacuums', label: '🤖 Robot Vacuums', desc: 'Smart cleaning' },
                             { id: 'refrigerators', label: '🧊 Refrigerators', desc: 'Kitchen cooling' },
                             { id: 'microwaves', label: '📱 Microwaves', desc: 'Kitchen heating' },

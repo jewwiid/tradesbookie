@@ -320,7 +320,8 @@ function detectProductType(model: string): string {
   if (modelLower.includes('soundbar')) return 'Soundbar';
   if (modelLower.includes('headphone')) return 'Headphones';
   if (modelLower.includes('earphone') || modelLower.includes('airpods') || modelLower.includes('buds')) return 'Earphones';
-  if (modelLower.includes('vacuum') || modelLower.includes('roomba')) return 'Robot Vacuum';
+  if (modelLower.includes('roomba') || modelLower.includes('robot vacuum') || modelLower.includes('robovac')) return 'Robot Vacuum';
+  if (modelLower.includes('vacuum') || modelLower.includes('dyson') || modelLower.includes('shark navigator') || modelLower.includes('bissell')) return 'Vacuum';
   if (modelLower.includes('fridge') || modelLower.includes('refrigerator')) return 'Refrigerator';
   if (modelLower.includes('microwave')) return 'Microwave';
   if (modelLower.includes('kettle')) return 'Electric Kettle';

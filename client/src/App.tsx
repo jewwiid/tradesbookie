@@ -56,6 +56,7 @@ import TVInstallation from "@/pages/tv-installation";
 import CustomerProfileSetup from "@/pages/customer-profile-setup";
 import StorePartnerSignup from "@/pages/store-partner-signup";
 import InstallationShowcase from "@/pages/installation-showcase";
+import ScrollToTop from "@/components/ScrollToTop";
 
 
 function Router() {
@@ -134,6 +135,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <ScrollToTop />
         <Toaster />
         <Router />
         <CookieConsent />

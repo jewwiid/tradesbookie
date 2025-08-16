@@ -5697,15 +5697,15 @@ function EmailPreferencesManagement() {
             </div>
             
             {/* Customer Table */}
-            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+            <div className="max-h-96 overflow-y-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">
+                    <TableHead className="w-8">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Select</span>
+                            <span className="cursor-help text-xs">Select</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Choose customers to include in bulk email campaigns</p>
@@ -5713,11 +5713,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="min-w-0 flex-1">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Customer</span>
+                            <span className="cursor-help text-xs">Customer</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Customer name and email address</p>
@@ -5725,11 +5725,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead className="w-20">
+                    <TableHead className="w-16">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Status</span>
+                            <span className="cursor-help text-xs">Status</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Email verification status - whether customer has verified their email address</p>
@@ -5737,11 +5737,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead className="w-16">
+                    <TableHead className="w-12">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Email</span>
+                            <span className="cursor-help text-xs">Email</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>General email notifications - system updates, account info, etc.</p>
@@ -5749,11 +5749,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead className="w-16">
+                    <TableHead className="w-12">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Book</span>
+                            <span className="cursor-help text-xs">Book</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Booking updates - notifications about installation appointments and status changes</p>
@@ -5761,11 +5761,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead className="w-16">
+                    <TableHead className="w-12">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Mark</span>
+                            <span className="cursor-help text-xs">Mark</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Marketing emails - promotional content, special offers, and newsletter</p>
@@ -5812,7 +5812,7 @@ function EmailPreferencesManagement() {
                             });
                           }}
                           disabled={updateUserPreferencesMutation.isPending}
-                          className="scale-75"
+                          className="scale-60"
                         />
                       </TableCell>
                       <TableCell>
@@ -5825,7 +5825,7 @@ function EmailPreferencesManagement() {
                             });
                           }}
                           disabled={updateUserPreferencesMutation.isPending}
-                          className="scale-75"
+                          className="scale-60"
                         />
                       </TableCell>
                       <TableCell>
@@ -5838,7 +5838,7 @@ function EmailPreferencesManagement() {
                             });
                           }}
                           disabled={updateUserPreferencesMutation.isPending}
-                          className="scale-75"
+                          className="scale-60"
                         />
                       </TableCell>
                     </TableRow>
@@ -5921,15 +5921,15 @@ function EmailPreferencesManagement() {
             </div>
             
             {/* Installer Table */}
-            <div className="overflow-x-auto max-h-96 overflow-y-auto">
+            <div className="max-h-96 overflow-y-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">
+                    <TableHead className="w-8">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Select</span>
+                            <span className="cursor-help text-xs">Select</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Choose installers to include in bulk email campaigns</p>
@@ -5937,11 +5937,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead>
+                    <TableHead className="min-w-0 flex-1">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Installer</span>
+                            <span className="cursor-help text-xs">Installer</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Business name, contact person, and email address</p>
@@ -5949,11 +5949,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead className="w-20">
+                    <TableHead className="w-16">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Status</span>
+                            <span className="cursor-help text-xs">Status</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Installer approval and activity status - approved, pending, or rejected</p>
@@ -5961,11 +5961,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead className="w-16">
+                    <TableHead className="w-12">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Email</span>
+                            <span className="cursor-help text-xs">Email</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>General email notifications - system updates, account info, etc.</p>
@@ -5973,11 +5973,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead className="w-16">
+                    <TableHead className="w-12">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Book</span>
+                            <span className="cursor-help text-xs">Book</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Booking updates - notifications about new leads, job status changes, and payments</p>
@@ -5985,11 +5985,11 @@ function EmailPreferencesManagement() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableHead>
-                    <TableHead className="w-16">
+                    <TableHead className="w-12">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="cursor-help">Mark</span>
+                            <span className="cursor-help text-xs">Mark</span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>Marketing emails - promotional content, business tips, and platform updates</p>
@@ -6048,7 +6048,7 @@ function EmailPreferencesManagement() {
                             });
                           }}
                           disabled={updateInstallerPreferencesMutation.isPending}
-                          className="scale-75"
+                          className="scale-60"
                         />
                       </TableCell>
                       <TableCell>
@@ -6061,7 +6061,7 @@ function EmailPreferencesManagement() {
                             });
                           }}
                           disabled={updateInstallerPreferencesMutation.isPending}
-                          className="scale-75"
+                          className="scale-60"
                         />
                       </TableCell>
                       <TableCell>
@@ -6074,7 +6074,7 @@ function EmailPreferencesManagement() {
                             });
                           }}
                           disabled={updateInstallerPreferencesMutation.isPending}
-                          className="scale-75"
+                          className="scale-60"
                         />
                       </TableCell>
                     </TableRow>

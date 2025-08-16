@@ -1911,7 +1911,7 @@ export default function CustomerDashboard() {
         </div>
       </div>
       
-      {/* Profile Edit Dialog 
+      {/* Profile Edit Dialog - commented out
       <Dialog open={showProfileEdit} onOpenChange={setShowProfileEdit}>
         <DialogContent className="max-w-md" style={{ zIndex: 9999 }}>
           <DialogHeader>

@@ -1,0 +1,27 @@
+queryClient.ts:32  GET https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/admin/bookings 500 (Internal Server Error)
+(anonymous) @ queryClient.ts:32
+fetchFn @ @tanstack_react-query.js?v=a81e3cc8:840
+run @ @tanstack_react-query.js?v=a81e3cc8:494
+start @ @tanstack_react-query.js?v=a81e3cc8:536
+fetch @ @tanstack_react-query.js?v=a81e3cc8:926
+executeFetch_fn @ @tanstack_react-query.js?v=a81e3cc8:2211
+onSubscribe @ @tanstack_react-query.js?v=a81e3cc8:1898
+subscribe @ @tanstack_react-query.js?v=a81e3cc8:24
+(anonymous) @ @tanstack_react-query.js?v=a81e3cc8:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=a81e3cc8:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=a81e3cc8:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=a81e3cc8:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=a81e3cc8:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=a81e3cc8:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=a81e3cc8:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=a81e3cc8:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=a81e3cc8:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=a81e3cc8:19416
+commitRoot @ chunk-RPCDYKBN.js?v=a81e3cc8:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=a81e3cc8:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=a81e3cc8:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=a81e3cc8:18627
+admin-dashboard:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+m.stripe.network/inner.html#url=https%3A%2F%2F3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev%2Fadmin-dashboard&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=https%3A%2F%2Faccounts.google.com%2F&muid=50b6a4e8-4f34-4f1d-a37a-e7ea070c67f83c21c5&sid=7c06d975-736c-4f45-9d2b-48c7ee640889af8421&version=6&preview=false&__shared_params__[version]=basil:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+js.stripe.com/v3/controller-with-preconnect-43ba7ed1895faf8f56d412a714925e6a.html#__shared_params__[version]=basil&__shared_params__[light_experiment_assignments]=%7B%22token%22%3A%224024a8cb-3750-4b85-9a09-24bffbc1e78d%22%2C%22assignments%22%3A%7B%7D%7D&apiKey=pk_live_51RaFd4GCYpQgBDBg102eRWFqT8qVu0bALrzlGd2ztLnLQm9D22icaPxG8axRp0mABcb726JNZSqXAlJWinf7Mvd100DJGhVNVu&apiVersion=2025-03-31.basil&stripeJsId=4024a8cb-3750-4b85-9a09-24bffbc1e78d&stripeObjId=sobj-306d6733-4f7b-4b49-be19-99aea09327a9&firstStripeInstanceCreatedLatency=14&controllerCount=1&isCheckout=false&stripeJsLoadTime=1755366437867&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=50b6a4e8-4f34-4f1d-a37a-e7ea070c67f83c21c5&mids[sid]=7c06d975-736c-4f45-9d2b-48c7ee640889af8421&referrer=https%3A%2F%2F3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev%2Fadmin-dashboard&controllerId=__privateStripeController6621:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2F3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev%2Fadmin-dashboard&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=https%3A%2F%2Faccounts.google.com%2F&muid=50b6a4e8-4f34-4f1d-a37a-e7ea070c67f83c21c5&sid=7c06d975-736c-4f45-9d2b-48c7ee640889af8421&version=6&preview=false&__shared_params__[version]=basil:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.

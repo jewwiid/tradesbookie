@@ -1819,10 +1819,10 @@ export default function CustomerDashboard() {
                                   transaction.type === 'refund' ? 'bg-yellow-100 text-yellow-600' :
                                   'bg-gray-100 text-gray-600'
                                 }`}>
-                                  {transaction.type === 'credit_purchase' ? <CreditCard className="w-4 h-4" /> :
-                                   transaction.type === 'booking_payment' ? <Tv className="w-4 h-4" /> :
-                                   transaction.type === 'refund' ? <RefreshCw className="w-4 h-4" /> :
-                                   <Euro className="w-4 h-4" />}
+                                  {transaction.type === 'credit_purchase' ? (<CreditCard className="w-4 h-4" />) :
+                                   transaction.type === 'booking_payment' ? (<Tv className="w-4 h-4" />) :
+                                   transaction.type === 'refund' ? (<RefreshCw className="w-4 h-4" />) :
+                                   (<Euro className="w-4 h-4" />)}
                                 </div>
                                 <div>
                                   <p className="font-medium text-sm">{transaction.description}</p>
@@ -1832,7 +1832,7 @@ export default function CustomerDashboard() {
                                       month: 'short',
                                       year: 'numeric',
                                       hour: '2-digit',
-                                      minute: '2-digit'
+                                      minute: '2-digit',
                                     })}
                                   </p>
                                 </div>
@@ -1912,7 +1912,7 @@ export default function CustomerDashboard() {
       </div>
       
       {/* Profile Edit Dialog */}
-      <Dialog open={showProfileEdit} onOpenChange={setShowProfileEdit}>
+      {/* <Dialog open={showProfileEdit} onOpenChange={setShowProfileEdit}>
         <DialogContent className="max-w-md" style={{ zIndex: 9999 }}>
           <DialogHeader>
             <DialogTitle>Edit Profile</DialogTitle>
@@ -1981,7 +1981,7 @@ export default function CustomerDashboard() {
             </div>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     );
 }
 

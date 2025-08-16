@@ -19,6 +19,12 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -5695,12 +5701,78 @@ function EmailPreferencesManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">Select</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead className="w-20">Status</TableHead>
-                    <TableHead className="w-16">Email</TableHead>
-                    <TableHead className="w-16">Book</TableHead>
-                    <TableHead className="w-16">Mark</TableHead>
+                    <TableHead className="w-12">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Select</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Choose customers to include in bulk email campaigns</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Customer</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Customer name and email address</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead className="w-20">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Status</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Email verification status - whether customer has verified their email address</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead className="w-16">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Email</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>General email notifications - system updates, account info, etc.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead className="w-16">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Book</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Booking updates - notifications about installation appointments and status changes</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead className="w-16">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Mark</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Marketing emails - promotional content, special offers, and newsletter</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -5853,12 +5925,78 @@ function EmailPreferencesManagement() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">Select</TableHead>
-                    <TableHead>Installer</TableHead>
-                    <TableHead className="w-20">Status</TableHead>
-                    <TableHead className="w-16">Email</TableHead>
-                    <TableHead className="w-16">Book</TableHead>
-                    <TableHead className="w-16">Mark</TableHead>
+                    <TableHead className="w-12">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Select</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Choose installers to include in bulk email campaigns</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Installer</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Business name, contact person, and email address</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead className="w-20">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Status</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Installer approval and activity status - approved, pending, or rejected</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead className="w-16">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Email</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>General email notifications - system updates, account info, etc.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead className="w-16">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Book</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Booking updates - notifications about new leads, job status changes, and payments</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                    <TableHead className="w-16">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help">Mark</span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Marketing emails - promotional content, business tips, and platform updates</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

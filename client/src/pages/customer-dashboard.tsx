@@ -14,6 +14,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import ReviewInterface from '@/components/customer/ReviewInterface';
 import InstallerMiniProfile from '@/components/installer/InstallerMiniProfile';
+import ScheduleNegotiation from '@/components/ScheduleNegotiation';
 
 interface User {
   id: number;
@@ -1283,6 +1284,18 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Schedule Negotiation - Show when installer is assigned and booking is active */}
+        {booking.installer && ['confirmed', 'assigned', 'in_progress'].includes(booking.status) && (
+          <div className="mb-4">
+            <ScheduleNegotiation
+              bookingId={booking.id}
+              installerId={booking.installer.id}
+              userType="customer"
+              installerName={booking.installer.businessName}
+            />
           </div>
         )}
 

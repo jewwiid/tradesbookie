@@ -15,8 +15,6 @@ import {
   Wind,
   Shield,
   Plus,
-  Users,
-  TrendingUp,
   Clock,
   CheckCircle2
 } from "lucide-react";
@@ -128,7 +126,8 @@ export default function InstallerServiceSelection() {
   const { toast } = useToast();
   const [selectedService, setSelectedService] = useState<string | null>(null);
 
-  // Fetch real-time service metrics for earnings and job availability
+  // Real-time service metrics tracking (preserved for future analytics dashboard)
+  // Currently tracking but not displaying avgEarnings and jobsAvailable per user request
   const { data: serviceMetrics } = useQuery({
     queryKey: ['/api/service-metrics'],
     refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
@@ -147,6 +146,8 @@ export default function InstallerServiceSelection() {
   }, {}) || {};
 
   // Merge default services with real-time data
+  // Note: Real-time avgEarnings and jobsAvailable data is still being tracked
+  // but hidden from UI per user request. This data can be used for admin analytics.
   const services = defaultServices.map(service => {
     const metrics = metricsMap[service.id];
     const isActiveInDb = activeServiceTypes?.some((st: any) => st.key === service.id && st.isActive);
@@ -154,8 +155,9 @@ export default function InstallerServiceSelection() {
     return {
       ...service,
       active: isActiveInDb || service.id === 'tv-installation', // Keep TV installation always active
-      avgEarnings: metrics ? `€${metrics.avgEarningsLow}-${metrics.avgEarningsHigh}` : service.avgEarnings,
-      jobsAvailable: metrics ? metrics.totalJobsAvailable : service.jobsAvailable,
+      // Real-time data still available for backend analytics:
+      // avgEarnings: metrics ? `€${metrics.avgEarningsLow}-${metrics.avgEarningsHigh}` : service.avgEarnings,
+      // jobsAvailable: metrics ? metrics.totalJobsAvailable : service.jobsAvailable,
       setupTime: service.active || isActiveInDb ? service.setupTime : 'Coming soon'
     };
   });
@@ -172,6 +174,14 @@ export default function InstallerServiceSelection() {
     }
     
     setSelectedService(serviceId);
+    
+    // Auto-scroll to the selected card for better UX
+    setTimeout(() => {
+      const selectedCard = document.querySelector(`[data-service-id="${serviceId}"]`);
+      if (selectedCard) {
+        selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
   };
 
   const handleContinue = () => {
@@ -233,8 +243,9 @@ export default function InstallerServiceSelection() {
             return (
               <Card 
                 key={service.id}
+                data-service-id={service.id}
                 className={`cursor-pointer transition-all duration-200 hover:shadow-lg relative ${
-                  isSelected ? 'ring-2 ring-primary ring-offset-2' : ''
+                  isSelected ? 'ring-2 ring-primary ring-offset-2 transform scale-105 shadow-xl' : ''
                 } ${
                   isDisabled ? 'opacity-60' : 'hover:scale-105'
                 } ${service.borderColor}`}
@@ -268,26 +279,6 @@ export default function InstallerServiceSelection() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-500 flex items-center">
-                        <TrendingUp className="w-4 h-4 mr-1" />
-                        Avg. Earnings
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        {service.avgEarnings}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500 flex items-center">
-                        <Users className="w-4 h-4 mr-1" />
-                        Jobs Available
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        {service.active ? `${service.jobsAvailable}+` : 'N/A'}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500 flex items-center">
                         <Clock className="w-4 h-4 mr-1" />
                         Setup Time
                       </span>
@@ -300,6 +291,18 @@ export default function InstallerServiceSelection() {
                       <span className="text-sm text-gray-500">Market Demand</span>
                       {getDemandBadge(service.demandLevel)}
                     </div>
+                    
+                    {service.active && isSelected && (
+                      <div className="mt-4 pt-3 border-t border-gray-200">
+                        <Button 
+                          onClick={handleContinue}
+                          className="w-full bg-primary hover:bg-primary/90 text-sm font-semibold"
+                          size="sm"
+                        >
+                          Continue with {service.name}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

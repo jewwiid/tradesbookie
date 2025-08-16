@@ -1529,13 +1529,34 @@ export class DatabaseStorage implements IStorage {
 
   // AI Usage Tracking operations
   async getAiUsageTracking(userId: string | null, sessionId: string, aiFeature: string): Promise<AiUsageTracking | undefined> {
-    const [usage] = await db.select().from(aiUsageTracking)
-      .where(and(
-        userId ? eq(aiUsageTracking.userId, userId) : isNull(aiUsageTracking.userId),
-        eq(aiUsageTracking.sessionId, sessionId),
-        eq(aiUsageTracking.aiFeature, aiFeature)
-      ));
-    return usage;
+    // For authenticated users, track by userId and current date
+    // For guest users, track by sessionId (no date reset)
+    if (userId) {
+      // Get today's start and end timestamps for accurate date comparison
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000); // Next day start
+      
+      const [usage] = await db.select().from(aiUsageTracking)
+        .where(and(
+          eq(aiUsageTracking.userId, userId),
+          eq(aiUsageTracking.aiFeature, aiFeature),
+          sql`${aiUsageTracking.createdAt} >= ${todayStart.toISOString()}`,
+          sql`${aiUsageTracking.createdAt} < ${todayEnd.toISOString()}`
+        ))
+        .orderBy(desc(aiUsageTracking.createdAt))
+        .limit(1);
+      return usage;
+    } else {
+      // Guest users: track by session (no daily reset)
+      const [usage] = await db.select().from(aiUsageTracking)
+        .where(and(
+          isNull(aiUsageTracking.userId),
+          eq(aiUsageTracking.sessionId, sessionId),
+          eq(aiUsageTracking.aiFeature, aiFeature)
+        ));
+      return usage;
+    }
   }
 
   async createAiUsageTracking(usage: InsertAiUsageTracking): Promise<AiUsageTracking> {
@@ -1546,52 +1567,122 @@ export class DatabaseStorage implements IStorage {
   }
 
   async incrementAiUsage(userId: string | null, sessionId: string, aiFeature: string, isPaid: boolean): Promise<void> {
-    const existing = await this.getAiUsageTracking(userId, sessionId, aiFeature);
-    
-    if (existing) {
-      // Update existing record
-      await db.update(aiUsageTracking)
-        .set({
-          freeUsageCount: isPaid ? existing.freeUsageCount : (existing.freeUsageCount || 0) + 1,
-          paidUsageCount: isPaid ? (existing.paidUsageCount || 0) + 1 : existing.paidUsageCount,
-          lastFreeUsage: isPaid ? existing.lastFreeUsage : new Date(),
-          lastPaidUsage: isPaid ? new Date() : existing.lastPaidUsage,
-          updatedAt: new Date()
-        })
-        .where(eq(aiUsageTracking.id, existing.id));
+    if (userId) {
+      // For authenticated users: check if there's already a record for today
+      const existing = await this.getAiUsageTracking(userId, sessionId, aiFeature);
+      
+      if (existing) {
+        // Update existing today's record
+        await db.update(aiUsageTracking)
+          .set({
+            freeUsageCount: isPaid ? existing.freeUsageCount : (existing.freeUsageCount || 0) + 1,
+            paidUsageCount: isPaid ? (existing.paidUsageCount || 0) + 1 : existing.paidUsageCount,
+            lastFreeUsage: isPaid ? existing.lastFreeUsage : new Date(),
+            lastPaidUsage: isPaid ? new Date() : existing.lastPaidUsage,
+            updatedAt: new Date()
+          })
+          .where(eq(aiUsageTracking.id, existing.id));
+      } else {
+        // Create new record for today
+        await this.createAiUsageTracking({
+          userId,
+          sessionId,
+          aiFeature,
+          freeUsageCount: isPaid ? 0 : 1,
+          paidUsageCount: isPaid ? 1 : 0,
+          lastFreeUsage: isPaid ? null : new Date(),
+          lastPaidUsage: isPaid ? new Date() : null
+        });
+      }
     } else {
-      // Create new record
-      await this.createAiUsageTracking({
-        userId,
-        sessionId,
-        aiFeature,
-        freeUsageCount: isPaid ? 0 : 1,
-        paidUsageCount: isPaid ? 1 : 0,
-        lastFreeUsage: isPaid ? null : new Date(),
-        lastPaidUsage: isPaid ? new Date() : null
-      });
+      // For guest users: use existing session-based logic
+      const existing = await this.getAiUsageTracking(userId, sessionId, aiFeature);
+      
+      if (existing) {
+        // Update existing record for guests
+        await db.update(aiUsageTracking)
+          .set({
+            freeUsageCount: isPaid ? existing.freeUsageCount : (existing.freeUsageCount || 0) + 1,
+            paidUsageCount: isPaid ? (existing.paidUsageCount || 0) + 1 : existing.paidUsageCount,
+            lastFreeUsage: isPaid ? existing.lastFreeUsage : new Date(),
+            lastPaidUsage: isPaid ? new Date() : existing.lastPaidUsage,
+            updatedAt: new Date()
+          })
+          .where(eq(aiUsageTracking.id, existing.id));
+      } else {
+        // Create new record for guests
+        await this.createAiUsageTracking({
+          userId,
+          sessionId,
+          aiFeature,
+          freeUsageCount: isPaid ? 0 : 1,
+          paidUsageCount: isPaid ? 1 : 0,
+          lastFreeUsage: isPaid ? null : new Date(),
+          lastPaidUsage: isPaid ? new Date() : null
+        });
+      }
     }
   }
 
   async getUserAiUsageSummary(userId: string): Promise<{ feature: string; freeCount: number; paidCount: number; }[]> {
-    const usages = await db.select().from(aiUsageTracking)
-      .where(eq(aiUsageTracking.userId, userId));
+    // Get today's usage summary for authenticated user
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    
+    const usages = await db.select({
+      feature: aiUsageTracking.aiFeature,
+      freeCount: sql<number>`COALESCE(SUM(${aiUsageTracking.freeUsageCount}), 0)`,
+      paidCount: sql<number>`COALESCE(SUM(${aiUsageTracking.paidUsageCount}), 0)`
+    })
+      .from(aiUsageTracking)
+      .where(and(
+        eq(aiUsageTracking.userId, userId),
+        sql`${aiUsageTracking.createdAt} >= ${todayStart.toISOString()}`,
+        sql`${aiUsageTracking.createdAt} < ${todayEnd.toISOString()}`
+      ))
+      .groupBy(aiUsageTracking.aiFeature);
     
     return usages.map(usage => ({
-      feature: usage.aiFeature,
-      freeCount: usage.freeUsageCount || 0,
-      paidCount: usage.paidUsageCount || 0
+      feature: usage.feature,
+      freeCount: usage.freeCount,
+      paidCount: usage.paidCount
     }));
   }
 
   async checkAiFreeUsageLimit(userId: string | null, sessionId: string, aiFeature: string, freeLimit: number = 3): Promise<{ canUseFree: boolean; usageCount: number; }> {
-    const usage = await this.getAiUsageTracking(userId, sessionId, aiFeature);
-    const usageCount = usage?.freeUsageCount || 0;
-    
-    return {
-      canUseFree: usageCount < freeLimit,
-      usageCount
-    };
+    if (userId) {
+      // For authenticated users: check today's usage (resets every 24 hours)
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+      
+      const [usage] = await db.select({
+        totalFreeUsage: sql<number>`COALESCE(SUM(${aiUsageTracking.freeUsageCount}), 0)`
+      })
+        .from(aiUsageTracking)
+        .where(and(
+          eq(aiUsageTracking.userId, userId),
+          eq(aiUsageTracking.aiFeature, aiFeature),
+          sql`${aiUsageTracking.createdAt} >= ${todayStart.toISOString()}`,
+          sql`${aiUsageTracking.createdAt} < ${todayEnd.toISOString()}`
+        ));
+      
+      const usageCount = usage?.totalFreeUsage || 0;
+      return {
+        canUseFree: usageCount < freeLimit,
+        usageCount
+      };
+    } else {
+      // For guest users: check session-based usage (no daily reset)
+      const usage = await this.getAiUsageTracking(userId, sessionId, aiFeature);
+      const usageCount = usage?.freeUsageCount || 0;
+      
+      return {
+        canUseFree: usageCount < freeLimit,
+        usageCount
+      };
+    }
   }
 
   // Lead payment operations

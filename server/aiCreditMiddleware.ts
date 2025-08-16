@@ -67,7 +67,7 @@ export const AI_FEATURES = {
   TV_COMPARISON: 'tv-comparison'
 } as const;
 
-// Free usage limits per feature (3 free uses as requested)
+// Free usage limits per feature - resets every 24 hours for authenticated users
 const FREE_USAGE_LIMIT = 3;
 
 export interface AIRequest extends Request {
@@ -146,11 +146,12 @@ export function checkAiCredits(aiFeature: string) {
         if (!isAuthenticated) {
           return res.status(401).json({
             error: 'Free usage limit exceeded',
-            message: `You've used your ${FREE_USAGE_LIMIT} free ${aiFeature.replace('-', ' ')} requests. Please sign in and add credits to continue.`,
+            message: `You've used your ${FREE_USAGE_LIMIT} free ${aiFeature.replace('-', ' ')} requests for this session. Please sign in to get ${FREE_USAGE_LIMIT} free requests daily that reset every 24 hours.`,
             freeUsageLimit: FREE_USAGE_LIMIT,
             usageCount: freeUsageCheck.usageCount,
             requiresSignIn: true,
-            creditCost
+            creditCost,
+            dailyReset: false // Guest users don't get daily reset
           });
         } else {
           // Double-check email verification for authenticated users needing to pay

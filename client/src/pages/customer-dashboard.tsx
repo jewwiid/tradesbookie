@@ -1433,7 +1433,10 @@ export default function CustomerDashboard() {
           </Tabs>
         </div>
       </div>
+    );
 
+    return (
+      <div>
       {/* Profile Edit Dialog */}
       <Dialog open={showProfileEdit} onOpenChange={setShowProfileEdit}>
         <DialogContent className="max-w-md">

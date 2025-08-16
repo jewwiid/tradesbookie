@@ -986,8 +986,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const result = await verifyEmailToken(token);
       
-      if (result.success) {
-        res.json({ message: result.message });
+      if (result.success && result.user) {
+        // Auto-login the user after successful email verification
+        req.login(result.user, (err) => {
+          if (err) {
+            console.error('Error logging in user after verification:', err);
+            return res.json({ message: result.message, autoLogin: false });
+          }
+          console.log(`User ${result.user.email} automatically logged in after email verification`);
+          res.json({ message: result.message, autoLogin: true, user: { id: result.user.id, email: result.user.email, role: result.user.role } });
+        });
       } else {
         res.status(400).json({ message: result.message });
       }

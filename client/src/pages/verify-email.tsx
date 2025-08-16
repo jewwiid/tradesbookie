@@ -22,7 +22,9 @@ export default function VerifyEmail() {
     }
 
     // Verify the email token
-    fetch(`/api/auth/verify-email?token=${token}`)
+    fetch(`/api/auth/verify-email?token=${token}`, {
+      credentials: 'include' // Include cookies for session
+    })
       .then(response => response.json())
       .then(data => {
         if (data.message && !data.message.includes('failed') && !data.message.includes('Invalid') && !data.message.includes('expired')) {
@@ -30,8 +32,15 @@ export default function VerifyEmail() {
           setMessage(data.message);
           toast({
             title: "Email verified successfully!",
-            description: "You can now access all features with unlimited AI previews.",
+            description: data.autoLogin ? "You are now signed in and have full access." : "You can now access all features with unlimited AI previews.",
           });
+          
+          // If auto-login was successful, redirect to dashboard after 2 seconds
+          if (data.autoLogin) {
+            setTimeout(() => {
+              setLocation('/customer-dashboard');
+            }, 2000);
+          }
         } else {
           setVerificationStatus('error');
           setMessage(data.message || 'Email verification failed');
@@ -46,7 +55,7 @@ export default function VerifyEmail() {
 
   const handleContinue = () => {
     if (verificationStatus === 'success') {
-      setLocation('/');
+      setLocation('/customer-dashboard');
     } else {
       setLocation('/');
     }

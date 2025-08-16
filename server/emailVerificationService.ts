@@ -6,6 +6,7 @@ export interface EmailVerificationResult {
   success: boolean;
   message: string;
   verificationToken?: string;
+  user?: any;
 }
 
 export async function generateVerificationToken(): Promise<string> {
@@ -147,9 +148,13 @@ export async function verifyEmailToken(token: string): Promise<EmailVerification
     // Mark email as verified
     await storage.verifyUserEmail(user.id);
     
+    // Get updated user data for auto-login
+    const updatedUser = await storage.getUserById(user.id);
+    
     return {
       success: true,
-      message: 'Email verified successfully! You can now access all features.'
+      message: 'Email verified successfully! You can now access all features.',
+      user: updatedUser
     };
   } catch (error) {
     console.error('Error verifying email token:', error);

@@ -90,6 +90,19 @@ export interface BookingData {
 
   // Additional notes
   customerNotes?: string;
+
+  // Direct booking info
+  directBooking?: boolean;
+  installerInfo?: {
+    id: number;
+    businessName: string;
+    contactName?: string;
+    phone?: string;
+    profileImageUrl?: string;
+    serviceArea?: string;
+    rating?: number;
+    totalReviews?: number;
+  };
 }
 
 export function useBookingData() {
@@ -101,7 +114,8 @@ export function useBookingData() {
     serviceType: "",
     wallType: "",
     mountType: "",
-    addons: []
+    addons: [],
+    directBooking: false
   });
 
   const updateBookingData = (data: Partial<BookingData>) => {
@@ -117,7 +131,8 @@ export function useBookingData() {
       serviceType: "",
       wallType: "",
       mountType: "",
-      addons: []
+      addons: [],
+      directBooking: false
     });
   };
 
@@ -158,13 +173,38 @@ export function useBookingData() {
     }));
   };
 
+  // Set direct installer booking
+  const setDirectInstaller = (installerId: number, installerInfo: any) => {
+    setBookingData(prev => ({
+      ...prev,
+      directBooking: true,
+      installerInfo: {
+        id: installerId,
+        businessName: installerInfo.businessName || installerInfo.contactName || 'Unknown',
+        contactName: installerInfo.contactName,
+        phone: installerInfo.phone,
+        profileImageUrl: installerInfo.profileImageUrl,
+        serviceArea: installerInfo.serviceArea,
+        rating: installerInfo.averageRating || installerInfo.rating,
+        totalReviews: installerInfo.totalReviews
+      }
+    }));
+  };
+
+  // Check if this is a direct booking
+  const isDirectBooking = () => {
+    return bookingData.directBooking === true && bookingData.installerInfo;
+  };
+
   return {
     bookingData,
     updateBookingData,
     resetBookingData,
     updateTvInstallation,
     addTvInstallation,
-    removeTvInstallation
+    removeTvInstallation,
+    setDirectInstaller,
+    isDirectBooking
   };
 }
 

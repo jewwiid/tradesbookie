@@ -1769,20 +1769,40 @@ export default function CustomerDashboard() {
                     </div>
                     
                     <div className="space-y-3">
-                      <Label htmlFor="topup-amount">Top-up Amount</Label>
-                      <Input
-                        id="topup-amount"
-                        type="number"
-                        placeholder="Enter amount (€)"
-                        value={topUpAmount}
-                        onChange={(e) => setTopUpAmount(e.target.value)}
-                        min="10"
-                        step="10"
-                      />
+                      <Label>Top-up Amount</Label>
+                      
+                      {/* Predefined amounts */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {[5, 10, 15, 25].map((amount) => (
+                          <Button
+                            key={amount}
+                            variant={topUpAmount === amount.toString() ? "default" : "outline"}
+                            onClick={() => setTopUpAmount(amount.toString())}
+                            className="text-sm"
+                          >
+                            €{amount}
+                          </Button>
+                        ))}
+                      </div>
+                      
+                      {/* Custom amount input */}
+                      <div className="space-y-2">
+                        <Label htmlFor="topup-amount" className="text-sm text-gray-600">Or enter custom amount</Label>
+                        <Input
+                          id="topup-amount"
+                          type="number"
+                          placeholder="Enter amount (€)"
+                          value={topUpAmount}
+                          onChange={(e) => setTopUpAmount(e.target.value)}
+                          min="5"
+                          step="1"
+                        />
+                      </div>
+                      
                       <Button 
                         onClick={async () => {
-                          if (!topUpAmount || parseFloat(topUpAmount) < 10) {
-                            toast({ title: "Invalid amount", description: "Minimum top-up is €10", variant: "destructive" });
+                          if (!topUpAmount || parseFloat(topUpAmount) < 5) {
+                            toast({ title: "Invalid amount", description: "Minimum top-up is €5", variant: "destructive" });
                             return;
                           }
                           setTopUpLoading(true);
@@ -1836,7 +1856,7 @@ export default function CustomerDashboard() {
                             setTopUpLoading(false);
                           }
                         }}
-                        disabled={topUpLoading || !topUpAmount || parseFloat(topUpAmount) < 10}
+                        disabled={topUpLoading || !topUpAmount || parseFloat(topUpAmount) < 5}
                         className="w-full bg-green-500 hover:bg-green-600"
                       >
                         {topUpLoading && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}

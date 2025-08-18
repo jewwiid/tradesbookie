@@ -40,8 +40,8 @@ export default function MultiTVNavigation({
     updateBookingData({ currentTvIndex: prevIndex });
   };
 
-  // Only show navigation during TV configuration steps (2-6)
-  if (currentStep < 2 || currentStep > 6) return null;
+  // Only show navigation during TV configuration steps (2-7)
+  if (currentStep < 2 || currentStep > 7) return null;
 
   return (
     <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">

@@ -7,10 +7,10 @@ import {
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
   insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, insertAiToolSchema, 
   users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers, 
-  scheduleNegotiations, leadRefunds, antiManipulation
+  scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
 import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing, SERVICE_TIERS, getLeadFee } from "./pricing";
@@ -7872,6 +7872,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         // Delete reviews
         await trx.delete(reviews).where(eq(reviews.bookingId, bookingId));
         console.log(`✅ Deleted reviews for booking ${bookingId}`);
+        
+        // Delete installer transactions related to job assignments for this booking
+        const jobAssignmentsForBooking = await trx.select({ id: jobAssignments.id }).from(jobAssignments).where(eq(jobAssignments.bookingId, bookingId));
+        if (jobAssignmentsForBooking.length > 0) {
+          const jobAssignmentIds = jobAssignmentsForBooking.map(ja => ja.id);
+          await trx.delete(installerTransactions).where(
+            jobAssignmentIds.length === 1 
+              ? eq(installerTransactions.jobAssignmentId, jobAssignmentIds[0])
+              : inArray(installerTransactions.jobAssignmentId, jobAssignmentIds)
+          );
+          console.log(`✅ Deleted installer transactions for booking ${bookingId}`);
+        }
         
         // Delete job assignments and purchased leads
         await trx.delete(jobAssignments).where(eq(jobAssignments.bookingId, bookingId));

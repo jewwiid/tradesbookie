@@ -66,8 +66,8 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
-  updateUser(userId: number, updates: Partial<UpsertUser>): Promise<User>;
-  updateUserProfile(userId: number, profileData: { firstName: string; lastName: string; phone?: string | null; email?: string }): Promise<User>;
+  updateUser(userId: string, updates: Partial<UpsertUser>): Promise<User>;
+  updateUserProfile(userId: string, profileData: { firstName: string; lastName: string; phone?: string | null; email?: string }): Promise<User>;
   getAllUsers(): Promise<User[]>;
   deleteUser(userId: number): Promise<boolean>;
   verifyUserEmail(userId: string): Promise<void>;
@@ -537,19 +537,19 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUser(userId: number, updates: Partial<UpsertUser>): Promise<User> {
+  async updateUser(userId: string, updates: Partial<UpsertUser>): Promise<User> {
     const [user] = await db
       .update(users)
       .set({
         ...updates,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, userId.toString()))
+      .where(eq(users.id, userId))
       .returning();
     return user;
   }
 
-  async updateUserProfile(userId: number, profileData: { firstName: string; lastName: string; phone?: string | null; email?: string }): Promise<User> {
+  async updateUserProfile(userId: string, profileData: { firstName: string; lastName: string; phone?: string | null; email?: string }): Promise<User> {
     const [user] = await db
       .update(users)
       .set({
@@ -559,7 +559,7 @@ export class DatabaseStorage implements IStorage {
         ...(profileData.email && { email: profileData.email }),
         updatedAt: new Date(),
       })
-      .where(eq(users.id, userId.toString()))
+      .where(eq(users.id, userId))
       .returning();
     
     if (!user) {
@@ -573,9 +573,9 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users);
   }
 
-  async deleteUser(userId: number): Promise<boolean> {
+  async deleteUser(userId: string): Promise<boolean> {
     try {
-      const result = await db.delete(users).where(eq(users.id, userId.toString()));
+      const result = await db.delete(users).where(eq(users.id, userId));
       return (result.rowCount ?? 0) > 0;
     } catch (error) {
       console.error("Error deleting user:", error);

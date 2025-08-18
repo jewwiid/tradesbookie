@@ -1,0 +1,119 @@
+SES Removing unpermitted intrinsics lockdown-install.js:1:200114
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:199959
+Error: An unexpected error occurred spoofer.js:1:38935
+Content-Security-Policy warnings 2
+SES Removing unpermitted intrinsics lockdown-install.js:1:200114
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:199959
+Error: An unexpected error occurred spoofer.js:1:38935
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-208b78687efe90199efd4953cc53904c.html#__shared_params__[version]=basil&__shared_params__[light_experiment_assignments]=%7B%22token%22%3A%22b9edc104-2fda-4a4d-9e23-05ef18e89fae%22%2C%22assignments%22%3A%7B%7D%7D&apiKey=pk_test_51QSj2vLGZvKUWZLCtQl8HfOyevF4qPOJmcWjnF4bXgCgZLx8FDJKY0uAhklZjMvs3dz80jvQVgvJgjOcqvxQKFPw00Hf7N8Flv&apiVersion=2025-03-31.basil&stripeJsId=b9edc104-2fda-4a4d-9e23-05ef18e89fae&stripeObjId=sobj-b17a2692-0e02-47c0-9487-5adf7a4083b8&firstStripeInstanceCreatedLatency=3&controllerCount=1&isCheckout=false&stripeJsLoadTime=1755553468666&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=c933e987-3494-49eb-98b0-3f20bb7603a2e5cad1&mids[sid]=c379c375-f315-4a75-b2dd-9805ffb8a3432fa299&referrer=https%3A%2F%2Ftradesbook.ie%2Fbooking&controllerId=__privateStripeController6921” because it is loaded in the third-party context and dynamic state partitioning is enabled. contentscript.js:55:11109
+ReferenceError: addTvInstallation is not defined
+    j https://tradesbook.ie/assets/index-BnU4x-hZ.js:890
+    HJ https://tradesbook.ie/assets/index-BnU4x-hZ.js:890
+    q1 https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    WI https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    zI https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    _q https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    Rv https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    IN https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    ik https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    hc https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    Zr https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    Zr https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    _i https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    cI https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    lI https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    batchCalls https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    n https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    l https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    l https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    r https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    l https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    setTimeout handler*a https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    l https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    batch https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    Ml https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    setData https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    onSuccess https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    h https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    promise callback*b https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    start https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    fetch https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    $h https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    onSubscribe https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    subscribe https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    WW https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    lI https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    Wy https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    Su https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    ik https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    hc https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    Cq https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    Ic https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    BI https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    I https://tradesbook.ie/assets/index-BnU4x-hZ.js:25
+    $ https://tradesbook.ie/assets/index-BnU4x-hZ.js:25
+    EventHandlerNonNull* https://tradesbook.ie/assets/index-BnU4x-hZ.js:25
+    <anonymous> https://tradesbook.ie/assets/index-BnU4x-hZ.js:25
+index-BnU4x-hZ.js:40:161
+SES_UNCAUGHT_EXCEPTION: ReferenceError: addTvInstallation is not defined
+    j https://tradesbook.ie/assets/index-BnU4x-hZ.js:890
+    HJ https://tradesbook.ie/assets/index-BnU4x-hZ.js:890
+    q1 https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    WI https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    zI https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    _q https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    Rv https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    IN https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    ik https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    hc https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    Zr https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    Zr https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    _i https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    cI https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    lI https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    batchCalls https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    n https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    l https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    l https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    r https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    l https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    setTimeout handler*a https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    l https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    batch https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    Ml https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    setData https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    onSuccess https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    h https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    promise callback*b https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    start https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    fetch https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    $h https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    onSubscribe https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    subscribe https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    WW https://tradesbook.ie/assets/index-BnU4x-hZ.js:48
+    lI https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    Wy https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    Su https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    ik https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    hc https://tradesbook.ie/assets/index-BnU4x-hZ.js:38
+    Cq https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    Ic https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    BI https://tradesbook.ie/assets/index-BnU4x-hZ.js:40
+    I https://tradesbook.ie/assets/index-BnU4x-hZ.js:25
+    $ https://tradesbook.ie/assets/index-BnU4x-hZ.js:25
+    EventHandlerNonNull* https://tradesbook.ie/assets/index-BnU4x-hZ.js:25
+    <anonymous> https://tradesbook.ie/assets/index-BnU4x-hZ.js:25
+lockdown-install.js:1:143245
+Content-Security-Policy warnings 2
+SES Removing unpermitted intrinsics lockdown-install.js:1:200114
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:199959
+Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-PRh/fvLCFBNVoIAGULuMBLuPh7G0pBe3UpLsY8yvX0A=') or a nonce. inpage.js:1:299468
+Error: An unexpected error occurred spoofer.js:1:38935
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Ftradesbook.ie%2Fbooking&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=&muid=c933e987-3494-49eb-98b0-3f20bb7603a2e5cad1&sid=c379c375-f315-4a75-b2dd-9805ffb8a3432fa299&version=6&preview=false&__shared_params__[version]=basil” because it is loaded in the third-party context and dynamic state partitioning is enabled. contentscript.js:55:11109
+Content-Security-Policy warnings 3
+SES Removing unpermitted intrinsics lockdown-install.js:1:200114
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:199959
+Content-Security-Policy: The page’s settings blocked an inline script (script-src-elem) from being executed because it violates the following directive: “script-src https://m.stripe.network 'sha256-5DA+a07wxWmEka9IdoWjSPVHb17Cp5284/lJzfbl8KA=' 'sha256-/5Guo2nzv5n/w6ukZpOBZOtTJBJPSkJ6mhHpnBgm3Ls=' 'unsafe-inline' https://www.google-analytics.com/analytics.js https://www.google-analytics.com/analytics.js”. Consider using a hash ('sha256-PRh/fvLCFBNVoIAGULuMBLuPh7G0pBe3UpLsY8yvX0A=') or a nonce. inpage.js:1:299468
+Error: An unexpected error occurred spoofer.js:1:38935
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2Ftradesbook.ie%2Fbooking&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=&muid=c933e987-3494-49eb-98b0-3f20bb7603a2e5cad1&sid=c379c375-f315-4a75-b2dd-9805ffb8a3432fa299&version=6&preview=false&__shared_params__[version]=basil” because it is loaded in the third-party context and dynamic state partitioning is enabled. contentscript.js:55:11109
+Cookie warnings 2

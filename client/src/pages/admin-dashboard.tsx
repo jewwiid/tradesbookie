@@ -72,7 +72,8 @@ import {
   UserCog,
   Filter,
   Send,
-  Wrench
+  Wrench,
+  X
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
@@ -1063,6 +1064,7 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
   const [uploadingImage, setUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedServiceForAssignment, setSelectedServiceForAssignment] = useState<number | null>(null);
 
   const { data: installers, isLoading } = useQuery<Installer[]>({
     queryKey: ["/api/admin/installers"],
@@ -1141,6 +1143,57 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
       setUploadingImage(false);
     },
   });
+
+  // Service assignment mutations
+  const assignServiceMutation = useMutation({
+    mutationFn: async ({ installerId, serviceTypeId }: { installerId: number; serviceTypeId: number }) => {
+      return apiRequest('/api/installer-service-assignments', {
+        method: 'POST',
+        body: { installerId, serviceTypeId, assignedBy: 'admin_manual' }
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Service assigned successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer-service-assignments'] });
+      setSelectedServiceForAssignment(null);
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to assign service", 
+        description: error.message || "An error occurred",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const removeServiceMutation = useMutation({
+    mutationFn: async ({ installerId, serviceTypeId }: { installerId: number; serviceTypeId: number }) => {
+      return apiRequest(`/api/installer-service-assignments/${installerId}/${serviceTypeId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Service removed successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer-service-assignments'] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to remove service", 
+        description: error.message || "An error occurred",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Handler functions
+  const handleAssignService = (installerId: number, serviceTypeId: number | null) => {
+    if (!serviceTypeId) return;
+    assignServiceMutation.mutate({ installerId, serviceTypeId });
+  };
+
+  const handleRemoveService = (installerId: number, serviceTypeId: number) => {
+    removeServiceMutation.mutate({ installerId, serviceTypeId });
+  };
 
   // Handle image selection
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1816,6 +1869,71 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
                     defaultValue={selectedInstaller.address || ''}
                     placeholder="Business address"
                   />
+                </div>
+              </div>
+
+              {/* Service Assignment Section */}
+              <div className="space-y-4 p-4 border rounded-lg bg-blue-50">
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-5 h-5 text-blue-600" />
+                  <Label className="text-sm font-medium text-blue-800">Service Management</Label>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Currently Assigned Services</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {getInstallerServices(selectedInstaller.id).length > 0 ? (
+                        getInstallerServices(selectedInstaller.id).map((assignment) => (
+                          <div key={assignment.id} className="flex items-center bg-white border rounded-lg px-3 py-1">
+                            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 mr-2">
+                              {assignment.serviceType.name}
+                            </Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveService(selectedInstaller.id, assignment.serviceType.id)}
+                              className="h-5 w-5 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              title="Remove service"
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">No services assigned</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Add Service</Label>
+                    <div className="flex gap-2 mt-2">
+                      <Select onValueChange={(value) => setSelectedServiceForAssignment(parseInt(value))}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a service to assign" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {serviceTypes
+                            .filter(st => !getInstallerServices(selectedInstaller.id).some(isa => isa.serviceType.id === st.id))
+                            .map(serviceType => (
+                              <SelectItem key={serviceType.id} value={serviceType.id.toString()}>
+                                {serviceType.name}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={() => handleAssignService(selectedInstaller.id, selectedServiceForAssignment)}
+                        disabled={!selectedServiceForAssignment}
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <Plus className="w-4 h-4 mr-1" />
+                        Assign
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </div>
               

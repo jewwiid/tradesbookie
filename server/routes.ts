@@ -984,6 +984,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Assign service to installer endpoint
+  app.post("/api/installer-service-assignments", async (req, res) => {
+    try {
+      const { installerId, serviceTypeId, assignedBy } = req.body;
+      
+      if (!installerId || !serviceTypeId) {
+        return res.status(400).json({ message: "installerId and serviceTypeId are required" });
+      }
+
+      // Check if assignment already exists
+      const existingAssignment = await storage.getInstallerServiceAssignment(installerId, serviceTypeId);
+      if (existingAssignment) {
+        return res.status(409).json({ message: "Service already assigned to installer" });
+      }
+
+      const assignment = await storage.assignServiceToInstaller({
+        installerId,
+        serviceTypeId,
+        assignedBy: assignedBy || 'admin_manual',
+        isActive: true
+      });
+      
+      res.status(201).json(assignment);
+    } catch (error) {
+      console.error("Error assigning service to installer:", error);
+      res.status(500).json({ message: "Failed to assign service to installer" });
+    }
+  });
+
+  // Remove service from installer endpoint
+  app.delete("/api/installer-service-assignments/:installerId/:serviceTypeId", async (req, res) => {
+    try {
+      const { installerId, serviceTypeId } = req.params;
+      
+      await storage.removeServiceFromInstaller(parseInt(installerId), parseInt(serviceTypeId));
+      res.json({ message: "Service assignment removed successfully" });
+    } catch (error) {
+      console.error("Error removing service from installer:", error);
+      res.status(500).json({ message: "Failed to remove service from installer" });
+    }
+  });
+
+  // Get active service types endpoint
+  app.get("/api/service-types/active", async (req, res) => {
+    try {
+      const serviceTypes = await storage.getActiveServiceTypes();
+      res.json(serviceTypes);
+    } catch (error) {
+      console.error("Error fetching active service types:", error);
+      res.status(500).json({ message: "Failed to fetch active service types" });
+    }
+  });
+
   // Demo user login endpoint for testing booking creation
   app.post("/api/demo-login", async (req, res) => {
     try {

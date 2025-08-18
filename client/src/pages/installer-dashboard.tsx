@@ -772,26 +772,60 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                     
                     {request.tvInstallations.map((tv: any, index: number) => (
                       <div key={index} className="p-3 bg-gray-50 rounded-lg border-l-4 border-primary">
-                        <h4 className="font-medium text-sm mb-2">TV {index + 1} ({tv.location || `TV ${index + 1}`})</h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
-                          <div>
-                            <span className="font-medium text-gray-600">Size:</span> {tv.tvSize}"
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          {/* TV Details */}
+                          <div className="flex-1">
+                            <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-primary" />
+                              {tv.location || `TV ${index + 1}`}
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
+                              <div>
+                                <span className="font-medium text-gray-600">Size:</span> {tv.tvSize}"
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Service:</span> {tv.serviceType}
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Wall:</span> {tv.wallType}
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Mount:</span> {tv.mountType}
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-600">Wall Mount:</span> {tv.needsWallMount ? 'Required' : 'Not needed'}
+                              </div>
+                              {tv.basePrice && (
+                                <div>
+                                  <span className="font-medium text-gray-600">Price:</span> €{tv.basePrice}
+                                </div>
+                              )}
+                            </div>
+                            {tv.addons && tv.addons.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-gray-200">
+                                <span className="font-medium text-gray-600 text-xs">Add-ons:</span>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {tv.addons.map((addon: any, addonIndex: number) => (
+                                    <Badge key={addonIndex} variant="outline" className="text-xs">
+                                      {addon.name} (+€{addon.price})
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <span className="font-medium text-gray-600">Service:</span> {tv.serviceType}
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-600">Wall:</span> {tv.wallType}
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-600">Mount:</span> {tv.mountType}
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-600">Wall Mount:</span> {tv.needsWallMount ? 'Required' : 'Not needed'}
-                          </div>
-                          {tv.basePrice && (
-                            <div>
-                              <span className="font-medium text-gray-600">Price:</span> €{tv.basePrice}
+                          
+                          {/* Room Photo */}
+                          {(tv.roomPhotoBase64 || tv.roomPhotoUrl) && (
+                            <div className="flex-shrink-0">
+                              <div className="w-20 h-16 sm:w-24 sm:h-20 rounded-lg overflow-hidden border border-gray-200">
+                                <img 
+                                  src={tv.roomPhotoBase64 ? `data:image/jpeg;base64,${tv.roomPhotoBase64}` : tv.roomPhotoUrl} 
+                                  alt={`Room photo for ${tv.location || `TV ${index + 1}`}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1 text-center">Room photo</p>
                             </div>
                           )}
                         </div>

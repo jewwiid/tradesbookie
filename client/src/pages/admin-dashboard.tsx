@@ -1147,10 +1147,7 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
   // Service assignment mutations
   const assignServiceMutation = useMutation({
     mutationFn: async ({ installerId, serviceTypeId }: { installerId: number; serviceTypeId: number }) => {
-      return apiRequest('/api/installer-service-assignments', {
-        method: 'POST',
-        body: { installerId, serviceTypeId, assignedBy: 'admin_manual' }
-      });
+      return apiRequest("POST", '/api/installer-service-assignments', { installerId, serviceTypeId, assignedBy: 'admin_manual' });
     },
     onSuccess: () => {
       toast({ title: "Service assigned successfully" });
@@ -1168,9 +1165,7 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
 
   const removeServiceMutation = useMutation({
     mutationFn: async ({ installerId, serviceTypeId }: { installerId: number; serviceTypeId: number }) => {
-      return apiRequest(`/api/installer-service-assignments/${installerId}/${serviceTypeId}`, {
-        method: 'DELETE'
-      });
+      return apiRequest("DELETE", `/api/installer-service-assignments/${installerId}/${serviceTypeId}`);
     },
     onSuccess: () => {
       toast({ title: "Service removed successfully" });

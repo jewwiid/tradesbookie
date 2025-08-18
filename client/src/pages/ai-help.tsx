@@ -211,8 +211,31 @@ export default function AIHelpPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const categoryParam = urlParams.get('category');
     const findParam = urlParams.get('find');
+    const toolParam = urlParams.get('tool');
+    const qrParam = urlParams.get('qr');
+    const storeParam = urlParams.get('store');
     
-    if (categoryParam && findParam === 'true') {
+    // Handle AI tool direct access via QR codes
+    if (toolParam && qrParam) {
+      // Map tool keys to tabs
+      const toolTabMap: Record<string, string> = {
+        'ai-chat': 'chat',
+        'product-info': 'compare', 
+        'product-compare': 'electronics',
+        'find-product': 'find',
+        'tv-preview': 'find' // TV Preview maps to Find Product
+      };
+      
+      const targetTab = toolTabMap[toolParam] || 'chat';
+      setActiveTab(targetTab);
+      
+      // Show store context if provided
+      if (storeParam) {
+        console.log(`QR scan from store: ${storeParam}`);
+      }
+    }
+    // Handle legacy category-based QR codes  
+    else if (categoryParam && findParam === 'true') {
       // Switch to Find Product tab and set category
       setActiveTab('find');
       setSelectedCategory(categoryParam);

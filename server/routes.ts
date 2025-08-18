@@ -14414,6 +14414,79 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Generate QR code for AI tool
+  app.post("/api/admin/ai-tools/:id/qr-code", isAdmin, async (req, res) => {
+    try {
+      const toolId = parseInt(req.params.id);
+      const { storeLocation } = req.body;
+      
+      // Get the AI tool details
+      const tool = await storage.getAiTool(toolId);
+      if (!tool) {
+        return res.status(404).json({ error: 'AI tool not found' });
+      }
+
+      // Generate QR code for the AI tool
+      const qrCodeData = await QRCodeService.generateAIToolQRCode(
+        tool.key,
+        tool.name,
+        storeLocation
+      );
+
+      res.json({
+        qrCodeId: qrCodeData.qrCodeId,
+        qrCodeUrl: qrCodeData.qrCodeUrl,
+        targetUrl: qrCodeData.qrCodeData,
+        tool: {
+          id: tool.id,
+          name: tool.name,
+          key: tool.key,
+          description: tool.description
+        },
+        storeLocation
+      });
+    } catch (error) {
+      console.error('Error generating AI tool QR code:', error);
+      res.status(500).json({ error: 'Failed to generate QR code' });
+    }
+  });
+
+  // Generate printable flyer for AI tool
+  app.post("/api/admin/ai-tools/:id/flyer", isAdmin, async (req, res) => {
+    try {
+      const toolId = parseInt(req.params.id);
+      const { storeLocation } = req.body;
+      
+      // Get the AI tool details
+      const tool = await storage.getAiTool(toolId);
+      if (!tool) {
+        return res.status(404).json({ error: 'AI tool not found' });
+      }
+
+      // Generate QR code for the AI tool
+      const qrCodeData = await QRCodeService.generateAIToolQRCode(
+        tool.key,
+        tool.name,
+        storeLocation
+      );
+
+      // Generate printable flyer SVG
+      const flyerSVG = QRCodeService.generateAIToolFlyerSVG({
+        name: tool.name,
+        description: tool.description,
+        qrCodeUrl: qrCodeData.qrCodeUrl,
+        storeLocation
+      });
+
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.setHeader('Content-Disposition', `attachment; filename="${tool.key}-flyer.svg"`);
+      res.send(flyerSVG);
+    } catch (error) {
+      console.error('Error generating AI tool flyer:', error);
+      res.status(500).json({ error: 'Failed to generate flyer' });
+    }
+  });
+
   return httpServer;
 }
 

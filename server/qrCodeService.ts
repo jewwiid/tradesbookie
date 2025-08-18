@@ -156,6 +156,109 @@ export class QRCodeService {
   }
 
   /**
+   * Generate QR code for AI tools
+   */
+  static async generateAIToolQRCode(
+    toolKey: string, 
+    toolName: string,
+    storeLocation?: string
+  ): Promise<{ qrCodeId: string; qrCodeUrl: string; qrCodeData: string }> {
+    // Generate unique QR code identifier
+    const qrCodeId = nanoid(12);
+    
+    // Create the URL that the QR code will point to
+    const params = new URLSearchParams();
+    params.set('qr', qrCodeId);
+    params.set('tool', toolKey);
+    if (storeLocation) {
+      params.set('store', storeLocation);
+    }
+    
+    const targetUrl = `${this.BASE_URL}/ai-help?${params.toString()}`;
+    
+    // Generate QR code image as data URL
+    const qrCodeDataUrl = await QRCode.toDataURL(targetUrl, {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      quality: 0.92,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      },
+      width: 256
+    });
+
+    return {
+      qrCodeId,
+      qrCodeUrl: qrCodeDataUrl,
+      qrCodeData: targetUrl
+    };
+  }
+
+  /**
+   * Generate printable flyer for AI tools
+   */
+  static generateAIToolFlyerSVG(tool: {
+    name: string;
+    description: string;
+    qrCodeUrl: string;
+    storeLocation?: string;
+  }): string {
+    return `
+<svg width="400" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="600" fill="#f8fafc" rx="10" stroke="#e2e8f0" stroke-width="2"/>
+  
+  <!-- Header -->
+  <text x="200" y="60" text-anchor="middle" fill="#1e293b" 
+        font-family="Arial, sans-serif" font-size="24" font-weight="bold">
+    🤖 AI Assistant
+  </text>
+  
+  <!-- Tool Name -->
+  <text x="200" y="90" text-anchor="middle" fill="#3b82f6" 
+        font-family="Arial, sans-serif" font-size="20" font-weight="bold">
+    ${tool.name}
+  </text>
+  
+  <!-- Description -->
+  <foreignObject x="30" y="110" width="340" height="100">
+    <div xmlns="http://www.w3.org/1999/xhtml" 
+         style="font-family: Arial, sans-serif; font-size: 16px; line-height: 1.4; 
+                color: #475569; text-align: center; padding: 10px;">
+      ${tool.description}
+    </div>
+  </foreignObject>
+  
+  <!-- QR Code Container -->
+  <rect x="75" y="230" width="250" height="250" fill="white" rx="15" stroke="#3b82f6" stroke-width="3"/>
+  
+  <!-- QR Code -->
+  <image x="85" y="240" width="230" height="230" href="${tool.qrCodeUrl}"/>
+  
+  <!-- Instructions -->
+  <text x="200" y="520" text-anchor="middle" fill="#1e293b" 
+        font-family="Arial, sans-serif" font-size="18" font-weight="bold">
+    Scan for Instant AI Help
+  </text>
+  
+  <!-- Store Location -->
+  ${tool.storeLocation ? `
+  <text x="200" y="545" text-anchor="middle" fill="#64748b" 
+        font-family="Arial, sans-serif" font-size="14">
+    ${tool.storeLocation}
+  </text>` : ''}
+  
+  <!-- Footer -->
+  <text x="200" y="575" text-anchor="middle" fill="#3b82f6" 
+        font-family="Arial, sans-serif" font-size="12" font-weight="bold">
+    tradesbook.ie
+  </text>
+</svg>`.trim();
+  }
+
+  /**
    * Create a bulk flyer PDF with multiple categories
    */
   static generateBulkFlyerSVG(categories: Array<{

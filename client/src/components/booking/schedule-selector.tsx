@@ -24,10 +24,12 @@ export default function ScheduleSelector({ bookingData, updateBookingData }: Sch
   const minDate = tomorrow.toISOString().split('T')[0];
 
   const handleDateChange = (date: string) => {
+    console.log('Date selected:', date);
     updateBookingData({ preferredDate: date });
   };
 
   const handleTimeChange = (time: string) => {
+    console.log('Time selected:', time);
     updateBookingData({ preferredTime: time });
   };
 

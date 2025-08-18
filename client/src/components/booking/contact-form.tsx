@@ -140,6 +140,12 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
 
   const createBookingMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Booking data being submitted:', {
+        preferredDate: data.preferredDate,
+        preferredTime: data.preferredTime,
+        contact: data.contact
+      });
+      
       // First create or get user
       const userResponse = await apiRequest('POST', '/api/users', {
         name: data.contact.name,

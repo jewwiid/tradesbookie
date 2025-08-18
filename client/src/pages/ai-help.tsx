@@ -218,9 +218,17 @@ export default function AIHelpPage() {
     const toolParam = urlParams.get('tool');
     const qrParam = urlParams.get('qr');
     const storeParam = urlParams.get('store');
+    const tabParam = urlParams.get('tab');
     
+    // Handle direct tab navigation from customer dashboard
+    if (tabParam) {
+      const validTabs = ['chat', 'compare', 'electronics', 'find'];
+      if (validTabs.includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
     // Handle AI tool direct access via QR codes
-    if (toolParam && qrParam) {
+    else if (toolParam && qrParam) {
       // Map tool keys to tabs based on actual AI tools in database
       const toolTabMap: Record<string, string> = {
         'tv-preview': 'find',           // TV Preview -> Find My Product tab

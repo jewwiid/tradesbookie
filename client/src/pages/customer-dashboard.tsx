@@ -1350,64 +1350,19 @@ export default function CustomerDashboard() {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Bot className="w-5 h-5 text-blue-500" />
-                      AI Help Assistant
+                      AI Chat Assistant
                     </CardTitle>
                     <CardDescription>
                       Get instant answers to your TV and electronics questions
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Textarea 
-                      placeholder="Ask any question about TV installation, setup, or troubleshooting..."
-                      value={aiQuery}
-                      onChange={(e) => setAiQuery(e.target.value)}
-                      className="min-h-[80px]"
-                    />
-                    <Button 
-                      onClick={async () => {
-                        if (!aiQuery.trim()) return;
-                        setAiLoading(true);
-                        try {
-                          const response = await apiRequest('POST', '/api/ai/help', { question: aiQuery }) as any;
-                          setAiResponse(response.answer || 'AI response received');
-                        } catch (error) {
-                          toast({ title: "Error", description: "Failed to get AI response", variant: "destructive" });
-                        } finally {
-                          setAiLoading(false);
-                        }
-                      }}
-                      disabled={aiLoading || !aiQuery.trim()}
-                      className="w-full"
-                    >
-                      {aiLoading && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
-                      Ask AI Assistant
-                    </Button>
-                    {aiResponse && (
-                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-blue-900">{aiResponse}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* TV Recommendations */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Tv className="w-5 h-5 text-purple-500" />
-                      TV Recommendations
-                    </CardTitle>
-                    <CardDescription>
-                      Get personalized TV recommendations
-                    </CardDescription>
-                  </CardHeader>
                   <CardContent>
                     <Button 
-                      onClick={() => setLocation('/tv-recommendation')}
-                      className="w-full bg-purple-500 hover:bg-purple-600"
+                      onClick={() => setLocation('/ai-help?tab=chat')}
+                      className="w-full bg-blue-500 hover:bg-blue-600"
                     >
-                      <Zap className="w-4 h-4 mr-2" />
-                      Get Recommendations
+                      <Bot className="w-4 h-4 mr-2" />
+                      Start Chat
                     </Button>
                   </CardContent>
                 </Card>
@@ -1425,11 +1380,55 @@ export default function CustomerDashboard() {
                   </CardHeader>
                   <CardContent>
                     <Button 
-                      onClick={() => setLocation('/product-info')}
+                      onClick={() => setLocation('/ai-help?tab=compare')}
                       className="w-full bg-green-500 hover:bg-green-600"
                     >
                       <Search className="w-4 h-4 mr-2" />
                       Search Products
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Product Comparison */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-purple-500" />
+                      Product Compare
+                    </CardTitle>
+                    <CardDescription>
+                      Compare different TV models and electronics
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={() => setLocation('/ai-help?tab=electronics')}
+                      className="w-full bg-purple-500 hover:bg-purple-600"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Compare Products
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Find My Product */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Zap className="w-5 h-5 text-orange-500" />
+                      Find My Product
+                    </CardTitle>
+                    <CardDescription>
+                      Get personalized product recommendations
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button 
+                      onClick={() => setLocation('/ai-help?tab=find')}
+                      className="w-full bg-orange-500 hover:bg-orange-600"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Get Recommendations
                     </Button>
                   </CardContent>
                 </Card>

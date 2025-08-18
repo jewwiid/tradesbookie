@@ -42,7 +42,16 @@ import {
   MoreHorizontal,
   Calendar,
   Activity,
-  Archive
+  Archive,
+  BarChart4,
+  TrendingUp,
+  Users,
+  Clock,
+  Target,
+  FileDown,
+  Smartphone,
+  Monitor,
+  Tablet
 } from "lucide-react";
 
 interface AiTool {
@@ -71,6 +80,40 @@ interface AiToolQrCode {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+interface AnalyticsSummary {
+  totalInteractions: number;
+  uniqueSessions: number;
+  storeLocations: number;
+  creditUsageRate: number;
+  avgProcessingTime: number;
+  topPerformingTool: string;
+  lastInteraction: string;
+}
+
+interface InteractionAnalytics {
+  id: number;
+  sessionId: string;
+  aiTool: string;
+  interactionType: string;
+  userPrompt: string;
+  storeLocation?: string;
+  processingTimeMs: number;
+  creditUsed: boolean;
+  deviceType: string;
+  productQuery?: string;
+  category?: string;
+  createdAt: string;
+}
+
+interface StoreAnalytics {
+  storeLocation: string;
+  totalInteractions: number;
+  uniqueSessions: number;
+  avgProcessingTime: number;
+  creditUsage: number;
+  conversionRate: number;
 }
 
 // Form schema for creating/updating AI tools
@@ -121,6 +164,7 @@ export default function AiToolsManagement() {
   const [qrCodeData, setQrCodeData] = useState<any>(null);
   const [qrManagementDialogOpen, setQrManagementDialogOpen] = useState(false);
   const [selectedToolForManagement, setSelectedToolForManagement] = useState<AiTool | null>(null);
+  const [analyticsTabActive, setAnalyticsTabActive] = useState("overview");
 
   const form = useForm<AiToolFormData>({
     resolver: zodResolver(aiToolSchema),
@@ -156,6 +200,36 @@ export default function AiToolsManagement() {
       return response.json();
     },
     enabled: !!selectedToolForManagement
+  });
+
+  // Fetch analytics summary
+  const { data: analyticsSummary, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['/api/admin/ai-analytics/summary'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/ai-analytics/summary');
+      if (!response.ok) throw new Error('Failed to fetch analytics summary');
+      return response.json();
+    }
+  });
+
+  // Fetch detailed interactions
+  const { data: interactions = [], isLoading: interactionsLoading } = useQuery({
+    queryKey: ['/api/admin/ai-analytics/interactions'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/ai-analytics/interactions');
+      if (!response.ok) throw new Error('Failed to fetch interactions');
+      return response.json();
+    }
+  });
+
+  // Fetch store analytics
+  const { data: storeAnalytics = [], isLoading: storeAnalyticsLoading } = useQuery({
+    queryKey: ['/api/admin/ai-analytics/stores'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/admin/ai-analytics/stores');
+      if (!response.ok) throw new Error('Failed to fetch store analytics');
+      return response.json();
+    }
   });
 
   // Create AI tool mutation
@@ -288,6 +362,46 @@ export default function AiToolsManagement() {
       });
     }
   });
+
+  // CSV Export functionality
+  const handleExportCSV = async () => {
+    try {
+      const response = await apiRequest('GET', '/api/admin/ai-analytics/export');
+      if (!response.ok) throw new Error('Failed to export data');
+      
+      const csvData = await response.text();
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ai-analytics-export-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Success",
+        description: "Analytics data exported successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to export analytics data",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getDeviceIcon = (deviceType: string) => {
+    switch (deviceType.toLowerCase()) {
+      case 'mobile': return <Smartphone className="h-4 w-4" />;
+      case 'tablet': return <Tablet className="h-4 w-4" />;
+      case 'desktop': return <Monitor className="h-4 w-4" />;
+      default: return <Monitor className="h-4 w-4" />;
+    }
+  };
 
   const handleSubmit = (data: AiToolFormData) => {
     if (editingTool) {
@@ -661,8 +775,16 @@ export default function AiToolsManagement() {
       </CardHeader>
 
       <CardContent>
-        <div className="rounded-md border">
-          <Table>
+        <Tabs defaultValue="tools" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="tools">Manage Tools</TabsTrigger>
+            <TabsTrigger value="qr-management">QR Code Management</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics & Reports</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="tools" className="space-y-4">
+            <div className="rounded-md border">
+              <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Tool</TableHead>
@@ -768,16 +890,244 @@ export default function AiToolsManagement() {
                 </TableRow>
               )}
             </TableBody>
-          </Table>
-        </div>
+              </Table>
+            </div>
 
-        {tools.length > 0 && (
-          <div className="mt-4 text-sm text-muted-foreground">
-            Total AI tools: {tools.length} | 
-            Active: {tools.filter((t: AiTool) => t.isActive).length} | 
-            Disabled: {tools.filter((t: AiTool) => !t.isActive).length}
-          </div>
-        )}
+            {tools.length > 0 && (
+              <div className="mt-4 text-sm text-muted-foreground">
+                Total AI tools: {tools.length} | 
+                Active: {tools.filter((t: AiTool) => t.isActive).length} | 
+                Disabled: {tools.filter((t: AiTool) => !t.isActive).length}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="qr-management" className="space-y-4">
+            <div className="text-center py-8">
+              <QrCode className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-2">QR Code Management</h3>
+              <p className="text-muted-foreground">
+                Select an AI tool from the "Manage Tools" tab to generate and manage QR codes.
+              </p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-6">
+            {analyticsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading analytics...</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Analytics Header */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <BarChart4 className="h-5 w-5" />
+                      AI Tools Analytics & Reports
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Track AI tool usage, store performance, and customer interactions
+                    </p>
+                  </div>
+                  <Button onClick={handleExportCSV}>
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </div>
+
+                {/* Summary Cards */}
+                {analyticsSummary && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Total Interactions</p>
+                            <p className="text-2xl font-bold">{analyticsSummary.totalInteractions}</p>
+                          </div>
+                          <Activity className="h-8 w-8 text-blue-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Store Coverage</p>
+                            <p className="text-2xl font-bold">{analyticsSummary.storeLocations}</p>
+                          </div>
+                          <MapPin className="h-8 w-8 text-green-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Credit Usage</p>
+                            <p className="text-2xl font-bold">{analyticsSummary.creditUsageRate}%</p>
+                          </div>
+                          <Target className="h-8 w-8 text-purple-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Avg Response</p>
+                            <p className="text-2xl font-bold">{analyticsSummary.avgProcessingTime}ms</p>
+                          </div>
+                          <Clock className="h-8 w-8 text-orange-500" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Analytics Tabs */}
+                <Tabs value={analyticsTabActive} onValueChange={setAnalyticsTabActive} className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                    <TabsTrigger value="interactions">Recent Interactions</TabsTrigger>
+                    <TabsTrigger value="stores">Store Performance</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="overview" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Top Performing AI Tools</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {interactions.length > 0 ? (
+                          <div className="space-y-3">
+                            {Object.entries(
+                              interactions.reduce((acc: any, interaction: InteractionAnalytics) => {
+                                acc[interaction.aiTool] = (acc[interaction.aiTool] || 0) + 1;
+                                return acc;
+                              }, {})
+                            )
+                              .sort(([,a], [,b]) => (b as number) - (a as number))
+                              .slice(0, 5)
+                              .map(([tool, count]) => (
+                                <div key={tool} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                  <span className="font-medium capitalize">{tool.replace('-', ' ')}</span>
+                                  <Badge variant="outline">{count} interactions</Badge>
+                                </div>
+                              ))}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground text-center py-4">No interaction data available</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="interactions" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Recent AI Interactions</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Latest customer interactions with AI tools across all store locations
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        {interactionsLoading ? (
+                          <div className="text-center py-4">Loading interactions...</div>
+                        ) : interactions.length > 0 ? (
+                          <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {interactions.slice(0, 20).map((interaction: InteractionAnalytics) => (
+                              <div key={interaction.id} className="border rounded-lg p-4 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className="capitalize">
+                                      {interaction.aiTool.replace('-', ' ')}
+                                    </Badge>
+                                    {interaction.storeLocation && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        <MapPin className="h-3 w-3 mr-1" />
+                                        {interaction.storeLocation}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    {getDeviceIcon(interaction.deviceType)}
+                                    <span>{format(new Date(interaction.createdAt), 'MMM dd, HH:mm')}</span>
+                                  </div>
+                                </div>
+                                <p className="text-sm">{interaction.userPrompt}</p>
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                  <span>Processing: {interaction.processingTimeMs}ms</span>
+                                  <span className={interaction.creditUsed ? 'text-orange-600' : 'text-green-600'}>
+                                    {interaction.creditUsed ? 'Credit Used' : 'Free Usage'}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground text-center py-4">No recent interactions</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+
+                  <TabsContent value="stores" className="space-y-4">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Store Performance Analytics</CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          AI tool usage and conversion rates by store location
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        {storeAnalyticsLoading ? (
+                          <div className="text-center py-4">Loading store analytics...</div>
+                        ) : storeAnalytics.length > 0 ? (
+                          <div className="space-y-3">
+                            {storeAnalytics.map((store: StoreAnalytics) => (
+                              <div key={store.storeLocation} className="border rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h4 className="font-medium">{store.storeLocation}</h4>
+                                  <Badge className={store.conversionRate > 50 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                                    {store.conversionRate.toFixed(1)}% conversion
+                                  </Badge>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4 text-sm">
+                                  <div>
+                                    <p className="text-muted-foreground">Interactions</p>
+                                    <p className="font-medium">{store.totalInteractions}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-muted-foreground">Unique Users</p>
+                                    <p className="font-medium">{store.uniqueSessions}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-muted-foreground">Avg Response</p>
+                                    <p className="font-medium">{store.avgProcessingTime}ms</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground text-center py-4">No store analytics available</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
       </CardContent>
 
       {/* QR Code Generation Dialog */}

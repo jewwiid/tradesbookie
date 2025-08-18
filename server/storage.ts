@@ -3218,6 +3218,19 @@ export class DatabaseStorage implements IStorage {
       ));
   }
 
+  async getInstallerServiceAssignment(installerId: number, serviceTypeId: number): Promise<InstallerServiceAssignment | null> {
+    const [assignment] = await db
+      .select()
+      .from(installerServiceAssignments)
+      .where(and(
+        eq(installerServiceAssignments.installerId, installerId),
+        eq(installerServiceAssignments.serviceTypeId, serviceTypeId)
+      ))
+      .limit(1);
+    
+    return assignment || null;
+  }
+
   // Performance refund settings operations
   async getPerformanceRefundSettings(): Promise<PerformanceRefundSettings[]> {
     return await db.select().from(performanceRefundSettings)

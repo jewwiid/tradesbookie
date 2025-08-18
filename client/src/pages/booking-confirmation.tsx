@@ -163,35 +163,86 @@ export default function BookingConfirmation() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">TV Size:</span>
-                <span className="font-medium">{booking.tvSize}"</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Service:</span>
-                <span className="font-medium">{booking.serviceType}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Wall Type:</span>
-                <span className="font-medium">{booking.wallType}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Mount Type:</span>
-                <span className="font-medium">{booking.mountType}</span>
-              </div>
-              {booking.addons && booking.addons.length > 0 && (
-                <>
-                  <Separator />
-                  <div>
-                    <span className="text-muted-foreground">Add-ons:</span>
-                    <div className="mt-1 space-y-1">
-                      {booking.addons.map((addon: any, index: number) => (
-                        <Badge key={index} variant="secondary" className="mr-1">
-                          {addon.name}
-                        </Badge>
-                      ))}
-                    </div>
+              {booking.tvInstallations && booking.tvInstallations.length > 0 ? (
+                // Multi-TV booking details
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">TVs to Install:</span>
+                    <span className="font-medium">{booking.tvInstallations.length} TVs</span>
                   </div>
+                  <Separator />
+                  {booking.tvInstallations.map((tv: any, index: number) => (
+                    <div key={index} className="p-3 bg-muted/50 rounded-lg border">
+                      <div className="font-medium text-foreground mb-2">
+                        TV {index + 1} ({tv.location || `TV ${index + 1}`})
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">TV Size:</span>
+                          <span className="font-medium">{tv.tvSize}"</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Service:</span>
+                          <span className="font-medium">{tv.serviceType}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Wall Type:</span>
+                          <span className="font-medium">{tv.wallType}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Mount Type:</span>
+                          <span className="font-medium">{tv.mountType}</span>
+                        </div>
+                        {tv.addons && tv.addons.length > 0 && (
+                          <div>
+                            <span className="text-muted-foreground">Add-ons:</span>
+                            <div className="mt-1 space-y-1">
+                              {tv.addons.map((addon: any, addonIndex: number) => (
+                                <Badge key={addonIndex} variant="secondary" className="mr-1 text-xs">
+                                  {addon.name}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                // Single TV booking details (legacy)
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">TV Size:</span>
+                    <span className="font-medium">{booking.tvSize}"</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Service:</span>
+                    <span className="font-medium">{booking.serviceType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Wall Type:</span>
+                    <span className="font-medium">{booking.wallType}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Mount Type:</span>
+                    <span className="font-medium">{booking.mountType}</span>
+                  </div>
+                  {booking.addons && booking.addons.length > 0 && (
+                    <>
+                      <Separator />
+                      <div>
+                        <span className="text-muted-foreground">Add-ons:</span>
+                        <div className="mt-1 space-y-1">
+                          {booking.addons.map((addon: any, index: number) => (
+                            <Badge key={index} variant="secondary" className="mr-1">
+                              {addon.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </>
               )}
             </CardContent>
@@ -218,7 +269,17 @@ export default function BookingConfirmation() {
                 <div>
                   <div className="text-sm text-muted-foreground">Preferred Date:</div>
                   <div className="font-medium">
-                    {booking.scheduledDate ? new Date(booking.scheduledDate).toLocaleDateString() : 'Flexible'}
+                    {booking.preferredDate ? new Date(booking.preferredDate).toLocaleDateString('en-IE', {
+                      weekday: 'short',
+                      year: 'numeric', 
+                      month: 'short',
+                      day: 'numeric'
+                    }) : booking.scheduledDate ? new Date(booking.scheduledDate).toLocaleDateString('en-IE', {
+                      weekday: 'short',
+                      year: 'numeric',
+                      month: 'short', 
+                      day: 'numeric'
+                    }) : 'Flexible'}
                   </div>
                 </div>
               </div>
@@ -226,7 +287,18 @@ export default function BookingConfirmation() {
                 <Clock className="w-4 h-4 text-muted-foreground mt-1" />
                 <div>
                   <div className="text-sm text-muted-foreground">Preferred Time:</div>
-                  <div className="font-medium">{booking.timeSlot || 'Flexible'}</div>
+                  <div className="font-medium">
+                    {booking.preferredTime ? 
+                      `${booking.preferredTime}:00 - ${
+                        booking.preferredTime === '09:00' ? '11:00' :
+                        booking.preferredTime === '11:00' ? '13:00' :
+                        booking.preferredTime === '13:00' ? '15:00' :
+                        booking.preferredTime === '15:00' ? '17:00' :
+                        booking.preferredTime === '17:00' ? '19:00' : 
+                        '2 hour window'
+                      }:00` : booking.timeSlot || 'Flexible'
+                    }
+                  </div>
                 </div>
               </div>
             </CardContent>

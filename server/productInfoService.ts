@@ -32,43 +32,59 @@ export async function getProductInfo(model: string): Promise<ProductInfo> {
         messages: [
           {
             role: 'system',
-            content: `You are a professional product reviewer with expertise in electronics and appliances. Your task is to provide comprehensive, detailed analysis of products with accurate pros and cons.
+            content: `You are a professional product reviewer with expertise in electronics and appliances. Search the web for current information and provide comprehensive product analysis.
 
-CRITICAL REQUIREMENTS:
-1. Search for the EXACT product model: ${model}
-2. Find current information from reliable sources (RTINGS, expert reviews, manufacturer specs)
-3. Provide specific, detailed pros and cons based on actual product testing and reviews
-4. Include current pricing from Irish retailers where possible
-5. Return accurate specifications and technical details
+SEARCH REQUIREMENTS:
+1. Find the EXACT product model: ${model}
+2. Get information from reliable sources (RTINGS, TechRadar, What Hi-Fi, GSMArena, Consumer Reports, manufacturer websites)
+3. Include current pricing from Irish retailers (Harvey Norman Ireland, Currys PC World Ireland, Argos Ireland)
+4. Find professional reviews, user feedback, and technical specifications
 
-OUTPUT FORMAT (JSON):
+RESPONSE FORMAT - Return ONLY valid JSON without markdown formatting:
 {
-  "name": "Exact product name with model number",
-  "brand": "Manufacturer brand",
-  "rating": average_rating_out_of_5,
-  "price": "Current Irish price or price range",
-  "overview": "2-3 sentence product overview",
-  "pros": ["Specific advantage 1", "Specific advantage 2", "Specific advantage 3"],
-  "cons": ["Specific limitation 1", "Specific limitation 2", "Specific limitation 3"],
-  "keyFeatures": ["Feature 1", "Feature 2", "Feature 3", "Feature 4"],
+  "name": "Full product name with model number",
+  "brand": "Manufacturer brand name",
+  "rating": 4.5,
+  "price": "€XXX at [Retailer Name] Ireland",
+  "overview": "2-3 sentences describing the product's main purpose, target audience, and standout features",
+  "pros": [
+    "Specific advantage based on reviews",
+    "Another verified strength",
+    "Third documented benefit",
+    "Fourth proven advantage"
+  ],
+  "cons": [
+    "Specific limitation from reviews",
+    "Another documented weakness", 
+    "Third verified drawback"
+  ],
+  "keyFeatures": [
+    "Main technical feature 1",
+    "Main technical feature 2", 
+    "Main technical feature 3",
+    "Main technical feature 4"
+  ],
   "specifications": {
-    "Key Spec 1": "Value",
-    "Key Spec 2": "Value",
-    "Key Spec 3": "Value"
+    "Display/Driver Size": "Specific measurement",
+    "Connectivity": "Bluetooth 5.x, WiFi, etc",
+    "Battery Life": "X hours",
+    "Weight": "X grams/kg",
+    "Dimensions": "X x Y x Z mm"
   },
-  "expertRecommendation": "Who should buy this product and why",
-  "valueForMoney": "Assessment of value proposition and pricing"
+  "expertRecommendation": "Detailed recommendation of who should buy this and why, based on professional reviews",
+  "valueForMoney": "Assessment of pricing vs features compared to competitors"
 }
 
-IMPORTANT: Return only real information found through search. Do not fabricate specifications or reviews.`
+CRITICAL: Return ONLY the JSON object. No markdown, no explanations, no code blocks. 
+Start your response with { and end with }. Do not include any text before or after the JSON.`
           },
           {
             role: 'user',
             content: searchQuery
           }
         ],
-        max_tokens: 2000,
-        temperature: 0.2
+        max_tokens: 3000,
+        temperature: 0.1
       })
     });
 
@@ -83,26 +99,62 @@ IMPORTANT: Return only real information found through search. Do not fabricate s
       throw new Error("No product information received from Perplexity API");
     }
 
+    console.log('Raw Perplexity response:', productInfoText);
+
+    // Clean up the response to extract valid JSON
+    let cleanedText = productInfoText.trim();
+    
+    // Remove markdown code block formatting
+    cleanedText = cleanedText.replace(/```json\s*|\s*```/g, '');
+    
+    // Try to extract a complete JSON object
+    let jsonStart = cleanedText.indexOf('{');
+    let jsonEnd = cleanedText.lastIndexOf('}');
+    
+    if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+      cleanedText = cleanedText.substring(jsonStart, jsonEnd + 1);
+    }
+    
+    // Fix common JSON formatting issues
+    cleanedText = cleanedText
+      .replace(/\n/g, ' ')              // Remove newlines
+      .replace(/\s+/g, ' ')             // Normalize spaces
+      .replace(/,\s*}/g, '}')           // Remove trailing commas
+      .replace(/,\s*]/g, ']')           // Remove trailing commas in arrays
+      .replace(/([^\\])"/g, '$1\\"')    // Escape unescaped quotes
+      .replace(/^"/g, '\\"');           // Escape quotes at start
+    
+    console.log('Cleaned text for parsing:', cleanedText);
+
     // Try to parse as JSON first
     let productInfo: ProductInfo;
     try {
-      const parsed = JSON.parse(productInfoText);
+      const parsed = JSON.parse(cleanedText);
+      console.log('Parsed JSON successfully:', parsed);
+      
       productInfo = {
         name: parsed.name || `${model} Product Info`,
-        brand: parsed.brand || 'Unknown Brand',
-        rating: parsed.rating || 4.0,
+        brand: parsed.brand || extractBrandFromModel(model),
+        rating: typeof parsed.rating === 'number' ? Math.min(5, Math.max(0, parsed.rating)) : 4.0,
         price: parsed.price || 'Price not available',
         overview: parsed.overview || `Detailed information about ${model}`,
-        pros: parsed.pros || [],
-        cons: parsed.cons || [],
-        keyFeatures: parsed.keyFeatures || [],
-        specifications: parsed.specifications || {},
+        pros: Array.isArray(parsed.pros) ? parsed.pros.filter(Boolean) : [],
+        cons: Array.isArray(parsed.cons) ? parsed.cons.filter(Boolean) : [],
+        keyFeatures: Array.isArray(parsed.keyFeatures) ? parsed.keyFeatures.filter(Boolean) : [],
+        specifications: typeof parsed.specifications === 'object' && parsed.specifications ? parsed.specifications : {},
         expertRecommendation: parsed.expertRecommendation || 'Product analysis based on available information.',
         valueForMoney: parsed.valueForMoney || 'Value assessment based on current market position.'
       };
     } catch (parseError) {
-      // Fallback: Create structured response from text
-      productInfo = parseTextToProductInfo(productInfoText, model);
+      console.log('JSON parsing failed, trying text extraction:', parseError);
+      
+      // Enhanced text extraction for structured content
+      productInfo = parseStructuredTextToProductInfo(productInfoText, model);
+      
+      // If that fails, try the original text extraction
+      if (!productInfo.pros.length && !productInfo.cons.length) {
+        productInfo = parseTextToProductInfo(productInfoText, model);
+      }
     }
 
     // Ensure we have at least some meaningful data
@@ -139,6 +191,67 @@ ANALYSIS NEEDED:
 - Real user feedback and ratings
 
 Return comprehensive product analysis in JSON format with specific, accurate information found through search.`;
+}
+
+function parseStructuredTextToProductInfo(text: string, model: string): ProductInfo {
+  // Enhanced parser for Perplexity's structured but malformed JSON responses
+  try {
+    // Extract structured arrays and values more aggressively
+    const nameMatch = text.match(/"name":\s*"([^"]+)"/);
+    const brandMatch = text.match(/"brand":\s*"([^"]+)"/);
+    const ratingMatch = text.match(/"rating":\s*(\d+\.?\d*)/);
+    const priceMatch = text.match(/"price":\s*"([^"]+)"/);
+    const overviewMatch = text.match(/"overview":\s*"([^"]+)"/);
+    
+    // Extract arrays with better parsing
+    const prosMatch = text.match(/"pros":\s*\[(.*?)\]/s);
+    const consMatch = text.match(/"cons":\s*\[(.*?)\]/s);
+    const featuresMatch = text.match(/"keyFeatures":\s*\[(.*?)\]/s);
+    const expertMatch = text.match(/"expertRecommendation":\s*"([^"]+)"/);
+    const valueMatch = text.match(/"valueForMoney":\s*"([^"]+)"/);
+    
+    // Parse specifications object
+    const specsMatch = text.match(/"specifications":\s*\{([^}]+)\}/s);
+    let specifications: Record<string, string> = {};
+    if (specsMatch) {
+      const specsText = specsMatch[1];
+      const specPairs = specsText.match(/"([^"]+)":\s*"([^"]+)"/g);
+      if (specPairs) {
+        specPairs.forEach(pair => {
+          const match = pair.match(/"([^"]+)":\s*"([^"]+)"/);
+          if (match) {
+            specifications[match[1]] = match[2];
+          }
+        });
+      }
+    }
+    
+    // Helper function to parse array strings
+    const parseArrayString = (arrayStr: string): string[] => {
+      if (!arrayStr) return [];
+      return arrayStr
+        .split(/",\s*"/)
+        .map(item => item.replace(/^["\s]+|["\s]+$/g, ''))
+        .filter(item => item.length > 5);
+    };
+    
+    return {
+      name: nameMatch?.[1] || model,
+      brand: brandMatch?.[1] || extractBrandFromModel(model),
+      rating: ratingMatch ? parseFloat(ratingMatch[1]) : 4.0,
+      price: priceMatch?.[1] || 'Check retailer for pricing',
+      overview: overviewMatch?.[1] || `Professional analysis of ${model}`,
+      pros: prosMatch ? parseArrayString(prosMatch[1]) : [],
+      cons: consMatch ? parseArrayString(consMatch[1]) : [],
+      keyFeatures: featuresMatch ? parseArrayString(featuresMatch[1]) : [],
+      specifications: specifications,
+      expertRecommendation: expertMatch?.[1] || 'Professional recommendation based on market analysis',
+      valueForMoney: valueMatch?.[1] || 'Competitive value in its category'
+    };
+  } catch (error) {
+    console.log('Structured text parsing failed:', error);
+    return parseTextToProductInfo(text, model);
+  }
 }
 
 function parseTextToProductInfo(text: string, model: string): ProductInfo {
@@ -208,7 +321,29 @@ function extractBrand(text: string, model: string): string {
     text.toLowerCase().includes(brand.toLowerCase()) || 
     model.toLowerCase().includes(brand.toLowerCase())
   );
-  return foundBrand || 'Unknown Brand';
+  return foundBrand || extractBrandFromModel(model);
+}
+
+function extractBrandFromModel(model: string): string {
+  const brands = [
+    'Samsung', 'LG', 'Sony', 'Panasonic', 'TCL', 'Hisense', 'Apple', 'Bose', 
+    'JBL', 'Bosch', 'Whirlpool', 'Dyson', 'Shark', 'Roomba', 'iRobot', 
+    'Philips', 'Xiaomi', 'Huawei', 'OnePlus', 'Google', 'Microsoft', 
+    'Dell', 'HP', 'Lenovo', 'ASUS', 'Acer', 'MSI'
+  ];
+  
+  const modelLower = model.toLowerCase();
+  const foundBrand = brands.find(brand => modelLower.includes(brand.toLowerCase()));
+  
+  if (foundBrand) return foundBrand;
+  
+  // Try to extract first word as brand if it looks like a brand name
+  const firstWord = model.split(/[\s-]/)[0];
+  if (firstWord && firstWord.length > 2 && /^[A-Za-z]+$/.test(firstWord)) {
+    return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
+  }
+  
+  return 'Unknown Brand';
 }
 
 function extractRating(text: string): number {
@@ -235,33 +370,83 @@ function extractOverview(text: string, model: string): string {
 }
 
 function extractPros(text: string): string[] {
-  const prosSection = text.match(/pros?[:\s]*\[(.*?)\]/is) || text.match(/advantages?[:\s]*\[(.*?)\]/is);
-  if (prosSection) {
-    return prosSection[1].split(',').map(pro => pro.replace(/["\s]/g, '').trim()).filter(Boolean);
+  // Try multiple patterns for pros/advantages
+  const patterns = [
+    /pros?[:\s]*\[(.*?)\]/is,
+    /advantages?[:\s]*\[(.*?)\]/is,
+    /benefits?[:\s]*\[(.*?)\]/is,
+    /strengths?[:\s]*\[(.*?)\]/is,
+    /"pros"[:\s]*\[(.*?)\]/is
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[1]
+        .split(/[,\n]/)
+        .map(pro => pro.replace(/^["\s-•\*]+|["\s]+$/g, '').trim())
+        .filter(pro => pro.length > 5);
+    }
   }
   
-  // Fallback: look for positive indicators
-  const positives = [];
-  if (text.toLowerCase().includes('excellent')) positives.push('Excellent performance in key areas');
-  if (text.toLowerCase().includes('high quality')) positives.push('High build quality');
-  if (text.toLowerCase().includes('user-friendly')) positives.push('User-friendly interface');
+  // Look for bullet points or numbered lists
+  const lines = text.split('\n');
+  const prosLines = lines.filter(line => 
+    /^[\s]*[-•\*+]\s*/.test(line) && 
+    line.length > 10 && 
+    (line.toLowerCase().includes('excellent') || 
+     line.toLowerCase().includes('great') ||
+     line.toLowerCase().includes('superior') ||
+     line.toLowerCase().includes('outstanding'))
+  );
   
-  return positives.length ? positives : ['Good overall performance', 'Competitive features', 'Reliable brand'];
+  if (prosLines.length > 0) {
+    return prosLines.map(line => line.replace(/^[\s]*[-•\*+]\s*/, '').trim()).slice(0, 5);
+  }
+  
+  return ['Professional-grade performance', 'Reliable build quality', 'Advanced feature set', 'User-friendly design'];
 }
 
 function extractCons(text: string): string[] {
-  const consSection = text.match(/cons?[:\s]*\[(.*?)\]/is) || text.match(/disadvantages?[:\s]*\[(.*?)\]/is);
-  if (consSection) {
-    return consSection[1].split(',').map(con => con.replace(/["\s]/g, '').trim()).filter(Boolean);
+  // Try multiple patterns for cons/disadvantages
+  const patterns = [
+    /cons?[:\s]*\[(.*?)\]/is,
+    /disadvantages?[:\s]*\[(.*?)\]/is,
+    /limitations?[:\s]*\[(.*?)\]/is,
+    /weaknesses?[:\s]*\[(.*?)\]/is,
+    /drawbacks?[:\s]*\[(.*?)\]/is,
+    /"cons"[:\s]*\[(.*?)\]/is
+  ];
+  
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[1]
+        .split(/[,\n]/)
+        .map(con => con.replace(/^["\s-•\*]+|["\s]+$/g, '').trim())
+        .filter(con => con.length > 5);
+    }
   }
   
-  // Fallback: look for common limitations
-  const limitations = [];
-  if (text.toLowerCase().includes('expensive')) limitations.push('Higher price point');
-  if (text.toLowerCase().includes('complex')) limitations.push('May require setup assistance');
-  if (text.toLowerCase().includes('limited')) limitations.push('Some feature limitations');
+  // Look for negative indicators in bullet points
+  const lines = text.split('\n');
+  const consLines = lines.filter(line => 
+    /^[\s]*[-•\*+]\s*/.test(line) && 
+    line.length > 10 && 
+    (line.toLowerCase().includes('expensive') || 
+     line.toLowerCase().includes('limited') ||
+     line.toLowerCase().includes('lacks') ||
+     line.toLowerCase().includes('poor') ||
+     line.toLowerCase().includes('weak') ||
+     line.toLowerCase().includes('not') ||
+     line.toLowerCase().includes('difficult'))
+  );
   
-  return limitations.length ? limitations : ['Consider professional installation', 'Compare with alternatives', 'Check local availability'];
+  if (consLines.length > 0) {
+    return consLines.map(line => line.replace(/^[\s]*[-•\*+]\s*/, '').trim()).slice(0, 4);
+  }
+  
+  return ['Premium pricing', 'Consider professional setup', 'Compare with alternatives'];
 }
 
 function extractFeatures(text: string): string[] {
@@ -332,8 +517,3 @@ function detectProductType(model: string): string {
   return 'Electronic Product';
 }
 
-function extractBrandFromModel(model: string): string {
-  const brands = ['Samsung', 'LG', 'Sony', 'Panasonic', 'TCL', 'Hisense', 'Apple', 'Bose', 'JBL', 'Bosch', 'Whirlpool', 'Breville', 'Russell Hobbs', 'DeLonghi'];
-  const foundBrand = brands.find(brand => model.toLowerCase().includes(brand.toLowerCase()));
-  return foundBrand || model.split(' ')[0] || 'Unknown Brand';
-}

@@ -608,7 +608,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
                 </div>
                 <div className="space-y-3 mt-4">
                   {bookingData.tvInstallations.map((tv, index) => (
-                    <div key={tv.id} className="p-3 bg-background rounded-lg border">
+                    <div key={`tv-summary-${index}`} className="p-3 bg-background rounded-lg border">
                       <div className="font-medium text-foreground mb-2">
                         TV {index + 1} ({tv.location || `TV ${index + 1}`})
                       </div>

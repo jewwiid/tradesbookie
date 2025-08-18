@@ -39,7 +39,21 @@ const ADDONS = [
 
 export default function AddonSelector({ bookingData, updateBookingData, updateTvInstallation, updateCurrentTvInstallation }: AddonSelectorProps) {
   const isMultiTV = bookingData.tvQuantity > 1;
-  const currentTv = isMultiTV ? bookingData.tvInstallations[bookingData.currentTvIndex] : null;
+  const currentTvIndex = bookingData.currentTvIndex ?? 0;
+  const currentTv = isMultiTV ? bookingData.tvInstallations?.[currentTvIndex] : null;
+  
+  // Ensure we have a valid room name for display
+  const getRoomDisplayName = () => {
+    if (isMultiTV && currentTv?.location) {
+      return currentTv.location;
+    }
+    if (isMultiTV) {
+      return `TV ${currentTvIndex + 1}`;
+    }
+    return null; // Single TV mode doesn't need room names
+  };
+  
+  const roomName = getRoomDisplayName();
   
   const handleAddonToggle = (addonKey: string, checked: boolean) => {
     const currentAddons = isMultiTV ? (currentTv?.addons || []) : (bookingData.addons || []);
@@ -82,10 +96,10 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
       </div>
       
       <h2 className="text-3xl font-bold text-foreground mb-4">
-        {isMultiTV ? `Add-on Services for ${currentTv?.location || `TV ${bookingData.currentTvIndex + 1}`}` : "Add-on Services"}
+        {isMultiTV ? `Add-on Services for ${roomName}` : "Add-on Services"}
       </h2>
       <p className="text-lg text-muted-foreground mb-8">
-        {isMultiTV ? `Enhance the installation for ${currentTv?.location || `TV ${bookingData.currentTvIndex + 1}`}` : "Enhance your installation with these optional services"}
+        {isMultiTV ? `Enhance the installation for ${roomName}` : "Enhance your installation with these optional services"}
       </p>
 
       <div className="space-y-4">

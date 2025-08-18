@@ -58,6 +58,16 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
   const handleAddonToggle = (addonKey: string, checked: boolean) => {
     const currentAddons = isMultiTV ? (currentTv?.addons || []) : (bookingData.addons || []);
     
+    console.log('AddonToggle Debug:', {
+      addonKey,
+      checked,
+      isMultiTV,
+      currentTvIndex,
+      currentTv,
+      currentAddons,
+      updateCurrentTvInstallation: !!updateCurrentTvInstallation
+    });
+    
     if (checked) {
       const addon = ADDONS.find(a => a.key === addonKey);
       if (addon) {
@@ -67,6 +77,8 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
           price: addon.price
         }];
         
+        console.log('Adding addon:', { newAddons });
+        
         if (isMultiTV && updateCurrentTvInstallation) {
           updateCurrentTvInstallation({ addons: newAddons });
         } else {
@@ -75,6 +87,8 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
       }
     } else {
       const newAddons = currentAddons.filter(addon => addon.key !== addonKey);
+      
+      console.log('Removing addon:', { newAddons });
       
       if (isMultiTV && updateCurrentTvInstallation) {
         updateCurrentTvInstallation({ addons: newAddons });

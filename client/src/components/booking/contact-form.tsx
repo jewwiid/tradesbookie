@@ -156,6 +156,8 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       
       if (data.tvQuantity > 1 && data.tvInstallations && data.tvInstallations.length > 0) {
         // Multi-TV booking - send tvInstallations array
+        // Include default values for legacy fields for backward compatibility
+        const firstTv = data.tvInstallations[0] || {};
         bookingPayload = {
           userId: user.id.toString(),
           contactName: data.contact.name,
@@ -163,6 +165,14 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
           contactEmail: data.contact.email,
           tvQuantity: data.tvQuantity,
           tvInstallations: data.tvInstallations,
+          // Legacy fields - use values from first TV for backward compatibility
+          tvSize: firstTv.tvSize || '55',
+          serviceType: firstTv.serviceType || 'bronze',
+          wallType: firstTv.wallType || 'drywall',
+          mountType: firstTv.mountType || 'wall-mount',
+          needsWallMount: firstTv.needsWallMount || false,
+          wallMountOption: firstTv.wallMountOption || null,
+          addons: firstTv.addons || [],
           preferredDate: data.preferredDate || null,
           preferredTime: data.preferredTime || null,
           address: data.contact.address,

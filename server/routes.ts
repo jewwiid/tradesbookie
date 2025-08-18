@@ -578,7 +578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Simple installer authentication routes
   app.post("/api/installers/register", async (req, res) => {
     try {
-      const { firstName, lastName, businessName, email, phone, address, county, password } = req.body;
+      const { firstName, lastName, businessName, email, phone, address, county, yearsExperience, password } = req.body;
       
       // Validate input
       if (!firstName || !lastName || !businessName || !email || !phone || !address || !county || !password) {
@@ -606,7 +606,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         businessName: businessName,
         phone: phone,
         address: address,
-        serviceArea: county
+        serviceArea: county,
+        yearsExperience: yearsExperience ? parseInt(yearsExperience) : 0
       });
       
       // Send welcome email to the installer

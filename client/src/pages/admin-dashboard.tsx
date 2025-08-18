@@ -766,12 +766,34 @@ function InstallerApprovalForm({ installer, onApprove, onReject, onCancel, isLoa
       {/* Installer Summary Header */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
         <div className="flex items-start justify-between">
-          <div>
-            <h3 className="font-bold text-xl text-gray-900 mb-2">{installer.businessName}</h3>
-            <p className="text-blue-700 font-medium">{installer.contactName}</p>
-            <p className="text-sm text-gray-600 mt-1">
-              Applied on {new Date(installer.createdAt || '').toLocaleDateString()}
-            </p>
+          <div className="flex items-start space-x-4">
+            {/* Profile Photo */}
+            <div className="flex-shrink-0">
+              <Avatar className="h-16 w-16">
+                <AvatarImage 
+                  src={installer.profileImageUrl || undefined} 
+                  alt={installer.businessName}
+                />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-lg">
+                  {installer.businessName?.charAt(0)}{installer.contactName?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              {installer.profileImageUrl && (
+                <p className="text-xs text-center text-gray-600 mt-1">Photo uploaded</p>
+              )}
+              {!installer.profileImageUrl && (
+                <p className="text-xs text-center text-gray-500 mt-1">No photo</p>
+              )}
+            </div>
+            
+            {/* Basic Info */}
+            <div>
+              <h3 className="font-bold text-xl text-gray-900 mb-2">{installer.businessName}</h3>
+              <p className="text-blue-700 font-medium">{installer.contactName}</p>
+              <p className="text-sm text-gray-600 mt-1">
+                Applied on {new Date(installer.createdAt || '').toLocaleDateString()}
+              </p>
+            </div>
           </div>
           <div className="text-right">
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${

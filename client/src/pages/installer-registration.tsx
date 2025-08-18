@@ -33,6 +33,7 @@ export default function InstallerRegistration() {
     town: "",
     county: "",
     eircode: "",
+    yearsExperience: "",
     password: "",
     confirmPassword: ""
   });
@@ -139,6 +140,7 @@ export default function InstallerRegistration() {
           phone: formData.phone,
           address: `${formData.streetAddress}, ${formData.town}, ${formData.county}, ${formData.eircode}`,
           county: formData.county,
+          yearsExperience: formData.yearsExperience ? parseInt(formData.yearsExperience) : 0,
           password: formData.password,
         }),
       });
@@ -465,6 +467,43 @@ export default function InstallerRegistration() {
                       </p>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* Professional Experience */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Professional Experience</h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="yearsExperience" className="text-sm font-medium">Years of Experience</Label>
+                  <select
+                    id="yearsExperience"
+                    value={formData.yearsExperience}
+                    onChange={(e) => setFormData(prev => ({ ...prev, yearsExperience: e.target.value }))}
+                    className={`h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${errors.yearsExperience ? "border-red-500" : ""}`}
+                    disabled={isLoading}
+                  >
+                    <option value="">Select years of experience</option>
+                    <option value="0">Less than 1 year</option>
+                    <option value="1">1 year</option>
+                    <option value="2">2 years</option>
+                    <option value="3">3 years</option>
+                    <option value="4">4 years</option>
+                    <option value="5">5 years</option>
+                    <option value="6">6 years</option>
+                    <option value="7">7 years</option>
+                    <option value="8">8 years</option>
+                    <option value="9">9 years</option>
+                    <option value="10">10+ years</option>
+                    <option value="15">15+ years</option>
+                    <option value="20">20+ years</option>
+                  </select>
+                  {errors.yearsExperience && (
+                    <p className="text-sm text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {errors.yearsExperience}
+                    </p>
+                  )}
                 </div>
               </div>
 

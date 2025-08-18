@@ -698,6 +698,7 @@ export class DatabaseStorage implements IStorage {
     phone?: string;
     address?: string;
     serviceArea?: string;
+    yearsExperience?: number;
   }): Promise<Installer> {
     const [installer] = await db.insert(installers).values({
       email,
@@ -707,6 +708,7 @@ export class DatabaseStorage implements IStorage {
       phone: additionalData?.phone || null,
       address: additionalData?.address || null,
       serviceArea: additionalData?.serviceArea || null,
+      yearsExperience: additionalData?.yearsExperience || 0,
       approvalStatus: "pending",
       profileCompleted: false,
       isActive: true

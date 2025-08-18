@@ -7,7 +7,7 @@ import {
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
   insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, insertAiToolSchema, 
   users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers, 
-  scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions
+  scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions, declinedRequests
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, inArray } from "drizzle-orm";
@@ -7906,6 +7906,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         // Delete anti-manipulation records
         await trx.delete(antiManipulation).where(eq(antiManipulation.bookingId, bookingId));
         console.log(`✅ Deleted anti-manipulation records for booking ${bookingId}`);
+        
+        // Delete declined requests
+        await trx.delete(declinedRequests).where(eq(declinedRequests.bookingId, bookingId));
+        console.log(`✅ Deleted declined requests for booking ${bookingId}`);
         
         // Finally delete the booking itself
         await trx.delete(bookings).where(eq(bookings.id, bookingId));

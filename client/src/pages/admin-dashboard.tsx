@@ -2279,7 +2279,7 @@ function BookingManagement() {
                       </div>
                     ) : (
                       <div className="mt-1">
-                        <p className="font-medium capitalize">{selectedBooking.serviceType.replace('-', ' ')}</p>
+                        <p className="font-medium capitalize">{selectedBooking.serviceType ? selectedBooking.serviceType.replace('-', ' ') : 'Installation'}</p>
                         <p className="text-sm text-gray-500">TV Size: {selectedBooking.tvSize}"</p>
                       </div>
                     )}
@@ -2304,19 +2304,19 @@ function BookingManagement() {
                         <div className="grid grid-cols-4 gap-3 text-sm">
                           <div>
                             <label className="text-xs text-gray-600">TV Size</label>
-                            <p className="font-medium">{tv.tvSize}"</p>
+                            <p className="font-medium">{tv.tvSize || 'Unknown'}"</p>
                           </div>
                           <div>
                             <label className="text-xs text-gray-600">Service Type</label>
-                            <p className="font-medium capitalize">{tv.serviceType.replace('-', ' ')}</p>
+                            <p className="font-medium capitalize">{tv.serviceType ? tv.serviceType.replace('-', ' ') : 'Installation'}</p>
                           </div>
                           <div>
                             <label className="text-xs text-gray-600">Mount Type</label>
-                            <p className="font-medium capitalize">{tv.mountType}</p>
+                            <p className="font-medium capitalize">{tv.mountType || 'N/A'}</p>
                           </div>
                           <div>
                             <label className="text-xs text-gray-600">Wall Type</label>
-                            <p className="font-medium capitalize">{tv.wallType}</p>
+                            <p className="font-medium capitalize">{tv.wallType || 'N/A'}</p>
                           </div>
                         </div>
                         {tv.addons && tv.addons.length > 0 && (

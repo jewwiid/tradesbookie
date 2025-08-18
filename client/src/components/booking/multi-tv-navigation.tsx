@@ -69,14 +69,16 @@ export default function MultiTVNavigation({
               <div className="flex items-center gap-2 w-full">
                 <div className="flex-shrink-0">
                   {isCurrentTvComplete(tv) ? (
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                    <CheckCircle2 className={`w-4 h-4 ${index === bookingData.currentTvIndex ? 'text-green-300' : 'text-green-500'}`} />
                   ) : (
-                    <Circle className="w-4 h-4 text-muted-foreground" />
+                    <Circle className={`w-4 h-4 ${index === bookingData.currentTvIndex ? 'text-white/70' : 'text-muted-foreground'}`} />
                   )}
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="font-medium">{tv.location || `TV ${index + 1}`}</div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className={`font-medium ${index === bookingData.currentTvIndex ? 'text-white' : ''}`}>
+                    {tv.location || `TV ${index + 1}`}
+                  </div>
+                  <div className={`text-xs ${index === bookingData.currentTvIndex ? 'text-white/70' : 'text-muted-foreground'}`}>
                     {tv.tvSize ? `${tv.tvSize}" TV` : "Not configured"}
                   </div>
                 </div>

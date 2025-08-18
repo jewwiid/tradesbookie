@@ -555,7 +555,7 @@ export default function AiToolsManagement() {
   const handleGenerateQr = (tool: AiTool) => {
     setSelectedToolForQr(tool);
     setStoreLocation("");
-    setQrCodeData(null);
+    setQrCodeData(null); // Clear any cached QR data
     setQrDialogOpen(true);
   };
 
@@ -1311,7 +1311,7 @@ export default function AiToolsManagement() {
 
       {/* QR Code Generation Dialog */}
       <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Generate QR Code</DialogTitle>
             <DialogDescription>
@@ -1364,7 +1364,7 @@ export default function AiToolsManagement() {
                     <p className="text-sm text-muted-foreground mt-2">
                       Scan to access: {qrCodeData.tool.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground break-all">
                       URL: {qrCodeData.targetUrl}
                     </p>
                   </div>

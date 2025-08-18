@@ -147,8 +147,7 @@ export default function TradesPersonOnboarding() {
 
   // Fetch all installers for password management
   const { data: allInstallers = [], isLoading: installersLoading } = useQuery({
-    queryKey: ["/api/admin/installers"],
-    queryFn: () => apiRequest("/api/admin/installers", "GET")
+    queryKey: ["/api/installers"],
   });
 
   // Create individual invitation

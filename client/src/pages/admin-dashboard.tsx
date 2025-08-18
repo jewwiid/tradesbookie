@@ -2151,22 +2151,22 @@ function BookingManagement() {
                           <div className="text-sm text-gray-500">
                             {booking.tvInstallations.map((tv: any, index: number) => (
                               <div key={index} className="text-xs">
-                                {tv.location}: {tv.tvSize}" {tv.serviceType.replace('-', ' ')}
+                                {tv.location || 'Room'}: {tv.tvSize || 'Unknown'}" {tv.serviceType ? tv.serviceType.replace('-', ' ') : 'Installation'}
                               </div>
                             ))}
                           </div>
                         </>
                       ) : (
                         <>
-                          <div className="font-medium capitalize">{booking.serviceType.replace('-', ' ')}</div>
-                          <div className="text-sm text-gray-500">{booking.tvSize}" TV</div>
+                          <div className="font-medium capitalize">{booking.serviceType ? booking.serviceType.replace('-', ' ') : 'Installation'}</div>
+                          <div className="text-sm text-gray-500">{booking.tvSize || 'Unknown'}" TV</div>
                         </>
                       )}
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">€{typeof booking.totalPrice === 'number' ? booking.totalPrice.toFixed(2) : booking.totalPrice}</div>
+                      <div className="font-medium">€{booking.totalPrice ? (typeof booking.totalPrice === 'number' ? booking.totalPrice.toFixed(2) : booking.totalPrice) : '0.00'}</div>
                       <div className="text-sm text-gray-500">Lead Fee: €{booking.leadFee ? (typeof booking.leadFee === 'number' ? booking.leadFee.toFixed(2) : booking.leadFee) : '0.00'}</div>
                     </div>
                   </TableCell>

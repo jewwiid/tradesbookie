@@ -5,7 +5,9 @@ import Stripe from "stripe";
 import { storage } from "./storage";
 import { 
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
-  insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, insertAiToolSchema, users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers
+  insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, insertAiToolSchema, 
+  users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers, 
+  scheduleNegotiations, leadRefunds, antiManipulation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -7876,43 +7878,22 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.log(`✅ Deleted job assignments for booking ${bookingId}`);
         
         // Delete schedule negotiations
-        const scheduleNegotiations = await import('@shared/schema').then(s => s.scheduleNegotiations);
         await trx.delete(scheduleNegotiations).where(eq(scheduleNegotiations.bookingId, bookingId));
         console.log(`✅ Deleted schedule negotiations for booking ${bookingId}`);
         
-        // Delete wallet transactions
-        const walletTransactions = await import('@shared/schema').then(s => s.walletTransactions);
-        await trx.delete(walletTransactions).where(eq(walletTransactions.bookingId, bookingId));
-        console.log(`✅ Deleted wallet transactions for booking ${bookingId}`);
+        // Delete lead refunds
+        await trx.delete(leadRefunds).where(eq(leadRefunds.bookingId, bookingId));
+        console.log(`✅ Deleted lead refunds for booking ${bookingId}`);
         
-        // Delete installer refunds
-        const installerRefunds = await import('@shared/schema').then(s => s.installerRefunds);
-        await trx.delete(installerRefunds).where(eq(installerRefunds.bookingId, bookingId));
-        console.log(`✅ Deleted installer refunds for booking ${bookingId}`);
-        
-        // Delete notifications
-        const notifications = await import('@shared/schema').then(s => s.notifications);
-        await trx.delete(notifications).where(eq(notifications.bookingId, bookingId));
-        console.log(`✅ Deleted notifications for booking ${bookingId}`);
-        
-        // Delete performance refunds
-        const performanceRefunds = await import('@shared/schema').then(s => s.performanceRefunds);
-        await trx.delete(performanceRefunds).where(eq(performanceRefunds.bookingId, bookingId));
-        console.log(`✅ Deleted performance refunds for booking ${bookingId}`);
-        
-        // Delete fraud prevention reports
-        const fraudPreventionReports = await import('@shared/schema').then(s => s.fraudPreventionReports);
-        await trx.delete(fraudPreventionReports).where(eq(fraudPreventionReports.bookingId, bookingId));
-        console.log(`✅ Deleted fraud prevention reports for booking ${bookingId}`);
+        // Note: Notifications table deletion not implemented due to schema issues
         
         // Delete referral usage records
         await trx.delete(referralUsage).where(eq(referralUsage.usedForBookingId, bookingId));
         console.log(`✅ Deleted referral usage for booking ${bookingId}`);
         
-        // Delete new lead credits
-        const newLeadCredits = await import('@shared/schema').then(s => s.newLeadCredits);
-        await trx.delete(newLeadCredits).where(eq(newLeadCredits.bookingId, bookingId));
-        console.log(`✅ Deleted new lead credits for booking ${bookingId}`);
+        // Delete anti-manipulation records
+        await trx.delete(antiManipulation).where(eq(antiManipulation.bookingId, bookingId));
+        console.log(`✅ Deleted anti-manipulation records for booking ${bookingId}`);
         
         // Finally delete the booking itself
         await trx.delete(bookings).where(eq(bookings.id, bookingId));

@@ -852,34 +852,44 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteBooking(id: number): Promise<void> {
-    // Delete all related records first to handle foreign key constraints
-    
-    // Delete from declined_requests
-    await db.delete(declinedRequests).where(eq(declinedRequests.bookingId, id));
-    
-    // Delete from job_assignments
-    await db.delete(jobAssignments).where(eq(jobAssignments.bookingId, id));
-    
-    // Delete from schedule_negotiations
-    await db.delete(scheduleNegotiations).where(eq(scheduleNegotiations.bookingId, id));
-    
-    // Delete from lead_refunds
-    await db.delete(leadRefunds).where(eq(leadRefunds.bookingId, id));
-    
-    // Delete from lead_quality_tracking
-    await db.delete(leadQualityTracking).where(eq(leadQualityTracking.bookingId, id));
-    
-    // Delete from reviews (if any)
-    await db.delete(reviews).where(eq(reviews.bookingId, id));
-    
-    // Delete from anti_manipulation (if any)
-    await db.delete(antiManipulation).where(eq(antiManipulation.bookingId, id));
-    
-    // Delete from customer_verification (if any)
-    await db.delete(customerVerification).where(eq(customerVerification.bookingId, id));
-    
-    // Finally delete the booking itself
-    await db.delete(bookings).where(eq(bookings.id, id));
+    try {
+      // Delete all related records first to handle foreign key constraints
+      
+      // Delete from declined_requests
+      await db.delete(declinedRequests).where(eq(declinedRequests.bookingId, id));
+      
+      // Delete from job_assignments
+      await db.delete(jobAssignments).where(eq(jobAssignments.bookingId, id));
+      
+      // Delete from schedule_negotiations
+      await db.delete(scheduleNegotiations).where(eq(scheduleNegotiations.bookingId, id));
+      
+      // Delete from lead_refunds (if table exists and is properly imported)
+      try {
+        await db.delete(leadRefunds).where(eq(leadRefunds.bookingId, id));
+      } catch (refundError) {
+        console.log('Warning: Could not delete from lead_refunds:', refundError);
+        // Continue with other deletions even if this fails
+      }
+      
+      // Delete from lead_quality_tracking
+      await db.delete(leadQualityTracking).where(eq(leadQualityTracking.bookingId, id));
+      
+      // Delete from reviews (if any)
+      await db.delete(reviews).where(eq(reviews.bookingId, id));
+      
+      // Delete from anti_manipulation (if any)
+      await db.delete(antiManipulation).where(eq(antiManipulation.bookingId, id));
+      
+      // Delete from customer_verification (if any)
+      await db.delete(customerVerification).where(eq(customerVerification.bookingId, id));
+      
+      // Finally delete the booking itself
+      await db.delete(bookings).where(eq(bookings.id, id));
+    } catch (error) {
+      console.error('Error in deleteBooking:', error);
+      throw error;
+    }
   }
 
   async updateBookingStatus(id: number, status: string): Promise<void> {

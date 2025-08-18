@@ -12,14 +12,11 @@ export class QRCodeService {
   // Production domain should always be tradesbook.ie for QR codes
   static readonly PRODUCTION_DOMAIN = 'https://tradesbook.ie';
   
-  // For testing in development, use current domain
+  // For QR codes, always use production domain since they're meant for real stores
   static getQRDomain(): string {
-    // Use production domain if explicitly in production or for final deployment
-    if (process.env.NODE_ENV === 'production' && process.env.USE_PRODUCTION_DOMAIN === 'true') {
-      return this.PRODUCTION_DOMAIN;
-    }
-    // Otherwise use current domain for testing
-    return this.BASE_URL;
+    // QR codes should always point to production domain for consistency
+    // This ensures QR codes work when deployed to stores
+    return this.PRODUCTION_DOMAIN;
   }
 
   /**

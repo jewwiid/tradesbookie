@@ -228,8 +228,22 @@ export class AIAnalyticsService {
         .orderBy(desc(sql`count(*)`))
         .limit(10);
 
+      // Count unique store locations  
+      const storeLocations = await db
+        .select({ count: sql<number>`count(distinct ${aiInteractionAnalytics.storeLocation})` })
+        .from(aiInteractionAnalytics)
+        .where(whereClause);
+
+      // Calculate average response time
+      const avgResponseTime = await db
+        .select({ avg: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})` })
+        .from(aiInteractionAnalytics)
+        .where(whereClause);
+
       return {
         totalInteractions: totalInteractions[0]?.count || 0,
+        storeLocations: storeLocations[0]?.count || 0,
+        avgResponseTime: Math.round(avgResponseTime[0]?.avg || 0),
         interactionsByTool,
         interactionsByStore,
         topProductQueries,
@@ -402,7 +416,7 @@ export class AIAnalyticsService {
         .where(whereClause);
 
       return {
-        interactions,
+        interactions: interactions || [],
         pagination: {
           page,
           limit,
@@ -416,6 +430,51 @@ export class AIAnalyticsService {
         interactions: [],
         pagination: { page: 1, limit: 50, total: 0, totalPages: 0 }
       };
+    }
+  }
+
+  /**
+   * Get analytics for all stores
+   */
+  static async getStoreAnalytics(filters?: {
+    startDate?: Date;
+    endDate?: Date;
+  }) {
+    try {
+      let whereConditions = [];
+      
+      if (filters?.startDate) {
+        whereConditions.push(gte(aiInteractionAnalytics.createdAt, filters.startDate));
+      }
+      
+      if (filters?.endDate) {
+        whereConditions.push(lte(aiInteractionAnalytics.createdAt, filters.endDate));
+      }
+
+      const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+      // Get store analytics
+      const storeAnalytics = await db
+        .select({
+          storeLocation: aiInteractionAnalytics.storeLocation,
+          totalInteractions: sql<number>`count(*)`,
+          uniqueSessions: sql<number>`count(distinct ${aiInteractionAnalytics.sessionId})`,
+          avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`,
+          topAiTool: sql<string>`(array_agg(${aiInteractionAnalytics.aiTool} order by ${aiInteractionAnalytics.aiTool}))[1]`
+        })
+        .from(aiInteractionAnalytics)
+        .where(
+          whereClause ? 
+            and(whereClause, sql`${aiInteractionAnalytics.storeLocation} is not null`) :
+            sql`${aiInteractionAnalytics.storeLocation} is not null`
+        )
+        .groupBy(aiInteractionAnalytics.storeLocation)
+        .orderBy(desc(sql`count(*)`));
+
+      return storeAnalytics;
+    } catch (error) {
+      console.error('Failed to get store analytics:', error);
+      return [];
     }
   }
 

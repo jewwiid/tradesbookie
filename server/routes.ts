@@ -14761,6 +14761,22 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  app.get("/api/admin/ai-analytics/stores", isAdmin, async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      
+      const storeAnalytics = await AIAnalyticsService.getStoreAnalytics({
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined
+      });
+      
+      res.json(storeAnalytics);
+    } catch (error) {
+      console.error("Error fetching store analytics:", error);
+      res.status(500).json({ error: "Failed to fetch store analytics" });
+    }
+  });
+
   app.get("/api/admin/ai-analytics/store-insights/:storeLocation", isAdmin, async (req, res) => {
     try {
       const { storeLocation } = req.params;

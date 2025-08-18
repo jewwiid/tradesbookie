@@ -6,7 +6,7 @@ import {
   leadQualityTracking, antiManipulation, customerVerification, resources,
   platformSettings, performanceRefundSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
   consultations, downloadableGuides, videoTutorials, productCategories,
-  qrCodeScans, aiProductRecommendations, choiceFlowTracking, aiToolQrCodes,
+  qrCodeScans, aiProductRecommendations, choiceFlowTracking, aiToolQrCodes, aiInteractionAnalytics,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics, retailerInvoices,
   installerServiceAssignments, customerWallets, customerTransactions, supportTickets, ticketMessages, aiUsageTracking, aiTools, leadRefunds,
   type User, type UpsertUser,
@@ -51,7 +51,8 @@ import {
   type SelectServiceType, type InsertServiceType,
   type AiTool, type InsertAiTool,
   type SelectServiceMetrics, type InsertServiceMetrics,
-  type InstallerServiceAssignment, type InsertInstallerServiceAssignment
+  type InstallerServiceAssignment, type InsertInstallerServiceAssignment,
+  type AiInteractionAnalytics, type InsertAiInteractionAnalytics
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, isNull, sql, inArray } from "drizzle-orm";
@@ -456,6 +457,19 @@ export interface IStorage {
   updateAiToolQrCode(id: number, updates: Partial<InsertAiToolQrCode>): Promise<AiToolQrCode>;
   deleteAiToolQrCode(id: number): Promise<void>;
   incrementQrCodeScanCount(qrCodeId: string): Promise<void>;
+  
+  // AI Interaction Analytics operations
+  createAiInteractionAnalytics(analytics: InsertAiInteractionAnalytics): Promise<AiInteractionAnalytics>;
+  getAiInteractionAnalytics(id: number): Promise<AiInteractionAnalytics | undefined>;
+  getAnalyticsBySession(sessionId: string): Promise<AiInteractionAnalytics[]>;
+  getAnalyticsByStore(storeLocation: string, limit?: number): Promise<AiInteractionAnalytics[]>;
+  getAnalyticsByTool(aiTool: string, limit?: number): Promise<AiInteractionAnalytics[]>;
+  updateInteractionEngagement(sessionId: string, updates: {
+    userSatisfaction?: number;
+    followUpQuestions?: number;
+    sessionDurationMinutes?: number;
+    actionTaken?: string;
+  }): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3459,6 +3473,62 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(aiToolQrCodes.qrCodeId, qrCodeId));
+  }
+
+  // AI Interaction Analytics operations
+  async createAiInteractionAnalytics(analytics: InsertAiInteractionAnalytics): Promise<AiInteractionAnalytics> {
+    const [newAnalytics] = await db.insert(aiInteractionAnalytics).values(analytics).returning();
+    return newAnalytics;
+  }
+
+  async getAiInteractionAnalytics(id: number): Promise<AiInteractionAnalytics | undefined> {
+    const [analytics] = await db.select().from(aiInteractionAnalytics).where(eq(aiInteractionAnalytics.id, id));
+    return analytics;
+  }
+
+  async getAnalyticsBySession(sessionId: string): Promise<AiInteractionAnalytics[]> {
+    return await db.select()
+      .from(aiInteractionAnalytics)
+      .where(eq(aiInteractionAnalytics.sessionId, sessionId))
+      .orderBy(desc(aiInteractionAnalytics.createdAt));
+  }
+
+  async getAnalyticsByStore(storeLocation: string, limit: number = 100): Promise<AiInteractionAnalytics[]> {
+    return await db.select()
+      .from(aiInteractionAnalytics)
+      .where(eq(aiInteractionAnalytics.storeLocation, storeLocation))
+      .orderBy(desc(aiInteractionAnalytics.createdAt))
+      .limit(limit);
+  }
+
+  async getAnalyticsByTool(aiTool: string, limit: number = 100): Promise<AiInteractionAnalytics[]> {
+    return await db.select()
+      .from(aiInteractionAnalytics)
+      .where(eq(aiInteractionAnalytics.aiTool, aiTool))
+      .orderBy(desc(aiInteractionAnalytics.createdAt))
+      .limit(limit);
+  }
+
+  async updateInteractionEngagement(sessionId: string, updates: {
+    userSatisfaction?: number;
+    followUpQuestions?: number;
+    sessionDurationMinutes?: number;
+    actionTaken?: string;
+  }): Promise<void> {
+    // Update the most recent interaction in this session
+    const recentInteraction = await db
+      .select({ id: aiInteractionAnalytics.id })
+      .from(aiInteractionAnalytics)
+      .where(eq(aiInteractionAnalytics.sessionId, sessionId))
+      .orderBy(desc(aiInteractionAnalytics.createdAt))
+      .limit(1);
+
+    if (recentInteraction.length > 0) {
+      await db
+        .update(aiInteractionAnalytics)
+        .set(updates)
+        .where(eq(aiInteractionAnalytics.id, recentInteraction[0].id));
+    }
   }
 }
 

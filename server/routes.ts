@@ -13,6 +13,7 @@ import { db } from "./db";
 import { eq, and, desc, inArray } from "drizzle-orm";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
+import { AIAnalyticsService } from "./aiAnalyticsService";
 import { getServiceTiersForTvSize, calculateBookingPricing as calculatePricing, SERVICE_TIERS, getLeadFee } from "./pricing";
 import { z } from "zod";
 import multer from "multer";
@@ -14680,6 +14681,129 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error('Error updating AI tool QR code:', error);
       res.status(500).json({ error: 'Failed to update QR code' });
+    }
+  });
+
+  // AI Analytics Admin Routes
+  app.get("/api/admin/ai-analytics/summary", isAdmin, async (req, res) => {
+    try {
+      const { startDate, endDate, storeLocation, aiTool } = req.query;
+      
+      const summary = await AIAnalyticsService.getAnalyticsSummary({
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+        storeLocation: storeLocation as string,
+        aiTool: aiTool as string
+      });
+      
+      res.json(summary);
+    } catch (error) {
+      console.error("Error fetching analytics summary:", error);
+      res.status(500).json({ error: "Failed to fetch analytics summary" });
+    }
+  });
+
+  app.get("/api/admin/ai-analytics/interactions", isAdmin, async (req, res) => {
+    try {
+      const { 
+        page = 1, 
+        limit = 50, 
+        storeLocation, 
+        aiTool, 
+        startDate, 
+        endDate,
+        category,
+        searchTerm
+      } = req.query;
+      
+      const interactions = await AIAnalyticsService.getFilteredInteractions({
+        page: parseInt(page as string),
+        limit: parseInt(limit as string),
+        storeLocation: storeLocation as string,
+        aiTool: aiTool as string,
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+        category: category as string,
+        searchTerm: searchTerm as string
+      });
+      
+      res.json(interactions);
+    } catch (error) {
+      console.error("Error fetching interactions:", error);
+      res.status(500).json({ error: "Failed to fetch interactions" });
+    }
+  });
+
+  app.get("/api/admin/ai-analytics/store-insights/:storeLocation", isAdmin, async (req, res) => {
+    try {
+      const { storeLocation } = req.params;
+      const { startDate, endDate } = req.query;
+      
+      const insights = await AIAnalyticsService.getStoreInsights(storeLocation, {
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined
+      });
+      
+      res.json(insights);
+    } catch (error) {
+      console.error("Error fetching store insights:", error);
+      res.status(500).json({ error: "Failed to fetch store insights" });
+    }
+  });
+
+  app.get("/api/admin/ai-analytics/popular-products", isAdmin, async (req, res) => {
+    try {
+      const { storeLocation, startDate, endDate, limit = 20 } = req.query;
+      
+      const popularProducts = await AIAnalyticsService.getPopularProducts({
+        storeLocation: storeLocation as string,
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined,
+        limit: parseInt(limit as string)
+      });
+      
+      res.json(popularProducts);
+    } catch (error) {
+      console.error("Error fetching popular products:", error);
+      res.status(500).json({ error: "Failed to fetch popular products" });
+    }
+  });
+
+  app.get("/api/admin/ai-analytics/export-csv", isAdmin, async (req, res) => {
+    try {
+      const { storeLocation, aiTool, startDate, endDate } = req.query;
+      
+      const csvData = await AIAnalyticsService.exportInteractionsCSV({
+        storeLocation: storeLocation as string,
+        aiTool: aiTool as string,
+        startDate: startDate ? new Date(startDate as string) : undefined,
+        endDate: endDate ? new Date(endDate as string) : undefined
+      });
+      
+      const filename = `ai-analytics-${storeLocation || 'all'}-${new Date().toISOString().split('T')[0]}.csv`;
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(csvData);
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      res.status(500).json({ error: "Failed to export CSV" });
+    }
+  });
+
+  app.get("/api/admin/ai-analytics/usage-patterns", isAdmin, async (req, res) => {
+    try {
+      const { storeLocation, timeRange = '7d' } = req.query;
+      
+      const patterns = await AIAnalyticsService.getUsagePatterns(
+        storeLocation as string,
+        timeRange as string
+      );
+      
+      res.json(patterns);
+    } catch (error) {
+      console.error("Error fetching usage patterns:", error);
+      res.status(500).json({ error: "Failed to fetch usage patterns" });
     }
   });
 

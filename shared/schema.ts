@@ -420,6 +420,56 @@ export const aiUsageTracking = pgTable("ai_usage_tracking", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// AI Interaction Analytics - detailed tracking of AI queries and responses for business insights
+export const aiInteractionAnalytics = pgTable("ai_interaction_analytics", {
+  id: serial("id").primaryKey(),
+  
+  // User and session tracking
+  userId: varchar("user_id").references(() => users.id), // nullable for guest users
+  sessionId: varchar("session_id").notNull(), // session tracking
+  qrCodeId: varchar("qr_code_id"), // if accessed via QR code
+  storeLocation: varchar("store_location"), // store context from QR scan
+  
+  // AI tool and interaction details
+  aiTool: text("ai_tool").notNull(), // 'tv-preview', 'product-care', 'faq', 'product-info', 'tv-comparison', 'email-template'
+  interactionType: text("interaction_type").notNull(), // 'query', 'comparison', 'analysis', 'recommendation'
+  
+  // Input tracking - what the user asked for
+  userPrompt: text("user_prompt"), // the actual user input/question
+  productQuery: text("product_query"), // specific product being searched/analyzed
+  productModel1: text("product_model_1"), // for comparisons - first product
+  productModel2: text("product_model_2"), // for comparisons - second product
+  category: text("category"), // product category (tv, laptop, etc.)
+  priceRange: text("price_range"), // user's budget range if provided
+  
+  // AI Response tracking
+  aiResponse: text("ai_response").notNull(), // the AI's response/analysis
+  responseTokens: integer("response_tokens"), // number of tokens in response
+  processingTimeMs: integer("processing_time_ms"), // how long AI took to respond
+  confidenceScore: decimal("confidence_score", { precision: 3, scale: 2 }), // AI confidence 0-1
+  
+  // Business intelligence fields
+  recommendedProducts: jsonb("recommended_products").default([]), // array of product recommendations with details
+  comparisonResult: jsonb("comparison_result").default({}), // structured comparison data
+  analysisData: jsonb("analysis_data").default({}), // structured analysis results (risk scenarios, etc.)
+  
+  // Engagement tracking
+  userSatisfaction: integer("user_satisfaction"), // 1-5 rating if provided
+  followUpQuestions: integer("follow_up_questions").default(0), // how many follow-ups in session
+  sessionDurationMinutes: integer("session_duration_minutes"), // total session time
+  actionTaken: text("action_taken"), // 'booking_created', 'product_viewed', 'left_session', 'continued_browsing'
+  
+  // Technical metadata
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  deviceType: text("device_type"), // mobile, tablet, desktop
+  creditUsed: boolean("credit_used").default(false), // whether this used a paid credit
+  errorOccurred: boolean("error_occurred").default(false), // if there was an error
+  errorMessage: text("error_message"), // error details if any
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Installer wallet/credits system
 export const installerWallets = pgTable("installer_wallets", {
   id: serial("id").primaryKey(),
@@ -1411,6 +1461,13 @@ export const aiToolQrCodesRelations = relations(aiToolQrCodes, ({ one }) => ({
   }),
 }));
 
+export const aiInteractionAnalyticsRelations = relations(aiInteractionAnalytics, ({ one }) => ({
+  user: one(users, {
+    fields: [aiInteractionAnalytics.userId],
+    references: [users.id],
+  }),
+}));
+
 
 
 // Zod schemas
@@ -1768,6 +1825,15 @@ export type ReferralCode = typeof referralCodes.$inferSelect;
 export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
 export type ReferralUsage = typeof referralUsage.$inferSelect;
 export type InsertReferralUsage = z.infer<typeof insertReferralUsageSchema>;
+
+// AI Analytics schemas
+export const insertAiInteractionAnalyticsSchema = createInsertSchema(aiInteractionAnalytics).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type AiInteractionAnalytics = typeof aiInteractionAnalytics.$inferSelect;
+export type InsertAiInteractionAnalytics = z.infer<typeof insertAiInteractionAnalyticsSchema>;
 
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;

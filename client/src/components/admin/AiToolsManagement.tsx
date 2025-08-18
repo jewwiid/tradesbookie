@@ -112,8 +112,7 @@ interface StoreAnalytics {
   totalInteractions: number;
   uniqueSessions: number;
   avgProcessingTime: number;
-  creditUsage: number;
-  conversionRate: number;
+  topAiTool: string;
 }
 
 // Form schema for creating/updating AI tools
@@ -1275,11 +1274,11 @@ export default function AiToolsManagement() {
                               <div key={store.storeLocation} className="border rounded-lg p-4">
                                 <div className="flex items-center justify-between mb-3">
                                   <h4 className="font-medium">{store.storeLocation}</h4>
-                                  <Badge className={store.conversionRate > 50 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                                    {store.conversionRate.toFixed(1)}% conversion
+                                  <Badge className={(store.avgProcessingTime || 0) < 2000 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                                    {Math.round(store.avgProcessingTime || 0)}ms avg
                                   </Badge>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4 text-sm">
+                                <div className="grid grid-cols-4 gap-4 text-sm">
                                   <div>
                                     <p className="text-muted-foreground">Interactions</p>
                                     <p className="font-medium">{store.totalInteractions}</p>
@@ -1290,7 +1289,11 @@ export default function AiToolsManagement() {
                                   </div>
                                   <div>
                                     <p className="text-muted-foreground">Avg Response</p>
-                                    <p className="font-medium">{store.avgProcessingTime}ms</p>
+                                    <p className="font-medium">{Math.round(store.avgProcessingTime || 0)}ms</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-muted-foreground">Top Tool</p>
+                                    <p className="font-medium capitalize">{store.topAiTool?.replace('-', ' ') || 'N/A'}</p>
                                   </div>
                                 </div>
                               </div>

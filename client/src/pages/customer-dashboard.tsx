@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send, Lock, Eye, EyeOff } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
@@ -344,6 +344,15 @@ export default function CustomerDashboard() {
   // Active tab state
   const [activeTab, setActiveTab] = useState('bookings');
   
+  // Password change state
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+  
   // Messaging states
   const [messageText, setMessageText] = useState('');
   const [selectedInstaller, setSelectedInstaller] = useState<any>(null);
@@ -576,6 +585,63 @@ export default function CustomerDashboard() {
       });
     } finally {
       setSelectingInstaller(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all password fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "New password and confirmation do not match.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await apiRequest('POST', '/api/auth/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+
+      toast({
+        title: "Password Updated",
+        description: "Your password has been changed successfully."
+      });
+
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      setShowPasswordChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Password Change Failed",
+        description: error.message || "Failed to change password. Please check your current password.",
+        variant: "destructive"
+      });
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -2092,7 +2158,7 @@ export default function CustomerDashboard() {
 
             {/* Settings Tab */}
             <TabsContent value="settings" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -2167,6 +2233,30 @@ export default function CustomerDashboard() {
                     </div>
                   </CardContent>
                 </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Lock className="w-5 h-5 text-red-500" />
+                      Security
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Button 
+                      onClick={() => setShowPasswordChange(true)}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      Change Password
+                    </Button>
+                    <div className="p-3 bg-red-50 rounded-lg">
+                      <p className="text-sm text-red-700">
+                        Keep your account secure by using a strong password and changing it regularly.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
           </Tabs>
@@ -2238,6 +2328,88 @@ export default function CustomerDashboard() {
                 {editingProfile && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Change Dialog */}
+      <Dialog open={showPasswordChange} onOpenChange={setShowPasswordChange}>
+        <DialogContent className="max-w-md" style={{ zIndex: 9999 }}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5" />
+              Change Password
+            </DialogTitle>
+            <DialogDescription>
+              Update your account password. Make sure to use a strong password.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                placeholder="Enter current password"
+              />
+            </div>
+            <div>
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                placeholder="Enter new password (min 6 characters)"
+              />
+            </div>
+            <div>
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                placeholder="Confirm new password"
+              />
+            </div>
+            {passwordData.newPassword && passwordData.confirmPassword && 
+             passwordData.newPassword !== passwordData.confirmPassword && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Passwords do not match.
+                </AlertDescription>
+              </Alert>
+            )}
+            <div className="flex space-x-2 pt-4">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => {
+                  setShowPasswordChange(false);
+                  setPasswordData({
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: ''
+                  });
+                }}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1"
+                onClick={handlePasswordChange}
+                disabled={changingPassword || !passwordData.currentPassword || !passwordData.newPassword || passwordData.newPassword !== passwordData.confirmPassword}
+              >
+                {changingPassword && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                <Lock className="w-4 h-4 mr-2" />
+                Update Password
               </Button>
             </div>
           </div>

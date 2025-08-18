@@ -214,11 +214,17 @@ export function checkAiCredits(aiFeature: string) {
         } else {
           // User already verified above, show payment requirement
           
+          const currentBalance = parseFloat((await storage.getCustomerWallet(userId))?.balance || '0');
+          
           return res.status(402).json({
             error: 'Insufficient credits',
-            message: `You need ${creditCost} credit${creditCost > 1 ? 's' : ''} to use this AI feature. Please top up your wallet.`,
+            message: `You've used your ${FREE_USAGE_LIMIT} free daily requests for "${aiFeature.replace('-', ' ')}" (resets every 24 hours). You need ${creditCost} credit${creditCost > 1 ? 's' : ''} to continue using this feature. Please top up your wallet.`,
             creditCost,
-            currentBalance: parseFloat((await storage.getCustomerWallet(userId))?.balance || '0'),
+            currentBalance: currentBalance,
+            freeUsageExhausted: true,
+            featureName: aiFeature.replace('-', ' '),
+            freeUsageLimit: FREE_USAGE_LIMIT,
+            usageCount: freeUsageCheck.usageCount,
             requiresTopUp: true
           });
         }

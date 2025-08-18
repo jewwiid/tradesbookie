@@ -119,7 +119,7 @@ export default function MultiTVNavigation({
           <div className="flex gap-2">
             {bookingData.tvInstallations.map((tv, index) => (
               <div
-                key={tv.id}
+                key={`progress-${index}`}
                 className={`w-2 h-2 rounded-full transition-colors ${
                   index === bookingData.currentTvIndex
                     ? 'bg-primary'

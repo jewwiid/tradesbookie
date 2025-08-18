@@ -863,6 +863,9 @@ export class DatabaseStorage implements IStorage {
     // Delete from schedule_negotiations
     await db.delete(scheduleNegotiations).where(eq(scheduleNegotiations.bookingId, id));
     
+    // Delete from lead_refunds
+    await db.delete(leadRefunds).where(eq(leadRefunds.bookingId, id));
+    
     // Delete from lead_quality_tracking
     await db.delete(leadQualityTracking).where(eq(leadQualityTracking.bookingId, id));
     

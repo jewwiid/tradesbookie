@@ -137,9 +137,11 @@ export default function MountTypeSelector({ bookingData, updateBookingData, upda
         <Settings className="w-8 h-8 text-white" />
       </div>
       
-      <h2 className="text-3xl font-bold text-foreground mb-4">Choose Mount Type</h2>
+      <h2 className="text-3xl font-bold text-foreground mb-4">
+        {isMultiTV ? `Choose Mount Type for ${currentTv?.location || `TV ${bookingData.currentTvIndex + 1}`}` : "Choose Mount Type"}
+      </h2>
       <p className="text-lg text-muted-foreground mb-8">
-        Select how you want your TV to be positioned
+        {isMultiTV ? `Select how you want ${currentTv?.location || `TV ${bookingData.currentTvIndex + 1}`} to be positioned` : "Select how you want your TV to be positioned"}
       </p>
 
       {/* Mount Type Selection */}

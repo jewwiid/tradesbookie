@@ -6,7 +6,7 @@ import { CloudUpload, Camera, CheckCircle, X, RotateCcw, Info } from "lucide-rea
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { BookingData } from "@/lib/booking-utils";
+import { BookingData, TVInstallation } from "@/lib/booking-utils";
 
 interface PhotoUploadProps {
   bookingData: BookingData;
@@ -21,6 +21,21 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const { toast } = useToast();
+
+  // Helper function to update TV installation data
+  const updateTvInstallation = (updates: Partial<TVInstallation>) => {
+    if (bookingData.tvQuantity > 1 && bookingData.tvInstallations && bookingData.currentTvIndex >= 0) {
+      const updatedInstallations = [...bookingData.tvInstallations];
+      updatedInstallations[bookingData.currentTvIndex] = {
+        ...updatedInstallations[bookingData.currentTvIndex],
+        ...updates
+      };
+      updateBookingData({ tvInstallations: updatedInstallations });
+    } else {
+      // Single TV mode - update global fields for backward compatibility
+      updateBookingData(updates);
+    }
+  };
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -45,22 +60,32 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
       return response.json();
     },
     onSuccess: (data) => {
-      updateBookingData({
-        roomPhotoBase64: data.imageBase64,
-        compressedRoomPhoto: data.compressedBase64,
-        roomAnalysis: data.analysis,
-        photoStorageConsent: true, // Grant consent when user uploads photo
-        compressionInfo: {
-          originalSize: data.originalSize,
-          compressedSize: data.compressedSize,
-          compressionRatio: data.compressionRatio
-        }
-      });
+      if (bookingData.tvQuantity > 1) {
+        // Multi-TV mode: update current TV's photo
+        updateTvInstallation({
+          roomPhotoBase64: data.imageBase64,
+          aiPreviewUrl: data.analysis
+        });
+      } else {
+        // Single TV mode: update global photo
+        updateBookingData({
+          roomPhotoBase64: data.imageBase64,
+          compressedRoomPhoto: data.compressedBase64,
+          roomAnalysis: data.analysis,
+          photoStorageConsent: true, // Grant consent when user uploads photo
+          compressionInfo: {
+            originalSize: data.originalSize,
+            compressedSize: data.compressedSize,
+            compressionRatio: data.compressionRatio
+          }
+        });
+      }
       
       console.log(`Image compression: ${data.compressionRatio}% smaller (${Math.round(data.originalSize / 1024)}KB → ${Math.round(data.compressedSize / 1024)}KB)`);
       
+      const tvNumber = bookingData.tvQuantity > 1 ? ` for TV ${bookingData.currentTvIndex + 1}` : '';
       toast({
-        title: "Photo uploaded successfully!",
+        title: `Photo uploaded successfully${tvNumber}!`,
         description: "Room analyzed - AI preview will be generated at final booking step."
       });
     },
@@ -404,21 +429,36 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
         <Camera className="w-8 h-8 text-white" />
       </div>
       
-      <h2 className="text-3xl font-bold text-foreground mb-4">Upload Your Room Photo</h2>
+      <h2 className="text-3xl font-bold text-foreground mb-4">
+        {bookingData.tvQuantity > 1 
+          ? `Upload Room Photo for TV ${bookingData.currentTvIndex + 1}`
+          : "Upload Your Room Photo"
+        }
+      </h2>
       <p className="text-lg text-muted-foreground mb-8">
-        Take a photo of the wall where you want your TV mounted. Our AI will show you a preview!
+        {bookingData.tvQuantity > 1
+          ? `Take a photo of the wall where TV ${bookingData.currentTvIndex + 1} will be mounted. Our AI will show you a preview!`
+          : "Take a photo of the wall where you want your TV mounted. Our AI will show you a preview!"
+        }
       </p>
 
-{!bookingData.roomPhotoBase64 && !showCamera ? (
-        <>
-          <Card 
-            className={`border-2 border-dashed ${dragActive ? 'border-primary bg-blue-50' : 'border-muted-foreground/25'} hover:border-primary transition-colors cursor-pointer mb-6`}
-            onDrop={handleDrop}
-            onDragOver={handleDrag}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onClick={() => document.getElementById('photo-upload')?.click()}
-          >
+      {/* Get current photo - either from current TV or global */}
+      {(() => {
+        const currentPhoto = bookingData.tvQuantity > 1 && bookingData.tvInstallations?.[bookingData.currentTvIndex]
+          ? bookingData.tvInstallations[bookingData.currentTvIndex].roomPhotoBase64
+          : bookingData.roomPhotoBase64;
+        
+        if (!currentPhoto && !showCamera) {
+          return (
+            <>
+              <Card 
+                className={`border-2 border-dashed ${dragActive ? 'border-primary bg-blue-50' : 'border-muted-foreground/25'} hover:border-primary transition-colors cursor-pointer mb-6`}
+                onDrop={handleDrop}
+                onDragOver={handleDrag}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onClick={() => document.getElementById('photo-upload')?.click()}
+              >
             <CardContent className="p-8">
               <input
                 type="file"
@@ -453,9 +493,11 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
           >
             <Camera className="w-5 h-5 mr-2" />
             Use Camera
-          </Button>
-        </>
-      ) : showCamera ? (
+              </Button>
+            </>
+          );
+        } else if (showCamera) {
+          return (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
           
           {/* Full screen camera preview */}
@@ -523,20 +565,28 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
               </div>
             </div>
           </div>
-        </div>
-      ) : (
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="text-center">
-              <img 
-                src={`data:image/jpeg;base64,${bookingData.roomPhotoBase64}`}
-                alt="Room photo" 
-                className="max-w-full h-64 object-cover rounded-xl mx-auto mb-4"
-              />
-              <div className="flex items-center justify-center text-success">
-                <CheckCircle className="w-5 h-5 mr-2" />
-                <span className="font-medium">Photo uploaded successfully!</span>
-              </div>
+            </div>
+          );
+        } else {
+          const currentPhoto = bookingData.tvQuantity > 1 && bookingData.tvInstallations?.[bookingData.currentTvIndex]
+            ? bookingData.tvInstallations[bookingData.currentTvIndex].roomPhotoBase64
+            : bookingData.roomPhotoBase64;
+          
+          return (
+            <Card className="mb-6">
+              <CardContent className="p-4">
+                <div className="text-center">
+                  <img 
+                    src={`data:image/jpeg;base64,${currentPhoto}`}
+                    alt={`Room photo for TV ${bookingData.tvQuantity > 1 ? bookingData.currentTvIndex + 1 : ''}`}
+                    className="max-w-full h-64 object-cover rounded-xl mx-auto mb-4"
+                  />
+                  <div className="flex items-center justify-center text-success">
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    <span className="font-medium">
+                      Photo uploaded successfully{bookingData.tvQuantity > 1 ? ` for TV ${bookingData.currentTvIndex + 1}` : ''}!
+                    </span>
+                  </div>
               
               {bookingData.roomAnalysis && (
                 <div className="mt-4 space-y-4">
@@ -661,16 +711,24 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
                   </div>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        }
+      })()}
 
       <div className="text-center">
         <Button 
           variant="outline" 
           onClick={() => {
-            updateBookingData({ roomPhotoBase64: undefined, roomAnalysis: undefined, photoStorageConsent: false });
+            if (bookingData.tvQuantity > 1) {
+              // For multi-TV, clear current TV's photo
+              updateTvInstallation({ roomPhotoBase64: undefined, aiPreviewUrl: undefined });
+            } else {
+              // For single TV, clear global photo
+              updateBookingData({ roomPhotoBase64: undefined, roomAnalysis: undefined, photoStorageConsent: false });
+            }
             onNext?.();
           }}
           className="text-muted-foreground hover:text-foreground"

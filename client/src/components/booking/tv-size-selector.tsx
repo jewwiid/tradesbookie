@@ -52,24 +52,30 @@ export default function TVSizeSelector({ bookingData, updateBookingData, updateT
       </p>
 
       {/* Preview Placeholder - AI generation happens at final step */}
-      {bookingData.roomPhotoBase64 && (
-        <div className="mb-8">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
-            <div className="relative">
-              <img
-                src={`data:image/jpeg;base64,${bookingData.roomPhotoBase64}`}
-                alt="Your room"
-                className="w-full h-64 object-cover rounded-xl"
-              />
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="bg-black/70 rounded-lg p-3 text-white text-center">
-                  <p className="text-sm">AI preview will be generated at the final booking step</p>
+      {(() => {
+        const currentPhoto = isMultiTV && currentTv?.roomPhotoBase64 
+          ? currentTv.roomPhotoBase64 
+          : bookingData.roomPhotoBase64;
+        
+        return currentPhoto && (
+          <div className="mb-8">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+              <div className="relative">
+                <img
+                  src={`data:image/jpeg;base64,${currentPhoto}`}
+                  alt={`Room photo for ${isMultiTV ? currentTv?.location || `TV ${bookingData.currentTvIndex + 1}` : 'your TV'}`}
+                  className="w-full h-64 object-cover rounded-xl"
+                />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="bg-black/70 rounded-lg p-3 text-white text-center">
+                    <p className="text-sm">AI preview will be generated at the final booking step</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* TV Size Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">

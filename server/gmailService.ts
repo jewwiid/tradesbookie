@@ -1237,3 +1237,80 @@ export async function sendInstallerWelcomeEmail(installerEmail: string, installe
     return false;
   }
 }
+
+export async function sendInstallerInvitationEmail(
+  email: string,
+  name: string,
+  businessName: string,
+  password: string,
+  invitationDetails: any
+): Promise<boolean> {
+  try {
+    const subject = `Invitation to Join TradesBook.ie - Professional TV Installation Platform`;
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">🔧 You're Invited to TradesBook.ie!</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">Professional TV Installation Platform</p>
+        </div>
+
+        <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+          <div style="background-color: #e8f5e8; border: 1px solid #c3e6c3; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h2 style="color: #2e7d32; margin: 0 0 10px 0; font-size: 18px;">🎯 Join Our Network</h2>
+            <p style="color: #2e7d32; margin: 0; font-size: 16px;">
+              <strong>Hello ${name},</strong><br>
+              You've been invited to join TradesBook.ie as a professional TV installer for ${businessName || 'your business'}.
+            </p>
+          </div>
+
+          <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h3 style="color: #856404; margin: 0 0 15px 0; font-size: 16px;">🔐 Your Login Credentials</h3>
+            <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #f39c12;">
+              <p style="color: #2d3748; margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+              <p style="color: #2d3748; margin: 5px 0;"><strong>Password:</strong> <code style="background: #f1f1f1; padding: 2px 6px; border-radius: 3px; font-weight: bold;">${password}</code></p>
+            </div>
+            <p style="color: #856404; margin: 15px 0 0 0; font-size: 14px;">
+              <em>💡 You can change this password after logging in or contact admin for assistance.</em>
+            </p>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 16px;">💼 Why Join TradesBook.ie?</h3>
+            <ul style="color: #4a5568; margin: 0; padding-left: 20px;">
+              <li style="margin-bottom: 8px;">Access to verified TV installation leads in your area</li>
+              <li style="margin-bottom: 8px;">Secure payment processing and lead management</li>
+              <li style="margin-bottom: 8px;">Professional platform to grow your business</li>
+              <li style="margin-bottom: 8px;">Tools to communicate with customers efficiently</li>
+            </ul>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="https://tradesbook.ie/installer-login" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-bottom: 15px;">
+              Login to Your Account
+            </a>
+            <p style="color: #718096; font-size: 14px; margin: 15px 0 0 0;">
+              Click above to access your installer dashboard and start receiving leads.
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2025 tradesbook.ie - Professional TV Installation Services</p>
+            <p style="margin: 5px 0 0 0;">Need help? Contact us at support@tradesbook.ie</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return await sendGmailEmail({
+      to: email,
+      subject,
+      html,
+      from: getValidFromEmail('admin'),
+      replyTo: 'support@tradesbook.ie'
+    });
+  } catch (error) {
+    console.error('Error sending installer invitation email:', error);
+    return false;
+  }
+}

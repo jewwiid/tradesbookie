@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   UserPlus, 
   Mail, 
@@ -29,7 +30,9 @@ import {
   Bot,
   Sparkles,
   FileText,
-  Loader2
+  Loader2,
+  Key,
+  AlertTriangle
 } from "lucide-react";
 
 // Trade skills with their TV installation relevance
@@ -120,6 +123,12 @@ export default function TradesPersonOnboarding() {
     focus: 'opportunity' as 'earnings' | 'flexibility' | 'skills' | 'opportunity'
   });
 
+  const [passwordChangeData, setPasswordChangeData] = useState({
+    installerId: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
+
   const [bulkInviteData, setBulkInviteData] = useState({
     tradeSkill: "",
     emailTemplate: "",
@@ -134,6 +143,12 @@ export default function TradesPersonOnboarding() {
   // Fetch email templates
   const { data: emailTemplates = [], isLoading: templatesLoading } = useQuery({
     queryKey: ["/api/admin/onboarding/email-templates"],
+  });
+
+  // Fetch all installers for password management
+  const { data: allInstallers = [], isLoading: installersLoading } = useQuery({
+    queryKey: ["/api/admin/installers"],
+    queryFn: () => apiRequest("/api/admin/installers", "GET")
   });
 
   // Create individual invitation
@@ -182,22 +197,66 @@ export default function TradesPersonOnboarding() {
     },
   });
 
-  // Register installer on behalf
-  const registerInstallerMutation = useMutation({
-    mutationFn: async (data: OnboardingFormData & { password: string }) => {
-      return await apiRequest("/api/admin/onboarding/register-installer", "POST", data);
+  // Create installer invitation with auto-generated password
+  const createInstallerInvitationMutation = useMutation({
+    mutationFn: async (data: OnboardingFormData) => {
+      return await apiRequest("/api/admin/invite-installer", "POST", {
+        name: data.name,
+        email: data.email,
+        businessName: data.businessName,
+        phone: data.phone,
+        address: data.businessName, // Using business name as address fallback
+        county: data.county,
+        tradeSkill: data.tradeSkill,
+        yearsExperience: 0 // Default value
+      });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+      const password = data.generatedPassword;
       toast({
-        title: "Installer Registered",
-        description: "Installer has been registered successfully. Confirmation email sent.",
+        title: "Installer Invitation Created",
+        description: `Invitation sent with auto-generated password: ${password}`,
+      });
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        businessName: "",
+        county: "",
+        tradeSkill: "",
+        adminNotes: ""
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Registration Failed",
-        description: error.message || "Failed to register installer. Please try again.",
+        title: "Invitation Failed",
+        description: error.message || "Failed to create installer invitation. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Change installer password (admin only)
+  const changeInstallerPasswordMutation = useMutation({
+    mutationFn: async (data: { installerId: string; newPassword: string }) => {
+      return await apiRequest("/api/admin/installer-password", "POST", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Password Updated",
+        description: "Installer password has been updated successfully.",
+      });
+      setPasswordChangeData({
+        installerId: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Password Change Failed",
+        description: error.message || "Failed to change installer password.",
         variant: "destructive",
       });
     },
@@ -236,18 +295,51 @@ export default function TradesPersonOnboarding() {
     createInvitationMutation.mutate(formData);
   };
 
-  const handleRegisterInstaller = () => {
-    if (!formData.name || !formData.email || !formData.tradeSkill) {
+  const handleCreateInstallerInvitation = () => {
+    if (!formData.name || !formData.email || !formData.businessName) {
       toast({
         title: "Missing Information", 
-        description: "Please fill in required fields.",
+        description: "Please fill in name, email, and business name.",
         variant: "destructive",
       });
       return;
     }
     
-    const password = Math.random().toString(36).slice(-8);
-    registerInstallerMutation.mutate({ ...formData, password });
+    createInstallerInvitationMutation.mutate(formData);
+  };
+
+  const handleChangeInstallerPassword = () => {
+    if (!passwordChangeData.installerId || !passwordChangeData.newPassword) {
+      toast({
+        title: "Missing Information",
+        description: "Please select an installer and enter a new password.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordChangeData.newPassword !== passwordChangeData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "New password and confirmation do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordChangeData.newPassword.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    changeInstallerPasswordMutation.mutate({
+      installerId: passwordChangeData.installerId,
+      newPassword: passwordChangeData.newPassword
+    });
   };
 
   const handleCreateTemplate = () => {
@@ -384,10 +476,11 @@ export default function TradesPersonOnboarding() {
       </div>
 
       <Tabs defaultValue="invite" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="invite">Send Invitations</TabsTrigger>
           <TabsTrigger value="register">Direct Registration</TabsTrigger>
           <TabsTrigger value="templates">Email Templates</TabsTrigger>
+          <TabsTrigger value="passwords">Password Management</TabsTrigger>
           <TabsTrigger value="manage">Manage Invitations</TabsTrigger>
         </TabsList>
 
@@ -498,12 +591,12 @@ export default function TradesPersonOnboarding() {
 
               <div className="flex gap-2">
                 <Button 
-                  onClick={handleCreateInvitation}
-                  disabled={createInvitationMutation.isPending}
+                  onClick={handleCreateInstallerInvitation}
+                  disabled={createInstallerInvitationMutation.isPending}
                   className="flex items-center gap-2"
                 >
                   <Send className="h-4 w-4" />
-                  {createInvitationMutation.isPending ? "Sending..." : "Send Invitation"}
+                  {createInstallerInvitationMutation.isPending ? "Creating..." : "Create Invitation with Auto Password"}
                 </Button>
               </div>
             </CardContent>
@@ -611,12 +704,12 @@ export default function TradesPersonOnboarding() {
               </div>
 
               <Button 
-                onClick={handleRegisterInstaller}
-                disabled={registerInstallerMutation.isPending}
+                onClick={handleCreateInstallerInvitation}
+                disabled={createInstallerInvitationMutation.isPending}
                 className="flex items-center gap-2"
               >
                 <UserPlus className="h-4 w-4" />
-                {registerInstallerMutation.isPending ? "Registering..." : "Register & Send Login Details"}
+                {createInstallerInvitationMutation.isPending ? "Creating..." : "Register & Send Auto-Generated Password"}
               </Button>
             </CardContent>
           </Card>
@@ -836,6 +929,115 @@ export default function TradesPersonOnboarding() {
                     </div>
                   ))}
                 </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Password Management */}
+        <TabsContent value="passwords" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Change Installer Password
+              </CardTitle>
+              <CardDescription>
+                Update passwords for existing installers in the system
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="installerId">Select Installer</Label>
+                <Select
+                  value={passwordChangeData.installerId}
+                  onValueChange={(value) => 
+                    setPasswordChangeData(prev => ({ ...prev, installerId: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose an installer to update" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {installersLoading ? (
+                      <SelectItem value="loading" disabled>Loading installers...</SelectItem>
+                    ) : allInstallers.length === 0 ? (
+                      <SelectItem value="none" disabled>No installers found</SelectItem>
+                    ) : (
+                      allInstallers.map((installer: any) => (
+                        <SelectItem key={installer.id} value={installer.id.toString()}>
+                          {installer.businessName || installer.email} - {installer.email}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={passwordChangeData.newPassword}
+                    onChange={(e) => 
+                      setPasswordChangeData(prev => ({ ...prev, newPassword: e.target.value }))
+                    }
+                    placeholder="Enter new password"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={passwordChangeData.confirmPassword}
+                    onChange={(e) => 
+                      setPasswordChangeData(prev => ({ ...prev, confirmPassword: e.target.value }))
+                    }
+                    placeholder="Confirm new password"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleChangeInstallerPassword}
+                  disabled={
+                    changeInstallerPasswordMutation.isPending ||
+                    !passwordChangeData.installerId ||
+                    !passwordChangeData.newPassword ||
+                    passwordChangeData.newPassword !== passwordChangeData.confirmPassword
+                  }
+                  className="flex items-center gap-2"
+                >
+                  <Key className="h-4 w-4" />
+                  {changeInstallerPasswordMutation.isPending ? "Updating..." : "Update Password"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => setPasswordChangeData({
+                    installerId: "",
+                    newPassword: "",
+                    confirmPassword: ""
+                  })}
+                >
+                  Clear Form
+                </Button>
+              </div>
+
+              {passwordChangeData.newPassword && 
+               passwordChangeData.confirmPassword && 
+               passwordChangeData.newPassword !== passwordChangeData.confirmPassword && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Passwords do not match. Please ensure both password fields are identical.
+                  </AlertDescription>
+                </Alert>
               )}
             </CardContent>
           </Card>

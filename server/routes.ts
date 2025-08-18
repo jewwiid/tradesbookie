@@ -11968,6 +11968,141 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       res.status(500).json({ error: "Failed to change password" });
     }
   });
+
+  // Admin-only route to change installer passwords
+  app.post("/api/admin/installer-password", async (req, res) => {
+    try {
+      // Check if user is admin
+      const isAdminAuth = req.isAuthenticated() && req.user && (
+        req.user.role === 'admin' || 
+        req.user.email === 'admin@tradesbook.ie' || 
+        req.user.email === 'jude.okun@gmail.com' ||
+        req.user.id === '42442296'
+      );
+      
+      if (!isAdminAuth) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+      
+      const { installerId, newPassword } = req.body;
+      
+      if (!installerId || !newPassword) {
+        return res.status(400).json({ error: "Installer ID and new password are required" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
+      }
+      
+      // Get installer
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ error: "Installer not found" });
+      }
+      
+      // Hash new password
+      const bcrypt = require('bcrypt');
+      const newPasswordHash = await bcrypt.hash(newPassword, 10);
+      
+      // Update installer password
+      await storage.updateInstaller(installerId, { passwordHash: newPasswordHash });
+      
+      res.json({ success: true, message: "Installer password updated successfully" });
+      
+    } catch (error) {
+      console.error('Admin change installer password error:', error);
+      res.status(500).json({ error: "Failed to change installer password" });
+    }
+  });
+
+  // Create installer invitation with auto-generated password
+  app.post("/api/admin/invite-installer", async (req, res) => {
+    try {
+      // Check if user is admin
+      const isAdminAuth = req.isAuthenticated() && req.user && (
+        req.user.role === 'admin' || 
+        req.user.email === 'admin@tradesbook.ie' || 
+        req.user.email === 'jude.okun@gmail.com' ||
+        req.user.id === '42442296'
+      );
+      
+      if (!isAdminAuth) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+      
+      const { name, email, businessName, phone, address, county, tradeSkill, yearsExperience } = req.body;
+      
+      // Validate input
+      if (!name || !email || !businessName) {
+        return res.status(400).json({ error: "Name, email, and business name are required" });
+      }
+      
+      // Check if email already exists
+      const existingInstaller = await storage.getInstallerByEmail(email);
+      if (existingInstaller) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
+      
+      // Generate secure password
+      const { generateSecurePassword } = await import('./passwordGeneratorService');
+      const password = generateSecurePassword();
+      
+      // Hash password
+      const bcrypt = await import('bcrypt');
+      const passwordHash = await bcrypt.default.hash(password, 10);
+      
+      // Create installer account
+      const installer = await storage.registerInstaller(email, passwordHash, {
+        contactName: name,
+        businessName,
+        phone: phone || null,
+        address: address || null,
+        serviceArea: county || null,
+        yearsExperience: yearsExperience ? parseInt(yearsExperience) : 0,
+        skills: tradeSkill || null,
+        isApproved: false, // Admin needs to approve
+        createdBy: req.user.email
+      });
+      
+      // Send invitation email with password
+      try {
+        const { sendInstallerInvitationEmail } = await import('./gmailService');
+        const emailResult = await sendInstallerInvitationEmail(
+          email,
+          name,
+          businessName,
+          password,
+          {
+            tradeSkill,
+            county,
+            createdBy: req.user.email
+          }
+        );
+        
+        if (emailResult) {
+          console.log(`✅ Invitation email sent successfully to: ${email}`);
+        } else {
+          console.log(`❌ Invitation email failed to send to: ${email}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Failed to send invitation email:', emailError);
+        // Don't fail invitation if email fails
+      }
+      
+      // Return installer data (without password hash)
+      const { passwordHash: _, ...installerData } = installer;
+      res.status(201).json({
+        success: true,
+        installer: installerData,
+        generatedPassword: password, // Include for admin reference
+        message: "Installer invitation created successfully with auto-generated password"
+      });
+      
+    } catch (error) {
+      console.error("Installer invitation error:", error);
+      res.status(500).json({ error: "Failed to create installer invitation" });
+    }
+  });
   
   // Upgrade guest account to email/password account
   app.post("/api/auth/upgrade-account", async (req, res) => {

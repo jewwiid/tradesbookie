@@ -439,8 +439,8 @@ export const aiInteractionAnalytics = pgTable("ai_interaction_analytics", {
   // Input tracking - what the user asked for
   userPrompt: text("user_prompt"), // the actual user input/question
   productQuery: text("product_query"), // specific product being searched/analyzed
-  productModel1: text("product_model_1"), // for comparisons - first product
-  productModel2: text("product_model_2"), // for comparisons - second product
+  productModel1: text("product_model1"), // for comparisons - first product
+  productModel2: text("product_model2"), // for comparisons - second product
   category: text("category"), // product category (tv, laptop, etc.)
   priceRange: text("price_range"), // user's budget range if provided
   

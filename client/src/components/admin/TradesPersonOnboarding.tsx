@@ -58,8 +58,12 @@ interface OnboardingFormData {
   email: string;
   phone: string;
   businessName: string;
+  streetAddress: string;
+  town: string;
   county: string;
+  eircode: string;
   tradeSkill: string;
+  yearsExperience: string;
   adminNotes: string;
 }
 
@@ -105,8 +109,12 @@ export default function TradesPersonOnboarding() {
     email: "",
     phone: "",
     businessName: "",
+    streetAddress: "",
+    town: "",
     county: "",
+    eircode: "",
     tradeSkill: "",
+    yearsExperience: "",
     adminNotes: ""
   });
 
@@ -158,7 +166,7 @@ export default function TradesPersonOnboarding() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding/invitations"] });
       setFormData({
-        name: "", email: "", phone: "", businessName: "", county: "", tradeSkill: "", adminNotes: ""
+        name: "", email: "", phone: "", businessName: "", streetAddress: "", town: "", county: "", eircode: "", tradeSkill: "", yearsExperience: "", adminNotes: ""
       });
       toast({
         title: "Invitation Created",
@@ -204,13 +212,13 @@ export default function TradesPersonOnboarding() {
         email: data.email,
         businessName: data.businessName,
         phone: data.phone,
-        address: data.businessName, // Using business name as address fallback
+        address: `${data.streetAddress}, ${data.town}, ${data.county} ${data.eircode}`.trim(),
         county: data.county,
         tradeSkill: data.tradeSkill,
-        yearsExperience: 0 // Default value
+        yearsExperience: parseInt(data.yearsExperience) || 0
       });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
       const password = data.generatedPassword;
       toast({
@@ -222,8 +230,12 @@ export default function TradesPersonOnboarding() {
         email: "",
         phone: "",
         businessName: "",
+        streetAddress: "",
+        town: "",
         county: "",
+        eircode: "",
         tradeSkill: "",
+        yearsExperience: "",
         adminNotes: ""
       });
     },
@@ -243,12 +255,14 @@ export default function TradesPersonOnboarding() {
         email: data.email,
         businessName: data.businessName,
         phone: data.phone,
+        address: `${data.streetAddress}, ${data.town}, ${data.county} ${data.eircode}`.trim(),
         county: data.county,
         tradeSkill: data.tradeSkill,
+        yearsExperience: parseInt(data.yearsExperience) || 0,
         adminNotes: data.adminNotes
       });
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
       toast({
         title: "Basic Profile Created",
@@ -259,8 +273,12 @@ export default function TradesPersonOnboarding() {
         email: "",
         phone: "",
         businessName: "",
+        streetAddress: "",
+        town: "",
         county: "",
+        eircode: "",
         tradeSkill: "",
+        yearsExperience: "",
         adminNotes: ""
       });
     },
@@ -605,6 +623,36 @@ export default function TradesPersonOnboarding() {
                 </div>
 
                 <div>
+                  <Label htmlFor="streetAddress">Street Address</Label>
+                  <Input
+                    id="streetAddress"
+                    value={formData.streetAddress}
+                    onChange={(e) => setFormData(prev => ({ ...prev, streetAddress: e.target.value }))}
+                    placeholder="123 Main Street"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="town">Town/City</Label>
+                  <Input
+                    id="town"
+                    value={formData.town}
+                    onChange={(e) => setFormData(prev => ({ ...prev, town: e.target.value }))}
+                    placeholder="Dublin"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="eircode">Eircode</Label>
+                  <Input
+                    id="eircode"
+                    value={formData.eircode}
+                    onChange={(e) => setFormData(prev => ({ ...prev, eircode: e.target.value }))}
+                    placeholder="D02 X285"
+                  />
+                </div>
+
+                <div>
                   <Label htmlFor="tradeSkill">Trade Skill *</Label>
                   <Select 
                     value={formData.tradeSkill} 
@@ -624,6 +672,19 @@ export default function TradesPersonOnboarding() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="yearsExperience">Years of Experience</Label>
+                  <Input
+                    id="yearsExperience"
+                    type="number"
+                    min="0"
+                    max="50"
+                    value={formData.yearsExperience}
+                    onChange={(e) => setFormData(prev => ({ ...prev, yearsExperience: e.target.value }))}
+                    placeholder="5"
+                  />
                 </div>
               </div>
 
@@ -743,6 +804,36 @@ export default function TradesPersonOnboarding() {
                 </div>
 
                 <div>
+                  <Label htmlFor="reg-streetAddress">Street Address</Label>
+                  <Input
+                    id="reg-streetAddress"
+                    value={formData.streetAddress}
+                    onChange={(e) => setFormData(prev => ({ ...prev, streetAddress: e.target.value }))}
+                    placeholder="123 Main Street"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="reg-town">Town/City</Label>
+                  <Input
+                    id="reg-town"
+                    value={formData.town}
+                    onChange={(e) => setFormData(prev => ({ ...prev, town: e.target.value }))}
+                    placeholder="Dublin"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="reg-eircode">Eircode</Label>
+                  <Input
+                    id="reg-eircode"
+                    value={formData.eircode}
+                    onChange={(e) => setFormData(prev => ({ ...prev, eircode: e.target.value }))}
+                    placeholder="D02 X285"
+                  />
+                </div>
+
+                <div>
                   <Label htmlFor="reg-trade">Trade Skill *</Label>
                   <Select 
                     value={formData.tradeSkill} 
@@ -759,6 +850,19 @@ export default function TradesPersonOnboarding() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="reg-yearsExperience">Years of Experience</Label>
+                  <Input
+                    id="reg-yearsExperience"
+                    type="number"
+                    min="0"
+                    max="50"
+                    value={formData.yearsExperience}
+                    onChange={(e) => setFormData(prev => ({ ...prev, yearsExperience: e.target.value }))}
+                    placeholder="5"
+                  />
                 </div>
               </div>
 
@@ -1032,10 +1136,10 @@ export default function TradesPersonOnboarding() {
                   <SelectContent>
                     {installersLoading ? (
                       <SelectItem value="loading" disabled>Loading installers...</SelectItem>
-                    ) : allInstallers.length === 0 ? (
+                    ) : (allInstallers as any[]).length === 0 ? (
                       <SelectItem value="none" disabled>No installers found</SelectItem>
                     ) : (
-                      allInstallers.map((installer: any) => (
+                      (allInstallers as any[]).map((installer: any) => (
                         <SelectItem key={installer.id} value={installer.id.toString()}>
                           {installer.businessName || installer.email} - {installer.email}
                         </SelectItem>

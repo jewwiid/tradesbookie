@@ -4609,11 +4609,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isDemoAccount = installer?.email === "test@tradesbook.ie";
       }
 
+      // Get leads already purchased by this installer if installerId is provided
+      let purchasedBookingIds = new Set<number>();
+      if (installerId) {
+        const purchasedLeads = await storage.getInstallerPurchasedLeads(parseInt(installerId as string));
+        purchasedBookingIds = new Set(purchasedLeads.map(lead => lead.id));
+      }
+
       // Get all open bookings that haven't been assigned to an installer
       const bookings = await storage.getAllBookings();
       const availableRequests = await Promise.all(bookings.filter(booking => {
         // Must be open and unassigned
         if (booking.status !== 'open' || booking.installerId) {
+          return false;
+        }
+        
+        // Exclude leads already purchased by this installer
+        if (installerId && purchasedBookingIds.has(booking.id)) {
           return false;
         }
         

@@ -21,6 +21,10 @@ This project is a sophisticated TV and product installation referral platform co
   - **Root Cause**: The `getInstallerPurchasedLeads` method was filtering by non-existent `leadFeeStatus` field instead of actual `status` field
   - **Solution**: Updated method to filter by job assignment status ('purchased', 'accepted', 'in_progress', 'completed')
   - **Impact**: Installers can now see leads they've purchased even before customer acceptance, providing complete visibility into their lead pipeline
+- ✅ **Fixed Available Leads Filtering**: Resolved issue where purchased leads still appeared in the available requests for installers
+  - **Root Cause**: Available requests endpoint only checked for assigned leads (`booking.installerId`) but not purchased leads via job assignments
+  - **Solution**: Added filtering logic to exclude leads already purchased by the specific installer using `getInstallerPurchasedLeads`
+  - **Impact**: Installers now see accurate available leads - purchased leads no longer appear as available options
 
 ## System Architecture
 The application employs a modern full-stack architecture with AI-enhanced features, prioritizing a mobile-first, responsive design.

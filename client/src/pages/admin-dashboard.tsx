@@ -2778,7 +2778,7 @@ function BookingManagement() {
 
       {/* Delete Booking Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent aria-describedby="booking-delete-description">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="booking-delete-description">
           <DialogHeader>
             <DialogTitle>Delete Booking</DialogTitle>
             <DialogDescription id="booking-delete-description">

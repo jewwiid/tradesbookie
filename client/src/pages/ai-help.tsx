@@ -217,21 +217,33 @@ export default function AIHelpPage() {
     
     // Handle AI tool direct access via QR codes
     if (toolParam && qrParam) {
-      // Map tool keys to tabs
+      // Map tool keys to tabs based on actual AI tools in database
       const toolTabMap: Record<string, string> = {
-        'ai-chat': 'chat',
-        'product-info': 'compare', 
-        'product-compare': 'electronics',
-        'find-product': 'find',
-        'tv-preview': 'find' // TV Preview maps to Find Product
+        'tv-preview': 'find',           // TV Preview -> Find My Product tab
+        'product-care': 'care',         // Product Care Analysis -> Product Care tab
+        'faq': 'chat',                  // Smart FAQ -> Chat tab
+        'product-info': 'compare',      // Product Information -> Compare Products tab  
+        'email-template': 'chat',       // Email Templates -> Chat tab
+        'tv-comparison': 'electronics'  // TV Comparison -> Electronics tab
       };
       
       const targetTab = toolTabMap[toolParam] || 'chat';
       setActiveTab(targetTab);
       
-      // Show store context if provided
-      if (storeParam) {
-        console.log(`QR scan from store: ${storeParam}`);
+      // Show store context if provided and track QR scan
+      if (storeParam && qrParam) {
+        console.log(`QR scan from store: ${storeParam} with QR ID: ${qrParam}`);
+        
+        // Track the QR scan for analytics
+        try {
+          fetch(`/api/qr-scan/${qrParam}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ storeLocation: storeParam })
+          });
+        } catch (error) {
+          console.log('QR scan tracking failed:', error);
+        }
       }
     }
     // Handle legacy category-based QR codes  

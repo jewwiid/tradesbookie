@@ -33,7 +33,7 @@ The application employs a modern full-stack architecture with AI-enhanced featur
 - **AI Credit System:** Implemented a comprehensive AI credit system with 3 free AI requests per feature for all users (tracked by session for guests), then 1 credit = 1 AI request pricing. Protects all AI endpoints (TV Preview, Product Care Analysis, FAQ, Product Info, TV Comparison). Requires verified email addresses for credit purchases and usage. Real-time usage tracking for both authenticated and guest users with automatic wallet integration.
 - **Admin Installer Onboarding:** Supports dual-approach installer registration (full registration or basic profile with completion invite) and a secure token-based profile completion flow.
 - **Admin Dashboard Cross-View Access:** Implemented comprehensive admin access system for monitoring installer and customer dashboards with visual indicators and backend security.
-- **AI Tools QR Code Generation:** Implemented comprehensive QR code generation for in-store AI tool access, including printable flyers with store location context.
+- **AI Tools QR Code Generation:** Implemented comprehensive QR code generation for in-store AI tool access, including printable flyers with store location context. QR codes now point to production domain (tradesbook.ie) and automatically direct users to the correct AI helper tab based on the tool type. Added QR code download functionality (PNG format), enhanced management with save/edit/remove capabilities, and implemented scan tracking for analytics.
 
 **System Design Choices:**
 - **Full-Stack Architecture:** Clear separation of frontend and backend concerns.

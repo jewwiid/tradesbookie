@@ -7888,7 +7888,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         // Note: Notifications table deletion not implemented due to schema issues
         
         // Delete referral usage records
-        await trx.delete(referralUsage).where(eq(referralUsage.usedForBookingId, bookingId));
+        await trx.delete(referralUsage).where(eq(referralUsage.bookingId, bookingId));
         console.log(`✅ Deleted referral usage for booking ${bookingId}`);
         
         // Delete anti-manipulation records

@@ -586,7 +586,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Simple installer authentication routes
   app.post("/api/installers/register", async (req, res) => {
     try {
-      const { firstName, lastName, businessName, email, phone, address, county, yearsExperience, password } = req.body;
+      const { firstName, lastName, businessName, email, phone, address, county, yearsExperience, password, selectedServiceType } = req.body;
       
       // Validate input
       if (!firstName || !lastName || !businessName || !email || !phone || !address || !county || !password) {
@@ -617,6 +617,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         serviceArea: county,
         yearsExperience: yearsExperience ? parseInt(yearsExperience) : 0
       });
+
+      // Assign selected service type to the installer if provided
+      if (selectedServiceType) {
+        try {
+          const serviceType = await storage.getServiceTypeByKey(selectedServiceType);
+          if (serviceType) {
+            await storage.assignServiceToInstaller({
+              installerId: installer.id,
+              serviceTypeId: serviceType.id,
+              assignedBy: 'registration', // Indicate this was assigned during registration
+              isActive: true
+            });
+            console.log(`✅ Service ${selectedServiceType} assigned to installer ${installer.id} during registration`);
+          } else {
+            console.warn(`⚠️ Service type ${selectedServiceType} not found during installer registration`);
+          }
+        } catch (serviceError) {
+          console.error('❌ Failed to assign service during registration:', serviceError);
+          // Don't fail registration if service assignment fails
+        }
+      }
       
       // Send welcome email to the installer
       try {
@@ -938,6 +959,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching service tiers:", error);
       res.status(500).json({ message: "Failed to fetch service tiers" });
+    }
+  });
+
+  // Service types endpoint - get all active service types
+  app.get("/api/service-types/active", async (req, res) => {
+    try {
+      const activeServiceTypes = await storage.getActiveServiceTypes();
+      res.json(activeServiceTypes);
+    } catch (error) {
+      console.error("Error fetching active service types:", error);
+      res.status(500).json({ message: "Failed to fetch active service types" });
+    }
+  });
+
+  // Installer service assignments endpoint
+  app.get("/api/installer-service-assignments", async (req, res) => {
+    try {
+      const installerServiceAssignments = await storage.getAllInstallerServiceAssignments();
+      res.json(installerServiceAssignments);
+    } catch (error) {
+      console.error("Error fetching installer service assignments:", error);
+      res.status(500).json({ message: "Failed to fetch installer service assignments" });
     }
   });
 

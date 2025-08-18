@@ -142,6 +142,7 @@ export default function InstallerRegistration() {
           county: formData.county,
           yearsExperience: formData.yearsExperience ? parseInt(formData.yearsExperience) : 0,
           password: formData.password,
+          selectedServiceType: selectedServiceType, // Add the selected service type
         }),
       });
 

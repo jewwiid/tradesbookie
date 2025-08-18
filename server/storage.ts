@@ -855,6 +855,43 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`🗑️ Starting deletion process for booking ${id}`);
       
+      // Before deleting, process any pending lead fee refunds as credits
+      console.log('✅ Processing lead fee refunds as credits...');
+      const paidAssignments = await db.select()
+        .from(jobAssignments)
+        .where(and(
+          eq(jobAssignments.bookingId, id),
+          eq(jobAssignments.leadFeeStatus, 'paid')
+        ));
+      
+      for (const assignment of paidAssignments) {
+        if (assignment.installerId && assignment.leadFee) {
+          try {
+            console.log(`💰 Refunding lead fee ${assignment.leadFee} to installer ${assignment.installerId}`);
+            
+            // Add credit to installer wallet
+            await this.addInstallerCredit(assignment.installerId, parseFloat(assignment.leadFee.toString()), `Refund for deleted booking ${id}`);
+            
+            // Create refund record for tracking
+            await db.insert(leadRefunds).values({
+              installerId: assignment.installerId,
+              bookingId: id,
+              originalLeadFee: assignment.leadFee.toString(),
+              refundReason: 'booking_deleted',
+              refundAmount: assignment.leadFee.toString(),
+              refundType: 'credit',
+              status: 'processed',
+              automaticApproval: true,
+              processedDate: new Date(),
+              installerNotes: 'Automatic refund due to booking deletion',
+              adminNotes: 'Admin deleted booking - automatic credit refund processed'
+            });
+          } catch (refundError) {
+            console.warn(`⚠️ Could not process refund for assignment ${assignment.id}:`, refundError);
+          }
+        }
+      }
+      
       // Delete all related records first to handle foreign key constraints
       console.log('✅ Deleting declined requests...');
       await db.delete(declinedRequests).where(eq(declinedRequests.bookingId, id));

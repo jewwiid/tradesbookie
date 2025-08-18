@@ -796,6 +796,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInstallerPurchasedLeads(installerId: number): Promise<Booking[]> {
+    // Import lead pricing function
+    const { getLeadFee } = await import('./leadPricing');
+    
     // Get job assignments for this installer with purchased, accepted, etc. status
     const assignments = await db.select().from(jobAssignments)
       .where(and(
@@ -810,10 +813,15 @@ export class DatabaseStorage implements IStorage {
         .where(eq(bookings.id, assignment.bookingId));
       
       if (booking) {
+        // Calculate the correct lead fee based on service type if not properly stored
+        const correctLeadFee = assignment.leadFee && parseFloat(assignment.leadFee) > 0 
+          ? assignment.leadFee 
+          : getLeadFee(booking.serviceType).toFixed(2);
+        
         results.push({
           ...booking,
           jobAssignmentId: assignment.id,
-          leadFee: assignment.leadFee,
+          leadFee: correctLeadFee,
           assignedDate: assignment.assignedDate,
           acceptedDate: assignment.acceptedDate,
           completedDate: assignment.completedDate,

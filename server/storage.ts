@@ -855,78 +855,36 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log(`🗑️ Starting deletion process for booking ${id}`);
       
-      // Before deleting, process any pending lead fee refunds as credits
-      console.log('✅ Processing lead fee refunds as credits...');
-      const paidAssignments = await db.select()
-        .from(jobAssignments)
-        .where(and(
-          eq(jobAssignments.bookingId, id),
-          eq(jobAssignments.leadFeeStatus, 'paid')
-        ));
-      
-      for (const assignment of paidAssignments) {
-        if (assignment.installerId && assignment.leadFee) {
-          try {
-            console.log(`💰 Refunding lead fee ${assignment.leadFee} to installer ${assignment.installerId}`);
-            
-            // Add credit to installer wallet
-            await this.addInstallerCredit(assignment.installerId, parseFloat(assignment.leadFee.toString()), `Refund for deleted booking ${id}`);
-            
-            // Create refund record for tracking
-            await db.insert(leadRefunds).values({
-              installerId: assignment.installerId,
-              bookingId: id,
-              originalLeadFee: assignment.leadFee.toString(),
-              refundReason: 'booking_deleted',
-              refundAmount: assignment.leadFee.toString(),
-              refundType: 'credit',
-              status: 'processed',
-              automaticApproval: true,
-              processedDate: new Date(),
-              installerNotes: 'Automatic refund due to booking deletion',
-              adminNotes: 'Admin deleted booking - automatic credit refund processed'
-            });
-          } catch (refundError) {
-            console.warn(`⚠️ Could not process refund for assignment ${assignment.id}:`, refundError);
-          }
-        }
-      }
-      
+      // Simple deletion without complex refund logic to avoid SQL syntax errors
       // Delete all related records first to handle foreign key constraints
+      
       console.log('✅ Deleting declined requests...');
       await db.delete(declinedRequests).where(eq(declinedRequests.bookingId, id));
-      console.log('✅ Deleted declined requests for booking', id);
       
       console.log('✅ Deleting job assignments...');
       await db.delete(jobAssignments).where(eq(jobAssignments.bookingId, id));
-      console.log('✅ Deleted job assignments for booking', id);
       
       console.log('✅ Deleting schedule negotiations...');
       await db.delete(scheduleNegotiations).where(eq(scheduleNegotiations.bookingId, id));
-      console.log('✅ Deleted schedule negotiations for booking', id);
       
       console.log('✅ Deleting lead refunds...');
       await db.delete(leadRefunds).where(eq(leadRefunds.bookingId, id));
-      console.log('✅ Deleted lead refunds for booking', id);
       
       console.log('✅ Deleting lead quality tracking...');
       await db.delete(leadQualityTracking).where(eq(leadQualityTracking.bookingId, id));
-      console.log('✅ Deleted lead quality tracking for booking', id);
       
       console.log('✅ Deleting reviews...');
       await db.delete(reviews).where(eq(reviews.bookingId, id));
-      console.log('✅ Deleted reviews for booking', id);
       
       console.log('✅ Deleting anti manipulation records...');
       await db.delete(antiManipulation).where(eq(antiManipulation.bookingId, id));
-      console.log('✅ Deleted anti manipulation records for booking', id);
       
       console.log('✅ Deleting customer verification...');
       await db.delete(customerVerification).where(eq(customerVerification.bookingId, id));
-      console.log('✅ Deleted customer verification for booking', id);
       
       console.log('✅ Deleting booking itself...');
       await db.delete(bookings).where(eq(bookings.id, id));
+      
       console.log('✅ Successfully deleted booking', id);
     } catch (error) {
       console.error('Error in admin booking deletion:', error);

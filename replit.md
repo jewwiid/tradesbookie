@@ -10,6 +10,14 @@ This project is a sophisticated TV and product installation referral platform co
 - Maintain professional, informative communication style
 
 ## Recent Changes (August 18, 2025)
+- ✅ **Enhanced Admin Installer Onboarding System**: Implemented comprehensive dual-approach installer registration system
+  - **Full Registration**: Creates complete installer accounts with auto-generated passwords for immediate access
+  - **Basic Profile + Completion Invite**: Creates minimal profiles and sends secure completion invitations for staged onboarding
+  - **Profile Completion Flow**: Added secure token-based system allowing installers to complete their own profiles after admin creates basic information
+  - **Flexible Onboarding**: Supports scenarios where admins have basic information but installers need to provide detailed business data
+  - **Email Integration**: Enhanced Gmail service with professional completion invitation templates including secure completion links
+  - **Database Schema Updates**: Added `completionToken`, `completionTokenExpires`, and enhanced `adminNotes` fields to support the new workflow
+  - **Admin Workflow Optimization**: Streamlined interface allowing admins to choose registration approach based on available information and installer preference
 - ✅ **Fixed Invoice Login Authentication**: Resolved "unable to process invoice login at this time" error by adding missing `retailer_code` and `product_details` columns to the `retailer_invoices` table
 - ✅ **Initialized Sample Data**: Successfully populated database with sample invoices to support testing
 - ✅ **Verified End-to-End Flow**: Confirmed that invoice authentication + booking creation works seamlessly

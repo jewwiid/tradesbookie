@@ -237,6 +237,43 @@ export default function TradesPersonOnboarding() {
     },
   });
 
+  const createBasicProfileMutation = useMutation({
+    mutationFn: async (data: OnboardingFormData) => {
+      return await apiRequest("/api/admin/create-basic-installer", "POST", {
+        name: data.name,
+        email: data.email,
+        businessName: data.businessName,
+        phone: data.phone,
+        county: data.county,
+        tradeSkill: data.tradeSkill,
+        adminNotes: data.adminNotes
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
+      toast({
+        title: "Basic Profile Created",
+        description: `Basic profile created for ${data.installer.contactName}. Completion invitation sent to ${data.installer.email}.`,
+      });
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        businessName: "",
+        county: "",
+        tradeSkill: "",
+        adminNotes: ""
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Profile Creation Failed",
+        description: error.message || "Failed to create basic profile. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Change installer password (admin only)
   const changeInstallerPasswordMutation = useMutation({
     mutationFn: async (data: { installerId: string; newPassword: string }) => {
@@ -306,6 +343,19 @@ export default function TradesPersonOnboarding() {
     }
     
     createInstallerInvitationMutation.mutate(formData);
+  };
+
+  const handleCreateBasicProfile = () => {
+    if (!formData.name || !formData.email || !formData.tradeSkill) {
+      toast({
+        title: "Missing Information", 
+        description: "Please fill in name, email, and trade skill.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    createBasicProfileMutation.mutate(formData);
   };
 
   const handleChangeInstallerPassword = () => {
@@ -614,11 +664,21 @@ export default function TradesPersonOnboarding() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2">Direct Registration</h4>
-                <p className="text-blue-800 text-sm">
-                  Register a tradesperson directly on their behalf. They will receive an email with login credentials 
-                  and a link to complete their profile.
-                </p>
+                <h4 className="font-medium text-blue-900 mb-2">Registration Options</h4>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-1.5"></div>
+                    <p className="text-blue-800">
+                      <strong>Full Registration:</strong> Creates complete account with auto-generated password and immediate access
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-1.5"></div>
+                    <p className="text-blue-800">
+                      <strong>Basic Profile + Completion Invite:</strong> Creates basic profile and sends invitation to complete full registration
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {/* Reuse the same form fields */}
@@ -703,14 +763,26 @@ export default function TradesPersonOnboarding() {
                 </div>
               </div>
 
-              <Button 
-                onClick={handleCreateInstallerInvitation}
-                disabled={createInstallerInvitationMutation.isPending}
-                className="flex items-center gap-2"
-              >
-                <UserPlus className="h-4 w-4" />
-                {createInstallerInvitationMutation.isPending ? "Creating..." : "Register & Send Auto-Generated Password"}
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={handleCreateInstallerInvitation}
+                  disabled={createInstallerInvitationMutation.isPending}
+                  className="flex items-center gap-2 flex-1"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  {createInstallerInvitationMutation.isPending ? "Creating..." : "Full Registration"}
+                </Button>
+                
+                <Button 
+                  onClick={handleCreateBasicProfile}
+                  disabled={createBasicProfileMutation.isPending}
+                  variant="outline"
+                  className="flex items-center gap-2 flex-1"
+                >
+                  <Send className="h-4 w-4" />
+                  {createBasicProfileMutation.isPending ? "Creating..." : "Basic Profile + Invite"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

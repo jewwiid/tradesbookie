@@ -28,6 +28,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail, sendInstallerApprovalEmail, sendInstallerRejectionEmail, sendTvSetupBookingConfirmation, sendTvSetupAdminNotification } from "./gmailService";
 
+// Helper function to generate secure completion token
+function generateCompletionToken(): string {
+  const crypto = require('crypto');
+  return crypto.randomBytes(32).toString('hex');
+}
+
 // Helper function to check if user has opted in to receive specific types of emails
 async function checkUserEmailPreferences(userId: string, emailType: 'general' | 'booking' | 'marketing'): Promise<boolean> {
   try {
@@ -12101,6 +12107,89 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("Installer invitation error:", error);
       res.status(500).json({ error: "Failed to create installer invitation" });
+    }
+  });
+
+  // Create basic installer profile with completion invitation
+  app.post("/api/admin/create-basic-installer", async (req, res) => {
+    try {
+      // Check if user is admin
+      const isAdminAuth = req.isAuthenticated() && req.user && (
+        req.user.role === 'admin' || 
+        req.user.email === 'admin@tradesbook.ie' || 
+        req.user.email === 'jude.okun@gmail.com' ||
+        req.user.id === '42442296'
+      );
+      
+      if (!isAdminAuth) {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+      
+      const { name, email, businessName, phone, county, tradeSkill, adminNotes } = req.body;
+      
+      // Validate input
+      if (!name || !email || !tradeSkill) {
+        return res.status(400).json({ error: "Name, email, and trade skill are required" });
+      }
+      
+      // Check if email already exists
+      const existingInstaller = await storage.getInstallerByEmail(email);
+      if (existingInstaller) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
+      
+      // Create basic installer profile (no password yet, pending completion)
+      const installer = await storage.registerInstaller(email, null, {
+        contactName: name,
+        businessName: businessName || name,
+        phone: phone || null,
+        address: null,
+        serviceArea: county || null,
+        yearsExperience: 0,
+        skills: tradeSkill,
+        isApproved: false,
+        profileCompleted: false, // Mark as incomplete
+        completionToken: generateCompletionToken(), // Generate secure token for completion
+        adminNotes: adminNotes || null,
+        createdBy: req.user.email
+      });
+      
+      // Send completion invitation email
+      try {
+        const { sendProfileCompletionInvitationEmail } = await import('./gmailService');
+        const emailResult = await sendProfileCompletionInvitationEmail(
+          email,
+          name,
+          installer.completionToken,
+          {
+            tradeSkill,
+            county,
+            createdBy: req.user.email,
+            adminNotes
+          }
+        );
+        
+        if (emailResult) {
+          console.log(`✅ Profile completion invitation sent successfully to: ${email}`);
+        } else {
+          console.log(`❌ Profile completion invitation failed to send to: ${email}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Failed to send completion invitation email:', emailError);
+        // Don't fail creation if email fails
+      }
+      
+      // Return installer data
+      const { passwordHash: _, completionToken: __, ...installerData } = installer;
+      res.status(201).json({
+        success: true,
+        installer: installerData,
+        message: "Basic profile created successfully. Completion invitation sent."
+      });
+      
+    } catch (error) {
+      console.error("Basic profile creation error:", error);
+      res.status(500).json({ error: "Failed to create basic installer profile" });
     }
   });
   

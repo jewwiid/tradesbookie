@@ -1314,3 +1314,60 @@ export async function sendInstallerInvitationEmail(
     return false;
   }
 }
+
+export async function sendProfileCompletionInvitationEmail(
+  email: string,
+  name: string,
+  completionToken: string,
+  invitationDetails: any
+): Promise<boolean> {
+  try {
+    const subject = `Complete Your TradesBook.ie Professional Profile - Action Required`;
+    
+    const completionUrl = `https://tradesbook.ie/complete-profile/${completionToken}`;
+    
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="margin: 0; font-size: 24px;">🚀 Complete Your Professional Profile</h1>
+          <p style="margin: 10px 0 0 0; opacity: 0.9;">TradesBook.ie - TV Installation Professional Network</p>
+        </div>
+
+        <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+          <div style="background-color: #e8f5e8; border: 1px solid #c3e6c3; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+            <h2 style="color: #2e7d32; margin: 0 0 10px 0; font-size: 18px;">👋 Hello ${name}!</h2>
+            <p style="color: #2e7d32; margin: 0; font-size: 16px;">
+              An admin has created a basic profile for you on TradesBook.ie. To start receiving TV installation leads, please complete your full professional profile.
+            </p>
+          </div>
+
+          <div style="background-color: white; border-radius: 8px; padding: 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <a href="${completionUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; margin-bottom: 15px; font-size: 16px;">
+              Complete My Profile Now
+            </a>
+            <p style="color: #718096; font-size: 14px; margin: 15px 0 0 0;">
+              This secure link is unique to you and will expire in 7 days.
+            </p>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px; text-align: center;">
+            <p style="margin: 0;">© 2025 tradesbook.ie - Professional TV Installation Services</p>
+            <p style="margin: 5px 0 0 0;">Need help? Contact us at support@tradesbook.ie</p>
+            <p style="margin: 10px 0 0 0;">Created by: ${invitationDetails.createdBy}</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    return await sendGmailEmail({
+      to: email,
+      subject,
+      html,
+      from: getValidFromEmail('admin'),
+      replyTo: 'support@tradesbook.ie'
+    });
+  } catch (error) {
+    console.error('Error sending profile completion invitation email:', error);
+    return false;
+  }
+}

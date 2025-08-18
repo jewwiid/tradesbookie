@@ -92,6 +92,9 @@ export const installers = pgTable("installers", {
   
   // Profile completion tracking
   profileCompleted: boolean("profile_completed").default(false),
+  completionToken: text("completion_token"), // Secure token for profile completion
+  completionTokenExpires: timestamp("completion_token_expires"), // Token expiration
+  adminNotes: text("admin_notes"), // Admin notes for the installer
   
   // Approval and scoring system
   approvalStatus: varchar("approval_status").default("pending"), // pending, approved, rejected

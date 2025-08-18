@@ -60,6 +60,12 @@ This project is a sophisticated TV and product installation referral platform co
   - **Store Integration**: QR codes include store location context and generate URLs like /ai-help?qr={id}&tool={key}&store={location}
   - **Printable Flyers**: Professional SVG flyers with embedded QR codes, tool descriptions, and store branding for in-store display
   - **Impact**: Store staff can now generate and print QR codes for any AI tool, customers can scan to instantly access specific AI features
+- ✅ **Fixed Lead Price Display in Multi-TV Booking Details**: Resolved missing lead fee information in TV Installation Details and Pricing Details sections
+  - **Root Cause**: Individual TV lead fees weren't being calculated or displayed in multi-TV booking breakdowns
+  - **TV Installation Details Fix**: Added individual lead fee calculation and display for each TV based on service type (bronze €20, silver €25, etc.)
+  - **Pricing Details Enhancement**: Enhanced pricing breakdown to show per-TV lead fees with service type context for multi-TV bookings
+  - **Lead Fee Calculation**: Implemented client-side lead fee calculation using the same pricing structure as the backend (table-top-small €12, bronze €20, silver €25, gold €30, etc.)
+  - **Impact**: Admins can now see accurate lead fee breakdowns for each TV in multi-installation bookings, improving cost transparency and lead management
 
 ## System Architecture
 The application employs a modern full-stack architecture with AI-enhanced features, prioritizing a mobile-first, responsive design.

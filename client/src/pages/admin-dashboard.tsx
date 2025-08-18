@@ -2296,9 +2296,30 @@ function BookingManagement() {
                       <div key={index} className="border border-gray-200 rounded-lg p-3">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-medium">TV {index + 1}: {tv.location || `Unknown Location`}</h4>
-                          <div className="text-right">
-                            <div className="font-bold text-green-600">€{tv.estimatedTotal?.toFixed(2) || '0.00'}</div>
-                            <div className="text-xs text-gray-500">Service Cost</div>
+                          <div className="text-right space-y-1">
+                            <div>
+                              <div className="font-bold text-green-600">€{tv.estimatedTotal?.toFixed(2) || '0.00'}</div>
+                              <div className="text-xs text-gray-500">Service Cost</div>
+                            </div>
+                            <div>
+                              <div className="font-semibold text-blue-600">€{tv.leadFee?.toFixed(2) || (() => {
+                                // Calculate lead fee based on service type
+                                const leadFees: Record<string, number> = {
+                                  'table-top-small': 12.00,
+                                  'table-top-medium': 15.00,
+                                  'table-top-large': 18.00,
+                                  'bronze': 20.00,
+                                  'silver': 25.00,
+                                  'gold': 30.00,
+                                  'platinum': 35.00,
+                                  'emergency': 40.00,
+                                  'weekend': 30.00,
+                                };
+                                const fee = leadFees[tv.serviceType] || 15.00;
+                                return fee.toFixed(2);
+                              })()}</div>
+                              <div className="text-xs text-gray-500">Lead Fee</div>
+                            </div>
                           </div>
                         </div>
                         <div className="grid grid-cols-4 gap-3 text-sm">
@@ -2446,12 +2467,47 @@ function BookingManagement() {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Lead Fee (Platform):</span>
-                      <span className="font-medium text-blue-600">
-                        €{typeof selectedBooking.leadFee === 'number' ? selectedBooking.leadFee.toFixed(2) : selectedBooking.leadFee}
-                      </span>
-                    </div>
+                    {/* Show breakdown for multi-TV bookings */}
+                    {selectedBooking.tvInstallations && selectedBooking.tvInstallations.length > 1 ? (
+                      <div>
+                        <div className="text-sm text-gray-600 mb-2">Lead Fees (Platform):</div>
+                        <div className="space-y-1 ml-4">
+                          {selectedBooking.tvInstallations.map((tv: any, index: number) => {
+                            const leadFees: Record<string, number> = {
+                              'table-top-small': 12.00,
+                              'table-top-medium': 15.00,
+                              'table-top-large': 18.00,
+                              'bronze': 20.00,
+                              'silver': 25.00,
+                              'gold': 30.00,
+                              'platinum': 35.00,
+                              'emergency': 40.00,
+                              'weekend': 30.00,
+                            };
+                            const fee = tv.leadFee || leadFees[tv.serviceType] || 15.00;
+                            return (
+                              <div key={index} className="flex justify-between text-xs">
+                                <span>TV {index + 1} ({tv.serviceType}):</span>
+                                <span className="font-medium text-blue-600">€{fee.toFixed(2)}</span>
+                              </div>
+                            );
+                          })}
+                          <div className="flex justify-between border-t pt-1 mt-2">
+                            <span className="font-medium text-sm">Total Lead Fee:</span>
+                            <span className="font-medium text-blue-600">
+                              €{typeof selectedBooking.leadFee === 'number' ? selectedBooking.leadFee.toFixed(2) : selectedBooking.leadFee}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Lead Fee (Platform):</span>
+                        <span className="font-medium text-blue-600">
+                          €{typeof selectedBooking.leadFee === 'number' ? selectedBooking.leadFee.toFixed(2) : selectedBooking.leadFee}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Installer Earnings:</span>
                       <span className="font-medium text-green-600">

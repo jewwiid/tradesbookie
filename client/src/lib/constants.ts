@@ -259,3 +259,26 @@ export function getServiceTiersForTvSize(tvSize: number) {
     return tvSize >= tier.minTvSize && tvSize <= tier.maxTvSize;
   });
 }
+
+// Room options for TV installation locations
+export const ROOM_OPTIONS = [
+  { value: 'living-room', label: 'Living Room' },
+  { value: 'main-bedroom', label: 'Main Bedroom' },
+  { value: 'bedroom-2', label: 'Bedroom 2' },
+  { value: 'bedroom-3', label: 'Bedroom 3' },
+  { value: 'children-bedroom', label: 'Children\'s Bedroom' },
+  { value: 'kitchen', label: 'Kitchen' },
+  { value: 'dining-room', label: 'Dining Room' },
+  { value: 'family-room', label: 'Family Room' },
+  { value: 'home-office', label: 'Home Office' },
+  { value: 'basement', label: 'Basement' },
+  { value: 'garage', label: 'Garage' },
+  { value: 'game-room', label: 'Game Room' },
+  { value: 'guest-room', label: 'Guest Room' },
+  { value: 'playroom', label: 'Playroom' },
+  { value: 'patio-outdoor', label: 'Patio/Outdoor' },
+  { value: 'gym', label: 'Home Gym' },
+  { value: 'study', label: 'Study' },
+  { value: 'conservatory', label: 'Conservatory' },
+  { value: 'other', label: 'Other' }
+] as const;

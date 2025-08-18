@@ -187,6 +187,10 @@ export default function InstallerDashboard() {
                           <p className="font-medium">{job.tvSize}"</p>
                         </div>
                         <div>
+                          <span className="text-gray-500">Room:</span>
+                          <p className="font-medium">{job.location || 'Not specified'}</p>
+                        </div>
+                        <div>
                           <span className="text-gray-500">Wall Type:</span>
                           <p className="font-medium capitalize">{job.wallType || 'Not specified'}</p>
                         </div>

@@ -3,8 +3,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tv, Plus, Minus, MapPin } from "lucide-react";
 import { BookingData, TVInstallation } from "@/lib/booking-utils";
+import { ROOM_OPTIONS } from "@/lib/constants";
 
 interface TvQuantitySelectorProps {
   bookingData: BookingData;
@@ -156,13 +158,39 @@ export default function TvQuantitySelector({ bookingData, updateBookingData, add
                   <Label htmlFor={`room-${index}`} className="text-sm font-medium">
                     TV {index + 1} Location
                   </Label>
-                  <Input
-                    id={`room-${index}`}
-                    placeholder="e.g., Living Room, Bedroom, Kitchen"
-                    value={installation.location || ''}
-                    onChange={(e) => updateTvLocation(index, e.target.value)}
-                    className="mt-1"
-                  />
+                  <div className="mt-1 space-y-2">
+                    <Select
+                      value={ROOM_OPTIONS.find(room => room.label === installation.location)?.value || (installation.location && !ROOM_OPTIONS.find(room => room.label === installation.location) ? 'other' : '')}
+                      onValueChange={(value) => {
+                        if (value === 'other') {
+                          // Clear location to allow custom input
+                          updateTvLocation(index, '');
+                        } else {
+                          const selectedRoom = ROOM_OPTIONS.find(room => room.value === value);
+                          updateTvLocation(index, selectedRoom?.label || '');
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select room type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROOM_OPTIONS.map((room) => (
+                          <SelectItem key={room.value} value={room.value}>
+                            {room.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {/* Show custom input if "Other" is selected or if there's a custom value not in options */}
+                    {(installation.location && !ROOM_OPTIONS.find(room => room.label === installation.location)) && (
+                      <Input
+                        placeholder="Enter custom room name"
+                        value={installation.location || ''}
+                        onChange={(e) => updateTvLocation(index, e.target.value)}
+                      />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

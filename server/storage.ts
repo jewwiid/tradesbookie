@@ -455,6 +455,7 @@ export interface IStorage {
   getAiToolQrCodeById(id: number): Promise<AiToolQrCode | undefined>;
   getAiToolQrCodeByQrCodeId(qrCodeId: string): Promise<AiToolQrCode | undefined>;
   updateAiToolQrCode(id: number, updates: Partial<InsertAiToolQrCode>): Promise<AiToolQrCode>;
+  updateAiToolQrCodeScanData(id: number, updates: { scanCount: number; lastScannedAt: Date }): Promise<void>;
   deleteAiToolQrCode(id: number): Promise<void>;
   incrementQrCodeScanCount(qrCodeId: string): Promise<void>;
   
@@ -1634,7 +1635,7 @@ export class DatabaseStorage implements IStorage {
     return newUsage;
   }
 
-  async incrementAiUsage(userId: string | null, sessionId: string, aiFeature: string, isPaid: boolean): Promise<void> {
+  async incrementAiUsage(userId: string | null, sessionId: string, aiFeature: string, isPaid: boolean, qrCodeId?: string, storeLocation?: string): Promise<void> {
     if (userId) {
       // For authenticated users: check if there's already a record for today
       const existing = await this.getAiUsageTracking(userId, sessionId, aiFeature);
@@ -1647,6 +1648,8 @@ export class DatabaseStorage implements IStorage {
             paidUsageCount: isPaid ? (existing.paidUsageCount || 0) + 1 : existing.paidUsageCount,
             lastFreeUsage: isPaid ? existing.lastFreeUsage : new Date(),
             lastPaidUsage: isPaid ? new Date() : existing.lastPaidUsage,
+            qrCodeId: qrCodeId || existing.qrCodeId,
+            storeLocation: storeLocation || existing.storeLocation,
             updatedAt: new Date()
           })
           .where(eq(aiUsageTracking.id, existing.id));
@@ -1659,7 +1662,9 @@ export class DatabaseStorage implements IStorage {
           freeUsageCount: isPaid ? 0 : 1,
           paidUsageCount: isPaid ? 1 : 0,
           lastFreeUsage: isPaid ? null : new Date(),
-          lastPaidUsage: isPaid ? new Date() : null
+          lastPaidUsage: isPaid ? new Date() : null,
+          qrCodeId,
+          storeLocation
         });
       }
     } else {
@@ -1674,6 +1679,8 @@ export class DatabaseStorage implements IStorage {
             paidUsageCount: isPaid ? (existing.paidUsageCount || 0) + 1 : existing.paidUsageCount,
             lastFreeUsage: isPaid ? existing.lastFreeUsage : new Date(),
             lastPaidUsage: isPaid ? new Date() : existing.lastPaidUsage,
+            qrCodeId: qrCodeId || existing.qrCodeId,
+            storeLocation: storeLocation || existing.storeLocation,
             updatedAt: new Date()
           })
           .where(eq(aiUsageTracking.id, existing.id));
@@ -1686,7 +1693,9 @@ export class DatabaseStorage implements IStorage {
           freeUsageCount: isPaid ? 0 : 1,
           paidUsageCount: isPaid ? 1 : 0,
           lastFreeUsage: isPaid ? null : new Date(),
-          lastPaidUsage: isPaid ? new Date() : null
+          lastPaidUsage: isPaid ? new Date() : null,
+          qrCodeId,
+          storeLocation
         });
       }
     }
@@ -3473,6 +3482,16 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(aiToolQrCodes.qrCodeId, qrCodeId));
+  }
+
+  async updateAiToolQrCodeScanData(id: number, updates: { scanCount: number; lastScannedAt: Date }): Promise<void> {
+    await db.update(aiToolQrCodes)
+      .set({ 
+        scanCount: updates.scanCount,
+        lastScannedAt: updates.lastScannedAt,
+        updatedAt: new Date()
+      })
+      .where(eq(aiToolQrCodes.id, id));
   }
 
   // AI Interaction Analytics operations

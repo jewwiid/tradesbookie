@@ -416,6 +416,8 @@ export const aiUsageTracking = pgTable("ai_usage_tracking", {
   paidUsageCount: integer("paid_usage_count").default(0),
   lastFreeUsage: timestamp("last_free_usage"),
   lastPaidUsage: timestamp("last_paid_usage"),
+  qrCodeId: varchar("qr_code_id"), // QR code ID for tracking AI usage from QR scans
+  storeLocation: varchar("store_location"), // Store location for QR code context
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

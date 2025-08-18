@@ -13537,12 +13537,34 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/qr-scan/:qrCodeId', async (req, res) => {
     try {
       const { qrCodeId } = req.params;
+      const { storeLocation } = req.body;
       const sessionId = req.sessionID;
       const userAgent = req.get('User-Agent');
       const ipAddress = req.ip;
       const userId = req.session.user?.id;
 
-      const result = await QRCodeService.trackQRCodeScan(
+      // Try AI tool QR code first
+      const aiToolResult = await QRCodeService.trackAIToolQRCodeScan(
+        qrCodeId, 
+        sessionId, 
+        storeLocation,
+        userAgent, 
+        ipAddress, 
+        userId
+      );
+
+      if (aiToolResult.success) {
+        console.log(`AI Tool QR scan tracked: ${qrCodeId}, tool: ${aiToolResult.toolId}`);
+        return res.json({ 
+          success: true, 
+          type: 'ai-tool',
+          toolId: aiToolResult.toolId,
+          qrCodeDbId: aiToolResult.qrCodeDbId
+        });
+      }
+
+      // Fallback to product category QR code
+      const categoryResult = await QRCodeService.trackQRCodeScan(
         qrCodeId, 
         sessionId, 
         userAgent, 
@@ -13550,11 +13572,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         userId
       );
 
-      if (!result.success) {
-        return res.status(404).json({ error: result.error });
+      if (!categoryResult.success) {
+        return res.status(404).json({ error: 'QR code not found' });
       }
 
-      res.json({ success: true, categoryId: result.categoryId });
+      console.log(`Product category QR scan tracked: ${qrCodeId}, category: ${categoryResult.categoryId}`);
+      res.json({ 
+        success: true, 
+        type: 'product-category',
+        categoryId: categoryResult.categoryId 
+      });
     } catch (error) {
       console.error('Error tracking QR scan:', error);
       res.status(500).json({ error: 'Failed to track scan' });

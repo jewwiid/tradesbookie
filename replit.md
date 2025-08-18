@@ -34,6 +34,7 @@ The application employs a modern full-stack architecture with AI-enhanced featur
 - **Admin Installer Onboarding:** Supports dual-approach installer registration (full registration or basic profile with completion invite) and a secure token-based profile completion flow.
 - **Admin Dashboard Cross-View Access:** Implemented comprehensive admin access system for monitoring installer and customer dashboards with visual indicators and backend security.
 - **AI Tools QR Code Generation:** Implemented comprehensive QR code generation for in-store AI tool access, including printable flyers with store location context. QR codes now point to production domain (tradesbook.ie) and automatically direct users to the correct AI helper tab based on the tool type. Added QR code download functionality (PNG format), enhanced management with save/edit/remove capabilities, and implemented scan tracking for analytics.
+- **Complete QR-to-AI Analytics Pipeline:** Implemented end-to-end QR code scan tracking connected to AI usage analytics. QR scan events now properly link to subsequent AI tool interactions, providing complete attribution from QR code usage to AI requests. Updated AI credit middleware to accept and process QR code parameters, enhanced storage layer to track QR context in AI usage records, and modified all frontend AI service calls to include QR tracking data when available.
 
 **System Design Choices:**
 - **Full-Stack Architecture:** Clear separation of frontend and backend concerns.

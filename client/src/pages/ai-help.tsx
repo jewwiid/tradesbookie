@@ -180,6 +180,10 @@ export default function AIHelpPage() {
   const [productInfo, setProductInfo] = useState<ProductInfo | null>(null);
   const [creditError, setCreditError] = useState<any>(null);
   
+  // QR code tracking parameters
+  const [qrCodeId, setQrCodeId] = useState<string | null>(null);
+  const [storeLocation, setStoreLocation] = useState<string | null>(null);
+  
   // Electronic Product Comparison State
   const [product1, setProduct1] = useState('');
   const [product2, setProduct2] = useState('');
@@ -233,6 +237,10 @@ export default function AIHelpPage() {
       // Show store context if provided and track QR scan
       if (storeParam && qrParam) {
         console.log(`QR scan from store: ${storeParam} with QR ID: ${qrParam}`);
+        
+        // Set QR tracking state for AI requests
+        setQrCodeId(qrParam);
+        setStoreLocation(storeParam);
         
         // Track the QR scan for analytics
         try {
@@ -301,22 +309,28 @@ export default function AIHelpPage() {
           experience: 'average user'
         };
 
+        const requestBody: any = { 
+          productInfo: {
+            name: productInfo.name,
+            brand: productInfo.brand,
+            category: category,
+            price: productInfo.price,
+            keyFeatures: productInfo.keyFeatures,
+            specifications: productInfo.specifications,
+            pros: productInfo.pros,
+            cons: productInfo.cons
+          },
+          userContext
+        };
+        if (qrCodeId) {
+          requestBody.qrCodeId = qrCodeId;
+          requestBody.storeLocation = storeLocation;
+        }
+        
         fetch('/api/ai/product-care-analysis', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            productInfo: {
-              name: productInfo.name,
-              brand: productInfo.brand,
-              category: category,
-              price: productInfo.price,
-              keyFeatures: productInfo.keyFeatures,
-              specifications: productInfo.specifications,
-              pros: productInfo.pros,
-              cons: productInfo.cons
-            },
-            userContext
-          })
+          body: JSON.stringify(requestBody)
         })
         .then(async response => {
           if (!response.ok) {
@@ -551,9 +565,15 @@ export default function AIHelpPage() {
 
   const getProductInfo = useMutation({
     mutationFn: async ({ model }: { model: string }) => {
+      const requestBody: any = { model };
+      if (qrCodeId) {
+        requestBody.qrCodeId = qrCodeId;
+        requestBody.storeLocation = storeLocation;
+      }
+      
       const response = await fetch('/api/ai/product-info', {
         method: 'POST',
-        body: JSON.stringify({ model }),
+        body: JSON.stringify(requestBody),
         headers: { 'Content-Type': 'application/json' }
       });
       if (!response.ok) {
@@ -579,9 +599,15 @@ export default function AIHelpPage() {
       productCategory: string;
       questionnaire: QuestionnaireAnswers;
     }) => {
+      const requestBody: any = { product1, product2, productCategory, questionnaire };
+      if (qrCodeId) {
+        requestBody.qrCodeId = qrCodeId;
+        requestBody.storeLocation = storeLocation;
+      }
+      
       const response = await fetch('/api/ai/compare-electronics', {
         method: 'POST',
-        body: JSON.stringify({ product1, product2, productCategory, questionnaire }),
+        body: JSON.stringify(requestBody),
         headers: { 'Content-Type': 'application/json' }
       });
       if (!response.ok) {
@@ -1191,9 +1217,15 @@ export default function AIHelpPage() {
       answers: Record<string, string>;
       budget: number;
     }) => {
+      const requestBody: any = { category, answers, maxBudgetEUR: budget };
+      if (qrCodeId) {
+        requestBody.qrCodeId = qrCodeId;
+        requestBody.storeLocation = storeLocation;
+      }
+      
       const response = await fetch('/api/ai/recommend', {
         method: 'POST',
-        body: JSON.stringify({ category, answers, maxBudgetEUR: budget }),
+        body: JSON.stringify(requestBody),
         headers: { 'Content-Type': 'application/json' }
       });
       if (!response.ok) {
@@ -1875,7 +1907,7 @@ export default function AIHelpPage() {
                 Ask me anything about TV installation & electronics
               </h2>
               <div className="flex-1 min-h-0">
-                <AIHelpWidget />
+                <AIHelpWidget qrCodeId={qrCodeId} storeLocation={storeLocation} />
               </div>
             </div>
           ) : activeTab === 'compare' ? (

@@ -151,6 +151,47 @@ export class QRCodeService {
   }
 
   /**
+   * Track AI Tool QR code scan with analytics
+   */
+  static async trackAIToolQRCodeScan(
+    qrCodeId: string, 
+    sessionId: string,
+    storeLocation?: string,
+    userAgent?: string,
+    ipAddress?: string,
+    userId?: string
+  ): Promise<{ success: boolean; toolId?: number; qrCodeDbId?: number; error?: string }> {
+    try {
+      const { storage } = await import('./storage');
+      
+      // Find the AI tool QR code by QR code ID
+      const aiToolQrCode = await storage.getAiToolQrCodeByQrCodeId(qrCodeId);
+      
+      if (!aiToolQrCode) {
+        return { success: false, error: 'AI tool QR code not found' };
+      }
+
+      // Detect device type from user agent
+      const deviceType = this.detectDeviceType(userAgent);
+
+      // Update scan count and last scanned timestamp
+      await storage.updateAiToolQrCodeScanData(aiToolQrCode.id, {
+        scanCount: aiToolQrCode.scanCount + 1,
+        lastScannedAt: new Date()
+      });
+
+      return { 
+        success: true, 
+        toolId: aiToolQrCode.toolId,
+        qrCodeDbId: aiToolQrCode.id
+      };
+    } catch (error) {
+      console.error('Error tracking AI tool QR code scan:', error);
+      return { success: false, error: 'Failed to track AI tool scan' };
+    }
+  }
+
+  /**
    * Detect device type from user agent
    */
   private static detectDeviceType(userAgent?: string): string {

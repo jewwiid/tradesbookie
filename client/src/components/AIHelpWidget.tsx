@@ -31,7 +31,12 @@ const FAQ_SUGGESTIONS = [
   "How much does TV installation cost?",
 ];
 
-export default function AIHelpWidget() {
+interface AIHelpWidgetProps {
+  qrCodeId?: string | null;
+  storeLocation?: string | null;
+}
+
+export default function AIHelpWidget({ qrCodeId, storeLocation }: AIHelpWidgetProps) {
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -52,7 +57,12 @@ export default function AIHelpWidget() {
   // Ask question mutation
   const askQuestionMutation = useMutation({
     mutationFn: async (questionText: string): Promise<FaqResponse> => {
-      const response = await apiRequest("POST", "/api/faq/ask", { question: questionText });
+      const requestBody: any = { question: questionText };
+      if (qrCodeId) {
+        requestBody.qrCodeId = qrCodeId;
+        requestBody.storeLocation = storeLocation;
+      }
+      const response = await apiRequest("POST", "/api/faq/ask", requestBody);
       return await response.json() as FaqResponse;
     },
     onSuccess: (response, questionText) => {

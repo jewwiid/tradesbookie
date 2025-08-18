@@ -93,6 +93,8 @@ export interface AIRequest extends Request {
     canUseFree: boolean;
     usageCount: number;
     creditCost: number;
+    qrCodeId?: string;
+    storeLocation?: string;
   };
 }
 
@@ -222,6 +224,10 @@ export function checkAiCredits(aiFeature: string) {
         }
       }
 
+      // Extract QR code tracking parameters from request
+      const qrCodeId = req.body?.qrCodeId || req.query?.qrCodeId as string;
+      const storeLocation = req.body?.storeLocation || req.query?.storeLocation as string;
+
       // Add usage info to request for the endpoint to use
       req.aiUsage = {
         isAuthenticated,
@@ -230,7 +236,9 @@ export function checkAiCredits(aiFeature: string) {
         aiFeature,
         canUseFree: freeUsageCheck.canUseFree,
         usageCount: freeUsageCheck.usageCount,
-        creditCost
+        creditCost,
+        qrCodeId,
+        storeLocation
       };
 
       next();
@@ -250,7 +258,7 @@ export function checkAiCredits(aiFeature: string) {
 export async function recordAiUsage(req: AIRequest): Promise<void> {
   if (!req.aiUsage) return;
 
-  const { userId, sessionId, aiFeature, canUseFree, creditCost } = req.aiUsage;
+  const { userId, sessionId, aiFeature, canUseFree, creditCost, qrCodeId, storeLocation } = req.aiUsage;
   const isPaidRequest = !canUseFree;
   
   // Verify tool is still active (in case it was disabled during request)
@@ -271,8 +279,8 @@ export async function recordAiUsage(req: AIRequest): Promise<void> {
   }
 
   try {
-    // Record usage
-    await storage.incrementAiUsage(userId, sessionId, aiFeature, isPaidRequest);
+    // Record usage with QR code tracking
+    await storage.incrementAiUsage(userId, sessionId, aiFeature, isPaidRequest, qrCodeId, storeLocation);
 
     // Deduct credits if it was a paid request
     if (isPaidRequest && userId) {

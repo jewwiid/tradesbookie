@@ -53,7 +53,7 @@ import {
   type InstallerServiceAssignment, type InsertInstallerServiceAssignment
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, or, isNull, sql } from "drizzle-orm";
+import { eq, desc, and, or, isNull, sql, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import bcrypt from "bcrypt";
 
@@ -796,29 +796,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInstallerPurchasedLeads(installerId: number): Promise<Booking[]> {
-    // Get purchased leads from job assignments table
-    const purchasedJobs = await db.select({
-      booking: bookings,
-      jobAssignment: jobAssignments
-    })
-    .from(jobAssignments)
-    .innerJoin(bookings, eq(jobAssignments.bookingId, bookings.id))
-    .where(and(
-      eq(jobAssignments.installerId, installerId),
-      eq(jobAssignments.leadFeeStatus, 'paid')
-    ))
-    .orderBy(desc(jobAssignments.assignedDate));
+    // Get job assignments for this installer with purchased, accepted, etc. status
+    const assignments = await db.select().from(jobAssignments)
+      .where(and(
+        eq(jobAssignments.installerId, installerId),
+        inArray(jobAssignments.status, ['purchased', 'accepted', 'in_progress', 'completed'])
+      ));
 
-    // Return bookings with job assignment info merged
-    return purchasedJobs.map(row => ({
-      ...row.booking,
-      jobAssignmentId: row.jobAssignment.id,
-      leadFee: row.jobAssignment.leadFee,
-      assignedDate: row.jobAssignment.assignedDate,
-      acceptedDate: row.jobAssignment.acceptedDate,
-      completedDate: row.jobAssignment.completedDate,
-      leadFeeStatus: row.jobAssignment.leadFeeStatus
-    }));
+    // Get the corresponding bookings and merge with assignment data
+    const results = [];
+    for (const assignment of assignments) {
+      const [booking] = await db.select().from(bookings)
+        .where(eq(bookings.id, assignment.bookingId));
+      
+      if (booking) {
+        results.push({
+          ...booking,
+          jobAssignmentId: assignment.id,
+          leadFee: assignment.leadFee,
+          assignedDate: assignment.assignedDate,
+          acceptedDate: assignment.acceptedDate,
+          completedDate: assignment.completedDate,
+          jobAssignmentStatus: assignment.status
+        });
+      }
+    }
+
+    return results;
   }
 
   async updateBooking(id: number, updates: Partial<InsertBooking>): Promise<void> {

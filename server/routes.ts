@@ -8600,10 +8600,33 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const installer = await storage.getInstaller(installerId);
       const isDemoAccount = installer?.email === "test@tradesbook.ie";
       
-      // Get actual purchased leads from database
+      // Get actual purchased leads from job assignments
       const purchasedLeads = await storage.getInstallerPurchasedLeads(installerId);
+      console.log(`Found ${purchasedLeads.length} purchased leads for installer ${installerId}`);
       
-      // For other installers, try to get from database
+      // Transform purchased leads to the expected format
+      const transformedPurchasedLeads = purchasedLeads.map(booking => ({
+        id: booking.id,
+        customerName: booking.contactName || "Customer",
+        customerEmail: booking.contactEmail || "",
+        customerPhone: booking.contactPhone || "",
+        address: booking.address,
+        tvSize: booking.tvSize,
+        serviceType: booking.serviceType,
+        wallType: booking.wallType || "Drywall", 
+        mountType: booking.mountType || "Fixed",
+        addons: booking.addons || [],
+        estimatedPrice: booking.estimatedPrice || booking.totalPrice || "0",
+        leadFee: (booking as any).leadFee || "0",
+        status: (booking as any).jobAssignmentStatus || booking.status, // Use job assignment status
+        scheduledDate: booking.scheduledDate,
+        completedDate: booking.completedDate,
+        customerNotes: booking.customerNotes,
+        createdAt: booking.createdAt || new Date().toISOString(),
+        acceptedDate: (booking as any).acceptedDate // Include accepted date
+      }));
+      
+      // For backward compatibility, also get bookings directly assigned to installer
       const allBookings = await storage.getAllBookings();
       const installerBookings = allBookings.filter(booking => {
         // Must be assigned to this installer
@@ -8655,7 +8678,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       });
       
       // Apply status updates to purchased leads as well
-      const updatedPurchasedLeads = purchasedLeads.map(lead => {
+      const updatedPurchasedLeads = transformedPurchasedLeads.map(lead => {
         if (installerId === 2 && (global as any).demoStatusUpdates && (global as any).demoStatusUpdates[lead.id]) {
           const statusUpdate = (global as any).demoStatusUpdates[lead.id];
           return {

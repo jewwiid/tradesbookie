@@ -10,12 +10,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { format } from "date-fns";
 import { 
   Zap, 
   Plus, 
@@ -35,7 +37,12 @@ import {
   Wrench,
   QrCode,
   Download,
-  MapPin
+  MapPin,
+  Eye,
+  MoreHorizontal,
+  Calendar,
+  Activity,
+  Archive
 } from "lucide-react";
 
 interface AiTool {
@@ -48,6 +55,20 @@ interface AiTool {
   iconName: string;
   category: string;
   endpoint?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AiToolQrCode {
+  id: number;
+  toolId: number;
+  qrCodeId: string;
+  qrCodeUrl: string;
+  targetUrl: string;
+  storeLocation?: string;
+  scanCount: number;
+  lastScannedAt?: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -98,6 +119,8 @@ export default function AiToolsManagement() {
   const [selectedToolForQr, setSelectedToolForQr] = useState<AiTool | null>(null);
   const [storeLocation, setStoreLocation] = useState("");
   const [qrCodeData, setQrCodeData] = useState<any>(null);
+  const [qrManagementDialogOpen, setQrManagementDialogOpen] = useState(false);
+  const [selectedToolForManagement, setSelectedToolForManagement] = useState<AiTool | null>(null);
 
   const form = useForm<AiToolFormData>({
     resolver: zodResolver(aiToolSchema),
@@ -121,6 +144,18 @@ export default function AiToolsManagement() {
       if (!response.ok) throw new Error('Failed to fetch AI tools');
       return response.json();
     }
+  });
+
+  // Fetch QR codes for a specific tool
+  const { data: qrCodes = [], isLoading: qrCodesLoading } = useQuery({
+    queryKey: ['/api/admin/ai-tools', selectedToolForManagement?.id, 'qr-codes'],
+    queryFn: async () => {
+      if (!selectedToolForManagement) return [];
+      const response = await apiRequest('GET', `/api/admin/ai-tools/${selectedToolForManagement.id}/qr-codes`);
+      if (!response.ok) throw new Error('Failed to fetch QR codes');
+      return response.json();
+    },
+    enabled: !!selectedToolForManagement
   });
 
   // Create AI tool mutation
@@ -207,9 +242,49 @@ export default function AiToolsManagement() {
     },
     onSuccess: (data) => {
       setQrCodeData(data);
+      // Invalidate QR codes list if we're managing QR codes
+      if (selectedToolForManagement) {
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/ai-tools', selectedToolForManagement.id, 'qr-codes'] });
+      }
       toast({
         title: "Success",
-        description: "QR code generated successfully"
+        description: "QR code generated and saved successfully"
+      });
+    }
+  });
+
+  // Delete QR code mutation
+  const deleteQrMutation = useMutation({
+    mutationFn: async (qrCodeId: number) => {
+      const response = await apiRequest('DELETE', `/api/admin/ai-tools/qr-codes/${qrCodeId}`);
+      if (!response.ok) throw new Error('Failed to delete QR code');
+      return response.json();
+    },
+    onSuccess: () => {
+      if (selectedToolForManagement) {
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/ai-tools', selectedToolForManagement.id, 'qr-codes'] });
+      }
+      toast({
+        title: "Success",
+        description: "QR code deleted successfully"
+      });
+    }
+  });
+
+  // Toggle QR code active status mutation
+  const toggleQrStatusMutation = useMutation({
+    mutationFn: async ({ qrCodeId, isActive }: { qrCodeId: number; isActive: boolean }) => {
+      const response = await apiRequest('PATCH', `/api/admin/ai-tools/qr-codes/${qrCodeId}`, { isActive });
+      if (!response.ok) throw new Error('Failed to update QR code status');
+      return response.json();
+    },
+    onSuccess: () => {
+      if (selectedToolForManagement) {
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/ai-tools', selectedToolForManagement.id, 'qr-codes'] });
+      }
+      toast({
+        title: "Success",
+        description: "QR code status updated"
       });
     }
   });
@@ -266,6 +341,21 @@ export default function AiToolsManagement() {
       const url = `/api/admin/ai-tools/${selectedToolForQr.id}/flyer?${params.toString()}`;
       window.open(url, '_blank');
     }
+  };
+
+  const handleManageQrCodes = (tool: AiTool) => {
+    setSelectedToolForManagement(tool);
+    setQrManagementDialogOpen(true);
+  };
+
+  const handleDeleteQrCode = (qrCodeId: number) => {
+    if (confirm('Are you sure you want to delete this QR code?')) {
+      deleteQrMutation.mutate(qrCodeId);
+    }
+  };
+
+  const handleToggleQrStatus = (qrCodeId: number, isActive: boolean) => {
+    toggleQrStatusMutation.mutate({ qrCodeId, isActive });
   };
 
   const getIcon = (iconName: string) => {
@@ -600,6 +690,14 @@ export default function AiToolsManagement() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => handleManageQrCodes(tool)}
+                          title="Manage QR Codes"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleEdit(tool)}
                           title="Edit Tool"
                         >
@@ -718,6 +816,175 @@ export default function AiToolsManagement() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Code Management Dialog */}
+      <Dialog open={qrManagementDialogOpen} onOpenChange={setQrManagementDialogOpen}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Manage QR Codes</DialogTitle>
+            <DialogDescription>
+              View and manage all saved QR codes for this AI tool.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedToolForManagement && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-600">
+                  {React.createElement(getIcon(selectedToolForManagement.iconName), { className: "h-4 w-4" })}
+                </div>
+                <div>
+                  <div className="font-medium">{selectedToolForManagement.name}</div>
+                  <div className="text-sm text-muted-foreground">{selectedToolForManagement.description}</div>
+                </div>
+              </div>
+
+              <Tabs defaultValue="saved-qr-codes" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="saved-qr-codes">Saved QR Codes</TabsTrigger>
+                  <TabsTrigger value="generate-new">Generate New</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="saved-qr-codes" className="space-y-4">
+                  {qrCodesLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-muted-foreground">Loading QR codes...</div>
+                    </div>
+                  ) : qrCodes.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <QrCode className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No saved QR codes yet.</p>
+                      <p className="text-sm">Use the "Generate New" tab to create your first QR code.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {qrCodes.map((qrCode: AiToolQrCode) => (
+                          <Card key={qrCode.id} className={`relative ${!qrCode.isActive ? 'opacity-60' : ''}`}>
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={qrCode.isActive ? "default" : "secondary"}>
+                                    {qrCode.isActive ? "Active" : "Inactive"}
+                                  </Badge>
+                                  {qrCode.scanCount > 0 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      <Activity className="h-3 w-3 mr-1" />
+                                      {qrCode.scanCount} scans
+                                    </Badge>
+                                  )}
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteQrCode(qrCode.id)}
+                                  className="text-red-600 hover:text-red-700 p-1"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              
+                              <div className="text-center mb-3">
+                                <img 
+                                  src={qrCode.qrCodeUrl} 
+                                  alt="QR Code" 
+                                  className="mx-auto border rounded p-1 bg-white"
+                                  style={{ width: '120px', height: '120px' }}
+                                />
+                              </div>
+                              
+                              <div className="space-y-2 text-sm">
+                                {qrCode.storeLocation && (
+                                  <div className="flex items-center gap-2">
+                                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                                    <span className="truncate">{qrCode.storeLocation}</span>
+                                  </div>
+                                )}
+                                
+                                <div className="flex items-center gap-2">
+                                  <Calendar className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-muted-foreground">
+                                    Created {format(new Date(qrCode.createdAt), 'MMM dd, yyyy')}
+                                  </span>
+                                </div>
+                                
+                                {qrCode.lastScannedAt && (
+                                  <div className="flex items-center gap-2">
+                                    <Activity className="h-3 w-3 text-muted-foreground" />
+                                    <span className="text-muted-foreground">
+                                      Last scan {format(new Date(qrCode.lastScannedAt), 'MMM dd, yyyy')}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={qrCode.isActive}
+                                    onCheckedChange={(isActive) => handleToggleQrStatus(qrCode.id, isActive)}
+                                    disabled={toggleQrStatusMutation.isPending}
+                                  />
+                                  <span className="text-sm text-muted-foreground">Active</span>
+                                </div>
+                                
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const params = new URLSearchParams();
+                                    if (qrCode.storeLocation) params.set('storeLocation', qrCode.storeLocation);
+                                    const url = `/api/admin/ai-tools/${selectedToolForManagement.id}/flyer?${params.toString()}`;
+                                    window.open(url, '_blank');
+                                  }}
+                                >
+                                  <Download className="h-3 w-3 mr-1" />
+                                  Flyer
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="generate-new" className="space-y-4">
+                  <div>
+                    <Label htmlFor="newStoreLocation" className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Store Location (Optional)
+                    </Label>
+                    <Input
+                      id="newStoreLocation"
+                      placeholder="e.g., Harvey Norman Carrickmines"
+                      value={storeLocation}
+                      onChange={(e) => setStoreLocation(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <Button 
+                    onClick={() => {
+                      if (selectedToolForManagement) {
+                        generateQrMutation.mutate({ 
+                          id: selectedToolForManagement.id, 
+                          storeLocation: storeLocation || undefined 
+                        });
+                      }
+                    }}
+                    disabled={generateQrMutation.isPending}
+                    className="w-full"
+                  >
+                    {generateQrMutation.isPending ? "Generating..." : "Generate & Save New QR Code"}
+                  </Button>
+                </TabsContent>
+              </Tabs>
             </div>
           )}
         </DialogContent>

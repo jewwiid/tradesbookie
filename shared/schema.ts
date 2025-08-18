@@ -367,6 +367,21 @@ export const aiTools = pgTable("ai_tools", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// AI Tool QR Codes - for storing generated QR codes per tool/location
+export const aiToolQrCodes = pgTable("ai_tool_qr_codes", {
+  id: serial("id").primaryKey(),
+  toolId: integer("tool_id").references(() => aiTools.id).notNull(),
+  qrCodeId: varchar("qr_code_id").unique().notNull(), // Unique QR identifier
+  qrCodeUrl: text("qr_code_url").notNull(), // Data URL of QR code image
+  targetUrl: text("target_url").notNull(), // URL the QR code points to
+  storeLocation: varchar("store_location"), // Optional store/location context
+  scanCount: integer("scan_count").default(0),
+  lastScannedAt: timestamp("last_scanned_at"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Support tickets system
 export const supportTickets = pgTable("support_tickets", {
   id: serial("id").primaryKey(),
@@ -1384,6 +1399,18 @@ export const choiceFlowTrackingRelations = relations(choiceFlowTracking, ({ one 
   }),
 }));
 
+// AI Tool relations
+export const aiToolsRelations = relations(aiTools, ({ many }) => ({
+  qrCodes: many(aiToolQrCodes),
+}));
+
+export const aiToolQrCodesRelations = relations(aiToolQrCodes, ({ one }) => ({
+  tool: one(aiTools, {
+    fields: [aiToolQrCodes.toolId],
+    references: [aiTools.id],
+  }),
+}));
+
 
 
 // Zod schemas
@@ -1788,6 +1815,16 @@ export const insertChoiceFlowTrackingSchema = createInsertSchema(choiceFlowTrack
   updatedAt: true,
 });
 
+// AI Tool QR Code schemas
+export const insertAiToolQrCodeSchema = createInsertSchema(aiToolQrCodes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  qrCodeId: true, // Generated automatically
+  qrCodeUrl: true, // Generated automatically  
+  targetUrl: true, // Generated automatically
+});
+
 // Product Category form schema with validation
 export const productCategoryFormSchema = insertProductCategorySchema.extend({
   name: z.string().min(1, "Category name is required"),
@@ -1817,6 +1854,9 @@ export type InsertAiProductRecommendation = z.infer<typeof insertAiProductRecomm
 
 export type ChoiceFlowTracking = typeof choiceFlowTracking.$inferSelect;
 export type InsertChoiceFlowTracking = z.infer<typeof insertChoiceFlowTrackingSchema>;
+
+export type AiToolQrCode = typeof aiToolQrCodes.$inferSelect;
+export type InsertAiToolQrCode = z.infer<typeof insertAiToolQrCodeSchema>;
 
 export type PasswordResetRequest = z.infer<typeof passwordResetRequestSchema>;
 export type PasswordResetConfirm = z.infer<typeof passwordResetConfirmSchema>;

@@ -14540,9 +14540,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Generate QR code for the AI tool
       const qrCodeData = await QRCodeService.generateAIToolQRCode(
+        tool.id,
         tool.key,
         tool.name,
-        storeLocation
+        storeLocation,
+        true // Save to database
       );
 
       res.json({
@@ -14563,11 +14565,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Generate printable flyer for AI tool
-  app.post("/api/admin/ai-tools/:id/flyer", isAdmin, async (req, res) => {
+  // Generate printable flyer for AI tool (GET method for downloading)
+  app.get("/api/admin/ai-tools/:id/flyer", isAdmin, async (req, res) => {
     try {
       const toolId = parseInt(req.params.id);
-      const { storeLocation } = req.body;
+      const storeLocation = req.query.storeLocation as string;
       
       // Get the AI tool details
       const tool = await storage.getAiTool(toolId);
@@ -14575,11 +14577,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.status(404).json({ error: 'AI tool not found' });
       }
 
-      // Generate QR code for the AI tool
+      // Generate QR code for the AI tool (don't save for flyer generation)
       const qrCodeData = await QRCodeService.generateAIToolQRCode(
+        tool.id,
         tool.key,
         tool.name,
-        storeLocation
+        storeLocation,
+        false // Don't save to database for flyer generation
       );
 
       // Generate printable flyer SVG
@@ -14596,6 +14600,105 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error('Error generating AI tool flyer:', error);
       res.status(500).json({ error: 'Failed to generate flyer' });
+    }
+  });
+
+  // Also support POST method for backward compatibility
+  app.post("/api/admin/ai-tools/:id/flyer", isAdmin, async (req, res) => {
+    try {
+      const toolId = parseInt(req.params.id);
+      const { storeLocation } = req.body;
+      
+      // Get the AI tool details
+      const tool = await storage.getAiTool(toolId);
+      if (!tool) {
+        return res.status(404).json({ error: 'AI tool not found' });
+      }
+
+      // Generate QR code for the AI tool (don't save for flyer generation)
+      const qrCodeData = await QRCodeService.generateAIToolQRCode(
+        tool.id,
+        tool.key,
+        tool.name,
+        storeLocation,
+        false // Don't save to database for flyer generation
+      );
+
+      // Generate printable flyer SVG
+      const flyerSVG = QRCodeService.generateAIToolFlyerSVG({
+        name: tool.name,
+        description: tool.description,
+        qrCodeUrl: qrCodeData.qrCodeUrl,
+        storeLocation
+      });
+
+      res.setHeader('Content-Type', 'image/svg+xml');
+      res.setHeader('Content-Disposition', `attachment; filename="${tool.key}-flyer.svg"`);
+      res.send(flyerSVG);
+    } catch (error) {
+      console.error('Error generating AI tool flyer:', error);
+      res.status(500).json({ error: 'Failed to generate flyer' });
+    }
+  });
+
+  // Get all QR codes for an AI tool
+  app.get("/api/admin/ai-tools/:id/qr-codes", isAdmin, async (req, res) => {
+    try {
+      const toolId = parseInt(req.params.id);
+      const qrCodes = await storage.getAiToolQrCodes(toolId);
+      res.json(qrCodes);
+    } catch (error) {
+      console.error('Error fetching AI tool QR codes:', error);
+      res.status(500).json({ error: 'Failed to fetch QR codes' });
+    }
+  });
+
+  // Delete a saved QR code
+  app.delete("/api/admin/ai-tools/qr-codes/:qrCodeId", isAdmin, async (req, res) => {
+    try {
+      const qrCodeId = parseInt(req.params.qrCodeId);
+      await storage.deleteAiToolQrCode(qrCodeId);
+      res.json({ success: true, message: 'QR code deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting AI tool QR code:', error);
+      res.status(500).json({ error: 'Failed to delete QR code' });
+    }
+  });
+
+  // Update a saved QR code (activate/deactivate)
+  app.patch("/api/admin/ai-tools/qr-codes/:qrCodeId", isAdmin, async (req, res) => {
+    try {
+      const qrCodeId = parseInt(req.params.qrCodeId);
+      const { isActive, storeLocation } = req.body;
+      
+      const updates: any = {};
+      if (typeof isActive !== 'undefined') updates.isActive = isActive;
+      if (storeLocation !== undefined) updates.storeLocation = storeLocation;
+      
+      const updatedQrCode = await storage.updateAiToolQrCode(qrCodeId, updates);
+      res.json(updatedQrCode);
+    } catch (error) {
+      console.error('Error updating AI tool QR code:', error);
+      res.status(500).json({ error: 'Failed to update QR code' });
+    }
+  });
+
+  // Track QR code scan when user accesses AI tool via QR code
+  app.post("/api/qr-code/scan", async (req, res) => {
+    try {
+      const { qrCodeId } = req.body;
+      
+      if (!qrCodeId) {
+        return res.status(400).json({ error: 'QR code ID is required' });
+      }
+
+      // Increment the scan count for this QR code
+      await storage.incrementQrCodeScanCount(qrCodeId);
+      
+      res.json({ success: true, message: 'Scan tracked successfully' });
+    } catch (error) {
+      console.error('Error tracking QR code scan:', error);
+      res.status(500).json({ error: 'Failed to track scan' });
     }
   });
 

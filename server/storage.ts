@@ -6,7 +6,7 @@ import {
   leadQualityTracking, antiManipulation, customerVerification, resources,
   platformSettings, performanceRefundSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
   consultations, downloadableGuides, videoTutorials, productCategories,
-  qrCodeScans, aiProductRecommendations, choiceFlowTracking,
+  qrCodeScans, aiProductRecommendations, choiceFlowTracking, aiToolQrCodes,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics, retailerInvoices,
   installerServiceAssignments, customerWallets, customerTransactions, supportTickets, ticketMessages, aiUsageTracking, aiTools, leadRefunds,
   type User, type UpsertUser,
@@ -45,6 +45,7 @@ import {
   type QrCodeScan, type InsertQrCodeScan,
   type AiProductRecommendation, type InsertAiProductRecommendation,
   type ChoiceFlowTracking, type InsertChoiceFlowTracking,
+  type AiToolQrCode, type InsertAiToolQrCode,
   type OnboardingInvitation, type InsertOnboardingInvitation,
   type TradesPersonEmailTemplate, type InsertTradesPersonEmailTemplate,
   type SelectServiceType, type InsertServiceType,
@@ -446,6 +447,15 @@ export interface IStorage {
   updateAiTool(id: number, updates: Partial<InsertAiTool>): Promise<AiTool>;
   deleteAiTool(id: number): Promise<void>;
   updateAiToolStatus(id: number, isActive: boolean): Promise<void>;
+
+  // AI Tool QR Code operations
+  createAiToolQrCode(qrCode: InsertAiToolQrCode): Promise<AiToolQrCode>;
+  getAiToolQrCodes(toolId: number): Promise<AiToolQrCode[]>;
+  getAiToolQrCodeById(id: number): Promise<AiToolQrCode | undefined>;
+  getAiToolQrCodeByQrCodeId(qrCodeId: string): Promise<AiToolQrCode | undefined>;
+  updateAiToolQrCode(id: number, updates: Partial<InsertAiToolQrCode>): Promise<AiToolQrCode>;
+  deleteAiToolQrCode(id: number): Promise<void>;
+  incrementQrCodeScanCount(qrCodeId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3405,6 +3415,50 @@ export class DatabaseStorage implements IStorage {
     await db.update(aiTools)
       .set({ isActive, updatedAt: new Date() })
       .where(eq(aiTools.id, id));
+  }
+
+  // AI Tool QR Code operations
+  async createAiToolQrCode(qrCode: InsertAiToolQrCode): Promise<AiToolQrCode> {
+    const [newQrCode] = await db.insert(aiToolQrCodes).values(qrCode).returning();
+    return newQrCode;
+  }
+
+  async getAiToolQrCodes(toolId: number): Promise<AiToolQrCode[]> {
+    return await db.select().from(aiToolQrCodes)
+      .where(and(eq(aiToolQrCodes.toolId, toolId), eq(aiToolQrCodes.isActive, true)))
+      .orderBy(desc(aiToolQrCodes.createdAt));
+  }
+
+  async getAiToolQrCodeById(id: number): Promise<AiToolQrCode | undefined> {
+    const [qrCode] = await db.select().from(aiToolQrCodes).where(eq(aiToolQrCodes.id, id));
+    return qrCode;
+  }
+
+  async getAiToolQrCodeByQrCodeId(qrCodeId: string): Promise<AiToolQrCode | undefined> {
+    const [qrCode] = await db.select().from(aiToolQrCodes).where(eq(aiToolQrCodes.qrCodeId, qrCodeId));
+    return qrCode;
+  }
+
+  async updateAiToolQrCode(id: number, updates: Partial<InsertAiToolQrCode>): Promise<AiToolQrCode> {
+    const [updatedQrCode] = await db.update(aiToolQrCodes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(aiToolQrCodes.id, id))
+      .returning();
+    return updatedQrCode;
+  }
+
+  async deleteAiToolQrCode(id: number): Promise<void> {
+    await db.delete(aiToolQrCodes).where(eq(aiToolQrCodes.id, id));
+  }
+
+  async incrementQrCodeScanCount(qrCodeId: string): Promise<void> {
+    await db.update(aiToolQrCodes)
+      .set({ 
+        scanCount: sql`${aiToolQrCodes.scanCount} + 1`,
+        lastScannedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(aiToolQrCodes.qrCodeId, qrCodeId));
   }
 }
 

@@ -156,17 +156,19 @@ export class QRCodeService {
   }
 
   /**
-   * Generate QR code for AI tools
+   * Generate QR code for AI tools and save to database
    */
   static async generateAIToolQRCode(
+    toolId: number,
     toolKey: string, 
     toolName: string,
-    storeLocation?: string
-  ): Promise<{ qrCodeId: string; qrCodeUrl: string; qrCodeData: string }> {
+    storeLocation?: string,
+    shouldSave: boolean = true
+  ): Promise<{ qrCodeId: string; qrCodeUrl: string; qrCodeData: string; savedQrCode?: any }> {
     // Generate unique QR code identifier
     const qrCodeId = nanoid(12);
     
-    // Create the URL that the QR code will point to
+    // Create the URL that the QR code will point to  
     const params = new URLSearchParams();
     params.set('qr', qrCodeId);
     params.set('tool', toolKey);
@@ -189,10 +191,26 @@ export class QRCodeService {
       width: 256
     });
 
+    let savedQrCode = null;
+    if (shouldSave) {
+      // Save to database for management
+      const { storage } = await import('./storage');
+      savedQrCode = await storage.createAiToolQrCode({
+        toolId,
+        qrCodeId,
+        qrCodeUrl: qrCodeDataUrl,
+        targetUrl,
+        storeLocation: storeLocation || null,
+        scanCount: 0,
+        isActive: true
+      });
+    }
+
     return {
       qrCodeId,
       qrCodeUrl: qrCodeDataUrl,
-      qrCodeData: targetUrl
+      qrCodeData: targetUrl,
+      savedQrCode
     };
   }
 

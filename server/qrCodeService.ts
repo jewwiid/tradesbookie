@@ -11,6 +11,16 @@ export class QRCodeService {
   
   // Production domain should always be tradesbook.ie for QR codes
   static readonly PRODUCTION_DOMAIN = 'https://tradesbook.ie';
+  
+  // For testing in development, use current domain
+  static getQRDomain(): string {
+    // Use production domain if explicitly in production or for final deployment
+    if (process.env.NODE_ENV === 'production' && process.env.USE_PRODUCTION_DOMAIN === 'true') {
+      return this.PRODUCTION_DOMAIN;
+    }
+    // Otherwise use current domain for testing
+    return this.BASE_URL;
+  }
 
   /**
    * Generate a unique QR code for a product category
@@ -20,8 +30,7 @@ export class QRCodeService {
     const qrCodeId = nanoid(12);
     
     // Create the URL that the QR code will point to
-    // Always use production domain for QR codes to ensure they work in store
-    const targetUrl = `${this.PRODUCTION_DOMAIN}/find-product/${categorySlug}?qr=${qrCodeId}`;
+    const targetUrl = `${this.getQRDomain()}/find-product/${categorySlug}?qr=${qrCodeId}`;
     
     // Generate QR code image as data URL
     const qrCodeDataUrl = await QRCode.toDataURL(targetUrl, {
@@ -175,7 +184,6 @@ export class QRCodeService {
     const qrCodeId = nanoid(12);
     
     // Create the URL that the QR code will point to  
-    // Always use production domain for QR codes to ensure they work in store
     const params = new URLSearchParams();
     params.set('qr', qrCodeId);
     params.set('tool', toolKey);
@@ -183,7 +191,7 @@ export class QRCodeService {
       params.set('store', storeLocation);
     }
     
-    const targetUrl = `${this.PRODUCTION_DOMAIN}/ai-help?${params.toString()}`;
+    const targetUrl = `${this.getQRDomain()}/ai-help?${params.toString()}`;
     
     // Generate QR code image as data URL
     const qrCodeDataUrl = await QRCode.toDataURL(targetUrl, {

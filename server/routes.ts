@@ -8635,7 +8635,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         completedDate: booking.completedDate,
         customerNotes: booking.customerNotes,
         createdAt: booking.createdAt || new Date().toISOString(),
-        acceptedDate: (booking as any).acceptedDate // Include accepted date
+        acceptedDate: (booking as any).acceptedDate, // Include accepted date
+        // Multi-TV installation support
+        tvInstallations: (booking as any).tvInstallations || booking.tvInstallations || [],
+        tvQuantity: (booking as any).tvQuantity || (Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0 ? booking.tvInstallations.length : 1),
+        // Image support
+        roomPhotoUrl: booking.roomPhotoUrl,
+        aiPreviewUrl: booking.aiPreviewUrl
       }));
       
       // For backward compatibility, also get bookings directly assigned to installer

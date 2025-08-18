@@ -25,6 +25,15 @@ This project is a sophisticated TV and product installation referral platform co
   - **Root Cause**: Available requests endpoint only checked for assigned leads (`booking.installerId`) but not purchased leads via job assignments
   - **Solution**: Added filtering logic to exclude leads already purchased by the specific installer using `getInstallerPurchasedLeads`
   - **Impact**: Installers now see accurate available leads - purchased leads no longer appear as available options
+- ✅ **Fixed Lead Fee Display Accuracy**: Resolved issue where purchased leads showed €0.00 instead of correct lead fees
+  - **Root Cause**: Lead fees weren't properly calculated in the `getInstallerPurchasedLeads` method when job assignments had incorrect stored fees
+  - **Solution**: Updated method to calculate correct lead fees based on service type using `getLeadFee` function, ensuring silver service shows €25.00
+  - **Impact**: All purchased leads now display accurate lead fees based on service type pricing
+- ✅ **Enhanced Multi-TV Installation Support**: Fixed and verified complete multi-TV installation handling in purchased leads dashboard
+  - **Root Cause**: API response was missing `tvInstallations` and `tvQuantity` fields needed for frontend multi-TV display
+  - **Solution**: Updated both storage method and route transformation to include multi-TV data and calculated TV quantity
+  - **Impact**: Installers can now see detailed TV-by-TV breakdown for multi-installation bookings with proper location, size, and pricing info
+- ✅ **Verified Image Support**: Confirmed complete image handling for room photos and AI preview images in lead detail modals
 
 ## System Architecture
 The application employs a modern full-stack architecture with AI-enhanced features, prioritizing a mobile-first, responsive design.

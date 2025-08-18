@@ -818,6 +818,12 @@ export class DatabaseStorage implements IStorage {
           ? assignment.leadFee 
           : getLeadFee(booking.serviceType).toFixed(2);
         
+        // Calculate TV quantity from installations array if available
+        const tvInstallations = booking.tvInstallations || [];
+        const tvQuantity = Array.isArray(tvInstallations) && tvInstallations.length > 0 
+          ? tvInstallations.length 
+          : 1;
+        
         results.push({
           ...booking,
           jobAssignmentId: assignment.id,
@@ -825,7 +831,13 @@ export class DatabaseStorage implements IStorage {
           assignedDate: assignment.assignedDate,
           acceptedDate: assignment.acceptedDate,
           completedDate: assignment.completedDate,
-          jobAssignmentStatus: assignment.status
+          jobAssignmentStatus: assignment.status,
+          tvInstallations: tvInstallations,
+          tvQuantity: tvQuantity,
+          // Ensure customer data is properly mapped
+          customerName: booking.contactName,
+          customerEmail: booking.contactEmail,
+          customerPhone: booking.contactPhone
         });
       }
     }

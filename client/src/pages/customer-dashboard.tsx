@@ -1190,59 +1190,64 @@ export default function CustomerDashboard() {
 
         {/* Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full mb-8 h-auto p-1 bg-muted rounded-lg">
-            <div className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1">
-              <TabsTrigger 
-                value="bookings" 
-                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
-              >
-                <Calendar className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Bookings</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="ai-services" 
-                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
-              >
-                <Bot className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">AI</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="referrals" 
-                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
-              >
-                <Gift className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Referrals</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="messaging" 
-                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
-              >
-                <MessageSquare className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Messages</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="wallet" 
-                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
-              >
-                <Wallet className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Wallet</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="support" 
-                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
-              >
-                <HelpCircle className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Support</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="settings" 
-                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
-              >
-                <Settings className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Settings</span>
-              </TabsTrigger>
+          {/* Mobile-first scrollable tabs */}
+          <div className="mb-8 w-full">
+            <div className="overflow-x-auto scrollbar-hide">
+              <TabsList className="inline-flex h-12 items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground min-w-full md:w-full">
+                <div className="flex space-x-1 md:grid md:grid-cols-7 md:gap-1 md:w-full">
+                  <TabsTrigger 
+                    value="bookings" 
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                  >
+                    <Calendar className="w-4 h-4 flex-shrink-0" />
+                    <span>Bookings</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="ai-services" 
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                  >
+                    <Bot className="w-4 h-4 flex-shrink-0" />
+                    <span>AI Services</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="referrals" 
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                  >
+                    <Gift className="w-4 h-4 flex-shrink-0" />
+                    <span>Referrals</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="messaging" 
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                  >
+                    <MessageSquare className="w-4 h-4 flex-shrink-0" />
+                    <span>Messages</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="wallet" 
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                  >
+                    <Wallet className="w-4 h-4 flex-shrink-0" />
+                    <span>Wallet</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="support" 
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                  >
+                    <HelpCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>Support</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="settings" 
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                  >
+                    <Settings className="w-4 h-4 flex-shrink-0" />
+                    <span>Settings</span>
+                  </TabsTrigger>
+                </div>
+              </TabsList>
             </div>
-          </TabsList>
+          </div>
 
           {/* Bookings Tab */}
           <TabsContent value="bookings" className="space-y-6">

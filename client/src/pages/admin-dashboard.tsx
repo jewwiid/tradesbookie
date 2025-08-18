@@ -1716,7 +1716,7 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
 
       {/* Edit Installer Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-2xl" aria-describedby="installer-edit-description">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="installer-edit-description">
           <DialogHeader>
             <DialogTitle>Edit Installer</DialogTitle>
             <DialogDescription id="installer-edit-description">

@@ -60,7 +60,7 @@ export default function MultiTVNavigation({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
           {bookingData.tvInstallations.map((tv, index) => (
             <Button
-              key={tv.id}
+              key={`tv-${index}`}
               variant={index === bookingData.currentTvIndex ? "default" : "outline"}
               size="sm"
               onClick={() => handleTvSwitch(index)}

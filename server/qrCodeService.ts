@@ -5,7 +5,9 @@ import { nanoid } from "nanoid";
 export class QRCodeService {
   static readonly BASE_URL = process.env.NODE_ENV === 'production' 
     ? 'https://tradesbook.ie'
-    : `https://${process.env.REPLIT_DEV_DOMAIN}`;
+    : process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+      : 'http://localhost:3000';
 
   /**
    * Generate a unique QR code for a product category

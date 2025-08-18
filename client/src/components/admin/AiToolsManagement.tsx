@@ -333,13 +333,38 @@ export default function AiToolsManagement() {
     }
   };
 
-  const handleDownloadFlyer = () => {
+  const handleDownloadFlyer = async () => {
     if (selectedToolForQr) {
-      const params = new URLSearchParams();
-      if (storeLocation) params.set('storeLocation', storeLocation);
-      
-      const url = `/api/admin/ai-tools/${selectedToolForQr.id}/flyer?${params.toString()}`;
-      window.open(url, '_blank');
+      try {
+        const params = new URLSearchParams();
+        if (storeLocation) params.set('storeLocation', storeLocation);
+        
+        const response = await apiRequest('GET', `/api/admin/ai-tools/${selectedToolForQr.id}/flyer?${params.toString()}`);
+        if (!response.ok) throw new Error('Failed to download flyer');
+        
+        const svgContent = await response.text();
+        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${selectedToolForQr.key}-flyer.svg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast({
+          title: "Success",
+          description: "Flyer downloaded successfully"
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to download flyer",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -356,6 +381,24 @@ export default function AiToolsManagement() {
 
   const handleToggleQrStatus = (qrCodeId: number, isActive: boolean) => {
     toggleQrStatusMutation.mutate({ qrCodeId, isActive });
+  };
+
+  const handleDownloadQRCode = (qrCodeUrl: string, toolKey: string, storeLocation?: string) => {
+    // Create a link to download the QR code as PNG
+    const link = document.createElement('a');
+    link.href = qrCodeUrl;
+    const filename = storeLocation 
+      ? `${toolKey}-qr-${storeLocation.replace(/\s+/g, '-').toLowerCase()}.png`
+      : `${toolKey}-qr.png`;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Success",
+      description: "QR code downloaded successfully"
+    });
   };
 
   const getIcon = (iconName: string) => {
@@ -800,6 +843,14 @@ export default function AiToolsManagement() {
                   <div className="flex gap-2">
                     <Button 
                       variant="outline" 
+                      onClick={() => selectedToolForQr && handleDownloadQRCode(qrCodeData.qrCodeUrl, selectedToolForQr.key, storeLocation || undefined)}
+                      className="flex-1"
+                    >
+                      <QrCode className="h-4 w-4 mr-2" />
+                      Download QR
+                    </Button>
+                    <Button 
+                      variant="outline" 
                       onClick={handleDownloadFlyer}
                       className="flex-1"
                     >
@@ -932,19 +983,55 @@ export default function AiToolsManagement() {
                                   <span className="text-sm text-muted-foreground">Active</span>
                                 </div>
                                 
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    const params = new URLSearchParams();
-                                    if (qrCode.storeLocation) params.set('storeLocation', qrCode.storeLocation);
-                                    const url = `/api/admin/ai-tools/${selectedToolForManagement.id}/flyer?${params.toString()}`;
-                                    window.open(url, '_blank');
-                                  }}
-                                >
-                                  <Download className="h-3 w-3 mr-1" />
-                                  Flyer
-                                </Button>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleDownloadQRCode(qrCode.qrCodeUrl, selectedToolForManagement.key, qrCode.storeLocation || undefined)}
+                                    title="Download QR Code PNG"
+                                  >
+                                    <QrCode className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        const params = new URLSearchParams();
+                                        if (qrCode.storeLocation) params.set('storeLocation', qrCode.storeLocation);
+                                        
+                                        const response = await apiRequest('GET', `/api/admin/ai-tools/${selectedToolForManagement.id}/flyer?${params.toString()}`);
+                                        if (!response.ok) throw new Error('Failed to download flyer');
+                                        
+                                        const svgContent = await response.text();
+                                        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+                                        const url = URL.createObjectURL(blob);
+                                        
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `${selectedToolForManagement.key}-flyer.svg`;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        document.body.removeChild(a);
+                                        URL.revokeObjectURL(url);
+
+                                        toast({
+                                          title: "Success",
+                                          description: "Flyer downloaded successfully"
+                                        });
+                                      } catch (error) {
+                                        toast({
+                                          title: "Error",
+                                          description: "Failed to download flyer",
+                                          variant: "destructive"
+                                        });
+                                      }
+                                    }}
+                                    title="Download Printable Flyer SVG"
+                                  >
+                                    <Download className="h-3 w-3" />
+                                  </Button>
+                                </div>
                               </div>
                             </CardContent>
                           </Card>

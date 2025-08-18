@@ -338,4 +338,289 @@ export class AIAnalyticsService {
       throw error;
     }
   }
+
+  /**
+   * Get filtered interactions with pagination
+   */
+  static async getFilteredInteractions(filters: {
+    page?: number;
+    limit?: number;
+    storeLocation?: string;
+    aiTool?: string;
+    startDate?: Date;
+    endDate?: Date;
+    category?: string;
+    searchTerm?: string;
+  }) {
+    try {
+      const page = filters.page || 1;
+      const limit = filters.limit || 50;
+      const offset = (page - 1) * limit;
+
+      let whereConditions = [];
+      
+      if (filters.storeLocation) {
+        whereConditions.push(eq(aiInteractionAnalytics.storeLocation, filters.storeLocation));
+      }
+      
+      if (filters.aiTool) {
+        whereConditions.push(eq(aiInteractionAnalytics.aiTool, filters.aiTool));
+      }
+      
+      if (filters.category) {
+        whereConditions.push(eq(aiInteractionAnalytics.category, filters.category));
+      }
+      
+      if (filters.startDate) {
+        whereConditions.push(gte(aiInteractionAnalytics.createdAt, filters.startDate));
+      }
+      
+      if (filters.endDate) {
+        whereConditions.push(lte(aiInteractionAnalytics.createdAt, filters.endDate));
+      }
+
+      if (filters.searchTerm) {
+        whereConditions.push(
+          sql`(${aiInteractionAnalytics.userPrompt} ILIKE ${'%' + filters.searchTerm + '%'} 
+              OR ${aiInteractionAnalytics.productQuery} ILIKE ${'%' + filters.searchTerm + '%'})`
+        );
+      }
+
+      const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+      const interactions = await db
+        .select()
+        .from(aiInteractionAnalytics)
+        .where(whereClause)
+        .orderBy(desc(aiInteractionAnalytics.createdAt))
+        .limit(limit)
+        .offset(offset);
+
+      const totalCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(aiInteractionAnalytics)
+        .where(whereClause);
+
+      return {
+        interactions,
+        pagination: {
+          page,
+          limit,
+          total: totalCount[0]?.count || 0,
+          totalPages: Math.ceil((totalCount[0]?.count || 0) / limit)
+        }
+      };
+    } catch (error) {
+      console.error('Failed to get filtered interactions:', error);
+      return {
+        interactions: [],
+        pagination: { page: 1, limit: 50, total: 0, totalPages: 0 }
+      };
+    }
+  }
+
+  /**
+   * Get store-specific insights
+   */
+  static async getStoreInsights(storeLocation: string, filters?: {
+    startDate?: Date;
+    endDate?: Date;
+  }) {
+    try {
+      let whereConditions = [eq(aiInteractionAnalytics.storeLocation, storeLocation)];
+      
+      if (filters?.startDate) {
+        whereConditions.push(gte(aiInteractionAnalytics.createdAt, filters.startDate));
+      }
+      
+      if (filters?.endDate) {
+        whereConditions.push(lte(aiInteractionAnalytics.createdAt, filters.endDate));
+      }
+
+      const whereClause = and(...whereConditions);
+
+      // Get total interactions for this store
+      const totalInteractions = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(aiInteractionAnalytics)
+        .where(whereClause);
+
+      // Get unique sessions
+      const uniqueSessions = await db
+        .select({ count: sql<number>`count(distinct ${aiInteractionAnalytics.sessionId})` })
+        .from(aiInteractionAnalytics)
+        .where(whereClause);
+
+      // Get most popular AI tools at this store
+      const popularTools = await db
+        .select({
+          aiTool: aiInteractionAnalytics.aiTool,
+          count: sql<number>`count(*)`,
+          avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`
+        })
+        .from(aiInteractionAnalytics)
+        .where(whereClause)
+        .groupBy(aiInteractionAnalytics.aiTool)
+        .orderBy(desc(sql`count(*)`))
+        .limit(5);
+
+      // Get most searched products at this store
+      const popularProducts = await db
+        .select({
+          productQuery: aiInteractionAnalytics.productQuery,
+          count: sql<number>`count(*)`
+        })
+        .from(aiInteractionAnalytics)
+        .where(
+          and(whereClause, sql`${aiInteractionAnalytics.productQuery} is not null`)
+        )
+        .groupBy(aiInteractionAnalytics.productQuery)
+        .orderBy(desc(sql`count(*)`))
+        .limit(10);
+
+      return {
+        storeLocation,
+        totalInteractions: totalInteractions[0]?.count || 0,
+        uniqueSessions: uniqueSessions[0]?.count || 0,
+        popularTools,
+        popularProducts
+      };
+    } catch (error) {
+      console.error('Failed to get store insights:', error);
+      return {
+        storeLocation,
+        totalInteractions: 0,
+        uniqueSessions: 0,
+        popularTools: [],
+        popularProducts: []
+      };
+    }
+  }
+
+  /**
+   * Get popular products across stores
+   */
+  static async getPopularProducts(filters?: {
+    storeLocation?: string;
+    startDate?: Date;
+    endDate?: Date;
+    limit?: number;
+  }) {
+    try {
+      let whereConditions = [sql`${aiInteractionAnalytics.productQuery} is not null`];
+      
+      if (filters?.storeLocation) {
+        whereConditions.push(eq(aiInteractionAnalytics.storeLocation, filters.storeLocation));
+      }
+      
+      if (filters?.startDate) {
+        whereConditions.push(gte(aiInteractionAnalytics.createdAt, filters.startDate));
+      }
+      
+      if (filters?.endDate) {
+        whereConditions.push(lte(aiInteractionAnalytics.createdAt, filters.endDate));
+      }
+
+      const whereClause = and(...whereConditions);
+
+      const popularProducts = await db
+        .select({
+          productQuery: aiInteractionAnalytics.productQuery,
+          count: sql<number>`count(*)`,
+          stores: sql<string[]>`array_agg(distinct ${aiInteractionAnalytics.storeLocation})`,
+          avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`
+        })
+        .from(aiInteractionAnalytics)
+        .where(whereClause)
+        .groupBy(aiInteractionAnalytics.productQuery)
+        .orderBy(desc(sql`count(*)`))
+        .limit(filters?.limit || 20);
+
+      return popularProducts;
+    } catch (error) {
+      console.error('Failed to get popular products:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Export interactions as CSV
+   */
+  static async exportInteractionsCSV(filters?: {
+    storeLocation?: string;
+    aiTool?: string;
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<string> {
+    return this.exportAnalyticsCSV(filters);
+  }
+
+  /**
+   * Get usage patterns for a store
+   */
+  static async getUsagePatterns(storeLocation?: string, timeRange?: string) {
+    try {
+      const now = new Date();
+      let startDate: Date;
+
+      switch (timeRange) {
+        case '1d':
+          startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case '7d':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case '30d':
+          startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      }
+
+      let whereConditions = [gte(aiInteractionAnalytics.createdAt, startDate)];
+      
+      if (storeLocation) {
+        whereConditions.push(eq(aiInteractionAnalytics.storeLocation, storeLocation));
+      }
+
+      const whereClause = and(...whereConditions);
+
+      // Get hourly usage patterns
+      const hourlyPatterns = await db
+        .select({
+          hour: sql<number>`extract(hour from ${aiInteractionAnalytics.createdAt})`,
+          count: sql<number>`count(*)`
+        })
+        .from(aiInteractionAnalytics)
+        .where(whereClause)
+        .groupBy(sql`extract(hour from ${aiInteractionAnalytics.createdAt})`)
+        .orderBy(sql`extract(hour from ${aiInteractionAnalytics.createdAt})`);
+
+      // Get daily usage patterns
+      const dailyPatterns = await db
+        .select({
+          date: sql<string>`date(${aiInteractionAnalytics.createdAt})`,
+          count: sql<number>`count(*)`
+        })
+        .from(aiInteractionAnalytics)
+        .where(whereClause)
+        .groupBy(sql`date(${aiInteractionAnalytics.createdAt})`)
+        .orderBy(sql`date(${aiInteractionAnalytics.createdAt})`);
+
+      return {
+        timeRange,
+        storeLocation: storeLocation || 'all',
+        hourlyPatterns,
+        dailyPatterns
+      };
+    } catch (error) {
+      console.error('Failed to get usage patterns:', error);
+      return {
+        timeRange: timeRange || '7d',
+        storeLocation: storeLocation || 'all',
+        hourlyPatterns: [],
+        dailyPatterns: []
+      };
+    }
+  }
 }

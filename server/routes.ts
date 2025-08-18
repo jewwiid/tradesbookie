@@ -14599,6 +14599,70 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Object Storage Routes for Photo Uploads
+  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
+    try {
+      const { ObjectStorageService } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  // Handle profile photo upload completion
+  app.put("/api/installers/:id/profile-photo", isAuthenticated, async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const { photoURL } = req.body;
+
+      if (!photoURL) {
+        return res.status(400).json({ error: "Photo URL is required" });
+      }
+
+      const { ObjectStorageService } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      
+      // Set ACL policy for the uploaded photo
+      const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
+        photoURL,
+        {
+          owner: req.user?.id || "admin",
+          visibility: "public", // Profile photos should be publicly accessible
+        }
+      );
+
+      // Update installer with photo path
+      await storage.updateInstaller(installerId, {
+        profileImageUrl: objectPath
+      });
+
+      res.json({ objectPath });
+    } catch (error) {
+      console.error("Error setting profile photo:", error);
+      res.status(500).json({ error: "Failed to set profile photo" });
+    }
+  });
+
+  // Serve private objects (installer photos)
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    try {
+      const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
+      const objectStorageService = new ObjectStorageService();
+      
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving object:", error);
+      if (error instanceof Error && error.name === "ObjectNotFoundError") {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
   return httpServer;
 }
 

@@ -32,8 +32,11 @@ import {
   FileText,
   Loader2,
   Key,
-  AlertTriangle
+  AlertTriangle,
+  Camera
 } from "lucide-react";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import type { UploadResult } from "@uppy/core";
 
 // Trade skills with their TV installation relevance
 const TRADE_SKILLS = [
@@ -65,6 +68,7 @@ interface OnboardingFormData {
   tradeSkill: string;
   yearsExperience: string;
   adminNotes: string;
+  profilePhotoUrl?: string;
 }
 
 interface EmailTemplateFormData {
@@ -115,7 +119,8 @@ export default function TradesPersonOnboarding() {
     eircode: "",
     tradeSkill: "",
     yearsExperience: "",
-    adminNotes: ""
+    adminNotes: "",
+    profilePhotoUrl: ""
   });
 
   const [emailTemplateData, setEmailTemplateData] = useState<EmailTemplateFormData>({
@@ -207,7 +212,7 @@ export default function TradesPersonOnboarding() {
   // Create installer invitation with auto-generated password
   const createInstallerInvitationMutation = useMutation({
     mutationFn: async (data: OnboardingFormData) => {
-      return await apiRequest("/api/admin/invite-installer", "POST", {
+      const response = await apiRequest("/api/admin/invite-installer", "POST", {
         name: data.name,
         email: data.email,
         businessName: data.businessName,
@@ -217,6 +222,20 @@ export default function TradesPersonOnboarding() {
         tradeSkill: data.tradeSkill,
         yearsExperience: parseInt(data.yearsExperience) || 0
       });
+
+      // If photo was uploaded, set the photo for the installer
+      if (data.profilePhotoUrl && response.installer?.id) {
+        try {
+          await apiRequest(`/api/installers/${response.installer.id}/profile-photo`, "PUT", {
+            photoURL: data.profilePhotoUrl
+          });
+        } catch (photoError) {
+          console.error("Failed to set profile photo:", photoError);
+          // Don't fail the whole process if photo upload fails
+        }
+      }
+
+      return response;
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
@@ -236,7 +255,8 @@ export default function TradesPersonOnboarding() {
         eircode: "",
         tradeSkill: "",
         yearsExperience: "",
-        adminNotes: ""
+        adminNotes: "",
+        profilePhotoUrl: ""
       });
     },
     onError: (error: any) => {
@@ -250,7 +270,7 @@ export default function TradesPersonOnboarding() {
 
   const createBasicProfileMutation = useMutation({
     mutationFn: async (data: OnboardingFormData) => {
-      return await apiRequest("/api/admin/create-basic-installer", "POST", {
+      const response = await apiRequest("/api/admin/create-basic-installer", "POST", {
         name: data.name,
         email: data.email,
         businessName: data.businessName,
@@ -261,6 +281,20 @@ export default function TradesPersonOnboarding() {
         yearsExperience: parseInt(data.yearsExperience) || 0,
         adminNotes: data.adminNotes
       });
+
+      // If photo was uploaded, set the photo for the installer
+      if (data.profilePhotoUrl && response.installer?.id) {
+        try {
+          await apiRequest(`/api/installers/${response.installer.id}/profile-photo`, "PUT", {
+            photoURL: data.profilePhotoUrl
+          });
+        } catch (photoError) {
+          console.error("Failed to set profile photo:", photoError);
+          // Don't fail the whole process if photo upload fails
+        }
+      }
+
+      return response;
     },
     onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
@@ -279,7 +313,8 @@ export default function TradesPersonOnboarding() {
         eircode: "",
         tradeSkill: "",
         yearsExperience: "",
-        adminNotes: ""
+        adminNotes: "",
+        profilePhotoUrl: ""
       });
     },
     onError: (error: any) => {
@@ -336,6 +371,27 @@ export default function TradesPersonOnboarding() {
       });
     },
   });
+
+  // Photo upload handlers
+  const handleGetUploadParameters = async () => {
+    const response = await apiRequest("/api/objects/upload", "POST", {});
+    return {
+      method: "PUT" as const,
+      url: response.uploadURL,
+    };
+  };
+
+  const handlePhotoUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      const photoURL = uploadedFile.uploadURL;
+      setFormData(prev => ({ ...prev, profilePhotoUrl: photoURL }));
+      toast({
+        title: "Photo Uploaded",
+        description: "Profile photo has been uploaded successfully.",
+      });
+    }
+  };
 
   const handleCreateInvitation = () => {
     if (!formData.name || !formData.email || !formData.tradeSkill) {
@@ -863,6 +919,33 @@ export default function TradesPersonOnboarding() {
                     onChange={(e) => setFormData(prev => ({ ...prev, yearsExperience: e.target.value }))}
                     placeholder="5"
                   />
+                </div>
+
+                <div>
+                  <Label>Profile Photo</Label>
+                  <div className="flex items-center gap-4">
+                    {formData.profilePhotoUrl && (
+                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={formData.profilePhotoUrl} 
+                          alt="Profile preview" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <ObjectUploader
+                      maxNumberOfFiles={1}
+                      maxFileSize={5242880} // 5MB
+                      onGetUploadParameters={handleGetUploadParameters}
+                      onComplete={handlePhotoUploadComplete}
+                      buttonClassName="flex-1"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Camera className="h-4 w-4" />
+                        {formData.profilePhotoUrl ? "Change Photo" : "Upload Photo"}
+                      </div>
+                    </ObjectUploader>
+                  </div>
                 </div>
               </div>
 

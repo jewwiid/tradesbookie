@@ -239,20 +239,14 @@ function parseStructuredTextToProductInfo(text: string, model: string): ProductI
     const cleanPrice = (priceStr: string): string => {
       if (!priceStr) return 'Check retailer for pricing';
       
-      // Extract just the price amount and currency, remove explanations
+      // Extract just the price amount and currency, remove store names and explanations
       const priceMatch = priceStr.match(/([€$£¥][\d,]+(?:\.\d{2})?)/);
       if (priceMatch) {
         return priceMatch[1];
       }
       
-      // If no currency symbol, look for price with "at" pattern
-      const atMatch = priceStr.match(/([€$£¥]?[\d,]+(?:\.\d{2})?\s*(?:at|from)\s+[^(]+)/i);
-      if (atMatch) {
-        return atMatch[1].replace(/\s*at\s*/i, ' at ').trim();
-      }
-      
       // Fallback: take everything before parentheses or detailed explanations
-      const cleanMatch = priceStr.split(/\s*\(|\s*;|\s*based on/)[0].trim();
+      const cleanMatch = priceStr.split(/\s*\(|\s*;|\s*based on|\s*at\s+/i)[0].trim();
       return cleanMatch || 'Check retailer for pricing';
     };
     
@@ -389,20 +383,14 @@ function extractPrice(text: string): string {
 function cleanPriceText(priceStr: string): string {
   if (!priceStr) return 'Check retailer for pricing';
   
-  // Extract just the price amount and currency, remove explanations
+  // Extract just the price amount and currency, remove store names and explanations
   const priceMatch = priceStr.match(/([€$£¥][\d,]+(?:\.\d{2})?)/);
   if (priceMatch) {
     return priceMatch[1];
   }
   
-  // If no currency symbol, look for price with "at" pattern
-  const atMatch = priceStr.match(/([€$£¥]?[\d,]+(?:\.\d{2})?\s*(?:at|from)\s+[^(]+)/i);
-  if (atMatch) {
-    return atMatch[1].replace(/\s*at\s*/i, ' at ').trim();
-  }
-  
   // Fallback: take everything before parentheses or detailed explanations
-  const cleanMatch = priceStr.split(/\s*\(|\s*;|\s*based on/)[0].trim();
+  const cleanMatch = priceStr.split(/\s*\(|\s*;|\s*based on|\s*at\s+/i)[0].trim();
   return cleanMatch || 'Check retailer for pricing';
 }
 

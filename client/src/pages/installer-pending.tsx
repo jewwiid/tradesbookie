@@ -21,7 +21,7 @@ interface InstallerProfile {
   businessName: string;
   phone: string;
   address: string;
-  county: string;
+  serviceArea: string;
   approvalStatus: 'pending' | 'approved' | 'rejected';
   adminComments?: string;
   profileCompleted: boolean;
@@ -65,7 +65,7 @@ export default function InstallerPending() {
       const addressParts = profile.address ? profile.address.split(', ') : [];
       const streetAddress = addressParts[0] || "";
       const town = addressParts[1] || "";
-      const county = addressParts[2] || profile.county || "";
+      const county = addressParts[2] || profile.serviceArea || "";
       const eircode = addressParts[3] || "";
 
       setProfileForm({
@@ -92,7 +92,7 @@ export default function InstallerPending() {
   // Profile update mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("PATCH", `/api/installer/profile/${profile?.id}`, data);
+      return await apiRequest("PATCH", `/api/installers/profile`, data);
     },
     onSuccess: () => {
       toast({
@@ -100,7 +100,7 @@ export default function InstallerPending() {
         description: "Your profile has been updated and resubmitted for review.",
       });
       setShowEditDialog(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/installer/profile"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/installers/profile"] });
       // Refresh the profile data
       fetchProfile();
     },
@@ -126,9 +126,9 @@ export default function InstallerPending() {
           contactName: profileForm.contactName,
           phone: profileForm.phone,
           address: combinedAddress,
-          county: profileForm.county
+          serviceArea: profileForm.county
         }
-      : { ...profileForm, address: combinedAddress }; // Send all data for approved installers
+      : { ...profileForm, address: combinedAddress, serviceArea: profileForm.county }; // Send all data for approved installers
     
     updateProfileMutation.mutate(updateData);
   };
@@ -163,7 +163,7 @@ export default function InstallerPending() {
       }
 
       // If authenticated, get full profile
-      const response = await fetch('/api/installer/profile', {
+      const response = await fetch('/api/installers/profile', {
         credentials: 'include'
       });
       
@@ -625,7 +625,7 @@ export default function InstallerPending() {
                   <div className="flex items-center space-x-3">
                     <MapPin className="w-4 h-4 text-gray-500" />
                     <div>
-                      <p className="font-medium text-gray-900">{profile.county}</p>
+                      <p className="font-medium text-gray-900">{profile.serviceArea || 'Not specified'}</p>
                       <p className="text-sm text-gray-600">County</p>
                     </div>
                   </div>

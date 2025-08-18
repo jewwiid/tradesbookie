@@ -111,7 +111,6 @@ export class AIAnalyticsService {
    * Update engagement metrics for an interaction (follow-up actions)
    */
   static async updateEngagement(sessionId: string, updates: {
-    userSatisfaction?: number;
     followUpQuestions?: number;
     sessionDurationMinutes?: number;
     actionTaken?: string;

@@ -92,9 +92,9 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
       
       console.log(`Image compression: ${data.compressionRatio}% smaller (${Math.round(data.originalSize / 1024)}KB → ${Math.round(data.compressedSize / 1024)}KB)`);
       
-      const tvNumber = bookingData.tvQuantity > 1 ? ` for TV ${bookingData.currentTvIndex + 1}` : '';
+      const tvLabel = bookingData.tvQuantity > 1 ? ` for ${bookingData.tvInstallations?.[bookingData.currentTvIndex]?.location || `TV ${bookingData.currentTvIndex + 1}`}` : '';
       toast({
-        title: `Photo uploaded successfully${tvNumber}!`,
+        title: `Photo uploaded successfully${tvLabel}!`,
         description: "Room analyzed - AI preview will be generated at final booking step."
       });
     },
@@ -587,13 +587,13 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
                 <div className="text-center">
                   <img 
                     src={`data:image/jpeg;base64,${currentPhoto}`}
-                    alt={`Room photo for TV ${bookingData.tvQuantity > 1 ? bookingData.currentTvIndex + 1 : ''}`}
+                    alt={`Room photo${bookingData.tvQuantity > 1 ? ` for ${bookingData.tvInstallations?.[bookingData.currentTvIndex]?.location || `TV ${bookingData.currentTvIndex + 1}`}` : ''}`}
                     className="max-w-full h-64 object-cover rounded-xl mx-auto mb-4"
                   />
                   <div className="flex items-center justify-center text-success">
                     <CheckCircle className="w-5 h-5 mr-2" />
                     <span className="font-medium">
-                      Photo uploaded successfully{bookingData.tvQuantity > 1 ? ` for TV ${bookingData.currentTvIndex + 1}` : ''}!
+                      Photo uploaded successfully{bookingData.tvQuantity > 1 ? ` for ${bookingData.tvInstallations?.[bookingData.currentTvIndex]?.location || `TV ${bookingData.currentTvIndex + 1}`}` : ''}!
                     </span>
                   </div>
               

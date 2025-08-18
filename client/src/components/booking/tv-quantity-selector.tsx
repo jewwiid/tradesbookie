@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tv, Plus, Minus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tv, Plus, Minus, MapPin } from "lucide-react";
 import { BookingData, TVInstallation } from "@/lib/booking-utils";
 
 interface TvQuantitySelectorProps {
@@ -13,6 +15,18 @@ interface TvQuantitySelectorProps {
 
 export default function TvQuantitySelector({ bookingData, updateBookingData, addTvInstallation, removeTvInstallation }: TvQuantitySelectorProps) {
   const [selectedQuantity, setSelectedQuantity] = useState(bookingData.tvQuantity || 1);
+  
+  // Update room name for a specific TV installation
+  const updateTvLocation = (index: number, location: string) => {
+    if (!bookingData.tvInstallations) return;
+    
+    const updatedInstallations = [...bookingData.tvInstallations];
+    updatedInstallations[index] = {
+      ...updatedInstallations[index],
+      location
+    };
+    updateBookingData({ tvInstallations: updatedInstallations });
+  };
 
   const handleQuantityChange = (quantity: number) => {
     if (quantity < 1 || quantity > 5) return; // Limit to reasonable range
@@ -123,6 +137,44 @@ export default function TvQuantitySelector({ bookingData, updateBookingData, add
           </Button>
         ))}
       </div>
+
+      {/* Room Names Section - Only show for multi-TV bookings */}
+      {selectedQuantity > 1 && bookingData.tvInstallations && (
+        <div className="max-w-md mx-auto mb-8">
+          <Card className="p-6">
+            <div className="text-center mb-4">
+              <MapPin className="w-6 h-6 text-primary mx-auto mb-2" />
+              <h3 className="text-lg font-semibold text-foreground">Name Your Rooms</h3>
+              <p className="text-sm text-muted-foreground">
+                Help us identify where each TV will be installed
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              {bookingData.tvInstallations.map((installation, index) => (
+                <div key={index}>
+                  <Label htmlFor={`room-${index}`} className="text-sm font-medium">
+                    TV {index + 1} Location
+                  </Label>
+                  <Input
+                    id={`room-${index}`}
+                    placeholder="e.g., Living Room, Bedroom, Kitchen"
+                    value={installation.location || ''}
+                    onChange={(e) => updateTvLocation(index, e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              ))}
+            </div>
+            
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <p className="text-xs text-blue-800">
+                <strong>Tip:</strong> Room names help your installer prepare better and make it easier to track each installation's progress.
+              </p>
+            </div>
+          </Card>
+        </div>
+      )}
 
     </div>
   );

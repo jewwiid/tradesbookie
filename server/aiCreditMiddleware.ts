@@ -312,9 +312,30 @@ export async function getAiUsageSummary(userId: string) {
   try {
     const usages = await storage.getUserAiUsageSummary(userId);
     const wallet = await storage.getCustomerWallet(userId);
+    const walletBalance = parseFloat(wallet?.balance || '0');
+    
+    // Calculate remaining free usage credits
+    // Each AI tool has 3 free uses per day, so count total remaining free requests
+    let totalFreeCreditsRemaining = 0;
+    const aiTools = await loadAiTools();
+    
+    for (const [featureKey, toolConfig] of aiTools) {
+      if (!toolConfig.isActive) continue;
+      
+      // Check remaining free usage for this feature
+      const freeUsageCheck = await storage.checkAiFreeUsageLimit(userId, null, featureKey, FREE_USAGE_LIMIT);
+      const remainingFree = Math.max(0, FREE_USAGE_LIMIT - freeUsageCheck.usageCount);
+      totalFreeCreditsRemaining += remainingFree;
+    }
+    
+    // Total credits = wallet balance + estimated value of remaining free usage
+    // For display purposes, we count each free request as 1 credit equivalent
+    const totalCredits = walletBalance + totalFreeCreditsRemaining;
     
     return {
-      totalCredits: parseFloat(wallet?.balance || '0'),
+      totalCredits: Math.round(totalCredits),
+      walletBalance: walletBalance,
+      freeCreditsRemaining: totalFreeCreditsRemaining,
       usageByFeature: usages,
       freeUsageLimit: FREE_USAGE_LIMIT
     };
@@ -322,6 +343,8 @@ export async function getAiUsageSummary(userId: string) {
     console.error('Error getting AI usage summary:', error);
     return {
       totalCredits: 0,
+      walletBalance: 0,
+      freeCreditsRemaining: 0,
       usageByFeature: [],
       freeUsageLimit: FREE_USAGE_LIMIT
     };

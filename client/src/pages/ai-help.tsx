@@ -2068,11 +2068,17 @@ export default function AIHelpPage() {
                         <CardTitle>Specifications</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                           {Object.entries(productInfo.specifications).map(([key, value]) => (
-                            <div key={key} className="flex justify-between border-b border-gray-100 pb-3 mb-2">
-                              <span className="text-base font-medium text-gray-600">{key}:</span>
-                              <span className="text-base text-gray-800">{value}</span>
+                            <div key={key} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                              <div className="flex flex-col space-y-2">
+                                <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                                  {key}
+                                </span>
+                                <span className="text-base font-medium text-gray-900 dark:text-gray-100 leading-relaxed">
+                                  {value}
+                                </span>
+                              </div>
                             </div>
                           ))}
                         </div>

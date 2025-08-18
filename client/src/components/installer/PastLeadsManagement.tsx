@@ -629,6 +629,9 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                         <h4 className="font-medium text-sm mb-2">TV {index + 1} ({tv?.location || `TV ${index + 1}`})</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs">
                           <div>
+                            <span className="font-medium text-gray-600">Room:</span> {tv?.location || 'Not specified'}
+                          </div>
+                          <div>
                             <span className="font-medium text-gray-600">Size:</span> {tv?.tvSize || 'Not specified'}"
                           </div>
                           <div>
@@ -667,6 +670,10 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">TV Size</label>
                       <p className="text-sm sm:text-base font-bold">{selectedLead.tvSize || 'Not specified'}" Television</p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Room Location</label>
+                      <p className="text-sm sm:text-base font-medium">{selectedLead.location || 'Not specified'}</p>
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">Service Type</label>

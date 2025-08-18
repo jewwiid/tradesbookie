@@ -235,11 +235,32 @@ function parseStructuredTextToProductInfo(text: string, model: string): ProductI
         .filter(item => item.length > 5);
     };
     
+    // Helper function to clean price string
+    const cleanPrice = (priceStr: string): string => {
+      if (!priceStr) return 'Check retailer for pricing';
+      
+      // Extract just the price amount and currency, remove explanations
+      const priceMatch = priceStr.match(/([€$£¥][\d,]+(?:\.\d{2})?)/);
+      if (priceMatch) {
+        return priceMatch[1];
+      }
+      
+      // If no currency symbol, look for price with "at" pattern
+      const atMatch = priceStr.match(/([€$£¥]?[\d,]+(?:\.\d{2})?\s*(?:at|from)\s+[^(]+)/i);
+      if (atMatch) {
+        return atMatch[1].replace(/\s*at\s*/i, ' at ').trim();
+      }
+      
+      // Fallback: take everything before parentheses or detailed explanations
+      const cleanMatch = priceStr.split(/\s*\(|\s*;|\s*based on/)[0].trim();
+      return cleanMatch || 'Check retailer for pricing';
+    };
+    
     return {
       name: nameMatch?.[1] || model,
       brand: brandMatch?.[1] || extractBrandFromModel(model),
       rating: ratingMatch ? parseFloat(ratingMatch[1]) : 4.0,
-      price: priceMatch?.[1] || 'Check retailer for pricing',
+      price: cleanPrice(priceMatch?.[1] || ''),
       overview: overviewMatch?.[1] || `Professional analysis of ${model}`,
       pros: prosMatch ? parseArrayString(prosMatch[1]) : [],
       cons: consMatch ? parseArrayString(consMatch[1]) : [],
@@ -356,8 +377,33 @@ function extractRating(text: string): number {
 }
 
 function extractPrice(text: string): string {
-  const priceMatch = text.match(/[€$£][\d,]+(?:\.\d{2})?|\d+[€$£]/);
-  return priceMatch ? priceMatch[0] : "Price varies by retailer";
+  // First try to find price in the text
+  const priceMatch = text.match(/[€$£¥][\d,]+(?:\.\d{2})?(?:\s*at\s*[^(;]+)?/i);
+  if (priceMatch) {
+    // Clean the price to remove explanations
+    return cleanPriceText(priceMatch[0]);
+  }
+  return "Price varies by retailer";
+}
+
+function cleanPriceText(priceStr: string): string {
+  if (!priceStr) return 'Check retailer for pricing';
+  
+  // Extract just the price amount and currency, remove explanations
+  const priceMatch = priceStr.match(/([€$£¥][\d,]+(?:\.\d{2})?)/);
+  if (priceMatch) {
+    return priceMatch[1];
+  }
+  
+  // If no currency symbol, look for price with "at" pattern
+  const atMatch = priceStr.match(/([€$£¥]?[\d,]+(?:\.\d{2})?\s*(?:at|from)\s+[^(]+)/i);
+  if (atMatch) {
+    return atMatch[1].replace(/\s*at\s*/i, ' at ').trim();
+  }
+  
+  // Fallback: take everything before parentheses or detailed explanations
+  const cleanMatch = priceStr.split(/\s*\(|\s*;|\s*based on/)[0].trim();
+  return cleanMatch || 'Check retailer for pricing';
 }
 
 function extractOverview(text: string, model: string): string {

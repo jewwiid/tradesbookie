@@ -17,6 +17,10 @@ interface TvInstallation {
   estimatedPrice: number;
   estimatedAddonsPrice: number;
   estimatedTotal: number;
+  // Photo and AI analysis fields for individual TVs
+  roomPhotoBase64?: string;
+  roomAnalysis?: any;
+  aiPreviewUrl?: string;
 }
 
 interface BookingData {
@@ -94,6 +98,7 @@ interface BookingStore {
   // Multi-TV specific methods
   initializeMultiTvBooking: (tvQuantity: number) => void;
   updateTvInstallation: (index: number, data: Partial<TvInstallation>) => void;
+  updateCurrentTvInstallation: (data: Partial<TvInstallation>) => void;
   calculateTotalPrice: () => number;
   getCurrentTv: () => TvInstallation | undefined;
   isMultiTvBooking: () => boolean;
@@ -158,6 +163,12 @@ export const useBookingData = create<BookingStore>()(
             },
           };
         }),
+      
+      updateCurrentTvInstallation: (data: Partial<TvInstallation>) => {
+        const { bookingData } = get();
+        const currentIndex = bookingData.currentTvIndex || 0;
+        get().updateTvInstallation(currentIndex, data);
+      },
       
       calculateTotalPrice: () => {
         const { bookingData } = get();

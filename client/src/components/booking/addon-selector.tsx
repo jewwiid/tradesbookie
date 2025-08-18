@@ -7,6 +7,7 @@ interface AddonSelectorProps {
   bookingData: BookingData;
   updateBookingData: (data: Partial<BookingData>) => void;
   updateTvInstallation?: (index: number, tvData: Partial<any>) => void;
+  updateCurrentTvInstallation?: (tvData: Partial<any>) => void;
 }
 
 const ADDONS = [
@@ -36,7 +37,7 @@ const ADDONS = [
   }
 ];
 
-export default function AddonSelector({ bookingData, updateBookingData, updateTvInstallation }: AddonSelectorProps) {
+export default function AddonSelector({ bookingData, updateBookingData, updateTvInstallation, updateCurrentTvInstallation }: AddonSelectorProps) {
   const isMultiTV = bookingData.tvQuantity > 1;
   const currentTv = isMultiTV ? bookingData.tvInstallations[bookingData.currentTvIndex] : null;
   
@@ -52,8 +53,8 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
           price: addon.price
         }];
         
-        if (isMultiTV && updateTvInstallation) {
-          updateTvInstallation(bookingData.currentTvIndex, { addons: newAddons });
+        if (isMultiTV && updateCurrentTvInstallation) {
+          updateCurrentTvInstallation({ addons: newAddons });
         } else {
           updateBookingData({ addons: newAddons });
         }
@@ -61,8 +62,8 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
     } else {
       const newAddons = currentAddons.filter(addon => addon.key !== addonKey);
       
-      if (isMultiTV && updateTvInstallation) {
-        updateTvInstallation(bookingData.currentTvIndex, { addons: newAddons });
+      if (isMultiTV && updateCurrentTvInstallation) {
+        updateCurrentTvInstallation({ addons: newAddons });
       } else {
         updateBookingData({ addons: newAddons });
       }

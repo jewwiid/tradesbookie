@@ -15,7 +15,7 @@ import AddonSelector from "@/components/booking/addon-selector";
 import ScheduleSelector from "@/components/booking/schedule-selector";
 import ContactForm from "@/components/booking/contact-form";
 import MultiTVNavigation from "@/components/booking/multi-tv-navigation";
-import { useBookingData } from "@/lib/booking-utils";
+import { useBookingData } from "@/hooks/use-booking-data";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
@@ -29,8 +29,8 @@ export default function BookingFlow() {
     updateBookingData, 
     resetBookingData, 
     updateTvInstallation, 
-    addTvInstallation, 
-    removeTvInstallation,
+    updateCurrentTvInstallation,
+    initializeMultiTvBooking,
     setDirectInstaller,
     isDirectBooking
   } = useBookingData();
@@ -187,7 +187,7 @@ export default function BookingFlow() {
       case 6:
         return <MountTypeSelector bookingData={bookingData} updateBookingData={updateBookingData} updateTvInstallation={updateTvInstallation} />;
       case 7:
-        return <AddonSelector bookingData={bookingData} updateBookingData={updateBookingData} updateTvInstallation={updateTvInstallation} />;
+        return <AddonSelector bookingData={bookingData} updateBookingData={updateBookingData} updateTvInstallation={updateTvInstallation} updateCurrentTvInstallation={updateCurrentTvInstallation} />;
       case 8:
         return <ScheduleSelector bookingData={bookingData} updateBookingData={updateBookingData} />;
       case 9:

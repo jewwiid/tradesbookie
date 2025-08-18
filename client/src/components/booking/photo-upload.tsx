@@ -61,10 +61,19 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
     },
     onSuccess: (data) => {
       if (bookingData.tvQuantity > 1) {
-        // Multi-TV mode: update current TV's photo
+        // Multi-TV mode: update current TV's photo and analysis
         updateTvInstallation({
           roomPhotoBase64: data.imageBase64,
-          aiPreviewUrl: data.analysis
+          roomAnalysis: data.analysis
+        });
+        // Also update global consent for multi-TV bookings
+        updateBookingData({
+          photoStorageConsent: true,
+          compressionInfo: {
+            originalSize: data.originalSize,
+            compressedSize: data.compressedSize,
+            compressionRatio: data.compressionRatio
+          }
         });
       } else {
         // Single TV mode: update global photo
@@ -588,10 +597,16 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
                     </span>
                   </div>
               
-              {bookingData.roomAnalysis && (
-                <div className="mt-4 space-y-4">
-                  {/* Installation Difficulty Assessment */}
-                  {bookingData.roomAnalysis.difficultyAssessment && (
+              {(() => {
+                // Get the correct room analysis for the current TV or global
+                const currentAnalysis = bookingData.tvQuantity > 1 && bookingData.tvInstallations?.[bookingData.currentTvIndex]
+                  ? bookingData.tvInstallations[bookingData.currentTvIndex].roomAnalysis
+                  : bookingData.roomAnalysis;
+                
+                return currentAnalysis && (
+                  <div className="mt-4 space-y-4">
+                    {/* Installation Difficulty Assessment */}
+                    {currentAnalysis.difficultyAssessment && (
                     <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                       <h4 className="font-semibold text-foreground mb-3 flex items-center">
                         <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
@@ -602,25 +617,25 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
                         <div className="space-y-1">
                           <span className="text-xs font-medium text-gray-600 block">COMPLEXITY</span>
                           <div className={`inline-flex px-3 py-1.5 rounded-full text-xs font-medium ${
-                            bookingData.roomAnalysis.difficultyAssessment.level === 'easy' ? 'bg-green-100 text-green-700' :
-                            bookingData.roomAnalysis.difficultyAssessment.level === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
-                            bookingData.roomAnalysis.difficultyAssessment.level === 'difficult' ? 'bg-orange-100 text-orange-700' :
+                            currentAnalysis.difficultyAssessment.level === 'easy' ? 'bg-green-100 text-green-700' :
+                            currentAnalysis.difficultyAssessment.level === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
+                            currentAnalysis.difficultyAssessment.level === 'difficult' ? 'bg-orange-100 text-orange-700' :
                             'bg-red-100 text-red-700'
                           }`}>
-                            {bookingData.roomAnalysis.difficultyAssessment.level.toUpperCase()}
+                            {currentAnalysis.difficultyAssessment.level.toUpperCase()}
                           </div>
                         </div>
                         <div className="space-y-1">
                           <span className="text-xs font-medium text-gray-600 block">ESTIMATED TIME</span>
-                          <p className="text-sm font-medium text-foreground">{bookingData.roomAnalysis.difficultyAssessment.estimatedTime}</p>
+                          <p className="text-sm font-medium text-foreground">{currentAnalysis.difficultyAssessment.estimatedTime}</p>
                         </div>
                       </div>
 
-                      {bookingData.roomAnalysis.difficultyAssessment.factors?.length > 0 && (
+                      {currentAnalysis.difficultyAssessment.factors?.length > 0 && (
                         <div className="mb-3">
                           <h6 className="text-xs font-medium text-gray-600 mb-2">KEY FACTORS</h6>
                           <div className="flex flex-wrap gap-2">
-                            {bookingData.roomAnalysis.difficultyAssessment.factors.map((factor, idx) => (
+                            {currentAnalysis.difficultyAssessment.factors.map((factor, idx) => (
                               <span key={idx} className="px-3 py-1.5 bg-white rounded-lg text-xs font-medium text-gray-700 border shadow-sm">
                                 {factor}
                               </span>
@@ -629,19 +644,19 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
                         </div>
                       )}
 
-                      {bookingData.roomAnalysis.difficultyAssessment.priceImpact !== 'none' && (
+                      {currentAnalysis.difficultyAssessment.priceImpact !== 'none' && (
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-white rounded-lg border shadow-sm">
                           <div className="flex items-center gap-2">
                             <div className={`w-3 h-3 rounded-full ${
-                              bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'low' ? 'bg-yellow-400' :
-                              bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'medium' ? 'bg-orange-400' :
+                              currentAnalysis.difficultyAssessment.priceImpact === 'low' ? 'bg-yellow-400' :
+                              currentAnalysis.difficultyAssessment.priceImpact === 'medium' ? 'bg-orange-400' :
                               'bg-red-400'
                             }`}></div>
                             <span className="text-xs font-medium text-gray-600">PRICE IMPACT:</span>
                           </div>
                           <span className="text-sm font-bold text-gray-800">
-                            {bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'low' ? '+10-20%' :
-                             bookingData.roomAnalysis.difficultyAssessment.priceImpact === 'medium' ? '+20-40%' :
+                            {currentAnalysis.difficultyAssessment.priceImpact === 'low' ? '+10-20%' :
+                             currentAnalysis.difficultyAssessment.priceImpact === 'medium' ? '+20-40%' :
                              '+40%+'}
                           </span>
                         </div>
@@ -652,29 +667,30 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
                   {/* Room Analysis */}
                   <div className="p-4 sm:p-6 bg-muted rounded-lg text-left">
                     <h4 className="font-semibold text-foreground mb-3">AI Room Analysis</h4>
-                    {bookingData.roomAnalysis.recommendations?.length > 0 && (
+                    {currentAnalysis.recommendations?.length > 0 && (
                       <div className="mb-2">
                         <h5 className="text-sm font-medium text-foreground">Recommendations:</h5>
                         <ul className="text-sm text-muted-foreground list-disc list-inside">
-                          {bookingData.roomAnalysis.recommendations.map((rec, idx) => (
+                          {currentAnalysis.recommendations.map((rec, idx) => (
                             <li key={idx}>{rec}</li>
                           ))}
                         </ul>
                       </div>
                     )}
-                    {bookingData.roomAnalysis.warnings?.length > 0 && (
+                    {currentAnalysis.warnings?.length > 0 && (
                       <div>
                         <h5 className="text-sm font-medium text-warning">Considerations:</h5>
                         <ul className="text-sm text-muted-foreground list-disc list-inside">
-                          {bookingData.roomAnalysis.warnings.map((warning, idx) => (
+                          {currentAnalysis.warnings.map((warning, idx) => (
                             <li key={idx}>{warning}</li>
                           ))}
                         </ul>
                       </div>
                     )}
                   </div>
-                </div>
-              )}
+                  </div>
+                );
+              })()}
               
               {/* Photo Storage Consent Section */}
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -723,8 +739,8 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
           variant="outline" 
           onClick={() => {
             if (bookingData.tvQuantity > 1) {
-              // For multi-TV, clear current TV's photo
-              updateTvInstallation({ roomPhotoBase64: undefined, aiPreviewUrl: undefined });
+              // For multi-TV, clear current TV's photo and analysis
+              updateTvInstallation({ roomPhotoBase64: undefined, roomAnalysis: undefined });
             } else {
               // For single TV, clear global photo
               updateBookingData({ roomPhotoBase64: undefined, roomAnalysis: undefined, photoStorageConsent: false });

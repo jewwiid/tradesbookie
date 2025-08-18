@@ -643,12 +643,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get installer profile endpoint
   app.get("/api/installers/profile", async (req, res) => {
     try {
-      // Check if installer is authenticated via session
-      if (!req.session.installerAuthenticated || !req.session.installerId) {
+      // Check if installer is authenticated via session OR if user is admin
+      const isInstallerAuth = req.session.installerAuthenticated && req.session.installerId;
+      const isAdminAuth = req.isAuthenticated() && req.user && (
+        req.user.role === 'admin' || 
+        req.user.email === 'admin@tradesbook.ie' || 
+        req.user.email === 'jude.okun@gmail.com' ||
+        req.user.id === '42442296'
+      );
+      
+      if (!isInstallerAuth && !isAdminAuth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
       
-      const installer = await storage.getInstaller(req.session.installerId);
+      // For admin users, return a placeholder or first installer if no specific installer is selected
+      let installer;
+      if (isAdminAuth && !isInstallerAuth) {
+        // Admin accessing - return a general response or first installer
+        const allInstallers = await storage.getAllInstallers();
+        if (allInstallers && allInstallers.length > 0) {
+          installer = allInstallers[0]; // Return first installer as example
+        } else {
+          return res.json({ 
+            isAdminView: true, 
+            message: "Admin view - no installers available",
+            id: 0,
+            businessName: "Admin Dashboard View",
+            email: req.user.email,
+            role: "admin_viewing_installer"
+          });
+        }
+      } else {
+        installer = await storage.getInstaller(req.session.installerId);
+      }
       
       if (!installer) {
         return res.status(404).json({ error: "Installer not found" });
@@ -656,6 +683,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Return installer data (without password hash)
       const { passwordHash: _, ...installerData } = installer;
+      
+      // Add flag if this is admin view
+      if (isAdminAuth && !isInstallerAuth) {
+        (installerData as any).isAdminView = true;
+      }
+      
       res.json(installerData);
       
     } catch (error) {

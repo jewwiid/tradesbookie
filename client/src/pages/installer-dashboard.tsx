@@ -1512,6 +1512,17 @@ export default function InstallerDashboard() {
     queryKey: ["/api/installers/profile"],
     retry: false
   });
+
+  // Fetch current user to check for admin status
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/auth/user'],
+    retry: false,
+  });
+
+  // Check if current user is admin viewing installer dashboard
+  const isAdminView = currentUser?.role === 'admin' || 
+                      currentUser?.email === 'admin@tradesbook.ie' || 
+                      currentUser?.email === 'jude.okun@gmail.com';
   
   // Initialize availability status from database
   const [isOnline, setIsOnline] = useState(installerProfile?.isAvailable || false);
@@ -1993,6 +2004,11 @@ export default function InstallerDashboard() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-3 sm:py-0 sm:h-16 gap-3 sm:gap-0">
             <div className="flex items-center space-x-3">
               <h1 className="text-lg sm:text-xl font-bold text-gray-900">Installer Dashboard</h1>
+              {isAdminView && (
+                <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+                  Admin View
+                </Badge>
+              )}
               <Badge variant={isOnline ? "default" : "secondary"} className="flex items-center space-x-1">
                 <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                 <span className="text-xs sm:text-sm">{isOnline ? 'Online' : 'Offline'}</span>
@@ -2010,6 +2026,13 @@ export default function InstallerDashboard() {
                   className="data-[state=checked]:bg-green-600"
                 />
               </div>
+              
+              {isAdminView && (
+                <Button variant="ghost" size="sm" onClick={() => window.location.href = '/admin'}>
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline ml-2">Back to Admin</span>
+                </Button>
+              )}
               
               <Button variant="ghost" size="sm" onClick={() => window.location.href = '/installer-login'}>
                 <LogOut className="w-4 h-4" />

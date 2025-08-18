@@ -71,7 +71,8 @@ import {
   MailCheck,
   UserCog,
   Filter,
-  Send
+  Send,
+  Wrench
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
@@ -6792,6 +6793,14 @@ export default function AdminDashboard() {
               <span className="text-xl font-bold text-gray-900">Admin Dashboard</span>
             </div>
             <div className="flex items-center space-x-4">
+              <Button variant="ghost" onClick={() => setLocation("/customer-dashboard")} size="sm">
+                <Users className="w-4 h-4 mr-2" />
+                Customer View
+              </Button>
+              <Button variant="ghost" onClick={() => setLocation("/installer-dashboard")} size="sm">
+                <Wrench className="w-4 h-4 mr-2" />
+                Installer View
+              </Button>
               <Button variant="ghost" onClick={() => setLocation("/")} size="sm">
                 <Home className="w-4 h-4 mr-2" />
                 Home

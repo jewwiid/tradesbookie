@@ -362,6 +362,11 @@ export default function CustomerDashboard() {
     retry: false,
   });
 
+  // Check if current user is admin viewing customer dashboard
+  const isAdminView = user?.role === 'admin' || 
+                      user?.email === 'admin@tradesbook.ie' || 
+                      user?.email === 'jude.okun@gmail.com';
+
   // Get user's bookings only if user exists (including invoice-authenticated users)
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery<Booking[]>({
     queryKey: ['/api/auth/user/bookings'],
@@ -1068,9 +1073,20 @@ export default function CustomerDashboard() {
             <div className="flex items-center">
               <Tv className="h-8 w-8 text-primary mr-3" />
               <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
+              {isAdminView && (
+                <Badge className="ml-3 bg-orange-100 text-orange-800 border-orange-200">
+                  Admin View
+                </Badge>
+              )}
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">Welcome, {user.firstName || user.email}</span>
+              {isAdminView && (
+                <Button variant="ghost" onClick={() => setLocation && setLocation('/admin')} size="sm">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Back to Admin
+                </Button>
+              )}
               <Button variant="ghost" size="sm" onClick={handleEditProfile}>
                 <Edit3 className="w-4 h-4" />
               </Button>

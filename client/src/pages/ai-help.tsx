@@ -2006,11 +2006,11 @@ export default function AIHelpPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <ul className="space-y-2">
+                          <ul className="space-y-3">
                             {productInfo.pros.map((pro: string, index: number) => (
                               <li key={index} className="flex items-start">
-                                <span className="text-green-500 mr-2 flex-shrink-0">✓</span>
-                                <span className="text-gray-700 text-sm">{pro}</span>
+                                <span className="text-green-500 mr-3 flex-shrink-0 text-lg">✓</span>
+                                <span className="text-gray-700 text-base leading-relaxed">{pro}</span>
                               </li>
                             ))}
                           </ul>
@@ -2025,11 +2025,11 @@ export default function AIHelpPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <ul className="space-y-2">
+                          <ul className="space-y-3">
                             {productInfo.cons.map((con: string, index: number) => (
                               <li key={index} className="flex items-start">
-                                <span className="text-red-500 mr-2 flex-shrink-0">✗</span>
-                                <span className="text-gray-700 text-sm">{con}</span>
+                                <span className="text-red-500 mr-3 flex-shrink-0 text-lg">✗</span>
+                                <span className="text-gray-700 text-base leading-relaxed">{con}</span>
                               </li>
                             ))}
                           </ul>
@@ -2043,11 +2043,11 @@ export default function AIHelpPage() {
                         <CardTitle>Key Features</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {productInfo.keyFeatures.map((feature: string, index: number) => (
                             <div key={index} className="flex items-start">
-                              <span className="text-blue-500 mr-2 flex-shrink-0">•</span>
-                              <span className="text-gray-700 text-sm">{feature}</span>
+                              <span className="text-blue-500 mr-3 flex-shrink-0 text-lg">•</span>
+                              <span className="text-gray-700 text-base leading-relaxed">{feature}</span>
                             </div>
                           ))}
                         </div>
@@ -2060,11 +2060,11 @@ export default function AIHelpPage() {
                         <CardTitle>Specifications</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {Object.entries(productInfo.specifications).map(([key, value]) => (
-                            <div key={key} className="flex justify-between border-b border-gray-100 pb-2">
-                              <span className="text-sm font-medium text-gray-600">{key}:</span>
-                              <span className="text-sm text-gray-800">{value}</span>
+                            <div key={key} className="flex justify-between border-b border-gray-100 pb-3 mb-2">
+                              <span className="text-base font-medium text-gray-600">{key}:</span>
+                              <span className="text-base text-gray-800">{value}</span>
                             </div>
                           ))}
                         </div>
@@ -2078,7 +2078,7 @@ export default function AIHelpPage() {
                           <CardTitle className="text-blue-700">Expert Recommendation</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-gray-700 text-sm leading-relaxed">{productInfo.expertRecommendation}</p>
+                          <p className="text-gray-700 text-base leading-relaxed">{productInfo.expertRecommendation}</p>
                         </CardContent>
                       </Card>
 
@@ -2087,7 +2087,7 @@ export default function AIHelpPage() {
                           <CardTitle className="text-purple-700">Value for Money</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-gray-700 text-sm leading-relaxed">{productInfo.valueForMoney}</p>
+                          <p className="text-gray-700 text-base leading-relaxed">{productInfo.valueForMoney}</p>
                         </CardContent>
                       </Card>
                     </div>

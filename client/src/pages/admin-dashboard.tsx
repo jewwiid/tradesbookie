@@ -1155,10 +1155,11 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
       setSelectedServiceForAssignment(null);
     },
     onError: (error: any) => {
+      const isConflict = error.message?.includes('already assigned') || error.status === 409;
       toast({ 
-        title: "Failed to assign service", 
-        description: error.message || "An error occurred",
-        variant: "destructive" 
+        title: isConflict ? "Service already assigned" : "Failed to assign service", 
+        description: isConflict ? "This service is already assigned to the installer" : (error.message || "An error occurred"),
+        variant: isConflict ? "default" : "destructive" 
       });
     },
   });

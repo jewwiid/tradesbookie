@@ -29,6 +29,10 @@ interface BookingData {
   tvInstallations?: TvInstallation[];
   currentTvIndex?: number;
   
+  // Step completion tracking
+  completedSteps?: Set<number>;
+  stepCompletionMap?: { [tvIndex: number]: Set<number> }; // For multi-TV step tracking
+  
   // Direct installer booking support
   directBooking?: boolean;
   preselectedInstallerId?: number;
@@ -107,6 +111,11 @@ interface BookingStore {
   // Direct installer booking methods
   setDirectInstaller: (installerId: number, installerInfo: any) => void;
   isDirectBooking: () => boolean;
+  // Step completion tracking methods
+  markStepCompleted: (step: number, tvIndex?: number) => void;
+  isStepCompleted: (step: number, tvIndex?: number) => boolean;
+  getCompletedStepsCount: (tvIndex?: number) => number;
+  resetStepCompletion: () => void;
 }
 
 export const useBookingData = create<BookingStore>()(
@@ -259,9 +268,118 @@ export const useBookingData = create<BookingStore>()(
         const { bookingData } = get();
         return !!bookingData.directBooking;
       },
+      
+      // Step completion tracking methods
+      markStepCompleted: (step: number, tvIndex?: number) =>
+        set((state) => {
+          const isMultiTv = !!(state.bookingData.tvQuantity && state.bookingData.tvQuantity > 1);
+          
+          if (isMultiTv && tvIndex !== undefined) {
+            // Multi-TV: track per TV
+            const stepCompletionMap = state.bookingData.stepCompletionMap || {};
+            const tvSteps = stepCompletionMap[tvIndex] || new Set<number>();
+            tvSteps.add(step);
+            stepCompletionMap[tvIndex] = tvSteps;
+            
+            return {
+              bookingData: {
+                ...state.bookingData,
+                stepCompletionMap,
+              },
+            };
+          } else {
+            // Single TV or global steps: track globally
+            const completedSteps = state.bookingData.completedSteps || new Set<number>();
+            completedSteps.add(step);
+            
+            return {
+              bookingData: {
+                ...state.bookingData,
+                completedSteps,
+              },
+            };
+          }
+        }),
+      
+      isStepCompleted: (step: number, tvIndex?: number) => {
+        const { bookingData } = get();
+        const isMultiTv = !!(bookingData.tvQuantity && bookingData.tvQuantity > 1);
+        
+        if (isMultiTv && tvIndex !== undefined) {
+          // Multi-TV: check per TV
+          const stepCompletionMap = bookingData.stepCompletionMap || {};
+          const tvSteps = stepCompletionMap[tvIndex];
+          return tvSteps ? tvSteps.has(step) : false;
+        } else {
+          // Single TV or global steps: check globally
+          const completedSteps = bookingData.completedSteps;
+          return completedSteps ? completedSteps.has(step) : false;
+        }
+      },
+      
+      getCompletedStepsCount: (tvIndex?: number) => {
+        const { bookingData } = get();
+        const isMultiTv = !!(bookingData.tvQuantity && bookingData.tvQuantity > 1);
+        
+        if (isMultiTv && tvIndex !== undefined) {
+          // Multi-TV: count per TV
+          const stepCompletionMap = bookingData.stepCompletionMap || {};
+          const tvSteps = stepCompletionMap[tvIndex];
+          return tvSteps ? tvSteps.size : 0;
+        } else {
+          // Single TV or global steps: count globally
+          const completedSteps = bookingData.completedSteps;
+          return completedSteps ? completedSteps.size : 0;
+        }
+      },
+      
+      resetStepCompletion: () =>
+        set((state) => ({
+          bookingData: {
+            ...state.bookingData,
+            completedSteps: new Set<number>(),
+            stepCompletionMap: {},
+          },
+        })),
     }),
     {
       name: 'booking-data',
+      // Custom serialization to handle Sets
+      serialize: (state) => {
+        const serializedState = {
+          ...state,
+          bookingData: {
+            ...state.bookingData,
+            completedSteps: state.bookingData.completedSteps ? Array.from(state.bookingData.completedSteps) : undefined,
+            stepCompletionMap: state.bookingData.stepCompletionMap ? 
+              Object.fromEntries(
+                Object.entries(state.bookingData.stepCompletionMap).map(([key, set]) => [
+                  key, 
+                  Array.from(set as Set<number>)
+                ])
+              ) : undefined,
+          },
+        };
+        return JSON.stringify(serializedState);
+      },
+      // Custom deserialization to handle Sets
+      deserialize: (str) => {
+        const state = JSON.parse(str);
+        if (state.bookingData) {
+          if (state.bookingData.completedSteps && Array.isArray(state.bookingData.completedSteps)) {
+            state.bookingData.completedSteps = new Set(state.bookingData.completedSteps);
+          }
+          if (state.bookingData.stepCompletionMap) {
+            state.bookingData.stepCompletionMap = Object.fromEntries(
+              Object.entries(state.bookingData.stepCompletionMap).map(([key, array]) => [
+                key,
+                new Set(array as number[])
+              ])
+            );
+          }
+        }
+        return state;
+      },
     }
   )
 );

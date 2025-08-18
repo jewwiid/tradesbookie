@@ -34,7 +34,11 @@ export default function BookingFlow() {
     removeTvInstallation,
     initializeMultiTvBooking,
     setDirectInstaller,
-    isDirectBooking
+    isDirectBooking,
+    markStepCompleted,
+    isStepCompleted,
+    getCompletedStepsCount,
+    resetStepCompletion
   } = useBookingData();
   const [currentStep, setCurrentStep] = useState(1);
   
@@ -58,11 +62,18 @@ export default function BookingFlow() {
   const handleExit = () => {
     if (confirm("Are you sure you want to exit? Your progress will be lost.")) {
       resetBookingData();
+      resetStepCompletion();
       setLocation("/");
     }
   };
 
   const nextStep = () => {
+    // Mark current step as completed before proceeding
+    const tvIndex = bookingData.tvQuantity > 1 ? bookingData.currentTvIndex : undefined;
+    if (canProceed() && !isStepCompleted(currentStep, tvIndex)) {
+      markStepCompleted(currentStep, tvIndex);
+    }
+    
     // For multi-TV mode, handle automatic TV navigation
     if (bookingData.tvQuantity > 1 && currentStep >= 2 && currentStep <= 7) {
       // If current TV is complete but not all TVs are complete
@@ -119,52 +130,82 @@ export default function BookingFlow() {
   };
 
   const canProceed = () => {
+    const tvIndex = bookingData.tvQuantity > 1 ? bookingData.currentTvIndex : undefined;
+    let stepComplete = false;
+    
     switch (currentStep) {
       case 1:
-        return bookingData.tvQuantity > 0;
+        stepComplete = bookingData.tvQuantity > 0;
+        break;
       case 2:
-        return true; // Photo is optional
+        stepComplete = true; // Photo is optional
+        break;
       case 3:
         // For multi-TV, check current TV's size; for single TV, check legacy field
         if (bookingData.tvQuantity > 1) {
           const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
-          return currentTv && currentTv.tvSize !== "";
+          stepComplete = !!(currentTv && currentTv.tvSize !== "");
+        } else {
+          stepComplete = bookingData.tvSize !== "";
         }
-        return bookingData.tvSize !== "";
+        break;
       case 4:
         // For multi-TV, check current TV's service; for single TV, check legacy field
         if (bookingData.tvQuantity > 1) {
           const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
-          return currentTv && currentTv.serviceType !== "";
+          stepComplete = !!(currentTv && currentTv.serviceType !== "");
+        } else {
+          stepComplete = bookingData.serviceType !== "";
         }
-        return bookingData.serviceType !== "";
+        break;
       case 5:
         // For multi-TV, check current TV's wall type; for single TV, check legacy field
         if (bookingData.tvQuantity > 1) {
           const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
-          return currentTv && currentTv.wallType !== "";
+          stepComplete = !!(currentTv && currentTv.wallType !== "");
+        } else {
+          stepComplete = bookingData.wallType !== "";
         }
-        return bookingData.wallType !== "";
+        break;
       case 6:
         // For multi-TV, check current TV's mount type only (nextStep will handle navigation)
         if (bookingData.tvQuantity > 1) {
           const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
-          return currentTv && currentTv.mountType !== "" && 
+          stepComplete = !!(currentTv && currentTv.mountType !== "" && 
                  (currentTv.needsWallMount === false || 
-                  (currentTv.needsWallMount === true && currentTv.wallMountOption));
-        }
-        return bookingData.mountType !== "" && 
+                  (currentTv.needsWallMount === true && currentTv.wallMountOption)));
+        } else {
+          stepComplete = bookingData.mountType !== "" && 
                (bookingData.needsWallMount === false || 
                 (bookingData.needsWallMount === true && bookingData.wallMountOption));
+        }
+        break;
       case 7:
-        return true; // Addons are optional
+        stepComplete = true; // Addons are optional
+        break;
       case 8:
-        return bookingData.preferredDate && bookingData.preferredTime;
+        stepComplete = !!(bookingData.preferredDate && bookingData.preferredTime);
+        break;
       case 9:
-        return bookingData.contact?.name && bookingData.contact?.email && bookingData.contact?.phone && bookingData.contact?.address;
+        stepComplete = !!(
+          bookingData.contact?.name &&
+          bookingData.contact?.email &&
+          bookingData.contact?.phone &&
+          bookingData.contact?.streetAddress &&
+          bookingData.contact?.town &&
+          bookingData.contact?.county
+        );
+        break;
       default:
-        return false;
+        stepComplete = false;
     }
+    
+    // Mark step as completed if it meets requirements
+    if (stepComplete && !isStepCompleted(currentStep, tvIndex)) {
+      markStepCompleted(currentStep, tvIndex);
+    }
+    
+    return stepComplete;
   };
 
   const renderStep = () => {
@@ -207,13 +248,17 @@ export default function BookingFlow() {
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-muted-foreground">
-              Step {currentStep} of {TOTAL_STEPS}
+              Step {currentStep} of {TOTAL_STEPS} • {getCompletedStepsCount(bookingData.tvQuantity > 1 ? bookingData.currentTvIndex : undefined)} of {TOTAL_STEPS} complete
             </span>
             <Button variant="ghost" size="sm" onClick={handleExit}>
               <X className="w-4 h-4" />
             </Button>
           </div>
-          <ProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+          <ProgressBar 
+            currentStep={currentStep} 
+            totalSteps={TOTAL_STEPS} 
+            completedSteps={getCompletedStepsCount(bookingData.tvQuantity > 1 ? bookingData.currentTvIndex : undefined)}
+          />
         </div>
       </div>
 

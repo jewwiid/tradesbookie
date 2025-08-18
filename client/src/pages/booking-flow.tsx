@@ -30,6 +30,8 @@ export default function BookingFlow() {
     resetBookingData, 
     updateTvInstallation, 
     updateCurrentTvInstallation,
+    addTvInstallation,
+    removeTvInstallation,
     initializeMultiTvBooking,
     setDirectInstaller,
     isDirectBooking

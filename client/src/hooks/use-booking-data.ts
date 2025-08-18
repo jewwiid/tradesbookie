@@ -97,6 +97,8 @@ interface BookingStore {
   resetBookingData: () => void;
   // Multi-TV specific methods
   initializeMultiTvBooking: (tvQuantity: number) => void;
+  addTvInstallation: () => void;
+  removeTvInstallation: (index: number) => void;
   updateTvInstallation: (index: number, data: Partial<TvInstallation>) => void;
   updateCurrentTvInstallation: (data: Partial<TvInstallation>) => void;
   calculateTotalPrice: () => number;
@@ -140,6 +142,53 @@ export const useBookingData = create<BookingStore>()(
               tvQuantity,
               tvInstallations,
               currentTvIndex: 0,
+            },
+          };
+        }),
+
+      addTvInstallation: () =>
+        set((state) => {
+          const currentInstallations = state.bookingData.tvInstallations || [];
+          const newIndex = currentInstallations.length + 1;
+          
+          const newInstallation: TvInstallation = {
+            tvSize: '',
+            serviceType: '',
+            wallType: '',
+            mountType: '',
+            needsWallMount: false,
+            wallMountOption: undefined,
+            location: `TV ${newIndex}`,
+            addons: [],
+            estimatedPrice: 0,
+            estimatedAddonsPrice: 0,
+            estimatedTotal: 0,
+          };
+
+          return {
+            bookingData: {
+              ...state.bookingData,
+              tvQuantity: (state.bookingData.tvQuantity || 0) + 1,
+              tvInstallations: [...currentInstallations, newInstallation],
+            },
+          };
+        }),
+
+      removeTvInstallation: (index: number) =>
+        set((state) => {
+          const currentInstallations = state.bookingData.tvInstallations || [];
+          if (index < 0 || index >= currentInstallations.length) {
+            return state;
+          }
+
+          const newInstallations = currentInstallations.filter((_, i) => i !== index);
+          
+          return {
+            bookingData: {
+              ...state.bookingData,
+              tvQuantity: Math.max(1, newInstallations.length),
+              tvInstallations: newInstallations,
+              currentTvIndex: Math.min(state.bookingData.currentTvIndex || 0, newInstallations.length - 1),
             },
           };
         }),

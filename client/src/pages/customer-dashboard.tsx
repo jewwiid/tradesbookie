@@ -1190,35 +1190,58 @@ export default function CustomerDashboard() {
 
         {/* Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-8">
-            <TabsTrigger value="bookings" className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Bookings
-            </TabsTrigger>
-            <TabsTrigger value="ai-services" className="flex items-center gap-2">
-              <Bot className="w-4 h-4" />
-              AI Services
-            </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center gap-2">
-              <Gift className="w-4 h-4" />
-              Referrals
-            </TabsTrigger>
-            <TabsTrigger value="messaging" className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Messages
-            </TabsTrigger>
-            <TabsTrigger value="wallet" className="flex items-center gap-2">
-              <Wallet className="w-4 h-4" />
-              Wallet
-            </TabsTrigger>
-            <TabsTrigger value="support" className="flex items-center gap-2">
-              <HelpCircle className="w-4 h-4" />
-              Support
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              Settings
-            </TabsTrigger>
+          <TabsList className="w-full mb-8 h-auto p-1 bg-muted rounded-lg">
+            <div className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1">
+              <TabsTrigger 
+                value="bookings" 
+                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
+              >
+                <Calendar className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Bookings</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="ai-services" 
+                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
+              >
+                <Bot className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">AI</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="referrals" 
+                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
+              >
+                <Gift className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Referrals</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="messaging" 
+                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
+              >
+                <MessageSquare className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Messages</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="wallet" 
+                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
+              >
+                <Wallet className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Wallet</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="support" 
+                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
+              >
+                <HelpCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Support</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="settings" 
+                className="flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium min-h-[2.5rem]"
+              >
+                <Settings className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">Settings</span>
+              </TabsTrigger>
+            </div>
           </TabsList>
 
           {/* Bookings Tab */}

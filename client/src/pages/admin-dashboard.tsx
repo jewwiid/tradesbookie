@@ -175,6 +175,8 @@ interface Installer {
   reviewedAt?: string;
   // Service assignments
   services?: InstallerServiceAssignment[];
+  // VIP status
+  isVip?: boolean;
 }
 
 interface SolarEnquiry {
@@ -216,6 +218,13 @@ interface Booking {
   paymentStatus?: string;
   paidAmount?: string;
   paymentDate?: string;
+  // Additional properties from backend
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  tvInstallations?: any[];
+  leadFee?: number;
+  isDemo?: boolean;
 }
 
 interface TvSetupBooking {
@@ -2158,7 +2167,7 @@ function BookingManagement() {
                   <TableCell>
                     <div>
                       <div className="font-medium">€{typeof booking.totalPrice === 'number' ? booking.totalPrice.toFixed(2) : booking.totalPrice}</div>
-                      <div className="text-sm text-gray-500">Lead Fee: €{typeof booking.leadFee === 'number' ? booking.leadFee.toFixed(2) : booking.leadFee}</div>
+                      <div className="text-sm text-gray-500">Lead Fee: €{booking.leadFee ? (typeof booking.leadFee === 'number' ? booking.leadFee.toFixed(2) : booking.leadFee) : '0.00'}</div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -3313,7 +3322,7 @@ function SystemMetrics() {
       {/* Installation Coverage Map */}
       <div className="col-span-full">
         <IrelandMap 
-          installations={geocodedInstallations || []} 
+          installations={(geocodedInstallations as any[]) || []} 
           isLoading={mapLoading}
           showLegend={true}
           height="500px"
@@ -3347,7 +3356,7 @@ function PaymentManagement() {
     );
   }
 
-  const transactions = leadPayments?.transactions || [];
+  const transactions = (leadPayments as any)?.transactions || [];
   
   // Platform revenue includes both credit purchases and lead fees from verified installers
   const creditPurchases = transactions.filter((t: any) => t.status === 'completed' && t.type === 'credit_purchase');
@@ -4649,8 +4658,8 @@ function TransactionManagement() {
     );
   }
 
-  const transactions = leadPayments?.transactions || [];
-  const pagination = leadPayments?.pagination || {};
+  const transactions = (leadPayments as any)?.transactions || [];
+  const pagination = (leadPayments as any)?.pagination || {};
   
   // Platform revenue includes both credit purchases and lead fees from verified installers
   const creditPurchases = transactions.filter((t: any) => t.status === 'completed' && t.type === 'credit_purchase');

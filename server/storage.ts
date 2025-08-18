@@ -853,41 +853,46 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBooking(id: number): Promise<void> {
     try {
+      console.log(`🗑️ Starting deletion process for booking ${id}`);
+      
       // Delete all related records first to handle foreign key constraints
-      
-      // Delete from declined_requests
+      console.log('✅ Deleting declined requests...');
       await db.delete(declinedRequests).where(eq(declinedRequests.bookingId, id));
+      console.log('✅ Deleted declined requests for booking', id);
       
-      // Delete from job_assignments
+      console.log('✅ Deleting job assignments...');
       await db.delete(jobAssignments).where(eq(jobAssignments.bookingId, id));
+      console.log('✅ Deleted job assignments for booking', id);
       
-      // Delete from schedule_negotiations
+      console.log('✅ Deleting schedule negotiations...');
       await db.delete(scheduleNegotiations).where(eq(scheduleNegotiations.bookingId, id));
+      console.log('✅ Deleted schedule negotiations for booking', id);
       
-      // Delete from lead_refunds (if table exists and is properly imported)
-      try {
-        await db.delete(leadRefunds).where(eq(leadRefunds.bookingId, id));
-      } catch (refundError) {
-        console.log('Warning: Could not delete from lead_refunds:', refundError);
-        // Continue with other deletions even if this fails
-      }
+      console.log('✅ Deleting lead refunds...');
+      await db.delete(leadRefunds).where(eq(leadRefunds.bookingId, id));
+      console.log('✅ Deleted lead refunds for booking', id);
       
-      // Delete from lead_quality_tracking
+      console.log('✅ Deleting lead quality tracking...');
       await db.delete(leadQualityTracking).where(eq(leadQualityTracking.bookingId, id));
+      console.log('✅ Deleted lead quality tracking for booking', id);
       
-      // Delete from reviews (if any)
+      console.log('✅ Deleting reviews...');
       await db.delete(reviews).where(eq(reviews.bookingId, id));
+      console.log('✅ Deleted reviews for booking', id);
       
-      // Delete from anti_manipulation (if any)
+      console.log('✅ Deleting anti manipulation records...');
       await db.delete(antiManipulation).where(eq(antiManipulation.bookingId, id));
+      console.log('✅ Deleted anti manipulation records for booking', id);
       
-      // Delete from customer_verification (if any)
+      console.log('✅ Deleting customer verification...');
       await db.delete(customerVerification).where(eq(customerVerification.bookingId, id));
+      console.log('✅ Deleted customer verification for booking', id);
       
-      // Finally delete the booking itself
+      console.log('✅ Deleting booking itself...');
       await db.delete(bookings).where(eq(bookings.id, id));
+      console.log('✅ Successfully deleted booking', id);
     } catch (error) {
-      console.error('Error in deleteBooking:', error);
+      console.error('Error in admin booking deletion:', error);
       throw error;
     }
   }

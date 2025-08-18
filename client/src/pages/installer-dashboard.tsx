@@ -630,7 +630,7 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-green-600">€{request.estimatedEarnings}</div>
-            <div className="text-sm text-gray-500">Lead Fee: €{request.leadFee}</div>
+            <div className="text-sm text-gray-500">Cost: {request.leadFee} Credits</div>
           </div>
         </div>
 

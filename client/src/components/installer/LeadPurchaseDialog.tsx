@@ -194,7 +194,7 @@ export default function LeadPurchaseDialog({
                   </Badge>
                 </div>
                 <p className="text-sm text-green-700">
-                  Your voucher will cover €{voucherAmount} of this lead fee, making this your free first lead!
+                  Your voucher will cover {voucherAmount} Credits of this lead cost, making this your free first lead!
                 </p>
               </CardContent>
             </Card>
@@ -205,15 +205,15 @@ export default function LeadPurchaseDialog({
             <CardContent className="p-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span>Lead Fee</span>
-                  <span>€{leadFee.toFixed(2)}</span>
+                  <span>Cost</span>
+                  <span>{leadFee} Credits</span>
                 </div>
                 
                 {hasVoucher && (
                   <>
                     <div className="flex items-center justify-between text-green-600">
                       <span>Voucher Discount</span>
-                      <span>-€{voucherAmount.toFixed(2)}</span>
+                      <span>-{voucherAmount} Credits</span>
                     </div>
                     <Separator />
                   </>
@@ -222,7 +222,7 @@ export default function LeadPurchaseDialog({
                 <div className="flex items-center justify-between font-medium text-lg">
                   <span>Total Cost</span>
                   <span className={finalCost === 0 ? "text-green-600" : ""}>
-                    {finalCost === 0 ? "FREE" : `€${finalCost.toFixed(2)}`}
+                    {finalCost === 0 ? "FREE" : `${finalCost} Credits`}
                   </span>
                 </div>
               </div>
@@ -235,9 +235,9 @@ export default function LeadPurchaseDialog({
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Wallet className="w-4 h-4" />
-                  <span>Wallet Balance</span>
+                  <span>Tradesbook Credits</span>
                 </div>
-                <span className="font-medium">€{walletBalance.toFixed(2)}</span>
+                <span className="font-medium">{walletBalance} Credits</span>
               </div>
               
               {!canAfford && !hasVoucher && (

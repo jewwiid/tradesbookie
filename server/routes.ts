@@ -6858,6 +6858,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         electricityBill: enquiryData.electricityBill,
         timeframe: enquiryData.timeframe,
         grants: enquiryData.grants || false,
+        storeName: enquiryData.storeName || null,
+        storeLocation: enquiryData.storeLocation || null,
         additionalInfo: enquiryData.additionalInfo || null,
         status: "new"
       });
@@ -6878,6 +6880,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         Monthly Bill: ${enquiry.electricityBill}
         Timeframe: ${enquiry.timeframe}
         SEAI Grants Interest: ${enquiry.grants ? 'Yes' : 'No'}
+        Store Name: ${enquiry.storeName || 'Not specified'}
+        Store Location: ${enquiry.storeLocation || 'Not specified'}
         
         Additional Information:
         ${enquiry.additionalInfo || 'None provided'}

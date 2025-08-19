@@ -524,6 +524,8 @@ export const solarEnquiries = pgTable("solar_enquiries", {
   timeframe: varchar("timeframe", { length: 50 }).notNull(),
   grants: boolean("grants").default(false),
   additionalInfo: text("additional_info"),
+  storeName: varchar("store_name", { length: 100 }),
+  storeLocation: varchar("store_location", { length: 100 }),
   status: varchar("status", { length: 50 }).default("new"), // new, contacted, quoted, converted, closed
   referralCommission: decimal("referral_commission", { precision: 8, scale: 2 }),
   createdAt: timestamp("created_at").defaultNow(),

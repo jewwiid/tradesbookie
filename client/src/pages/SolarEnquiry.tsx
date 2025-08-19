@@ -28,6 +28,8 @@ const solarEnquirySchema = z.object({
   electricityBill: z.string().min(1, "Please select your monthly electricity bill range"),
   timeframe: z.string().min(1, "Please select your preferred timeframe"),
   grants: z.boolean().default(false),
+  storeName: z.string().optional(),
+  storeLocation: z.string().optional(),
   additionalInfo: z.string().optional(),
 });
 
@@ -35,6 +37,39 @@ type SolarEnquiryForm = z.infer<typeof solarEnquirySchema>;
 
 const counties = [
   "Antrim", "Armagh", "Carlow", "Cavan", "Clare", "Cork", "Derry", "Donegal", "Down", "Dublin", "Fermanagh", "Galway", "Kerry", "Kildare", "Kilkenny", "Laois", "Leitrim", "Limerick", "Longford", "Louth", "Mayo", "Meath", "Monaghan", "Offaly", "Roscommon", "Sligo", "Tipperary", "Tyrone", "Waterford", "Westmeath", "Wexford", "Wicklow"
+];
+
+const storeNames = [
+  "Harvey Norman",
+  "Currys",
+  "DID Electrical", 
+  "Power City",
+  "Argos",
+  "Expert",
+  "RTV"
+];
+
+const storeLocations = [
+  "Blanchardstown",
+  "Carrickmines", 
+  "Cork",
+  "Dublin",
+  "Galway",
+  "Limerick",
+  "Waterford",
+  "Athlone",
+  "Castlebar",
+  "Drogheda",
+  "Fonthill",
+  "Kinsale Road",
+  "Little Island",
+  "Naas",
+  "Rathfarnham",
+  "Sligo",
+  "Swords",
+  "Tallaght",
+  "Tralee",
+  "Kilkenny"
 ];
 
 export default function SolarEnquiry() {
@@ -55,6 +90,8 @@ export default function SolarEnquiry() {
       electricityBill: "",
       timeframe: "",
       grants: false,
+      storeName: "",
+      storeLocation: "",
       additionalInfo: "",
     },
   });
@@ -356,6 +393,59 @@ export default function SolarEnquiry() {
                                 <SelectItem value="6-months">Within 6 months</SelectItem>
                                 <SelectItem value="12-months">Within 12 months</SelectItem>
                                 <SelectItem value="exploring">Just exploring options</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Store Information */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="storeName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Store Name (Optional)</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select store if applicable" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {storeNames.map((store) => (
+                                  <SelectItem key={store} value={store}>
+                                    {store}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="storeLocation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Store Location (Optional)</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select store location if applicable" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {storeLocations.map((location) => (
+                                  <SelectItem key={location} value={location}>
+                                    {location}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                             <FormMessage />

@@ -74,6 +74,7 @@ function Router() {
       <Route path="/booking-tracker" component={BookingTracker} />
       <Route path="/tv-recommendation" component={TVRecommendation} />
       <Route path="/solar-enquiry" component={SolarEnquiry} />
+      <Route path="/ohk" component={SolarEnquiry} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/terms-of-service" component={TermsOfService} />
       <Route path="/cookie-policy" component={CookiePolicy} />

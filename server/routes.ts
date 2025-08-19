@@ -10,7 +10,7 @@ import {
   scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions, declinedRequests
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, isNotNull } from "drizzle-orm";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
 import { AIAnalyticsService } from "./aiAnalyticsService";
@@ -11474,13 +11474,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       
-      // Get all bookings assigned to this installer with scheduled dates
+      // Get all bookings assigned to this installer with scheduled dates  
       const scheduledBookings = await db.select({
         id: bookings.id,
         bookingId: bookings.id,
         customerName: bookings.contactName,
         address: bookings.address,
-        scheduledDate: bookings.scheduledDate,
+        scheduledDate: sql<string>`${bookings.scheduledDate}::text`.as('scheduled_date'), // Convert to text for safe handling
         tvSize: bookings.tvSize,
         serviceType: bookings.serviceType,
         status: bookings.status,
@@ -11493,7 +11493,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       .where(and(
         eq(jobAssignments.installerId, installerId),
         eq(jobAssignments.status, 'accepted'),
-        not(isNull(bookings.scheduledDate))
+        isNotNull(bookings.scheduledDate)
       ))
       .orderBy(bookings.scheduledDate);
 
@@ -11523,21 +11523,33 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               if (negotiation.proposedStartTime && negotiation.proposedEndTime) {
                 scheduledTime = `${negotiation.proposedStartTime} - ${negotiation.proposedEndTime}`;
               } else if (negotiation.proposedTimeSlot) {
-                scheduledTime = negotiation.proposedTimeSlot;
+                // Filter out generic time slots, only show specific times
+                const timeSlot = negotiation.proposedTimeSlot;
+                if (timeSlot && !['morning', 'afternoon', 'evening'].includes(timeSlot.toLowerCase())) {
+                  scheduledTime = timeSlot;
+                }
+                // If it's a generic slot, don't set scheduledTime (will show as null)
               }
             }
+
+            // Use the scheduledDate directly since it's already formatted as text (YYYY-MM-DD)
+            const formattedDate = booking.scheduledDate || null;
 
             return {
               ...booking,
               scheduledTime,
-              scheduledDate: booking.scheduledDate?.toISOString().split('T')[0] || null // Format as YYYY-MM-DD
+              scheduledDate: formattedDate
             };
           } catch (error) {
             console.error(`Error processing booking ${booking.bookingId}:`, error);
+            
+            // Use scheduledDate as-is since it's already text formatted
+            const safeDateString = booking.scheduledDate || null;
+            
             return {
               ...booking,
               scheduledTime: null,
-              scheduledDate: booking.scheduledDate?.toISOString().split('T')[0] || null
+              scheduledDate: safeDateString
             };
           }
         })

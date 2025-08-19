@@ -562,16 +562,16 @@ export default function CustomerDashboard() {
       console.log('Fetched installers:', installers.length);
       console.log('Sample installer data:', installers[0]);
       
-      // Filter for available installers (relaxed criteria)
+      // Filter for available installers - show all active installers
       const tvInstallers = installers.filter((installer: any) => {
         console.log('Checking installer:', installer.businessName, {
           isActive: installer.isActive,
-          approvalStatus: installer.approvalStatus,
-          isAvailable: installer.isAvailable
+          approvalStatus: installer.approvalStatus || 'undefined',
+          isAvailable: installer.isAvailable || 'undefined'
         });
         
-        // More lenient filtering - just check if they're active
-        return installer.isActive !== false;
+        // Show all installers that aren't explicitly inactive
+        return installer.isActive !== false && installer.businessName;
       });
       
       console.log('Filtered TV installers:', tvInstallers.length);
@@ -600,19 +600,26 @@ export default function CustomerDashboard() {
     
     setSelectingInstaller(true);
     try {
-      const response = await fetch(`/api/bookings/${showInstallerSelection}/select-installer`, {
+      // Direct assignment of installer to booking
+      const response = await fetch(`/api/bookings/${showInstallerSelection}/assign-installer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ installerId }),
+        body: JSON.stringify({ 
+          installerId,
+          assignmentType: 'direct' // Mark as direct assignment, not a bid
+        }),
         credentials: 'include'
       });
       
-      if (!response.ok) throw new Error('Failed to assign installer');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to assign installer');
+      }
       
       const result = await response.json();
       toast({ 
         title: "Installer assigned successfully", 
-        description: `${result.installer.businessName} has been assigned to this job.` 
+        description: `${result.installer?.businessName || 'Selected installer'} has been directly assigned to your booking.` 
       });
       
       // Refresh bookings data
@@ -621,9 +628,13 @@ export default function CustomerDashboard() {
       // Close dialog
       setShowInstallerSelection(null);
       setSelectedBookingInstallers([]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error assigning installer:', error);
-      toast({ title: "Failed to assign installer", variant: "destructive" });
+      toast({ 
+        title: "Failed to assign installer", 
+        description: error.message || "Please try again or contact support.",
+        variant: "destructive" 
+      });
     } finally {
       setSelectingInstaller(false);
     }

@@ -4757,8 +4757,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all open bookings that haven't been assigned to an installer
       const bookings = await storage.getAllBookings();
       const availableRequests = await Promise.all(bookings.filter(booking => {
-        // Must be open and unassigned
-        if (booking.status !== 'open' || booking.installerId) {
+        // Must be open and unassigned, and not directly assigned
+        if (booking.status !== 'open' || booking.installerId || booking.assignmentType === 'direct') {
           return false;
         }
         
@@ -5239,7 +5239,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Customer selects preferred installer
+  // Direct installer assignment (no bidding process)
+  app.post("/api/bookings/:bookingId/assign-installer", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const { installerId, assignmentType } = req.body;
+
+      if (!bookingId || !installerId) {
+        return res.status(400).json({ message: "Booking ID and installer ID are required" });
+      }
+
+      // Verify the customer owns this booking or user is authenticated
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+
+      // Check if booking already has an installer assigned
+      if (booking.installerId) {
+        return res.status(400).json({ message: "This booking already has an installer assigned" });
+      }
+
+      // Get installer details
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+
+      // Directly assign installer to booking (no lead fee for direct assignments)
+      await db.update(bookings)
+        .set({ 
+          installerId: installerId,
+          status: 'assigned',
+          assignmentType: assignmentType || 'direct'
+        })
+        .where(eq(bookings.id, bookingId));
+
+      // Create job assignment record for direct assignment
+      const leadFee = 0; // No fee for direct assignments
+      const jobAssignment = await db.insert(jobAssignments).values({
+        bookingId: bookingId,
+        installerId: installerId,
+        status: 'accepted',
+        leadFee: leadFee.toString(),
+        acceptedDate: new Date(),
+        assignmentType: 'direct'
+      }).returning();
+
+      // Send notifications
+      try {
+        if (installer.email) {
+          await sendLeadPurchaseNotification(
+            installer.email,
+            installer.businessName || installer.contactName || 'Installer',
+            booking,
+            'direct_assignment'
+          );
+        }
+
+        if (booking.contactEmail) {
+          await sendStatusUpdateNotification(
+            booking.contactEmail,
+            booking.contactName,
+            booking,
+            'assigned',
+            `Your installation has been assigned to ${installer.businessName || 'selected installer'}`
+          );
+        }
+      } catch (emailError) {
+        console.error('Error sending notification emails:', emailError);
+      }
+
+      res.json({
+        success: true,
+        message: "Installer assigned successfully",
+        installer: {
+          id: installer.id,
+          businessName: installer.businessName,
+          contactName: installer.contactName
+        },
+        assignmentType: 'direct',
+        jobAssignmentId: jobAssignment[0]?.id
+      });
+    } catch (error) {
+      console.error("Error assigning installer:", error);
+      res.status(500).json({ message: "Failed to assign installer" });
+    }
+  });
+
+  // Customer selects preferred installer (from bidding process)
   app.post("/api/booking/:bookingId/select-installer", async (req, res) => {
     try {
       const bookingId = parseInt(req.params.bookingId);
@@ -10366,6 +10454,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         // Basic filters for available leads
         const isAvailable = (booking.status === "open" || booking.status === "pending" || booking.status === "urgent" || booking.status === "confirmed") &&
           !booking.installerId && // Not assigned to any installer yet
+          booking.assignmentType !== 'direct' && // Exclude directly assigned bookings
           !declinedRequestIds.includes(booking.id); // Not declined by this installer
         
         // Demo filtering logic

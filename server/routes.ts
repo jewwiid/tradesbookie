@@ -13076,7 +13076,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const result = await requestPasswordReset(email, userType);
       
       if (result.success) {
-        res.json({ message: result.message });
+        res.json(result);
       } else {
         res.status(400).json({ message: result.message });
       }

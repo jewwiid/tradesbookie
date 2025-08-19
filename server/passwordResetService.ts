@@ -173,7 +173,7 @@ export async function requestPasswordReset(
       return {
         success: true,
         message: 'If an account with this email exists, you will receive a password reset link shortly.',
-        token: process.env.NODE_ENV === 'development' ? resetToken : undefined
+        token: process.env.NODE_ENV !== 'production' ? resetToken : undefined
       };
     } else {
       return {

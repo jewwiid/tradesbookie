@@ -560,13 +560,19 @@ export default function CustomerDashboard() {
       
       const installers = await response.json();
       console.log('Fetched installers:', installers.length);
+      console.log('Sample installer data:', installers[0]);
       
-      // Filter for TV installation service specialists
-      const tvInstallers = installers.filter((installer: any) => 
-        installer.approvalStatus === 'approved' && 
-        installer.isAvailable && 
-        installer.isActive
-      );
+      // Filter for available installers (relaxed criteria)
+      const tvInstallers = installers.filter((installer: any) => {
+        console.log('Checking installer:', installer.businessName, {
+          isActive: installer.isActive,
+          approvalStatus: installer.approvalStatus,
+          isAvailable: installer.isAvailable
+        });
+        
+        // More lenient filtering - just check if they're active
+        return installer.isActive !== false;
+      });
       
       console.log('Filtered TV installers:', tvInstallers.length);
       setSelectedBookingInstallers(tvInstallers);

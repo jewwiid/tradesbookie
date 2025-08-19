@@ -680,7 +680,7 @@ export default function CustomerDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Tv className="h-8 w-8 text-primary mr-3" />
-                <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
+                <span className="text-sm sm:text-lg md:text-xl font-bold text-gray-900">Customer Dashboard</span>
               </div>
               <Button variant="ghost" onClick={() => setLocation && setLocation('/')}>
                 <Home className="w-5 h-5" />
@@ -776,7 +776,7 @@ export default function CustomerDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Tv className="h-8 w-8 text-primary mr-3" />
-                <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
+                <span className="text-sm sm:text-lg md:text-xl font-bold text-gray-900">Customer Dashboard</span>
               </div>
               <Button variant="ghost" onClick={() => setLocation && setLocation('/')}>
                 <Home className="w-5 h-5" />
@@ -878,7 +878,7 @@ export default function CustomerDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <Tv className="h-8 w-8 text-primary mr-3" />
-                <span className="text-xl font-bold text-gray-900">Customer Dashboard</span>
+                <span className="text-sm sm:text-lg md:text-xl font-bold text-gray-900">Customer Dashboard</span>
               </div>
               <Button variant="ghost" onClick={() => setLocation && setLocation('/')}>
                 <Home className="w-5 h-5" />

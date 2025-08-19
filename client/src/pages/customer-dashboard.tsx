@@ -1002,7 +1002,15 @@ export default function CustomerDashboard() {
             ) : (
               <div className="grid gap-6">
                 {bookings.map((booking) => (
-                  <BookingCard key={booking.id} booking={booking} onViewInstallers={handleViewInstallers} />
+                  <BookingCard 
+                    key={booking.id} 
+                    booking={booking} 
+                    onViewInstallers={handleViewInstallers}
+                    showInstallerSelection={showInstallerSelection}
+                    setShowInstallerSelection={setShowInstallerSelection}
+                    selectedBookingInstallers={selectedBookingInstallers}
+                    handleSelectInstaller={handleSelectInstaller}
+                  />
                 ))}
               </div>
             )}
@@ -1407,7 +1415,15 @@ export default function CustomerDashboard() {
               ) : (
                 <div className="grid gap-6">
                   {bookings.map((booking) => (
-                    <BookingCard key={booking.id} booking={booking} onViewInstallers={handleViewInstallers} />
+                    <BookingCard 
+                    key={booking.id} 
+                    booking={booking} 
+                    onViewInstallers={handleViewInstallers}
+                    showInstallerSelection={showInstallerSelection}
+                    setShowInstallerSelection={setShowInstallerSelection}
+                    selectedBookingInstallers={selectedBookingInstallers}
+                    handleSelectInstaller={handleSelectInstaller}
+                  />
                   ))}
                 </div>
               )}
@@ -2687,7 +2703,21 @@ function TvSetupCard({ booking }: { booking: TvSetupBooking }) {
 }
 
 // Booking Card Component
-function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewInstallers?: (bookingId: number) => void }) {
+function BookingCard({ 
+  booking, 
+  onViewInstallers, 
+  showInstallerSelection, 
+  setShowInstallerSelection, 
+  selectedBookingInstallers, 
+  handleSelectInstaller 
+}: { 
+  booking: Booking; 
+  onViewInstallers?: (bookingId: number) => void;
+  showInstallerSelection: number | null;
+  setShowInstallerSelection: (id: number | null) => void;
+  selectedBookingInstallers: any[];
+  handleSelectInstaller: (installerId: number) => void;
+}) {
   const locationData = useLocation();
   const setLocation = locationData?.[1];
   const [showDetails, setShowDetails] = useState(false);

@@ -7004,92 +7004,92 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="flex flex-wrap w-full gap-1 h-auto p-1 justify-start">
-            <TabsTrigger value="overview" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+          <TabsList className="flex w-full gap-1 h-auto p-1 justify-start overflow-x-auto overflow-y-hidden whitespace-nowrap scrollbar-hide md:flex-wrap">
+            <TabsTrigger value="overview" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <BarChart3 className="w-4 h-4" />
               <span>Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="users" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="users" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Users className="w-4 h-4" />
               <span>Users</span>
             </TabsTrigger>
-            <TabsTrigger value="onboarding" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="onboarding" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <UserCheck className="w-4 h-4" />
               <span>Onboarding</span>
             </TabsTrigger>
-            <TabsTrigger value="installers" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="installers" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Shield className="w-4 h-4" />
               <span>Installers</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="bookings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Calendar className="w-4 h-4" />
               <span>Bookings</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="payments" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <DollarSign className="w-4 h-4" />
               <span>Payments</span>
             </TabsTrigger>
-            <TabsTrigger value="system" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="system" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <TrendingUp className="w-4 h-4" />
               <span>Platform Insights</span>
             </TabsTrigger>
-            <TabsTrigger value="solar" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="solar" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Activity className="w-4 h-4" />
               <span>OHK Energy</span>
             </TabsTrigger>
-            <TabsTrigger value="fees" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="fees" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Percent className="w-4 h-4" />
               <span>Fees</span>
             </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="referrals" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Users className="w-4 h-4" />
               <span>Referrals</span>
             </TabsTrigger>
-            <TabsTrigger value="pricing" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="pricing" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Euro className="w-4 h-4" />
               <span>Pricing</span>
             </TabsTrigger>
-            <TabsTrigger value="emails" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="emails" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Mail className="w-4 h-4" />
               <span>Email Templates</span>
             </TabsTrigger>
-            <TabsTrigger value="email-preferences" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="email-preferences" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <MailCheck className="w-4 h-4" />
               <span>Email Preferences</span>
             </TabsTrigger>
-            <TabsTrigger value="resources" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="resources" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <BookOpen className="w-4 h-4" />
               <span>Resource Management</span>
             </TabsTrigger>
-            <TabsTrigger value="ai-tools" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="ai-tools" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Zap className="w-4 h-4" />
               <span>AI Tools</span>
             </TabsTrigger>
-            <TabsTrigger value="fraud-prevention" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="fraud-prevention" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Shield className="w-4 h-4" />
               <span>Fraud Prevention</span>
             </TabsTrigger>
-            <TabsTrigger value="banned" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="banned" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Ban className="w-4 h-4" />
               <span>Banned Users</span>
             </TabsTrigger>
-            <TabsTrigger value="tv-setup" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="tv-setup" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Tv className="w-4 h-4" />
               <span>TV Setup Bookings</span>
             </TabsTrigger>
-            <TabsTrigger value="downloadable-guides" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="downloadable-guides" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Upload className="w-4 h-4" />
               <span>Downloadable Guides</span>
             </TabsTrigger>
-            <TabsTrigger value="video-tutorials" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="video-tutorials" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Camera className="w-4 h-4" />
               <span>Video Tutorials</span>
             </TabsTrigger>
-            <TabsTrigger value="stores" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="stores" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <MapPin className="w-4 h-4" />
               <span>Stores</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap">
+            <TabsTrigger value="settings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Settings className="w-4 h-4" />
               <span>Settings</span>
             </TabsTrigger>

@@ -18,13 +18,20 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [success, setSuccess] = useState(false);
   
-  // Parse URL parameters
-  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  // Parse URL parameters from window.location.search
+  const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('token');
   const userType = urlParams.get('userType') as 'customer' | 'installer';
   
   // Debug logging
-  console.log('Reset Password Debug:', { location, token, userType, hasToken: !!token, hasUserType: !!userType });
+  console.log('Reset Password Debug:', { 
+    location, 
+    search: window.location.search, 
+    token, 
+    userType, 
+    hasToken: !!token, 
+    hasUserType: !!userType 
+  });
 
   const form = useForm<PasswordResetConfirm>({
     resolver: zodResolver(passwordResetConfirmSchema),

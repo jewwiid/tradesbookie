@@ -807,7 +807,7 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                                 <div className="flex flex-wrap gap-1 mt-1">
                                   {tv.addons.map((addon: any, addonIndex: number) => (
                                     <Badge key={addonIndex} variant="outline" className="text-xs">
-                                      {addon.name} (+€{addon.price})
+                                      {addon.name} {addon.price > 0 ? `(+€${addon.price})` : ''}
                                     </Badge>
                                   ))}
                                 </div>

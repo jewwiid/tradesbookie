@@ -1,0 +1,18 @@
+Cookie warnings 4
+[vite] connecting... client:495:9
+Firefox can’t establish a connection to the server at wss://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/?token=iGPCOv2gSUaB. client:536:19
+Uncaught (in promise) DOMException: An invalid or illegal string was specified
+    setupWebSocket client:536
+    fallback client:509
+    setupWebSocket client:555
+client:536
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools chunk-RPCDYKBN.js:21551:25
+Request for font "Roboto" blocked at visibility level 2 (requires 3)
+replit-dev-banner.js:143:26
+Request for font "Cantarell" blocked at visibility level 2 (requires 3)
+replit-dev-banner.js:143:26
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-f80fbd4396988b61410efca739304c79.html#__shared_params__[version]=basil&__shared_params__[light_experiment_assignments]=%7B%22token%22%3A%226b3b6cd4-1a80-46dc-bc38-4fea5c1233e8%22%2C%22assignments%22%3A%7B%7D%7D&apiKey=pk_test_51QSj2vLGZvKUWZLCtQl8HfOyevF4qPOJmcWjnF4bXgCgZLx8FDJKY0uAhklZjMvs3dz80jvQVgvJgjOcqvxQKFPw00Hf7N8Flv&apiVersion=2025-03-31.basil&stripeJsId=6b3b6cd4-1a80-46dc-bc38-4fea5c1233e8&stripeObjId=sobj-f689ce1b-a357-4c8b-ac56-d7613921730c&firstStripeInstanceCreatedLatency=5&controllerCount=1&isCheckout=false&stripeJsLoadTime=1755628154393&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=NA&mids[sid]=NA&referrer=https%3A%2F%2F3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev%2Freset-password%3Ftoken%3Dde4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224%26userType%3Dinstaller&controllerId=__privateStripeController6361” because it is loaded in the third-party context and dynamic state partitioning is enabled. controller-with-preconnect-031ca90d81f33676682be33ada5303f6.js:1:180826
+Request for font "Myriad Pro" blocked at visibility level 2 (requires 3)
+out-4.5.44.js:1:53048
+Partitioned cookie or storage access was provided to “<URL>[version]=basil” because it is loaded in the third-party context and dynamic state partitioning is enabled. 2
+Cookie warnings 2

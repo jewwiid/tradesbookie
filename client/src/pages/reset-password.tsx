@@ -35,12 +35,7 @@ export default function ResetPassword() {
 
   // Verify token validity
   const tokenQuery = useQuery({
-    queryKey: ['verify-reset-token', token, userType],
-    queryFn: async () => {
-      if (!token || !userType) throw new Error('Missing token or user type');
-      const response = await apiRequest('GET', `/api/password-reset/verify-token?token=${token}&userType=${userType}`);
-      return await response.json();
-    },
+    queryKey: [`/api/password-reset/verify-token?token=${token}&userType=${userType}`],
     enabled: !!token && !!userType,
     retry: false
   });

@@ -2655,20 +2655,22 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
     <div>
       <Card className="hover:shadow-lg transition-shadow">
         <CardContent className="pt-6">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="font-semibold text-lg text-gray-900">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-lg text-gray-900 break-words">
               {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
                 `${booking.tvInstallations.length} TV Installation`
               ) : (
                 `${booking.tvSize}" TV Installation`
               )}
             </h3>
-            <p className="text-sm text-gray-600">{booking.address}</p>
+            <p className="text-sm text-gray-600 break-words">{booking.address}</p>
           </div>
-          <Badge className={getStatusColor(booking.status)}>
-            {getStatusText(booking.status)}
-          </Badge>
+          <div className="flex-shrink-0 self-start">
+            <Badge className={getStatusColor(booking.status)}>
+              {getStatusText(booking.status)}
+            </Badge>
+          </div>
         </div>
 
         {/* Installer Information - Show when installer is assigned */}
@@ -2781,10 +2783,10 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
             <h4 className="font-medium text-gray-900 mb-3">TV Installation Details</h4>
             <div className="space-y-3">
               {booking.tvInstallations.map((tv: any, index: number) => (
-                <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm gap-2">
-                  <div className="flex items-center space-x-2 min-w-0 flex-1">
+                <div key={index} className="flex flex-col text-sm gap-2">
+                  <div className="flex items-center space-x-2 min-w-0 flex-wrap">
                     <Tv className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-gray-900 break-words">
+                    <span className="text-gray-900 break-words flex-1">
                       <span className="font-medium">{tv.location}:</span> {tv.tvSize}" {tv.serviceType.replace('-', ' ')}
                     </span>
                     {tv.needsWallMount && (
@@ -2792,10 +2794,10 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
                         Wall Mount
                       </Badge>
                     )}
+                    {tv.price && (
+                      <span className="text-gray-600 font-medium flex-shrink-0">€{tv.price}</span>
+                    )}
                   </div>
-                  {tv.price && (
-                    <span className="text-gray-600 font-medium flex-shrink-0 ml-6 sm:ml-0">€{tv.price}</span>
-                  )}
                 </div>
               ))}
             </div>

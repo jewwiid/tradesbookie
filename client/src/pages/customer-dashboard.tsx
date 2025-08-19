@@ -546,6 +546,7 @@ export default function CustomerDashboard() {
   };
 
   const handleViewInstallers = async (bookingId: number) => {
+    console.log('handleViewInstallers called with bookingId:', bookingId);
     setShowInstallerSelection(bookingId);
     try {
       // Fetch available installers for TV installation service
@@ -553,9 +554,13 @@ export default function CustomerDashboard() {
         credentials: 'include'
       });
       
+      console.log('Installer fetch response:', response.ok, response.status);
+      
       if (!response.ok) throw new Error('Failed to fetch installers');
       
       const installers = await response.json();
+      console.log('Fetched installers:', installers.length);
+      
       // Filter for TV installation service specialists
       const tvInstallers = installers.filter((installer: any) => 
         installer.approvalStatus === 'approved' && 
@@ -563,7 +568,13 @@ export default function CustomerDashboard() {
         installer.isActive
       );
       
+      console.log('Filtered TV installers:', tvInstallers.length);
       setSelectedBookingInstallers(tvInstallers);
+      
+      toast({ 
+        title: "Installers loaded", 
+        description: `Found ${tvInstallers.length} available installers` 
+      });
     } catch (error) {
       console.error('Error fetching installers:', error);
       toast({ title: "Failed to load installers", variant: "destructive" });
@@ -2851,7 +2862,16 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
             {booking.status === 'open' && !booking.installerId && onViewInstallers && (
               <Button 
                 size="sm" 
-                onClick={() => onViewInstallers(booking.id)} 
+                onClick={() => {
+                  console.log('Select Installer button clicked for booking:', booking.id);
+                  console.log('onViewInstallers function exists:', !!onViewInstallers);
+                  console.log('Booking status:', booking.status, 'Installer ID:', booking.installerId);
+                  if (onViewInstallers) {
+                    onViewInstallers(booking.id);
+                  } else {
+                    console.error('onViewInstallers function is not available');
+                  }
+                }} 
                 className="gradient-bg flex-shrink-0"
               >
                 <Users className="w-4 h-4 mr-2" />

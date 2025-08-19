@@ -82,14 +82,15 @@ const statusColors = {
 
 const statusLabels = {
   'pending': 'Pending',
-  'confirmed': 'Customer Confirmed',
+  'confirmed': 'Customer Confirmed', // Auto-set when customer accepts job
   'assigned': 'Assigned to You',
+  'scheduled': 'Installation Scheduled', // Auto-set when schedule is accepted
   'in-progress': 'Work in Progress',
   'completed': 'Completed',
   'cancelled': 'Cancelled',
+  'customer-notification': 'Customer Notification',
   // Legacy support for older status values
-  'purchased': 'Lead Purchased',
-  'scheduled': 'Installation Scheduled'
+  'purchased': 'Lead Purchased'
 };
 
 export default function PastLeadsManagement({ installerId }: PurchasedLeadsManagementProps) {
@@ -603,11 +604,10 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="confirmed">Customer Confirmed</SelectItem>
-                    <SelectItem value="scheduled">Installation Scheduled</SelectItem>
                     <SelectItem value="in-progress">Work in Progress</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="customer-notification">Customer Notification</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -89,6 +89,13 @@ interface ClientRequest {
   difficulty: string;
   referralCode?: string;
   referralDiscount?: string;
+  referralInfo?: {
+    referralCode: string;
+    referralType: string;
+    salesStaffName?: string;
+    salesStaffStore?: string;
+    isStaffReferral: boolean;
+  };
   distance?: number;
   // Additional fields for complete booking details
   customerName?: string;
@@ -692,6 +699,41 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
             <p className="text-sm text-gray-700">"{request.notes}"</p>
           </div>
         )}
+        
+        {/* Referral Information Section */}
+        {request.referralInfo && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-4 h-4 text-blue-600" />
+              <span className="font-medium text-blue-900 text-sm">Customer Referral Source</span>
+            </div>
+            {request.referralInfo.isStaffReferral ? (
+              <div className="space-y-1">
+                <p className="text-xs text-blue-700">
+                  <span className="font-medium">Referred by:</span> {request.referralInfo.salesStaffName}
+                </p>
+                <p className="text-xs text-blue-700">
+                  <span className="font-medium">Store:</span> {request.referralInfo.salesStaffStore}
+                </p>
+                <p className="text-xs text-blue-700">
+                  <span className="font-medium">Code:</span> {request.referralInfo.referralCode}
+                </p>
+                <div className="mt-2 p-2 bg-blue-100 rounded text-xs text-blue-800">
+                  💡 <strong>Staff referral:</strong> Customer was referred by retail staff - may need specific service approach
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <p className="text-xs text-blue-700">
+                  <span className="font-medium">Customer referral code:</span> {request.referralInfo.referralCode}
+                </p>
+                <div className="mt-2 p-2 bg-blue-100 rounded text-xs text-blue-800">
+                  💡 <strong>Customer referral:</strong> Regular customer-to-customer referral
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="space-y-2 mb-4">
           <div className="flex gap-2">
@@ -757,6 +799,59 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
                   </div>
                 </div>
               </div>
+              
+              {/* Referral Information Section - Detailed View */}
+              {request.referralInfo && (
+                <div className="border rounded-lg p-3 sm:p-4 bg-blue-50 border-blue-200">
+                  <h3 className="font-semibold mb-3 text-base sm:text-lg flex items-center gap-2">
+                    <Target className="w-5 h-5 text-blue-600" />
+                    Customer Acquisition Source
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-blue-600">Referral Type</label>
+                      <p className="text-sm sm:text-base text-blue-900 font-medium">
+                        {request.referralInfo.isStaffReferral ? 'Staff Referral' : 'Customer Referral'}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs sm:text-sm font-medium text-blue-600">Referral Code</label>
+                      <p className="text-sm sm:text-base text-blue-900 font-mono">{request.referralInfo.referralCode}</p>
+                    </div>
+                    {request.referralInfo.isStaffReferral && (
+                      <>
+                        <div className="space-y-1">
+                          <label className="text-xs sm:text-sm font-medium text-blue-600">Sales Staff Member</label>
+                          <p className="text-sm sm:text-base text-blue-900">{request.referralInfo.salesStaffName}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs sm:text-sm font-medium text-blue-600">Store Location</label>
+                          <p className="text-sm sm:text-base text-blue-900">{request.referralInfo.salesStaffStore}</p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* Service Considerations */}
+                  <div className="mt-4 p-3 bg-blue-100 rounded-lg">
+                    <h4 className="font-medium text-blue-900 text-sm mb-2">Service Considerations</h4>
+                    {request.referralInfo.isStaffReferral ? (
+                      <ul className="text-xs text-blue-800 space-y-1">
+                        <li>• Customer referred by retail staff - may have specific expectations</li>
+                        <li>• Consider following up with referring store for any special instructions</li>
+                        <li>• Higher service standards expected due to staff relationship</li>
+                        <li>• Potential for future business through this referral channel</li>
+                      </ul>
+                    ) : (
+                      <ul className="text-xs text-blue-800 space-y-1">
+                        <li>• Customer-to-customer referral - may have heard positive reviews</li>
+                        <li>• Good opportunity to maintain referral chain quality</li>
+                        <li>• Consider asking about referring customer for feedback</li>
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Service Details */}
               <div className="border rounded-lg p-3 sm:p-4">

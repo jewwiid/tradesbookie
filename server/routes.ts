@@ -10400,6 +10400,25 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         const estimatedEarnings = estimatedTotal - leadFee;
         const profitMargin = estimatedTotal > 0 ? (estimatedEarnings / estimatedTotal * 100) : 0;
         
+        // Fetch referral information if available
+        let referralInfo = null;
+        if (booking.referralCodeId) {
+          try {
+            const referralCode = await storage.getReferralCodeById(booking.referralCodeId);
+            if (referralCode) {
+              referralInfo = {
+                referralCode: referralCode.referralCode,
+                referralType: referralCode.referralType,
+                salesStaffName: referralCode.salesStaffName,
+                salesStaffStore: referralCode.salesStaffStore,
+                isStaffReferral: referralCode.referralType === 'sales_staff'
+              };
+            }
+          } catch (error) {
+            console.error('Error fetching referral info for booking', booking.id, ':', error);
+          }
+        }
+        
         // Calculate distance from installer to booking address
         let distance = null;
         try {
@@ -10454,7 +10473,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           customerEmail: null, // Hidden until purchase
           customerPhone: null, // Hidden until purchase
           referralCode: booking.referralCode,
-          referralDiscount: booking.referralDiscount
+          referralDiscount: booking.referralDiscount,
+          referralInfo // Complete referral context for installer
         };
       }));
       

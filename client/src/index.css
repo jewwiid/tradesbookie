@@ -21,6 +21,13 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Extra small screens breakpoint utilities */
+  @media (min-width: 480px) {
+    .xs\:inline {
+      display: inline;
+    }
+  }
 }
 
 /* Map container isolation */

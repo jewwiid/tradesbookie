@@ -1131,10 +1131,10 @@ export default function CustomerDashboard() {
   // Full authenticated user - show complete dashboard
   return (
     <>
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="max-w-4xl mx-auto px-4 py-4 overflow-x-hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <Tv className="h-8 w-8 text-primary mr-3" />
@@ -1164,7 +1164,7 @@ export default function CustomerDashboard() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8 overflow-x-hidden">
         {/* Email Verification Banner */}
         <EmailVerificationBanner user={{
           id: String(user.id),
@@ -1174,15 +1174,15 @@ export default function CustomerDashboard() {
         }} />
         
         {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg mb-8">
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 sm:p-6 rounded-lg mb-6 sm:mb-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">Welcome to your Dashboard</h2>
-              <p className="text-blue-100">
+            <div className="min-w-0 flex-1 pr-4">
+              <h2 className="text-lg sm:text-2xl font-bold mb-2">Welcome to your Dashboard</h2>
+              <p className="text-blue-100 text-sm sm:text-base">
                 Manage bookings, use AI services, track referrals, and get support.
               </p>
             </div>
-            <div className="hidden md:block">
+            <div className="hidden md:block flex-shrink-0">
               <User className="h-16 w-16 text-blue-200" />
             </div>
           </div>
@@ -1191,58 +1191,58 @@ export default function CustomerDashboard() {
         {/* Tabbed Interface */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {/* Mobile-first scrollable tabs */}
-          <div className="mb-8 w-full">
-            <div className="overflow-x-auto scrollbar-hide">
-              <TabsList className="inline-flex h-12 items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground min-w-full md:w-full">
-                <div className="flex space-x-1 md:grid md:grid-cols-7 md:gap-1 md:w-full">
+          <div className="mb-6 sm:mb-8 w-full">
+            <div className="w-full overflow-x-auto scrollbar-hide">
+              <TabsList className="flex h-auto items-center justify-start rounded-lg bg-muted p-1 text-muted-foreground min-w-max w-full">
+                <div className="flex space-x-1 w-full">
                   <TabsTrigger 
                     value="bookings" 
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                    className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Calendar className="w-4 h-4 flex-shrink-0" />
-                    <span>Bookings</span>
+                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden xs:inline sm:inline">Bookings</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="ai-services" 
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                    className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Bot className="w-4 h-4 flex-shrink-0" />
-                    <span>AI Services</span>
+                    <Bot className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden xs:inline sm:inline">AI Services</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="referrals" 
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                    className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Gift className="w-4 h-4 flex-shrink-0" />
-                    <span>Referrals</span>
+                    <Gift className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden xs:inline sm:inline">Referrals</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="messaging" 
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                    className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <MessageSquare className="w-4 h-4 flex-shrink-0" />
-                    <span>Messages</span>
+                    <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden xs:inline sm:inline">Messages</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="wallet" 
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                    className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Wallet className="w-4 h-4 flex-shrink-0" />
-                    <span>Wallet</span>
+                    <Wallet className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden xs:inline sm:inline">Wallet</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="support" 
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                    className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <HelpCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>Support</span>
+                    <HelpCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden xs:inline sm:inline">Support</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="settings" 
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm min-w-[100px] md:min-w-0"
+                    className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Settings className="w-4 h-4 flex-shrink-0" />
-                    <span>Settings</span>
+                    <Settings className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="hidden xs:inline sm:inline">Settings</span>
                   </TabsTrigger>
                 </div>
               </TabsList>
@@ -1253,26 +1253,26 @@ export default function CustomerDashboard() {
           <TabsContent value="bookings" className="space-y-6">
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4 sm:pt-6">
                   <div className="flex items-center">
-                    <Calendar className="h-8 w-8 text-blue-500 mr-3" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                      <p className="text-2xl font-bold text-gray-900">{bookings.length}</p>
+                    <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 mr-2 sm:mr-3 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Total Bookings</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900">{bookings.length}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4 sm:pt-6">
                   <div className="flex items-center">
-                    <CheckCircle className="h-8 w-8 text-green-500 mr-3" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Completed</p>
-                      <p className="text-2xl font-bold text-gray-900">
+                    <CheckCircle className="h-6 w-6 sm:h-8 sm:w-8 text-green-500 mr-2 sm:mr-3 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">Completed</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900">
                         {bookings.filter(b => b.status === 'completed').length}
                       </p>
                     </div>
@@ -1281,12 +1281,12 @@ export default function CustomerDashboard() {
               </Card>
               
               <Card>
-                <CardContent className="pt-6">
+                <CardContent className="pt-4 sm:pt-6">
                   <div className="flex items-center">
-                    <Clock className="h-8 w-8 text-orange-500 mr-3" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">In Progress</p>
-                      <p className="text-2xl font-bold text-gray-900">
+                    <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-orange-500 mr-2 sm:mr-3 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">In Progress</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900">
                         {bookings.filter(b => ['open', 'confirmed', 'in-progress'].includes(b.status)).length}
                       </p>
                     </div>

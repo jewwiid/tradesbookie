@@ -2778,23 +2778,23 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
         {/* Multi-TV Details Section */}
         {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 && (
           <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-            <h4 className="font-medium text-gray-900 mb-2">TV Installation Details</h4>
-            <div className="space-y-2">
+            <h4 className="font-medium text-gray-900 mb-3">TV Installation Details</h4>
+            <div className="space-y-3">
               {booking.tvInstallations.map((tv: any, index: number) => (
-                <div key={index} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Tv className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-900">
-                      {tv.location}: {tv.tvSize}" {tv.serviceType.replace('-', ' ')}
+                <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm gap-2">
+                  <div className="flex items-center space-x-2 min-w-0 flex-1">
+                    <Tv className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                    <span className="text-gray-900 break-words">
+                      <span className="font-medium">{tv.location}:</span> {tv.tvSize}" {tv.serviceType.replace('-', ' ')}
                     </span>
                     {tv.needsWallMount && (
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs flex-shrink-0">
                         Wall Mount
                       </Badge>
                     )}
                   </div>
                   {tv.price && (
-                    <span className="text-gray-600 font-medium">€{tv.price}</span>
+                    <span className="text-gray-600 font-medium flex-shrink-0 ml-6 sm:ml-0">€{tv.price}</span>
                   )}
                 </div>
               ))}

@@ -11469,6 +11469,87 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // New endpoint for installer schedule calendar
+  app.get("/api/installer/:installerId/schedule-calendar", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      
+      // Get all bookings assigned to this installer with scheduled dates
+      const scheduledBookings = await db.select({
+        id: bookings.id,
+        bookingId: bookings.id,
+        customerName: bookings.contactName,
+        address: bookings.address,
+        scheduledDate: bookings.scheduledDate,
+        tvSize: bookings.tvSize,
+        serviceType: bookings.serviceType,
+        status: bookings.status,
+        estimatedTotal: bookings.estimatedTotal,
+        // Get time from accepted schedule negotiation if available
+        jobAssignmentStatus: jobAssignments.status
+      })
+      .from(bookings)
+      .innerJoin(jobAssignments, eq(jobAssignments.bookingId, bookings.id))
+      .where(and(
+        eq(jobAssignments.installerId, installerId),
+        eq(jobAssignments.status, 'accepted'),
+        not(isNull(bookings.scheduledDate))
+      ))
+      .orderBy(bookings.scheduledDate);
+
+      // For each booking, get the accepted schedule negotiation to get the time slot
+      const calendarData = await Promise.all(
+        scheduledBookings.map(async (booking) => {
+          try {
+            // Get accepted schedule negotiation for time details
+            const acceptedNegotiation = await db.select({
+              proposedTimeSlot: scheduleNegotiations.proposedTimeSlot,
+              proposedStartTime: scheduleNegotiations.proposedStartTime,
+              proposedEndTime: scheduleNegotiations.proposedEndTime
+            })
+            .from(scheduleNegotiations)
+            .where(and(
+              eq(scheduleNegotiations.bookingId, booking.bookingId),
+              eq(scheduleNegotiations.installerId, installerId),
+              eq(scheduleNegotiations.status, 'accepted')
+            ))
+            .limit(1);
+
+            const negotiation = acceptedNegotiation[0];
+            let scheduledTime = null;
+            
+            if (negotiation) {
+              // Format time based on what's available
+              if (negotiation.proposedStartTime && negotiation.proposedEndTime) {
+                scheduledTime = `${negotiation.proposedStartTime} - ${negotiation.proposedEndTime}`;
+              } else if (negotiation.proposedTimeSlot) {
+                scheduledTime = negotiation.proposedTimeSlot;
+              }
+            }
+
+            return {
+              ...booking,
+              scheduledTime,
+              scheduledDate: booking.scheduledDate?.toISOString().split('T')[0] || null // Format as YYYY-MM-DD
+            };
+          } catch (error) {
+            console.error(`Error processing booking ${booking.bookingId}:`, error);
+            return {
+              ...booking,
+              scheduledTime: null,
+              scheduledDate: booking.scheduledDate?.toISOString().split('T')[0] || null
+            };
+          }
+        })
+      );
+
+      res.json(calendarData.filter(item => item.scheduledDate)); // Only return items with valid dates
+    } catch (error) {
+      console.error("Get installer schedule calendar error:", error);
+      res.status(500).json({ error: "Failed to get installer schedule calendar" });
+    }
+  });
+
   app.patch("/api/schedule-negotiations/:id", async (req, res) => {
     try {
       const negotiationId = parseInt(req.params.id);

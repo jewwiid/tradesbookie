@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ScheduleNegotiation } from "./ScheduleNegotiation";
+import InstallerScheduleCalendar from "./InstallerScheduleCalendar";
 import { 
   Clock, 
   MapPin, 
@@ -102,6 +103,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   const [updateMessage, setUpdateMessage] = useState('');
   const [recentlyUpdatedLeads, setRecentlyUpdatedLeads] = useState<Set<number>>(new Set());
   const [showPassedLeads, setShowPassedLeads] = useState(false);
+  const [showCalendarView, setShowCalendarView] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -304,14 +306,49 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     );
   }
 
+  // Show calendar view if enabled
+  if (showCalendarView) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="flex items-center space-x-2">
+              <Calendar className="w-5 h-5" />
+              <span>Installation Schedule Calendar</span>
+            </CardTitle>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCalendarView(false)}
+              className="flex items-center space-x-2"
+            >
+              <Archive className="w-4 h-4" />
+              <span>View Lead List</span>
+            </Button>
+          </CardHeader>
+        </Card>
+        
+        <InstallerScheduleCalendar installerId={installerId} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-primary" />
             Purchased Leads
           </CardTitle>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowCalendarView(true)}
+            className="flex items-center space-x-2"
+          >
+            <Calendar className="w-4 h-4" />
+            <span className="hidden sm:inline">Calendar View</span>
+            <span className="sm:hidden">Calendar</span>
+          </Button>
         </CardHeader>
         <CardContent>
           <p className="text-gray-600 mb-4">

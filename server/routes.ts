@@ -2353,11 +2353,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get job assignment details if exists
       let jobAssignment = null;
       let installer = null;
+      let scheduleNegotiations = null;
       
       if (booking.installerId) {
         installer = await storage.getInstaller(booking.installerId);
         const jobs = await storage.getInstallerJobs(booking.installerId);
         jobAssignment = jobs.find(job => job.bookingId === booking.id);
+      }
+      
+      // Get schedule negotiations for tracking progress
+      try {
+        scheduleNegotiations = await storage.getBookingScheduleNegotiations(booking.id);
+      } catch (error) {
+        console.warn("Could not fetch schedule negotiations for tracking:", error);
+        scheduleNegotiations = [];
       }
       
       // Format response with all tracking information
@@ -2375,6 +2384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acceptedDate: jobAssignment.acceptedDate,
           completedDate: jobAssignment.completedDate
         } : null,
+        scheduleNegotiations: scheduleNegotiations || [],
         contact: {
           name: booking.contactName,
           phone: booking.contactPhone

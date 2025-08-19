@@ -138,13 +138,20 @@ export default function QRTracking() {
       }
     }
     
+    // Check for schedule negotiations - if accepted, treat as scheduled
+    if ((booking as any).scheduleNegotiations?.some((n: any) => n.status === 'accepted')) {
+      currentStatus = 'scheduled';
+    }
+    
     // Map statuses to step indices
     const statusMapping: { [key: string]: number } = {
       'open': 0,        // Booking received
       'pending': 0,     // Booking received
       'assigned': 1,    // Installer assigned
       'confirmed': 2,   // Installer confirmed
+      'scheduled': 2,   // Installation scheduled (same as confirmed)
       'in_progress': 3, // Installation in progress
+      'in-progress': 3, // Installation in progress (alternative format)
       'completed': 4    // Installation complete
     };
     
@@ -162,7 +169,10 @@ export default function QRTracking() {
         return "Your booking has been received and is being processed";
       case 1: // Installer Assigned
         return hasInstaller ? "An installer has been assigned to your booking" : "Looking for available installers in your area";
-      case 2: // Installer Confirmed
+      case 2: // Installer Confirmed / Scheduled
+        if (status === 'scheduled') {
+          return "Your installation has been scheduled and confirmed";
+        }
         return "Your installer has confirmed and will contact you soon";
       case 3: // Installation in Progress
         return "Installation work is currently in progress";

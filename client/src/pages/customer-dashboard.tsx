@@ -2652,9 +2652,9 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
   };
 
   return (
-    <div>
-      <Card className="hover:shadow-lg transition-shadow">
-        <CardContent className="pt-6">
+    <div className="w-full min-w-0">
+      <Card className="hover:shadow-lg transition-shadow w-full min-w-0 overflow-hidden">
+        <CardContent className="pt-6 w-full min-w-0 px-3 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-2">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-lg text-gray-900 break-words">
@@ -2779,24 +2779,28 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
 
         {/* Multi-TV Details Section */}
         {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 && (
-          <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="mb-4 p-2 sm:p-3 bg-gray-50 border border-gray-200 rounded-lg w-full min-w-0 overflow-hidden">
             <h4 className="font-medium text-gray-900 mb-3">TV Installation Details</h4>
-            <div className="space-y-3">
+            <div className="space-y-3 w-full min-w-0">
               {booking.tvInstallations.map((tv: any, index: number) => (
-                <div key={index} className="flex flex-col text-sm gap-2">
-                  <div className="flex items-center space-x-2 min-w-0 flex-wrap">
+                <div key={index} className="w-full min-w-0">
+                  <div className="flex items-center space-x-2 min-w-0 text-sm">
                     <Tv className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <span className="text-gray-900 break-words flex-1">
-                      <span className="font-medium">{tv.location}:</span> {tv.tvSize}" {tv.serviceType.replace('-', ' ')}
-                    </span>
-                    {tv.needsWallMount && (
-                      <Badge variant="outline" className="text-xs flex-shrink-0">
-                        Wall Mount
-                      </Badge>
-                    )}
-                    {tv.price && (
-                      <span className="text-gray-600 font-medium flex-shrink-0">€{tv.price}</span>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <span className="text-gray-900 break-words block">
+                        <span className="font-medium">{tv.location}:</span> {tv.tvSize}" {tv.serviceType.replace('-', ' ')}
+                      </span>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {tv.needsWallMount && (
+                          <Badge variant="outline" className="text-xs flex-shrink-0">
+                            Wall Mount
+                          </Badge>
+                        )}
+                        {tv.price && (
+                          <span className="text-gray-600 font-medium flex-shrink-0">€{tv.price}</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

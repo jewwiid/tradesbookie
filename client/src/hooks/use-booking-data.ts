@@ -167,6 +167,7 @@ export const useBookingData = create<BookingStore>()(
             wallMountOption: undefined,
             location: `TV ${index + 1}`,
             addons: [],
+            addonsConfirmed: false,
           }));
           
           return {
@@ -194,6 +195,7 @@ export const useBookingData = create<BookingStore>()(
             wallMountOption: undefined,
             location: `TV ${newIndex}`,
             addons: [],
+            addonsConfirmed: false,
           };
 
           return {

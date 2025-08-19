@@ -13,6 +13,7 @@ export interface TVInstallation {
     name: string;
     price: number;
   }>;
+  addonsConfirmed?: boolean; // Track if user has confirmed add-on selection
   basePrice?: number;
   roomPhotoBase64?: string;
   aiPreviewUrl?: string;

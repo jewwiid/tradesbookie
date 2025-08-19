@@ -119,7 +119,7 @@ export default function BookingFlow() {
       const currentTv = bookingData.tvInstallations[bookingData.currentTvIndex];
       return currentTv && currentTv.tvSize && currentTv.serviceType && currentTv.wallType && currentTv.mountType &&
         (currentTv.needsWallMount === false || (currentTv.needsWallMount === true && currentTv.wallMountOption)) &&
-        currentTv.location; // Include location as part of TV completion
+        currentTv.location && currentTv.addonsConfirmed; // Include add-ons confirmation as part of TV completion
     }
     return false;
   };
@@ -131,7 +131,7 @@ export default function BookingFlow() {
     return bookingData.tvInstallations.every(tv => 
       tv.tvSize && tv.serviceType && tv.wallType && tv.mountType &&
       (tv.needsWallMount === false || (tv.needsWallMount === true && tv.wallMountOption)) &&
-      tv.location
+      tv.location && tv.addonsConfirmed // Ensure add-ons have been confirmed for each TV
     );
   };
 

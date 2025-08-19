@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus } from "lucide-react";
@@ -42,6 +43,13 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
   const currentTvIndex = bookingData.currentTvIndex ?? 0;
   const currentTv = isMultiTV ? bookingData.tvInstallations?.[currentTvIndex] : null;
   
+  // Mark add-ons as confirmed when user visits this step
+  useEffect(() => {
+    if (isMultiTV && updateCurrentTvInstallation && currentTv && !currentTv.addonsConfirmed) {
+      updateCurrentTvInstallation({ addonsConfirmed: true });
+    }
+  }, [isMultiTV, updateCurrentTvInstallation, currentTv]);
+  
   // Ensure we have a valid room name for display
   const getRoomDisplayName = () => {
     if (isMultiTV && currentTv?.location) {
@@ -68,7 +76,7 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
         }];
         
         if (isMultiTV && updateCurrentTvInstallation) {
-          updateCurrentTvInstallation({ addons: newAddons });
+          updateCurrentTvInstallation({ addons: newAddons, addonsConfirmed: true });
         } else {
           updateBookingData({ addons: newAddons });
         }
@@ -77,7 +85,7 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
       const newAddons = currentAddons.filter(addon => addon.key !== addonKey);
       
       if (isMultiTV && updateCurrentTvInstallation) {
-        updateCurrentTvInstallation({ addons: newAddons });
+        updateCurrentTvInstallation({ addons: newAddons, addonsConfirmed: true });
       } else {
         updateBookingData({ addons: newAddons });
       }

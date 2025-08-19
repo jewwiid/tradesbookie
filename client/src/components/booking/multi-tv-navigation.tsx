@@ -51,6 +51,9 @@ export default function MultiTVNavigation({
             <Tv className="w-4 h-4" />
             Configure {bookingData.tvInstallations[bookingData.currentTvIndex]?.location || `TV ${bookingData.currentTvIndex + 1}`}
           </h3>
+          <Badge variant="outline" className="bg-white">
+            {getCompletedStepsCount(bookingData.currentTvIndex)} of 5 complete
+          </Badge>
         </div>
 
         {/* TV Selection Grid */}

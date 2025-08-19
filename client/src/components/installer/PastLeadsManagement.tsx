@@ -673,7 +673,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">Room Location</label>
-                      <p className="text-sm sm:text-base font-medium">{selectedLead.location || 'Not specified'}</p>
+                      <p className="text-sm sm:text-base font-medium">{selectedLead.address || 'Not specified'}</p>
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">Service Type</label>

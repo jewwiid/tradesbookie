@@ -55,17 +55,17 @@ export default function FraudPreventionDashboard() {
   });
 
   // Fetch anti-manipulation data
-  const { data: antiManipulationData } = useQuery({
+  const { data: antiManipulationData = {} } = useQuery({
     queryKey: ['/api/admin/fraud-prevention/anti-manipulation'],
   });
 
   // Fetch customer verification data
-  const { data: customerVerificationData } = useQuery({
+  const { data: customerVerificationData = {} } = useQuery({
     queryKey: ['/api/admin/fraud-prevention/customer-verification'],
   });
 
   // Fetch risk distribution data
-  const { data: riskDistributionData } = useQuery({
+  const { data: riskDistributionData = {} } = useQuery({
     queryKey: ['/api/admin/fraud-prevention/risk-distribution'],
   });
 
@@ -223,14 +223,14 @@ export default function FraudPreventionDashboard() {
                     <div key={i} className="animate-pulse bg-gray-200 h-16 rounded"></div>
                   ))}
                 </div>
-              ) : refundRequests.length === 0 ? (
+              ) : !refundRequests || (Array.isArray(refundRequests) && refundRequests.length === 0) ? (
                 <div className="text-center py-8">
                   <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
                   <p className="text-gray-600">No pending refund requests</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {refundRequests.map((refund: RefundRequest) => (
+                  {Array.isArray(refundRequests) && refundRequests.map((refund: RefundRequest) => (
                     <div key={refund.id} className="border rounded-lg p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
@@ -313,27 +313,27 @@ export default function FraudPreventionDashboard() {
                     <span>Phone Verified</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-24 bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${customerVerificationData?.phoneVerified?.percentage || 0}%` }}></div>
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${(customerVerificationData as any)?.phoneVerified?.percentage || 0}%` }}></div>
                       </div>
-                      <span className="text-sm text-gray-600">{customerVerificationData?.phoneVerified?.percentage || 0}%</span>
+                      <span className="text-sm text-gray-600">{(customerVerificationData as any)?.phoneVerified?.percentage || 0}%</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Email Verified</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-24 bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${customerVerificationData?.emailVerified?.percentage || 0}%` }}></div>
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: `${(customerVerificationData as any)?.emailVerified?.percentage || 0}%` }}></div>
                       </div>
-                      <span className="text-sm text-gray-600">{customerVerificationData?.emailVerified?.percentage || 0}%</span>
+                      <span className="text-sm text-gray-600">{(customerVerificationData as any)?.emailVerified?.percentage || 0}%</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Identity Verified</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-24 bg-gray-200 rounded-full h-2">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${customerVerificationData?.identityVerified?.percentage || 0}%` }}></div>
+                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${(customerVerificationData as any)?.identityVerified?.percentage || 0}%` }}></div>
                       </div>
-                      <span className="text-sm text-gray-600">{customerVerificationData?.identityVerified?.percentage || 0}%</span>
+                      <span className="text-sm text-gray-600">{(customerVerificationData as any)?.identityVerified?.percentage || 0}%</span>
                     </div>
                   </div>
                 </div>
@@ -351,21 +351,21 @@ export default function FraudPreventionDashboard() {
                       <div className="w-3 h-3 bg-green-500 rounded"></div>
                       <span>Low Risk</span>
                     </div>
-                    <span className="font-medium">{riskDistributionData?.lowRisk?.percentage || 0}%</span>
+                    <span className="font-medium">{(riskDistributionData as any)?.lowRisk?.percentage || 0}%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-yellow-500 rounded"></div>
                       <span>Medium Risk</span>
                     </div>
-                    <span className="font-medium">{riskDistributionData?.mediumRisk?.percentage || 0}%</span>
+                    <span className="font-medium">{(riskDistributionData as any)?.mediumRisk?.percentage || 0}%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-red-500 rounded"></div>
                       <span>High Risk</span>
                     </div>
-                    <span className="font-medium">{riskDistributionData?.highRisk?.percentage || 0}%</span>
+                    <span className="font-medium">{(riskDistributionData as any)?.highRisk?.percentage || 0}%</span>
                   </div>
                 </div>
               </CardContent>
@@ -388,28 +388,28 @@ export default function FraudPreventionDashboard() {
               <Card>
                 <CardContent className="p-4 text-center">
                   <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">{antiManipulationData?.rapidCancellations || 0}</p>
+                  <p className="text-2xl font-bold">{(antiManipulationData as any)?.rapidCancellations || 0}</p>
                   <p className="text-sm text-gray-600">Rapid Cancellations</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <TrendingUp className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">{antiManipulationData?.priceDiscrepancies || 0}</p>
+                  <p className="text-2xl font-bold">{(antiManipulationData as any)?.priceDiscrepancies || 0}</p>
                   <p className="text-sm text-gray-600">Price Discrepancies</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <Users className="h-8 w-8 text-purple-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">{antiManipulationData?.qrCodeSharing || 0}</p>
+                  <p className="text-2xl font-bold">{(antiManipulationData as any)?.qrCodeSharing || 0}</p>
                   <p className="text-sm text-gray-600">QR Code Sharing</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <XCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                  <p className="text-2xl font-bold">{antiManipulationData?.flaggedForReview || 0}</p>
+                  <p className="text-2xl font-bold">{(antiManipulationData as any)?.flaggedForReview || 0}</p>
                   <p className="text-sm text-gray-600">Flagged for Review</p>
                 </CardContent>
               </Card>

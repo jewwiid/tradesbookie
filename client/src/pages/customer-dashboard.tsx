@@ -727,14 +727,14 @@ export default function CustomerDashboard() {
   }
 
   // Update preferences state when user data loads
-  if (user && user.emailNotifications !== undefined) {
-    if (preferences.emailNotifications !== user.emailNotifications ||
-        preferences.bookingUpdates !== user.bookingUpdates ||
-        preferences.marketingEmails !== user.marketingEmails) {
+  if (user && typeof (user as any).emailNotifications !== 'undefined') {
+    if (preferences.emailNotifications !== (user as any).emailNotifications ||
+        preferences.bookingUpdates !== (user as any).bookingUpdates ||
+        preferences.marketingEmails !== (user as any).marketingEmails) {
       setPreferences({
-        emailNotifications: user.emailNotifications ?? true,
-        bookingUpdates: user.bookingUpdates ?? true,
-        marketingEmails: user.marketingEmails ?? false
+        emailNotifications: (user as any).emailNotifications ?? true,
+        bookingUpdates: (user as any).bookingUpdates ?? true,
+        marketingEmails: (user as any).marketingEmails ?? false
       });
     }
   }
@@ -3134,12 +3134,12 @@ function BookingCard({
                       <div className="flex items-center text-sm min-w-0">
                         <Home className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                         <span className="text-gray-600 flex-shrink-0">Wall Type:</span>
-                        <span className="ml-1 font-medium break-words truncate">{booking.wallType || 'Not specified'}</span>
+                        <span className="ml-1 font-medium break-words truncate">{(booking as any).wallType || 'Not specified'}</span>
                       </div>
                       <div className="flex items-center text-sm min-w-0">
                         <Euro className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                         <span className="text-gray-600 flex-shrink-0">Mount Type:</span>
-                        <span className="ml-1 font-medium break-words truncate">{booking.mountType || 'Not specified'}</span>
+                        <span className="ml-1 font-medium break-words truncate">{(booking as any).mountType || 'Not specified'}</span>
                       </div>
                     </div>
                   </div>
@@ -3162,12 +3162,12 @@ function BookingCard({
                     <div className="flex items-center text-sm">
                       <Mail className="w-4 h-4 text-gray-400 mr-2" />
                       <span className="text-gray-600">Email:</span>
-                      <span className="ml-1 font-medium">{booking.contactEmail}</span>
+                      <span className="ml-1 font-medium">{(booking as any).contactEmail}</span>
                     </div>
                     <div className="flex items-center text-sm">
                       <Phone className="w-4 h-4 text-gray-400 mr-2" />
                       <span className="text-gray-600">Phone:</span>
-                      <span className="ml-1 font-medium">{booking.contactPhone}</span>
+                      <span className="ml-1 font-medium">{(booking as any).contactPhone}</span>
                     </div>
                     <div className="flex items-center text-sm">
                       <MapPin className="w-4 h-4 text-gray-400 mr-2" />
@@ -3188,12 +3188,12 @@ function BookingCard({
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Service Total:</span>
-                      <span className="font-medium">€{booking.estimatedServicePrice || booking.estimatedPrice}</span>
+                      <span className="font-medium">€{booking.estimatedPrice}</span>
                     </div>
-                    {booking.estimatedAddonsPrice && parseFloat(booking.estimatedAddonsPrice) > 0 && (
+                    {(booking as any).estimatedAddonsPrice && parseFloat((booking as any).estimatedAddonsPrice) > 0 && (
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Add-ons:</span>
-                        <span className="font-medium">€{booking.estimatedAddonsPrice}</span>
+                        <span className="font-medium">€{(booking as any).estimatedAddonsPrice}</span>
                       </div>
                     )}
                     <div className="border-t border-gray-300 pt-2 flex items-center justify-between font-semibold">
@@ -3205,26 +3205,26 @@ function BookingCard({
               </div>
 
               {/* Additional Information */}
-              {(booking.roomAnalysis || booking.preferredDate) && (
+              {((booking as any).roomAnalysis || (booking as any).preferredDate) && (
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
                     <FileText className="w-4 h-4 mr-2" />
                     Additional Information
                   </h4>
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
-                    {booking.preferredDate && (
+                    {(booking as any).preferredDate && (
                       <div>
                         <span className="text-sm text-gray-600 block">Preferred Date:</span>
                         <span className="font-medium">
-                          {new Date(booking.preferredDate).toLocaleDateString()}
+                          {new Date((booking as any).preferredDate).toLocaleDateString()}
                         </span>
                       </div>
                     )}
-                    {booking.roomAnalysis && (
+                    {(booking as any).roomAnalysis && (
                       <div>
                         <span className="text-sm text-gray-600 block mb-1">Room Analysis:</span>
                         <p className="text-sm text-gray-800 bg-white p-2 rounded border">
-                          {booking.roomAnalysis}
+                          {(booking as any).roomAnalysis}
                         </p>
                       </div>
                     )}

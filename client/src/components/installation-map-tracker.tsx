@@ -31,7 +31,7 @@ export default function InstallationMapTracker() {
   // Extract installation data by location from real data
   const installationsByLocation: Record<string, InstallationLocation> = {};
   
-  if (geocodedInstallations) {
+  if (geocodedInstallations && Array.isArray(geocodedInstallations)) {
     geocodedInstallations.forEach((installation: any) => {
       const locationKey = installation.county;
       if (!installationsByLocation[locationKey]) {
@@ -60,7 +60,7 @@ export default function InstallationMapTracker() {
   });
 
   const locations = Object.values(installationsByLocation);
-  const totalInstallations = geocodedInstallations?.length || 0;
+  const totalInstallations = (Array.isArray(geocodedInstallations) ? geocodedInstallations.length : 0) || 0;
   const topLocation = locations.sort((a, b) => b.count - a.count)[0];
 
   const formatDate = (dateString: string) => {
@@ -152,7 +152,7 @@ export default function InstallationMapTracker() {
         {/* Interactive Map of Ireland */}
         <div className="lg:col-span-2">
           <IrelandMap 
-            installations={geocodedInstallations || []} 
+            installations={Array.isArray(geocodedInstallations) ? geocodedInstallations : []} 
             isLoading={isLoading}
             showLegend={true}
             height="600px"

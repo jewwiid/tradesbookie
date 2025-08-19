@@ -2963,7 +2963,7 @@ function BookingCard({
                 
                 {/* Dropdown List */}
                 {showInstallerSelection === booking.id && selectedBookingInstallers.length > 0 && (
-                  <div className="absolute top-full left-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-64 max-h-64 overflow-y-auto">
+                  <div className="absolute top-full left-0 bg-white border border-gray-200 rounded-md shadow-xl z-50 min-w-80 max-w-96 max-h-96 overflow-y-auto">
                     {selectedBookingInstallers.map((item) => (
                       <div
                         key={item.installer.id}

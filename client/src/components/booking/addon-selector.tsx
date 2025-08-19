@@ -69,7 +69,9 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
     if (checked) {
       const addon = ADDONS.find(a => a.key === addonKey);
       if (addon) {
-        const newAddons = [...currentAddons, {
+        // Remove "no-addons" if selecting a real add-on
+        const filteredAddons = currentAddons.filter(a => a.key !== 'no-addons');
+        const newAddons = [...filteredAddons, {
           key: addon.key,
           name: addon.name,
           price: addon.price
@@ -97,6 +99,34 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
     return currentAddons.some(addon => addon.key === addonKey) || false;
   };
 
+  const isNoAddonsSelected = () => {
+    const currentAddons = isMultiTV ? (currentTv?.addons || []) : (bookingData.addons || []);
+    return currentAddons.some(addon => addon.key === 'no-addons') || false;
+  };
+
+  const handleNoAddonsToggle = (checked: boolean) => {
+    if (checked) {
+      // Select "no add-ons" and clear all other add-ons
+      const noAddonsSelection = [{ key: 'no-addons', name: 'No add-ons required', price: 0 }];
+      
+      if (isMultiTV && updateCurrentTvInstallation) {
+        updateCurrentTvInstallation({ addons: noAddonsSelection, addonsConfirmed: true });
+      } else {
+        updateBookingData({ addons: noAddonsSelection });
+      }
+    } else {
+      // Unselect "no add-ons"
+      const currentAddons = isMultiTV ? (currentTv?.addons || []) : (bookingData.addons || []);
+      const newAddons = currentAddons.filter(addon => addon.key !== 'no-addons');
+      
+      if (isMultiTV && updateCurrentTvInstallation) {
+        updateCurrentTvInstallation({ addons: newAddons, addonsConfirmed: true });
+      } else {
+        updateBookingData({ addons: newAddons });
+      }
+    }
+  };
+
   return (
     <div className="text-center">
       <div className="step-indicator">
@@ -111,20 +141,47 @@ export default function AddonSelector({ bookingData, updateBookingData, updateTv
       </p>
 
       <div className="space-y-4">
+        {/* No Add-ons Option */}
+        <Card
+          className={`service-tile cursor-pointer ${
+            isNoAddonsSelected() ? 'selected' : ''
+          }`}
+          onClick={() => handleNoAddonsToggle(!isNoAddonsSelected())}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center">
+              <Checkbox
+                checked={isNoAddonsSelected()}
+                onCheckedChange={() => {}} // Handled by card click
+                className="mr-4"
+              />
+              <div className="flex-1 text-left">
+                <h3 className="text-lg font-semibold text-foreground">No add-ons required</h3>
+                <p className="text-sm text-muted-foreground">I don't need any additional services</p>
+              </div>
+              <div className="text-lg font-semibold text-foreground">€0</div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Regular Add-ons */}
         {ADDONS.map((addon) => (
           <Card
             key={addon.key}
             className={`service-tile cursor-pointer ${
               isAddonSelected(addon.key) ? 'selected' : ''
+            } ${
+              isNoAddonsSelected() ? 'opacity-50 pointer-events-none' : ''
             }`}
-            onClick={() => handleAddonToggle(addon.key, !isAddonSelected(addon.key))}
+            onClick={() => !isNoAddonsSelected() && handleAddonToggle(addon.key, !isAddonSelected(addon.key))}
           >
             <CardContent className="p-4">
               <div className="flex items-center">
                 <Checkbox
-                  checked={isAddonSelected(addon.key)}
+                  checked={isAddonSelected(addon.key) && !isNoAddonsSelected()}
                   onCheckedChange={() => {}} // Handled by card click
                   className="mr-4"
+                  disabled={isNoAddonsSelected()}
                 />
                 <div className="flex-1 text-left">
                   <h3 className="text-lg font-semibold text-foreground">{addon.name}</h3>

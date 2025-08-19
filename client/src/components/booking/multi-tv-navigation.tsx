@@ -49,11 +49,8 @@ export default function MultiTVNavigation({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
             <Tv className="w-4 h-4" />
-            Configure {bookingData.tvInstallations[bookingData.currentTvIndex]?.location || `TV ${bookingData.currentTvIndex + 1}`} ({bookingData.currentTvIndex + 1} of {bookingData.tvQuantity})
+            Configure {bookingData.tvInstallations[bookingData.currentTvIndex]?.location || `TV ${bookingData.currentTvIndex + 1}`}
           </h3>
-          <Badge variant="outline" className="bg-white">
-            {bookingData.tvInstallations.filter(isCurrentTvComplete).length} of {bookingData.tvQuantity} complete
-          </Badge>
         </div>
 
         {/* TV Selection Grid */}

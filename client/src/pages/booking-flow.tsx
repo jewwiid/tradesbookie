@@ -248,7 +248,7 @@ export default function BookingFlow() {
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-muted-foreground">
-              Step {currentStep} of {TOTAL_STEPS} • {getCompletedStepsCount(bookingData.tvQuantity > 1 ? bookingData.currentTvIndex : undefined)} of {TOTAL_STEPS} complete
+              Step {currentStep} of {TOTAL_STEPS}
             </span>
             <Button variant="ghost" size="sm" onClick={handleExit}>
               <X className="w-4 h-4" />

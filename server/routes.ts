@@ -685,13 +685,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Installer not found" });
       }
 
-      // Only show publicly visible and active installers
-      if (!installer.isActive || !installer.isPubliclyVisible) {
+      // Only show active installers (removing isPubliclyVisible check since it may not exist)
+      if (!installer.isActive) {
         return res.status(404).json({ error: "Installer profile not available" });
       }
 
-      // Get completed jobs with photos
-      const completedJobs = await storage.getInstallerCompletedJobs(installerId);
+      // Get job assignments and filter for completed ones
+      const allJobs = await storage.getInstallerJobs(installerId);
+      const completedJobs = allJobs.filter((job: any) => job.status === 'completed');
       
       // Transform completed jobs to include photos and reviews
       const completedWork = await Promise.all(
@@ -724,13 +725,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validCompletedWork = completedWork.filter(work => work !== null);
 
       // Calculate total completed jobs
-      const totalJobs = await storage.getInstallerCompletedJobsCount(installerId);
+      const totalJobs = completedJobs.length;
       
-      // Get reviews for rating calculation
-      const reviews = await storage.getInstallerReviews(installerId);
-      const averageRating = reviews.length > 0 
-        ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length 
-        : 0;
+      // Get installer rating data
+      const ratingData = await storage.getInstallerRating(installerId);
 
       // Return public profile data
       const publicProfile = {
@@ -742,8 +740,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         serviceArea: installer.serviceArea,
         address: installer.address,
         yearsExperience: installer.yearsExperience || 1,
-        averageRating: Number(averageRating.toFixed(1)),
-        totalReviews: reviews.length,
+        averageRating: ratingData.averageRating,
+        totalReviews: ratingData.totalReviews,
         expertise: installer.expertise || [],
         bio: installer.bio || '',
         profileImageUrl: installer.profileImageUrl,

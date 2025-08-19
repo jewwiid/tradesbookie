@@ -69,21 +69,27 @@ interface PurchasedLeadsManagementProps {
 }
 
 const statusColors = {
-  'purchased': 'bg-blue-100 text-blue-800',
+  'pending': 'bg-blue-100 text-blue-800',
   'confirmed': 'bg-yellow-100 text-yellow-800',
-  'scheduled': 'bg-purple-100 text-purple-800',
+  'assigned': 'bg-purple-100 text-purple-800',
   'in-progress': 'bg-orange-100 text-orange-800',
   'completed': 'bg-green-100 text-green-800',
-  'cancelled': 'bg-red-100 text-red-800'
+  'cancelled': 'bg-red-100 text-red-800',
+  // Legacy support for older status values
+  'purchased': 'bg-blue-100 text-blue-800',
+  'scheduled': 'bg-purple-100 text-purple-800'
 };
 
 const statusLabels = {
-  'purchased': 'Lead Purchased',
+  'pending': 'Pending',
   'confirmed': 'Customer Confirmed',
-  'scheduled': 'Installation Scheduled',
+  'assigned': 'Assigned to You',
   'in-progress': 'Work in Progress',
   'completed': 'Completed',
-  'cancelled': 'Cancelled'
+  'cancelled': 'Cancelled',
+  // Legacy support for older status values
+  'purchased': 'Lead Purchased',
+  'scheduled': 'Installation Scheduled'
 };
 
 export default function PastLeadsManagement({ installerId }: PurchasedLeadsManagementProps) {
@@ -264,8 +270,8 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                         </p>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <Badge className={statusColors[lead.status as keyof typeof statusColors]}>
-                          {statusLabels[lead.status as keyof typeof statusLabels]}
+                        <Badge className={statusColors[lead.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
+                          {statusLabels[lead.status as keyof typeof statusLabels] || lead.status}
                         </Badge>
                         {isRecentlyUpdated(lead.id) && (
                           <div className="flex items-center gap-1 text-xs text-green-600">
@@ -741,8 +747,8 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs sm:text-sm font-medium text-gray-600">Current Status</label>
-                    <Badge className={statusColors[selectedLead.status as keyof typeof statusColors]}>
-                      {statusLabels[selectedLead.status as keyof typeof statusLabels]}
+                    <Badge className={statusColors[selectedLead.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
+                      {statusLabels[selectedLead.status as keyof typeof statusLabels] || selectedLead.status}
                     </Badge>
                   </div>
                   <div className="space-y-1">

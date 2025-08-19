@@ -2912,25 +2912,61 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
               </Button>
             )}
             
-            {/* Show installer selection button for pending bookings */}
+            {/* Show installer selection dropdown for pending bookings */}
             {booking.status === 'open' && !booking.installerId && onViewInstallers && (
-              <Button 
-                size="sm" 
-                onClick={() => {
-                  console.log('Select Installer button clicked for booking:', booking.id);
-                  console.log('onViewInstallers function exists:', !!onViewInstallers);
-                  console.log('Booking status:', booking.status, 'Installer ID:', booking.installerId);
-                  if (onViewInstallers) {
-                    onViewInstallers(booking.id);
-                  } else {
-                    console.error('onViewInstallers function is not available');
-                  }
-                }} 
-                className="gradient-bg flex-shrink-0"
-              >
-                <Users className="w-4 h-4 mr-2" />
-                Select Installer
-              </Button>
+              <div className="relative">
+                <Button 
+                  size="sm" 
+                  onClick={() => {
+                    console.log('Select Installer button clicked for booking:', booking.id);
+                    setShowInstallerSelection(showInstallerSelection === booking.id ? null : booking.id);
+                    if (onViewInstallers) {
+                      onViewInstallers(booking.id);
+                    }
+                  }} 
+                  className="gradient-bg flex-shrink-0 flex items-center"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Select Installer
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+                
+                {/* Dropdown List */}
+                {showInstallerSelection === booking.id && selectedBookingInstallers.length > 0 && (
+                  <div className="absolute top-full left-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 min-w-64 max-h-64 overflow-y-auto">
+                    {selectedBookingInstallers.map((item) => (
+                      <div
+                        key={item.installer.id}
+                        onClick={() => {
+                          handleSelectInstaller(item.installer.id);
+                          setShowInstallerSelection(null);
+                        }}
+                        className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 flex items-center space-x-3"
+                      >
+                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <User className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 text-sm truncate">{item.installer.businessName}</p>
+                          <div className="flex items-center space-x-2 text-xs text-gray-500">
+                            <span>{item.installer.serviceArea}</span>
+                            {item.installer.averageRating > 0 && (
+                              <>
+                                <span>•</span>
+                                <div className="flex items-center space-x-1">
+                                  <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                  <span>{item.installer.averageRating.toFixed(1)}</span>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
           <div className="text-xs text-gray-500 flex-shrink-0">

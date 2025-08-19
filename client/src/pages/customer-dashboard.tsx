@@ -589,6 +589,12 @@ export default function CustomerDashboard() {
       }));
       setSelectedBookingInstallers(formattedInstallers);
       
+      console.log('About to show dialog with state:', {
+        showInstallerSelection: bookingId,
+        selectedBookingInstallers: formattedInstallers.length,
+        dialogShouldShow: bookingId !== null
+      });
+      
       toast({ 
         title: "Installers loaded", 
         description: `Found ${tvInstallers.length} available installers` 
@@ -1044,7 +1050,13 @@ export default function CustomerDashboard() {
         </Dialog>
 
         {/* Installer Selection Dialog */}
-        <Dialog open={showInstallerSelection !== null} onOpenChange={() => setShowInstallerSelection(null)}>
+        <Dialog 
+          open={showInstallerSelection !== null} 
+          onOpenChange={(open) => {
+            console.log('Dialog onOpenChange called:', open, 'showInstallerSelection:', showInstallerSelection);
+            if (!open) setShowInstallerSelection(null);
+          }}
+        >
           <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Select Your Installer</DialogTitle>
@@ -1054,7 +1066,12 @@ export default function CustomerDashboard() {
             </DialogHeader>
             
             <div className="space-y-4">
-              {selectedBookingInstallers.map((item) => (
+              {selectedBookingInstallers.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Loading installers...</p>
+                </div>
+              ) : (
+                selectedBookingInstallers.map((item) => (
                 <Card key={item.installer.id} className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-300">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
@@ -1160,7 +1177,8 @@ export default function CustomerDashboard() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                ))
+              )}
               
               {selectedBookingInstallers.length === 0 && (
                 <div className="text-center py-8">

@@ -1199,49 +1199,49 @@ export default function CustomerDashboard() {
                     value="bookings" 
                     className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="hidden xs:inline sm:inline">Bookings</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="ai-services" 
                     className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Bot className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <Bot className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="hidden xs:inline sm:inline">AI Services</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="referrals" 
                     className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Gift className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <Gift className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="hidden xs:inline sm:inline">Referrals</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="messaging" 
                     className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="hidden xs:inline sm:inline">Messages</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="wallet" 
                     className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Wallet className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <Wallet className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="hidden xs:inline sm:inline">Wallet</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="support" 
                     className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <HelpCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="hidden xs:inline sm:inline">Support</span>
                   </TabsTrigger>
                   <TabsTrigger 
                     value="settings" 
                     className="inline-flex items-center justify-center gap-1 sm:gap-2 whitespace-nowrap rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm flex-shrink-0"
                   >
-                    <Settings className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <Settings className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span className="hidden xs:inline sm:inline">Settings</span>
                   </TabsTrigger>
                 </div>
@@ -2860,32 +2860,32 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
                         </div>
                         
                         {/* TV Details Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                          <div className="flex items-center text-sm">
-                            <Monitor className="w-4 h-4 text-gray-400 mr-2" />
-                            <span className="text-gray-600">Service:</span>
-                            <span className="ml-1 font-medium">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 mb-3">
+                          <div className="flex items-center text-sm min-w-0">
+                            <Monitor className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+                            <span className="text-gray-600 flex-shrink-0">Service:</span>
+                            <span className="ml-1 font-medium break-words truncate">
                               {tv.serviceType?.replace('-', ' ') || 'Not specified'}
                             </span>
                           </div>
-                          <div className="flex items-center text-sm">
-                            <Home className="w-4 h-4 text-gray-400 mr-2" />
-                            <span className="text-gray-600">Wall Type:</span>
-                            <span className="ml-1 font-medium">
+                          <div className="flex items-center text-sm min-w-0">
+                            <Home className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+                            <span className="text-gray-600 flex-shrink-0">Wall Type:</span>
+                            <span className="ml-1 font-medium break-words truncate">
                               {tv.wallType || 'Not specified'}
                             </span>
                           </div>
-                          <div className="flex items-center text-sm">
-                            <Settings className="w-4 h-4 text-gray-400 mr-2" />
-                            <span className="text-gray-600">Mount Type:</span>
-                            <span className="ml-1 font-medium">
+                          <div className="flex items-center text-sm min-w-0">
+                            <Settings className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+                            <span className="text-gray-600 flex-shrink-0">Mount Type:</span>
+                            <span className="ml-1 font-medium break-words truncate">
                               {tv.mountType || 'Not specified'}
                             </span>
                           </div>
-                          <div className="flex items-center text-sm">
-                            <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                            <span className="text-gray-600">Price:</span>
-                            <span className="ml-1 font-medium">
+                          <div className="flex items-center text-sm min-w-0">
+                            <Euro className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+                            <span className="text-gray-600 flex-shrink-0">Price:</span>
+                            <span className="ml-1 font-medium break-words">
                               €{tv.price || 'TBD'}
                             </span>
                           </div>
@@ -2951,27 +2951,27 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
                     <Tv className="w-4 h-4 mr-2" />
                     Installation Details
                   </h4>
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="flex items-center text-sm">
-                        <Monitor className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="text-gray-600">TV Size:</span>
+                  <div className="p-3 sm:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                      <div className="flex items-center text-sm min-w-0">
+                        <Monitor className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+                        <span className="text-gray-600 flex-shrink-0">TV Size:</span>
                         <span className="ml-1 font-medium">{booking.tvSize}"</span>
                       </div>
-                      <div className="flex items-center text-sm">
-                        <Settings className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="text-gray-600">Service:</span>
-                        <span className="ml-1 font-medium">{booking.serviceType}</span>
+                      <div className="flex items-center text-sm min-w-0">
+                        <Settings className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+                        <span className="text-gray-600 flex-shrink-0">Service:</span>
+                        <span className="ml-1 font-medium break-words truncate">{booking.serviceType}</span>
                       </div>
-                      <div className="flex items-center text-sm">
-                        <Home className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="text-gray-600">Wall Type:</span>
-                        <span className="ml-1 font-medium">{booking.wallType || 'Not specified'}</span>
+                      <div className="flex items-center text-sm min-w-0">
+                        <Home className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+                        <span className="text-gray-600 flex-shrink-0">Wall Type:</span>
+                        <span className="ml-1 font-medium break-words truncate">{booking.wallType || 'Not specified'}</span>
                       </div>
-                      <div className="flex items-center text-sm">
-                        <Euro className="w-4 h-4 text-gray-400 mr-2" />
-                        <span className="text-gray-600">Mount Type:</span>
-                        <span className="ml-1 font-medium">{booking.mountType || 'Not specified'}</span>
+                      <div className="flex items-center text-sm min-w-0">
+                        <Euro className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+                        <span className="text-gray-600 flex-shrink-0">Mount Type:</span>
+                        <span className="ml-1 font-medium break-words truncate">{booking.mountType || 'Not specified'}</span>
                       </div>
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, bigint, boolean, timestamp, decimal, jsonb, varchar, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, bigint, boolean, timestamp, date, decimal, jsonb, varchar, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -181,7 +181,7 @@ export const bookings = pgTable("bookings", {
   // Scheduling
   preferredDate: timestamp("preferred_date"),
   preferredTime: text("preferred_time"),
-  scheduledDate: timestamp("scheduled_date"),
+  scheduledDate: date("scheduled_date"),
   
   // Address
   address: text("address").notNull(),

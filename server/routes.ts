@@ -10,7 +10,7 @@ import {
   scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions, declinedRequests
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, inArray, isNotNull } from "drizzle-orm";
+import { eq, and, desc, inArray, isNotNull, sql, or } from "drizzle-orm";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
 import { AIAnalyticsService } from "./aiAnalyticsService";
@@ -11471,35 +11471,34 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   // New endpoint for installer schedule calendar
   app.get("/api/installer/:installerId/schedule-calendar", async (req, res) => {
-    try {
+      try {
       const installerId = parseInt(req.params.installerId);
       
-      // Get all bookings assigned to this installer with scheduled dates  
-      const scheduledBookings = await db.select({
-        id: bookings.id,
-        bookingId: bookings.id,
-        customerName: bookings.contactName,
-        address: bookings.address,
-        scheduledDate: bookings.scheduledDate,
-        tvSize: bookings.tvSize,
-        serviceType: bookings.serviceType,
-        status: bookings.status,
-        estimatedTotal: bookings.estimatedTotal,
-        // Get time from accepted schedule negotiation if available
-        jobAssignmentStatus: jobAssignments.status
-      })
-      .from(bookings)
-      .innerJoin(jobAssignments, eq(jobAssignments.bookingId, bookings.id))
-      .where(and(
-        eq(jobAssignments.installerId, installerId),
-        eq(jobAssignments.status, 'accepted'),
-        isNotNull(bookings.scheduledDate)
-      ))
-      .orderBy(bookings.scheduledDate);
+      // Use a direct SQL query since the Drizzle schema has date type issues
+      const scheduledBookings = await db.execute(sql`
+        SELECT 
+          b.id,
+          b.id as "bookingId",
+          b.contact_name as "customerName",
+          b.address,
+          b.scheduled_date::text as "scheduledDate",
+          b.tv_size as "tvSize",
+          b.service_type as "serviceType",
+          b.status,
+          b.estimated_total as "estimatedTotal",
+          ja.id as "jobAssignmentId"
+        FROM bookings b
+        INNER JOIN job_assignments ja ON ja.booking_id = b.id
+        WHERE ja.installer_id = ${installerId}
+          AND (ja.status = 'accepted' OR ja.status = 'assigned')
+          AND b.scheduled_date IS NOT NULL
+        ORDER BY b.scheduled_date
+      `);
+
 
       // For each booking, get the accepted schedule negotiation to get the time slot
       const calendarData = await Promise.all(
-        scheduledBookings.map(async (booking) => {
+        scheduledBookings.rows.map(async (booking) => {
           try {
             // Get accepted schedule negotiation for time details
             const acceptedNegotiation = await db.select({
@@ -11532,22 +11531,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               }
             }
 
-            // Format scheduled date properly
-            let formattedDate = null;
-            if (booking.scheduledDate) {
-              try {
-                const date = new Date(booking.scheduledDate);
-                if (!isNaN(date.getTime())) {
-                  formattedDate = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
-                }
-              } catch (error) {
-                console.error('Date formatting error:', error);
-                // Fallback: if it's already in YYYY-MM-DD format, use as-is
-                if (typeof booking.scheduledDate === 'string' && booking.scheduledDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                  formattedDate = booking.scheduledDate;
-                }
-              }
-            }
+            // Date is already properly formatted from SQL query as text
+            const formattedDate = booking.scheduledDate;
 
             return {
               ...booking,
@@ -11557,20 +11542,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           } catch (error) {
             console.error(`Error processing booking ${booking.bookingId}:`, error);
             
-            // Handle date safely in error case too
-            let safeDateString = null;
-            if (booking.scheduledDate) {
-              try {
-                const date = new Date(booking.scheduledDate);
-                if (!isNaN(date.getTime())) {
-                  safeDateString = date.toISOString().split('T')[0];
-                } else if (typeof booking.scheduledDate === 'string' && booking.scheduledDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                  safeDateString = booking.scheduledDate;
-                }
-              } catch (dateError) {
-                console.error('Date error in catch block:', dateError);
-              }
-            }
+            // Use the date as-is from SQL query
+            const safeDateString = booking.scheduledDate;
             
             return {
               ...booking,

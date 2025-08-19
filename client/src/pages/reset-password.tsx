@@ -23,15 +23,6 @@ export default function ResetPassword() {
   const token = urlParams.get('token');
   const userType = urlParams.get('userType') as 'customer' | 'installer';
   
-  // Debug logging
-  console.log('Reset Password Debug:', { 
-    location, 
-    search: window.location.search, 
-    token, 
-    userType, 
-    hasToken: !!token, 
-    hasUserType: !!userType 
-  });
 
   const form = useForm<PasswordResetConfirm>({
     resolver: zodResolver(passwordResetConfirmSchema),
@@ -50,16 +41,13 @@ export default function ResetPassword() {
       if (!token || !userType) {
         throw new Error('Missing token or user type');
       }
-      console.log('Making token verification request:', { token, userType });
       const url = `/api/password-reset/verify-token?token=${token}&userType=${userType}`;
       const response = await fetch(url, { credentials: 'include' });
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Token verification failed:', { status: response.status, error: errorText });
         throw new Error(`${response.status}: ${errorText}`);
       }
       const result = await response.json();
-      console.log('Token verification success:', result);
       return result;
     },
     enabled: !!token && !!userType,

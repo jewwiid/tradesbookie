@@ -13,6 +13,29 @@ app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 // Serve static files from attached_assets directory
 app.use('/attached_assets', express.static(path.resolve(import.meta.dirname, '..', 'attached_assets')));
 
+// Content Security Policy for production
+app.use((req, res, next) => {
+  // Set CSP headers to allow necessary scripts while maintaining security
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' " +
+    "https://js.stripe.com https://m.stripe.network " +
+    "https://www.google-analytics.com https://www.googletagmanager.com " +
+    "https://connect.facebook.net " +
+    "'sha256-PRh/fvLCFBNVoIAGULuMBLuPh7G0pBe3UpLsY8yvX0A=' " +
+    "'sha256-5DA+a07wxWmEka9IdoWjSPVHb17Cp5284/lJzfbl8KA=' " +
+    "'sha256-/5Guo2nzv5n/w6ukZpOBZOtTJBJPSkJ6mhHpnBgm3Ls='; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data: https: blob:; " +
+    "connect-src 'self' https://api.stripe.com https://www.google-analytics.com; " +
+    "frame-src 'self' https://js.stripe.com https://hooks.stripe.com; " +
+    "object-src 'none'; " +
+    "base-uri 'self';"
+  );
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

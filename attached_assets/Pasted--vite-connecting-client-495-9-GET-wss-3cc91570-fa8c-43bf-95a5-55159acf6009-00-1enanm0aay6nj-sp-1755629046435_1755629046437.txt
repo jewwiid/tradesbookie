@@ -1,0 +1,33 @@
+[vite] connecting... client:495:9
+GET
+wss://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/?token=07vYCpr44k8_
+NS_ERROR_WEBSOCKET_CONNECTION_REFUSED
+
+Firefox can’t establish a connection to the server at wss://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/?token=07vYCpr44k8_. client:536:19
+Uncaught (in promise) DOMException: An invalid or illegal string was specified
+    setupWebSocket client:536
+    fallback client:509
+    setupWebSocket client:555
+    setupWebSocket client:552
+    <anonymous> client:531
+client:536
+Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools chunk-RPCDYKBN.js:21551:25
+Reset Password Debug: 
+Object { location: "/reset-password", search: "?token=de4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224&userType=installer", token: "de4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224", userType: "installer", hasToken: true, hasUserType: true }
+reset-password.tsx:40:11
+Making token verification request: 
+Object { token: "de4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224", userType: "installer" }
+reset-password.tsx:63:15
+Request for font "Roboto" blocked at visibility level 2 (requires 3)
+replit-dev-banner.js:143:26
+Request for font "Cantarell" blocked at visibility level 2 (requires 3)
+replit-dev-banner.js:143:26
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-f80fbd4396988b61410efca739304c79.html#__shared_params__[version]=basil&__shared_params__[light_experiment_assignments]=%7B%22token%22%3A%220ccd6d99-cb54-4a78-9765-5b8bd867fce7%22%2C%22assignments%22%3A%7B%22elements_pe_initializer_render%22%3A%22treatment%22%7D%7D&apiKey=pk_test_51QSj2vLGZvKUWZLCtQl8HfOyevF4qPOJmcWjnF4bXgCgZLx8FDJKY0uAhklZjMvs3dz80jvQVgvJgjOcqvxQKFPw00Hf7N8Flv&apiVersion=2025-03-31.basil&stripeJsId=0ccd6d99-cb54-4a78-9765-5b8bd867fce7&stripeObjId=sobj-fcbaed5a-e7a1-4dcd-909e-13259241ee6d&firstStripeInstanceCreatedLatency=4&controllerCount=1&isCheckout=false&stripeJsLoadTime=1755629038287&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=34091433-43c0-407a-8427-bea9021b88a0081871&mids[sid]=034c895f-b37c-44bb-a88d-28a13c0be3535469da&referrer=https%3A%2F%2F3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev%2Freset-password%3Ftoken%3Dde4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224%26userType%3Dinstaller&controllerId=__privateStripeController6211” because it is loaded in the third-party context and dynamic state partitioning is enabled. controller-with-preconnect-031ca90d81f33676682be33ada5303f6.js:1:180826
+Token verification success: 
+Object { message: "Token is valid" }
+reset-password.tsx:72:15
+Reset Password Debug: 
+Object { location: "/reset-password", search: "?token=de4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224&userType=installer", token: "de4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224", userType: "installer", hasToken: true, hasUserType: true }
+reset-password.tsx:40:11
+Partitioned cookie or storage access was provided to “<URL>[version]=basil” because it is loaded in the third-party context and dynamic state partitioning is enabled. 2
+Cookie warnings 2

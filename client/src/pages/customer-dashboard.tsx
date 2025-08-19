@@ -2547,22 +2547,22 @@ export default function CustomerDashboard() {
 function TvSetupCard({ booking }: { booking: TvSetupBooking }) {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'mac_address_requested': return 'bg-blue-100 text-blue-800';
-      case 'credentials_ready': return 'bg-green-100 text-green-800';
-      case 'payment_required': return 'bg-orange-100 text-orange-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'mac_address_requested': return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'credentials_ready': return 'bg-green-100 text-green-800 border-green-300';
+      case 'payment_required': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'completed': return 'bg-green-100 text-green-800 border-green-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return 'Pending Review';
-      case 'mac_address_requested': return 'MAC Address Required';
-      case 'credentials_ready': return 'Credentials Ready';
-      case 'payment_required': return 'Payment Required';
-      case 'completed': return 'Completed';
+      case 'pending': return '⏳ Pending Review';
+      case 'mac_address_requested': return '📱 MAC Address Required';
+      case 'credentials_ready': return '🔑 Credentials Ready';
+      case 'payment_required': return '💳 Payment Required';
+      case 'completed': return '✅ Completed';
       default: return status;
     }
   };
@@ -2685,7 +2685,7 @@ function TvSetupCard({ booking }: { booking: TvSetupBooking }) {
           </div>
 
           <div className="flex flex-col items-end gap-2">
-            <Badge className={getStatusColor(booking.setupStatus)}>
+            <Badge variant="outline" className={`${getStatusColor(booking.setupStatus)} font-medium border-2`}>
               {getStatusText(booking.setupStatus)}
             </Badge>
             <Button 
@@ -2725,20 +2725,20 @@ function BookingCard({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800 border-green-300';
       case 'in_progress':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-orange-100 text-orange-800 border-orange-300';
       case 'confirmed':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-800 border-blue-300';
       case 'assigned':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-purple-100 text-purple-800 border-purple-300';
       case 'open':
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-100 text-red-800 border-red-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-300';
     }
   };
 
@@ -2746,17 +2746,17 @@ function BookingCard({
     switch (status) {
       case 'open':
       case 'pending':
-        return 'Request Submitted';
+        return '📋 Request Submitted';
       case 'assigned':
-        return 'Installer Assigned';
+        return '👷 Installer Assigned';
       case 'confirmed':
-        return 'Installer Confirmed';
+        return '✅ Installer Confirmed';
       case 'in_progress':
-        return 'Installation in Progress';
+        return '🔧 Installation in Progress';
       case 'completed':
-        return 'Installation Complete';
+        return '✅ Installation Complete';
       case 'cancelled':
-        return 'Cancelled';
+        return '❌ Cancelled';
       default:
         return status;
     }
@@ -2778,7 +2778,7 @@ function BookingCard({
             <p className="text-sm text-gray-600 break-words">{booking.address}</p>
           </div>
           <div className="flex-shrink-0 self-start">
-            <Badge className={getStatusColor(booking.status)}>
+            <Badge variant="outline" className={`${getStatusColor(booking.status)} font-medium border-2`}>
               {getStatusText(booking.status)}
             </Badge>
           </div>

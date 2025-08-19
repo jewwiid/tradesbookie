@@ -69,21 +69,21 @@ interface PurchasedLeadsManagementProps {
 }
 
 const statusColors = {
-  'purchased': 'bg-blue-100 text-blue-800',
-  'confirmed': 'bg-yellow-100 text-yellow-800',
-  'scheduled': 'bg-purple-100 text-purple-800',
-  'in-progress': 'bg-orange-100 text-orange-800',
-  'completed': 'bg-green-100 text-green-800',
-  'cancelled': 'bg-red-100 text-red-800'
+  'purchased': 'bg-blue-100 text-blue-800 border-blue-300',
+  'confirmed': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  'scheduled': 'bg-purple-100 text-purple-800 border-purple-300',
+  'in-progress': 'bg-orange-100 text-orange-800 border-orange-300',
+  'completed': 'bg-green-100 text-green-800 border-green-300',
+  'cancelled': 'bg-red-100 text-red-800 border-red-300'
 };
 
 const statusLabels = {
-  'purchased': 'Lead Purchased',
-  'confirmed': 'Customer Confirmed',
-  'scheduled': 'Installation Scheduled',
-  'in-progress': 'Work in Progress',
-  'completed': 'Completed',
-  'cancelled': 'Cancelled'
+  'purchased': '🛒 Lead Purchased',
+  'confirmed': '✅ Customer Confirmed', 
+  'scheduled': '📅 Installation Scheduled',
+  'in-progress': '🔧 Work in Progress',
+  'completed': '✅ Completed Successfully',
+  'cancelled': '❌ Cancelled'
 };
 
 export default function PastLeadsManagement({ installerId }: PurchasedLeadsManagementProps) {
@@ -264,7 +264,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                         </p>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <Badge className={statusColors[lead.status as keyof typeof statusColors]}>
+                        <Badge variant="outline" className={`${statusColors[lead.status as keyof typeof statusColors]} font-medium border-2`}>
                           {statusLabels[lead.status as keyof typeof statusLabels]}
                         </Badge>
                         {isRecentlyUpdated(lead.id) && (
@@ -672,8 +672,8 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                       <p className="text-sm sm:text-base font-bold">{selectedLead.tvSize || 'Not specified'}" Television</p>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs sm:text-sm font-medium text-gray-600">Room Location</label>
-                      <p className="text-sm sm:text-base font-medium">{selectedLead.location || 'Not specified'}</p>
+                      <label className="text-xs sm:text-sm font-medium text-gray-600">Installation Area</label>
+                      <p className="text-sm sm:text-base font-medium">Not specified</p>
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs sm:text-sm font-medium text-gray-600">Service Type</label>

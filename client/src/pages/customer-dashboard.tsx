@@ -583,7 +583,11 @@ export default function CustomerDashboard() {
         return;
       }
       
-      setSelectedBookingInstallers(tvInstallers);
+      // Transform installers to match the expected dialog format
+      const formattedInstallers = tvInstallers.map((installer: any) => ({
+        installer: installer
+      }));
+      setSelectedBookingInstallers(formattedInstallers);
       
       toast({ 
         title: "Installers loaded", 
@@ -1045,7 +1049,7 @@ export default function CustomerDashboard() {
             <DialogHeader>
               <DialogTitle>Select Your Installer</DialogTitle>
               <DialogDescription>
-                {selectedBookingInstallers.length} installer{selectedBookingInstallers.length !== 1 ? 's have' : ' has'} purchased your lead. Choose your preferred installer to proceed.
+                {selectedBookingInstallers.length} installer{selectedBookingInstallers.length !== 1 ? 's are' : ' is'} available for direct assignment. Choose your preferred installer to proceed.
               </DialogDescription>
             </DialogHeader>
             

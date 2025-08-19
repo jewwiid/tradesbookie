@@ -9,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send, Lock, Eye, EyeOff } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send, Lock, Eye, EyeOff, ChevronDown, Monitor, Sparkles, FileText } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
@@ -2609,6 +2609,7 @@ function TvSetupCard({ booking }: { booking: TvSetupBooking }) {
 function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewInstallers?: (bookingId: number) => void }) {
   const locationData = useLocation();
   const setLocation = locationData?.[1];
+  const [showDetails, setShowDetails] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -2803,6 +2804,14 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
 
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDetails(!showDetails)}
+            >
+              <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
+              View Details
+            </Button>
             {booking.qrCode && (
               <Button
                 variant="outline"
@@ -2826,6 +2835,237 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
             ID: {booking.qrCode || booking.id}
           </div>
         </div>
+
+        {/* Expandable Details Section */}
+        {showDetails && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="space-y-4">
+              {/* TV Installation Details */}
+              {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0 ? (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <Tv className="w-4 h-4 mr-2" />
+                    TV Installation Details
+                  </h4>
+                  <div className="space-y-4">
+                    {booking.tvInstallations.map((tv: any, index: number) => (
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-3">
+                          <h5 className="font-medium text-gray-900">
+                            {tv.location || `TV ${index + 1}`}
+                          </h5>
+                          <Badge variant="outline">
+                            {tv.tvSize}" TV
+                          </Badge>
+                        </div>
+                        
+                        {/* TV Details Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                          <div className="flex items-center text-sm">
+                            <Monitor className="w-4 h-4 text-gray-400 mr-2" />
+                            <span className="text-gray-600">Service:</span>
+                            <span className="ml-1 font-medium">
+                              {tv.serviceType?.replace('-', ' ') || 'Not specified'}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <Home className="w-4 h-4 text-gray-400 mr-2" />
+                            <span className="text-gray-600">Wall Type:</span>
+                            <span className="ml-1 font-medium">
+                              {tv.wallType || 'Not specified'}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <Settings className="w-4 h-4 text-gray-400 mr-2" />
+                            <span className="text-gray-600">Mount Type:</span>
+                            <span className="ml-1 font-medium">
+                              {tv.mountType || 'Not specified'}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <Euro className="w-4 h-4 text-gray-400 mr-2" />
+                            <span className="text-gray-600">Price:</span>
+                            <span className="ml-1 font-medium">
+                              €{tv.price || 'TBD'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Add-ons */}
+                        {tv.addons && tv.addons.length > 0 && (
+                          <div className="mb-3">
+                            <h6 className="text-sm font-medium text-gray-700 mb-2">Add-ons Selected:</h6>
+                            <div className="flex flex-wrap gap-2">
+                              {tv.addons.map((addon: any, addonIndex: number) => (
+                                <Badge key={addonIndex} variant="secondary" className="text-xs">
+                                  {addon.name}
+                                  {addon.price > 0 && ` (+€${addon.price})`}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Room Photo */}
+                        {(tv.roomPhotoBase64 || tv.roomPhotoUrl) && (
+                          <div className="mb-3">
+                            <h6 className="text-sm font-medium text-gray-700 mb-2">Room Photo:</h6>
+                            <div className="relative w-32 h-24 rounded-lg overflow-hidden">
+                              <img
+                                src={tv.roomPhotoBase64 ? `data:image/jpeg;base64,${tv.roomPhotoBase64}` : tv.roomPhotoUrl}
+                                alt={`Room photo for ${tv.location || `TV ${index + 1}`}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* AI Preview */}
+                        {tv.aiPreviewUrl && (
+                          <div className="mb-3">
+                            <h6 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                              <Sparkles className="w-4 h-4 mr-1" />
+                              AI Installation Preview:
+                            </h6>
+                            <div className="relative w-32 h-24 rounded-lg overflow-hidden">
+                              <img
+                                src={tv.aiPreviewUrl}
+                                alt={`AI preview for ${tv.location || `TV ${index + 1}`}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute top-1 right-1 bg-blue-500 text-white text-xs px-1 py-0.5 rounded flex items-center">
+                                <Sparkles className="w-3 h-3 mr-1" />
+                                AI
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* Single TV Installation (Legacy Format) */
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <Tv className="w-4 h-4 mr-2" />
+                    Installation Details
+                  </h4>
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center text-sm">
+                        <Monitor className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="text-gray-600">TV Size:</span>
+                        <span className="ml-1 font-medium">{booking.tvSize}"</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <Settings className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="text-gray-600">Service:</span>
+                        <span className="ml-1 font-medium">{booking.serviceType}</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <Home className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="text-gray-600">Wall Type:</span>
+                        <span className="ml-1 font-medium">{booking.wallType || 'Not specified'}</span>
+                      </div>
+                      <div className="flex items-center text-sm">
+                        <Euro className="w-4 h-4 text-gray-400 mr-2" />
+                        <span className="text-gray-600">Mount Type:</span>
+                        <span className="ml-1 font-medium">{booking.mountType || 'Not specified'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Customer Information */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Contact Information
+                </h4>
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center text-sm">
+                      <User className="w-4 h-4 text-gray-400 mr-2" />
+                      <span className="text-gray-600">Name:</span>
+                      <span className="ml-1 font-medium">{booking.contactName}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Mail className="w-4 h-4 text-gray-400 mr-2" />
+                      <span className="text-gray-600">Email:</span>
+                      <span className="ml-1 font-medium">{booking.contactEmail}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Phone className="w-4 h-4 text-gray-400 mr-2" />
+                      <span className="text-gray-600">Phone:</span>
+                      <span className="ml-1 font-medium">{booking.contactPhone}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <MapPin className="w-4 h-4 text-gray-400 mr-2" />
+                      <span className="text-gray-600">Address:</span>
+                      <span className="ml-1 font-medium">{booking.address}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pricing Breakdown */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <Euro className="w-4 h-4 mr-2" />
+                  Pricing Summary
+                </h4>
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Service Total:</span>
+                      <span className="font-medium">€{booking.estimatedServicePrice || booking.estimatedPrice}</span>
+                    </div>
+                    {booking.estimatedAddonsPrice && parseFloat(booking.estimatedAddonsPrice) > 0 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Add-ons:</span>
+                        <span className="font-medium">€{booking.estimatedAddonsPrice}</span>
+                      </div>
+                    )}
+                    <div className="border-t border-gray-300 pt-2 flex items-center justify-between font-semibold">
+                      <span className="text-gray-900">Total Estimate:</span>
+                      <span className="text-gray-900">€{booking.estimatedTotal || booking.estimatedPrice}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Information */}
+              {(booking.roomAnalysis || booking.preferredDate) && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Additional Information
+                  </h4>
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+                    {booking.preferredDate && (
+                      <div>
+                        <span className="text-sm text-gray-600 block">Preferred Date:</span>
+                        <span className="font-medium">
+                          {new Date(booking.preferredDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                    {booking.roomAnalysis && (
+                      <div>
+                        <span className="text-sm text-gray-600 block mb-1">Room Analysis:</span>
+                        <p className="text-sm text-gray-800 bg-white p-2 rounded border">
+                          {booking.roomAnalysis}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
     

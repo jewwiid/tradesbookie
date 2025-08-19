@@ -670,6 +670,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
+  // Public installer profile endpoint for customers
+  app.get("/api/installer/:id/public-profile", async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      
+      if (!installerId) {
+        return res.status(400).json({ error: "Invalid installer ID" });
+      }
+
+      // Get installer basic info
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ error: "Installer not found" });
+      }
+
+      // Only show publicly visible and active installers
+      if (!installer.isActive || !installer.isPubliclyVisible) {
+        return res.status(404).json({ error: "Installer profile not available" });
+      }
+
+      // Get completed jobs with photos
+      const completedJobs = await storage.getInstallerCompletedJobs(installerId);
+      
+      // Transform completed jobs to include photos and reviews
+      const completedWork = await Promise.all(
+        completedJobs.slice(0, 10).map(async (job: any) => {
+          // Get booking details
+          const booking = await storage.getBooking(job.bookingId);
+          if (!booking) return null;
+
+          // Get before/after photos if available
+          const beforeAfterPhotos = job.beforeAfterPhotos || [];
+
+          // Get customer review if available
+          const reviews = await storage.getInstallerReviews(installerId);
+          const jobReview = reviews.find((r: any) => r.bookingId === job.bookingId);
+
+          return {
+            id: job.id,
+            location: booking.address || 'Location not specified',
+            serviceType: booking.serviceType || 'TV Installation',
+            completedAt: job.completedDate || job.createdAt,
+            qualityStars: job.qualityStars || 5,
+            beforeAfterPhotos: beforeAfterPhotos,
+            customerRating: jobReview?.rating,
+            customerReview: jobReview?.comment
+          };
+        })
+      );
+
+      // Filter out null entries
+      const validCompletedWork = completedWork.filter(work => work !== null);
+
+      // Calculate total completed jobs
+      const totalJobs = await storage.getInstallerCompletedJobsCount(installerId);
+      
+      // Get reviews for rating calculation
+      const reviews = await storage.getInstallerReviews(installerId);
+      const averageRating = reviews.length > 0 
+        ? reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / reviews.length 
+        : 0;
+
+      // Return public profile data
+      const publicProfile = {
+        id: installer.id,
+        businessName: installer.businessName,
+        contactName: installer.contactName,
+        email: installer.email,
+        phone: installer.phone,
+        serviceArea: installer.serviceArea,
+        address: installer.address,
+        yearsExperience: installer.yearsExperience || 1,
+        averageRating: Number(averageRating.toFixed(1)),
+        totalReviews: reviews.length,
+        expertise: installer.expertise || [],
+        bio: installer.bio || '',
+        profileImageUrl: installer.profileImageUrl,
+        isActive: installer.isActive,
+        completedJobs: totalJobs,
+        completedWork: validCompletedWork
+      };
+
+      res.json(publicProfile);
+      
+    } catch (error) {
+      console.error("Get public installer profile error:", error);
+      res.status(500).json({ error: "Failed to get installer profile" });
+    }
+  });
+
   // Get installer profile endpoint
   app.get("/api/installers/profile", async (req, res) => {
     try {

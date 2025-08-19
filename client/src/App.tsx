@@ -19,6 +19,7 @@ import InstallerLogin from "@/pages/installer-login";
 import InstallerServiceSelection from "@/pages/installer-service-selection";
 import InstallerProfileSetup from "@/pages/installer-profile-setup";
 import InstallerPending from "@/pages/installer-pending";
+import InstallerProfile from "@/pages/installer-profile";
 import QRTracking from "@/pages/qr-tracking";
 import TVRecommendation from "@/pages/tv-recommendation";
 import InstallationTracker from "@/pages/installation-tracker";
@@ -117,6 +118,7 @@ function Router() {
       <Route path="/installer-profile-setup" component={InstallerProfileSetup} />
       <Route path="/installer-dashboard/:id?" component={InstallerDashboard} />
       <Route path="/installer/dashboard/:id?" component={InstallerDashboard} />
+      <Route path="/installer/:id" component={InstallerProfile} />
 
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin-dashboard" component={AdminDashboard} />

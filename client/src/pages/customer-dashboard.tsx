@@ -575,6 +575,14 @@ export default function CustomerDashboard() {
       });
       
       console.log('Filtered TV installers:', tvInstallers.length);
+      if (tvInstallers.length === 0) {
+        toast({ 
+          title: "No installers available", 
+          description: "All installers are currently busy or inactive. Please try again later." 
+        });
+        return;
+      }
+      
       setSelectedBookingInstallers(tvInstallers);
       
       toast({ 

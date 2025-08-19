@@ -143,9 +143,12 @@ export async function requestPasswordReset(
       };
     }
 
+    // Clean up expired tokens before generating new one
+    await storage.deleteExpiredPasswordResetTokens();
+
     const resetToken = await generatePasswordResetToken();
     const hashedToken = hashToken(resetToken);
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     // Store reset token
     if (userType === 'customer') {
@@ -170,7 +173,7 @@ export async function requestPasswordReset(
       return {
         success: true,
         message: 'If an account with this email exists, you will receive a password reset link shortly.',
-        token: resetToken
+        token: process.env.NODE_ENV === 'development' ? resetToken : undefined
       };
     } else {
       return {

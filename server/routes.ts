@@ -13119,31 +13119,55 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { token, userType } = req.query;
       
+      console.log('=== PASSWORD RESET TOKEN VERIFICATION ===');
+      console.log('Received token:', token);
+      console.log('Received userType:', userType);
+      console.log('Token length:', token ? (token as string).length : 'N/A');
+      
       if (!token || !userType) {
+        console.log('Missing token or userType');
         return res.status(400).json({ message: 'Token and user type are required' });
       }
       
       if (!['customer', 'installer'].includes(userType as string)) {
+        console.log('Invalid userType:', userType);
         return res.status(400).json({ message: 'Invalid user type' });
       }
       
       const { hashToken } = await import('./passwordResetService.js');
       const hashedToken = hashToken(token as string);
+      console.log('Hashed token:', hashedToken);
       
       const tokenRecord = await storage.getPasswordResetToken(hashedToken, userType as 'customer' | 'installer');
+      console.log('Token record found:', !!tokenRecord);
       
       if (!tokenRecord) {
-        return res.status(400).json({ message: 'Invalid or expired reset token' });
+        console.log('Token record not found in database');
+        return res.status(400).json({ 
+          message: 'Invalid or expired reset token',
+          debug: process.env.NODE_ENV === 'development' ? {
+            receivedToken: token,
+            hashedToken: hashedToken,
+            userType: userType
+          } : undefined
+        });
       }
       
+      console.log('Token expires at:', tokenRecord.expiresAt);
+      console.log('Current time:', new Date());
+      console.log('Is expired?', tokenRecord.expiresAt < new Date());
+      
       if (tokenRecord.expiresAt < new Date()) {
+        console.log('Token has expired');
         return res.status(400).json({ message: 'Reset token has expired' });
       }
       
       if (tokenRecord.used) {
+        console.log('Token has already been used');
         return res.status(400).json({ message: 'Reset token has already been used' });
       }
       
+      console.log('Token is valid!');
       res.json({ message: 'Token is valid' });
     } catch (error) {
       console.error('Error verifying password reset token:', error);

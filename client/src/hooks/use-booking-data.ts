@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { BookingData as BaseBookingData, TVInstallation } from '@/lib/booking-utils';
 
-interface ExtendedBookingData extends Omit<BaseBookingData, 'tvQuantity' | 'tvInstallations'> {
+interface ExtendedBookingData {
   // Multi-TV support with optional fields for initialization
   tvQuantity?: number;
   tvInstallations?: TVInstallation[];
@@ -97,6 +97,49 @@ interface BookingStore {
   resetStepCompletion: () => void;
 }
 
+// Custom storage with Set serialization
+const customStorage = {
+  getItem: (name: string) => {
+    const str = localStorage.getItem(name);
+    if (!str) return null;
+    
+    try {
+      const parsed = JSON.parse(str);
+      // Convert completedSteps array back to Set
+      if (parsed.state?.bookingData?.completedSteps && Array.isArray(parsed.state.bookingData.completedSteps)) {
+        parsed.state.bookingData.completedSteps = new Set(parsed.state.bookingData.completedSteps);
+      }
+      // Convert stepCompletionMap arrays back to Sets
+      if (parsed.state?.bookingData?.stepCompletionMap) {
+        const map = parsed.state.bookingData.stepCompletionMap;
+        Object.keys(map).forEach(key => {
+          if (Array.isArray(map[key])) {
+            map[key] = new Set(map[key]);
+          }
+        });
+      }
+      return parsed;
+    } catch (e) {
+      return null;
+    }
+  },
+  setItem: (name: string, value: any) => {
+    try {
+      // Convert Sets to arrays for serialization
+      const serializable = JSON.parse(JSON.stringify(value, (key, val) => {
+        if (val instanceof Set) {
+          return Array.from(val);
+        }
+        return val;
+      }));
+      localStorage.setItem(name, JSON.stringify(serializable));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+    }
+  },
+  removeItem: (name: string) => localStorage.removeItem(name),
+};
+
 export const useBookingData = create<BookingStore>()(
   persist(
     (set, get) => ({
@@ -137,7 +180,8 @@ export const useBookingData = create<BookingStore>()(
           const currentInstallations = state.bookingData.tvInstallations || [];
           const newIndex = currentInstallations.length + 1;
           
-          const newInstallation: TvInstallation = {
+          const newInstallation: TVInstallation = {
+            id: `tv-${newIndex}`,
             tvSize: '',
             serviceType: '',
             wallType: '',
@@ -146,9 +190,6 @@ export const useBookingData = create<BookingStore>()(
             wallMountOption: undefined,
             location: `TV ${newIndex}`,
             addons: [],
-            estimatedPrice: 0,
-            estimatedAddonsPrice: 0,
-            estimatedTotal: 0,
           };
 
           return {
@@ -179,7 +220,7 @@ export const useBookingData = create<BookingStore>()(
           };
         }),
       
-      updateTvInstallation: (index: number, data: Partial<TvInstallation>) =>
+      updateTvInstallation: (index: number, data: Partial<TVInstallation>) =>
         set((state) => {
           if (!state.bookingData.tvInstallations || index < 0 || index >= state.bookingData.tvInstallations.length) {
             return state;
@@ -199,7 +240,7 @@ export const useBookingData = create<BookingStore>()(
           };
         }),
       
-      updateCurrentTvInstallation: (data: Partial<TvInstallation>) => {
+      updateCurrentTvInstallation: (data: Partial<TVInstallation>) => {
         const { bookingData } = get();
         const currentIndex = bookingData.currentTvIndex || 0;
         get().updateTvInstallation(currentIndex, data);
@@ -210,7 +251,11 @@ export const useBookingData = create<BookingStore>()(
         
         if (bookingData.tvInstallations && bookingData.tvInstallations.length > 0) {
           // Multi-TV booking: sum up all TV installations
-          return bookingData.tvInstallations.reduce((total, tv) => total + tv.estimatedTotal, 0);
+          return bookingData.tvInstallations.reduce((total, tv) => {
+            const basePrice = tv.basePrice || 0;
+            const addonsPrice = tv.addons.reduce((sum, addon) => sum + addon.price, 0);
+            return total + basePrice + addonsPrice;
+          }, 0);
         } else {
           // Legacy single TV booking
           return (bookingData.totalPrice || 0) + (bookingData.addonTotal || 0);
@@ -321,42 +366,7 @@ export const useBookingData = create<BookingStore>()(
     }),
     {
       name: 'booking-data',
-      // Custom serialization to handle Sets
-      serialize: (state) => {
-        const serializedState = {
-          ...state,
-          bookingData: {
-            ...state.bookingData,
-            completedSteps: state.bookingData.completedSteps ? Array.from(state.bookingData.completedSteps) : undefined,
-            stepCompletionMap: state.bookingData.stepCompletionMap ? 
-              Object.fromEntries(
-                Object.entries(state.bookingData.stepCompletionMap).map(([key, set]) => [
-                  key, 
-                  Array.from(set as Set<number>)
-                ])
-              ) : undefined,
-          },
-        };
-        return JSON.stringify(serializedState);
-      },
-      // Custom deserialization to handle Sets
-      deserialize: (str) => {
-        const state = JSON.parse(str);
-        if (state.bookingData) {
-          if (state.bookingData.completedSteps && Array.isArray(state.bookingData.completedSteps)) {
-            state.bookingData.completedSteps = new Set(state.bookingData.completedSteps);
-          }
-          if (state.bookingData.stepCompletionMap) {
-            state.bookingData.stepCompletionMap = Object.fromEntries(
-              Object.entries(state.bookingData.stepCompletionMap).map(([key, array]) => [
-                key,
-                new Set(array as number[])
-              ])
-            );
-          }
-        }
-        return state;
-      },
+      storage: customStorage,
     }
   )
 );

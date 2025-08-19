@@ -39,7 +39,7 @@ export default function ResetPassword() {
     queryFn: async () => {
       if (!token || !userType) throw new Error('Missing token or user type');
       const response = await apiRequest('GET', `/api/password-reset/verify-token?token=${token}&userType=${userType}`);
-      return response;
+      return await response.json();
     },
     enabled: !!token && !!userType,
     retry: false

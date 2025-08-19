@@ -21,7 +21,7 @@ export default function ResetPassword() {
   // Parse URL parameters
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
   const token = urlParams.get('token');
-  const userType = urlParams.get('type') as 'customer' | 'installer';
+  const userType = urlParams.get('userType') as 'customer' | 'installer';
 
   const form = useForm<PasswordResetConfirm>({
     resolver: zodResolver(passwordResetConfirmSchema),

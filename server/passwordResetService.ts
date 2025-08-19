@@ -39,7 +39,7 @@ export async function sendPasswordResetEmail(
 ): Promise<boolean> {
   // Use production domain for reset links
   const baseUrl = 'https://tradesbook.ie';
-  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}&type=${userType}`;
+  const resetUrl = `${baseUrl}/reset-password?token=${resetToken}&userType=${userType}`;
   
   const emailHtml = `
     <!DOCTYPE html>
@@ -86,7 +86,7 @@ export async function sendPasswordResetEmail(
                 
                 <h3>Important Security Information:</h3>
                 <ul>
-                    <li>🔒 This reset link will expire in 1 hour</li>
+                    <li>🔒 This reset link will expire in 24 hours</li>
                     <li>🔐 The link can only be used once</li>
                     <li>📧 Only use this link if you requested the password reset</li>
                     <li>🛡️ Never share this link with anyone</li>

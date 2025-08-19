@@ -903,9 +903,9 @@ export default function CustomerDashboard() {
 
           {/* Show bookings for guest user */}
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">Your Bookings</h2>
-              <Button onClick={() => setLocation && setLocation('/booking')} className="gradient-bg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Your Bookings</h2>
+              <Button onClick={() => setLocation && setLocation('/booking')} className="gradient-bg shrink-0">
                 <Calendar className="w-4 h-4 mr-2" />
                 Book Installation
               </Button>
@@ -1297,9 +1297,9 @@ export default function CustomerDashboard() {
 
             {/* Bookings Section */}
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold text-gray-900">Your Bookings</h2>
-                <Button onClick={() => setLocation('/booking')} className="gradient-bg">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Your Bookings</h2>
+                <Button onClick={() => setLocation('/booking')} className="gradient-bg shrink-0">
                   <Calendar className="w-4 h-4 mr-2" />
                   Book Installation
                 </Button>
@@ -1334,9 +1334,9 @@ export default function CustomerDashboard() {
 
         {/* TV Setup Section */}
         <div className="space-y-6 mt-12">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900">Your TV Setup Bookings</h2>
-            <Button onClick={() => setLocation('/tv-setup-assist')} className="bg-orange-500 hover:bg-orange-600 text-white">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Your TV Setup Bookings</h2>
+            <Button onClick={() => setLocation('/tv-setup-assist')} className="bg-orange-500 hover:bg-orange-600 text-white shrink-0">
               <Tv className="w-4 h-4 mr-2" />
               Book TV Setup
             </Button>

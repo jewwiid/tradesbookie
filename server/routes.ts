@@ -11480,7 +11480,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         bookingId: bookings.id,
         customerName: bookings.contactName,
         address: bookings.address,
-        scheduledDate: sql<string>`${bookings.scheduledDate}::text`.as('scheduled_date'), // Convert to text for safe handling
+        scheduledDate: bookings.scheduledDate,
         tvSize: bookings.tvSize,
         serviceType: bookings.serviceType,
         status: bookings.status,
@@ -11532,8 +11532,22 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               }
             }
 
-            // Use the scheduledDate directly since it's already formatted as text (YYYY-MM-DD)
-            const formattedDate = booking.scheduledDate || null;
+            // Format scheduled date properly
+            let formattedDate = null;
+            if (booking.scheduledDate) {
+              try {
+                const date = new Date(booking.scheduledDate);
+                if (!isNaN(date.getTime())) {
+                  formattedDate = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD
+                }
+              } catch (error) {
+                console.error('Date formatting error:', error);
+                // Fallback: if it's already in YYYY-MM-DD format, use as-is
+                if (typeof booking.scheduledDate === 'string' && booking.scheduledDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                  formattedDate = booking.scheduledDate;
+                }
+              }
+            }
 
             return {
               ...booking,
@@ -11543,8 +11557,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           } catch (error) {
             console.error(`Error processing booking ${booking.bookingId}:`, error);
             
-            // Use scheduledDate as-is since it's already text formatted
-            const safeDateString = booking.scheduledDate || null;
+            // Handle date safely in error case too
+            let safeDateString = null;
+            if (booking.scheduledDate) {
+              try {
+                const date = new Date(booking.scheduledDate);
+                if (!isNaN(date.getTime())) {
+                  safeDateString = date.toISOString().split('T')[0];
+                } else if (typeof booking.scheduledDate === 'string' && booking.scheduledDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                  safeDateString = booking.scheduledDate;
+                }
+              } catch (dateError) {
+                console.error('Date error in catch block:', dateError);
+              }
+            }
             
             return {
               ...booking,

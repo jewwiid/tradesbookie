@@ -546,43 +546,59 @@ export default function CustomerDashboard() {
   };
 
   const handleViewInstallers = async (bookingId: number) => {
+    setShowInstallerSelection(bookingId);
     try {
-      const installers = await apiRequest('GET', `/api/booking/${bookingId}/interested-installers`) as InterestedInstaller[];
-      setSelectedBookingInstallers(installers);
-      setShowInstallerSelection(bookingId);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load interested installers.",
-        variant: "destructive"
+      // Fetch available installers for TV installation service
+      const response = await fetch('/api/installers', {
+        credentials: 'include'
       });
+      
+      if (!response.ok) throw new Error('Failed to fetch installers');
+      
+      const installers = await response.json();
+      // Filter for TV installation service specialists
+      const tvInstallers = installers.filter((installer: any) => 
+        installer.approvalStatus === 'approved' && 
+        installer.isAvailable && 
+        installer.isActive
+      );
+      
+      setSelectedBookingInstallers(tvInstallers);
+    } catch (error) {
+      console.error('Error fetching installers:', error);
+      toast({ title: "Failed to load installers", variant: "destructive" });
     }
   };
 
-  const handleSelectInstaller = async (bookingId: number, installerId: number) => {
+  const handleSelectInstaller = async (installerId: number) => {
+    if (!showInstallerSelection) return;
+    
     setSelectingInstaller(true);
     try {
-      const response = await apiRequest('POST', `/api/booking/${bookingId}/select-installer`, {
-        installerId
-      }) as { success: boolean; message: string; selectedInstaller: any; refundedInstallers: number };
-      
-      if (response.success) {
-        toast({
-          title: "Installer Selected",
-          description: response.message
-        });
-        
-        // Refresh bookings data
-        queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
-        setShowInstallerSelection(null);
-        setSelectedBookingInstallers([]);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to select installer. Please try again.",
-        variant: "destructive"
+      const response = await fetch(`/api/bookings/${showInstallerSelection}/select-installer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ installerId }),
+        credentials: 'include'
       });
+      
+      if (!response.ok) throw new Error('Failed to assign installer');
+      
+      const result = await response.json();
+      toast({ 
+        title: "Installer assigned successfully", 
+        description: `${result.installer.businessName} has been assigned to this job.` 
+      });
+      
+      // Refresh bookings data
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
+      
+      // Close dialog
+      setShowInstallerSelection(null);
+      setSelectedBookingInstallers([]);
+    } catch (error) {
+      console.error('Error assigning installer:', error);
+      toast({ title: "Failed to assign installer", variant: "destructive" });
     } finally {
       setSelectingInstaller(false);
     }
@@ -1090,7 +1106,7 @@ export default function CustomerDashboard() {
                       
                       <div className="flex flex-col items-end space-y-2">
                         <Button
-                          onClick={() => showInstallerSelection && handleSelectInstaller(showInstallerSelection, item.installer.id)}
+                          onClick={() => handleSelectInstaller(item.installer.id)}
                           disabled={selectingInstaller}
                           className="gradient-bg min-w-[120px]"
                         >
@@ -2808,21 +2824,23 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
           </div>
         )}
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowDetails(!showDetails)}
+              className="flex-shrink-0"
             >
               <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
-              View Details
+              {showDetails ? 'Hide' : 'View'} Details
             </Button>
             {booking.qrCode && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setLocation && setLocation(`/track/${booking.qrCode}`)}
+                className="flex-shrink-0"
               >
                 <QrCode className="w-4 h-4 mr-2" />
                 Track
@@ -2831,13 +2849,17 @@ function BookingCard({ booking, onViewInstallers }: { booking: Booking; onViewIn
             
             {/* Show installer selection button for pending bookings */}
             {booking.status === 'open' && !booking.installerId && onViewInstallers && (
-              <Button size="sm" onClick={() => onViewInstallers(booking.id)} className="gradient-bg">
+              <Button 
+                size="sm" 
+                onClick={() => onViewInstallers(booking.id)} 
+                className="gradient-bg flex-shrink-0"
+              >
                 <Users className="w-4 h-4 mr-2" />
                 Select Installer
               </Button>
             )}
           </div>
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-gray-500 flex-shrink-0">
             ID: {booking.qrCode || booking.id}
           </div>
         </div>

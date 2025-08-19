@@ -1,0 +1,21 @@
+SES Removing unpermitted intrinsics lockdown-install.js:1:200114
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:199959
+Error: An unexpected error occurred spoofer.js:1:38935
+Content-Security-Policy warnings 2
+SES Removing unpermitted intrinsics lockdown-install.js:1:200114
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:199959
+Error: An unexpected error occurred spoofer.js:1:38935
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/controller-with-preconnect-152b5c791b1e92841c39bbae21646771.html#__shared_params__[version]=basil&__shared_params__[light_experiment_assignments]=%7B%22token%22%3A%22912510b3-1e75-497d-8b8c-731b60a34d7a%22%2C%22assignments%22%3A%7B%22elements_pe_initializer_render%22%3A%22treatment%22%7D%7D&apiKey=pk_test_51QSj2vLGZvKUWZLCtQl8HfOyevF4qPOJmcWjnF4bXgCgZLx8FDJKY0uAhklZjMvs3dz80jvQVgvJgjOcqvxQKFPw00Hf7N8Flv&apiVersion=2025-03-31.basil&stripeJsId=912510b3-1e75-497d-8b8c-731b60a34d7a&stripeObjId=sobj-aad86da3-7484-4ab8-855c-02028e4cdccc&firstStripeInstanceCreatedLatency=5&controllerCount=1&isCheckout=false&stripeJsLoadTime=1755628623749&manualBrowserDeprecationRollout=false&mids[guid]=NA&mids[muid]=c933e987-3494-49eb-98b0-3f20bb7603a2e5cad1&mids[sid]=f2c2d4b4-d3ab-4611-b0b7-4a4bb3ab3a1a0ed123&referrer=https%3A%2F%2Ftradesbook.ie%2Freset-password%3Ftoken%3Dde4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224%26userType%3Dinstaller&controllerId=__privateStripeController6351” because it is loaded in the third-party context and dynamic state partitioning is enabled. contentscript.js:55:11109
+Content-Security-Policy warnings 2
+SES Removing unpermitted intrinsics lockdown-install.js:1:200114
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:199959
+Content-Security-Policy: (Report-Only policy) The page’s settings would block an inline script (script-src-elem) from being executed because it violates the following directive: “script-src 'self'”. Consider using a hash ('sha256-PRh/fvLCFBNVoIAGULuMBLuPh7G0pBe3UpLsY8yvX0A=') or a nonce. inpage.js:1:299468
+Error: An unexpected error occurred spoofer.js:1:38935
+Partitioned cookie or storage access was provided to “https://js.stripe.com/v3/m-outer-3437aaddcdf6922d623e172c2d6f9278.html#url=https%3A%2F%2Ftradesbook.ie%2Freset-password%3Ftoken%3Dde4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224%26userType%3Dinstaller&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=&muid=c933e987-3494-49eb-98b0-3f20bb7603a2e5cad1&sid=f2c2d4b4-d3ab-4611-b0b7-4a4bb3ab3a1a0ed123&version=6&preview=false&__shared_params__[version]=basil” because it is loaded in the third-party context and dynamic state partitioning is enabled. contentscript.js:55:11109
+Content-Security-Policy warnings 3
+SES Removing unpermitted intrinsics lockdown-install.js:1:200114
+  Removing intrinsics.%DatePrototype%.toTemporalInstant lockdown-install.js:1:199959
+Content-Security-Policy: The page’s settings blocked an inline script (script-src-elem) from being executed because it violates the following directive: “script-src https://m.stripe.network 'sha256-5DA+a07wxWmEka9IdoWjSPVHb17Cp5284/lJzfbl8KA=' 'sha256-/5Guo2nzv5n/w6ukZpOBZOtTJBJPSkJ6mhHpnBgm3Ls=' 'unsafe-inline' https://www.google-analytics.com/analytics.js https://www.google-analytics.com/analytics.js”. Consider using a hash ('sha256-PRh/fvLCFBNVoIAGULuMBLuPh7G0pBe3UpLsY8yvX0A=') or a nonce. inpage.js:1:299468
+Error: An unexpected error occurred spoofer.js:1:38935
+Partitioned cookie or storage access was provided to “https://m.stripe.network/inner.html#url=https%3A%2F%2Ftradesbook.ie%2Freset-password%3Ftoken%3Dde4718d6d5df2f32e076982c0ef8b0167351aa260023a40d97ffd5d58ca89224%26userType%3Dinstaller&title=tradesbook.ie%20-%20Professional%20TV%20Installation%20Service&referrer=&muid=c933e987-3494-49eb-98b0-3f20bb7603a2e5cad1&sid=f2c2d4b4-d3ab-4611-b0b7-4a4bb3ab3a1a0ed123&version=6&preview=false&__shared_params__[version]=basil” because it is loaded in the third-party context and dynamic state partitioning is enabled. contentscript.js:55:11109
+Cookie warnings 2

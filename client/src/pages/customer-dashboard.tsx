@@ -592,8 +592,16 @@ export default function CustomerDashboard() {
       console.log('About to show dialog with state:', {
         showInstallerSelection: bookingId,
         selectedBookingInstallers: formattedInstallers.length,
-        dialogShouldShow: bookingId !== null
+        dialogShouldShow: !!bookingId
       });
+      
+      // Force a small delay to ensure state updates properly
+      setTimeout(() => {
+        console.log('State after timeout:', {
+          showInstallerSelection,
+          selectedBookingInstallers: selectedBookingInstallers.length
+        });
+      }, 100);
       
       toast({ 
         title: "Installers loaded", 
@@ -1051,7 +1059,7 @@ export default function CustomerDashboard() {
 
         {/* Installer Selection Dialog */}
         <Dialog 
-          open={showInstallerSelection !== null} 
+          open={!!showInstallerSelection} 
           onOpenChange={(open) => {
             console.log('Dialog onOpenChange called:', open, 'showInstallerSelection:', showInstallerSelection);
             if (!open) setShowInstallerSelection(null);

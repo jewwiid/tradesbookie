@@ -1058,22 +1058,22 @@ export default function CustomerDashboard() {
         </Dialog>
 
         {/* Installer Selection Dialog */}
-        {console.log('About to render Dialog - open condition:', showInstallerSelection !== null, 'showInstallerSelection value:', showInstallerSelection)}
-        <Dialog 
-          open={Boolean(showInstallerSelection)} 
-          onOpenChange={(open) => {
-            console.log('Dialog onOpenChange called:', open, 'showInstallerSelection:', showInstallerSelection);
-            if (!open) setShowInstallerSelection(null);
-          }}
-        >
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" style={{ zIndex: 9999 }}>
-            {console.log('Dialog Content Rendering - showInstallerSelection:', showInstallerSelection, 'selectedBookingInstallers:', selectedBookingInstallers.length)}
-            <DialogHeader>
-              <DialogTitle>Select Your Installer</DialogTitle>
-              <DialogDescription>
-                {selectedBookingInstallers.length} installer{selectedBookingInstallers.length !== 1 ? 's are' : ' is'} available for direct assignment. Choose your preferred installer to proceed.
-              </DialogDescription>
-            </DialogHeader>
+        {showInstallerSelection && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">Select Your Installer</h2>
+                  <button 
+                    onClick={() => setShowInstallerSelection(null)}
+                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                <p className="text-gray-600 mb-4">
+                  {selectedBookingInstallers.length} installer{selectedBookingInstallers.length !== 1 ? 's are' : ' is'} available for direct assignment.
+                </p>
             
             <div className="space-y-4">
               {selectedBookingInstallers.length === 0 ? (
@@ -1201,13 +1201,10 @@ export default function CustomerDashboard() {
               )}
             </div>
             
-            <div className="flex justify-end pt-4 border-t">
-              <Button variant="outline" onClick={() => setShowInstallerSelection(null)}>
-                Close
-              </Button>
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        )}
       </div>
     );
   }

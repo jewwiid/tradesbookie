@@ -122,6 +122,77 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     }, 30000);
   };
 
+  // Fetch schedule negotiations for selected lead
+  const { data: scheduleNegotiations } = useQuery({
+    queryKey: [`/api/bookings/${selectedLead?.id}/schedule-negotiations`],
+    enabled: !!selectedLead?.id
+  });
+
+  // Get the most relevant schedule info to display
+  const getScheduleDisplayInfo = () => {
+    if (!scheduleNegotiations?.length) {
+      // No negotiations yet - show original customer preferences
+      return {
+        type: 'original',
+        date: selectedLead?.preferredDate,
+        time: selectedLead?.preferredTime,
+        status: 'No proposals yet'
+      };
+    }
+
+    // Find accepted negotiation first
+    const acceptedNegotiation = scheduleNegotiations.find((n: any) => n.status === 'accepted');
+    if (acceptedNegotiation) {
+      return {
+        type: 'accepted',
+        date: acceptedNegotiation.proposedDate,
+        time: acceptedNegotiation.proposedTimeSlot,
+        status: 'Schedule Confirmed',
+        negotiation: acceptedNegotiation
+      };
+    }
+
+    // Find pending negotiation from installer
+    const pendingFromInstaller = scheduleNegotiations.find((n: any) => 
+      n.status === 'pending' && n.proposedBy === 'installer'
+    );
+    if (pendingFromInstaller) {
+      return {
+        type: 'pending',
+        date: pendingFromInstaller.proposedDate,
+        time: pendingFromInstaller.proposedTimeSlot,
+        status: 'Proposal Sent (Awaiting Customer Response)',
+        negotiation: pendingFromInstaller
+      };
+    }
+
+    // Find pending negotiation from customer
+    const pendingFromCustomer = scheduleNegotiations.find((n: any) => 
+      n.status === 'pending' && n.proposedBy === 'customer'
+    );
+    if (pendingFromCustomer) {
+      return {
+        type: 'customer_pending',
+        date: pendingFromCustomer.proposedDate,
+        time: pendingFromCustomer.proposedTimeSlot,
+        status: 'Customer Proposal (Awaiting Your Response)',
+        negotiation: pendingFromCustomer
+      };
+    }
+
+    // Latest negotiation (might be declined)
+    const latestNegotiation = scheduleNegotiations[0];
+    return {
+      type: 'latest',
+      date: latestNegotiation.proposedDate,
+      time: latestNegotiation.proposedTimeSlot,
+      status: `Last Proposal: ${latestNegotiation.status}`,
+      negotiation: latestNegotiation
+    };
+  };
+
+  const scheduleInfo = getScheduleDisplayInfo();
+
   // Fetch past leads
   const { data: pastLeads = [], isLoading } = useQuery<PastLead[]>({
     queryKey: [`/api/installer/${installerId}/past-leads`],
@@ -727,12 +798,17 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Preferred Date</label>
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">
+                      {scheduleInfo?.type === 'accepted' ? 'Confirmed Date' : 
+                       scheduleInfo?.type === 'pending' ? 'Proposed Date' :
+                       scheduleInfo?.type === 'customer_pending' ? 'Customer Proposed Date' :
+                       'Preferred Date'}
+                    </label>
                     <p className="text-sm sm:text-base">
-                      {selectedLead.preferredDate 
+                      {scheduleInfo?.date 
                         ? (() => {
                             try {
-                              return new Date(selectedLead.preferredDate).toLocaleDateString();
+                              return new Date(scheduleInfo.date).toLocaleDateString();
                             } catch {
                               return 'Invalid date';
                             }
@@ -742,14 +818,34 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Preferred Time</label>
-                    <p className="text-sm sm:text-base">{selectedLead.preferredTime || 'Any time'}</p>
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">
+                      {scheduleInfo?.type === 'accepted' ? 'Confirmed Time' : 
+                       scheduleInfo?.type === 'pending' ? 'Proposed Time' :
+                       scheduleInfo?.type === 'customer_pending' ? 'Customer Proposed Time' :
+                       'Preferred Time'}
+                    </label>
+                    <p className="text-sm sm:text-base">
+                      {scheduleInfo?.type === 'original' 
+                        ? (selectedLead.preferredTime || 'Any time')
+                        : (scheduleInfo?.time || 'Any time')
+                      }
+                    </p>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Current Status</label>
-                    <Badge className={statusColors[selectedLead.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
-                      {statusLabels[selectedLead.status as keyof typeof statusLabels] || selectedLead.status}
-                    </Badge>
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Schedule Status</label>
+                    <div className="flex flex-col gap-2">
+                      <Badge className={
+                        scheduleInfo?.type === 'accepted' ? 'bg-green-100 text-green-800' :
+                        scheduleInfo?.type === 'pending' ? 'bg-blue-100 text-blue-800' :
+                        scheduleInfo?.type === 'customer_pending' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }>
+                        {scheduleInfo?.status || 'No schedule proposals'}
+                      </Badge>
+                      <Badge className={statusColors[selectedLead.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
+                        {statusLabels[selectedLead.status as keyof typeof statusLabels] || selectedLead.status}
+                      </Badge>
+                    </div>
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs sm:text-sm font-medium text-gray-600">Lead Purchased</label>

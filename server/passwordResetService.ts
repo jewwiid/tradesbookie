@@ -108,12 +108,12 @@ export async function sendPasswordResetEmail(
   `;
 
   try {
-    await sendGmailEmail(
-      email,
-      'Password Reset Request - tradesbook.ie',
-      emailHtml,
-      'noreply@tradesbook.ie'
-    );
+    await sendGmailEmail({
+      to: email,
+      subject: 'Password Reset Request - tradesbook.ie',
+      html: emailHtml,
+      from: 'noreply@tradesbook.ie'
+    });
     return true;
   } catch (error) {
     console.error('Error sending password reset email:', error);
@@ -155,9 +155,13 @@ export async function requestPasswordReset(
     }
 
     // Send reset email
+    const firstName = userType === 'customer' 
+      ? (user as any).firstName || 'User'
+      : (user as any).businessName || (user as any).contactName || 'User';
+    
     const emailSent = await sendPasswordResetEmail(
       user.email!,
-      user.firstName || user.businessName || 'User',
+      firstName,
       resetToken,
       userType
     );

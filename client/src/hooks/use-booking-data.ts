@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import { BookingData as BaseBookingData, TVInstallation } from '@/lib/booking-utils';
 
 interface ExtendedBookingData {
-  // Multi-TV support with optional fields for initialization
+  // Multi-TV support
   tvQuantity?: number;
   tvInstallations?: TVInstallation[];
   currentTvIndex?: number;
@@ -143,7 +143,11 @@ const customStorage = {
 export const useBookingData = create<BookingStore>()(
   persist(
     (set, get) => ({
-      bookingData: {},
+      bookingData: {
+        tvQuantity: 1,
+        tvInstallations: [],
+        currentTvIndex: 0,
+      },
       updateBookingData: (data) =>
         set((state) => ({
           bookingData: { ...state.bookingData, ...data },

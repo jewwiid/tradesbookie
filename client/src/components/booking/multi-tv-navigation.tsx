@@ -8,12 +8,14 @@ interface MultiTVNavigationProps {
   bookingData: BookingData;
   updateBookingData: (data: Partial<BookingData>) => void;
   currentStep: number;
+  getCompletedStepsCount: (tvIndex?: number) => number;
 }
 
 export default function MultiTVNavigation({ 
   bookingData, 
   updateBookingData, 
-  currentStep 
+  currentStep,
+  getCompletedStepsCount
 }: MultiTVNavigationProps) {
   if (bookingData.tvQuantity <= 1) return null;
 

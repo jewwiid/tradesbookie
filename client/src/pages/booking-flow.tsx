@@ -25,7 +25,7 @@ const TOTAL_STEPS = 9; // Updated to include TV quantity step
 export default function BookingFlow() {
   const [, setLocation] = useLocation();
   const { 
-    bookingData, 
+    bookingData: rawBookingData, 
     updateBookingData, 
     resetBookingData, 
     updateTvInstallation, 
@@ -40,6 +40,14 @@ export default function BookingFlow() {
     getCompletedStepsCount,
     resetStepCompletion
   } = useBookingData();
+  
+  // Ensure bookingData has default values for type compatibility
+  const bookingData = {
+    tvQuantity: 1,
+    tvInstallations: [],
+    currentTvIndex: 0,
+    ...rawBookingData
+  } as any;
   const [currentStep, setCurrentStep] = useState(1);
   
   // Check URL parameters for direct installer booking
@@ -69,13 +77,13 @@ export default function BookingFlow() {
 
   const nextStep = () => {
     // Mark current step as completed before proceeding
-    const tvIndex = bookingData.tvQuantity > 1 ? bookingData.currentTvIndex : undefined;
+    const tvIndex = (bookingData.tvQuantity || 0) > 1 ? bookingData.currentTvIndex : undefined;
     if (canProceed() && !isStepCompleted(currentStep, tvIndex)) {
       markStepCompleted(currentStep, tvIndex);
     }
     
     // For multi-TV mode, handle automatic TV navigation
-    if (bookingData.tvQuantity > 1 && currentStep >= 2 && currentStep <= 7) {
+    if ((bookingData.tvQuantity || 0) > 1 && currentStep >= 2 && currentStep <= 7) {
       // If current TV is complete but not all TVs are complete
       if (isCurrentTvComplete() && !areAllTvsComplete()) {
         const nextIncompleteIndex = getNextIncompleteTvIndex();
@@ -100,7 +108,7 @@ export default function BookingFlow() {
   };
 
   const isCurrentTvComplete = () => {
-    if (bookingData.tvQuantity > 1 && bookingData.tvInstallations?.length > 0) {
+    if ((bookingData.tvQuantity || 0) > 1 && bookingData.tvInstallations?.length > 0) {
       const currentTv = bookingData.tvInstallations[bookingData.currentTvIndex];
       return currentTv && currentTv.tvSize && currentTv.serviceType && currentTv.wallType && currentTv.mountType &&
         (currentTv.needsWallMount === false || (currentTv.needsWallMount === true && currentTv.wallMountOption)) &&
@@ -110,7 +118,7 @@ export default function BookingFlow() {
   };
 
   const areAllTvsComplete = () => {
-    if (bookingData.tvQuantity <= 1) return true;
+    if ((bookingData.tvQuantity || 0) <= 1) return true;
     if (!bookingData.tvInstallations || bookingData.tvInstallations.length !== bookingData.tvQuantity) return false;
     
     return bookingData.tvInstallations.every(tv => 
@@ -121,7 +129,7 @@ export default function BookingFlow() {
   };
 
   const getNextIncompleteTvIndex = () => {
-    if (bookingData.tvQuantity <= 1 || !bookingData.tvInstallations) return -1;
+    if ((bookingData.tvQuantity || 0) <= 1 || !bookingData.tvInstallations) return -1;
     
     return bookingData.tvInstallations.findIndex(tv => 
       !tv.tvSize || !tv.serviceType || !tv.wallType || !tv.mountType ||
@@ -130,7 +138,7 @@ export default function BookingFlow() {
   };
 
   const canProceed = () => {
-    const tvIndex = bookingData.tvQuantity > 1 ? bookingData.currentTvIndex : undefined;
+    const tvIndex = (bookingData.tvQuantity || 0) > 1 ? bookingData.currentTvIndex : undefined;
     let stepComplete = false;
     
     switch (currentStep) {
@@ -142,7 +150,7 @@ export default function BookingFlow() {
         break;
       case 3:
         // For multi-TV, check current TV's size; for single TV, check legacy field
-        if (bookingData.tvQuantity > 1) {
+        if ((bookingData.tvQuantity || 0) > 1) {
           const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
           stepComplete = !!(currentTv && currentTv.tvSize !== "");
         } else {
@@ -151,7 +159,7 @@ export default function BookingFlow() {
         break;
       case 4:
         // For multi-TV, check current TV's service; for single TV, check legacy field
-        if (bookingData.tvQuantity > 1) {
+        if ((bookingData.tvQuantity || 0) > 1) {
           const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
           stepComplete = !!(currentTv && currentTv.serviceType !== "");
         } else {
@@ -160,7 +168,7 @@ export default function BookingFlow() {
         break;
       case 5:
         // For multi-TV, check current TV's wall type; for single TV, check legacy field
-        if (bookingData.tvQuantity > 1) {
+        if ((bookingData.tvQuantity || 0) > 1) {
           const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
           stepComplete = !!(currentTv && currentTv.wallType !== "");
         } else {
@@ -169,7 +177,7 @@ export default function BookingFlow() {
         break;
       case 6:
         // For multi-TV, check current TV's mount type only (nextStep will handle navigation)
-        if (bookingData.tvQuantity > 1) {
+        if ((bookingData.tvQuantity || 0) > 1) {
           const currentTv = bookingData.tvInstallations?.[bookingData.currentTvIndex];
           stepComplete = !!(currentTv && currentTv.mountType !== "" && 
                  (currentTv.needsWallMount === false || 
@@ -257,7 +265,7 @@ export default function BookingFlow() {
           <ProgressBar 
             currentStep={currentStep} 
             totalSteps={TOTAL_STEPS} 
-            completedSteps={getCompletedStepsCount(bookingData.tvQuantity > 1 ? bookingData.currentTvIndex : undefined)}
+            completedSteps={getCompletedStepsCount((bookingData.tvQuantity || 0) > 1 ? bookingData.currentTvIndex : undefined)}
           />
         </div>
       </div>
@@ -307,6 +315,7 @@ export default function BookingFlow() {
             bookingData={bookingData} 
             updateBookingData={updateBookingData}
             currentStep={currentStep}
+            getCompletedStepsCount={getCompletedStepsCount}
           />
           
           <Card className="typeform-card fade-in">

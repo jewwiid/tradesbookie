@@ -1,0 +1,35 @@
+Console.js:61 Warning: Cannot update a component (`BookingFlow`) while rendering a different component (`BookingFlow`). To locate the bad setState() call inside `BookingFlow`, follow the stack trace as described in https://reactjs.org/link/setstate-in-render
+    at BookingFlow (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/pages/booking-flow.tsx:41:27)
+    at ProtectedBooking (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/components/ProtectedBooking.tsx:28:36)
+    at Route (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4d9285c4:191:16)
+    at Switch (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4d9285c4:247:17)
+    at Router
+    at Provider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=4d9285c4:38:15)
+    at TooltipProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=4d9285c4:64:5)
+    at QueryClientProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4d9285c4:2805:3)
+    at App
+
+2
+multi-tv-navigation.tsx:55 Uncaught ReferenceError: getCompletedStepsCount is not defined
+    at MultiTVNavigation (multi-tv-navigation.tsx:55:14)
+Console.js:61 The above error occurred in the <MultiTVNavigation> component:
+
+    at MultiTVNavigation (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/components/booking/multi-tv-navigation.tsx:22:3)
+    at div
+    at div
+    at div
+    at BookingFlow (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/pages/booking-flow.tsx:41:27)
+    at ProtectedBooking (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/components/ProtectedBooking.tsx:28:36)
+    at Route (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4d9285c4:191:16)
+    at Switch (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4d9285c4:247:17)
+    at Router
+    at Provider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=4d9285c4:38:15)
+    at TooltipProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=4d9285c4:64:5)
+    at QueryClientProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4d9285c4:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+chunk-RPCDYKBN.js?v=4d9285c4:9129 Uncaught ReferenceError: getCompletedStepsCount is not defined
+    at MultiTVNavigation (multi-tv-navigation.tsx:55:14)
+﻿

@@ -1,32 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { BookingData as BaseBookingData, TVInstallation } from '@/lib/booking-utils';
 
-interface TvInstallation {
-  tvSize: string;
-  serviceType: string;
-  wallType: string;
-  mountType: string;
-  needsWallMount: boolean;
-  wallMountOption?: string;
-  location?: string; // e.g., "Living Room", "Bedroom", "Kitchen"
-  addons: Array<{
-    key: string;
-    name: string;
-    price: number;
-  }>;
-  estimatedPrice: number;
-  estimatedAddonsPrice: number;
-  estimatedTotal: number;
-  // Photo and AI analysis fields for individual TVs
-  roomPhotoBase64?: string;
-  roomAnalysis?: any;
-  aiPreviewUrl?: string;
-}
-
-interface BookingData {
-  // Multi-TV support
+interface ExtendedBookingData extends Omit<BaseBookingData, 'tvQuantity' | 'tvInstallations'> {
+  // Multi-TV support with optional fields for initialization
   tvQuantity?: number;
-  tvInstallations?: TvInstallation[];
+  tvInstallations?: TVInstallation[];
   currentTvIndex?: number;
   
   // Step completion tracking
@@ -96,17 +75,17 @@ interface BookingData {
 }
 
 interface BookingStore {
-  bookingData: BookingData;
-  updateBookingData: (data: Partial<BookingData>) => void;
+  bookingData: ExtendedBookingData;
+  updateBookingData: (data: Partial<ExtendedBookingData>) => void;
   resetBookingData: () => void;
   // Multi-TV specific methods
   initializeMultiTvBooking: (tvQuantity: number) => void;
   addTvInstallation: () => void;
   removeTvInstallation: (index: number) => void;
-  updateTvInstallation: (index: number, data: Partial<TvInstallation>) => void;
-  updateCurrentTvInstallation: (data: Partial<TvInstallation>) => void;
+  updateTvInstallation: (index: number, data: Partial<TVInstallation>) => void;
+  updateCurrentTvInstallation: (data: Partial<TVInstallation>) => void;
   calculateTotalPrice: () => number;
-  getCurrentTv: () => TvInstallation | undefined;
+  getCurrentTv: () => TVInstallation | undefined;
   isMultiTvBooking: () => boolean;
   // Direct installer booking methods
   setDirectInstaller: (installerId: number, installerInfo: any) => void;
@@ -131,7 +110,8 @@ export const useBookingData = create<BookingStore>()(
       // Multi-TV specific methods
       initializeMultiTvBooking: (tvQuantity: number) =>
         set((state) => {
-          const tvInstallations: TvInstallation[] = Array.from({ length: tvQuantity }, (_, index) => ({
+          const tvInstallations: TVInstallation[] = Array.from({ length: tvQuantity }, (_, index) => ({
+            id: `tv-${index + 1}`,
             tvSize: '',
             serviceType: '',
             wallType: '',
@@ -140,9 +120,6 @@ export const useBookingData = create<BookingStore>()(
             wallMountOption: undefined,
             location: `TV ${index + 1}`,
             addons: [],
-            estimatedPrice: 0,
-            estimatedAddonsPrice: 0,
-            estimatedTotal: 0,
           }));
           
           return {

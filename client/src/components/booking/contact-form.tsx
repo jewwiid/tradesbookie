@@ -8,7 +8,7 @@ import { User, CheckCircle, Sparkles, Loader2, Tag } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { BookingData, calculateTotalPrice } from "@/lib/booking-utils";
+import { BookingData, calculateTotalPrice, getDetailedPricing } from "@/lib/booking-utils";
 import { useAuth } from "@/hooks/useAuth";
 import SimplifiedAuthDialog from "@/components/SimplifiedAuthDialog";
 
@@ -304,6 +304,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
   };
 
   const totalPrice = calculateTotalPrice(bookingData);
+  const pricingDetails = getDetailedPricing(bookingData);
 
   if (showSuccess) {
     return (
@@ -608,82 +609,29 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
       <Card className="bg-muted/50 mb-8">
         <CardContent className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Booking Summary</h3>
-          <div className="space-y-2 text-sm">
-            {bookingData.tvQuantity > 1 && bookingData.tvInstallations.length > 0 ? (
-              // Multi-TV booking summary
-              <>
-                <div className="flex justify-between font-medium">
-                  <span className="text-muted-foreground">TVs to Install:</span>
-                  <span>{bookingData.tvQuantity} TVs</span>
-                </div>
-                <div className="space-y-3 mt-4">
-                  {bookingData.tvInstallations.map((tv, index) => (
-                    <div key={`tv-summary-${index}`} className="p-3 bg-background rounded-lg border">
-                      <div className="font-medium text-foreground mb-2">
-                        TV {index + 1} ({tv.location || `TV ${index + 1}`})
-                      </div>
-                      <div className="space-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Size & Service:</span>
-                          <span>{tv.tvSize}" {tv.serviceType}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Base Price:</span>
-                          <span>€{tv.basePrice || 0}</span>
-                        </div>
-                        {tv.addons && tv.addons.length > 0 && (
-                          <div className="space-y-1">
-                            {tv.addons.map((addon, addonIndex) => (
-                              <div key={addonIndex} className="flex justify-between">
-                                <span className="text-muted-foreground">{addon.name}:</span>
-                                <span>€{addon.price}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                        <div className="flex justify-between font-medium pt-1 border-t">
-                          <span>TV {index + 1} Total:</span>
-                          <span>€{((tv.basePrice || 0) + (tv.addons?.reduce((sum, addon) => sum + addon.price, 0) || 0))}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              // Single TV booking summary
-              <>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">TV Size:</span>
-                  <span className="font-medium">{bookingData.tvSize}"</span>
-                </div>
-                {bookingData.serviceType && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Service:</span>
-                    <span className="font-medium">€{bookingData.basePrice}</span>
-                  </div>
-                )}
-                {bookingData.addons?.map((addon) => (
-                  <div key={addon.key} className="flex justify-between">
-                    <span className="text-muted-foreground">{addon.name}:</span>
-                    <span className="font-medium">€{addon.price}</span>
-                  </div>
-                ))}
-              </>
-            )}
-            {bookingData.referralDiscount && bookingData.referralDiscount > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span className="text-muted-foreground">Harvey Norman Discount (10%):</span>
-                <span className="font-medium">-€{bookingData.referralDiscount.toFixed(2)}</span>
+          <div className="space-y-3">
+            {/* Display detailed pricing breakdown */}
+            {pricingDetails.breakdown.map((item, index) => (
+              <div key={index} className={`flex justify-between text-sm ${
+                item.isDiscount ? 'text-green-600' : 'text-foreground'
+              }`}>
+                <span className={item.label.startsWith('  +') ? 'text-sm text-muted-foreground ml-4' : 'text-muted-foreground'}>
+                  {item.label}
+                </span>
+                <span className="font-medium">
+                  {item.isDiscount ? '-' : ''}€{Math.abs(item.amount).toFixed(2)}
+                </span>
               </div>
-            )}
+            ))}
+            
+            {/* Display installation schedule if available */}
             {bookingData.preferredDate && bookingData.preferredTime && (
-              <>
-                <div className="flex justify-between">
+              <div className="pt-3 border-t border-border space-y-2">
+                <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Date:</span>
                   <span className="font-medium">{new Date(bookingData.preferredDate).toLocaleDateString()}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Time:</span>
                   <span className="font-medium">
                     {bookingData.preferredTime === "09:00" && "9:00 AM - 11:00 AM"}
@@ -693,13 +641,13 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
                     {bookingData.preferredTime === "17:00" && "5:00 PM - 7:00 PM"}
                   </span>
                 </div>
-              </>
+              </div>
             )}
           </div>
           <div className="border-t border-border mt-4 pt-4">
             <div className="flex justify-between items-center text-lg font-semibold">
               <span>Total</span>
-              <span className="text-primary">€{totalPrice}</span>
+              <span className="text-primary">€{pricingDetails.total.toFixed(2)}</span>
             </div>
           </div>
         </CardContent>

@@ -1058,14 +1058,16 @@ export default function CustomerDashboard() {
         </Dialog>
 
         {/* Installer Selection Dialog */}
+        {console.log('About to render Dialog - open condition:', showInstallerSelection !== null, 'showInstallerSelection value:', showInstallerSelection)}
         <Dialog 
-          open={!!showInstallerSelection} 
+          open={Boolean(showInstallerSelection)} 
           onOpenChange={(open) => {
             console.log('Dialog onOpenChange called:', open, 'showInstallerSelection:', showInstallerSelection);
             if (!open) setShowInstallerSelection(null);
           }}
         >
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto" style={{ zIndex: 9999 }}>
+            {console.log('Dialog Content Rendering - showInstallerSelection:', showInstallerSelection, 'selectedBookingInstallers:', selectedBookingInstallers.length)}
             <DialogHeader>
               <DialogTitle>Select Your Installer</DialogTitle>
               <DialogDescription>

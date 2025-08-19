@@ -1,3 +1,4 @@
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -547,7 +548,11 @@ export default function CustomerDashboard() {
 
   const handleViewInstallers = async (bookingId: number) => {
     console.log('handleViewInstallers called with bookingId:', bookingId);
+    
+    // Show dialog immediately
     setShowInstallerSelection(bookingId);
+    setSelectedBookingInstallers([]); // Start with empty array to show loading
+    
     try {
       // Fetch available installers for TV installation service
       const response = await fetch('/api/installers', {
@@ -587,21 +592,15 @@ export default function CustomerDashboard() {
       const formattedInstallers = tvInstallers.map((installer: any) => ({
         installer: installer
       }));
+      
+      // Update the dialog with installer data
       setSelectedBookingInstallers(formattedInstallers);
       
-      console.log('About to show dialog with state:', {
-        showInstallerSelection: bookingId,
-        selectedBookingInstallers: formattedInstallers.length,
-        dialogShouldShow: !!bookingId
+      console.log('Installers loaded into dialog:', {
+        bookingId,
+        installersCount: formattedInstallers.length,
+        dialogVisible: true
       });
-      
-      // Force a small delay to ensure state updates properly
-      setTimeout(() => {
-        console.log('State after timeout:', {
-          showInstallerSelection,
-          selectedBookingInstallers: selectedBookingInstallers.length
-        });
-      }, 100);
       
       toast({ 
         title: "Installers loaded", 
@@ -610,6 +609,7 @@ export default function CustomerDashboard() {
     } catch (error) {
       console.error('Error fetching installers:', error);
       toast({ title: "Failed to load installers", variant: "destructive" });
+      // Don't reset the dialog state on error - let user close it manually
     }
   };
 

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar, Clock, MessageSquare, CheckCircle, XCircle, User, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { TIME_SLOTS } from '@/lib/constants';
 
 interface ScheduleNegotiation {
   id: number;
@@ -125,7 +126,9 @@ export default function ScheduleNegotiation({
     if (negotiation.proposedStartTime && negotiation.proposedEndTime) {
       return `${negotiation.proposedStartTime} - ${negotiation.proposedEndTime}`;
     }
-    return negotiation.proposedTimeSlot;
+    // Try to find a matching time slot in constants, fallback to raw value
+    const timeSlot = TIME_SLOTS.find(slot => slot.value === negotiation.proposedTimeSlot);
+    return timeSlot ? timeSlot.label : negotiation.proposedTimeSlot;
   };
 
   const getStatusColor = (status: string) => {

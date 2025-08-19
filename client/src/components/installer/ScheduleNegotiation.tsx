@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { TIME_SLOTS } from "@/lib/constants";
 
 interface ScheduleNegotiationProps {
   bookingId: number;
@@ -26,6 +27,8 @@ interface ScheduleNegotiation {
   installerId: number;
   proposedDate: string;
   proposedTimeSlot?: string;
+  proposedStartTime?: string;
+  proposedEndTime?: string;
   proposalMessage?: string;
   proposedBy: 'customer' | 'installer';
   status: 'pending' | 'accepted' | 'declined' | 'counter_proposed';
@@ -33,12 +36,6 @@ interface ScheduleNegotiation {
   createdAt: string;
 }
 
-const TIME_SLOTS = [
-  { value: "morning", label: "Morning (9:00 AM - 12:00 PM)" },
-  { value: "afternoon", label: "Afternoon (12:00 PM - 5:00 PM)" },
-  { value: "evening", label: "Evening (5:00 PM - 8:00 PM)" },
-  { value: "flexible", label: "Flexible timing" }
-];
 
 export function ScheduleNegotiation({ bookingId, installerId, customerName, isInstaller = true }: ScheduleNegotiationProps) {
   const [newProposal, setNewProposal] = useState({
@@ -224,7 +221,9 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
             </p>
             {latestNegotiation.proposedTimeSlot && (
               <p className="text-green-700">
-                <strong>Time:</strong> {TIME_SLOTS.find(slot => slot.value === latestNegotiation.proposedTimeSlot)?.label}
+                <strong>Time:</strong> {latestNegotiation.proposedStartTime && latestNegotiation.proposedEndTime 
+                  ? `${latestNegotiation.proposedStartTime} - ${latestNegotiation.proposedEndTime}` 
+                  : TIME_SLOTS.find(slot => slot.value === latestNegotiation.proposedTimeSlot)?.label || latestNegotiation.proposedTimeSlot}
               </p>
             )}
           </div>
@@ -244,7 +243,9 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
               </p>
               {pendingNegotiation.proposedTimeSlot && (
                 <p className="text-blue-700">
-                  <strong>Time Slot:</strong> {TIME_SLOTS.find(slot => slot.value === pendingNegotiation.proposedTimeSlot)?.label}
+                  <strong>Time:</strong> {pendingNegotiation.proposedStartTime && pendingNegotiation.proposedEndTime 
+                    ? `${pendingNegotiation.proposedStartTime} - ${pendingNegotiation.proposedEndTime}` 
+                    : TIME_SLOTS.find(slot => slot.value === pendingNegotiation.proposedTimeSlot)?.label || pendingNegotiation.proposedTimeSlot}
                 </p>
               )}
               {pendingNegotiation.proposalMessage && (
@@ -386,7 +387,9 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
 
                   {negotiation.proposedTimeSlot && (
                     <p className="text-sm text-gray-700 mb-1">
-                      <strong>Time:</strong> {TIME_SLOTS.find(slot => slot.value === negotiation.proposedTimeSlot)?.label}
+                      <strong>Time:</strong> {negotiation.proposedStartTime && negotiation.proposedEndTime 
+                        ? `${negotiation.proposedStartTime} - ${negotiation.proposedEndTime}` 
+                        : TIME_SLOTS.find(slot => slot.value === negotiation.proposedTimeSlot)?.label || negotiation.proposedTimeSlot}
                     </p>
                   )}
 

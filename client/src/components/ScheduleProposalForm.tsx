@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Calendar, Clock, MessageSquare, Send, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { TIME_SLOTS } from '@/lib/constants';
 
 interface ScheduleProposalFormProps {
   bookingId: number;
@@ -101,11 +102,10 @@ export default function ScheduleProposalForm({
     return tomorrow.toISOString().split('T')[0];
   };
 
+  // Use specific time slots with optional custom time range
   const timeSlots = [
-    { value: 'morning', label: 'Morning (9:00 AM - 12:00 PM)' },
-    { value: 'afternoon', label: 'Afternoon (12:00 PM - 5:00 PM)' },
-    { value: 'evening', label: 'Evening (5:00 PM - 8:00 PM)' },
-    { value: 'specific-time', label: 'Specific Time' }
+    ...TIME_SLOTS, // Import specific time slots from constants
+    { value: 'specific-time', label: 'Custom Time Range' }
   ];
 
   return (

@@ -96,6 +96,13 @@ export default function BookingFlow() {
       }
     }
     
+    // Prevent moving to steps 8-9 (scheduling and contact) unless all TVs are complete
+    if (currentStep === 7 && (bookingData.tvQuantity || 0) > 1 && !areAllTvsComplete()) {
+      // Don't allow progression to scheduling/contact until all TVs are complete
+      console.log("Cannot proceed to scheduling - not all TVs have completed required steps");
+      return;
+    }
+    
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1);
     }
@@ -189,7 +196,12 @@ export default function BookingFlow() {
         }
         break;
       case 7:
-        stepComplete = true; // Addons are optional
+        // For multi-TV bookings, ensure ALL TVs are complete before allowing progression to step 8
+        if ((bookingData.tvQuantity || 0) > 1) {
+          stepComplete = areAllTvsComplete();
+        } else {
+          stepComplete = true; // Addons are optional for single TV
+        }
         break;
       case 8:
         stepComplete = !!(bookingData.preferredDate && bookingData.preferredTime);

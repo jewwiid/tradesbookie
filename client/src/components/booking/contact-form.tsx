@@ -73,28 +73,52 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
   // AI Preview generation mutation for final step
   const aiPreviewMutation = useMutation({
     mutationFn: async () => {
+      console.log('Starting AI preview generation...', { bookingData });
+      
       if (!bookingData.roomPhotoBase64) {
-        throw new Error('No room photo available');
+        throw new Error('No room photo available for AI preview');
       }
       
-      // For multi-TV, use the first TV's data for AI preview
-      const tvData = bookingData.tvQuantity > 1 && bookingData.tvInstallations.length > 0 
-        ? bookingData.tvInstallations[0] 
-        : {
-            tvSize: bookingData.tvSize,
-            mountType: bookingData.mountType,
-            wallType: bookingData.wallType,
-            addons: bookingData.addons || []
-          };
+      // Get TV data for AI preview - ensure we have all required fields
+      let tvData;
+      if (bookingData.tvQuantity && bookingData.tvQuantity > 1 && bookingData.tvInstallations && bookingData.tvInstallations.length > 0) {
+        // Multi-TV booking - use first TV's data
+        const firstTv = bookingData.tvInstallations[0];
+        tvData = {
+          tvSize: firstTv.tvSize || '55',
+          mountType: firstTv.mountType || 'wall-mount',
+          wallType: firstTv.wallType || 'drywall',
+          addons: firstTv.addons || []
+        };
+      } else {
+        // Single TV booking - use root level data with fallbacks
+        tvData = {
+          tvSize: bookingData.tvSize || '55',
+          mountType: bookingData.mountType || 'wall-mount',
+          wallType: bookingData.wallType || 'drywall',
+          addons: bookingData.addons || []
+        };
+      }
+      
+      console.log('TV data for AI preview:', tvData);
+      
+      // Validate that we have the minimum required data
+      if (!tvData.tvSize || !tvData.mountType || !tvData.wallType) {
+        console.warn('Missing TV configuration data:', tvData);
+        throw new Error('TV configuration is incomplete. Please complete all TV setup steps.');
+      }
       
       const response = await apiRequest('POST', '/api/generate-ai-preview', {
         imageBase64: bookingData.roomPhotoBase64,
         tvSize: tvData.tvSize,
         mountType: tvData.mountType,
         wallType: tvData.wallType,
-        selectedAddons: tvData.addons || []
+        selectedAddons: tvData.addons
       });
-      return response.json();
+      
+      const result = await response.json();
+      console.log('AI preview result:', result);
+      return result;
     },
     onSuccess: (data) => {
       updateBookingData({ aiPreviewUrl: data.imageUrl });
@@ -105,6 +129,11 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
     },
     onError: (error) => {
       console.error('AI preview generation failed:', error);
+      toast({
+        title: "AI Preview Failed",
+        description: "Don't worry, you can still complete your booking without the preview.",
+        variant: "destructive"
+      });
       // Continue without AI preview - not blocking
     }
   });
@@ -570,6 +599,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
                   <div className="text-center">
                     <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-2" />
                     <p className="text-sm text-gray-600">Generating AI preview...</p>
+                    <p className="text-xs text-gray-500 mt-1">This may take 30-60 seconds</p>
                   </div>
                 </div>
               ) : bookingData.aiPreviewUrl && showAfterPreview ? (

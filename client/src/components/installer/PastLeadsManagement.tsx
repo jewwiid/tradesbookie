@@ -128,9 +128,11 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     enabled: !!selectedLead?.id
   });
 
+  const negotiations = Array.isArray(scheduleNegotiations) ? scheduleNegotiations : [];
+
   // Get the most relevant schedule info to display
   const getScheduleDisplayInfo = () => {
-    if (!scheduleNegotiations?.length) {
+    if (!negotiations.length) {
       // No negotiations yet - show original customer preferences
       return {
         type: 'original',
@@ -141,7 +143,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     }
 
     // Find accepted negotiation first
-    const acceptedNegotiation = scheduleNegotiations.find((n: any) => n.status === 'accepted');
+    const acceptedNegotiation = negotiations.find((n: any) => n.status === 'accepted');
     if (acceptedNegotiation) {
       return {
         type: 'accepted',
@@ -153,7 +155,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     }
 
     // Find pending negotiation from installer
-    const pendingFromInstaller = scheduleNegotiations.find((n: any) => 
+    const pendingFromInstaller = negotiations.find((n: any) => 
       n.status === 'pending' && n.proposedBy === 'installer'
     );
     if (pendingFromInstaller) {
@@ -167,7 +169,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     }
 
     // Find pending negotiation from customer
-    const pendingFromCustomer = scheduleNegotiations.find((n: any) => 
+    const pendingFromCustomer = negotiations.find((n: any) => 
       n.status === 'pending' && n.proposedBy === 'customer'
     );
     if (pendingFromCustomer) {
@@ -181,7 +183,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     }
 
     // Latest negotiation (might be declined)
-    const latestNegotiation = scheduleNegotiations[0];
+    const latestNegotiation = negotiations[0] || null;
     return {
       type: 'latest',
       date: latestNegotiation.proposedDate,
@@ -428,14 +430,52 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                           <Hammer className="w-3 h-3" />
                           Update
                         </Button>
-                        <Button
-                          onClick={() => openScheduleDialog(lead)}
-                          size="sm"
-                          className="flex items-center gap-1"
-                        >
-                          <Calendar className="w-3 h-3" />
-                          Schedule
-                        </Button>
+                        {(() => {
+                          // Check if there's a pending proposal from this installer for this lead
+                          const hasPendingProposal = lead.id === selectedLead?.id && 
+                            negotiations.find((n: any) => n.status === 'pending' && n.proposedBy === 'installer');
+                          
+                          const hasAcceptedSchedule = lead.id === selectedLead?.id && 
+                            negotiations.find((n: any) => n.status === 'accepted');
+                          
+                          if (hasAcceptedSchedule) {
+                            return (
+                              <Button
+                                onClick={() => openScheduleDialog(lead)}
+                                size="sm"
+                                className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
+                              >
+                                <CheckCircle className="w-3 h-3" />
+                                View Schedule
+                              </Button>
+                            );
+                          }
+                          
+                          if (hasPendingProposal) {
+                            return (
+                              <Button
+                                onClick={() => openScheduleDialog(lead)}
+                                size="sm"
+                                variant="outline"
+                                className="flex items-center gap-1 border-blue-300 text-blue-600 hover:bg-blue-50"
+                              >
+                                <Clock className="w-3 h-3" />
+                                Awaiting Response
+                              </Button>
+                            );
+                          }
+                          
+                          return (
+                            <Button
+                              onClick={() => openScheduleDialog(lead)}
+                              size="sm"
+                              className="flex items-center gap-1"
+                            >
+                              <Calendar className="w-3 h-3" />
+                              Schedule
+                            </Button>
+                          );
+                        })()}
                       </div>
                     </div>
                   </CardContent>
@@ -629,14 +669,67 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
             </DialogDescription>
           </DialogHeader>
           
-          {selectedLead && (
-            <ScheduleNegotiation
-              bookingId={selectedLead.id}
-              installerId={installerId}
-              customerName={selectedLead.customerName}
-              isInstaller={true}
-            />
-          )}
+          {selectedLead && (() => {
+            const hasPendingProposal = negotiations.find((n: any) => n.status === 'pending' && n.proposedBy === 'installer');
+            const hasAcceptedSchedule = negotiations.find((n: any) => n.status === 'accepted');
+            const pendingCustomerProposal = negotiations.find((n: any) => n.status === 'pending' && n.proposedBy === 'customer');
+            
+            if (hasPendingProposal) {
+              return (
+                <div className="space-y-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-blue-800 font-medium mb-2">
+                      <Clock className="h-5 w-5" />
+                      Proposal Sent - Awaiting Customer Response
+                    </div>
+                    <div className="space-y-2 text-blue-700">
+                      <p><strong>Proposed Date:</strong> {new Date(hasPendingProposal.proposedDate).toLocaleDateString()}</p>
+                      <p><strong>Time Slot:</strong> {hasPendingProposal.proposedTimeSlot}</p>
+                      {hasPendingProposal.proposalMessage && (
+                        <div>
+                          <strong>Your Message:</strong>
+                          <p className="italic mt-1">"{hasPendingProposal.proposalMessage}"</p>
+                        </div>
+                      )}
+                      <p className="text-sm mt-3">The customer will receive an email notification and can respond through their dashboard or the tracking link.</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            if (hasAcceptedSchedule) {
+              return (
+                <div className="space-y-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-green-800 font-medium mb-2">
+                      <CheckCircle className="h-5 w-5" />
+                      Installation Scheduled
+                    </div>
+                    <div className="space-y-2 text-green-700">
+                      <p><strong>Confirmed Date:</strong> {new Date(hasAcceptedSchedule.proposedDate).toLocaleDateString()}</p>
+                      <p><strong>Time Slot:</strong> {hasAcceptedSchedule.proposedTimeSlot}</p>
+                      {hasAcceptedSchedule.proposalMessage && (
+                        <div>
+                          <strong>Details:</strong>
+                          <p className="italic mt-1">"{hasAcceptedSchedule.proposalMessage}"</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            
+            return (
+              <ScheduleNegotiation
+                bookingId={selectedLead.id}
+                installerId={installerId}
+                customerName={selectedLead.customerName}
+                isInstaller={true}
+              />
+            );
+          })()}
         </DialogContent>
       </Dialog>
 

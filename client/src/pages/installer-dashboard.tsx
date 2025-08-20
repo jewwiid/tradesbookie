@@ -516,6 +516,17 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
 
       </div>
 
+      {/* Map Display for Desktop Lead List */}
+      <div className="hidden lg:block mb-4">
+        <div className="h-[400px] relative z-0 border rounded-lg overflow-hidden">
+          <IrelandMap 
+            requests={requests}
+            onRequestSelect={onRequestSelect}
+            selectedRequest={selectedRequest}
+          />
+        </div>
+      </div>
+
       {/* Desktop Lead List - Enhanced Design */}
       <div className="hidden lg:block max-h-80 overflow-y-auto bg-white border-t border-slate-200">
         {requests.length > 0 ? (

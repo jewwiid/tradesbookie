@@ -11512,7 +11512,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       try {
       const installerId = parseInt(req.params.installerId);
       
-      // Get bookings with negotiated schedule dates
+      // Get bookings with CONFIRMED schedule dates only (accepted negotiations)
       const scheduledBookings = await db.execute(sql`
         SELECT 
           b.id,
@@ -11524,7 +11524,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           b.status,
           b.estimated_total as "estimatedTotal",
           ja.id as "jobAssignmentId",
-          -- Get the most relevant schedule date from negotiations
+          -- Get the most recent ACCEPTED schedule date from negotiations
           COALESCE(
             (SELECT sn.proposed_date::text 
              FROM schedule_negotiations sn 
@@ -11532,15 +11532,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
              ORDER BY sn.created_at DESC LIMIT 1),
             b.scheduled_date::text
           ) as "scheduledDate",
-          (SELECT sn.status 
-           FROM schedule_negotiations sn 
-           WHERE sn.booking_id = b.id 
-           ORDER BY sn.created_at DESC LIMIT 1
-          ) as "negotiationStatus"
+          -- Only show 'accepted' status for calendar (confirmed installations only)
+          'accepted' as "negotiationStatus"
         FROM bookings b
         INNER JOIN job_assignments ja ON ja.booking_id = b.id
         WHERE ja.installer_id = ${installerId}
           AND (ja.status = 'accepted' OR ja.status = 'assigned')
+          -- Only include jobs that have confirmed schedules (accepted negotiations OR original schedule)
+          AND (
+            EXISTS (
+              SELECT 1 FROM schedule_negotiations sn 
+              WHERE sn.booking_id = b.id AND sn.status = 'accepted'
+            ) 
+            OR b.scheduled_date IS NOT NULL
+          )
         ORDER BY 
           COALESCE(
             (SELECT sn.proposed_date 

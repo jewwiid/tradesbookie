@@ -1646,18 +1646,35 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     )}
 
                     {/* Add-ons */}
-                    {booking.addons && booking.addons.length > 0 && (
-                      <div className="space-y-2">
-                        <h5 className="font-medium text-gray-900 border-b pb-1">Add-ons</h5>
-                        <div className="flex flex-wrap gap-2">
-                          {booking.addons.map((addon: any, index: number) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {addon.name} - €{addon.price}
-                            </Badge>
-                          ))}
+                    {(() => {
+                      // Aggregate addons from all TVs for multi-TV installations
+                      let allAddons: any[] = [];
+                      
+                      if (booking.tvInstallations && booking.tvInstallations.length > 0) {
+                        // Multi-TV installation: collect addons from all TVs
+                        booking.tvInstallations.forEach((tv: any) => {
+                          if (tv.addons && tv.addons.length > 0) {
+                            allAddons.push(...tv.addons);
+                          }
+                        });
+                      } else if (booking.addons && booking.addons.length > 0) {
+                        // Single TV installation: use booking.addons
+                        allAddons = booking.addons;
+                      }
+                      
+                      return allAddons.length > 0 && (
+                        <div className="space-y-2">
+                          <h5 className="font-medium text-gray-900 border-b pb-1">Add-ons</h5>
+                          <div className="flex flex-wrap gap-2">
+                            {allAddons.map((addon: any, index: number) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {addon.name} - €{addon.price}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Customer Notes */}
                     {booking.customerNotes && (

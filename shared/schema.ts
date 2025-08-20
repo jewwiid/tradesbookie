@@ -251,6 +251,10 @@ export const bookings = pgTable("bookings", {
   // Demo flag to hide test bookings from real installers
   isDemo: boolean("is_demo").default(false),
   
+  // Pre-installation reminder tracking
+  reminderSent: boolean("reminder_sent").default(false),
+  reminderSentAt: timestamp("reminder_sent_at"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

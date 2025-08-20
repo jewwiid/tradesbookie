@@ -10,7 +10,7 @@ import {
   scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions, declinedRequests
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, inArray, isNotNull, sql, or, not } from "drizzle-orm";
+import { eq, and, desc, inArray, isNotNull, sql, or, not, gte, lt } from "drizzle-orm";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
 import { AIAnalyticsService } from "./aiAnalyticsService";
@@ -29,7 +29,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2025-07-30.basil",
 });
 
-import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail, sendInstallerApprovalEmail, sendInstallerRejectionEmail, sendTvSetupBookingConfirmation, sendTvSetupAdminNotification } from "./gmailService";
+import { sendGmailEmail, sendBookingConfirmation, sendInstallerNotification, sendAdminNotification, sendLeadPurchaseNotification, sendStatusUpdateNotification, sendScheduleProposalNotification, sendScheduleConfirmationNotification, sendInstallerWelcomeEmail, sendInstallerApprovalEmail, sendInstallerRejectionEmail, sendTvSetupBookingConfirmation, sendTvSetupAdminNotification, sendPreInstallationReminder } from "./gmailService";
 
 // Helper function to generate secure completion token
 function generateCompletionToken(): string {
@@ -251,6 +251,116 @@ class LeadExpiryService {
   }
 }
 
+// Pre-installation reminder service for 1-day advance notifications
+class PreInstallationReminderService {
+  private static intervalId: NodeJS.Timeout | null = null;
+
+  // Check for installations scheduled for tomorrow and send reminders
+  static async processInstallationReminders(): Promise<void> {
+    try {
+      console.log('🔔 Checking for installations scheduled tomorrow...');
+      
+      // Calculate tomorrow's date
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0); // Start of tomorrow
+      
+      const dayAfterTomorrow = new Date(tomorrow);
+      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
+      dayAfterTomorrow.setHours(0, 0, 0, 0); // Start of day after tomorrow
+      
+      // Find all bookings scheduled for tomorrow that haven't received reminders
+      const tomorrowInstallations = await db.select()
+        .from(bookings)
+        .where(and(
+          gte(bookings.scheduledDate, tomorrow.toISOString().split('T')[0]),
+          lt(bookings.scheduledDate, dayAfterTomorrow.toISOString().split('T')[0]),
+          eq(bookings.reminderSent, false),
+          isNotNull(bookings.installerId),
+          or(
+            eq(bookings.status, 'scheduled'),
+            eq(bookings.status, 'confirmed'),
+            eq(bookings.status, 'installation_scheduled')
+          )
+        ));
+
+      if (tomorrowInstallations.length === 0) {
+        console.log('✅ No installations scheduled tomorrow requiring reminders');
+        return;
+      }
+
+      console.log(`📨 Processing ${tomorrowInstallations.length} installation reminder(s)...`);
+      
+      let remindersSent = 0;
+      let remindersSkipped = 0;
+      
+      for (const booking of tomorrowInstallations) {
+        try {
+          console.log(`📋 Processing reminder for booking ${booking.qrCode} scheduled ${booking.scheduledDate}`);
+          
+          // Send reminder to customer
+          const customerReminderSent = await sendPreInstallationReminder(booking, 'customer');
+          
+          // Send reminder to installer
+          const installerReminderSent = await sendPreInstallationReminder(booking, 'installer');
+          
+          if (customerReminderSent || installerReminderSent) {
+            // Mark reminder as sent
+            await db.update(bookings)
+              .set({ 
+                reminderSent: true,
+                reminderSentAt: new Date()
+              })
+              .where(eq(bookings.id, booking.id));
+              
+            console.log(`✅ Reminder sent for booking ${booking.qrCode}: Customer: ${customerReminderSent}, Installer: ${installerReminderSent}`);
+            remindersSent++;
+          } else {
+            console.log(`❌ Failed to send reminder for booking ${booking.qrCode}`);
+            remindersSkipped++;
+          }
+          
+        } catch (error) {
+          console.error(`❌ Error processing reminder for booking ${booking.id}:`, error);
+          remindersSkipped++;
+        }
+      }
+      
+      if (remindersSent > 0) {
+        console.log(`✅ Reminder processing complete: ${remindersSent} sent, ${remindersSkipped} skipped`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error processing installation reminders:', error);
+    }
+  }
+
+  // Start the periodic reminder check
+  static startReminderMonitoring(): void {
+    // Check every 4 hours for installations scheduled tomorrow
+    const intervalMs = 4 * 60 * 60 * 1000; // 4 hours
+    
+    console.log(`🔔 Starting pre-installation reminder monitoring (checking every ${intervalMs / 1000 / 60 / 60} hours)`);
+    
+    // Run initial check
+    this.processInstallationReminders();
+    
+    // Set up recurring checks
+    this.intervalId = setInterval(() => {
+      this.processInstallationReminders();
+    }, intervalMs);
+  }
+
+  // Stop the monitoring (for cleanup)
+  static stopReminderMonitoring(): void {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+      console.log('⏹️ Pre-installation reminder monitoring stopped');
+    }
+  }
+}
+
 // WebSocket clients for real-time updates
 const wsClients = new Set<WebSocket>();
 
@@ -424,6 +534,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Start the lead expiry monitoring system
   LeadExpiryService.startExpiryMonitoring();
+  
+  // Start the pre-installation reminder monitoring system
+  PreInstallationReminderService.startReminderMonitoring();
 
   // OAuth Login Route - for customers and admins only (installers use email/password)
   app.get("/api/login", (req, res, next) => {
@@ -14193,15 +14306,35 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Cleanup expiry monitoring on server shutdown
+  // Manual trigger for pre-installation reminders (admin endpoint)
+  app.post('/api/admin/process-installation-reminders', async (req, res) => {
+    try {
+      console.log('🔧 Manual trigger for pre-installation reminders');
+      await PreInstallationReminderService.processInstallationReminders();
+      res.json({ 
+        success: true, 
+        message: 'Pre-installation reminders processed successfully' 
+      });
+    } catch (error) {
+      console.error('Error in manual reminder processing:', error);
+      res.status(500).json({ 
+        error: 'Failed to process pre-installation reminders',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Cleanup monitoring services on server shutdown
   process.on('SIGTERM', () => {
-    console.log('🛑 Server shutting down, cleaning up lead expiry monitoring...');
+    console.log('🛑 Server shutting down, cleaning up monitoring services...');
     LeadExpiryService.stopExpiryMonitoring();
+    PreInstallationReminderService.stopReminderMonitoring();
   });
 
   process.on('SIGINT', () => {
-    console.log('🛑 Server shutting down, cleaning up lead expiry monitoring...');
+    console.log('🛑 Server shutting down, cleaning up monitoring services...');
     LeadExpiryService.stopExpiryMonitoring();
+    PreInstallationReminderService.stopReminderMonitoring();
     process.exit(0);
   });
 

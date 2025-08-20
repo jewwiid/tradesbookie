@@ -215,7 +215,7 @@ export async function sendGmailEmail(options: EmailOptions): Promise<boolean> {
     try {
       const sentMessage = await gmail.users.messages.get({
         userId: 'me',
-        id: response.data.id,
+        id: response.data.id!,
         format: 'metadata'
       });
       console.log('Gmail verification: Message found in sent items');
@@ -233,10 +233,10 @@ export async function sendGmailEmail(options: EmailOptions): Promise<boolean> {
     return true;
   } catch (error) {
     console.error('Gmail send error details:', {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      details: error.details
+      message: error instanceof Error ? error.message : String(error),
+      code: error && typeof error === 'object' && 'code' in error ? error.code : 'unknown',
+      status: error && typeof error === 'object' && 'status' in error ? error.status : 'unknown',
+      details: error && typeof error === 'object' && 'details' in error ? error.details : 'unknown'
     });
     return false;
   }
@@ -911,7 +911,12 @@ export async function sendJobCancellationNotification(booking: any, cancelledBy:
         </div>
       `;
       
-      await sendEmail(customerEmail, customerSubject, customerMessage);
+      await sendGmailEmail({
+        to: customerEmail,
+        subject: customerSubject,
+        html: customerMessage,
+        from: getValidFromEmail('booking')
+      });
       console.log(`Job cancellation email sent to customer: ${customerEmail}`);
     }
     
@@ -940,13 +945,168 @@ export async function sendJobCancellationNotification(booking: any, cancelledBy:
         </div>
       `;
       
-      await sendEmail(installerEmail, installerSubject, installerMessage);
+      await sendGmailEmail({
+        to: installerEmail,
+        subject: installerSubject,
+        html: installerMessage,
+        from: getValidFromEmail('booking')
+      });
       console.log(`Job cancellation email sent to installer: ${installerEmail}`);
     }
     
   } catch (error) {
     console.error('Error sending job cancellation notification:', error);
     throw error;
+  }
+}
+
+export async function sendPreInstallationReminder(
+  booking: any,
+  recipientType: 'customer' | 'installer'
+): Promise<boolean> {
+  try {
+    const installationDate = new Date(booking.scheduledDate).toLocaleDateString('en-IE', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    const trackingUrl = `https://tradesbook.ie/track/${booking.qrCode}`;
+    
+    if (recipientType === 'customer') {
+      // Customer reminder
+      const subject = `🔔 Installation Reminder - Tomorrow at ${booking.preferredTime || 'TBD'}`;
+      
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 24px;">🔔 Installation Tomorrow!</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">tradesbook.ie</p>
+          </div>
+
+          <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <h2 style="color: #856404; margin: 0 0 10px 0; font-size: 18px;">⏰ Reminder: Installation Tomorrow</h2>
+              <p style="color: #856404; margin: 0; font-size: 16px;">
+                <strong>Date:</strong> ${installationDate}
+              </p>
+              <p style="color: #856404; margin: 10px 0 0 0; font-size: 14px;">
+                <strong>Time:</strong> ${booking.preferredTime || 'To be confirmed by installer'}
+              </p>
+            </div>
+
+            <div style="background-color: white; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 16px;">📋 Installation Details</h3>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>Service:</strong> ${booking.serviceType}</p>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>TV Size:</strong> ${booking.tvSize}</p>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>Address:</strong> ${booking.address}</p>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>Contact:</strong> ${booking.contactName}</p>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>Phone:</strong> ${booking.contactPhone}</p>
+            </div>
+
+            <div style="background-color: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <h3 style="color: #1976d2; margin: 0 0 15px 0; font-size: 16px;">📝 Preparation Checklist</h3>
+              <ul style="color: #1976d2; margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Ensure someone is home during the installation window</li>
+                <li style="margin-bottom: 8px;">Clear the wall area where the TV will be mounted</li>
+                <li style="margin-bottom: 8px;">Have your TV and any purchased equipment ready</li>
+                <li style="margin-bottom: 8px;">Prepare payment method for the installer</li>
+                <li style="margin-bottom: 8px;">Our installer will call 30 minutes before arrival</li>
+              </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${trackingUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">Track Your Installation</a>
+            </div>
+
+            <div style="background-color: #f1f1f1; border-radius: 8px; padding: 15px; text-align: center; margin-top: 25px;">
+              <p style="color: #666; margin: 0; font-size: 12px;">Need to reschedule? Contact us or your installer immediately.</p>
+              <p style="color: #666; margin: 5px 0 0 0; font-size: 12px;">📞 Support: support@tradesbook.ie</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const customerEmail = await sendGmailEmail({
+        to: booking.contactEmail,
+        subject,
+        html: htmlContent,
+        from: getValidFromEmail('booking')
+      });
+
+      return customerEmail;
+      
+    } else {
+      // Installer reminder
+      const subject = `🔧 Installation Reminder - Tomorrow at ${booking.preferredTime || 'TBD'}`;
+      
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+          <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="margin: 0; font-size: 24px;">🔧 Job Tomorrow!</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">tradesbook.ie</p>
+          </div>
+
+          <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
+            <div style="background-color: #dcfce7; border: 1px solid #16a34a; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <h2 style="color: #15803d; margin: 0 0 10px 0; font-size: 18px;">⏰ Installation Scheduled: Tomorrow</h2>
+              <p style="color: #15803d; margin: 0; font-size: 16px;">
+                <strong>Date:</strong> ${installationDate}
+              </p>
+              <p style="color: #15803d; margin: 10px 0 0 0; font-size: 14px;">
+                <strong>Time:</strong> ${booking.preferredTime || 'Please confirm with customer'}
+              </p>
+            </div>
+
+            <div style="background-color: white; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 16px;">📋 Job Details</h3>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>Service:</strong> ${booking.serviceType}</p>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>TV Size:</strong> ${booking.tvSize}</p>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>Wall Type:</strong> ${booking.wallType}</p>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>Address:</strong> ${booking.address}</p>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>Customer:</strong> ${booking.contactName}</p>
+              <p style="color: #4a5568; margin: 5px 0;"><strong>Phone:</strong> ${booking.contactPhone}</p>
+              ${booking.customerNotes ? `<p style="color: #4a5568; margin: 5px 0;"><strong>Notes:</strong> ${booking.customerNotes}</p>` : ''}
+            </div>
+
+            <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+              <h3 style="color: #92400e; margin: 0 0 15px 0; font-size: 16px;">🔧 Pre-Installation Checklist</h3>
+              <ul style="color: #92400e; margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Confirm exact installation time with customer</li>
+                <li style="margin-bottom: 8px;">Review wall type and mounting requirements</li>
+                <li style="margin-bottom: 8px;">Ensure you have all necessary tools and hardware</li>
+                <li style="margin-bottom: 8px;">Call customer 30 minutes before arrival</li>
+                <li style="margin-bottom: 8px;">Bring payment processing equipment if needed</li>
+              </ul>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://tradesbook.ie/installer-dashboard" style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold;">View Job Details</a>
+            </div>
+
+            <div style="background-color: #f1f1f1; border-radius: 8px; padding: 15px; text-align: center; margin-top: 25px;">
+              <p style="color: #666; margin: 0; font-size: 12px;">Need to reschedule? Contact the customer and update the job status.</p>
+              <p style="color: #666; margin: 5px 0 0 0; font-size: 12px;">📞 Support: support@tradesbook.ie</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const installer = await storage.getInstaller(booking.installerId);
+      const installerEmail = installer ? await sendGmailEmail({
+        to: installer.email,
+        subject,
+        html: htmlContent,
+        from: getValidFromEmail('installer')
+      }) : false;
+
+      return installerEmail;
+    }
+    
+  } catch (error) {
+    console.error(`Error sending pre-installation reminder to ${recipientType}:`, error);
+    return false;
   }
 }
 

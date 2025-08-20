@@ -56,6 +56,7 @@ interface BookingDetails {
     name: string;
     phone: string;
     businessName: string;
+    profileImageUrl?: string;
   };
   jobAssignment?: {
     status: string;
@@ -168,7 +169,7 @@ export default function QRTracking() {
     
     // Calculate urgency for messaging
     const getUrgencyLevel = () => {
-      if (!hasSchedule) return 'standard';
+      if (!hasSchedule || !booking.scheduledDate) return 'standard';
       const scheduled = new Date(booking.scheduledDate);
       const now = new Date();
       const hoursDiff = (scheduled.getTime() - now.getTime()) / (1000 * 60 * 60);
@@ -406,12 +407,29 @@ export default function QRTracking() {
               {booking.installer && (
                 <div className="border-t pt-4">
                   <label className="text-sm font-medium text-gray-500">Assigned Installer</label>
-                  <p className="text-gray-900 font-semibold">{booking.installer.name}</p>
-                  <p className="text-gray-600">{booking.installer.businessName}</p>
-                  <p className="text-gray-600 flex items-center mt-1">
-                    <Phone className="w-4 h-4 mr-2" />
-                    {booking.installer.phone}
-                  </p>
+                  <div className="flex items-start space-x-3 mt-2">
+                    {booking.installer.profileImageUrl ? (
+                      <img 
+                        src={booking.installer.profileImageUrl} 
+                        alt={`${booking.installer.name} profile`}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20">
+                        <span className="text-primary font-semibold text-lg">
+                          {booking.installer.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <p className="text-gray-900 font-semibold">{booking.installer.name}</p>
+                      <p className="text-gray-600">{booking.installer.businessName}</p>
+                      <p className="text-gray-600 flex items-center mt-1">
+                        <Phone className="w-4 h-4 mr-2" />
+                        {booking.installer.phone}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </CardContent>

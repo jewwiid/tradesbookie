@@ -469,9 +469,10 @@ export default function FlexiblePhotoCapture({
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm">{tvName}</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2">
-                    {workflowStage !== 'after' && (
-                      <div className="flex items-center justify-between">
+                  <CardContent className="space-y-3">
+                    {/* Always show before photos when they exist */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-gray-600">Before</span>
                         {beforePhoto ? (
                           <div className="flex items-center gap-1">
@@ -484,17 +485,37 @@ export default function FlexiblePhotoCapture({
                           <X className="h-4 w-4 text-gray-400" />
                         )}
                       </div>
-                    )}
+                      {beforePhoto && (
+                        <div className="w-full h-16 bg-gray-100 rounded overflow-hidden">
+                          <img 
+                            src={beforePhoto.base64} 
+                            alt={`${tvName} Before`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                    </div>
                     {workflowStage !== 'before' && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">After</span>
-                        {afterPhoto ? (
-                          <div className="flex items-center gap-1">
-                            <Check className="h-4 w-4 text-green-500" />
-                            <Badge variant="secondary" className="text-xs">camera</Badge>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-gray-600">After</span>
+                          {afterPhoto ? (
+                            <div className="flex items-center gap-1">
+                              <Check className="h-4 w-4 text-green-500" />
+                              <Badge variant="secondary" className="text-xs">camera</Badge>
+                            </div>
+                          ) : (
+                            <X className="h-4 w-4 text-gray-400" />
+                          )}
+                        </div>
+                        {afterPhoto && (
+                          <div className="w-full h-16 bg-gray-100 rounded overflow-hidden">
+                            <img 
+                              src={afterPhoto.base64} 
+                              alt={`${tvName} After`}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                        ) : (
-                          <X className="h-4 w-4 text-gray-400" />
                         )}
                       </div>
                     )}

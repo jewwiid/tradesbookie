@@ -4143,7 +4143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             qrCode: booking.qrCode,
             createdAt: booking.createdAt,
             // Job assignment specific fields
-            leadFee: assignment.leadFee,
+            leadFee: assignment.leadFee || getLeadFee(booking.serviceType).toString(),
             assignmentStatus: assignment.status,
             assignedDate: assignment.assignedDate,
             isSelected: booking.installerId === installerId, // Whether customer has selected this installer

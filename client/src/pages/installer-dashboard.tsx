@@ -1809,17 +1809,32 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     <>
                       <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div>
-                          <h4 className="font-medium text-yellow-800">Ready to Start Installation</h4>
+                          <h4 className="font-medium text-yellow-800">
+                            {booking.assignmentStatus === 'in_progress' ? 'Work in Progress' : 'Ready to Start Installation'}
+                          </h4>
                           <p className="text-sm text-yellow-600 mt-1">
-                            This job is scheduled and ready to begin. Click "Start Work" when you arrive on-site.
+                            {booking.assignmentStatus === 'in_progress' ? (
+                              'Installation work has begun. Complete via Job Completion tab.'
+                            ) : (
+                              'This job is scheduled and ready to begin. Click "Start Work" when you arrive on-site.'
+                            )}
                           </p>
                         </div>
-                        <StartWorkButton
-                          bookingId={booking.id}
-                          installerId={installerId}
-                          customerName={booking.contactName}
-                          onStatusUpdated={() => refetch()}
-                        />
+                        {booking.assignmentStatus === 'in_progress' ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="px-4 py-2 bg-orange-100 text-orange-800 rounded-lg text-sm font-medium flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                              <span>In Progress</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <StartWorkButton
+                            bookingId={booking.id}
+                            installerId={installerId}
+                            customerName={booking.contactName}
+                            onStatusUpdated={() => refetch()}
+                          />
+                        )}
                       </div>
 
                       {/* Reschedule Option for confirmed jobs */}

@@ -4302,8 +4302,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             continue;
           }
           
-          // Skip if job assignment is not in valid status for messaging
-          if (!['assigned', 'accepted'].includes(assignment.status)) {
+          // Skip if job assignment is not in valid status for active jobs display
+          if (!['assigned', 'accepted', 'in_progress'].includes(assignment.status)) {
             continue;
           }
 

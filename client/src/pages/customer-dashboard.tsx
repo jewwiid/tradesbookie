@@ -2865,8 +2865,8 @@ function BookingCard({
           </div>
         )}
 
-        {/* Schedule Negotiation - Show when installer is assigned and booking is active */}
-        {booking.installer && ['confirmed', 'assigned', 'scheduled', 'in_progress'].includes(booking.status) && (
+        {/* Schedule Negotiation - Show when installer is assigned (regardless of booking status) */}
+        {booking.installer && (
           <div className="mb-4">
             <ScheduleNegotiation
               bookingId={booking.id}

@@ -13401,7 +13401,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       // Find booking by QR code
       const bookings = await storage.getAllBookings();
-      const booking = bookings.find(b => b.qrCode === qrCode);
+      const booking = bookings.find(b => b.qrCode === qrCode || b.qr_code === qrCode);
       
       if (!booking) {
         return res.status(404).json({ error: 'Invalid QR code - booking not found' });

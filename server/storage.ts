@@ -961,7 +961,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllBookings(): Promise<Booking[]> {
-    return await db.select().from(bookings).orderBy(desc(bookings.createdAt));
+    return await db.select().from(bookings);
   }
 
   // Removed: Fee structure operations no longer needed in lead generation model

@@ -41,6 +41,13 @@ export default function ScheduleProposalForm({
   // Check for existing pending proposals from this installer
   const { data: negotiations = [], isLoading, error } = useQuery<any[]>({
     queryKey: ['/api/bookings', bookingId, 'schedule-negotiations'],
+    queryFn: async () => {
+      const response = await fetch(`/api/bookings/${bookingId}/schedule-negotiations`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
     refetchInterval: 5000 // Check every 5 seconds for updates
   });
 

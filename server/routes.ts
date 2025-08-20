@@ -12876,7 +12876,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           isActive: true,
           title: 'Free Leads Promotion Active!',
           description: 'All lead fees are currently waived as part of our special promotion',
-          message: 'Take advantage of this limited-time offer to grow your business without lead costs!'
+          message: 'Take advantage of this limited-time offer to grow your business without lead fees!'
         });
       }
       

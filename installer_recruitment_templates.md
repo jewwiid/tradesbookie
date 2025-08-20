@@ -4,7 +4,7 @@
 tradesbook.ie is a TV installation referral platform that connects skilled tradespeople with customers seeking professional TV installation services. The platform provides a steady stream of qualified leads and offers competitive earning potential with transparent pricing.
 
 ## Core Value Proposition for Installers
-- **Low-cost lead access**: Pay only €12-30 per lead (based on service complexity)
+- **Low-fee lead access**: Pay only €12-30 per lead (based on service complexity)
 - **High earning potential**: €60-400+ per installation depending on service tier
 - **Flexible work**: Accept jobs that fit your schedule and location
 - **AI-powered matching**: Smart system matches you with suitable customers
@@ -30,9 +30,9 @@ Are you a skilled carpenter looking to diversify your income with high-demand in
 - No major equipment investment required
 
 **Your Earning Potential:**
-- **Table Top Installation**: €60-95 per job (Lead cost: €12-18)
-- **Wall Mount Installation**: €120-180 per job (Lead cost: €20-25)
-- **Premium Installation**: €250-400+ per job (Lead cost: €30)
+- **Table Top Installation**: €60-95 per job (Lead fee: €12-18)
+- **Wall Mount Installation**: €120-180 per job (Lead fee: €20-25)
+- **Premium Installation**: €250-400+ per job (Lead fee: €30)
 - **Average monthly potential**: €2,000-5,000+ based on availability
 
 **What We Provide:**
@@ -146,7 +146,7 @@ Join Ireland's fastest-growing TV installation network and earn **€150-400+ pe
 - No major new tool investment required
 
 **Simple Pricing Structure:**
-| Service Level | Customer Pays | Your Lead Cost | Your Earnings |
+| Service Level | Customer Pays | Your Lead Fee | Your Earnings |
 |---------------|---------------|----------------|---------------|
 | Table Setup   | €60-95        | €12-18         | €48-77        |
 | Wall Mount    | €120-180      | €20-25         | €100-155      |
@@ -205,7 +205,7 @@ P.S. Our most successful installers often come from plumbing backgrounds. Your a
 **The Numbers That Matter:**
 - **Average job duration**: 1.5-2.5 hours
 - **Average earnings per job**: €150-300
-- **Lead costs**: Only €12-30 per qualified customer
+- **Lead fees**: Only €12-30 per qualified customer
 - **Monthly potential**: €2,000-5,000+ (part-time)
 - **Customer satisfaction**: 98%+ on our platform
 
@@ -328,7 +328,7 @@ tradesbook.ie Installer Relations
 5. **Professional Tone**: Match the serious, professional nature of trade work
 6. **Multiple Touchpoints**: Follow up with different angles (scheduling flexibility, earning potential, skill transfer)
 7. **Urgency Creation**: Limited spots, high demand, immediate opportunity
-8. **Risk Reduction**: Emphasize low lead costs, secure payments, and support
+8. **Risk Reduction**: Emphasize low lead fees, secure payments, and support
 
 ## Success Metrics to Track:
 

@@ -336,7 +336,7 @@ export default function InstallerLogin() {
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <span className="text-2xl font-bold text-green-600">€12-30</span>
                   </div>
-                  <h4 className="font-semibold text-gray-900 mb-1">Low Lead Costs</h4>
+                  <h4 className="font-semibold text-gray-900 mb-1">Low Lead Fees</h4>
                   <p className="text-sm text-gray-600">Pay only per qualified lead</p>
                 </div>
                 

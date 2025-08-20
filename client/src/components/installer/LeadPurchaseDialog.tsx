@@ -117,7 +117,7 @@ export default function LeadPurchaseDialog({
       toast({
         title: "Lead Purchased Successfully!",
         description: wasVoucherUsed 
-          ? "Your first lead voucher was applied - this lead cost you nothing! Customer details are now available."
+          ? "Your first lead voucher was applied - this lead fee was covered! Customer details are now available."
           : response.message || "Customer contact details are now available in your purchased leads.",
       });
       
@@ -194,7 +194,7 @@ export default function LeadPurchaseDialog({
                   </Badge>
                 </div>
                 <p className="text-sm text-green-700">
-                  Your voucher will cover {voucherAmount} Credits of this lead cost, making this your free first lead!
+                  Your voucher will cover {voucherAmount} Credits of this lead fee, making this your free first lead!
                 </p>
               </CardContent>
             </Card>

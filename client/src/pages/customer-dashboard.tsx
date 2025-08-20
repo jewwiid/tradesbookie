@@ -17,7 +17,7 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51QSj2vLGZvKUWZLCtQl8HfOyevF4qPOJmcWjnF4bXgCgZLx8FDJKY0uAhklZjMvs3dz80jvQVgvJgjOcqvxQKFPw00Hf7N8Flv');
 import { Link, useLocation } from 'wouter';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
@@ -2721,6 +2721,24 @@ function BookingCard({
   const locationData = useLocation();
   const setLocation = locationData?.[1];
   const [showDetails, setShowDetails] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowInstallerSelection(null);
+      }
+    };
+
+    if (showInstallerSelection === booking.id) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showInstallerSelection, booking.id, setShowInstallerSelection]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -2944,7 +2962,7 @@ function BookingCard({
             
             {/* Show installer selection dropdown for pending bookings */}
             {booking.status === 'open' && !booking.installerId && onViewInstallers && (
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <Button 
                   size="sm" 
                   onClick={() => {
@@ -2963,7 +2981,7 @@ function BookingCard({
                 
                 {/* Dropdown List */}
                 {showInstallerSelection === booking.id && selectedBookingInstallers.length > 0 && (
-                  <div className="absolute top-full left-0 bg-white border border-gray-200 rounded-md shadow-xl z-[9999] min-w-80 max-w-96 max-h-96 overflow-y-auto" style={{ transform: 'translateZ(0)' }}>
+                  <div className="absolute top-full left-0 bg-white border border-gray-200 rounded-md shadow-xl z-[9999] min-w-80 max-w-96 max-h-48 overflow-y-auto" style={{ transform: 'translateZ(0)' }}>
                     {selectedBookingInstallers.map((item) => (
                       <div
                         key={item.installer.id}
@@ -2973,8 +2991,23 @@ function BookingCard({
                         }}
                         className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 flex items-center space-x-3"
                       >
-                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-                          <User className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-full flex-shrink-0">
+                          {item.installer.profileImageUrl ? (
+                            <img 
+                              src={item.installer.profileImageUrl} 
+                              alt={item.installer.businessName}
+                              className="w-8 h-8 rounded-full object-cover"
+                              onError={(e) => {
+                                // Fallback to gradient background if image fails to load
+                                e.currentTarget.style.display = 'none';
+                                const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                          ) : null}
+                          <div className={`w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center ${item.installer.profileImageUrl ? 'hidden' : ''}`}>
+                            <User className="w-4 h-4 text-white" />
+                          </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-gray-900 text-sm truncate">{item.installer.businessName}</p>

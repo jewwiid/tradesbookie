@@ -282,45 +282,45 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
               <Camera className="w-4 h-4 mr-2" />
               Installation Photos
             </h5>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {booking.beforeAfterPhotos.map((photo: any, index: number) => {
-                // Debug what type each photo item is
-                console.log('Photo item debug:', { 
-                  index, 
-                  type: typeof photo, 
-                  keys: Object.keys(photo || {}),
-                  values: Object.keys(photo || {}).map(key => ({key, value: photo[key]})),
-                  photo: photo 
-                });
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {booking.beforeAfterPhotos.map((photoSet: any, index: number) => {
+                const tvNumber = (photoSet.tvIndex || 0) + 1;
                 
-                // Handle different possible data structures
-                let photoSrc = '';
-                if (typeof photo === 'string') {
-                  photoSrc = photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`;
-                } else if (photo && typeof photo === 'object') {
-                  // If it's an object, try common property names for image data
-                  photoSrc = photo.url || photo.src || photo.data || photo.base64 || photo.image || '';
-                  if (photoSrc && !photoSrc.startsWith('data:')) {
-                    photoSrc = `data:image/jpeg;base64,${photoSrc}`;
-                  }
-                }
-                
-                return photoSrc ? (
-                  <div key={index} className="space-y-2">
-                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
-                      <img
-                        src={photoSrc}
-                        alt={`Installation photo ${index + 1}`}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
+                return [
+                  // Before Photo
+                  photoSet.beforePhoto && (
+                    <div key={`${index}-before`} className="space-y-2">
+                      <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
+                        <img
+                          src={photoSet.beforePhoto}
+                          alt={`TV ${tvNumber} - Before installation`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 text-center font-medium">
+                        TV {tvNumber} - Before
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-500 text-center">
-                      Photo {index + 1} of {booking.beforeAfterPhotos.length}
-                    </p>
-                  </div>
-                ) : null;
-              })}
+                  ),
+                  // After Photo
+                  photoSet.afterPhoto && (
+                    <div key={`${index}-after`} className="space-y-2">
+                      <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
+                        <img
+                          src={photoSet.afterPhoto}
+                          alt={`TV ${tvNumber} - After installation`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 text-center font-medium">
+                        TV {tvNumber} - After
+                      </p>
+                    </div>
+                  )
+                ].filter(Boolean);
+              }).flat()}
             </div>
           </div>
         )}

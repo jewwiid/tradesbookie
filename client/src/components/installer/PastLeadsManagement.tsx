@@ -436,11 +436,19 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                     <div className="grid grid-cols-2 gap-2 text-sm">
                       <div>
                         <span className="text-gray-500">TV Size:</span>
-                        <p className="font-medium">{lead.tvSize}</p>
+                        {lead.tvQuantity && lead.tvQuantity > 1 && lead.tvInstallations && Array.isArray(lead.tvInstallations) ? (
+                          <p className="font-medium">{lead.tvQuantity} TVs ({lead.tvInstallations.map((tv: any) => tv.tvSize + '"').join(', ')})</p>
+                        ) : (
+                          <p className="font-medium">{lead.tvSize}</p>
+                        )}
                       </div>
                       <div>
                         <span className="text-gray-500">Service:</span>
-                        <p className="font-medium">{lead.serviceType}</p>
+                        {lead.tvQuantity && lead.tvQuantity > 1 && lead.tvInstallations && Array.isArray(lead.tvInstallations) ? (
+                          <p className="font-medium">{lead.tvInstallations.map((tv: any) => tv.serviceType).join(', ')}</p>
+                        ) : (
+                          <p className="font-medium">{lead.serviceType}</p>
+                        )}
                       </div>
                       <div>
                         <span className="text-gray-500">Job Value:</span>

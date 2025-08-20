@@ -8964,7 +8964,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         mountType: booking.mountType || "Fixed",
         addons: booking.addons || [],
         estimatedPrice: booking.estimatedPrice || booking.totalPrice || "0",
-        leadFee: (booking as any).leadFee || "0",
+        leadFee: (booking as any).jobLeadFee || getLeadFee(booking.serviceType).toString(),
         status: (booking as any).jobAssignmentStatus || booking.status, // Use job assignment status
         scheduledDate: booking.scheduledDate,
         completedDate: booking.completedDate,

@@ -878,12 +878,12 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
               <div className="border rounded-lg p-3 sm:p-4">
                 <h3 className="font-semibold mb-3 text-base sm:text-lg">Service Specifications</h3>
                 
-                {request.tvQuantity && request.tvQuantity > 1 && request.tvInstallations ? (
+                {request.tvInstallations && Array.isArray(request.tvInstallations) && request.tvInstallations.length > 1 ? (
                   /* Multi-TV Installation Details */
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-4">
                       <Tv className="w-5 h-5 text-primary" />
-                      <span className="font-semibold text-base">Multiple TV Installation ({request.tvQuantity} TVs)</span>
+                      <span className="font-semibold text-base">Multiple TV Installation ({request.tvInstallations.length} TVs)</span>
                     </div>
                     
                     {request.tvInstallations.map((tv: any, index: number) => (

@@ -654,7 +654,10 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                           <h3 className="font-semibold text-gray-900">{lead.address}</h3>
                           <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
                             <Tv className="w-3 h-3" />
-                            {lead.tvSize}" • {lead.serviceType}
+                            {lead.tvInstallations && Array.isArray(lead.tvInstallations) && lead.tvInstallations.length > 1 
+                              ? `${lead.tvInstallations.length} TVs (${lead.tvInstallations.map((tv: any) => `${tv.tvSize}" ${tv.location || tv.roomName || ''}`).join(', ')})` 
+                              : `${lead.tvSize}" • ${lead.serviceType}`
+                            }
                           </p>
                         </div>
                         <Badge variant="outline" className="border-orange-300 text-orange-800">
@@ -712,7 +715,12 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
               <div className="bg-gray-50 p-3 rounded">
                 <h3 className="font-medium">{selectedLead.customerName}</h3>
                 <p className="text-sm text-gray-600">{selectedLead.address}</p>
-                <p className="text-sm text-gray-600">{selectedLead.tvSize} • {selectedLead.serviceType}</p>
+                <p className="text-sm text-gray-600">
+                  {selectedLead.tvInstallations && Array.isArray(selectedLead.tvInstallations) && selectedLead.tvInstallations.length > 1 
+                    ? `${selectedLead.tvInstallations.length} TVs (${selectedLead.tvInstallations.map((tv: any) => `${tv.tvSize}" ${tv.location || tv.roomName || ''}`).join(', ')})` 
+                    : `${selectedLead.tvSize} • ${selectedLead.serviceType}`
+                  }
+                </p>
               </div>
               
               <div>

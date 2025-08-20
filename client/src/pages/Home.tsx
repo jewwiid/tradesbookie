@@ -364,55 +364,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Solar Panel Installation Banner */}
-      <section className="py-12 bg-gradient-to-r from-yellow-50 via-orange-50 to-yellow-100 border-t border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            <div className="p-8 lg:p-12">
-              <div className="flex items-center justify-between flex-wrap gap-8">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mr-4">
-                      <Zap className="h-6 w-6 text-white" />
-                    </div>
-                    <Badge className="bg-green-100 text-green-800 px-3 py-1 text-sm font-semibold">
-                      New Partnership
-                    </Badge>
-                  </div>
-                  <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
-                    Go Solar & Save with OHK Energy
-                  </h2>
-                  <p className="text-lg text-gray-600 mb-4">
-                    Get up to €2,400 in SEAI grants for your solar panel installation. Free consultation and quote available.
-                  </p>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                      15+ Years Experience
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                      SEAI Approved
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                      25-Year Warranty
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Link href="/solar-enquiry">
-                    <Button className="inline-flex items-center bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
-                      <Bolt className="mr-3 h-5 w-5" />
-                      Get Free Solar Quote
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Track Your Booking Section */}
       <section className="py-12 bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-gray-100">
@@ -827,6 +778,56 @@ export default function Home() {
                 </div>
               </div>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* OHK Energy Solar Banner - Moved to bottom with improved mobile formatting */}
+      <section className="py-8 md:py-12 bg-gradient-to-r from-yellow-50 via-orange-50 to-yellow-100 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="p-6 md:p-8 lg:p-12">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 lg:gap-8">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Zap className="h-6 w-6 text-white" />
+                    </div>
+                    <Badge className="bg-green-100 text-green-800 px-3 py-1 text-sm font-semibold w-fit">
+                      New Partnership
+                    </Badge>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 leading-tight">
+                    Go Solar & Save with OHK Energy
+                  </h2>
+                  <p className="text-base sm:text-lg text-gray-600 mb-4 leading-relaxed">
+                    Get up to €2,400 in SEAI grants for your solar panel installation. Free consultation and quote available.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-sm text-gray-500">
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-600 mr-2 flex-shrink-0" />
+                      <span>15+ Years Experience</span>
+                    </div>
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-600 mr-2 flex-shrink-0" />
+                      <span>SEAI Approved</span>
+                    </div>
+                    <div className="flex items-center">
+                      <CheckCircle className="h-4 w-4 text-green-600 mr-2 flex-shrink-0" />
+                      <span>25-Year Warranty</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full lg:w-auto lg:flex-shrink-0">
+                  <Link href="/solar-enquiry" className="block w-full lg:w-auto">
+                    <Button className="w-full lg:w-auto inline-flex items-center justify-center bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl">
+                      <Bolt className="mr-2 sm:mr-3 h-4 sm:h-5 w-4 sm:w-5 flex-shrink-0" />
+                      <span className="whitespace-nowrap">Get Free Solar Quote</span>
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

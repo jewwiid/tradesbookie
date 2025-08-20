@@ -1055,9 +1055,34 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                       }>
                         {scheduleInfo?.status || 'No schedule proposals'}
                       </Badge>
-                      <Badge className={statusColors[selectedLead.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
-                        {statusLabels[selectedLead.status as keyof typeof statusLabels] || selectedLead.status}
-                      </Badge>
+{(() => {
+                        // Get negotiations for this specific lead to determine proper status
+                        const leadNegotiations = negotiations || [];
+                        const sortedNegotiations = leadNegotiations.sort((a: any, b: any) => 
+                          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                        );
+                        const latestNegotiation = sortedNegotiations[0];
+                        
+                        // Determine the proper status based on latest negotiation
+                        let badgeStatus = selectedLead.status;
+                        let badgeText = statusLabels[selectedLead.status as keyof typeof statusLabels] || selectedLead.status;
+                        
+                        if (latestNegotiation) {
+                          if (latestNegotiation.status === 'pending') {
+                            badgeStatus = 'proposal_pending';
+                            badgeText = 'Proposal Pending';
+                          } else if (latestNegotiation.status === 'accepted') {
+                            badgeStatus = 'accepted';
+                            badgeText = 'Schedule Confirmed';
+                          }
+                        }
+                        
+                        return (
+                          <Badge className={statusColors[badgeStatus as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
+                            {badgeText}
+                          </Badge>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="space-y-1">

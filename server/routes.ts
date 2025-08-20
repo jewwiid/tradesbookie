@@ -4850,6 +4850,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Anonymous review route (for public review forms)
   app.post("/api/public-reviews", async (req, res) => {
+    console.log('🌐 PUBLIC REVIEWS ENDPOINT HIT - This should NOT happen for authenticated users!');
+    console.log('🌐 req.body:', req.body);
     try {
       const { bookingId, installerId, userId, rating, title, comment, reviewerName, qrCode } = req.body;
       

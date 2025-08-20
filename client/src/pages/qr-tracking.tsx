@@ -446,7 +446,14 @@ export default function QRTracking() {
                 <div key={proposal.id} className="mt-4 p-4 border-2 border-amber-200 bg-amber-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-3">
                     <MessageSquare className="w-5 h-5 text-amber-600" />
-                    <label className="text-sm font-medium text-amber-800">New Schedule Proposal</label>
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-amber-800">New Schedule Proposal</label>
+                      {proposal.installer && (
+                        <p className="text-xs text-amber-700 mt-1">
+                          from <strong>{proposal.installer.businessName || `${proposal.installer.firstName} ${proposal.installer.lastName}`}</strong>
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2 mb-4">
                     <p className="text-amber-900 font-medium">

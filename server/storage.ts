@@ -1834,9 +1834,34 @@ export class DatabaseStorage implements IStorage {
     return newNegotiation;
   }
 
-  async getBookingScheduleNegotiations(bookingId: number): Promise<ScheduleNegotiation[]> {
-    return await db.select()
+  async getBookingScheduleNegotiations(bookingId: number): Promise<any[]> {
+    return await db.select({
+      id: scheduleNegotiations.id,
+      bookingId: scheduleNegotiations.bookingId,
+      installerId: scheduleNegotiations.installerId,
+      proposedDate: scheduleNegotiations.proposedDate,
+      proposedTimeSlot: scheduleNegotiations.proposedTimeSlot,
+      proposedStartTime: scheduleNegotiations.proposedStartTime,
+      proposedEndTime: scheduleNegotiations.proposedEndTime,
+      proposalMessage: scheduleNegotiations.proposalMessage,
+      status: scheduleNegotiations.status,
+      proposedBy: scheduleNegotiations.proposedBy,
+      responseMessage: scheduleNegotiations.responseMessage,
+      createdAt: scheduleNegotiations.createdAt,
+      updatedAt: scheduleNegotiations.updatedAt,
+      proposedAt: scheduleNegotiations.proposedAt,
+      respondedAt: scheduleNegotiations.respondedAt,
+      // Include installer info
+      installer: {
+        id: installers.id,
+        businessName: installers.businessName,
+        firstName: installers.firstName,
+        lastName: installers.lastName,
+        profileImageUrl: installers.profileImageUrl,
+      }
+    })
       .from(scheduleNegotiations)
+      .leftJoin(installers, eq(scheduleNegotiations.installerId, installers.id))
       .where(eq(scheduleNegotiations.bookingId, bookingId))
       .orderBy(desc(scheduleNegotiations.createdAt));
   }

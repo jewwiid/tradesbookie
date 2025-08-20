@@ -9015,7 +9015,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Review endpoints
   app.post("/api/reviews", isAuthenticated, async (req, res) => {
     try {
-      const userId = (req.user as any)?.claims?.sub;
+      const userId = (req.user as any)?.id || (req.user as any)?.claims?.sub;
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }

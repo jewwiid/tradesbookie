@@ -244,10 +244,10 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
           </div>
           <div className="flex items-center space-x-2">
             <Calendar className="w-4 h-4" />
-            <span>Completed: {(booking as any).completedAt ? new Date((booking as any).completedAt).toLocaleDateString('en-US', {
+            <span>Completed: {(booking as any).completedAt ? new Date((booking as any).completedAt).toLocaleDateString('en-GB', {
               year: 'numeric',
-              month: '2-digit',
-              day: '2-digit'
+              month: 'long',
+              day: 'numeric'
             }) : 'Date not available'}</span>
           </div>
         </div>
@@ -276,7 +276,15 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
         )}
 
         {/* Installation Photos */}
-        {booking.beforeAfterPhotos && typeof booking.beforeAfterPhotos === 'string' && booking.beforeAfterPhotos.trim() && (
+        {(() => {
+          console.log('Photo debug:', {
+            hasField: !!booking.beforeAfterPhotos,
+            type: typeof booking.beforeAfterPhotos,
+            value: booking.beforeAfterPhotos,
+            length: booking.beforeAfterPhotos ? booking.beforeAfterPhotos.length : 0
+          });
+          return booking.beforeAfterPhotos && typeof booking.beforeAfterPhotos === 'string' && booking.beforeAfterPhotos.trim();
+        })() && (
           <div className="bg-gray-50 p-4 rounded-lg">
             <h5 className="font-medium mb-3 flex items-center">
               <Camera className="w-4 h-4 mr-2" />

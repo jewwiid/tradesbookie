@@ -3765,18 +3765,32 @@ function StartWorkButton({
   const startWorkMutation = useMutation({
     mutationFn: async () => {
       // Find the job assignment for this booking and installer
-      const jobAssignments = await apiRequest('GET', `/api/installer/${installerId}/job-assignments`);
-      const jobAssignment = jobAssignments.find((job: any) => job.bookingId === bookingId);
-      
-      if (!jobAssignment) {
-        throw new Error('Job assignment not found');
+      try {
+        const jobAssignments = await apiRequest('GET', `/api/installer/${installerId}/job-assignments`);
+        
+        // Check if response is an array
+        if (!Array.isArray(jobAssignments)) {
+          throw new Error('Failed to fetch job assignments - invalid response format');
+        }
+        
+        const jobAssignment = jobAssignments.find((job: any) => job.bookingId === bookingId);
+        
+        if (!jobAssignment) {
+          throw new Error('Job assignment not found');
+        }
+        
+        // Update job status to in_progress
+        const response = await apiRequest('POST', `/api/installer/update-job-status/${jobAssignment.id}`, {
+          status: 'in_progress'
+        });
+        return response;
+      } catch (error: any) {
+        // Provide more specific error messages
+        if (error.message?.includes('Not authenticated')) {
+          throw new Error('Authentication required - please refresh the page and try again');
+        }
+        throw error;
       }
-      
-      // Update job status to in_progress
-      const response = await apiRequest('POST', `/api/installer/update-job-status/${jobAssignment.id}`, {
-        status: 'in_progress'
-      });
-      return response;
     },
     onSuccess: () => {
       toast({

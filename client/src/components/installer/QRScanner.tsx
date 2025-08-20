@@ -15,9 +15,10 @@ interface QRScannerProps {
   onScanSuccess: (result: string) => void;
   onError?: (error: string) => void;
   isLoading?: boolean;
+  clearResult?: boolean; // Add prop to clear scanner state
 }
 
-export default function QRScanner({ onScanSuccess, onError, isLoading }: QRScannerProps) {
+export default function QRScanner({ onScanSuccess, onError, isLoading, clearResult }: QRScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [scanResult, setScanResult] = useState<string>('');
@@ -36,6 +37,19 @@ export default function QRScanner({ onScanSuccess, onError, isLoading }: QRScann
       }
     };
   }, []);
+
+  // Clear scanner state when clearResult prop changes
+  useEffect(() => {
+    if (clearResult) {
+      setScanResult('');
+      setScanError('');
+      setIsScanning(false);
+      if (scannerRef.current) {
+        scannerRef.current.destroy();
+        scannerRef.current = null;
+      }
+    }
+  }, [clearResult]);
 
   const checkCameraPermission = async () => {
     try {

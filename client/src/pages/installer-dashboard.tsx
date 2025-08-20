@@ -2012,6 +2012,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [showPhotoCapture, setShowPhotoCapture] = useState(false);
   const [showBeforeAfterCapture, setShowBeforeAfterCapture] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<any>(null);
+  const [clearScanner, setClearScanner] = useState(false);
   const { toast } = useToast();
 
   // Clear verification data when component mounts (tab switch)
@@ -2021,6 +2022,14 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     setCompletionSuccess('');
     setCurrentBooking(null);
     setShowBeforeAfterCapture(false);
+    setClearScanner(true); // Trigger QR scanner clear
+    
+    // Reset the clear flag after a brief delay
+    const timer = setTimeout(() => {
+      setClearScanner(false);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   // Fetch in-progress jobs for this installer
@@ -2232,6 +2241,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
               onScanSuccess={handleQRScan}
               onError={(error) => setScanError(error)}
               isLoading={verifyQRMutation.isPending || completeJobMutation.isPending}
+              clearResult={clearScanner}
             />
           
           {/* Success/Error Messages */}

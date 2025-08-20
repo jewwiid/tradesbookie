@@ -60,8 +60,16 @@ export default function QRScanner({ onScanSuccess, onError, isLoading }: QRScann
       scannerRef.current = new QrScanner(
         videoRef.current,
         (result) => {
-          setScanResult(result.data);
-          onScanSuccess(result.data);
+          let scannedData = result.data;
+          
+          // Extract QR code from URL if it's a full URL
+          if (scannedData.includes('/qr-tracking/')) {
+            const parts = scannedData.split('/qr-tracking/');
+            scannedData = parts[1] || result.data;
+          }
+          
+          setScanResult(result.data); // Show full URL in UI
+          onScanSuccess(scannedData); // Send just the QR code to verification
           stopScanning();
         },
         {

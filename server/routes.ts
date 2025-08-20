@@ -2535,6 +2535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           name: installer.contactName,
           businessName: installer.businessName,
           phone: installer.phone,
+          email: installer.email,
           profileImageUrl: installer.profileImageUrl
         } : null,
         jobAssignment: jobAssignment ? {

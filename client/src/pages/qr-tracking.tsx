@@ -62,6 +62,7 @@ interface BookingDetails {
     id: number;
     name: string;
     phone: string;
+    email: string;
     businessName: string;
     profileImageUrl?: string;
   };
@@ -605,6 +606,12 @@ export default function QRTracking() {
                         <Phone className="w-4 h-4 mr-2" />
                         {booking.installer.phone}
                       </p>
+                      {booking.installer.email && (
+                        <p className="text-gray-600 flex items-center mt-1">
+                          <Mail className="w-4 h-4 mr-2" />
+                          {booking.installer.email}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

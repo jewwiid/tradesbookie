@@ -5776,27 +5776,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case 'completed':
           await storage.updateBookingStatus(job.bookingId, "completed");
           
-          // Calculate earnings (installer keeps customer payment minus lead fee)
-          const estimatedEarnings = 150.00; // Average job earnings
-          
-          // Update total earned in wallet
-          const wallet = await storage.getInstallerWallet(installerId);
-          if (wallet) {
-            const currentEarned = parseFloat(wallet.totalEarned);
-            const newTotalEarned = currentEarned + estimatedEarnings;
-            await storage.updateInstallerWalletTotalEarned(installerId, newTotalEarned);
-          }
-          
-          // Create earnings transaction record
-          await storage.addInstallerTransaction({
-            installerId: installerId,
-            type: "completion",
-            amount: estimatedEarnings.toString(),
-            description: `Job completion earnings for booking #${job.bookingId}`,
-            jobAssignmentId: jobId,
-            status: "completed"
-          });
-          
           // Send completion notification to customer
           const booking = await storage.getBooking(job.bookingId);
           if (booking) {

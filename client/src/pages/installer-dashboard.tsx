@@ -2020,17 +2020,102 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [takingAfterPhotos, setTakingAfterPhotos] = useState(false); // Track if currently taking after photos
   const { toast } = useToast();
 
-  // Clear verification data when component mounts (tab switch)
+  // Persist workflow state to localStorage
+  const saveWorkflowState = (state: {
+    selectedJobId?: number;
+    showBeforePhotos?: boolean;
+    beforePhotosCompleted?: boolean;
+    takingAfterPhotos?: boolean;
+    verificationData?: any;
+  }) => {
+    if (!installerId) return;
+    const stateKey = `installer_${installerId}_workflow_state`;
+    const currentState = JSON.parse(localStorage.getItem(stateKey) || '{}');
+    const newState = { ...currentState, ...state };
+    localStorage.setItem(stateKey, JSON.stringify(newState));
+  };
+
+  // Restore workflow state from localStorage
+  const getWorkflowState = () => {
+    if (!installerId) return null;
+    const stateKey = `installer_${installerId}_workflow_state`;
+    try {
+      return JSON.parse(localStorage.getItem(stateKey) || '{}');
+    } catch {
+      return {};
+    }
+  };
+
+  // Clear workflow state
+  const clearWorkflowState = () => {
+    if (!installerId) return;
+    const stateKey = `installer_${installerId}_workflow_state`;
+    localStorage.removeItem(stateKey);
+  };
+
+  // Restore workflow state when component mounts and after data is loaded
   useEffect(() => {
-    setVerificationData(null);
+    if (!installerId || !inProgressJobs || inProgressJobs.length === 0) return;
+
+    const restoreWorkflowState = async () => {
+      const savedState = getWorkflowState();
+      
+      // Check for active job with photo progress from server data
+      for (const job of inProgressJobs) {
+        try {
+          const photoProgressResponse = await fetch(`/api/installer/photo-progress/${job.id}`, {
+            method: 'GET',
+            credentials: 'include'
+          });
+          
+          if (photoProgressResponse.ok) {
+            const photoData = await photoProgressResponse.json();
+            const hasBeforePhotos = photoData?.progress?.some((p: any) => p.beforePhotoUrl);
+            
+            if (hasBeforePhotos) {
+              // Job has before photos - restore appropriate state
+              setSelectedJob(job);
+              setBeforePhotosCompleted(true);
+              
+              // If there's saved state indicating QR scan or after photos, restore that too
+              if (savedState?.selectedJobId === job.id) {
+                if (savedState.verificationData) setVerificationData(savedState.verificationData);
+                if (savedState.takingAfterPhotos) setTakingAfterPhotos(true);
+              }
+              
+              return; // Exit after restoring first job with progress
+            }
+          }
+        } catch (error) {
+          console.log(`Error checking photo progress for job ${job.id}:`, error);
+        }
+      }
+      
+      // Fallback to saved state if no server data found
+      if (savedState && savedState.selectedJobId) {
+        const savedJob = inProgressJobs.find((job: any) => job.id === savedState.selectedJobId);
+        if (savedJob) {
+          setSelectedJob(savedJob);
+          if (savedState.showBeforePhotos) setShowBeforePhotos(true);
+          if (savedState.beforePhotosCompleted) setBeforePhotosCompleted(true);
+          if (savedState.takingAfterPhotos) setTakingAfterPhotos(true);
+          if (savedState.verificationData) setVerificationData(savedState.verificationData);
+        } else {
+          clearWorkflowState(); // Clear if job no longer exists
+        }
+      }
+    };
+
+    restoreWorkflowState();
+  }, [installerId, inProgressJobs]);
+
+  // Clear temporary UI state when component initially mounts (but preserve workflow state)
+  useEffect(() => {
     setScanError('');
     setCompletionSuccess('');
     setCurrentBooking(null);
     setShowBeforeAfterCapture(false);
-    setSelectedJob(null);
-    setShowBeforePhotos(false);
-    setBeforePhotosCompleted(false);
-    setTakingAfterPhotos(false);
+    // Don't reset workflow state here - it will be restored by the other useEffect
     setClearScanner(true); // Trigger QR scanner clear
     
     // Reset the clear flag after a brief delay
@@ -2092,7 +2177,13 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
       const isPostWorkScan = timeElapsedMinutes > 30; // If more than 30 minutes, assume work is done
       
       // Store the timing context in verification data
-      setVerificationData({ ...data, isPostWorkScan });
+      const verificationDataWithTiming = { ...data, isPostWorkScan };
+      setVerificationData(verificationDataWithTiming);
+      
+      // Save verification data to localStorage
+      saveWorkflowState({
+        verificationData: verificationDataWithTiming
+      });
       
       if (tvCount > 0) {
         // For post-work QR scans, show after photo capture
@@ -2191,6 +2282,13 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const handleStartJob = (job: any) => {
     setSelectedJob(job);
     setShowBeforePhotos(true);
+    // Save to localStorage
+    saveWorkflowState({
+      selectedJobId: job.id,
+      showBeforePhotos: true,
+      beforePhotosCompleted: false,
+      takingAfterPhotos: false
+    });
     toast({
       title: "Starting Job",
       description: `Take before photos first, then scan QR code to unlock the job.`,
@@ -2201,6 +2299,13 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     setSelectedJob(job);
     setBeforePhotosCompleted(false); // Allow retaking photos
     setShowBeforePhotos(true);
+    // Save to localStorage
+    saveWorkflowState({
+      selectedJobId: job.id,
+      showBeforePhotos: true,
+      beforePhotosCompleted: false,
+      takingAfterPhotos: false
+    });
     toast({
       title: "Edit Photos",
       description: `Retake before photos for this installation.`,
@@ -2210,6 +2315,11 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const handleBeforePhotosCompleted = (photos: any[]) => {
     setBeforePhotosCompleted(true);
     setShowBeforePhotos(false);
+    // Save to localStorage
+    saveWorkflowState({
+      showBeforePhotos: false,
+      beforePhotosCompleted: true
+    });
     toast({
       title: "Before Photos Complete!",
       description: `Now scan the customer's QR code to unlock and start the job.`,
@@ -2220,6 +2330,8 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     setShowBeforePhotos(false);
     setSelectedJob(null);
     setBeforePhotosCompleted(false);
+    // Clear workflow state since job was cancelled
+    clearWorkflowState();
     toast({
       title: "Photo capture cancelled",
       description: "Job start cancelled. You can try again anytime.",
@@ -2229,6 +2341,8 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
 
   const handleAfterPhotosCompleted = (photos: any[]) => {
     setTakingAfterPhotos(false);
+    // Clear workflow state since job is completed
+    clearWorkflowState();
     handleCompleteJob(photos);
   };
   
@@ -2459,6 +2573,10 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                         onClick={() => {
                           setTakingAfterPhotos(true);
                           setShowBeforeAfterCapture(true);
+                          // Save to localStorage
+                          saveWorkflowState({
+                            takingAfterPhotos: true
+                          });
                         }}
                         className="bg-green-600 hover:bg-green-700"
                       >

@@ -9013,6 +9013,45 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Get review for a specific booking (check if user already reviewed)
+  app.get("/api/bookings/:bookingId/review", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any)?.id || (req.user as any)?.claims?.sub;
+      const bookingId = parseInt(req.params.bookingId);
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User ID required" });
+      }
+      
+      // Check if user has already reviewed this booking
+      const existingReview = await db
+        .select({
+          id: reviews.id,
+          rating: reviews.rating,
+          title: reviews.title,
+          comment: reviews.comment,
+          createdAt: reviews.createdAt
+        })
+        .from(reviews)
+        .where(
+          and(
+            eq(reviews.bookingId, bookingId),
+            eq(reviews.userId, userId)
+          )
+        )
+        .limit(1);
+      
+      if (existingReview.length > 0) {
+        return res.json(existingReview[0]);
+      } else {
+        return res.status(404).json({ message: "No review found" });
+      }
+    } catch (error) {
+      console.error("Error fetching booking review:", error);
+      res.status(500).json({ message: "Failed to fetch review" });
+    }
+  });
+
   // Review endpoints
   app.post("/api/reviews", isAuthenticated, async (req, res) => {
     try {

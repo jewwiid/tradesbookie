@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Star, CheckCircle, User, Calendar, MapPin } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -52,9 +52,51 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
   
   const { toast } = useToast();
 
+  // Check for existing review
+  const { data: existingReviewData, isLoading: reviewLoading } = useQuery({
+    queryKey: ['/api/bookings', booking.id, 'review'],
+    queryFn: async () => {
+      try {
+        return await apiRequest('GET', `/api/bookings/${booking.id}/review`);
+      } catch (error: any) {
+        // 404 means no review exists, which is fine
+        if (error.message?.includes('404')) {
+          return null;
+        }
+        throw error;
+      }
+    },
+    enabled: booking.status === 'completed' && !!booking.installerId
+  });
+
+  // Update state when existing review data is loaded
+  useEffect(() => {
+    if (existingReviewData) {
+      setExistingReview(existingReviewData);
+      setHasSubmittedReview(true);
+      // Populate form with existing review data
+      setRating(existingReviewData.rating);
+      setTitle(existingReviewData.title);
+      setComment(existingReviewData.comment);
+    }
+  }, [existingReviewData]);
+
   // Check if booking can be reviewed
   const canReview = booking.status === 'completed' && booking.installerId && !hasSubmittedReview && !existingReview;
   const showReviewForm = canReview || existingReview;
+  
+  // Show loading state while checking for existing reviews
+  if (reviewLoading) {
+    return (
+      <Card className="mt-6">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="text-sm text-gray-500">Checking review status...</div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const submitReviewMutation = useMutation({
     mutationFn: async (reviewData: any) => {

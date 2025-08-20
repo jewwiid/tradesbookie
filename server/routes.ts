@@ -10713,6 +10713,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           wallType: booking.wallType,
           mountType: booking.mountType,
           addons: booking.addons || [],
+          tvInstallations: booking.tvInstallations || null, // Include multi-TV data
           estimatedTotal: estimatedTotal.toFixed(2),
           leadFee,
           estimatedEarnings: Math.max(0, estimatedEarnings),

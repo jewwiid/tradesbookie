@@ -125,7 +125,7 @@ export async function sendReviewRequest(booking: any, installer: any): Promise<b
     The Tradesbook Team
   `;
 
-  return await sendEmail({
+  return await sendGmailEmail({
     to: booking.customerEmail,
     subject,
     html,

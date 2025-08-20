@@ -2374,11 +2374,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .filter(n => n.status === 'accepted')
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
       
+      // Format the date properly (extract just the date part from ISO string)
+      let formattedScheduledDate = booking.scheduledDate;
+      if (latestAcceptedSchedule?.proposedDate) {
+        const dateObj = new Date(latestAcceptedSchedule.proposedDate);
+        formattedScheduledDate = dateObj.toISOString().split('T')[0]; // Gets YYYY-MM-DD format
+      }
+      
       // Format response with all tracking information
       const trackingData = {
         ...booking,
         // Override with latest accepted schedule if available
-        scheduledDate: latestAcceptedSchedule?.proposedDate || booking.scheduledDate,
+        scheduledDate: formattedScheduledDate,
         scheduledTime: latestAcceptedSchedule?.proposedTimeSlot || booking.preferredTime,
         installer: installer ? {
           id: installer.id,

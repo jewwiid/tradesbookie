@@ -68,7 +68,8 @@ interface BookingDetails {
 const statusSteps = [
   { key: "pending", label: "Booking Received", icon: Clock, color: "bg-blue-500" },
   { key: "assigned", label: "Installer Assigned", icon: Wrench, color: "bg-purple-500" },
-  { key: "confirmed", label: "Installer Confirmed", icon: CheckCircle, color: "bg-blue-500" },
+  { key: "confirmed", label: "Schedule Confirmed", icon: CheckCircle, color: "bg-blue-500" },
+  { key: "scheduled", label: "Installation Scheduled", icon: Calendar, color: "bg-green-500" },
   { key: "in_progress", label: "Installation in Progress", icon: Home, color: "bg-orange-500" },
   { key: "completed", label: "Installation Complete", icon: Star, color: "bg-emerald-500" }
 ];
@@ -149,10 +150,10 @@ export default function QRTracking() {
       'pending': 0,     // Booking received
       'assigned': 1,    // Installer assigned
       'confirmed': 2,   // Installer confirmed
-      'scheduled': 2,   // Installation scheduled (same as confirmed)
-      'in_progress': 3, // Installation in progress
-      'in-progress': 3, // Installation in progress (alternative format)
-      'completed': 4    // Installation complete
+      'scheduled': 3,   // Installation scheduled
+      'in_progress': 4, // Installation in progress
+      'in-progress': 4, // Installation in progress (alternative format)
+      'completed': 5    // Installation complete
     };
     
     return statusMapping[currentStatus] ?? 0; // Default to first step if status not found
@@ -163,20 +164,35 @@ export default function QRTracking() {
     
     const status = booking.jobAssignment?.status || booking.status;
     const hasInstaller = booking.installer;
+    const hasSchedule = booking.scheduledDate;
+    
+    // Calculate urgency for messaging
+    const getUrgencyLevel = () => {
+      if (!hasSchedule) return 'standard';
+      const scheduled = new Date(booking.scheduledDate);
+      const now = new Date();
+      const hoursDiff = (scheduled.getTime() - now.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursDiff <= 24) return 'emergency';
+      if (hoursDiff <= 48) return 'urgent';
+      return 'standard';
+    };
+    
+    const urgency = getUrgencyLevel();
+    const urgencyText = urgency === 'emergency' ? ' (within 24 hours)' : urgency === 'urgent' ? ' (within 48 hours)' : '';
     
     switch (stepIndex) {
       case 0: // Booking Received
         return "Your booking has been received and is being processed";
       case 1: // Installer Assigned
         return hasInstaller ? "An installer has been assigned to your booking" : "Looking for available installers in your area";
-      case 2: // Installer Confirmed / Scheduled
-        if (status === 'scheduled') {
-          return "Your installation has been scheduled and confirmed";
-        }
+      case 2: // Installer Confirmed
         return "Your installer has confirmed and will contact you soon";
-      case 3: // Installation in Progress
+      case 3: // Installation Scheduled
+        return `Your installation has been scheduled and confirmed${urgencyText}`;
+      case 4: // Installation in Progress
         return "Installation work is currently in progress";
-      case 4: // Installation Complete
+      case 5: // Installation Complete
         return "Your installation has been completed successfully";
       default:
         return null;
@@ -346,7 +362,14 @@ export default function QRTracking() {
               {booking.scheduledDate && (
                 <div>
                   <label className="text-sm font-medium text-gray-500">Scheduled Date</label>
-                  <p className="text-gray-900">{booking.scheduledDate} {booking.scheduledTime}</p>
+                  <p className="text-gray-900">
+                    {new Date(booking.scheduledDate).toLocaleDateString('en-IE', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })} at {booking.scheduledTime}
+                  </p>
                 </div>
               )}
             </CardContent>

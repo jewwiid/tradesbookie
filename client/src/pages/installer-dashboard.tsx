@@ -1143,7 +1143,14 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
   const monthEnd = endOfMonth(currentDate);
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Group active bookings by scheduled date
+  // Fetch pending proposals to include in calendar
+  const { data: pendingProposals = [] } = useQuery({
+    queryKey: [`/api/installer/${activeBookings[0]?.installerId}/schedule-negotiations`],
+    enabled: activeBookings.length > 0,
+    refetchInterval: 30000
+  });
+
+  // Group active bookings by scheduled date AND include pending proposals
   const jobsByDate = activeBookings.reduce((acc: Record<string, any[]>, job: any) => {
     // Use scheduledDate if available, otherwise use created date for pending jobs
     const jobDate = job.scheduledDate || job.createdAt;
@@ -1152,23 +1159,43 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
-      acc[dateKey].push(job);
+      acc[dateKey].push({...job, isConfirmed: true});
     }
     return acc;
   }, {});
+
+  // Add pending proposals to the calendar
+  pendingProposals
+    .filter((proposal: any) => proposal.status === 'pending' && proposal.proposedBy === 'installer')
+    .forEach((proposal: any) => {
+      const dateKey = format(new Date(proposal.proposedDate), 'yyyy-MM-dd');
+      if (!jobsByDate[dateKey]) {
+        jobsByDate[dateKey] = [];
+      }
+      jobsByDate[dateKey].push({
+        ...proposal,
+        isProposed: true,
+        contactName: proposal.customerName || 'Customer',
+        status: 'proposed'
+      });
+    });
 
   // Get jobs for selected date
   const selectedDateJobs = selectedDate 
     ? jobsByDate[format(selectedDate, 'yyyy-MM-dd')] || []
     : [];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
+  const getStatusColor = (job: any) => {
+    if (job.isProposed) {
+      return 'bg-amber-100 text-amber-800 border-amber-300'; // Proposed dates
+    }
+    switch (job.status) {
       case 'confirmed': return 'bg-blue-100 text-blue-800';
       case 'assigned': return 'bg-yellow-100 text-yellow-800';
       case 'in_progress': return 'bg-orange-100 text-orange-800';
       case 'completed': return 'bg-green-100 text-green-800';
       case 'competing': return 'bg-purple-100 text-purple-800';
+      case 'scheduled': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -1251,13 +1278,14 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
                         <div
                           key={job.id}
                           className={`text-xs px-1 py-0.5 rounded truncate ${
+                            job.isProposed ? 'bg-amber-500 text-white' :
                             job.status === 'confirmed' ? 'bg-green-500 text-white' :
                             job.status === 'competing' ? 'bg-purple-500 text-white' :
                             'bg-blue-500 text-white'
                           }`}
-                          title={`${job.contactName} - ${job.serviceType}`}
+                          title={`${job.contactName} - ${job.serviceType}${job.isProposed ? ' (Proposed)' : ''}`}
                         >
-                          {job.contactName}
+                          {job.isProposed ? '⏰ ' : ''}{job.contactName}
                         </div>
                       ))}
                       {dateJobs.length > 2 && (
@@ -1297,8 +1325,10 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
                         <User className="w-4 h-4 text-gray-500" />
                         <span className="font-medium">{job.contactName}</span>
                       </div>
-                      <Badge className={getStatusColor(job.status)}>
-                        {job.status === 'competing' ? 'Bidding' : job.status.replace('_', ' ')}
+                      <Badge className={getStatusColor(job)}>
+                        {job.isProposed ? '⏰ Proposed Schedule' :
+                         job.status === 'competing' ? 'Bidding' : 
+                         job.status.replace('_', ' ')}
                       </Badge>
                     </div>
                     

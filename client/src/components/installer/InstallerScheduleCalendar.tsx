@@ -17,6 +17,9 @@ interface ScheduledInstallation {
   serviceType: string;
   status: string;
   estimatedTotal: string;
+  eventType?: string;
+  isProposed?: boolean;
+  isConfirmed?: boolean;
 }
 
 interface InstallerScheduleCalendarProps {
@@ -54,12 +57,15 @@ const InstallerScheduleCalendar = ({ installerId }: InstallerScheduleCalendarPro
     ? installationsByDate[format(selectedDate, 'yyyy-MM-dd')] || []
     : [];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
+  const getStatusColor = (install: ScheduledInstallation) => {
+    if (install.isProposed) {
+      return 'bg-amber-100 text-amber-800 border-amber-300'; // Proposed dates
+    }
+    switch (install.status) {
       case 'scheduled': return 'bg-blue-100 text-blue-800';
       case 'in_progress': return 'bg-orange-100 text-orange-800';
       case 'completed': return 'bg-green-100 text-green-800';
-      case 'confirmed': return 'bg-yellow-100 text-yellow-800';
+      case 'confirmed': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -159,10 +165,31 @@ const InstallerScheduleCalendar = ({ installerId }: InstallerScheduleCalendarPro
                       
                       {dateInstalls.length > 0 && (
                         <div className="absolute bottom-1 left-1 right-1">
-                          <div className="w-full h-1 bg-blue-500 rounded-full"></div>
-                          <div className="text-xs text-blue-600 font-medium mt-1">
-                            {dateInstalls.length} job{dateInstalls.length > 1 ? 's' : ''}
-                          </div>
+                          {(() => {
+                            const confirmedJobs = dateInstalls.filter(job => job.isConfirmed);
+                            const proposedJobs = dateInstalls.filter(job => job.isProposed);
+                            
+                            return (
+                              <div className="space-y-1">
+                                {confirmedJobs.length > 0 && (
+                                  <>
+                                    <div className="w-full h-1 bg-blue-500 rounded-full"></div>
+                                    <div className="text-xs text-blue-600 font-medium">
+                                      {confirmedJobs.length} scheduled
+                                    </div>
+                                  </>
+                                )}
+                                {proposedJobs.length > 0 && (
+                                  <>
+                                    <div className="w-full h-1 bg-amber-400 rounded-full"></div>
+                                    <div className="text-xs text-amber-600 font-medium">
+                                      {proposedJobs.length} proposed
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })()}
                         </div>
                       )}
                     </button>
@@ -198,8 +225,12 @@ const InstallerScheduleCalendar = ({ installerId }: InstallerScheduleCalendarPro
                         <User className="w-4 h-4 text-gray-500" />
                         <span className="font-medium">{install.customerName}</span>
                       </div>
-                      <Badge className={getStatusColor(install.status)}>
-                        {install.status}
+                      <Badge className={getStatusColor(install)}>
+                        {install.isProposed ? '⏰ Proposed' :
+                         install.status === 'scheduled' ? '✅ Scheduled' : 
+                         install.status === 'in_progress' ? 'In Progress' : 
+                         install.status === 'completed' ? 'Completed' : 
+                         install.status}
                       </Badge>
                     </div>
                     

@@ -11536,19 +11536,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       try {
       const installerId = parseInt(req.params.installerId);
       
-      // Get bookings with CONFIRMED schedule dates only (accepted negotiations)
-      const scheduledBookings = await db.execute(sql`
+      // Get BOTH confirmed schedules AND pending proposals for calendar display
+      const calendarEvents = await db.execute(sql`
+        -- Union confirmed schedules and pending proposals
         SELECT 
+          'confirmed' as "eventType",
           b.id,
-          b.id as "bookingId",
+          b.id as "bookingId", 
           b.contact_name as "customerName",
           b.address,
           b.tv_size as "tvSize",
-          b.service_type as "serviceType",
+          b.service_type as "serviceType", 
           b.status,
           b.estimated_total as "estimatedTotal",
-          ja.id as "jobAssignmentId",
-          -- Get the most recent ACCEPTED schedule date from negotiations (handle both 'accept' and 'accepted')
           COALESCE(
             (SELECT sn.proposed_date::text 
              FROM schedule_negotiations sn 
@@ -11556,19 +11556,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
              ORDER BY sn.created_at DESC LIMIT 1),
             b.scheduled_date::text
           ) as "scheduledDate",
-          -- Get the actual latest negotiation status
           COALESCE(
-            (SELECT sn.status
+            (SELECT sn.proposed_time_slot
              FROM schedule_negotiations sn 
              WHERE sn.booking_id = b.id AND (sn.status = 'accepted' OR sn.status = 'accept')
              ORDER BY sn.created_at DESC LIMIT 1),
-            'scheduled'
-          ) as "negotiationStatus"
+            b.preferred_time
+          ) as "scheduledTime"
         FROM bookings b
         INNER JOIN job_assignments ja ON ja.booking_id = b.id
         WHERE ja.installer_id = ${installerId}
           AND (ja.status = 'accepted' OR ja.status = 'assigned')
-          -- Only include jobs that have confirmed schedules (accepted negotiations OR original schedule)
           AND (
             EXISTS (
               SELECT 1 FROM schedule_negotiations sn 
@@ -11576,80 +11574,48 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             ) 
             OR b.scheduled_date IS NOT NULL
           )
-        ORDER BY 
-          COALESCE(
-            (SELECT sn.proposed_date 
-             FROM schedule_negotiations sn 
-             WHERE sn.booking_id = b.id AND (sn.status = 'accepted' OR sn.status = 'accept')
-             ORDER BY sn.created_at DESC LIMIT 1),
-            b.scheduled_date
-          )
+        
+        UNION ALL
+        
+        -- Pending proposals from this installer
+        SELECT 
+          'proposed' as "eventType",
+          b.id,
+          b.id as "bookingId",
+          b.contact_name as "customerName", 
+          b.address,
+          b.tv_size as "tvSize",
+          b.service_type as "serviceType",
+          b.status,
+          b.estimated_total as "estimatedTotal",
+          sn.proposed_date::text as "scheduledDate",
+          sn.proposed_time_slot as "scheduledTime"
+        FROM bookings b
+        INNER JOIN job_assignments ja ON ja.booking_id = b.id
+        INNER JOIN schedule_negotiations sn ON sn.booking_id = b.id
+        WHERE ja.installer_id = ${installerId}
+          AND sn.installer_id = ${installerId}
+          AND (ja.status = 'accepted' OR ja.status = 'assigned')
+          AND sn.status = 'pending'
+          AND sn.proposed_by = 'installer'
+        
+        ORDER BY "scheduledDate"
       `);
 
-      // For each booking, get the schedule negotiation details
-      const calendarData = await Promise.all(
-        scheduledBookings.rows.map(async (booking) => {
-          try {
-            // Get the most relevant schedule negotiation for time details
-            const acceptedNegotiation = await db.select({
-              proposedTimeSlot: scheduleNegotiations.proposedTimeSlot,
-              proposedStartTime: scheduleNegotiations.proposedStartTime,
-              proposedEndTime: scheduleNegotiations.proposedEndTime
-            })
-            .from(scheduleNegotiations)
-            .where(and(
-              eq(scheduleNegotiations.bookingId, booking.bookingId),
-              eq(scheduleNegotiations.installerId, installerId),
-              eq(scheduleNegotiations.status, 'accepted')
-            ))
-            .limit(1);
+      // Format the calendar data
+      const calendarData = calendarEvents.rows.map((event) => ({
+        ...event,
+        isProposed: event.eventType === 'proposed',
+        isConfirmed: event.eventType === 'confirmed'
+      }));
 
-            const negotiation = acceptedNegotiation[0];
-            let scheduledTime = null;
-            
-            if (negotiation) {
-              // Format time based on what's available
-              if (negotiation.proposedStartTime && negotiation.proposedEndTime) {
-                scheduledTime = `${negotiation.proposedStartTime} - ${negotiation.proposedEndTime}`;
-              } else if (negotiation.proposedTimeSlot) {
-                // Filter out generic time slots, only show specific times
-                const timeSlot = negotiation.proposedTimeSlot;
-                if (timeSlot && !['morning', 'afternoon', 'evening'].includes(timeSlot.toLowerCase())) {
-                  scheduledTime = timeSlot;
-                }
-                // If it's a generic slot, don't set scheduledTime (will show as null)
-              }
-            }
-
-            // Date is already properly formatted from SQL query as text
-            const formattedDate = booking.scheduledDate;
-
-            return {
-              ...booking,
-              scheduledTime,
-              scheduledDate: formattedDate
-            };
-          } catch (error) {
-            console.error(`Error processing booking ${booking.bookingId}:`, error);
-            
-            // Use the date as-is from SQL query
-            const safeDateString = booking.scheduledDate;
-            
-            return {
-              ...booking,
-              scheduledTime: null,
-              scheduledDate: safeDateString
-            };
-          }
-        })
-      );
-
-      res.json(calendarData.filter(item => item.scheduledDate)); // Only return items with valid dates
+      res.json(calendarData);
     } catch (error) {
-      console.error("Get installer schedule calendar error:", error);
-      res.status(500).json({ error: "Failed to get installer schedule calendar" });
+      console.error("Schedule calendar error:", error);
+      res.status(500).json({ error: "Failed to get schedule calendar" });
     }
   });
+
 
   app.patch("/api/schedule-negotiations/:id", async (req, res) => {
     try {

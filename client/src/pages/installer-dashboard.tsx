@@ -43,6 +43,8 @@ import {
   AlertCircle,
   DollarSign,
   Settings,
+  Lock,
+  Camera,
   Home,
   Mail,
   Phone,
@@ -2012,6 +2014,17 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const { toast } = useToast();
 
+  // Fetch in-progress jobs for this installer
+  const { data: inProgressJobs = [], refetch: refetchInProgressJobs } = useQuery({
+    queryKey: ['/api/installer/bookings'],
+    retry: false,
+    enabled: !!installerId,
+    select: (data: any) => {
+      // Filter only jobs that are in-progress status
+      return data?.filter((job: any) => job.assignmentStatus === 'in_progress') || [];
+    }
+  });
+
   // Fetch completed jobs
   const { data: completedJobs = [], refetch: refetchCompletedJobs } = useQuery({
     queryKey: [`/api/installer/${installerId}/completed-jobs`],
@@ -2083,6 +2096,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
       setCurrentBooking(null);
       setScanError('');
       refetchCompletedJobs(); // Refresh completed jobs list
+      refetchInProgressJobs(); // Refresh in-progress jobs list to remove completed job
       toast({
         title: "Installation Completed!",
         description: "Job marked as complete with photos. Payment handled directly with customer.",
@@ -2139,6 +2153,61 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
 
   return (
     <div className="space-y-6">
+      {/* In-Progress Jobs - Locked until QR scanned */}
+      {inProgressJobs.length > 0 && !verificationData && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-orange-800">
+              <Lock className="w-5 h-5" />
+              <span>Ready to Complete Installation ({inProgressJobs.length})</span>
+            </CardTitle>
+            <p className="text-sm text-orange-700">
+              These jobs are in progress and ready for completion. Scan the customer's QR code to unlock photo submission and mark as complete.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {inProgressJobs.map((job: any) => {
+              const tvCount = Array.isArray(job.tvInstallations) ? job.tvInstallations.length : 1;
+              return (
+                <div key={job.id} className="flex items-center justify-between p-4 bg-white border border-orange-200 rounded-lg opacity-75">
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-semibold text-gray-900">{job.contactName}</h4>
+                      <Badge className="bg-orange-100 text-orange-800">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse mr-1"></div>
+                        In Progress
+                      </Badge>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <MapPin className="w-4 h-4" />
+                        <span>{job.address}</span>
+                      </div>
+                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <span className="flex items-center space-x-1">
+                          <Camera className="w-3 h-3" />
+                          <span>{tvCount} TV{tvCount > 1 ? 's' : ''} - Photos Required</span>
+                        </span>
+                        <span>€{job.estimatedTotal}</span>
+                      </div>
+                      {tvCount > 1 && job.tvInstallations && (
+                        <div className="text-xs text-gray-400 mt-1">
+                          Rooms: {job.tvInstallations.map((tv: any) => tv.location || 'Room').join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 opacity-50">
+                    <Lock className="w-5 h-5 text-gray-400" />
+                    <span className="text-sm text-gray-500">Scan QR to Unlock</span>
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Conditional rendering: Photo Capture or QR Scanner */}
       {showBeforeAfterCapture && currentBooking ? (
         <BeforeAfterPhotoCapture
@@ -2219,14 +2288,17 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
             </Card>
           )}
           
-          {!verificationData && !completionSuccess && !scanError && (
+          {!verificationData && !completionSuccess && !scanError && inProgressJobs.length === 0 && (
             <Card>
               <CardContent className="p-6">
                 <div className="text-center text-gray-500">
                   <CheckCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                   <h3 className="font-semibold mb-2">Ready to Complete Installation</h3>
-                  <p className="text-sm">
-                    Scan the customer's QR code to verify their booking and mark the installation as complete.
+                  <p className="text-sm mb-4">
+                    Once you start work on a job, it will appear above as "locked" until you scan the customer's QR code to unlock photo submission and completion.
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Go to "Active Jobs" tab to start work on available jobs.
                   </p>
                 </div>
               </CardContent>

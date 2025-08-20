@@ -4848,8 +4848,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Review routes
-  app.post("/api/reviews", async (req, res) => {
+  // Anonymous review route (for public review forms)
+  app.post("/api/public-reviews", async (req, res) => {
     try {
       const { bookingId, installerId, userId, rating, title, comment, reviewerName, qrCode } = req.body;
       

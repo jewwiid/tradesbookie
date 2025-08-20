@@ -50,7 +50,7 @@ export default function ScheduleProposalForm({
     refetchInterval: isOpen ? false : 30000 // Only refresh when dialog is closed, and less frequently
   });
 
-  // Check if installer has a pending proposal
+  // Check if THIS SPECIFIC installer has a pending proposal (allow multiple installers to send proposals)
   const hasPendingProposal = Array.isArray(negotiations) && negotiations.some((negotiation: any) => 
     negotiation.proposedBy === 'installer' && 
     negotiation.status === 'pending' &&
@@ -61,6 +61,13 @@ export default function ScheduleProposalForm({
   const hasAcceptedSchedule = Array.isArray(negotiations) && negotiations.some((negotiation: any) => 
     negotiation.status === 'accepted' || negotiation.status === 'accept'
   );
+
+  // Check if there are other pending installer proposals (for display purposes)
+  const otherPendingProposals = Array.isArray(negotiations) ? negotiations.filter((negotiation: any) => 
+    negotiation.proposedBy === 'installer' && 
+    negotiation.status === 'pending' &&
+    negotiation.installerId !== installerId
+  ) : [];
 
 
   // Send schedule proposal
@@ -147,11 +154,15 @@ export default function ScheduleProposalForm({
           className="bg-blue-600 hover:bg-blue-700"
           disabled={hasPendingProposal}
           title={hasPendingProposal ? "Waiting for customer response to your proposal" : 
-                 (isReschedule || hasAcceptedSchedule) ? "Propose a new schedule to reschedule the installation" : "Propose an installation schedule"}
+                 (isReschedule || hasAcceptedSchedule) ? "Propose a new schedule to reschedule the installation" : 
+                 otherPendingProposals.length > 0 ? `Send your proposal to compete with ${otherPendingProposals.length} other installer proposal${otherPendingProposals.length > 1 ? 's' : ''}` :
+                 "Propose an installation schedule"}
         >
           <CalendarDays className="w-4 h-4 mr-2" />
           {hasPendingProposal ? 'Proposal Pending' : 
-           (isReschedule || hasAcceptedSchedule) ? 'Request Reschedule' : 'Propose Schedule'}
+           (isReschedule || hasAcceptedSchedule) ? 'Request Reschedule' : 
+           otherPendingProposals.length > 0 ? `Propose Schedule (${otherPendingProposals.length + 1} competing)` :
+           'Propose Schedule'}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
@@ -163,6 +174,21 @@ export default function ScheduleProposalForm({
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Competing Proposals Notice */}
+          {otherPendingProposals.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                <p className="text-sm font-medium text-amber-800">
+                  {otherPendingProposals.length} other installer{otherPendingProposals.length > 1 ? 's have' : ' has'} already sent proposals
+                </p>
+              </div>
+              <p className="text-xs text-amber-700 mt-1">
+                Customer will choose between all proposals - make yours competitive!
+              </p>
+            </div>
+          )}
+
           {/* Customer Info */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <h4 className="font-medium text-blue-900 mb-1">{customerName}</h4>

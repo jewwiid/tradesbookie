@@ -2197,6 +2197,16 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     });
   };
 
+  const handleEditPhotos = (job: any) => {
+    setSelectedJob(job);
+    setBeforePhotosCompleted(false); // Allow retaking photos
+    setShowBeforePhotos(true);
+    toast({
+      title: "Edit Photos",
+      description: `Retake before photos for this installation.`,
+    });
+  };
+
   const handleBeforePhotosCompleted = (photos: any[]) => {
     setBeforePhotosCompleted(true);
     setShowBeforePhotos(false);
@@ -2410,15 +2420,27 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                               )}
                             </div>
                           </div>
-                          {!beforePhotosCompleted && (
-                            <Button 
-                              onClick={() => handleStartJob(job)}
-                              className="bg-blue-600 hover:bg-blue-700"
-                            >
-                              <Camera className="w-4 h-4 mr-2" />
-                              Start Job
-                            </Button>
-                          )}
+                          <div className="flex flex-col gap-2">
+                            {!beforePhotosCompleted ? (
+                              <Button 
+                                onClick={() => handleStartJob(job)}
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                <Camera className="w-4 h-4 mr-2" />
+                                Start Job
+                              </Button>
+                            ) : (
+                              <Button 
+                                onClick={() => handleEditPhotos(job)}
+                                variant="outline"
+                                className="border-green-300 text-green-700 hover:bg-green-50"
+                                size="sm"
+                              >
+                                <Edit className="w-4 h-4 mr-2" />
+                                Edit Photos
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}

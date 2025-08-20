@@ -11895,6 +11895,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             installerId: negotiation.installer_id
           });
           
+          // Update job assignment status from "purchased" to "accepted" when proposal is accepted
+          await db.execute(sql`
+            UPDATE job_assignments 
+            SET status = 'accepted', accepted_date = NOW(), updated_at = NOW()
+            WHERE booking_id = ${negotiation.booking_id} 
+              AND installer_id = ${negotiation.installer_id} 
+              AND status = 'purchased'
+          `);
+          
           // Send confirmation emails to both parties
           if (booking) {
             try {

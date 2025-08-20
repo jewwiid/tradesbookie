@@ -27,6 +27,7 @@ import CompletionPhotoCapture from "@/components/installer/CompletionPhotoCaptur
 import BeforeAfterPhotoCapture from "@/components/installer/BeforeAfterPhotoCapture";
 import ScheduleProposalForm from "@/components/ScheduleProposalForm";
 import ScheduleNegotiation from "@/components/ScheduleNegotiation";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth } from "date-fns";
 
 import { 
   Bolt, 
@@ -1132,6 +1133,232 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
 }
 
 // Job Completion Section Component
+// Active Jobs Calendar Component
+function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  // Get calendar days for current month
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Group active bookings by scheduled date
+  const jobsByDate = activeBookings.reduce((acc: Record<string, any[]>, job: any) => {
+    // Use scheduledDate if available, otherwise use created date for pending jobs
+    const jobDate = job.scheduledDate || job.createdAt;
+    if (jobDate) {
+      const dateKey = format(new Date(jobDate), 'yyyy-MM-dd');
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(job);
+    }
+    return acc;
+  }, {});
+
+  // Get jobs for selected date
+  const selectedDateJobs = selectedDate 
+    ? jobsByDate[format(selectedDate, 'yyyy-MM-dd')] || []
+    : [];
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'bg-blue-100 text-blue-800';
+      case 'assigned': return 'bg-yellow-100 text-yellow-800';
+      case 'in_progress': return 'bg-orange-100 text-orange-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'competing': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(prev.getMonth() + (direction === 'next' ? 1 : -1));
+      return newDate;
+    });
+  };
+
+  const hasJobs = (date: Date) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    return jobsByDate[dateKey]?.length > 0;
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Calendar View */}
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-5 h-5" />
+              <span>Active Jobs Calendar</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" onClick={() => navigateMonth('prev')}>
+                ←
+              </Button>
+              <span className="text-lg font-medium min-w-[140px] text-center">
+                {format(currentDate, 'MMMM yyyy')}
+              </span>
+              <Button variant="outline" size="sm" onClick={() => navigateMonth('next')}>
+                →
+              </Button>
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Calendar Header */}
+          <div className="grid grid-cols-7 gap-2 mb-4">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="text-center font-medium text-gray-500 py-2">
+                {day}
+              </div>
+            ))}
+          </div>
+          
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-2">
+            {calendarDays.map(date => {
+              const dateJobs = jobsByDate[format(date, 'yyyy-MM-dd')] || [];
+              const isSelected = selectedDate && isSameDay(date, selectedDate);
+              const isTodayDate = isToday(date);
+              
+              return (
+                <button
+                  key={date.toString()}
+                  onClick={() => setSelectedDate(isSelected ? null : date)}
+                  className={`
+                    relative h-20 p-2 rounded border text-left transition-all hover:bg-gray-50
+                    ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}
+                    ${isTodayDate ? 'bg-blue-100 border-blue-300' : 'border-gray-200'}
+                    ${!isSameMonth(date, currentDate) ? 'opacity-30' : ''}
+                  `}
+                >
+                  <div className={`text-sm font-medium ${
+                    isTodayDate ? 'text-blue-700' : 
+                    !isSameMonth(date, currentDate) ? 'text-gray-400' : 'text-gray-900'
+                  }`}>
+                    {format(date, 'd')}
+                  </div>
+                  
+                  {/* Job indicators */}
+                  {dateJobs.length > 0 && (
+                    <div className="mt-1 space-y-1">
+                      {dateJobs.slice(0, 2).map((job, idx) => (
+                        <div
+                          key={job.id}
+                          className={`text-xs px-1 py-0.5 rounded truncate ${
+                            job.status === 'confirmed' ? 'bg-green-500 text-white' :
+                            job.status === 'competing' ? 'bg-purple-500 text-white' :
+                            'bg-blue-500 text-white'
+                          }`}
+                          title={`${job.contactName} - ${job.serviceType}`}
+                        >
+                          {job.contactName}
+                        </div>
+                      ))}
+                      {dateJobs.length > 2 && (
+                        <div className="text-xs text-gray-500 font-medium">
+                          +{dateJobs.length - 2} more
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Job Details Panel */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <span>
+              {selectedDate 
+                ? format(selectedDate, 'MMM dd, yyyy')
+                : 'Select a Date'
+              }
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {selectedDate ? (
+            selectedDateJobs.length > 0 ? (
+              <div className="space-y-4">
+                {selectedDateJobs.map(job => (
+                  <div key={job.id} className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <User className="w-4 h-4 text-gray-500" />
+                        <span className="font-medium">{job.contactName}</span>
+                      </div>
+                      <Badge className={getStatusColor(job.status)}>
+                        {job.status === 'competing' ? 'Bidding' : job.status.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="w-4 h-4" />
+                        <span className="text-xs">{job.address}</span>
+                      </div>
+                      
+                      {job.tvInstallations && Array.isArray(job.tvInstallations) && job.tvInstallations.length > 1 ? (
+                        <div className="flex items-center space-x-2">
+                          <Tv className="w-4 h-4" />
+                          <span>Multi-TV Installation ({job.tvInstallations.length} TVs)</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-2">
+                          <Tv className="w-4 h-4" />
+                          <span>{job.tvSize}" {job.serviceType}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <DollarSign className="w-4 h-4" />
+                          <span>Job Value: €{job.estimatedTotal}</span>
+                        </div>
+                        {job.leadFee && (
+                          <span className="text-xs text-gray-500">
+                            Lead Cost: €{job.leadFee}
+                          </span>
+                        )}
+                      </div>
+
+                      {job.customerNotes && (
+                        <div className="bg-blue-50 p-2 rounded text-xs">
+                          <strong>Notes:</strong> {job.customerNotes}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Calendar className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                <p>No active jobs for this date</p>
+              </div>
+            )
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-30" />
+              <p>Click on a calendar date to view active jobs</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // Active Jobs Section - where installers manage their assigned bookings and communicate with customers
 function ActiveJobsSection({ installerId }: { installerId?: number }) {
   const { toast } = useToast();
@@ -1224,20 +1451,47 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
     });
   };
 
+  // Add state for view toggle
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Wrench className="w-5 h-5" />
-            <span>Active Jobs ({activeBookings.length})</span>
-          </CardTitle>
-          <CardDescription>
-            Active installations requiring your attention
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center space-x-2">
+                <Wrench className="w-5 h-5" />
+                <span>Active Jobs ({activeBookings.length})</span>
+              </CardTitle>
+              <CardDescription>
+                Active installations requiring your attention
+              </CardDescription>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="flex items-center space-x-1"
+              >
+                <span>List</span>
+              </Button>
+              <Button
+                variant={viewMode === 'calendar' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('calendar')}
+                className="flex items-center space-x-1"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Calendar</span>
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {activeBookings.map((booking: any) => (
+          {viewMode === 'list' ? (
+            activeBookings.map((booking: any) => (
             <Card key={booking.id} className="border-l-4 border-l-blue-500">
               <CardContent className="p-6 space-y-4">
                 {/* Booking Header */}
@@ -1530,7 +1784,9 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          ))) : (
+            <ActiveJobsCalendar activeBookings={activeBookings} />
+          )}
         </CardContent>
       </Card>
     </div>

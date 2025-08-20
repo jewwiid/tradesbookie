@@ -289,6 +289,7 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
                   index, 
                   type: typeof photo, 
                   keys: Object.keys(photo || {}),
+                  values: Object.keys(photo || {}).map(key => ({key, value: photo[key]})),
                   photo: photo 
                 });
                 

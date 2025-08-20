@@ -435,8 +435,8 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                         <p className="font-medium">{lead.serviceType}</p>
                       </div>
                       <div>
-                        <span className="text-gray-500">Price:</span>
-                        <p className="font-medium">€{lead.estimatedPrice}</p>
+                        <span className="text-gray-500">Job Value:</span>
+                        <p className="font-medium">€{lead.estimatedTotal || lead.estimatedPrice}</p>
                       </div>
                       <div>
                         <span className="text-gray-500">Lead Fee:</span>
@@ -1062,8 +1062,8 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs sm:text-sm font-medium text-gray-600">Estimated Price</label>
-                    <p className="text-sm sm:text-base font-semibold text-green-600">€{selectedLead.estimatedPrice || '0'}</p>
+                    <label className="text-xs sm:text-sm font-medium text-gray-600">Job Value</label>
+                    <p className="text-sm sm:text-base font-semibold text-green-600">€{selectedLead.estimatedTotal || selectedLead.estimatedPrice || '0'}</p>
                   </div>
                   <div className="space-y-1">
                     <label className="text-xs sm:text-sm font-medium text-gray-600">Lead Fee (Your Cost)</label>

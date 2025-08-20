@@ -10,7 +10,7 @@ import {
   scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions, declinedRequests
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, inArray, isNotNull, sql, or } from "drizzle-orm";
+import { eq, and, desc, inArray, isNotNull, sql, or, not } from "drizzle-orm";
 import { generateTVPreview, analyzeRoomForTVPlacement } from "./openai";
 import { generateTVRecommendation } from "./tvRecommendationService";
 import { AIAnalyticsService } from "./aiAnalyticsService";
@@ -5234,11 +5234,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Booking not found" });
       }
 
-      // Check if installer has already purchased this lead
+      // Check if installer has already purchased this lead (only block if active, allow repurchase if cancelled)
       const existingAssignment = await db.select().from(jobAssignments)
         .where(and(
           eq(jobAssignments.bookingId, requestId),
-          eq(jobAssignments.installerId, targetInstallerId)
+          eq(jobAssignments.installerId, targetInstallerId),
+          not(eq(jobAssignments.status, 'cancelled')) // Allow repurchase if previously cancelled
         ))
         .limit(1);
 

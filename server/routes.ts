@@ -13759,8 +13759,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             booking: booking ? {
               id: booking.id,
               qrCode: booking.qrCode,
-              customerName: booking.customerName,
-              customerEmail: booking.customerEmail,
+              customerName: booking.contactName,
+              customerEmail: booking.contactEmail,
               phone: booking.phone,
               address: booking.address,
               serviceType: booking.serviceType,
@@ -13825,6 +13825,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/installer/request-review', async (req, res) => {
     try {
       const { bookingId, installerId, customerEmail, customerName } = req.body;
+      console.log('Review request data:', { bookingId, installerId, customerEmail, customerName });
       
       const booking = await storage.getBooking(bookingId);
       if (!booking) {

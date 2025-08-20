@@ -2057,6 +2057,13 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  // Fetch photo progress for displaying completed photos
+  const { data: photoProgressData } = useQuery({
+    queryKey: [`/api/installer/photo-progress/${inProgressJobs[0]?.id}`],
+    enabled: inProgressJobs.length > 0 && beforePhotosCompleted,
+    refetchInterval: 10000, // Refresh every 10 seconds to get latest photos
+  });
+
   // QR verification mutation
   const verifyQRMutation = useMutation({
     mutationFn: async (qrCode: string) => {
@@ -2365,6 +2372,37 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                               {tvCount > 1 && job.tvInstallations && (
                                 <div className="text-xs text-gray-400 mt-1">
                                   Rooms: {job.tvInstallations.map((tv: any) => tv.location || 'Room').join(', ')}
+                                </div>
+                              )}
+                              
+                              {/* Display Before Photos Thumbnails */}
+                              {beforePhotosCompleted && photoProgressData?.progress && (
+                                <div className="mt-3 pt-3 border-t border-gray-100">
+                                  <h5 className="text-xs font-medium text-gray-700 mb-2">Before Photos:</h5>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    {job.tvInstallations?.map((tv: any, index: number) => {
+                                      const progress = photoProgressData.progress[`tv_${index}`];
+                                      const beforePhoto = progress?.beforePhoto;
+                                      return (
+                                        <div key={index} className="text-center">
+                                          <div className="relative w-16 h-12 mx-auto mb-1 bg-gray-100 rounded overflow-hidden">
+                                            {beforePhoto ? (
+                                              <img 
+                                                src={beforePhoto} 
+                                                alt={`${tv.location || `TV ${index + 1}`} Before`}
+                                                className="w-full h-full object-cover"
+                                              />
+                                            ) : (
+                                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                <Camera className="w-4 h-4" />
+                                              </div>
+                                            )}
+                                          </div>
+                                          <span className="text-xs text-gray-600">{tv.location || `TV ${index + 1}`}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
                               )}
                             </div>

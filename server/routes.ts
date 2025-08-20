@@ -4123,7 +4123,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                  CASE WHEN sn.status = 'accepted' THEN 1 ELSE 2 END,
                  sn.created_at DESC 
                LIMIT 1
-              ) as negotiated_time
+              ) as negotiated_time,
+              (SELECT sn.status
+               FROM schedule_negotiations sn 
+               WHERE sn.booking_id = ${booking.id} 
+               AND sn.status IN ('accepted', 'accept', 'pending')
+               ORDER BY sn.created_at DESC 
+               LIMIT 1
+              ) as negotiation_status
           `);
           
           const negotiatedSchedule = scheduleQuery.rows[0];
@@ -4158,6 +4165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Use negotiated schedule dates instead of original booking dates
             scheduledDate: negotiatedSchedule?.negotiated_date || (booking.scheduledDate ? (typeof booking.scheduledDate === 'string' ? booking.scheduledDate : booking.scheduledDate.toISOString()) : null),
             scheduledTime: negotiatedSchedule?.negotiated_time || booking.preferredTime,
+            negotiationStatus: negotiatedSchedule?.negotiation_status || null,
             estimatedPrice: booking.estimatedPrice,
             estimatedTotal: booking.estimatedTotal,
             status: booking.installerId === installerId ? booking.status : 'competing', // Special status for competitive phase

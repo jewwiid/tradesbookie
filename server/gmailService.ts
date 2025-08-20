@@ -50,6 +50,89 @@ interface EmailOptions {
   replyTo?: string;
 }
 
+export async function sendReviewRequest(booking: any, installer: any): Promise<boolean> {
+  const subject = `How was your TV installation? - Leave a review for ${installer.businessName}`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center;">
+        <h1 style="margin: 0; font-size: 28px;">How was your installation?</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Share your experience with ${installer.businessName}</p>
+      </div>
+      
+      <div style="padding: 30px; background: #f8f9ff;">
+        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h2 style="color: #333; margin-bottom: 15px;">Installation Completed</h2>
+          <p style="color: #666; line-height: 1.6;">
+            Hi ${booking.customerName},<br><br>
+            Thank you for choosing ${installer.businessName} for your TV installation. We hope you're enjoying your newly installed TV!
+          </p>
+        </div>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h3 style="color: #667eea; margin-top: 0;">Installation Details</h3>
+          <p><strong>Service:</strong> ${booking.serviceDescription || booking.serviceType}</p>
+          <p><strong>Address:</strong> ${booking.address}</p>
+          <p><strong>Completed:</strong> ${new Date(booking.completedDate).toLocaleDateString()}</p>
+          <p><strong>Installer:</strong> ${installer.businessName}</p>
+        </div>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+          <h3 style="color: #667eea; margin-top: 0;">Rate Your Experience</h3>
+          <p style="color: #666; margin-bottom: 20px;">
+            Your feedback helps us improve our service and helps other customers make informed decisions.
+          </p>
+          
+          <a href="https://tradesbook.ie/review/${booking.id}" 
+             style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; margin: 10px;">
+            ⭐ Leave a Review
+          </a>
+        </div>
+        
+        <div style="background: #e8f2ff; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 20px;">
+          <p style="margin: 0; font-size: 14px; color: #555;">
+            <strong>💡 Your review matters:</strong> Help other customers by sharing your experience with the installation quality, professionalism, and overall service.
+          </p>
+        </div>
+        
+        <div style="text-center; color: #888; font-size: 12px; margin-top: 30px;">
+          <p>This email was sent by Tradesbook on behalf of ${installer.businessName}</p>
+          <p>If you have any issues with your installation, please contact ${installer.businessName} directly.</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const text = `
+    How was your TV installation?
+    
+    Hi ${booking.customerName},
+    
+    Thank you for choosing ${installer.businessName} for your TV installation. We hope you're enjoying your newly installed TV!
+    
+    Installation Details:
+    - Service: ${booking.serviceDescription || booking.serviceType}
+    - Address: ${booking.address}
+    - Completed: ${new Date(booking.completedDate).toLocaleDateString()}
+    - Installer: ${installer.businessName}
+    
+    We'd love to hear about your experience! Please take a moment to leave a review at:
+    https://tradesbook.ie/review/${booking.id}
+    
+    Your feedback helps us improve our service and helps other customers make informed decisions.
+    
+    Best regards,
+    The Tradesbook Team
+  `;
+
+  return await sendEmail({
+    to: booking.customerEmail,
+    subject,
+    html,
+    text
+  });
+}
+
 export async function sendTvSetupBookingConfirmation(booking: any): Promise<boolean> {
   const subject = `TV Setup Assistance Booking Confirmation - ${booking.fullName}`;
   

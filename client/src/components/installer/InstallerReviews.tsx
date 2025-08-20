@@ -1,7 +1,11 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, MessageSquare, User, Calendar, CheckCircle2, Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Star, MessageSquare, User, Calendar, CheckCircle2, Award, Mail, MapPin } from "lucide-react";
 
 interface Review {
   id: number;
@@ -69,13 +73,7 @@ export default function InstallerReviews({ installerId }: InstallerReviewsProps)
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12">
-            <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
-            <p className="text-gray-500">
-              Complete your first installation to start receiving customer reviews
-            </p>
-          </div>
+          <PendingReviews installerId={installerId} />
         </CardContent>
       </Card>
     );
@@ -216,6 +214,158 @@ export default function InstallerReviews({ installerId }: InstallerReviewsProps)
           </div>
         </CardContent>
       </Card>
+
+      {/* Show pending reviews if we have existing reviews but more jobs without reviews */}
+      <PendingReviews installerId={installerId} />
     </div>
+  );
+}
+
+// Component to show completed jobs without reviews and request review functionality
+function PendingReviews({ installerId }: { installerId: number }) {
+  const { data: completedJobs, isLoading } = useQuery<any[]>({
+    queryKey: [`/api/installer/${installerId}/completed-jobs`],
+  });
+
+  const { toast } = useToast();
+  const [sendingReviews, setSendingReviews] = useState<number[]>([]);
+
+  const jobsWithoutReviews = completedJobs?.filter(job => 
+    job.booking && !job.booking.hasCustomerReview
+  ) || [];
+
+  const requestReview = async (jobId: number, customerEmail: string, customerName: string) => {
+    setSendingReviews(prev => [...prev, jobId]);
+    
+    try {
+      const response = await apiRequest(`/api/installer/request-review`, {
+        method: 'POST',
+        body: JSON.stringify({ 
+          bookingId: jobId, 
+          installerId,
+          customerEmail,
+          customerName
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.success) {
+        toast({
+          title: "Review Request Sent",
+          description: `Review request sent to ${customerName}`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send review request",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingReviews(prev => prev.filter(id => id !== jobId));
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="text-gray-500 mt-2">Loading completed jobs...</p>
+      </div>
+    );
+  }
+
+  if (jobsWithoutReviews.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No Reviews Yet</h3>
+        <p className="text-gray-500">Complete your first installation to start receiving customer reviews.</p>
+      </div>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Mail className="w-5 h-5 text-primary" />
+          Request Customer Reviews
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="mb-6">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">
+            Request Reviews for Recent Installations ({jobsWithoutReviews.length})
+          </h4>
+          <p className="text-sm text-gray-500">
+            Send personalized review requests to customers who haven't left feedback yet.
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          {jobsWithoutReviews.slice(0, 5).map((job) => (
+            <div key={job.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+              <div className="flex-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <User className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h5 className="font-medium text-gray-900">{job.booking?.customerName}</h5>
+                    <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(job.booking?.completedDate || job.completedDate).toLocaleDateString()}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {job.booking?.address}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="text-xs">
+                  {job.booking?.serviceType || 'Installation'}
+                </Badge>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={sendingReviews.includes(job.bookingId)}
+                  onClick={() => requestReview(
+                    job.bookingId,
+                    job.booking?.customerEmail,
+                    job.booking?.customerName
+                  )}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  {sendingReviews.includes(job.bookingId) ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3 w-3 border-b border-blue-600 mr-1"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-3 h-3 mr-1" />
+                      Request Review
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          ))}
+          
+          {jobsWithoutReviews.length > 5 && (
+            <div className="text-center py-4">
+              <p className="text-sm text-gray-500">
+                And {jobsWithoutReviews.length - 5} more completed installations
+              </p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

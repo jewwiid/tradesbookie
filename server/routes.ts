@@ -13821,6 +13821,43 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Send review request email to customer
+  app.post('/api/installer/request-review', async (req, res) => {
+    try {
+      const { bookingId, installerId, customerEmail, customerName } = req.body;
+      
+      const booking = await storage.getBooking(bookingId);
+      if (!booking) {
+        return res.status(404).json({ error: 'Booking not found' });
+      }
+      
+      if (booking.status !== 'completed') {
+        return res.status(400).json({ error: 'Only completed installations can request reviews' });
+      }
+      
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ error: 'Installer not found' });
+      }
+      
+      // Import and use gmail service
+      const { sendReviewRequest } = await import('./gmailService.js');
+      const emailSent = await sendReviewRequest(booking, installer);
+      
+      if (emailSent) {
+        res.json({ 
+          success: true,
+          message: `Review request sent to ${customerName}`
+        });
+      } else {
+        res.status(500).json({ error: 'Failed to send review request email' });
+      }
+    } catch (error) {
+      console.error('Error sending review request:', error);
+      res.status(500).json({ error: 'Failed to send review request' });
+    }
+  });
+
   // Get showcased installations for gallery
   app.get('/api/installation-showcase', async (req, res) => {
     try {

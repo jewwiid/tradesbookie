@@ -646,7 +646,12 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
 
         <div className="space-y-3 mb-4">
           <div className="flex items-center justify-between">
-            <span className="font-semibold text-gray-800">{request.tvSize} TV Installation</span>
+            <span className="font-semibold text-gray-800">
+              {request.tvInstallations && Array.isArray(request.tvInstallations) && request.tvInstallations.length > 1 
+                ? `${request.tvInstallations.length} TV Installation` 
+                : `${request.tvSize}" TV Installation`
+              }
+            </span>
             <div className="flex items-center space-x-1 text-green-600">
               <span className="text-sm font-medium">{Math.round(request.profitMargin)}% margin</span>
             </div>
@@ -665,20 +670,33 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
             )}
           </div>
 
-          {request.tvQuantity && request.tvQuantity > 1 ? (
+          {request.tvInstallations && Array.isArray(request.tvInstallations) && request.tvInstallations.length > 1 ? (
             // Multi-TV display
             <div className="mt-2">
-              <div className="text-sm font-medium text-gray-700 mb-2">
-                {request.tvQuantity} TV Installation
+              <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <Tv className="w-4 h-4" />
+                Multi-TV Installation ({request.tvInstallations.length} TVs)
               </div>
-              <div className="text-xs text-gray-600 space-y-1">
-                <div>Services: {request.serviceType}</div>
-                <div>Wall Types: {request.wallType}</div>
-                <div>Mount Types: {request.mountType}</div>
-                <div>Difficulty: {request.difficulty}</div>
+              <div className="space-y-2 bg-gray-50 rounded-lg p-3">
+                {request.tvInstallations.map((tv: any, index: number) => (
+                  <div key={index} className="bg-white p-2 rounded border text-sm">
+                    <div className="font-medium text-gray-800">
+                      {tv.location || tv.roomName || `TV ${index + 1}`}
+                    </div>
+                    <div className="text-gray-600 text-xs mt-1">
+                      {tv.tvSize}" • {tv.serviceType} • {tv.wallType} • {tv.mountType}
+                    </div>
+                    {tv.addons && tv.addons.length > 0 && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        Add-ons: {tv.addons.map((addon: any) => addon.name).join(', ')}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
               <div className="text-sm font-medium text-gray-700 mt-2">
-                Total: €{request.estimatedTotal}
+                <span className="font-medium">Difficulty:</span> {request.difficulty} • 
+                <span className="font-medium"> Total:</span> €{request.estimatedTotal}
               </div>
             </div>
           ) : (

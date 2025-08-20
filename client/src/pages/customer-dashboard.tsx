@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,118 @@ import { EmailVerificationBanner } from '@/components/EmailVerificationBanner';
 import ReviewInterface from '@/components/customer/ReviewInterface';
 import InstallerMiniProfile from '@/components/installer/InstallerMiniProfile';
 import ScheduleNegotiation from '@/components/ScheduleNegotiation';
+
+// Component to show schedule negotiations when no installer is assigned
+function ScheduleNegotiationForUnassigned({ bookingId }: { bookingId: number }) {
+  const { toast } = useToast();
+  
+  // Fetch schedule negotiations for this booking
+  const { data: negotiations = [], refetch } = useQuery({
+    queryKey: [`/api/bookings/${bookingId}/schedule-negotiations`],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Get pending proposals from installers
+  const pendingProposals = negotiations.filter((n: any) => 
+    n.status === 'pending' && n.proposedBy === 'installer'
+  );
+
+  // Mutation to respond to proposals
+  const respondToProposal = useMutation({
+    mutationFn: async ({ negotiationId, status, responseMessage }: { 
+      negotiationId: number; 
+      status: string; 
+      responseMessage: string;
+    }) => {
+      return apiRequest(`/api/schedule-negotiations/${negotiationId}/respond`, {
+        method: 'PUT',
+        body: { status, responseMessage }
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Response sent!", description: "The installer has been notified." });
+      refetch();
+      // Refresh the bookings to update the main dashboard
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
+    },
+    onError: (error) => {
+      console.error('Error responding to proposal:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to send response. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  if (pendingProposals.length === 0) {
+    return null; // Don't show anything if no pending proposals
+  }
+
+  return (
+    <div className="mb-4 space-y-3">
+      {pendingProposals.map((proposal: any) => (
+        <div key={proposal.id} className="p-4 border-2 border-amber-200 bg-amber-50 rounded-lg">
+          <div className="flex items-center gap-2 mb-3">
+            <MessageSquare className="w-5 h-5 text-amber-600" />
+            <div className="flex-1">
+              <label className="text-sm font-medium text-amber-800">New Schedule Proposal</label>
+              {proposal.installer && (
+                <p className="text-xs text-amber-700 mt-1">
+                  from <strong>{proposal.installer.businessName || `${proposal.installer.firstName} ${proposal.installer.lastName}`}</strong>
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="space-y-2 mb-4">
+            <p className="text-amber-900 font-medium">
+              {new Date(proposal.proposedDate).toLocaleDateString('en-IE', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })} at {proposal.proposedTimeSlot}
+            </p>
+            {proposal.proposalMessage && (
+              <p className="text-sm text-amber-700">
+                <strong>Installer's note:</strong> {proposal.proposalMessage}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              onClick={() => respondToProposal.mutate({
+                negotiationId: proposal.id,
+                status: 'accepted',
+                responseMessage: 'Schedule confirmed'
+              })}
+              disabled={respondToProposal.isPending}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle className="w-4 h-4 mr-1" />
+              Accept Schedule
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => respondToProposal.mutate({
+                negotiationId: proposal.id,
+                status: 'declined',
+                responseMessage: 'This time does not work for me'
+              })}
+              disabled={respondToProposal.isPending}
+              className="border-red-300 text-red-700 hover:bg-red-50"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Decline
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 interface User {
   id: number;
@@ -2865,7 +2977,7 @@ function BookingCard({
           </div>
         )}
 
-        {/* Schedule Negotiation - Show when installer is assigned (regardless of booking status) */}
+        {/* Schedule Negotiation - Show when installer is assigned OR when there are pending proposals */}
         {booking.installer && (
           <div className="mb-4">
             <ScheduleNegotiation
@@ -2875,6 +2987,11 @@ function BookingCard({
               installerName={booking.installer.businessName}
             />
           </div>
+        )}
+        
+        {/* Show schedule negotiations when no installer assigned but negotiations exist */}
+        {!booking.installer && (
+          <ScheduleNegotiationForUnassigned bookingId={booking.id} />
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">

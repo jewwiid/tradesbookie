@@ -3225,7 +3225,15 @@ export default function InstallerDashboard() {
   // Fetch available requests from API
   const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
     queryKey: ['/api/installer', installerProfile?.id, 'available-leads'],
-    queryFn: () => fetch(`/api/installer/${installerProfile?.id}/available-leads`).then(res => res.json()),
+    queryFn: async () => {
+      const res = await fetch(`/api/installer/${installerProfile?.id}/available-leads`);
+      if (!res.ok) {
+        console.error('Failed to fetch available leads:', res.status);
+        return [];
+      }
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: !!installerProfile?.id,
     refetchInterval: 30000, // Refresh every 30 seconds
   });

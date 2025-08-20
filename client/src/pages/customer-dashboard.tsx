@@ -36,18 +36,23 @@ function ScheduleNegotiationForUnassigned({ bookingId }: { bookingId: number }) 
   });
 
   // Get pending proposals from installers
-  const pendingProposals = negotiations.filter((n: any) => 
+  const pendingProposals = (negotiations as any[]).filter((n: any) => 
     n.status === 'pending' && n.proposedBy === 'installer'
   );
 
-  // Mutation to respond to proposals
+  // Mutation to respond to proposals  
   const respondToProposal = useMutation({
-    mutationFn: async ({ negotiationId, status, responseMessage }: { 
+    mutationFn: async ({ negotiationId, status, responseMessage, bookingId }: { 
       negotiationId: number; 
       status: string; 
       responseMessage: string;
+      bookingId: number;
     }) => {
-      return apiRequest('PUT', `/api/schedule-negotiations/${negotiationId}/respond`, { status, responseMessage });
+      return apiRequest('PATCH', `/api/schedule-negotiations/${negotiationId}`, { 
+        status, 
+        responseMessage, 
+        bookingId 
+      });
     },
     onSuccess: () => {
       toast({ title: "Response sent!", description: "The installer has been notified." });
@@ -145,18 +150,23 @@ function useProposalData(bookingId: number) {
   });
 
   // Get pending proposals from installers
-  const pendingProposals = negotiations.filter((n: any) => 
+  const pendingProposals = (negotiations as any[]).filter((n: any) => 
     n.status === 'pending' && n.proposedBy === 'installer'
   );
 
-  // Mutation to respond to proposals
+  // Mutation to respond to proposals  
   const respondToProposal = useMutation({
-    mutationFn: async ({ negotiationId, status, responseMessage }: { 
+    mutationFn: async ({ negotiationId, status, responseMessage, bookingId }: { 
       negotiationId: number; 
       status: string; 
       responseMessage: string;
+      bookingId: number;
     }) => {
-      return apiRequest('PUT', `/api/schedule-negotiations/${negotiationId}/respond`, { status, responseMessage });
+      return apiRequest('PATCH', `/api/schedule-negotiations/${negotiationId}`, { 
+        status, 
+        responseMessage, 
+        bookingId 
+      });
     },
     onSuccess: () => {
       toast({ title: "Response sent!", description: "The installer has been notified." });
@@ -3249,7 +3259,8 @@ function BookingCard({
                       onClick={() => respondToProposal.mutate({
                         negotiationId: proposal.id,
                         status: 'accepted',
-                        responseMessage: 'Schedule confirmed'
+                        responseMessage: 'Schedule confirmed',
+                        bookingId: booking.id
                       })}
                       disabled={respondToProposal.isPending}
                       className="bg-green-600 hover:bg-green-700 text-xs"
@@ -3263,7 +3274,8 @@ function BookingCard({
                       onClick={() => respondToProposal.mutate({
                         negotiationId: proposal.id,
                         status: 'declined',
-                        responseMessage: 'This time does not work for me'
+                        responseMessage: 'This time does not work for me',
+                        bookingId: booking.id
                       })}
                       disabled={respondToProposal.isPending}
                       className="border-red-300 text-red-700 hover:bg-red-50 text-xs"

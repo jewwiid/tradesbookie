@@ -783,7 +783,7 @@ export async function sendStatusUpdateNotification(
 
     return await sendGmailEmail({
       to: recipientEmail,
-      subject: `📋 Installation Status Update: ${statusDisplay} - tradesbook.ie`,
+      subject: `Installation Status Update: ${statusDisplay} - tradesbook.ie`,
       html: htmlContent,
       from: getValidFromEmail('booking')
     });
@@ -864,7 +864,7 @@ export async function sendScheduleProposalNotification(
 
     return await sendGmailEmail({
       to: recipientEmail,
-      subject: `📅 New Schedule Proposal for TV Installation - ${proposedDate}`,
+      subject: `New Schedule Proposal for TV Installation - ${proposedDate}`,
       html: htmlContent,
       from: getValidFromEmail('booking')
     });
@@ -945,7 +945,7 @@ export async function sendScheduleConfirmationNotification(
     // Send to both customer and installer
     const customerEmail = await sendGmailEmail({
       to: booking.contactEmail,
-      subject: `✅ TV Installation Scheduled - ${confirmedDate}`,
+      subject: `TV Installation Scheduled - ${confirmedDate}`,
       html: htmlContent,
       from: getValidFromEmail('booking')
     });
@@ -953,7 +953,7 @@ export async function sendScheduleConfirmationNotification(
     const installer = await storage.getInstaller(booking.installerId);
     const installerEmail = installer ? await sendGmailEmail({
       to: installer.email,
-      subject: `✅ Installation Confirmed - ${confirmedDate}`,
+      subject: `Installation Confirmed - ${confirmedDate}`,
       html: htmlContent,
       from: getValidFromEmail('installer')
     }) : true;

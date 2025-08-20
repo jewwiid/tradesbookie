@@ -285,7 +285,12 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {booking.beforeAfterPhotos.map((photo: any, index: number) => {
                 // Debug what type each photo item is
-                console.log('Photo item debug:', { index, type: typeof photo, photo });
+                console.log('Photo item debug:', { 
+                  index, 
+                  type: typeof photo, 
+                  keys: Object.keys(photo || {}),
+                  photo: photo 
+                });
                 
                 // Handle different possible data structures
                 let photoSrc = '';

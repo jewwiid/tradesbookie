@@ -19,6 +19,7 @@ interface ScheduleNegotiationProps {
   installerId: number;
   customerName: string;
   isInstaller?: boolean;
+  onClose?: () => void;
 }
 
 interface ScheduleNegotiation {
@@ -37,7 +38,7 @@ interface ScheduleNegotiation {
 }
 
 
-export function ScheduleNegotiation({ bookingId, installerId, customerName, isInstaller = true }: ScheduleNegotiationProps) {
+export function ScheduleNegotiation({ bookingId, installerId, customerName, isInstaller = true, onClose }: ScheduleNegotiationProps) {
   const [newProposal, setNewProposal] = useState({
     date: "",
     timeSlot: "",
@@ -80,6 +81,10 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
         title: "Proposal sent",
         description: isInstaller ? "Your schedule proposal has been sent to the customer." : "Your schedule proposal has been sent to the installer."
       });
+      // Close the dialog after successful proposal submission
+      if (onClose) {
+        onClose();
+      }
     },
     onError: () => {
       toast({

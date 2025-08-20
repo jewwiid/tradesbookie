@@ -867,6 +867,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                 installerId={installerId}
                 customerName={selectedLead.customerName}
                 isInstaller={true}
+                onClose={() => setShowScheduleDialog(false)}
               />
             );
           })()}

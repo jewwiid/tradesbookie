@@ -9014,6 +9014,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   // Review endpoints
   app.post("/api/reviews", isAuthenticated, async (req, res) => {
+    console.log('🔥 AUTHENTICATED REVIEW ENDPOINT HIT');
     try {
       const userId = (req.user as any)?.id || (req.user as any)?.claims?.sub;
       console.log('Review submission - userId:', userId);

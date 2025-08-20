@@ -18,6 +18,7 @@ interface ScheduleProposalFormProps {
   customerName?: string;
   customerAddress?: string;
   onProposalSent?: () => void;
+  isReschedule?: boolean;
 }
 
 export default function ScheduleProposalForm({
@@ -25,7 +26,8 @@ export default function ScheduleProposalForm({
   installerId,
   customerName = 'Customer',
   customerAddress,
-  onProposalSent
+  onProposalSent,
+  isReschedule = false
 }: ScheduleProposalFormProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [proposedDate, setProposedDate] = useState('');
@@ -142,18 +144,18 @@ export default function ScheduleProposalForm({
           className="bg-blue-600 hover:bg-blue-700"
           disabled={hasPendingProposal}
           title={hasPendingProposal ? "Waiting for customer response to your proposal" : 
-                 hasAcceptedSchedule ? "Propose a new schedule to reschedule the installation" : "Propose an installation schedule"}
+                 (isReschedule || hasAcceptedSchedule) ? "Propose a new schedule to reschedule the installation" : "Propose an installation schedule"}
         >
           <CalendarDays className="w-4 h-4 mr-2" />
           {hasPendingProposal ? 'Proposal Pending' : 
-           hasAcceptedSchedule ? 'Propose Re-Schedule' : 'Propose Schedule'}
+           (isReschedule || hasAcceptedSchedule) ? 'Request Reschedule' : 'Propose Schedule'}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Calendar className="w-5 h-5" />
-            <span>{hasAcceptedSchedule ? 'Propose Re-Schedule' : 'Propose Installation Schedule'}</span>
+            <span>{(isReschedule || hasAcceptedSchedule) ? 'Request Reschedule' : 'Propose Installation Schedule'}</span>
           </DialogTitle>
         </DialogHeader>
         
@@ -222,15 +224,27 @@ export default function ScheduleProposalForm({
 
           {/* Message */}
           <div className="space-y-2">
-            <Label htmlFor="proposal-message">Message (Optional)</Label>
+            <Label htmlFor="proposal-message">Message {isReschedule ? '(Recommended)' : '(Optional)'}</Label>
             <Textarea
               id="proposal-message"
               value={proposalMessage}
               onChange={(e) => setProposalMessage(e.target.value)}
-              placeholder="Add any notes about the proposed schedule, preparation requirements, or special instructions..."
+              placeholder={isReschedule 
+                ? "Please explain why you need to reschedule the confirmed installation..." 
+                : "Add any notes about the proposed schedule, preparation requirements, or special instructions..."}
               rows={3}
             />
           </div>
+
+          {/* Reschedule Warning */}
+          {isReschedule && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-800">
+                <strong>⚠️ Reschedule Request:</strong> This will notify the customer that you need to change the confirmed schedule. 
+                Please provide a clear explanation for why rescheduling is necessary.
+              </p>
+            </div>
+          )}
 
           {/* Submit Buttons */}
           <div className="flex space-x-2 pt-4">
@@ -252,7 +266,7 @@ export default function ScheduleProposalForm({
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  Send Proposal
+                  {isReschedule ? 'Send Reschedule Request' : 'Send Proposal'}
                 </>
               )}
             </Button>

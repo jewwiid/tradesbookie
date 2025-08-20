@@ -1696,20 +1696,73 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   {/* Start Work Button for scheduled jobs with confirmed schedule */}
                   {((booking.status === 'confirmed' || booking.status === 'assigned') || 
                     (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) && booking.isSelected && (
-                    <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium text-yellow-800">Ready to Start Installation</h4>
-                        <p className="text-sm text-yellow-600 mt-1">
-                          This job is scheduled and ready to begin. Click "Start Work" when you arrive on-site.
-                        </p>
+                    <>
+                      <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div>
+                          <h4 className="font-medium text-yellow-800">Ready to Start Installation</h4>
+                          <p className="text-sm text-yellow-600 mt-1">
+                            This job is scheduled and ready to begin. Click "Start Work" when you arrive on-site.
+                          </p>
+                        </div>
+                        <StartWorkButton
+                          bookingId={booking.id}
+                          installerId={installerId}
+                          customerName={booking.contactName}
+                          onStatusUpdated={() => refetch()}
+                        />
                       </div>
-                      <StartWorkButton
-                        bookingId={booking.id}
-                        installerId={installerId}
-                        customerName={booking.contactName}
-                        onStatusUpdated={() => refetch()}
-                      />
-                    </div>
+
+                      {/* Reschedule Option for confirmed jobs */}
+                      <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div>
+                          <h4 className="font-medium text-gray-800 text-sm">Need to Reschedule?</h4>
+                          <p className="text-xs text-gray-600 mt-1">
+                            If you can't make the scheduled time, propose a new date to the customer.
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => toggleDetails(booking.id + 2000)} // Different offset for reschedule section
+                            className="text-gray-600 hover:text-gray-800 text-xs"
+                          >
+                            {expandedDetails.has(booking.id + 2000) ? (
+                              <><ChevronUp className="w-3 h-3 mr-1" />Hide</>
+                            ) : (
+                              <><ChevronDown className="w-3 h-3 mr-1" />Reschedule</>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Reschedule proposal form when expanded */}
+                      {expandedDetails.has(booking.id + 2000) && (
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                          <div className="mb-3">
+                            <h5 className="font-medium text-gray-800 text-sm mb-1">Request Reschedule</h5>
+                            <p className="text-xs text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+                              ⚠️ This will notify the customer that you need to change the confirmed schedule. Use only if necessary.
+                            </p>
+                          </div>
+                          <ScheduleProposalForm
+                            bookingId={booking.id}
+                            installerId={installerId}
+                            customerName={booking.contactName}
+                            customerAddress={booking.address}
+                            onProposalSent={() => {
+                              refetch();
+                              setExpandedDetails(prev => {
+                                const newSet = new Set(prev);
+                                newSet.delete(booking.id + 2000);
+                                return newSet;
+                              });
+                            }}
+                            isReschedule={true}
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {/* Schedule Communication Section - Only show if schedule not confirmed */}

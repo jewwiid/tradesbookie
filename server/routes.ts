@@ -11870,25 +11870,39 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
       
       // Send email notification about response
-      const negotiation = await storage.getBookingScheduleNegotiations(req.body.bookingId);
-      const latestNegotiation = negotiation[0]; // Most recent
+      // Get the specific negotiation that was just updated, not just the latest one
+      const acceptedNegotiation = await db.execute(sql`
+        SELECT * FROM schedule_negotiations WHERE id = ${negotiationId}
+      `);
       
-      if (latestNegotiation) {
-        const booking = await storage.getBooking(latestNegotiation.bookingId);
+      if (acceptedNegotiation.rows.length > 0) {
+        const negotiation = acceptedNegotiation.rows[0];
+        const booking = await storage.getBooking(negotiation.booking_id);
         
         if (status === 'accepted' || status === 'accept') {
           // Update booking with confirmed schedule and assign installer
           // Automatically set status to "scheduled" (Installation Scheduled)
-          await storage.updateBooking(latestNegotiation.bookingId, {
-            scheduledDate: new Date(latestNegotiation.proposedDate),
+          await storage.updateBooking(negotiation.booking_id, {
+            scheduledDate: new Date(negotiation.proposed_date),
             status: 'scheduled',
-            installerId: latestNegotiation.installerId
+            installerId: negotiation.installer_id
           });
           
           // Send confirmation emails to both parties
           if (booking) {
             try {
-              await sendScheduleConfirmationNotification(booking, latestNegotiation);
+              // Convert the database row to the expected format
+              const negotiationForEmail = {
+                id: negotiation.id,
+                bookingId: negotiation.booking_id,
+                installerId: negotiation.installer_id,
+                proposedDate: negotiation.proposed_date,
+                proposedTimeSlot: negotiation.proposed_time_slot,
+                proposalMessage: negotiation.proposal_message,
+                responseMessage: negotiation.response_message,
+                status: 'accepted'
+              };
+              await sendScheduleConfirmationNotification(booking, negotiationForEmail);
             } catch (emailError) {
               console.error("Failed to send confirmation notification:", emailError);
             }

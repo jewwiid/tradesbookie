@@ -133,6 +133,14 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
 
   const negotiations = Array.isArray(scheduleNegotiations) ? scheduleNegotiations : [];
 
+  // Fetch schedule negotiations for all leads to show proper button states
+  const { data: allNegotiations } = useQuery({
+    queryKey: [`/api/installer/${installerId}/schedule-negotiations`],
+    enabled: pastLeads.length > 0 && !!installerId
+  });
+
+  const allNegotiationsData = Array.isArray(allNegotiations) ? allNegotiations : [];
+
   // Get the most relevant schedule info to display
   const getScheduleDisplayInfo = () => {
     if (!negotiations.length) {
@@ -499,12 +507,13 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                           Update
                         </Button>
                         {(() => {
-                          // Check if there's a pending proposal from this installer for this lead
-                          const hasPendingProposal = lead.id === selectedLead?.id && 
-                            negotiations.find((n: any) => n.status === 'pending' && n.proposedBy === 'installer');
+                          // Get negotiations for this specific lead from all negotiations data
+                          const leadNegotiations = allNegotiationsData.filter((n: any) => n.bookingId === lead.id);
                           
-                          const hasAcceptedSchedule = lead.id === selectedLead?.id && 
-                            negotiations.find((n: any) => n.status === 'accepted');
+                          // Check if there's a pending proposal from this installer for this lead
+                          const hasPendingProposal = leadNegotiations.find((n: any) => n.status === 'pending' && n.proposedBy === 'installer');
+                          
+                          const hasAcceptedSchedule = leadNegotiations.find((n: any) => n.status === 'accepted');
                           
                           if (hasAcceptedSchedule) {
                             return (

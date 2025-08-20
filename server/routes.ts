@@ -5944,7 +5944,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      const jobAssignments = await storage.getJobAssignmentsByInstallerId(requestedInstallerId);
+      const jobAssignments = await storage.getInstallerJobAssignments(requestedInstallerId);
       res.json(jobAssignments);
     } catch (error) {
       console.error("Error fetching job assignments:", error);
@@ -5970,7 +5970,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get job assignment to find the booking
-      const jobAssignments = await storage.getJobAssignmentsByInstallerId(installerId);
+      const jobAssignments = await storage.getInstallerJobAssignments(installerId);
       const job = jobAssignments.find(j => j.id === jobId);
       
       if (!job) {

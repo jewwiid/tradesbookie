@@ -595,6 +595,21 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                             );
                           }
                           
+                          // Don't show Schedule button for in-progress or completed leads
+                          if (lead.status === 'in-progress' || lead.status === 'completed') {
+                            return (
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                disabled
+                                className="flex items-center gap-1 opacity-50"
+                              >
+                                <CheckCircle className="w-3 h-3" />
+                                {lead.status === 'in-progress' ? 'In Progress' : 'Completed'}
+                              </Button>
+                            );
+                          }
+                          
                           return (
                             <Button
                               onClick={() => openScheduleDialog(lead)}

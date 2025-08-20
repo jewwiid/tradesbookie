@@ -5658,19 +5658,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const declinedRequests = await storage.getDeclinedRequestsWithDetailsForInstaller(installerId);
         
         // Transform to match the client-side interface
-        const passedLeads = declinedRequests.map(declined => ({
-          id: declined.booking.id,
-          address: declined.booking.address,
-          customerName: "Lead Details Hidden", // Hide until retrieved
-          customerEmail: "Click to retrieve lead",
-          customerPhone: "Click to retrieve lead",
-          serviceType: declined.booking.serviceType,
-          tvSize: declined.booking.tvSize || "Not specified",
-          estimatedPrice: declined.booking.customerTotal || declined.booking.estimatedPrice || "0",
-          status: declined.booking.status,
-          // Multi-TV support
-          tvInstallations: declined.booking.tvInstallations || [],
-          tvQuantity: declined.booking.tvQuantity || 1,
+        const passedLeads = declinedRequests.map(declined => {
+          // Calculate correct total price for multi-TV installations
+          let totalPrice = declined.booking.customerTotal || declined.booking.estimatedPrice || "0";
+          
+          // If we have tvInstallations data, calculate the total from individual TV totals
+          if (declined.booking.tvInstallations && Array.isArray(declined.booking.tvInstallations) && declined.booking.tvInstallations.length > 1) {
+            const calculatedTotal = declined.booking.tvInstallations.reduce((sum: number, tv: any) => {
+              return sum + (parseFloat(tv.estimatedTotal) || 0);
+            }, 0);
+            totalPrice = calculatedTotal.toString();
+          }
+
+          return {
+            id: declined.booking.id,
+            address: declined.booking.address,
+            customerName: "Lead Details Hidden", // Hide until retrieved
+            customerEmail: "Click to retrieve lead",
+            customerPhone: "Click to retrieve lead",
+            serviceType: declined.booking.serviceType,
+            tvSize: declined.booking.tvSize || "Not specified",
+            estimatedPrice: totalPrice,
+            status: declined.booking.status,
+            // Multi-TV support
+            tvInstallations: declined.booking.tvInstallations || [],
+            tvQuantity: declined.booking.tvQuantity || 1,
           createdAt: declined.booking.createdAt,
           declinedAt: declined.declinedAt,
           needsWallMount: declined.booking.needsWallMount,
@@ -5678,7 +5690,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           mountType: declined.booking.mountType,
           difficulty: declined.booking.difficulty,
           customerNotes: declined.booking.customerNotes
-        }));
+          };
+        });
         
         res.json(passedLeads);
       }

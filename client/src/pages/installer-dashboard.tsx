@@ -60,7 +60,8 @@ import {
   Monitor,
   Euro,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Play
 } from "lucide-react";
 
 interface InstallerStats {
@@ -1294,8 +1295,27 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   </div>
                 </div>
 
-                {/* Messaging Section */}
+                {/* Job Actions Section */}
                 <div className="border-t pt-4 space-y-4">
+                  {/* Start Work Button for scheduled jobs */}
+                  {(booking.status === 'confirmed' || booking.status === 'assigned') && booking.isSelected && (
+                    <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div>
+                        <h4 className="font-medium text-yellow-800">Ready to Start Installation</h4>
+                        <p className="text-sm text-yellow-600 mt-1">
+                          This job is scheduled and ready to begin. Click "Start Work" when you arrive on-site.
+                        </p>
+                      </div>
+                      <StartWorkButton
+                        bookingId={booking.id}
+                        installerId={installerId}
+                        customerName={booking.contactName}
+                        onStatusUpdated={() => refetch()}
+                      />
+                    </div>
+                  )}
+
+                  {/* Messaging Section */}
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium text-gray-900">Schedule Communication</h4>
@@ -3094,5 +3114,72 @@ export default function InstallerDashboard() {
       />
 
     </div>
+  );
+}
+
+// StartWorkButton Component
+function StartWorkButton({ 
+  bookingId, 
+  installerId, 
+  customerName, 
+  onStatusUpdated 
+}: { 
+  bookingId: number;
+  installerId: number;
+  customerName: string;
+  onStatusUpdated: () => void;
+}) {
+  const { toast } = useToast();
+  
+  const startWorkMutation = useMutation({
+    mutationFn: async () => {
+      // Find the job assignment for this booking and installer
+      const jobAssignments = await apiRequest('GET', `/api/installer/${installerId}/job-assignments`);
+      const jobAssignment = jobAssignments.find((job: any) => job.bookingId === bookingId);
+      
+      if (!jobAssignment) {
+        throw new Error('Job assignment not found');
+      }
+      
+      // Update job status to in_progress
+      const response = await apiRequest('POST', `/api/installer/update-job-status/${jobAssignment.id}`, {
+        status: 'in_progress'
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Work Started",
+        description: `You've started working on ${customerName}'s installation. The job is now active.`,
+      });
+      onStatusUpdated();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Start Work",
+        description: error.message || 'Unable to start work on this job',
+        variant: "destructive",
+      });
+    }
+  });
+
+  return (
+    <Button
+      onClick={() => startWorkMutation.mutate()}
+      disabled={startWorkMutation.isPending}
+      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+    >
+      {startWorkMutation.isPending ? (
+        <>
+          <Clock className="w-4 h-4 mr-2 animate-spin" />
+          Starting...
+        </>
+      ) : (
+        <>
+          <Play className="w-4 h-4 mr-2" />
+          Start Work
+        </>
+      )}
+    </Button>
   );
 }

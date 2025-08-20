@@ -4087,12 +4087,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/installer/bookings", async (req, res) => {
     try {
-      const installerUser = (req as any).installerUser;
-      if (!installerUser) {
+      // Check installer session authentication
+      if (!req.session || !req.session.installerAuthenticated || !req.session.installerId) {
         return res.status(401).json({ message: "Not authenticated as installer" });
       }
       
-      const installerId = installerUser.id;
+      const installerId = req.session.installerId;
 
       // Get bookings where this installer has purchased leads (jobAssignments)
       const installerAssignments = await storage.getInstallerJobAssignments(installerId);
@@ -5714,8 +5714,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get installer job assignments
+  app.get("/api/installer/:installerId/job-assignments", async (req, res) => {
+    try {
+      // Check installer session authentication
+      if (!req.session || !req.session.installerAuthenticated || !req.session.installerId) {
+        return res.status(401).json({ message: "Not authenticated as installer" });
+      }
+      
+      const sessionInstallerId = req.session.installerId;
+      const requestedInstallerId = parseInt(req.params.installerId);
+      
+      // Ensure installer can only access their own assignments
+      if (sessionInstallerId !== requestedInstallerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const jobAssignments = await storage.getJobAssignmentsByInstallerId(requestedInstallerId);
+      res.json(jobAssignments);
+    } catch (error) {
+      console.error("Error fetching job assignments:", error);
+      res.status(500).json({ message: "Failed to fetch job assignments" });
+    }
+  });
+
   app.post("/api/installer/update-job-status/:jobId", async (req, res) => {
     try {
+      // Check installer session authentication
+      if (!req.session || !req.session.installerAuthenticated || !req.session.installerId) {
+        return res.status(401).json({ message: "Not authenticated as installer" });
+      }
+      
+      const installerId = req.session.installerId;
       const jobId = parseInt(req.params.jobId);
       const { status } = req.body;
       
@@ -5726,7 +5756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get job assignment to find the booking
-      const jobAssignments = await storage.getJobAssignmentsByInstallerId(1); // Get from session in real app
+      const jobAssignments = await storage.getJobAssignmentsByInstallerId(installerId);
       const job = jobAssignments.find(j => j.id === jobId);
       
       if (!job) {
@@ -5750,16 +5780,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const estimatedEarnings = 150.00; // Average job earnings
           
           // Update total earned in wallet
-          const wallet = await storage.getInstallerWallet(1); // Demo installer ID
+          const wallet = await storage.getInstallerWallet(installerId);
           if (wallet) {
             const currentEarned = parseFloat(wallet.totalEarned);
             const newTotalEarned = currentEarned + estimatedEarnings;
-            await storage.updateInstallerWalletTotalEarned(1, newTotalEarned);
+            await storage.updateInstallerWalletTotalEarned(installerId, newTotalEarned);
           }
           
           // Create earnings transaction record
           await storage.addInstallerTransaction({
-            installerId: 1, // Demo installer ID
+            installerId: installerId,
             type: "completion",
             amount: estimatedEarnings.toString(),
             description: `Job completion earnings for booking #${job.bookingId}`,

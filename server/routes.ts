@@ -5666,7 +5666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           customerPhone: "Click to retrieve lead",
           serviceType: declined.booking.serviceType,
           tvSize: declined.booking.tvSize || "Not specified",
-          estimatedPrice: declined.booking.estimatedPrice || "0",
+          estimatedPrice: declined.booking.customerTotal || declined.booking.estimatedPrice || "0",
           status: declined.booking.status,
           // Multi-TV support
           tvInstallations: declined.booking.tvInstallations || [],

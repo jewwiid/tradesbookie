@@ -4111,13 +4111,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               COALESCE(
                 (SELECT sn.proposed_date::text 
                  FROM schedule_negotiations sn 
-                 WHERE sn.booking_id = ${booking.id} AND sn.status = 'accepted' 
+                 WHERE sn.booking_id = ${booking.id} AND sn.status = 'pending' 
                  ORDER BY sn.created_at DESC LIMIT 1),
                 (SELECT sn.proposed_date::text 
                  FROM schedule_negotiations sn 
-                 WHERE sn.booking_id = ${booking.id} AND sn.status = 'pending' 
+                 WHERE sn.booking_id = ${booking.id} AND sn.status = 'accepted' 
                  ORDER BY sn.created_at DESC LIMIT 1),
-                ${booking.scheduledDate ? booking.scheduledDate.toISOString() : null}
+                ${booking.scheduledDate ? (typeof booking.scheduledDate === 'string' ? booking.scheduledDate : booking.scheduledDate.toISOString()) : null}
               ) as negotiated_date,
               (SELECT sn.proposed_time_slot 
                FROM schedule_negotiations sn 
@@ -4160,7 +4160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             preferredDate: booking.preferredDate,
             preferredTime: booking.preferredTime,
             // Use negotiated schedule dates instead of original booking dates
-            scheduledDate: negotiatedSchedule?.negotiated_date || (booking.scheduledDate ? booking.scheduledDate.toISOString() : null),
+            scheduledDate: negotiatedSchedule?.negotiated_date || (booking.scheduledDate ? (typeof booking.scheduledDate === 'string' ? booking.scheduledDate : booking.scheduledDate.toISOString()) : null),
             scheduledTime: negotiatedSchedule?.negotiated_time || booking.preferredTime,
             estimatedPrice: booking.estimatedPrice,
             estimatedTotal: booking.estimatedTotal,
@@ -11532,11 +11532,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           COALESCE(
             (SELECT sn.proposed_date::text 
              FROM schedule_negotiations sn 
-             WHERE sn.booking_id = b.id AND sn.status = 'accepted' 
+             WHERE sn.booking_id = b.id AND sn.status = 'pending' 
              ORDER BY sn.created_at DESC LIMIT 1),
             (SELECT sn.proposed_date::text 
              FROM schedule_negotiations sn 
-             WHERE sn.booking_id = b.id AND sn.status = 'pending' 
+             WHERE sn.booking_id = b.id AND sn.status = 'accepted' 
              ORDER BY sn.created_at DESC LIMIT 1),
             b.scheduled_date::text
           ) as "scheduledDate"
@@ -11548,11 +11548,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           COALESCE(
             (SELECT sn.proposed_date 
              FROM schedule_negotiations sn 
-             WHERE sn.booking_id = b.id AND sn.status = 'accepted' 
+             WHERE sn.booking_id = b.id AND sn.status = 'pending' 
              ORDER BY sn.created_at DESC LIMIT 1),
             (SELECT sn.proposed_date 
              FROM schedule_negotiations sn 
-             WHERE sn.booking_id = b.id AND sn.status = 'pending' 
+             WHERE sn.booking_id = b.id AND sn.status = 'accepted' 
              ORDER BY sn.created_at DESC LIMIT 1),
             b.scheduled_date
           )

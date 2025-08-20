@@ -529,6 +529,17 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
+  // DEBUG: Log all POST requests to /api/reviews
+  app.use((req, res, next) => {
+    if (req.method === 'POST' && req.path === '/api/reviews') {
+      console.log('🚨 INTERCEPTED POST /api/reviews');
+      console.log('🚨 Body:', req.body);
+      console.log('🚨 User:', req.user);
+      console.log('🚨 isAuthenticated:', req.isAuthenticated ? req.isAuthenticated() : 'N/A');
+    }
+    next();
+  });
+
   // Auth middleware - sets up passport and sessions
   await setupAuth(app);
   

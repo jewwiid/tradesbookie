@@ -364,7 +364,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
               <div style="font-size: 14px; line-height: 1.4;">
                 <strong>${request.address}</strong><br>
                 <span style="color: #666;">€${request.leadFee} lead fee</span><br>
-                <span style="color: #666;">${request.tvQuantity && request.tvQuantity > 1 ? request.tvSize : `${request.tvSize}" ${request.serviceType}`}</span><br>
+                <span style="color: #666;">${request.tvInstallations && Array.isArray(request.tvInstallations) && request.tvInstallations.length > 1 ? `${request.tvInstallations.length} TVs` : `${request.tvSize}" ${request.serviceType}`}</span><br>
                 <span style="color: ${getMarkerColor(request.status)}; font-weight: bold; text-transform: uppercase;">${request.status}</span>
               </div>
             `)
@@ -550,7 +550,12 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
                     <div className="grid grid-cols-2 gap-4 text-sm text-slate-600">
                       <div className="flex items-center gap-2">
                         <Monitor className="w-4 h-4" />
-                        <span>{request.tvQuantity && request.tvQuantity > 1 ? request.tvSize : `${request.tvSize}" ${request.serviceType}`}</span>
+                        <span>
+                          {request.tvInstallations && Array.isArray(request.tvInstallations) && request.tvInstallations.length > 1 
+                            ? `${request.tvInstallations.length} TVs (${request.tvInstallations.map((tv: any) => `${tv.tvSize}" ${tv.location || tv.roomName || ''}`).join(', ')})` 
+                            : `${request.tvSize}" ${request.serviceType}`
+                          }
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Euro className="w-4 h-4" />

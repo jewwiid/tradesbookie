@@ -56,6 +56,7 @@ interface BookingDetails {
   contact?: {
     name: string;
     phone: string;
+    email: string;
   };
   installer?: {
     id: number;

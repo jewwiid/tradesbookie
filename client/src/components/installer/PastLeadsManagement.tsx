@@ -236,11 +236,41 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   // Update status mutation
   const updateStatusMutation = useMutation({
     mutationFn: async ({ leadId, status, message }: { leadId: number; status: string; message?: string }) => {
-      return apiRequest('POST', `/api/installer/${installerId}/update-lead-status`, { 
+      // First update the lead status
+      const leadResponse = await apiRequest('POST', `/api/installer/${installerId}/update-lead-status`, { 
         leadId, 
         status,
         message 
       });
+
+      // Map lead status to job assignment status and update if needed
+      const jobStatusMapping: { [key: string]: string } = {
+        'in-progress': 'in_progress',
+        'completed': 'completed', 
+        'cancelled': 'declined'
+        // 'customer-notification' doesn't change job status
+      };
+
+      const jobStatus = jobStatusMapping[status];
+      if (jobStatus) {
+        try {
+          // Get job assignments for this lead
+          const jobAssignments = await apiRequest('GET', `/api/installer/${installerId}/job-assignments`);
+          const jobAssignment = jobAssignments.find((job: any) => job.bookingId === leadId);
+          
+          if (jobAssignment) {
+            // Update job assignment status to sync with lead status
+            await apiRequest('POST', `/api/installer/update-job-status/${jobAssignment.id}`, {
+              status: jobStatus
+            });
+          }
+        } catch (jobError) {
+          console.warn('Lead status updated but job status sync failed:', jobError);
+          // Don't fail the lead update if job sync fails
+        }
+      }
+
+      return leadResponse;
     },
     onSuccess: (data: any) => {
       // Mark the lead as recently updated for visual feedback

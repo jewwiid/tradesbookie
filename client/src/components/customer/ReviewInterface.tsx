@@ -53,33 +53,42 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
   const { toast } = useToast();
 
   // Check for existing review
-  const { data: existingReviewData, isLoading: reviewLoading } = useQuery({
+  const { data: existingReviewData, isLoading: reviewLoading, error: reviewError } = useQuery({
     queryKey: ['/api/bookings', booking.id, 'review'],
     queryFn: async () => {
-      try {
-        return await apiRequest('GET', `/api/bookings/${booking.id}/review`);
-      } catch (error: any) {
-        // 404 means no review exists, which is fine
-        if (error.message?.includes('404')) {
-          return null;
-        }
-        throw error;
-      }
+      return await apiRequest('GET', `/api/bookings/${booking.id}/review`);
     },
-    enabled: booking.status === 'completed' && !!booking.installerId
+    enabled: booking.status === 'completed' && !!booking.installerId,
+    retry: (failureCount, error) => {
+      // Don't retry on 404 - it just means no review exists
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorMessage = String(error.message);
+        if (errorMessage.includes('404')) {
+          return false;
+        }
+      }
+      return failureCount < 3;
+    }
   });
 
   // Update state when existing review data is loaded
   useEffect(() => {
-    if (existingReviewData) {
+    if (existingReviewData && !reviewError) {
       setExistingReview(existingReviewData);
       setHasSubmittedReview(true);
       // Populate form with existing review data
-      setRating(existingReviewData.rating);
-      setTitle(existingReviewData.title);
-      setComment(existingReviewData.comment);
+      setRating(existingReviewData.rating || 5);
+      setTitle(existingReviewData.title || '');
+      setComment(existingReviewData.comment || '');
+    } else if (reviewError) {
+      // If there's a 404 error, that means no review exists - reset states
+      const errorMessage = reviewError?.message || '';
+      if (errorMessage.includes('404')) {
+        setExistingReview(null);
+        setHasSubmittedReview(false);
+      }
     }
-  }, [existingReviewData]);
+  }, [existingReviewData, reviewError]);
 
   // Check if booking can be reviewed
   const canReview = booking.status === 'completed' && booking.installerId && !hasSubmittedReview && !existingReview;

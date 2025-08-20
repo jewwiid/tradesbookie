@@ -238,15 +238,11 @@ function PendingReviews({ installerId }: { installerId: number }) {
     setSendingReviews(prev => [...prev, jobId]);
     
     try {
-      const response = await apiRequest(`/api/installer/request-review`, {
-        method: 'POST',
-        body: JSON.stringify({ 
-          bookingId: jobId, 
-          installerId,
-          customerEmail,
-          customerName
-        }),
-        headers: { 'Content-Type': 'application/json' }
+      const response = await apiRequest('POST', '/api/installer/request-review', {
+        bookingId: jobId, 
+        installerId,
+        customerEmail,
+        customerName
       });
 
       if (response.success) {

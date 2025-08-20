@@ -2361,9 +2361,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         jobAssignment = jobs.find(job => job.bookingId === booking.id);
       }
       
-      // Get schedule negotiations for tracking progress
+      // Get schedule negotiations with installer info for tracking progress
       try {
-        scheduleNegotiations = await storage.getBookingScheduleNegotiations(booking.id);
+        const rawNegotiations = await db.select()
+          .from(scheduleNegotiations)
+          .leftJoin(installers, eq(scheduleNegotiations.installerId, installers.id))
+          .where(eq(scheduleNegotiations.bookingId, booking.id))
+          .orderBy(desc(scheduleNegotiations.createdAt));
+
+        scheduleNegotiations = rawNegotiations.map(row => ({
+          id: row.schedule_negotiations.id,
+          bookingId: row.schedule_negotiations.bookingId,
+          installerId: row.schedule_negotiations.installerId,
+          proposedDate: row.schedule_negotiations.proposedDate,
+          proposedTimeSlot: row.schedule_negotiations.proposedTimeSlot,
+          proposedStartTime: row.schedule_negotiations.proposedStartTime,
+          proposedEndTime: row.schedule_negotiations.proposedEndTime,
+          proposedBy: row.schedule_negotiations.proposedBy,
+          status: row.schedule_negotiations.status,
+          proposalMessage: row.schedule_negotiations.proposalMessage,
+          responseMessage: row.schedule_negotiations.responseMessage,
+          createdAt: row.schedule_negotiations.createdAt,
+          updatedAt: row.schedule_negotiations.updatedAt,
+          proposedAt: row.schedule_negotiations.proposedAt,
+          respondedAt: row.schedule_negotiations.respondedAt,
+          installer: row.installers ? {
+            id: row.installers.id,
+            businessName: row.installers.businessName,
+            contactName: row.installers.contactName,
+            firstName: row.installers.contactName?.split(' ')[0] || '',
+            lastName: row.installers.contactName?.split(' ').slice(1).join(' ') || '',
+            profileImageUrl: row.installers.profileImageUrl,
+          } : null
+        }));
       } catch (error) {
         console.warn("Could not fetch schedule negotiations for tracking:", error);
         scheduleNegotiations = [];
@@ -11566,6 +11596,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           id: row.installer_id,
           businessName: row.installer_business_name,
           contactName: row.installer_contact_name,
+          firstName: row.installer_contact_name?.split(' ')[0] || '',
+          lastName: row.installer_contact_name?.split(' ').slice(1).join(' ') || '',
           profileImageUrl: row.installer_profile_image_url,
         } : null
       }));

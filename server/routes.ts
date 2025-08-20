@@ -11776,7 +11776,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         FROM bookings b
         INNER JOIN job_assignments ja ON ja.booking_id = b.id
         WHERE ja.installer_id = ${installerId}
-          AND (ja.status = 'accepted' OR ja.status = 'assigned')
+          AND (ja.status = 'accepted' OR ja.status = 'assigned' OR ja.status = 'completed' OR ja.status = 'in_progress')
           AND (
             EXISTS (
               SELECT 1 FROM schedule_negotiations sn 
@@ -11805,7 +11805,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         INNER JOIN schedule_negotiations sn ON sn.booking_id = b.id
         WHERE ja.installer_id = ${installerId}
           AND sn.installer_id = ${installerId}
-          AND (ja.status = 'accepted' OR ja.status = 'assigned')
+          AND (ja.status = 'accepted' OR ja.status = 'assigned' OR ja.status = 'completed' OR ja.status = 'in_progress')
           AND sn.status = 'pending'
           AND sn.proposed_by = 'installer'
         

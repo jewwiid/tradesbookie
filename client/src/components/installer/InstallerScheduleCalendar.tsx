@@ -175,14 +175,31 @@ const InstallerScheduleCalendar = ({ installerId }: InstallerScheduleCalendarPro
                             
                             return (
                               <div className="space-y-1">
-                                {confirmedJobs.length > 0 && (
-                                  <>
-                                    <div className="w-full h-1 bg-blue-500 rounded-full"></div>
-                                    <div className="text-xs text-blue-600 font-medium">
-                                      {confirmedJobs.length} scheduled
-                                    </div>
-                                  </>
-                                )}
+                                {confirmedJobs.length > 0 && (() => {
+                                  const completedJobs = confirmedJobs.filter(job => job.status === 'completed');
+                                  const activeJobs = confirmedJobs.filter(job => job.status !== 'completed');
+                                  
+                                  return (
+                                    <>
+                                      <div className={`w-full h-1 rounded-full ${
+                                        completedJobs.length > 0 && activeJobs.length === 0 ? 'bg-green-500' : 
+                                        completedJobs.length > 0 && activeJobs.length > 0 ? 'bg-gradient-to-r from-green-500 to-blue-500' :
+                                        'bg-blue-500'
+                                      }`}></div>
+                                      <div className={`text-xs font-medium ${
+                                        completedJobs.length > 0 && activeJobs.length === 0 ? 'text-green-600' : 
+                                        'text-blue-600'
+                                      }`}>
+                                        {completedJobs.length > 0 && activeJobs.length === 0 
+                                          ? `${completedJobs.length} completed`
+                                          : completedJobs.length > 0 && activeJobs.length > 0
+                                          ? `${activeJobs.length} scheduled, ${completedJobs.length} completed`
+                                          : `${confirmedJobs.length} scheduled`
+                                        }
+                                      </div>
+                                    </>
+                                  );
+                                })()}
                                 {proposedJobs.length > 0 && (
                                   <>
                                     <div className="w-full h-1 bg-amber-400 rounded-full"></div>

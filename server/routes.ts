@@ -13433,7 +13433,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         booking: {
           id: booking.id,
           qrCode: booking.qrCode,
-          customerName: booking.customerName,
+          customerName: booking.contactName,
           address: booking.address,
           serviceType: booking.serviceType,
           scheduledDate: booking.scheduledDate

@@ -110,7 +110,8 @@ function ScheduleNegotiationForUnassigned({ bookingId }: { bookingId: number }) 
               onClick={() => respondToProposal.mutate({
                 negotiationId: proposal.id,
                 status: 'accepted',
-                responseMessage: 'Schedule confirmed'
+                responseMessage: 'Schedule confirmed',
+                bookingId: bookingId
               })}
               disabled={respondToProposal.isPending}
               className="bg-green-600 hover:bg-green-700"
@@ -124,7 +125,8 @@ function ScheduleNegotiationForUnassigned({ bookingId }: { bookingId: number }) 
               onClick={() => respondToProposal.mutate({
                 negotiationId: proposal.id,
                 status: 'declined',
-                responseMessage: 'This time does not work for me'
+                responseMessage: 'This time does not work for me',
+                bookingId: bookingId
               })}
               disabled={respondToProposal.isPending}
               className="border-red-300 text-red-700 hover:bg-red-50"

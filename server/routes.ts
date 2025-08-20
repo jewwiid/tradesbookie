@@ -11848,6 +11848,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               AND (status = 'accepted' OR status = 'accept')
               AND id != ${negotiationId}
           `);
+          
+          // Auto-decline all other pending proposals when one is accepted
+          await db.execute(sql`
+            UPDATE schedule_negotiations 
+            SET status = 'declined', 
+                response_message = 'Auto-declined: Customer accepted another proposal',
+                responded_at = NOW(),
+                updated_at = NOW()
+            WHERE booking_id = ${bookingId} 
+              AND status = 'pending'
+              AND id != ${negotiationId}
+          `);
         }
         
         // Now update this negotiation to "accepted" (standardized)

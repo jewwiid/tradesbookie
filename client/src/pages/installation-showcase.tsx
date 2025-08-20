@@ -257,7 +257,7 @@ export default function InstallationShowcase() {
                             {/* Before Photo */}
                             <div className="relative">
                               <img 
-                                src={`data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
+                                src={currentPhoto.beforePhoto.startsWith('data:') ? currentPhoto.beforePhoto : `data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
                                 alt="Before installation"
                                 className="w-full h-64 sm:h-80 object-cover"
                               />
@@ -269,7 +269,7 @@ export default function InstallationShowcase() {
                             {/* After Photo */}
                             <div className="relative">
                               <img 
-                                src={`data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
+                                src={currentPhoto.afterPhoto.startsWith('data:') ? currentPhoto.afterPhoto : `data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
                                 alt="After installation"
                                 className="w-full h-64 sm:h-80 object-cover"
                               />
@@ -283,7 +283,7 @@ export default function InstallationShowcase() {
                             {/* Blurred Preview for Non-authenticated Users */}
                             <div className="relative">
                               <img 
-                                src={`data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
+                                src={currentPhoto.beforePhoto.startsWith('data:') ? currentPhoto.beforePhoto : `data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
                                 alt="Before installation preview"
                                 className="w-full h-64 sm:h-80 object-cover blur-lg"
                               />
@@ -300,7 +300,7 @@ export default function InstallationShowcase() {
 
                             <div className="relative">
                               <img 
-                                src={`data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
+                                src={currentPhoto.afterPhoto.startsWith('data:') ? currentPhoto.afterPhoto : `data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
                                 alt="After installation preview"
                                 className="w-full h-64 sm:h-80 object-cover blur-lg"
                               />

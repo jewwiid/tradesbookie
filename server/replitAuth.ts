@@ -491,12 +491,7 @@ export async function setupAuth(app: Express) {
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
-  console.log('🔒 isAuthenticated middleware called for:', req.method, req.path);
-  console.log('🔒 req.isAuthenticated():', req.isAuthenticated());
-  console.log('🔒 req.user exists:', !!req.user);
-  
   if (!req.isAuthenticated() || !req.user) {
-    console.log('🚫 Authentication failed for:', req.method, req.path);
     return res.status(401).json({ message: "Unauthorized" });
   }
 

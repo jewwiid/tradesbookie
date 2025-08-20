@@ -529,16 +529,6 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
 
-  // DEBUG: Log all POST requests to /api/reviews
-  app.use((req, res, next) => {
-    if (req.method === 'POST' && req.path === '/api/reviews') {
-      console.log('🚨 INTERCEPTED POST /api/reviews');
-      console.log('🚨 Body:', req.body);
-      console.log('🚨 User:', req.user);
-      console.log('🚨 isAuthenticated:', req.isAuthenticated ? req.isAuthenticated() : 'N/A');
-    }
-    next();
-  });
 
   // Auth middleware - sets up passport and sessions
   await setupAuth(app);
@@ -4861,8 +4851,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Anonymous review route (for public review forms)
   app.post("/api/public-reviews", async (req, res) => {
-    console.log('🌐 PUBLIC REVIEWS ENDPOINT HIT - This should NOT happen for authenticated users!');
-    console.log('🌐 req.body:', req.body);
     try {
       const { bookingId, installerId, userId, rating, title, comment, reviewerName, qrCode } = req.body;
       
@@ -9027,11 +9015,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   // Review endpoints
   app.post("/api/reviews", isAuthenticated, async (req, res) => {
-    console.log('🔥 AUTHENTICATED REVIEW ENDPOINT HIT');
     try {
       const userId = (req.user as any)?.id || (req.user as any)?.claims?.sub;
-      console.log('Review submission - userId:', userId);
-      console.log('Review submission - req.body:', req.body);
       
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
@@ -9039,24 +9024,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       const { bookingId, installerId, rating, title, comment, qrCode } = req.body;
       
-      // Debug the individual fields
-      console.log('Review fields check:', {
-        bookingId: bookingId,
-        installerId: installerId, 
-        rating: rating,
-        title: title,
-        comment: comment
-      });
-      
       // Validate required fields
       if (!bookingId || !installerId || !rating || !title || !comment) {
-        console.log('Missing fields detected:', {
-          hasBookingId: !!bookingId,
-          hasInstallerId: !!installerId,
-          hasRating: !!rating,
-          hasTitle: !!title,
-          hasComment: !!comment
-        });
         return res.status(400).json({ message: "Missing required fields" });
       }
       

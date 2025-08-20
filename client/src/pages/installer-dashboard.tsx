@@ -2014,6 +2014,9 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [showBeforeAfterCapture, setShowBeforeAfterCapture] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const [clearScanner, setClearScanner] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<any>(null); // Job selected for before photos
+  const [showBeforePhotos, setShowBeforePhotos] = useState(false); // Show before photo capture first
+  const [beforePhotosCompleted, setBeforePhotosCompleted] = useState(false); // Track if before photos are done
   const { toast } = useToast();
 
   // Clear verification data when component mounts (tab switch)
@@ -2023,6 +2026,9 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     setCompletionSuccess('');
     setCurrentBooking(null);
     setShowBeforeAfterCapture(false);
+    setSelectedJob(null);
+    setShowBeforePhotos(false);
+    setBeforePhotosCompleted(false);
     setClearScanner(true); // Trigger QR scanner clear
     
     // Reset the clear flag after a brief delay
@@ -2080,24 +2086,25 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
       setVerificationData({ ...data, isPostWorkScan });
       
       if (tvCount > 0) {
-        // Show photo capture workflow with context-aware messaging
-        setShowBeforeAfterCapture(true);
-        
+        // For post-work QR scans, show after photo capture
         if (isPostWorkScan) {
+          setShowBeforeAfterCapture(true);
           toast({
-            title: "QR Code Verified!",
+            title: "Job Unlocked!",
             description: `Work completed! Please capture installation photos to document your quality work and earn stars.`,
           });
         } else {
+          // For pre-work QR scans, the job is now "unlocked" but should transition to completion workflow
           toast({
-            title: "QR Code Verified!",
-            description: `Please capture before and after photos for each TV installation to earn quality stars and qualify for credit refunds.`,
+            title: "Job Unlocked!",
+            description: `Job ready to start! You can now begin work. Come back here to capture after photos when complete.`,
           });
+          // Don't show photo capture yet - this unlocks the job for starting
         }
       } else {
         // Fallback for legacy bookings without TV installations
         toast({
-          title: "QR Code Verified!",
+          title: "Job Unlocked!",
           description: `Found booking for ${data.booking.customerName} at ${data.booking.address}`,
         });
       }
@@ -2160,11 +2167,40 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     completeJobMutation.mutate(beforeAfterPhotos);
   };
   
-  const handleBeforeAfterPhotosCompleted = (photos: any[]) => {
+  const handleStartJob = (job: any) => {
+    setSelectedJob(job);
+    setShowBeforePhotos(true);
+    toast({
+      title: "Starting Job",
+      description: `Take before photos first, then scan QR code to unlock the job.`,
+    });
+  };
+
+  const handleBeforePhotosCompleted = (photos: any[]) => {
+    setBeforePhotosCompleted(true);
+    setShowBeforePhotos(false);
+    toast({
+      title: "Before Photos Complete!",
+      description: `Now scan the customer's QR code to unlock and start the job.`,
+    });
+  };
+
+  const handleBeforePhotosCancelled = () => {
+    setShowBeforePhotos(false);
+    setSelectedJob(null);
+    setBeforePhotosCompleted(false);
+    toast({
+      title: "Photo capture cancelled",
+      description: "Job start cancelled. You can try again anytime.",
+      variant: "destructive",
+    });
+  };
+
+  const handleAfterPhotosCompleted = (photos: any[]) => {
     handleCompleteJob(photos);
   };
   
-  const handleCancelBeforeAfterCapture = () => {
+  const handleAfterPhotosCancelled = () => {
     setShowBeforeAfterCapture(false);
     setVerificationData(null);
     setCurrentBooking(null);
@@ -2190,63 +2226,28 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
 
   return (
     <div className="space-y-6">
-      {/* In-Progress Jobs - Locked until QR scanned */}
-      {inProgressJobs.length > 0 && !verificationData && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-orange-800">
-              <Lock className="w-5 h-5" />
-              <span>Ready to Complete Installation ({inProgressJobs.length})</span>
-            </CardTitle>
-            <p className="text-sm text-orange-700">
-              These jobs are in progress and ready for completion. Scan the customer's QR code to unlock photo submission and mark as complete.
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {inProgressJobs.map((job: any) => {
-              const tvCount = Array.isArray(job.tvInstallations) ? job.tvInstallations.length : 1;
-              return (
-                <div key={job.id} className="flex items-center justify-between p-4 bg-white border border-orange-200 rounded-lg opacity-75">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <h4 className="font-semibold text-gray-900">{job.contactName}</h4>
-                      <Badge className="bg-orange-100 text-orange-800">
-                        <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse mr-1"></div>
-                        In Progress
-                      </Badge>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <MapPin className="w-4 h-4" />
-                        <span>{job.address}</span>
-                      </div>
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <span className="flex items-center space-x-1">
-                          <Camera className="w-3 h-3" />
-                          <span>{tvCount} TV{tvCount > 1 ? 's' : ''} - Photos Required</span>
-                        </span>
-                        <span>€{job.estimatedTotal}</span>
-                      </div>
-                      {tvCount > 1 && job.tvInstallations && (
-                        <div className="text-xs text-gray-400 mt-1">
-                          Rooms: {job.tvInstallations.map((tv: any) => tv.location || 'Room').join(', ')}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 opacity-50">
-                    <Lock className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm text-gray-500">Scan QR to Unlock</span>
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Conditional rendering: Photo Capture or QR Scanner */}
-      {showBeforeAfterCapture && currentBooking ? (
+      {/* Before Photos Workflow - Step 1 */}
+      {showBeforePhotos && selectedJob ? (
+        <FlexiblePhotoCapture
+          bookingId={selectedJob.id}
+          tvCount={Array.isArray(selectedJob.tvInstallations) ? selectedJob.tvInstallations.length : 1}
+          tvNames={Array.isArray(selectedJob.tvInstallations) ? 
+            selectedJob.tvInstallations.map((tv: any) => tv.location || `TV ${tv.tvIndex + 1}`) : 
+            [`TV 1`]
+          }
+          workflowStage="before" // Only before photos
+          allowBeforeUpload={true}
+          onPhotosComplete={handleBeforePhotosCompleted}
+          onCancel={handleBeforePhotosCancelled}
+          onProgressSave={(tvIndex, progress) => {
+            toast({
+              title: "Progress Saved",
+              description: `Before photo progress saved for ${selectedJob.tvInstallations?.[tvIndex]?.location || `TV ${tvIndex + 1}`}`,
+            });
+          }}
+        />
+      ) : showBeforeAfterCapture && currentBooking ? (
+        /* After Photos Workflow - Step 3 */
         <FlexiblePhotoCapture
           bookingId={currentBooking.id}
           tvCount={Array.isArray(currentBooking.tvInstallations) ? currentBooking.tvInstallations.length : 1}
@@ -2254,30 +2255,106 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
             currentBooking.tvInstallations.map((tv: any) => tv.location || `TV ${tv.tvIndex + 1}`) : 
             [`TV 1`]
           }
-          workflowStage={
-            verificationData?.isPostWorkScan ? 'after' : 
-            'both' // Default to both before and after photos
-          }
-          allowBeforeUpload={!verificationData?.isPostWorkScan} // Allow upload only if not post-work scan
-          onPhotosComplete={handleBeforeAfterPhotosCompleted}
-          onCancel={handleCancelBeforeAfterCapture}
+          workflowStage="after" // Only after photos
+          allowBeforeUpload={false}
+          onPhotosComplete={handleAfterPhotosCompleted}
+          onCancel={handleAfterPhotosCancelled}
           onProgressSave={(tvIndex, progress) => {
-            // Show toast when progress is saved
             toast({
               title: "Progress Saved",
-              description: `Photo progress saved for ${currentBooking.tvInstallations?.[tvIndex]?.location || `TV ${tvIndex + 1}`}`,
+              description: `After photo progress saved for ${currentBooking.tvInstallations?.[tvIndex]?.location || `TV ${tvIndex + 1}`}`,
             });
           }}
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <QRScanner 
-              onScanSuccess={handleQRScan}
-              onError={(error) => setScanError(error)}
-              isLoading={verifyQRMutation.isPending || completeJobMutation.isPending}
-              clearResult={clearScanner}
-            />
+        <>
+          {/* In-Progress Jobs - Ready to Start */}
+          {inProgressJobs.length > 0 && !beforePhotosCompleted && (
+            <Card className="border-blue-200 bg-blue-50">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-blue-800">
+                  <Camera className="w-5 h-5" />
+                  <span>Ready to Start Installation ({inProgressJobs.length})</span>
+                </CardTitle>
+                <p className="text-sm text-blue-700">
+                  Start by taking before photos, then scan the customer's QR code to unlock the job.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {inProgressJobs.map((job: any) => {
+                  const tvCount = Array.isArray(job.tvInstallations) ? job.tvInstallations.length : 1;
+                  return (
+                    <div key={job.id} className="flex items-center justify-between p-4 bg-white border border-blue-200 rounded-lg">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="font-semibold text-gray-900">{job.contactName}</h4>
+                          <Badge className="bg-blue-100 text-blue-800">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
+                            Ready to Start
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>{job.address}</span>
+                          </div>
+                          <div className="flex items-center space-x-4 text-xs text-gray-500">
+                            <span className="flex items-center space-x-1">
+                              <Camera className="w-3 h-3" />
+                              <span>{tvCount} TV{tvCount > 1 ? 's' : ''} - Before Photos First</span>
+                            </span>
+                            <span>€{job.estimatedTotal}</span>
+                          </div>
+                          {tvCount > 1 && job.tvInstallations && (
+                            <div className="text-xs text-gray-400 mt-1">
+                              Rooms: {job.tvInstallations.map((tv: any) => tv.location || 'Room').join(', ')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={() => handleStartJob(job)}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Start Job
+                      </Button>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* QR Scanner - Step 2 (After Before Photos) */}
+          {(beforePhotosCompleted || verificationData) && (
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2 text-green-800">
+                  <CheckCircle className="w-5 h-5" />
+                  <span>
+                    {beforePhotosCompleted ? 'Scan QR Code to Unlock Job' : 'Job Unlocked - Complete When Ready'}
+                  </span>
+                </CardTitle>
+                <p className="text-sm text-green-700">
+                  {beforePhotosCompleted 
+                    ? 'Before photos complete! Now scan the customer\'s QR code to unlock and start the installation.'
+                    : 'Job is unlocked and ready. Come back here to take after photos when work is complete.'
+                  }
+                </p>
+              </CardHeader>
+            </Card>
+          )}
+
+          {/* QR Scanner Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <QRScanner 
+                onScanSuccess={handleQRScan}
+                onError={(error) => setScanError(error)}
+                isLoading={verifyQRMutation.isPending || completeJobMutation.isPending}
+                clearResult={clearScanner}
+              />
           
           {/* Success/Error Messages */}
           {completionSuccess && (
@@ -2301,48 +2378,103 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
               </CardContent>
             </Card>
           )}
-        </div>
-
-        {/* Verification & Completion Section */}
-        <div>
-          {verificationData && (
-            <Card className="border-blue-200 bg-blue-50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-blue-800">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Ready to Complete</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div><strong>Customer:</strong> {verificationData.booking?.customerName || verificationData.booking?.contactName || 'N/A'}</div>
-                  <div><strong>Address:</strong> {verificationData.booking?.address || 'N/A'}</div>
-                  <div><strong>Service:</strong> {verificationData.booking?.serviceType || 'N/A'}</div>
-                  <div><strong>QR Code:</strong> {verificationData.booking?.qrCode || 'N/A'}</div>
+            </div>
+          </div>
+        </>
+      )}
+      
+      {/* Completed Jobs */}
+      {completedJobs && completedJobs.length > 0 && (
+        <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <span>Recently Completed Jobs</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {completedJobs.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <CheckCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>No completed jobs yet. Complete your first installation to see it here!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {completedJobs.slice(0, 5).map((job: any) => (
+                <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <div>
+                      <div className="font-medium">{job.booking?.customerName}</div>
+                      <div className="text-sm text-gray-500">{job.booking?.address}</div>
+                      <div className="text-xs text-gray-400">
+                        Completed: {new Date(job.completedDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium">€{job.booking?.estimatedTotal}</div>
+                    <div className="text-xs text-gray-500">{job.booking?.qrCode}</div>
+                  </div>
                 </div>
-                
-                <Button 
-                  onClick={handleCompleteJob}
-                  disabled={completeJobMutation.isPending}
-                  className="w-full"
-                >
-                  {completeJobMutation.isPending ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Completing...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Mark Installation Complete
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+              ))}
+            </div>
           )}
-          
-          {!verificationData && !completionSuccess && !scanError && inProgressJobs.length === 0 && (
+        </CardContent>
+      </Card>
+      )}
+    </div>
+  );
+}
+
+export default function InstallerDashboard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanError, setScanError] = useState<string>('');
+  const [completionSuccess, setCompletionSuccess] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const [selectedLeadForPurchase, setSelectedLeadForPurchase] = useState<ClientRequest | null>(null);
+  const [showMapHelp, setShowMapHelp] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: "",
+    businessName: "",
+    email: "",
+    phone: "",
+    serviceArea: "",
+    county: "",
+    bio: "",
+    experience: "",
+    certifications: "",
+    emergencyCallout: false,
+    weekendAvailable: false
+  });
+  
+  // Get current installer profile
+  const { data: installerProfile, isLoading: profileLoading, error: profileError } = useQuery({
+    queryKey: ["/api/installers/profile"],
+    retry: false
+  });
+
+  // Fetch current user to check for admin status
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/auth/user'],
+    retry: false,
+  });
+
+  // Check if current user is admin viewing installer dashboard
+  const isAdminView = currentUser?.role === 'admin' || 
+                      currentUser?.email === 'admin@tradesbook.ie' ||
+                      false;
+  
+  const installerId = installerProfile?.id;
+
+  // Handle authentication errors
+  if (profileError && (profileError as any)?.status === 401) {
+    return (
             <Card>
               <CardContent className="p-6">
                 <div className="text-center text-gray-500">
@@ -2358,9 +2490,6 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
               </CardContent>
             </Card>
           )}
-          </div>
-        </div>
-      )}
 
       {/* Completed Jobs List */}
       <Card>

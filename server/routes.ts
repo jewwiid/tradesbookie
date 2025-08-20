@@ -2599,16 +2599,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             try {
               const installer = await storage.getInstaller(booking.installerId);
               if (installer) {
+                // Get installer rating data
+                const ratingData = await storage.getInstallerRating(installer.id);
+                
+                // Calculate completion date - use updatedAt if status is completed
+                let completedAt = booking.createdAt;
+                if (booking.status === 'completed' && booking.updatedAt && new Date(booking.updatedAt) > new Date(booking.createdAt)) {
+                  completedAt = booking.updatedAt;
+                }
+                
                 return {
                   ...booking,
+                  completedAt, // Add proper completion date
                   installer: {
                     id: installer.id,
                     businessName: installer.businessName,
                     contactName: installer.contactName,
                     phone: installer.phone,
                     profileImageUrl: installer.profileImageUrl,
-                    averageRating: installer.averageRating || 0,
-                    totalReviews: installer.totalReviews || 0,
+                    averageRating: ratingData.averageRating || 0,
+                    totalReviews: ratingData.totalReviews || 0,
                     serviceArea: installer.serviceArea
                   }
                 };
@@ -2616,6 +2626,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } catch (error) {
               console.error(`Error fetching installer ${booking.installerId}:`, error);
             }
+          }
+          // Still add completion date even if no installer
+          if (booking.status === 'completed' && booking.updatedAt && new Date(booking.updatedAt) > new Date(booking.createdAt)) {
+            return {
+              ...booking,
+              completedAt: booking.updatedAt
+            };
           }
           return booking;
         })

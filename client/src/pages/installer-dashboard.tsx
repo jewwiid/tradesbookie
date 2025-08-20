@@ -1286,12 +1286,21 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                 {/* Quick Service Info */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}"</span>
-                    <span><Monitor className="w-4 h-4 inline mr-1" />{booking.serviceType}</span>
-                    {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 && (
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                        {booking.tvInstallations.length} TVs
-                      </span>
+                    {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
+                      <>
+                        <span><Tv className="w-4 h-4 inline mr-1" />Multi-TV Installation</span>
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                          {booking.tvInstallations.length} TVs
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({booking.tvInstallations.map(tv => tv.location || 'Room').join(', ')})
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}"</span>
+                        <span><Monitor className="w-4 h-4 inline mr-1" />{booking.serviceType}</span>
+                      </>
                     )}
                   </div>
                   <Button 

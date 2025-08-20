@@ -1370,21 +1370,38 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                             </p>
                           )}
                         </div>
-                        <ScheduleProposalForm
-                          bookingId={booking.id}
-                          installerId={installerId}
-                          customerName={booking.contactName}
-                          customerAddress={booking.address}
-                          onProposalSent={() => refetch()}
-                        />
+                        <div className="flex items-center space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => toggleDetails(booking.id + 1000)} // Use offset to avoid collision
+                            className="text-blue-600 hover:text-blue-800"
+                          >
+                            {expandedDetails.has(booking.id + 1000) ? (
+                              <><ChevronUp className="w-4 h-4 mr-1" />Hide History</>
+                            ) : (
+                              <><ChevronDown className="w-4 h-4 mr-1" />Show History</>
+                            )}
+                          </Button>
+                          <ScheduleProposalForm
+                            bookingId={booking.id}
+                            installerId={installerId}
+                            customerName={booking.contactName}
+                            customerAddress={booking.address}
+                            onProposalSent={() => refetch()}
+                          />
+                        </div>
                       </div>
                       
-                      <ScheduleNegotiation
-                        bookingId={booking.id}
-                        installerId={installerId}
-                        userType="installer"
-                        customerName={booking.contactName}
-                      />
+                      {/* Only show full schedule negotiation when expanded */}
+                      {expandedDetails.has(booking.id + 1000) && (
+                        <ScheduleNegotiation
+                          bookingId={booking.id}
+                          installerId={installerId}
+                          userType="installer"
+                          customerName={booking.contactName}
+                        />
+                      )}
                     </>
                   )}
 

@@ -2977,7 +2977,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                                   <div key={index} className="p-3 bg-white rounded-lg border">
                                     <div className="space-y-1 text-sm">
                                       <div><span className="font-medium">Room:</span> {tv.location}</div>
-                                      <div><span className="font-medium">TV Size:</span> {tv.size}"</div>
+                                      <div><span className="font-medium">TV Size:</span> {tv.tvSize}"</div>
                                       <div><span className="font-medium">Mount Type:</span> {tv.mountType}</div>
                                       {tv.wallType && <div><span className="font-medium">Wall Type:</span> {tv.wallType}</div>}
                                     </div>

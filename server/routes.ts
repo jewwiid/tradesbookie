@@ -13619,7 +13619,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const installerAssignment = jobAssignments.find(job => 
         job.id === jobAssignmentId && 
         job.installerId === parseInt(installerId) && 
-        job.status === 'accepted'
+        (job.status === 'accepted' || job.status === 'in_progress')
       );
       
       if (!installerAssignment) {

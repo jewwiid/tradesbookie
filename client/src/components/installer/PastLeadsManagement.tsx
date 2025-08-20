@@ -556,8 +556,8 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                           // Check if there's a pending proposal from this installer for this lead
                           const hasPendingProposal = latestNegotiation?.status === 'pending' && latestNegotiation?.proposedBy === 'installer';
                           
-                          // Only show "confirmed" if the LATEST negotiation is accepted
-                          const hasAcceptedSchedule = latestNegotiation?.status === 'accepted';
+                          // Only show "confirmed" if the LATEST negotiation is accepted (handle both statuses)
+                          const hasAcceptedSchedule = latestNegotiation?.status === 'accepted' || latestNegotiation?.status === 'accept';
                           
                           if (hasAcceptedSchedule) {
                             return (
@@ -1071,7 +1071,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                           if (latestNegotiation.status === 'pending') {
                             badgeStatus = 'proposal_pending';
                             badgeText = 'Proposal Pending';
-                          } else if (latestNegotiation.status === 'accepted') {
+                          } else if (latestNegotiation.status === 'accepted' || latestNegotiation.status === 'accept') {
                             badgeStatus = 'accepted';
                             badgeText = 'Schedule Confirmed';
                           }

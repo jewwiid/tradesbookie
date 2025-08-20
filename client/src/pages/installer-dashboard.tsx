@@ -1693,8 +1693,9 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
 
                 {/* Job Actions Section */}
                 <div className="border-t pt-4 space-y-4">
-                  {/* Start Work Button for scheduled jobs */}
-                  {(booking.status === 'confirmed' || booking.status === 'assigned') && booking.isSelected && (
+                  {/* Start Work Button for scheduled jobs with confirmed schedule */}
+                  {((booking.status === 'confirmed' || booking.status === 'assigned') || 
+                    (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) && booking.isSelected && (
                     <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <div>
                         <h4 className="font-medium text-yellow-800">Ready to Start Installation</h4>
@@ -1712,7 +1713,8 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   )}
 
                   {/* Schedule Communication Section - Only show if schedule not confirmed */}
-                  {!(booking.status === 'confirmed' || booking.status === 'assigned') && (
+                  {!((booking.status === 'confirmed' || booking.status === 'assigned') || 
+                     (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) && (
                     <>
                       <div className="flex items-center justify-between">
                         <div>
@@ -1764,7 +1766,8 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   )}
 
                   {/* Confirmed Schedule Info - Only show if schedule is confirmed */}
-                  {(booking.status === 'confirmed' || booking.status === 'assigned') && booking.scheduledDate && (
+                  {((booking.status === 'confirmed' || booking.status === 'assigned') || 
+                    (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) && booking.scheduledDate && (
                     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex items-center space-x-2 mb-2">
                         <CheckCircle className="w-5 h-5 text-green-600" />

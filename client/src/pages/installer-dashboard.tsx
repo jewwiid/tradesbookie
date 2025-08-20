@@ -1815,7 +1815,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                           </h4>
                           <p className="text-sm text-yellow-600 mt-1">
                             {booking.assignmentStatus === 'in_progress' ? (
-                              'Installation work has begun. Complete via Job Completion tab.'
+                              'Installation work has begun. Scan the customer\'s QR code to access the Job Completion tab and finish the job.'
                             ) : (
                               'This job is scheduled and ready to begin. Click "Start Work" when you arrive on-site.'
                             )}

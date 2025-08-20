@@ -2291,88 +2291,6 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
         />
       ) : (
         <>
-          {/* Always show Before Photos Complete card when photos are done, even during after photo capture */}
-          {beforePhotosCompleted && !showBeforePhotos && (
-            <Card className="border-green-200 bg-green-50 mb-6">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-green-800">
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Before Photos Complete ({inProgressJobs.length})</span>
-                </CardTitle>
-                <p className="text-sm text-green-700">
-                  {takingAfterPhotos ? 'Taking after photos now...' : 'Before photos uploaded! QR scan complete - ready for after photos.'}
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {inProgressJobs.map((job: any) => {
-                  const tvCount = Array.isArray(job.tvInstallations) ? job.tvInstallations.length : 1;
-                  return (
-                    <div key={job.id} className="flex items-center justify-between p-4 bg-white border border-green-200 rounded-lg">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-semibold text-gray-900">{job.contactName}</h4>
-                          <Badge className="bg-green-100 text-green-800">
-                            <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                            Photos Complete
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <MapPin className="w-4 h-4" />
-                            <span>{job.address}</span>
-                          </div>
-                          <div className="flex items-center space-x-4 text-xs text-gray-500">
-                            <span className="flex items-center space-x-1">
-                              <CheckCircle className="w-3 h-3 text-green-600" />
-                              <span>{tvCount} TV{tvCount > 1 ? 's' : ''} - Ready for QR Scan</span>
-                            </span>
-                            <span>€{job.estimatedTotal}</span>
-                          </div>
-                          {tvCount > 1 && job.tvInstallations && (
-                            <div className="text-xs text-gray-400 mt-1">
-                              Rooms: {job.tvInstallations.map((tv: any) => tv.location || 'Room').join(', ')}
-                            </div>
-                          )}
-                          
-                          {/* Display Before Photos Thumbnails */}
-                          {beforePhotosCompleted && photoProgressData?.progress && (
-                            <div className="mt-3 pt-3 border-t border-gray-100">
-                              <h5 className="text-xs font-medium text-gray-700 mb-2">Before Photos:</h5>
-                              <div className="grid grid-cols-2 gap-2">
-                                {job.tvInstallations?.map((tv: any, index: number) => {
-                                  const progress = photoProgressData.progress[`tv_${index}`];
-                                  const beforePhoto = progress?.beforePhoto;
-                                  return (
-                                    <div key={index} className="text-center">
-                                      <div className="relative w-16 h-12 mx-auto mb-1 bg-gray-100 rounded overflow-hidden">
-                                        {beforePhoto ? (
-                                          <img 
-                                            src={beforePhoto} 
-                                            alt={`${tv.location || `TV ${index + 1}`} Before`}
-                                            className="w-full h-full object-cover"
-                                          />
-                                        ) : (
-                                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                            <Camera className="w-4 h-4" />
-                                          </div>
-                                        )}
-                                      </div>
-                                      <span className="text-xs text-gray-600">{tv.location || `TV ${index + 1}`}</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          )}
-
           {/* QR Scanner - Step 2 (After Before Photos) */}
           {(beforePhotosCompleted || verificationData) && (
             <Card className="border-green-200 bg-green-50">
@@ -2461,13 +2379,13 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                               )}
                               
                               {/* Display Before Photos Thumbnails */}
-                              {beforePhotosCompleted && photoProgressData?.progress && (
+                              {beforePhotosCompleted && photoProgressData?.progress && Array.isArray(photoProgressData.progress) && (
                                 <div className="mt-3 pt-3 border-t border-gray-100">
                                   <h5 className="text-xs font-medium text-gray-700 mb-2">Before Photos:</h5>
                                   <div className="grid grid-cols-2 gap-2">
                                     {job.tvInstallations?.map((tv: any, index: number) => {
-                                      const progress = photoProgressData.progress[`tv_${index}`];
-                                      const beforePhoto = progress?.beforePhoto;
+                                      const progressItem = photoProgressData.progress.find((p: any) => p.tvIndex === index);
+                                      const beforePhoto = progressItem?.beforePhotoUrl;
                                       return (
                                         <div key={index} className="text-center">
                                           <div className="relative w-16 h-12 mx-auto mb-1 bg-gray-100 rounded overflow-hidden">

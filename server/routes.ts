@@ -13760,10 +13760,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               id: booking.id,
               qrCode: booking.qrCode,
               customerName: booking.customerName,
+              customerEmail: booking.customerEmail,
+              phone: booking.phone,
               address: booking.address,
               serviceType: booking.serviceType,
+              serviceDescription: booking.serviceDescription,
               estimatedTotal: booking.estimatedTotal,
-              scheduledDate: booking.scheduledDate
+              scheduledDate: booking.scheduledDate,
+              completedDate: booking.completedDate,
+              tvInstallations: booking.tvInstallations,
+              beforeAfterPhotos: booking.beforeAfterPhotos,
+              photoStars: booking.photoStars,
+              qualityStars: booking.qualityStars,
+              photoCompletionRate: booking.photoCompletionRate
             } : null
           };
         })

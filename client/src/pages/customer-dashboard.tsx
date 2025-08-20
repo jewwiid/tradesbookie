@@ -47,10 +47,7 @@ function ScheduleNegotiationForUnassigned({ bookingId }: { bookingId: number }) 
       status: string; 
       responseMessage: string;
     }) => {
-      return apiRequest(`/api/schedule-negotiations/${negotiationId}/respond`, {
-        method: 'PUT',
-        body: { status, responseMessage }
-      });
+      return apiRequest('PUT', `/api/schedule-negotiations/${negotiationId}/respond`, { status, responseMessage });
     },
     onSuccess: () => {
       toast({ title: "Response sent!", description: "The installer has been notified." });
@@ -159,10 +156,7 @@ function useProposalData(bookingId: number) {
       status: string; 
       responseMessage: string;
     }) => {
-      return apiRequest(`/api/schedule-negotiations/${negotiationId}/respond`, {
-        method: 'PUT',
-        body: { status, responseMessage }
-      });
+      return apiRequest('PUT', `/api/schedule-negotiations/${negotiationId}/respond`, { status, responseMessage });
     },
     onSuccess: () => {
       toast({ title: "Response sent!", description: "The installer has been notified." });

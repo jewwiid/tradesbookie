@@ -1346,16 +1346,33 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     </div>
 
                     {/* Multi-TV Information */}
-                    {booking.tvInstallations && booking.tvInstallations.length > 0 && (
+                    {booking.tvInstallations && booking.tvInstallations.length > 1 && (
                       <div className="space-y-2">
-                        <h5 className="font-medium text-gray-900 border-b pb-1">TV Installations</h5>
+                        <h5 className="font-medium text-gray-900 border-b pb-1">TV Installations ({booking.tvInstallations.length} TVs)</h5>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {booking.tvInstallations.map((tv: any, index: number) => (
                             <div key={index} className="bg-white p-3 rounded border text-sm">
-                              <div className="font-medium">{tv.roomName || `TV ${index + 1}`}</div>
+                              <div className="font-medium">{tv.location || tv.roomName || `TV ${index + 1}`}</div>
                               <div className="text-gray-600">{tv.tvSize}" • {tv.wallType} • {tv.mountType}</div>
+                              {tv.addons && tv.addons.length > 0 && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Add-ons: {tv.addons.map((addon: any) => addon.name).join(', ')}
+                                </div>
+                              )}
                             </div>
                           ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Single TV Installation Details */}
+                    {(!booking.tvInstallations || booking.tvInstallations.length <= 1) && (
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-900 border-b pb-1">Installation Details</h5>
+                        <div className="bg-white p-3 rounded border text-sm">
+                          <div className="font-medium">Single TV Installation</div>
+                          <div className="text-gray-600">{booking.tvSize}" TV • {booking.wallType} • {booking.mountType}</div>
+                          <div className="text-gray-600">Service: {booking.serviceType}</div>
                         </div>
                       </div>
                     )}
@@ -1389,7 +1406,16 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                       <div className="space-y-2">
                         <h5 className="font-medium text-gray-900 border-b pb-1">Customer Preferences</h5>
                         <div className="text-sm text-gray-600">
-                          {booking.preferredDate && <div>Preferred Date: {booking.preferredDate}</div>}
+                          {booking.preferredDate && (
+                            <div>
+                              Preferred Date: {new Date(booking.preferredDate).toLocaleDateString('en-IE', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </div>
+                          )}
                           {booking.preferredTime && <div>Preferred Time: {booking.preferredTime}</div>}
                         </div>
                       </div>

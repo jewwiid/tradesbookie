@@ -4127,8 +4127,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             mountType: booking.mountType,
             wallMountOption: booking.wallMountOption,
             addons: Array.isArray(booking.addons) ? booking.addons : [],
+            tvInstallations: booking.tvInstallations || [], // Include multi-TV installations
             address: booking.address,
             preferredDate: booking.preferredDate,
+            preferredTime: booking.preferredTime,
             estimatedPrice: booking.estimatedPrice,
             estimatedTotal: booking.estimatedTotal,
             status: booking.installerId === installerId ? booking.status : 'competing', // Special status for competitive phase

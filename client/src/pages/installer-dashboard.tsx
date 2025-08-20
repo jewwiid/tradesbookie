@@ -3766,7 +3766,8 @@ function StartWorkButton({
     mutationFn: async () => {
       // Find the job assignment for this booking and installer
       try {
-        const jobAssignments = await apiRequest('GET', `/api/installer/${installerId}/job-assignments`);
+        const response = await apiRequest('GET', `/api/installer/${installerId}/job-assignments`);
+        const jobAssignments = await response.json();
         
         // Check if response is an array
         if (!Array.isArray(jobAssignments)) {

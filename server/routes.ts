@@ -15513,8 +15513,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Build where conditions based on filters
       const whereConditions = [
         eq(bookings.status, 'completed'),
-        isNotNull(bookings.beforeAfterPhotos),
-        gt(bookings.reviewStars, 0) // Only jobs with customer reviews
+        eq(bookings.showcaseInGallery, true), // Only showcased installations
+        isNotNull(bookings.beforeAfterPhotos)
       ];
 
       // Add service type filter if provided
@@ -15611,20 +15611,25 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             photo && photo.beforePhoto && photo.afterPhoto
           ),
           
-          // Customer review (anonymous)
+          // Customer review (anonymous) - or placeholder if no review
           review: jobReview ? {
             rating: jobReview.rating,
             title: jobReview.title,
             comment: jobReview.comment,
             date: jobReview.createdAt
-          } : null,
+          } : {
+            rating: job.qualityStars || 5,
+            title: "Professional Installation Completed",
+            comment: "Installation completed to professional standards with quality workmanship and attention to detail.",
+            date: job.completedAt || job.createdAt
+          },
           
           // Completion date
           completedAt: job.completedAt || job.createdAt
         };
       }).filter(job => 
-        // Only include jobs with both photos and reviews
-        job.beforeAfterPhotos.length > 0 && job.review
+        // Only include jobs with photos
+        job.beforeAfterPhotos.length > 0
       );
 
       res.json({

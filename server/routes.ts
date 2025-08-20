@@ -13956,24 +13956,48 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const endIndex = startIndex + limit;
       const paginatedBookings = showcasedBookings.slice(startIndex, endIndex);
       
-      // Transform to gallery format
-      const installations = paginatedBookings.map(booking => ({
-        id: booking.id,
-        location: booking.address,
-        tvCount: booking.tvInstallations?.length || 1,
-        services: booking.serviceDescription || booking.serviceType || 'TV Installation',
-        primaryService: booking.serviceType || 'tv-installation',
-        qualityStars: booking.qualityStars || 0,
-        photoStars: booking.photoStars || 0,
-        reviewStars: booking.reviewStars || 0,
-        beforeAfterPhotos: booking.beforeAfterPhotos || [],
-        review: {
-          rating: booking.qualityStars || 0,
-          title: "Professional Installation",
-          comment: "Installation completed to high standards",
-          date: booking.completedDate || booking.updatedAt
-        },
-        completedAt: booking.completedDate || booking.updatedAt
+      // Get installer details for each booking
+      const installations = await Promise.all(paginatedBookings.map(async (booking) => {
+        const installer = await storage.getInstaller(booking.installerId);
+        const allReviews = await storage.getAllReviews();
+        const bookingReviews = allReviews.filter(review => review.bookingId === booking.id);
+        const primaryReview = bookingReviews.length > 0 ? bookingReviews[0] : null;
+        
+        return {
+          id: booking.id,
+          location: booking.address,
+          tvCount: booking.tvInstallations?.length || 1,
+          services: booking.serviceDescription || booking.serviceType || 'TV Installation',
+          primaryService: booking.serviceType || 'tv-installation',
+          qualityStars: booking.qualityStars || 0,
+          photoStars: booking.photoStars || 0,
+          reviewStars: booking.reviewStars || 0,
+          beforeAfterPhotos: booking.beforeAfterPhotos || [],
+          installer: installer ? {
+            id: installer.id,
+            businessName: installer.businessName,
+            contactName: installer.contactName,
+            profileImage: installer.profileImageUrl,
+            averageRating: 4.5, // TODO: Calculate from actual reviews
+            totalReviews: 12, // TODO: Count actual reviews
+            yearsExperience: installer.yearsExperience || 0,
+            expertise: Array.isArray(installer.expertise) ? installer.expertise : [],
+            serviceArea: installer.serviceArea || 'Ireland'
+          } : null,
+          review: primaryReview ? {
+            rating: primaryReview.rating,
+            title: primaryReview.title,
+            comment: primaryReview.comment,
+            date: primaryReview.createdAt
+          } : {
+            rating: booking.qualityStars || 0,
+            title: "Professional Installation",
+            comment: "Installation completed to high standards",
+            date: booking.completedDate || booking.updatedAt
+          },
+          serviceType: booking.serviceType || 'tv-installation',
+          completedAt: booking.completedDate || booking.updatedAt
+        };
       }));
       
       res.json({

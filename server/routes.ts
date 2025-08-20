@@ -11690,8 +11690,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         }
       }
       
-      // Reset booking status back to pending so other installers can take it
-      await storage.updateBookingStatus(jobAssignment.bookingId!, 'pending');
+      // Reset booking status back to open so other installers can take it
+      await storage.updateBookingStatus(jobAssignment.bookingId!, 'open');
+      
+      // Clear installer assignment from the booking
+      await db.update(bookings)
+        .set({ 
+          installerId: null,
+          scheduledDate: null,
+          scheduledTime: null
+        })
+        .where(eq(bookings.id, jobAssignment.bookingId!));
       
       // Send cancellation notification emails
       try {

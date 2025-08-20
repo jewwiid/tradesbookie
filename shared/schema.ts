@@ -157,7 +157,7 @@ export const serviceMetrics = pgTable("service_metrics", {
 // Bookings table - updated for multi-TV support
 export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
+  userId: varchar("user_id").references(() => users.id),
   installerId: integer("installer_id").references(() => installers.id),
   qrCode: text("qr_code").unique(),
   

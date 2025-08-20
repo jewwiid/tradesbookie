@@ -4930,7 +4930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Only show bookings from email-verified customers to ensure lead quality
         if (booking.userId) {
           try {
-            const customer = await storage.getUserById(booking.userId);
+            const customer = await storage.getUserById(String(booking.userId));
             if (!customer || !customer.emailVerified) {
               console.log(`Filtering out booking ${booking.id} - customer ${booking.userId} not email verified`);
               return null; // Filter out unverified customers
@@ -10638,7 +10638,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         // Only show bookings from email-verified customers to ensure lead quality
         if (booking.userId && installerId !== 2) { // Skip verification check for demo installer
           try {
-            const customer = await storage.getUserById(booking.userId);
+            const customer = await storage.getUserById(String(booking.userId));
             if (!customer || !customer.emailVerified) {
               console.log(`Filtering out booking ${booking.id} - customer ${booking.userId} not email verified`);
               return null; // Filter out unverified customers

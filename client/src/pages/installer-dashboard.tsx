@@ -1288,9 +1288,9 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
                     <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}"</span>
                     <span><Monitor className="w-4 h-4 inline mr-1" />{booking.serviceType}</span>
-                    {booking.tvInstallations && booking.tvInstallations.length > 1 && (
+                    {booking.tvQuantity && booking.tvQuantity > 1 && (
                       <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                        {booking.tvInstallations.length} TVs
+                        {booking.tvQuantity} TVs
                       </span>
                     )}
                   </div>
@@ -1346,9 +1346,9 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     </div>
 
                     {/* Multi-TV Information */}
-                    {booking.tvInstallations && booking.tvInstallations.length > 1 && (
+                    {booking.tvQuantity && booking.tvQuantity > 1 && booking.tvInstallations && Array.isArray(booking.tvInstallations) && (
                       <div className="space-y-2">
-                        <h5 className="font-medium text-gray-900 border-b pb-1">TV Installations ({booking.tvInstallations.length} TVs)</h5>
+                        <h5 className="font-medium text-gray-900 border-b pb-1">Multiple TV Installation ({booking.tvQuantity} TVs)</h5>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                           {booking.tvInstallations.map((tv: any, index: number) => (
                             <div key={index} className="bg-white p-3 rounded border text-sm">
@@ -1366,7 +1366,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     )}
 
                     {/* Single TV Installation Details */}
-                    {(!booking.tvInstallations || booking.tvInstallations.length <= 1) && (
+                    {(!booking.tvQuantity || booking.tvQuantity <= 1) && (
                       <div className="space-y-2">
                         <h5 className="font-medium text-gray-900 border-b pb-1">Installation Details</h5>
                         <div className="bg-white p-3 rounded border text-sm">

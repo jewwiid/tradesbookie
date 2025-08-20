@@ -128,18 +128,102 @@ export default function FlexiblePhotoCapture({
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        streamRef.current = stream;
-        setShowCamera(true);
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Camera not supported in this browser");
       }
-    } catch (error) {
+
+      // Request camera permission with fallback constraints
+      let stream;
+      try {
+        // Try with preferred back camera
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          } 
+        });
+      } catch (e) {
+        // Fallback to any available camera
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          } 
+        });
+      }
+      
+      streamRef.current = stream;
+      setShowCamera(true);
+      
+      // Wait for video element to be available
+      setTimeout(() => {
+        if (videoRef.current && stream) {
+          videoRef.current.srcObject = stream;
+          
+          // Handle video loading
+          videoRef.current.onloadedmetadata = () => {
+            console.log("Video metadata loaded");
+            videoRef.current?.play().catch(err => {
+              console.error("Video play failed:", err);
+            });
+          };
+          
+          videoRef.current.oncanplay = () => {
+            console.log("Video can play");
+          };
+          
+          videoRef.current.onerror = (err) => {
+            console.error("Video error:", err);
+          };
+        }
+      }, 100);
+      
+    } catch (error: any) {
+      console.error("Camera error:", error);
+      let description = "Please allow camera access to take a photo";
+      
+      if (error.name === 'NotAllowedError') {
+        description = "Camera access was denied. Please allow camera access and try again.";
+      } else if (error.name === 'NotFoundError') {
+        description = "No camera found on this device.";
+      } else if (error.name === 'NotSupportedError') {
+        description = "Camera is not supported in this browser.";
+      } else if (error.name === 'OverconstrainedError') {
+        description = "Camera constraints not supported. Trying basic camera...";
+        // Retry with basic constraints
+        setTimeout(() => startCameraBasic(), 1000);
+        return;
+      }
+      
       toast({
-        title: "Camera access denied",
-        description: "Please allow camera access to take photos",
+        title: "Camera initialization failed",
+        description,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const startCameraBasic = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      streamRef.current = stream;
+      setShowCamera(true);
+      
+      setTimeout(() => {
+        if (videoRef.current && stream) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play();
+          };
+        }
+      }, 100);
+    } catch (error: any) {
+      console.error("Basic camera error:", error);
+      toast({
+        title: "Camera unavailable",
+        description: "Unable to access camera. Please use file upload instead.",
         variant: "destructive"
       });
     }
@@ -512,26 +596,52 @@ export default function FlexiblePhotoCapture({
               )}
             </div>
           ) : (
-            <div className="space-y-4">
-              <div className="relative">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  className="w-full max-w-md mx-auto rounded-lg shadow-md"
-                />
-                <canvas ref={canvasRef} className="hidden" />
-              </div>
-              
-              <div className="flex gap-4 justify-center">
-                <Button onClick={capturePhoto} size="lg">
-                  <Camera className="h-5 w-5 mr-2" />
-                  Capture
-                </Button>
-                <Button variant="outline" onClick={stopCamera}>
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold mb-2">
+                      Camera - {getCurrentTvName()} {currentPhotoType === 'before' ? 'Before' : 'After'} Photo
+                    </h3>
+                  </div>
+                  
+                  <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                    <canvas ref={canvasRef} className="hidden" />
+                    
+                    {/* Camera overlay */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute inset-4 border-2 border-white border-opacity-50 rounded-lg"></div>
+                      <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                        {currentPhotoType === 'before' ? 'Before Installation' : 'After Installation'}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3 justify-center">
+                    <Button onClick={capturePhoto} size="lg" className="flex-1">
+                      <Camera className="h-5 w-5 mr-2" />
+                      Capture Photo
+                    </Button>
+                    <Button variant="outline" onClick={stopCamera} size="lg">
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                  
+                  {currentPhotoType === 'after' && (
+                    <div className="flex items-center gap-2 text-sm text-amber-600 justify-center">
+                      <AlertCircle className="h-4 w-4" />
+                      After photos must be taken with camera for authenticity
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}

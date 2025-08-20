@@ -1227,7 +1227,7 @@ export async function sendInstallerWelcomeEmail(installerEmail: string, installe
         <body>
           <div class="container">
             <div class="header">
-              <h1>🎉 Welcome to tradesbook.ie!</h1>
+              <h1>Welcome to tradesbook.ie!</h1>
               <p>Your installer account has been created successfully</p>
             </div>
             
@@ -1282,7 +1282,7 @@ export async function sendInstallerWelcomeEmail(installerEmail: string, installe
               </div>
 
               <div class="highlight-box">
-                <strong>📧 Need Help?</strong> If you have any questions about the registration process or platform features, please contact us at <a href="mailto:installer@tradesbook.ie">installer@tradesbook.ie</a>
+                <strong>Need Help?</strong> If you have any questions about the registration process or platform features, please contact us at <a href="mailto:installer@tradesbook.ie">installer@tradesbook.ie</a>
               </div>
             </div>
 
@@ -1297,7 +1297,7 @@ export async function sendInstallerWelcomeEmail(installerEmail: string, installe
 
     const success = await sendGmailEmail({
       to: installerEmail,
-      subject: '🎉 Welcome to tradesbook.ie - Registration Confirmed',
+      subject: 'Welcome to tradesbook.ie - Registration Confirmed',
       html: htmlContent,
       from: getValidFromEmail('installer'),
       replyTo: 'installer@tradesbook.ie'
@@ -1327,13 +1327,13 @@ export async function sendInstallerInvitationEmail(
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="margin: 0; font-size: 24px;">🔧 You're Invited to TradesBook.ie!</h1>
+          <h1 style="margin: 0; font-size: 24px;">You're Invited to TradesBook.ie!</h1>
           <p style="margin: 10px 0 0 0; opacity: 0.9;">Professional TV Installation Platform</p>
         </div>
 
         <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
           <div style="background-color: #e8f5e8; border: 1px solid #c3e6c3; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-            <h2 style="color: #2e7d32; margin: 0 0 10px 0; font-size: 18px;">🎯 Join Our Network</h2>
+            <h2 style="color: #2e7d32; margin: 0 0 10px 0; font-size: 18px;">Join Our Network</h2>
             <p style="color: #2e7d32; margin: 0; font-size: 16px;">
               <strong>Hello ${name},</strong><br>
               You've been invited to join TradesBook.ie as a professional TV installer for ${businessName || 'your business'}.
@@ -1341,7 +1341,7 @@ export async function sendInstallerInvitationEmail(
           </div>
 
           <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-            <h3 style="color: #856404; margin: 0 0 15px 0; font-size: 16px;">🔐 Your Login Credentials</h3>
+            <h3 style="color: #856404; margin: 0 0 15px 0; font-size: 16px;">Your Login Credentials</h3>
             <div style="background-color: white; padding: 15px; border-radius: 6px; border-left: 4px solid #f39c12;">
               <p style="color: #2d3748; margin: 5px 0;"><strong>Email:</strong> ${email}</p>
               <p style="color: #2d3748; margin: 5px 0;"><strong>Password:</strong> <code style="background: #f1f1f1; padding: 2px 6px; border-radius: 3px; font-weight: bold;">${password}</code></p>

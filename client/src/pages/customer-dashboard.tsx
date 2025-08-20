@@ -137,6 +137,51 @@ function ScheduleNegotiationForUnassigned({ bookingId }: { bookingId: number }) 
   );
 }
 
+// Hook to get proposal data for display in dropdown
+function useProposalData(bookingId: number) {
+  const { toast } = useToast();
+  
+  // Fetch schedule negotiations for this booking
+  const { data: negotiations = [], refetch } = useQuery({
+    queryKey: [`/api/bookings/${bookingId}/schedule-negotiations`],
+    refetchInterval: 30000,
+  });
+
+  // Get pending proposals from installers
+  const pendingProposals = negotiations.filter((n: any) => 
+    n.status === 'pending' && n.proposedBy === 'installer'
+  );
+
+  // Mutation to respond to proposals
+  const respondToProposal = useMutation({
+    mutationFn: async ({ negotiationId, status, responseMessage }: { 
+      negotiationId: number; 
+      status: string; 
+      responseMessage: string;
+    }) => {
+      return apiRequest(`/api/schedule-negotiations/${negotiationId}/respond`, {
+        method: 'PUT',
+        body: { status, responseMessage }
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Response sent!", description: "The installer has been notified." });
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
+    },
+    onError: (error) => {
+      console.error('Error responding to proposal:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to send response. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  return { pendingProposals, respondToProposal };
+}
+
 interface User {
   id: number;
   email: string;
@@ -2833,7 +2878,11 @@ function BookingCard({
   const locationData = useLocation();
   const setLocation = locationData?.[1];
   const [showDetails, setShowDetails] = useState(false);
+  const [showProposals, setShowProposals] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Get proposal data for action buttons
+  const { pendingProposals, respondToProposal } = useProposalData(booking.id);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -2977,7 +3026,7 @@ function BookingCard({
           </div>
         )}
 
-        {/* Schedule Negotiation - Show when installer is assigned OR when there are pending proposals */}
+        {/* Schedule Negotiation - Show when installer is assigned */}
         {booking.installer && (
           <div className="mb-4">
             <ScheduleNegotiation
@@ -2987,11 +3036,6 @@ function BookingCard({
               installerName={booking.installer.businessName}
             />
           </div>
-        )}
-        
-        {/* Show schedule negotiations when no installer assigned but negotiations exist */}
-        {!booking.installer && (
-          <ScheduleNegotiationForUnassigned bookingId={booking.id} />
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -3065,6 +3109,19 @@ function BookingCard({
               <ChevronDown className={`w-4 h-4 mr-2 transition-transform ${showDetails ? 'rotate-180' : ''}`} />
               {showDetails ? 'Hide' : 'View'} Details
             </Button>
+            
+            {/* View Proposals Button - Only show when there are pending proposals */}
+            {!booking.installer && pendingProposals.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowProposals(!showProposals)}
+                className="flex-shrink-0 bg-amber-50 border-amber-200 hover:bg-amber-100 text-amber-800"
+              >
+                <MessageSquare className={`w-4 h-4 mr-2 transition-transform ${showProposals ? 'rotate-180' : ''}`} />
+                {showProposals ? 'Hide' : 'View'} Proposals ({pendingProposals.length})
+              </Button>
+            )}
             {booking.qrCode && (
               <Button
                 variant="outline"
@@ -3153,6 +3210,79 @@ function BookingCard({
             ID: {booking.qrCode || booking.id}
           </div>
         </div>
+
+        {/* Proposals Dropdown Section */}
+        {!booking.installer && showProposals && pendingProposals.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="space-y-3">
+              <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Installation Proposals ({pendingProposals.length})
+              </h4>
+              {pendingProposals.map((proposal: any) => (
+                <div key={proposal.id} className="p-3 border border-amber-200 bg-amber-50 rounded-lg">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                        <span className="text-sm font-medium text-amber-800">New Schedule Proposal</span>
+                        {proposal.installer && (
+                          <span className="text-xs text-amber-700">
+                            from <strong>{proposal.installer.businessName || `${proposal.installer.firstName} ${proposal.installer.lastName}`}</strong>
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-amber-900 font-medium">
+                          {new Date(proposal.proposedDate).toLocaleDateString('en-IE', {
+                            weekday: 'long',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })} at {proposal.proposedTimeSlot}
+                        </p>
+                        {proposal.proposalMessage && (
+                          <p className="text-sm text-amber-700">
+                            <strong>Installer's note:</strong> {proposal.proposalMessage}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => respondToProposal.mutate({
+                        negotiationId: proposal.id,
+                        status: 'accepted',
+                        responseMessage: 'Schedule confirmed'
+                      })}
+                      disabled={respondToProposal.isPending}
+                      className="bg-green-600 hover:bg-green-700 text-xs"
+                    >
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Accept Schedule
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => respondToProposal.mutate({
+                        negotiationId: proposal.id,
+                        status: 'declined',
+                        responseMessage: 'This time does not work for me'
+                      })}
+                      disabled={respondToProposal.isPending}
+                      className="border-red-300 text-red-700 hover:bg-red-50 text-xs"
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Decline
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Expandable Details Section */}
         {showDetails && (

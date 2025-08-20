@@ -2014,6 +2014,8 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [showBeforeAfterCapture, setShowBeforeAfterCapture] = useState(false);
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const [clearScanner, setClearScanner] = useState(false);
+  const [capturedAfterPhotos, setCapturedAfterPhotos] = useState<any[]>([]);
+  const [showAfterPhotoReview, setShowAfterPhotoReview] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null); // Job selected for before photos
   const [showBeforePhotos, setShowBeforePhotos] = useState(false); // Show before photo capture first
   const [beforePhotosCompleted, setBeforePhotosCompleted] = useState(false); // Track if before photos are done
@@ -2244,6 +2246,8 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
       setShowBeforePhotos(false);
       setBeforePhotosCompleted(false);
       setTakingAfterPhotos(false);
+      setCapturedAfterPhotos([]);
+      setShowAfterPhotoReview(false);
       clearWorkflowState(); // Clear localStorage state
       refetchCompletedJobs(); // Refresh completed jobs list
       refetchInProgressJobs(); // Refresh in-progress jobs list to remove completed job
@@ -2406,10 +2410,21 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   };
 
   const handleAfterPhotosCompleted = (photos: any[]) => {
+    // Store captured photos and show review interface instead of auto-completing
+    setCapturedAfterPhotos(photos);
+    setShowBeforeAfterCapture(false);
+    setShowAfterPhotoReview(true);
     setTakingAfterPhotos(false);
-    // Clear workflow state since job is completed
-    clearWorkflowState();
-    handleCompleteJob(photos);
+    
+    // Save state for persistence
+    saveWorkflowState({
+      takingAfterPhotos: false
+    });
+    
+    toast({
+      title: "After Photos Captured",
+      description: "Review your photos and submit when ready, or retake if needed.",
+    });
   };
   
   const handleAfterPhotosCancelled = () => {
@@ -2479,6 +2494,104 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
             });
           }}
         />
+      ) : showAfterPhotoReview && capturedAfterPhotos.length > 0 && currentBooking ? (
+        /* After Photo Review and Submit Interface */
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 text-blue-800">
+              <CheckCircle className="w-5 h-5" />
+              <span>Review After Photos</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-blue-700">
+              Review your after photos below. Compare with the before photos and submit when satisfied, or retake if needed.
+            </p>
+            
+            {/* Photo Comparison Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {capturedAfterPhotos.map((afterPhoto, index) => {
+                const tvName = currentBooking.tvInstallations?.[index]?.location || `TV ${index + 1}`;
+                return (
+                  <div key={index} className="space-y-3">
+                    <h4 className="font-medium text-gray-900">{tvName}</h4>
+                    
+                    {/* Before Photo */}
+                    <div className="space-y-2">
+                      <h5 className="text-sm font-medium text-gray-700">Before Photo</h5>
+                      <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                        {photoProgressData?.progress?.find((p: any) => p.tvIndex === index)?.beforePhotoUrl ? (
+                          <img 
+                            src={photoProgressData.progress.find((p: any) => p.tvIndex === index).beforePhotoUrl}
+                            alt={`${tvName} Before`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <Camera className="w-8 h-8" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* After Photo */}
+                    <div className="space-y-2">
+                      <h5 className="text-sm font-medium text-gray-700">After Photo</h5>
+                      <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                        {afterPhoto.afterPhoto ? (
+                          <img 
+                            src={afterPhoto.afterPhoto}
+                            alt={`${tvName} After`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <Camera className="w-8 h-8" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button 
+                onClick={() => handleCompleteJob(capturedAfterPhotos)}
+                className="bg-green-600 hover:bg-green-700 flex-1"
+                disabled={completeJobMutation.isPending}
+              >
+                {completeJobMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Submit & Complete Job
+                  </>
+                )}
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setCapturedAfterPhotos([]);
+                  setShowAfterPhotoReview(false);
+                  setShowBeforeAfterCapture(true);
+                  setTakingAfterPhotos(true);
+                }}
+                className="flex-1"
+              >
+                <Camera className="w-4 h-4 mr-2" />
+                Retake After Photos
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <>
           {/* QR Scanner - Step 2 (After Before Photos) */}

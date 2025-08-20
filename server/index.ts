@@ -26,10 +26,10 @@ app.use((req, res, next) => {
       "'sha256-PRh/fvLCFBNVoIAGULuMBLuPh7G0pBe3UpLsY8yvX0A=' " +
       "'sha256-5DA+a07wxWmEka9IdoWjSPVHb17Cp5284/lJzfbl8KA=' " +
       "'sha256-/5Guo2nzv5n/w6ukZpOBZOtTJBJPSkJ6mhHpnBgm3Ls='; " +
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://cdnjs.cloudflare.com; " +
       "font-src 'self' https://fonts.gstatic.com; " +
-      "img-src 'self' data: https: blob:; " +
-      "connect-src 'self' https://api.stripe.com https://www.google-analytics.com; " +
+      "img-src 'self' data: https: blob: https://unpkg.com https://cdnjs.cloudflare.com; " +
+      "connect-src 'self' https://api.stripe.com https://www.google-analytics.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org; " +
       "frame-src 'self' https://js.stripe.com https://hooks.stripe.com; " +
       "object-src 'none'; " +
       "base-uri 'self';"

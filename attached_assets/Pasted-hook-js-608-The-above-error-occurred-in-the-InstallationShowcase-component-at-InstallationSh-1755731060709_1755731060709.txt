@@ -1,0 +1,64 @@
+hook.js:608 The above error occurred in the <InstallationShowcase> component:
+
+    at InstallationShowcase (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/pages/installation-showcase.tsx:31:27)
+    at Route (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=c7653160:191:16)
+    at Switch (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=c7653160:247:17)
+    at Router
+    at Provider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=c7653160:38:15)
+    at TooltipProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=c7653160:64:5)
+    at QueryClientProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=c7653160:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+overrideMethod	@	hook.js:608
+logCapturedError	@	chunk-RPCDYKBN.js?v=c7653160:14032
+update.callback	@	chunk-RPCDYKBN.js?v=c7653160:14052
+callCallback	@	chunk-RPCDYKBN.js?v=c7653160:11248
+commitUpdateQueue	@	chunk-RPCDYKBN.js?v=c7653160:11265
+commitLayoutEffectOnFiber	@	chunk-RPCDYKBN.js?v=c7653160:17093
+commitLayoutMountEffects_complete	@	chunk-RPCDYKBN.js?v=c7653160:17980
+commitLayoutEffects_begin	@	chunk-RPCDYKBN.js?v=c7653160:17969
+commitLayoutEffects	@	chunk-RPCDYKBN.js?v=c7653160:17920
+commitRootImpl	@	chunk-RPCDYKBN.js?v=c7653160:19353
+commitRoot	@	chunk-RPCDYKBN.js?v=c7653160:19277
+performSyncWorkOnRoot	@	chunk-RPCDYKBN.js?v=c7653160:18895
+flushSyncCallbacks	@	chunk-RPCDYKBN.js?v=c7653160:9119
+(anonymous)	@	chunk-RPCDYKBN.js?v=c7653160:18627
+setTimeout		
+scheduleFn	@	@tanstack_react-query.js?v=c7653160:555
+flush	@	@tanstack_react-query.js?v=c7653160:569
+batch	@	@tanstack_react-query.js?v=c7653160:587
+dispatch_fn	@	@tanstack_react-query.js?v=c7653160:996
+setData	@	@tanstack_react-query.js?v=c7653160:696
+onSuccess	@	@tanstack_react-query.js?v=c7653160:897
+resolve	@	@tanstack_react-query.js?v=c7653160:456
+Promise.then		
+run	@	@tanstack_react-query.js?v=c7653160:498
+start	@	@tanstack_react-query.js?v=c7653160:536
+fetch	@	@tanstack_react-query.js?v=c7653160:926
+executeFetch_fn	@	@tanstack_react-query.js?v=c7653160:2211
+onSubscribe	@	@tanstack_react-query.js?v=c7653160:1898
+subscribe	@	@tanstack_react-query.js?v=c7653160:24
+(anonymous)	@	@tanstack_react-query.js?v=c7653160:3022
+subscribeToStore	@	chunk-RPCDYKBN.js?v=c7653160:11984
+commitHookEffectListMount	@	chunk-RPCDYKBN.js?v=c7653160:16915
+commitPassiveMountOnFiber	@	chunk-RPCDYKBN.js?v=c7653160:18156
+commitPassiveMountEffects_complete	@	chunk-RPCDYKBN.js?v=c7653160:18129
+commitPassiveMountEffects_begin	@	chunk-RPCDYKBN.js?v=c7653160:18119
+commitPassiveMountEffects	@	chunk-RPCDYKBN.js?v=c7653160:18109
+flushPassiveEffectsImpl	@	chunk-RPCDYKBN.js?v=c7653160:19490
+flushPassiveEffects	@	chunk-RPCDYKBN.js?v=c7653160:19447
+performSyncWorkOnRoot	@	chunk-RPCDYKBN.js?v=c7653160:18868
+flushSyncCallbacks	@	chunk-RPCDYKBN.js?v=c7653160:9119
+commitRootImpl	@	chunk-RPCDYKBN.js?v=c7653160:19432
+commitRoot	@	chunk-RPCDYKBN.js?v=c7653160:19277
+finishConcurrentRender	@	chunk-RPCDYKBN.js?v=c7653160:18805
+performConcurrentWorkOnRoot	@	chunk-RPCDYKBN.js?v=c7653160:18718
+workLoop	@	chunk-RPCDYKBN.js?v=c7653160:197
+flushWork	@	chunk-RPCDYKBN.js?v=c7653160:176
+performWorkUntilDeadline	@	chunk-RPCDYKBN.js?v=c7653160:384
+chunk-RPCDYKBN.js?v=c7653160:9129 Uncaught TypeError: Cannot read properties of undefined (reading 'profileImage')
+    at installation-showcase.tsx:217:51
+    at Array.map (<anonymous>)
+    at InstallationShowcase (installation-showcase.tsx:204:28)

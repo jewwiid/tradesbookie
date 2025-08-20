@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Star, CheckCircle, User, Calendar, MapPin } from 'lucide-react';
+import { Star, CheckCircle, User, Calendar, MapPin, Camera } from 'lucide-react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,8 @@ interface ReviewInterfaceProps {
     contactName: string;
     installerId?: number;
     createdAt?: string;
+    completedAt?: string;
+    beforeAfterPhotos?: string;
     installer?: {
       id: number;
       businessName: string;
@@ -242,7 +244,11 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
           </div>
           <div className="flex items-center space-x-2">
             <Calendar className="w-4 h-4" />
-            <span>Completed: {new Date(booking.createdAt || '').toLocaleDateString()}</span>
+            <span>Completed: {(booking as any).completedAt ? new Date((booking as any).completedAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            }) : 'Date not available'}</span>
           </div>
         </div>
 
@@ -265,6 +271,33 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
                 ))}
                 <span className="ml-2 font-semibold">{booking.qualityStars || 0}/5</span>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Installation Photos */}
+        {booking.beforeAfterPhotos && (
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h5 className="font-medium mb-3 flex items-center">
+              <Camera className="w-4 h-4 mr-2" />
+              Installation Photos
+            </h5>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {booking.beforeAfterPhotos.split(',').map((photo: string, index: number) => (
+                <div key={index} className="space-y-2">
+                  <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
+                    <img
+                      src={photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`}
+                      alt={`Installation photo ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 text-center">
+                    Photo {index + 1} of {booking.beforeAfterPhotos!.split(',').length}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         )}

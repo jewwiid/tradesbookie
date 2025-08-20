@@ -2369,9 +2369,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scheduleNegotiations = [];
       }
       
+      // Get the latest accepted schedule from negotiations
+      const latestAcceptedSchedule = scheduleNegotiations
+        .filter(n => n.status === 'accepted')
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+      
       // Format response with all tracking information
       const trackingData = {
         ...booking,
+        // Override with latest accepted schedule if available
+        scheduledDate: latestAcceptedSchedule?.proposedDate || booking.scheduledDate,
+        scheduledTime: latestAcceptedSchedule?.proposedTimeSlot || booking.preferredTime,
         installer: installer ? {
           id: installer.id,
           name: installer.contactName,

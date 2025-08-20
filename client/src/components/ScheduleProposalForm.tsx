@@ -35,9 +35,6 @@ export default function ScheduleProposalForm({
   const [proposalMessage, setProposalMessage] = useState('');
   const { toast } = useToast();
 
-  // Debug: Component rendering
-  console.log('ScheduleProposalForm rendered for booking:', bookingId, 'installer:', installerId);
-
   // Check for existing pending proposals from this installer
   const { data: negotiations = [], isLoading, error } = useQuery<any[]>({
     queryKey: ['/api/bookings', bookingId, 'schedule-negotiations'],
@@ -51,9 +48,6 @@ export default function ScheduleProposalForm({
     refetchInterval: 5000 // Check every 5 seconds for updates
   });
 
-  // Debug: Query state
-  console.log('Negotiations query - Loading:', isLoading, 'Error:', error, 'Data:', negotiations);
-
   // Check if installer has a pending proposal
   const hasPendingProposal = Array.isArray(negotiations) && negotiations.some((negotiation: any) => 
     negotiation.proposedBy === 'installer' && 
@@ -61,14 +55,6 @@ export default function ScheduleProposalForm({
     negotiation.installerId === installerId
   );
 
-  // Debug logging (temporary)
-  React.useEffect(() => {
-    if (negotiations.length > 0) {
-      console.log('Schedule negotiations for booking', bookingId, ':', negotiations);
-      console.log('Looking for pending proposal from installer', installerId);
-      console.log('Has pending proposal:', hasPendingProposal);
-    }
-  }, [negotiations, bookingId, installerId, hasPendingProposal]);
 
   // Send schedule proposal
   const proposalMutation = useMutation({

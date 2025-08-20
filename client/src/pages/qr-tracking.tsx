@@ -42,6 +42,12 @@ interface BookingDetails {
   aiPreviewUrl?: string;
   customerNotes?: string;
   createdAt: string;
+  beforeAfterPhotos?: Array<{
+    tvIndex: number;
+    beforePhoto: string;
+    afterPhoto: string;
+    timestamp?: string;
+  }>;
   // Multi-TV support
   tvInstallations?: Array<{
     tvSize: string;
@@ -385,24 +391,56 @@ export default function QRTracking() {
                 <div>
                   <label className="text-sm font-medium text-gray-500">TV Installations</label>
                   <div className="space-y-2 mt-2">
-                    {booking.tvInstallations.map((tv: any, index: number) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium text-gray-900">
-                            {tv.location}: {tv.tvSize}" TV
-                          </span>
-                          {tv.price && (
-                            <span className="text-sm text-gray-600">€{tv.price}</span>
+                    {booking.tvInstallations.map((tv: any, index: number) => {
+                      // Find the corresponding after photo for this TV
+                      const afterPhoto = booking.beforeAfterPhotos?.find(
+                        photo => photo.tvIndex === index
+                      )?.afterPhoto;
+                      const isCompleted = booking.status === 'completed';
+                      
+                      return (
+                        <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-start gap-3">
+                              {/* Thumbnail for completed installations */}
+                              {isCompleted && afterPhoto && (
+                                <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-300 bg-white flex-shrink-0">
+                                  <img 
+                                    src={afterPhoto.startsWith('data:') ? afterPhoto : `data:image/jpeg;base64,${afterPhoto}`}
+                                    alt={`${tv.location} installation`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
+                              
+                              <div>
+                                <span className="font-medium text-gray-900">
+                                  {tv.location}: {tv.tvSize}" TV
+                                </span>
+                                <div className="text-sm text-gray-600 mt-1">
+                                  <div>Service: {tv.serviceType.replace('-', ' ')}</div>
+                                  {tv.needsWallMount && (
+                                    <div>Mount: {tv.wallMountOption || 'Wall Mount Required'}</div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {tv.price && (
+                              <span className="text-sm text-gray-600 flex-shrink-0">€{tv.price}</span>
+                            )}
+                          </div>
+                          
+                          {/* Show completion status */}
+                          {isCompleted && afterPhoto && (
+                            <div className="flex items-center gap-1 mt-2">
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                              <span className="text-xs text-green-600 font-medium">Installation Complete</span>
+                            </div>
                           )}
                         </div>
-                        <div className="text-sm text-gray-600">
-                          <div>Service: {tv.serviceType.replace('-', ' ')}</div>
-                          {tv.needsWallMount && (
-                            <div>Mount: {tv.wallMountOption || 'Wall Mount Required'}</div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ) : (

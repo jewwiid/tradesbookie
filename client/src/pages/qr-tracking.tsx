@@ -14,6 +14,7 @@ import {
   Calendar,
   MapPin,
   Phone,
+  Mail,
   Camera,
   Star,
   Loader2,
@@ -561,6 +562,15 @@ export default function QRTracking() {
                       {booking.contact.phone}
                     </p>
                   </div>
+                  {booking.contact.email && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Email Address</label>
+                      <p className="text-gray-900 flex items-center">
+                        <Mail className="w-4 h-4 mr-2" />
+                        {booking.contact.email}
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
               {booking.installer && (

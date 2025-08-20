@@ -2403,7 +2403,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scheduleNegotiations: scheduleNegotiations || [],
         contact: {
           name: booking.contactName,
-          phone: booking.contactPhone
+          phone: booking.contactPhone,
+          email: booking.contactEmail
         }
       };
       

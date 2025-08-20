@@ -197,79 +197,140 @@ export default function ScheduleNegotiation({
           <span>Schedule Communication</span>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {negotiations.map((negotiation) => (
-          <div key={negotiation.id} className="border rounded-lg p-4 space-y-3">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-2">
-                {negotiation.proposedBy === 'installer' ? (
-                  <User className="w-4 h-4 text-blue-600" />
-                ) : (
-                  <Users className="w-4 h-4 text-green-600" />
+      <CardContent>
+        {(() => {
+          // Group negotiations by installer and sort by date (newest first)
+          const sortedNegotiations = [...negotiations].sort((a, b) => 
+            new Date(b.proposedAt).getTime() - new Date(a.proposedAt).getTime()
+          );
+          
+          const groupedByInstaller = sortedNegotiations.reduce((acc, negotiation) => {
+            const installerKey = negotiation.proposedBy === 'installer' ? 
+              ((negotiation as any).installer?.businessName || (negotiation as any).installer?.contactName || installerName)
+              : 'You';
+            
+            if (!acc[installerKey]) {
+              acc[installerKey] = [];
+            }
+            acc[installerKey].push(negotiation);
+            return acc;
+          }, {} as Record<string, ScheduleNegotiation[]>);
+
+          const [showAll, setShowAll] = useState(false);
+          const totalCount = negotiations.length;
+          const visibleCount = showAll ? totalCount : Math.min(2, totalCount);
+
+          return (
+            <div className="space-y-4">
+              {/* Summary bar */}
+              <div className="flex items-center justify-between text-sm text-muted-foreground bg-gray-50 rounded-lg p-3">
+                <span>{totalCount} proposal{totalCount !== 1 ? 's' : ''} from {Object.keys(groupedByInstaller).length} installer{Object.keys(groupedByInstaller).length !== 1 ? 's' : ''}</span>
+                {totalCount > 2 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowAll(!showAll)}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {showAll ? 'Show Less' : `Show All ${totalCount}`}
+                  </Button>
                 )}
-                <span className="font-medium">
-                  {negotiation.proposedBy === 'installer' ? 
-                    ((negotiation as any).installer?.businessName || (negotiation as any).installer?.contactName || installerName)
-                    : customerName}
-                </span>
-                <Badge className={getStatusColor(negotiation.status)}>
-                  {getStatusIcon(negotiation.status)}
-                  <span className="ml-1 capitalize">{negotiation.status.replace('_', ' ')}</span>
-                </Badge>
               </div>
-              <span className="text-sm text-muted-foreground">
-                {formatTime(negotiation.proposedAt)}
-              </span>
+
+              {/* Scrollable proposals container */}
+              <div className={`space-y-3 ${showAll ? 'max-h-96 overflow-y-auto' : ''}`}>
+                {Object.entries(groupedByInstaller).map(([installerName, installerNegotiations]) => {
+                  const displayNegotiations = showAll ? installerNegotiations : installerNegotiations.slice(0, 2);
+                  
+                  return (
+                    <div key={installerName} className="border rounded-lg overflow-hidden">
+                      {/* Installer header */}
+                      <div className="bg-gray-50 px-3 py-2 border-b">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            {installerName === 'You' ? (
+                              <Users className="w-4 h-4 text-green-600" />
+                            ) : (
+                              <User className="w-4 h-4 text-blue-600" />
+                            )}
+                            <span className="font-medium text-sm">{installerName}</span>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {installerNegotiations.length} proposal{installerNegotiations.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Proposals for this installer */}
+                      <div className="space-y-2 p-3">
+                        {displayNegotiations.map((negotiation, index) => (
+                          <div key={negotiation.id} className={`${index > 0 ? 'border-t pt-2' : ''}`}>
+                            <div className="flex items-start justify-between mb-2">
+                              <Badge className={`${getStatusColor(negotiation.status)} text-xs`}>
+                                {getStatusIcon(negotiation.status)}
+                                <span className="ml-1 capitalize">{negotiation.status.replace('_', ' ')}</span>
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {formatTime(negotiation.proposedAt)}
+                              </span>
+                            </div>
+
+                            <div className="bg-gray-50 rounded p-2 space-y-1 text-sm">
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="w-3 h-3 text-blue-600" />
+                                <span className="font-medium">{formatDate(negotiation.proposedDate)}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Clock className="w-3 h-3 text-blue-600" />
+                                <span>{getTimeSlotDisplay(negotiation)}</span>
+                              </div>
+                            </div>
+
+                            {negotiation.proposalMessage && (
+                              <div className="bg-blue-50 border-l-2 border-blue-400 p-2 mt-2">
+                                <p className="text-xs text-blue-800">{negotiation.proposalMessage}</p>
+                              </div>
+                            )}
+
+                            {negotiation.responseMessage && (
+                              <div className="bg-green-50 border-l-2 border-green-400 p-2 mt-2">
+                                <p className="text-xs text-green-800">
+                                  <strong>Response:</strong> {negotiation.responseMessage}
+                                </p>
+                              </div>
+                            )}
+
+                            {canRespond(negotiation) && (
+                              <div className="flex space-x-2 pt-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleRespond(negotiation, 'accept')}
+                                  className="bg-green-600 hover:bg-green-700 h-8 text-xs"
+                                >
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Accept
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleRespond(negotiation, 'reject')}
+                                  className="border-red-200 text-red-600 hover:bg-red-50 h-8 text-xs"
+                                >
+                                  <XCircle className="w-3 h-3 mr-1" />
+                                  Decline
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-
-            <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4 text-blue-600" />
-                <span className="font-medium">{formatDate(negotiation.proposedDate)}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-blue-600" />
-                <span>{getTimeSlotDisplay(negotiation)}</span>
-              </div>
-            </div>
-
-            {negotiation.proposalMessage && (
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-3">
-                <p className="text-sm text-blue-800">{negotiation.proposalMessage}</p>
-              </div>
-            )}
-
-            {negotiation.responseMessage && (
-              <div className="bg-green-50 border-l-4 border-green-400 p-3">
-                <p className="text-sm text-green-800">
-                  <strong>Response:</strong> {negotiation.responseMessage}
-                </p>
-              </div>
-            )}
-
-            {canRespond(negotiation) && (
-              <div className="flex space-x-2 pt-2">
-                <Button
-                  size="sm"
-                  onClick={() => handleRespond(negotiation, 'accept')}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  Accept
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleRespond(negotiation, 'reject')}
-                  className="border-red-200 text-red-600 hover:bg-red-50"
-                >
-                  <XCircle className="w-4 h-4 mr-1" />
-                  Decline
-                </Button>
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })()}
 
         {/* Response Dialog */}
         <Dialog open={showResponseDialog} onOpenChange={setShowResponseDialog}>

@@ -2016,6 +2016,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [clearScanner, setClearScanner] = useState(false);
   const [capturedAfterPhotos, setCapturedAfterPhotos] = useState<any[]>([]);
   const [showAfterPhotoReview, setShowAfterPhotoReview] = useState(false);
+  const [expandedJobId, setExpandedJobId] = useState<number | null>(null);
   const [selectedJob, setSelectedJob] = useState<any>(null); // Job selected for before photos
   const [showBeforePhotos, setShowBeforePhotos] = useState(false); // Show before photo capture first
   const [beforePhotosCompleted, setBeforePhotosCompleted] = useState(false); // Track if before photos are done
@@ -2835,24 +2836,162 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
             </div>
           ) : (
             <div className="space-y-4">
-              {completedJobs.slice(0, 5).map((job: any) => (
-                <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <div>
-                      <div className="font-medium">{job.booking?.customerName}</div>
-                      <div className="text-sm text-gray-500">{job.booking?.address}</div>
-                      <div className="text-xs text-gray-400">
-                        Completed: {new Date(job.completedDate).toLocaleDateString()}
+              {completedJobs.slice(0, 5).map((job: any) => {
+                const isExpanded = expandedJobId === job.id;
+                const beforeAfterPhotos = job.booking?.beforeAfterPhotos || [];
+                
+                return (
+                  <div key={job.id} className={`border rounded-lg transition-all duration-200 ${isExpanded ? 'border-blue-300 shadow-md' : 'border-gray-200'}`}>
+                    {/* Main Job Summary */}
+                    <div 
+                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
+                      onClick={() => setExpandedJobId(isExpanded ? null : job.id)}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <div>
+                          <div className="font-medium">{job.booking?.customerName}</div>
+                          <div className="text-sm text-gray-500">{job.booking?.address}</div>
+                          <div className="text-xs text-gray-400">
+                            Completed: {new Date(job.completedDate).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <div className="text-sm font-medium">€{job.booking?.estimatedTotal}</div>
+                          <div className="text-xs text-gray-500">{job.booking?.qrCode}</div>
+                        </div>
+                        <div className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>
+                          <ChevronDown className="w-4 h-4 text-gray-400" />
+                        </div>
                       </div>
                     </div>
+                    
+                    {/* Expanded Details */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-100 p-4 bg-gray-50">
+                        <div className="space-y-6">
+                          {/* Job Details */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <h4 className="font-semibold text-gray-900">Installation Details</h4>
+                              <div className="space-y-1 text-sm">
+                                <div><span className="font-medium">Customer:</span> {job.booking?.customerName}</div>
+                                <div><span className="font-medium">Phone:</span> {job.booking?.phone}</div>
+                                <div><span className="font-medium">Email:</span> {job.booking?.customerEmail}</div>
+                                <div><span className="font-medium">Address:</span> {job.booking?.address}</div>
+                                <div><span className="font-medium">Service:</span> {job.booking?.serviceDescription || 'TV Installation'}</div>
+                                {job.booking?.tvInstallations?.length > 0 && (
+                                  <div><span className="font-medium">TVs Installed:</span> {job.booking.tvInstallations.length} TV{job.booking.tvInstallations.length > 1 ? 's' : ''}</div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <h4 className="font-semibold text-gray-900">Completion Summary</h4>
+                              <div className="space-y-1 text-sm">
+                                <div><span className="font-medium">Completed:</span> {new Date(job.completedDate).toLocaleString()}</div>
+                                <div><span className="font-medium">Booking ID:</span> {job.booking?.qrCode}</div>
+                                <div><span className="font-medium">Total Value:</span> €{job.booking?.estimatedTotal}</div>
+                                <div><span className="font-medium">Photos Taken:</span> {beforeAfterPhotos.length} sets</div>
+                                {job.booking?.photoStars && (
+                                  <div className="flex items-center space-x-1">
+                                    <span className="font-medium">Photo Quality:</span>
+                                    <div className="flex">
+                                      {[...Array(3)].map((_, i) => (
+                                        <Star 
+                                          key={i} 
+                                          className={`w-3 h-3 ${i < job.booking.photoStars ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+                                        />
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Before & After Photos */}
+                          {beforeAfterPhotos.length > 0 && (
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-gray-900">Before & After Photos</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {beforeAfterPhotos.map((photoSet: any, index: number) => {
+                                  const tvLocation = job.booking?.tvInstallations?.[index]?.location || `TV ${index + 1}`;
+                                  return (
+                                    <div key={index} className="space-y-2">
+                                      <h5 className="text-sm font-medium text-gray-700">{tvLocation}</h5>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        {/* Before Photo */}
+                                        <div className="space-y-1">
+                                          <div className="text-xs font-medium text-gray-600">Before</div>
+                                          <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                                            {photoSet.beforePhoto ? (
+                                              <img 
+                                                src={photoSet.beforePhoto}
+                                                alt={`${tvLocation} Before`}
+                                                className="w-full h-full object-cover cursor-pointer hover:opacity-90"
+                                                onClick={() => window.open(photoSet.beforePhoto, '_blank')}
+                                              />
+                                            ) : (
+                                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                <Camera className="w-4 h-4" />
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                        
+                                        {/* After Photo */}
+                                        <div className="space-y-1">
+                                          <div className="text-xs font-medium text-gray-600">After</div>
+                                          <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                                            {photoSet.afterPhoto ? (
+                                              <img 
+                                                src={photoSet.afterPhoto}
+                                                alt={`${tvLocation} After`}
+                                                className="w-full h-full object-cover cursor-pointer hover:opacity-90"
+                                                onClick={() => window.open(photoSet.afterPhoto, '_blank')}
+                                              />
+                                            ) : (
+                                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                                <Camera className="w-4 h-4" />
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Room Details */}
+                          {job.booking?.tvInstallations && job.booking.tvInstallations.length > 0 && (
+                            <div className="space-y-4">
+                              <h4 className="font-semibold text-gray-900">Installation Rooms</h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {job.booking.tvInstallations.map((tv: any, index: number) => (
+                                  <div key={index} className="p-3 bg-white rounded-lg border">
+                                    <div className="space-y-1 text-sm">
+                                      <div><span className="font-medium">Room:</span> {tv.location}</div>
+                                      <div><span className="font-medium">TV Size:</span> {tv.size}"</div>
+                                      <div><span className="font-medium">Mount Type:</span> {tv.mountType}</div>
+                                      {tv.wallType && <div><span className="font-medium">Wall Type:</span> {tv.wallType}</div>}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">€{job.booking?.estimatedTotal}</div>
-                    <div className="text-xs text-gray-500">{job.booking?.qrCode}</div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>

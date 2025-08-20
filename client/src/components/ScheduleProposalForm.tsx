@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +35,19 @@ export default function ScheduleProposalForm({
   const [proposalMessage, setProposalMessage] = useState('');
   const { toast } = useToast();
 
+  // Check for existing pending proposals from this installer
+  const { data: negotiations = [] } = useQuery({
+    queryKey: ['/api/bookings', bookingId, 'schedule-negotiations'],
+    refetchInterval: 5000 // Check every 5 seconds for updates
+  });
+
+  // Check if installer has a pending proposal
+  const hasPendingProposal = negotiations.some((negotiation: any) => 
+    negotiation.proposedBy === 'installer' && 
+    negotiation.status === 'pending' &&
+    negotiation.installerId === installerId
+  );
+
   // Send schedule proposal
   const proposalMutation = useMutation({
     mutationFn: async (proposalData: any) => {
@@ -51,7 +64,7 @@ export default function ScheduleProposalForm({
       if (onProposalSent) {
         onProposalSent();
       }
-      queryClient.invalidateQueries({ queryKey: [`/api/bookings/${bookingId}/schedule-negotiations`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings', bookingId, 'schedule-negotiations'] });
     },
     onError: (error) => {
       toast({
@@ -111,9 +124,14 @@ export default function ScheduleProposalForm({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          size="sm" 
+          className="bg-blue-600 hover:bg-blue-700"
+          disabled={hasPendingProposal}
+          title={hasPendingProposal ? "Waiting for customer response to your proposal" : "Propose an installation schedule"}
+        >
           <CalendarDays className="w-4 h-4 mr-2" />
-          Propose Schedule
+          {hasPendingProposal ? 'Proposal Pending' : 'Propose Schedule'}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">

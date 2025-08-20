@@ -2305,28 +2305,40 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column: Ready to Start Installation */}
             <div>
-              {inProgressJobs.length > 0 && !beforePhotosCompleted ? (
-                <Card className="border-blue-200 bg-blue-50 h-full">
+              {inProgressJobs.length > 0 && !verificationData ? (
+                <Card className={`h-full ${beforePhotosCompleted ? 'border-green-200 bg-green-50' : 'border-blue-200 bg-blue-50'}`}>
                   <CardHeader>
-                    <CardTitle className="flex items-center space-x-2 text-blue-800">
-                      <Camera className="w-5 h-5" />
-                      <span>Ready to Start Installation ({inProgressJobs.length})</span>
+                    <CardTitle className={`flex items-center space-x-2 ${beforePhotosCompleted ? 'text-green-800' : 'text-blue-800'}`}>
+                      {beforePhotosCompleted ? (
+                        <CheckCircle className="w-5 h-5" />
+                      ) : (
+                        <Camera className="w-5 h-5" />
+                      )}
+                      <span>
+                        {beforePhotosCompleted 
+                          ? `Before Photos Complete (${inProgressJobs.length})`
+                          : `Ready to Start Installation (${inProgressJobs.length})`
+                        }
+                      </span>
                     </CardTitle>
-                    <p className="text-sm text-blue-700">
-                      Start by taking before photos, then scan the customer's QR code to unlock the job.
+                    <p className={`text-sm ${beforePhotosCompleted ? 'text-green-700' : 'text-blue-700'}`}>
+                      {beforePhotosCompleted 
+                        ? 'Before photos uploaded! Now scan the QR code to verify location and unlock the job.'
+                        : 'Start by taking before photos, then scan the customer\'s QR code to unlock the job.'
+                      }
                     </p>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {inProgressJobs.map((job: any) => {
                       const tvCount = Array.isArray(job.tvInstallations) ? job.tvInstallations.length : 1;
                       return (
-                        <div key={job.id} className="flex items-center justify-between p-4 bg-white border border-blue-200 rounded-lg">
+                        <div key={job.id} className={`flex items-center justify-between p-4 bg-white border rounded-lg ${beforePhotosCompleted ? 'border-green-200' : 'border-blue-200'}`}>
                           <div className="space-y-2">
                             <div className="flex items-center space-x-2">
                               <h4 className="font-semibold text-gray-900">{job.contactName}</h4>
-                              <Badge className="bg-blue-100 text-blue-800">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
-                                Ready to Start
+                              <Badge className={beforePhotosCompleted ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}>
+                                <div className={`w-2 h-2 rounded-full mr-1 ${beforePhotosCompleted ? 'bg-green-500' : 'bg-blue-500'}`}></div>
+                                {beforePhotosCompleted ? 'Photos Complete' : 'Ready to Start'}
                               </Badge>
                             </div>
                             <div className="text-sm text-gray-600">
@@ -2336,8 +2348,17 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                               </div>
                               <div className="flex items-center space-x-4 text-xs text-gray-500">
                                 <span className="flex items-center space-x-1">
-                                  <Camera className="w-3 h-3" />
-                                  <span>{tvCount} TV{tvCount > 1 ? 's' : ''} - Before Photos First</span>
+                                  {beforePhotosCompleted ? (
+                                    <CheckCircle className="w-3 h-3 text-green-600" />
+                                  ) : (
+                                    <Camera className="w-3 h-3" />
+                                  )}
+                                  <span>
+                                    {beforePhotosCompleted 
+                                      ? `${tvCount} TV${tvCount > 1 ? 's' : ''} - Ready for QR Scan`
+                                      : `${tvCount} TV${tvCount > 1 ? 's' : ''} - Before Photos First`
+                                    }
+                                  </span>
                                 </span>
                                 <span>€{job.estimatedTotal}</span>
                               </div>
@@ -2348,16 +2369,37 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                               )}
                             </div>
                           </div>
-                          <Button 
-                            onClick={() => handleStartJob(job)}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            <Camera className="w-4 h-4 mr-2" />
-                            Start Job
-                          </Button>
+                          {!beforePhotosCompleted && (
+                            <Button 
+                              onClick={() => handleStartJob(job)}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              <Camera className="w-4 h-4 mr-2" />
+                              Start Job
+                            </Button>
+                          )}
                         </div>
                       );
                     })}
+                  </CardContent>
+                </Card>
+              ) : verificationData ? (
+                <Card className="border-orange-200 bg-orange-50 h-full">
+                  <CardContent className="p-8">
+                    <div className="text-center">
+                      <Wrench className="w-12 h-12 mx-auto mb-4 text-orange-400" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Job Unlocked - Work in Progress</h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Location verified! Complete the installation work, then return here to take after photos and finish the job.
+                      </p>
+                      <Button 
+                        onClick={() => setTakingAfterPhotos(true)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Take After Photos
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ) : (

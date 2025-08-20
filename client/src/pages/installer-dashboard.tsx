@@ -3781,10 +3781,10 @@ function StartWorkButton({
         }
         
         // Update job status to in_progress
-        const response = await apiRequest('POST', `/api/installer/update-job-status/${jobAssignment.id}`, {
+        const updateResponse = await apiRequest('POST', `/api/installer/update-job-status/${jobAssignment.id}`, {
           status: 'in_progress'
         });
-        return response;
+        return updateResponse;
       } catch (error: any) {
         // Provide more specific error messages
         if (error.message?.includes('Not authenticated')) {

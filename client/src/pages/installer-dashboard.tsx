@@ -2014,6 +2014,15 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const { toast } = useToast();
 
+  // Clear verification data when component mounts (tab switch)
+  useEffect(() => {
+    setVerificationData(null);
+    setScanError('');
+    setCompletionSuccess('');
+    setCurrentBooking(null);
+    setShowBeforeAfterCapture(false);
+  }, []);
+
   // Fetch in-progress jobs for this installer
   const { data: inProgressJobs = [], refetch: refetchInProgressJobs } = useQuery({
     queryKey: ['/api/installer/bookings'],

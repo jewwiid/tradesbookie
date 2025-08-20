@@ -2261,10 +2261,10 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <div><strong>Customer:</strong> {verificationData.booking.customerName}</div>
-                  <div><strong>Address:</strong> {verificationData.booking.address}</div>
-                  <div><strong>Service:</strong> {verificationData.booking.serviceType}</div>
-                  <div><strong>QR Code:</strong> {verificationData.booking.qrCode}</div>
+                  <div><strong>Customer:</strong> {verificationData.booking?.customerName || verificationData.booking?.contactName || 'N/A'}</div>
+                  <div><strong>Address:</strong> {verificationData.booking?.address || 'N/A'}</div>
+                  <div><strong>Service:</strong> {verificationData.booking?.serviceType || 'N/A'}</div>
+                  <div><strong>QR Code:</strong> {verificationData.booking?.qrCode || 'N/A'}</div>
                 </div>
                 
                 <Button 

@@ -13410,7 +13410,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Check if installer is assigned to this booking
       const jobAssignments = await storage.getBookingJobAssignments(booking.id);
       const installerAssignment = jobAssignments.find(job => 
-        job.installerId === parseInt(installerId) && job.status === 'accepted'
+        job.installerId === parseInt(installerId) && (job.status === 'accepted' || job.status === 'in_progress')
       );
       
       if (!installerAssignment) {

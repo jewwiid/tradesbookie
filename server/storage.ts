@@ -986,8 +986,7 @@ export class DatabaseStorage implements IStorage {
 
   async getBookingJobAssignments(bookingId: number): Promise<JobAssignment[]> {
     return await db.select().from(jobAssignments)
-      .where(eq(jobAssignments.bookingId, bookingId))
-      .orderBy(desc(jobAssignments.createdAt));
+      .where(eq(jobAssignments.bookingId, bookingId));
   }
 
   async updateBookingInstaller(bookingId: number, installerId: number): Promise<void> {

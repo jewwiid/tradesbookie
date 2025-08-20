@@ -13958,12 +13958,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       // Get installer details for each booking
       const installations = await Promise.all(paginatedBookings.map(async (booking) => {
-        console.log(`Processing booking ${booking.id} with installerId ${booking.installerId}`);
         const installer = await storage.getInstaller(booking.installerId);
-        console.log(`Found installer:`, installer ? `${installer.businessName}` : 'null');
         const allReviews = await storage.getAllReviews();
         const bookingReviews = allReviews.filter(review => review.bookingId === booking.id);
         const primaryReview = bookingReviews.length > 0 ? bookingReviews[0] : null;
+        
+        // Calculate real installer reviews and rating
+        const installerReviews = allReviews.filter(review => {
+          // Get booking for this review to find installer
+          const reviewBooking = showcasedBookings.find(b => b.id === review.bookingId);
+          return reviewBooking && reviewBooking.installerId === booking.installerId;
+        });
+        const averageRating = installerReviews.length > 0 
+          ? installerReviews.reduce((sum, review) => sum + review.rating, 0) / installerReviews.length 
+          : 0;
+        const totalReviews = installerReviews.length;
         
         return {
           id: booking.id,
@@ -13980,9 +13989,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             businessName: installer.businessName,
             contactName: installer.contactName,
             profileImage: installer.profileImageUrl,
-            averageRating: 4.5, // TODO: Calculate from actual reviews
-            totalReviews: 12, // TODO: Count actual reviews
-            yearsExperience: installer.yearsExperience || 0,
+            averageRating: averageRating,
+            totalReviews: totalReviews,
             expertise: Array.isArray(installer.expertise) ? installer.expertise : [],
             serviceArea: installer.serviceArea || 'Ireland'
           } : null,

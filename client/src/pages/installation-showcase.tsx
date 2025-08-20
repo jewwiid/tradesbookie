@@ -238,25 +238,19 @@ export default function InstallationShowcase() {
                           <p className="text-gray-600 text-sm">
                             {installation.installer?.contactName || 'Unknown'} • {installation.installer?.serviceArea || 'Unknown Area'}
                           </p>
-                          <div className="flex items-center space-x-4 mt-2">
-                            <div className="flex items-center space-x-1">
+                          {/* Only show rating if there are actual reviews */}
+                          {installation.installer?.totalReviews > 0 && (
+                            <div className="flex items-center space-x-1 mt-2">
                               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                               <span className="text-sm font-medium text-gray-700">
                                 {(installation.installer?.averageRating || 0).toFixed(1)}
                               </span>
                               <span className="text-xs text-gray-500">({installation.installer?.totalReviews || 0} reviews)</span>
                             </div>
-                            <div className="flex items-center space-x-1 text-xs text-gray-500">
-                              <Award className="w-3 h-3" />
-                              <span>{installation.installer?.yearsExperience || 0} years exp.</span>
-                            </div>
-                          </div>
+                          )}
                         </div>
                         
-                        {/* Service Type Badge */}
-                        <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
-                          {installation.serviceType || 'Installation'}
-                        </Badge>
+
                       </div>
                     </div>
 

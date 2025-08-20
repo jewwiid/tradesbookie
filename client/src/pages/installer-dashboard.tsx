@@ -1286,8 +1286,13 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                 {/* Quick Service Info */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}</span>
+                    <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}"</span>
                     <span><Monitor className="w-4 h-4 inline mr-1" />{booking.serviceType}</span>
+                    {booking.tvInstallations && booking.tvInstallations.length > 1 && (
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                        {booking.tvInstallations.length} TVs
+                      </span>
+                    )}
                   </div>
                   <Button 
                     variant="ghost" 
@@ -1305,31 +1310,90 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
 
                 {/* Expandable Service Details */}
                 {expandedDetails.has(booking.id) && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Tv className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium">Service:</span>
-                        <span>{booking.serviceType}</span>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                    {/* Contact Information */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-900 border-b pb-1">Contact Details</h5>
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Phone className="w-4 h-4 text-blue-600" />
+                          <span>{booking.contactPhone}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Mail className="w-4 h-4 text-blue-600" />
+                          <span>{booking.contactEmail}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Monitor className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium">TV Size:</span>
-                        <span>{booking.tvSize}</span>
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-900 border-b pb-1">Service Details</h5>
+                        <div className="flex items-center space-x-2 text-sm">
+                          <Tv className="w-4 h-4 text-blue-600" />
+                          <span>{booking.tvSize}" TV - {booking.serviceType}</span>
+                        </div>
+                        {booking.wallType && (
+                          <div className="flex items-center space-x-2 text-sm">
+                            <span className="font-medium">Wall Type:</span>
+                            <span>{booking.wallType}</span>
+                          </div>
+                        )}
+                        {booking.mountType && (
+                          <div className="flex items-center space-x-2 text-sm">
+                            <span className="font-medium">Mount Type:</span>
+                            <span>{booking.mountType}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Phone className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium">Phone:</span>
-                        <span>{booking.contactPhone}</span>
+
+                    {/* Multi-TV Information */}
+                    {booking.tvInstallations && booking.tvInstallations.length > 0 && (
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-900 border-b pb-1">TV Installations</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {booking.tvInstallations.map((tv: any, index: number) => (
+                            <div key={index} className="bg-white p-3 rounded border text-sm">
+                              <div className="font-medium">{tv.roomName || `TV ${index + 1}`}</div>
+                              <div className="text-gray-600">{tv.tvSize}" • {tv.wallType} • {tv.mountType}</div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Mail className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium">Email:</span>
-                        <span>{booking.contactEmail}</span>
+                    )}
+
+                    {/* Add-ons */}
+                    {booking.addons && booking.addons.length > 0 && (
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-900 border-b pb-1">Add-ons</h5>
+                        <div className="flex flex-wrap gap-2">
+                          {booking.addons.map((addon: any, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {addon.name} - €{addon.price}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
+
+                    {/* Customer Notes */}
+                    {booking.customerNotes && (
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-900 border-b pb-1">Customer Notes</h5>
+                        <div className="bg-blue-50 p-3 rounded text-sm text-blue-900">
+                          {booking.customerNotes}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Preferred Schedule */}
+                    {(booking.preferredDate || booking.preferredTime) && (
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-gray-900 border-b pb-1">Customer Preferences</h5>
+                        <div className="text-sm text-gray-600">
+                          {booking.preferredDate && <div>Preferred Date: {booking.preferredDate}</div>}
+                          {booking.preferredTime && <div>Preferred Time: {booking.preferredTime}</div>}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

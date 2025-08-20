@@ -2017,6 +2017,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
 
   // Clear verification data when component mounts (tab switch)
   useEffect(() => {
+    console.log('JobCompletionSection mounting - clearing verification data');
     setVerificationData(null);
     setScanError('');
     setCompletionSuccess('');
@@ -2060,6 +2061,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
       return response;
     },
     onSuccess: (data) => {
+      console.log('QR Verification Success - received data:', data);
       setVerificationData(data);
       setCurrentBooking(data.booking);
       setScanError('');
@@ -2284,6 +2286,10 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                   <div><strong>Address:</strong> {verificationData.booking?.address || 'N/A'}</div>
                   <div><strong>Service:</strong> {verificationData.booking?.serviceType || 'N/A'}</div>
                   <div><strong>QR Code:</strong> {verificationData.booking?.qrCode || 'N/A'}</div>
+                </div>
+                {/* Debug info */}
+                <div className="text-xs text-gray-600 mt-2">
+                  Debug: verificationData = {JSON.stringify(verificationData, null, 2)}
                 </div>
                 
                 <Button 

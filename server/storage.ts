@@ -1397,9 +1397,25 @@ export class DatabaseStorage implements IStorage {
 
   // Installer wallet operations
   async getInstallerWallet(installerId: number): Promise<InstallerWallet | undefined> {
-    const [wallet] = await db.select().from(installerWallets)
+    const [existing] = await db.select().from(installerWallets)
       .where(eq(installerWallets.installerId, installerId));
-    return wallet;
+    
+    if (existing) {
+      return existing;
+    }
+    
+    // Auto-create wallet if it doesn't exist
+    const walletData = {
+      installerId,
+      balance: "0.00",
+      totalSpent: "0.00", 
+      totalEarned: "0.00",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const [newWallet] = await db.insert(installerWallets).values(walletData).returning();
+    return newWallet;
   }
 
   async createInstallerWallet(wallet: InsertInstallerWallet): Promise<InstallerWallet> {

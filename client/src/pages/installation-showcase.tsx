@@ -56,6 +56,7 @@ export default function InstallationShowcase() {
   const [, setLocation] = useLocation();
   const [page, setPage] = useState(1);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<{ [key: number]: number }>({});
+  const [selectedReviewIndex, setSelectedReviewIndex] = useState<{ [key: number]: number }>({});
   const [selectedServiceFilter, setSelectedServiceFilter] = useState<string>('all');
   const { user, isAuthenticated } = useAuth();
 
@@ -90,6 +91,21 @@ export default function InstallationShowcase() {
         newIndex = (current + 1) % maxPhotos;
       } else {
         newIndex = current === 0 ? maxPhotos - 1 : current - 1;
+      }
+      
+      return { ...prev, [installationId]: newIndex };
+    });
+  };
+
+  const handleReviewNavigation = (installationId: number, direction: 'prev' | 'next', maxReviews: number) => {
+    setSelectedReviewIndex(prev => {
+      const current = prev[installationId] || 0;
+      let newIndex;
+      
+      if (direction === 'next') {
+        newIndex = (current + 1) % maxReviews;
+      } else {
+        newIndex = current === 0 ? maxReviews - 1 : current - 1;
       }
       
       return { ...prev, [installationId]: newIndex };
@@ -205,6 +221,10 @@ export default function InstallationShowcase() {
               const currentPhotoIndex = selectedPhotoIndex[installation.id] || 0;
               const currentPhoto = installation.beforeAfterPhotos?.[currentPhotoIndex];
               const hasMultiplePhotos = (installation.beforeAfterPhotos?.length || 0) > 1;
+
+              const currentReviewIndex = selectedReviewIndex[installation.id] || 0;
+              const currentReview = installation.reviews?.[currentReviewIndex];
+              const hasMultipleReviews = (installation.reviews?.length || 0) > 1;
 
               // Skip installations with missing data
               if (!installation.installer || !installation.beforeAfterPhotos?.length) {
@@ -355,11 +375,11 @@ export default function InstallationShowcase() {
                       </div>
                     )}
 
-                    {/* Customer Review as Status Update */}
+                    {/* Customer Review Carousel */}
                     <div className="p-6">
                       {isAuthenticated ? (
                         <div className="space-y-4">
-                          {/* Review Header */}
+                          {/* Review Navigation Header */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
                               <div className="flex">
@@ -367,26 +387,56 @@ export default function InstallationShowcase() {
                                   <Star 
                                     key={i} 
                                     className={`w-4 h-4 ${
-                                      i < installation.review.rating 
+                                      i < (currentReview?.rating || 0)
                                         ? 'text-yellow-400 fill-yellow-400' 
                                         : 'text-gray-300'
                                     }`} 
                                   />
                                 ))}
                               </div>
-                              <span className="font-semibold text-gray-900">{installation.review.rating}/5</span>
+                              <span className="font-semibold text-gray-900">{currentReview?.rating || 0}/5</span>
                             </div>
-                            <div className="flex items-center space-x-1 text-sm text-gray-500">
-                              <Clock className="w-3 h-3" />
-                              <span>Recently completed</span>
+                            <div className="flex items-center space-x-2">
+                              {hasMultipleReviews && (
+                                <div className="flex items-center space-x-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleReviewNavigation(installation.id, 'prev', installation.reviews.length)}
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    <ChevronLeft className="w-3 h-3" />
+                                  </Button>
+                                  <span className="text-xs text-gray-500 px-2">
+                                    {currentReviewIndex + 1} / {installation.reviews.length}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleReviewNavigation(installation.id, 'next', installation.reviews.length)}
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    <ChevronRight className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              )}
+                              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                                <Clock className="w-3 h-3" />
+                                <span>Recently completed</span>
+                              </div>
                             </div>
                           </div>
                           
                           {/* Review Content */}
                           <div>
-                            <h4 className="font-semibold text-gray-900 mb-2">{installation.review?.title || 'Installation Review'}</h4>
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-semibold text-gray-900">{currentReview?.title || 'Installation Review'}</h4>
+                              <span className="text-sm text-gray-500">
+                                by {currentReview?.customerName || 'Verified Customer'}
+                              </span>
+                            </div>
                             <p className="text-gray-700 leading-relaxed">
-                              {installation.review?.comment || 'No review comment available.'}
+                              {currentReview?.comment || 'No review comment available.'}
                             </p>
                           </div>
                         </div>

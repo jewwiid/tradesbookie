@@ -13994,17 +13994,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             expertise: Array.isArray(installer.expertise) ? installer.expertise : [],
             serviceArea: installer.serviceArea || 'Ireland'
           } : null,
-          review: primaryReview ? {
-            rating: primaryReview.rating,
-            title: primaryReview.title,
-            comment: primaryReview.comment,
-            date: primaryReview.createdAt
-          } : {
+          reviews: bookingReviews.length > 0 ? bookingReviews.map(review => ({
+            id: review.id,
+            rating: review.rating,
+            title: review.title,
+            comment: review.comment,
+            customerName: review.customerName,
+            date: review.createdAt
+          })) : [{
+            id: null,
             rating: booking.qualityStars || 0,
             title: "Professional Installation",
             comment: "Installation completed to high standards",
+            customerName: "Verified Customer",
             date: booking.completedDate || booking.updatedAt
-          },
+          }],
           serviceType: booking.serviceType || 'tv-installation',
           completedAt: booking.completedDate || booking.updatedAt
         };

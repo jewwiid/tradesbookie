@@ -4111,10 +4111,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
               COALESCE(
                 (SELECT sn.proposed_date::text 
                  FROM schedule_negotiations sn 
-                 WHERE sn.booking_id = ${booking.id} AND sn.status = 'pending' 
-                 ORDER BY sn.created_at DESC LIMIT 1),
-                (SELECT sn.proposed_date::text 
-                 FROM schedule_negotiations sn 
                  WHERE sn.booking_id = ${booking.id} AND sn.status = 'accepted' 
                  ORDER BY sn.created_at DESC LIMIT 1),
                 ${booking.scheduledDate ? (typeof booking.scheduledDate === 'string' ? booking.scheduledDate : booking.scheduledDate.toISOString()) : null}
@@ -11532,24 +11528,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           COALESCE(
             (SELECT sn.proposed_date::text 
              FROM schedule_negotiations sn 
-             WHERE sn.booking_id = b.id AND sn.status = 'pending' 
-             ORDER BY sn.created_at DESC LIMIT 1),
-            (SELECT sn.proposed_date::text 
-             FROM schedule_negotiations sn 
              WHERE sn.booking_id = b.id AND sn.status = 'accepted' 
              ORDER BY sn.created_at DESC LIMIT 1),
             b.scheduled_date::text
-          ) as "scheduledDate"
+          ) as "scheduledDate",
+          (SELECT sn.status 
+           FROM schedule_negotiations sn 
+           WHERE sn.booking_id = b.id 
+           ORDER BY sn.created_at DESC LIMIT 1
+          ) as "negotiationStatus"
         FROM bookings b
         INNER JOIN job_assignments ja ON ja.booking_id = b.id
         WHERE ja.installer_id = ${installerId}
           AND (ja.status = 'accepted' OR ja.status = 'assigned')
         ORDER BY 
           COALESCE(
-            (SELECT sn.proposed_date 
-             FROM schedule_negotiations sn 
-             WHERE sn.booking_id = b.id AND sn.status = 'pending' 
-             ORDER BY sn.created_at DESC LIMIT 1),
             (SELECT sn.proposed_date 
              FROM schedule_negotiations sn 
              WHERE sn.booking_id = b.id AND sn.status = 'accepted' 

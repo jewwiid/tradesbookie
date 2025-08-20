@@ -78,7 +78,10 @@ const statusColors = {
   'cancelled': 'bg-red-100 text-red-800',
   // Legacy support for older status values
   'purchased': 'bg-blue-100 text-blue-800',
-  'scheduled': 'bg-purple-100 text-purple-800'
+  'scheduled': 'bg-purple-100 text-purple-800',
+  // Schedule negotiation statuses
+  'proposal_pending': 'bg-amber-100 text-amber-800',
+  'accepted': 'bg-indigo-100 text-indigo-800'
 };
 
 const statusLabels = {
@@ -91,7 +94,10 @@ const statusLabels = {
   'cancelled': 'Cancelled',
   'customer-notification': 'Customer Notification',
   // Legacy support for older status values
-  'purchased': 'Lead Purchased'
+  'purchased': 'Lead Purchased',
+  // Schedule negotiation statuses
+  'proposal_pending': 'Proposal Pending',
+  'accepted': 'Schedule Confirmed'
 };
 
 export default function PastLeadsManagement({ installerId }: PurchasedLeadsManagementProps) {

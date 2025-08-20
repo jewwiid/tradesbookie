@@ -2160,6 +2160,18 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     setIsScanning(false);
     setScanError('');
     setCompletionSuccess('');
+    
+    // Workflow validation: Check if user has started job workflow properly
+    if (!beforePhotosCompleted && !verificationData && inProgressJobs.length > 0) {
+      setScanError('Please start a job by taking before photos first, then scan the QR code to unlock it.');
+      toast({
+        title: "Workflow Error",
+        description: "Start by clicking 'Start Job' to take before photos, then scan the QR code to unlock the job.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     verifyQRMutation.mutate(qrCode);
   };
 
@@ -2268,63 +2280,6 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
         />
       ) : (
         <>
-          {/* In-Progress Jobs - Ready to Start */}
-          {inProgressJobs.length > 0 && !beforePhotosCompleted && (
-            <Card className="border-blue-200 bg-blue-50">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 text-blue-800">
-                  <Camera className="w-5 h-5" />
-                  <span>Ready to Start Installation ({inProgressJobs.length})</span>
-                </CardTitle>
-                <p className="text-sm text-blue-700">
-                  Start by taking before photos, then scan the customer's QR code to unlock the job.
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {inProgressJobs.map((job: any) => {
-                  const tvCount = Array.isArray(job.tvInstallations) ? job.tvInstallations.length : 1;
-                  return (
-                    <div key={job.id} className="flex items-center justify-between p-4 bg-white border border-blue-200 rounded-lg">
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-semibold text-gray-900">{job.contactName}</h4>
-                          <Badge className="bg-blue-100 text-blue-800">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
-                            Ready to Start
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <MapPin className="w-4 h-4" />
-                            <span>{job.address}</span>
-                          </div>
-                          <div className="flex items-center space-x-4 text-xs text-gray-500">
-                            <span className="flex items-center space-x-1">
-                              <Camera className="w-3 h-3" />
-                              <span>{tvCount} TV{tvCount > 1 ? 's' : ''} - Before Photos First</span>
-                            </span>
-                            <span>€{job.estimatedTotal}</span>
-                          </div>
-                          {tvCount > 1 && job.tvInstallations && (
-                            <div className="text-xs text-gray-400 mt-1">
-                              Rooms: {job.tvInstallations.map((tv: any) => tv.location || 'Room').join(', ')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={() => handleStartJob(job)}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        <Camera className="w-4 h-4 mr-2" />
-                        Start Job
-                      </Button>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          )}
 
           {/* QR Scanner - Step 2 (After Before Photos) */}
           {(beforePhotosCompleted || verificationData) && (
@@ -2346,8 +2301,81 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
             </Card>
           )}
 
-          {/* QR Scanner Section */}
+          {/* Side-by-side layout: Ready to Start Installation and QR Scanner */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column: Ready to Start Installation */}
+            <div>
+              {inProgressJobs.length > 0 && !beforePhotosCompleted ? (
+                <Card className="border-blue-200 bg-blue-50 h-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2 text-blue-800">
+                      <Camera className="w-5 h-5" />
+                      <span>Ready to Start Installation ({inProgressJobs.length})</span>
+                    </CardTitle>
+                    <p className="text-sm text-blue-700">
+                      Start by taking before photos, then scan the customer's QR code to unlock the job.
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {inProgressJobs.map((job: any) => {
+                      const tvCount = Array.isArray(job.tvInstallations) ? job.tvInstallations.length : 1;
+                      return (
+                        <div key={job.id} className="flex items-center justify-between p-4 bg-white border border-blue-200 rounded-lg">
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <h4 className="font-semibold text-gray-900">{job.contactName}</h4>
+                              <Badge className="bg-blue-100 text-blue-800">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
+                                Ready to Start
+                              </Badge>
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <MapPin className="w-4 h-4" />
+                                <span>{job.address}</span>
+                              </div>
+                              <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                <span className="flex items-center space-x-1">
+                                  <Camera className="w-3 h-3" />
+                                  <span>{tvCount} TV{tvCount > 1 ? 's' : ''} - Before Photos First</span>
+                                </span>
+                                <span>€{job.estimatedTotal}</span>
+                              </div>
+                              {tvCount > 1 && job.tvInstallations && (
+                                <div className="text-xs text-gray-400 mt-1">
+                                  Rooms: {job.tvInstallations.map((tv: any) => tv.location || 'Room').join(', ')}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <Button 
+                            onClick={() => handleStartJob(job)}
+                            className="bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Camera className="w-4 h-4 mr-2" />
+                            Start Job
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-gray-200 bg-gray-50 h-full">
+                  <CardContent className="p-8">
+                    <div className="text-center text-gray-500">
+                      <Camera className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No Jobs Ready to Start</h3>
+                      <p className="text-sm">
+                        In-progress jobs will appear here when they're ready to begin.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Right Column: QR Scanner */}
             <div>
               <QRScanner 
                 onScanSuccess={handleQRScan}
@@ -2383,9 +2411,8 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
         </>
       )}
       
-      {/* Completed Jobs */}
-      {completedJobs && completedJobs.length > 0 && (
-        <Card>
+      {/* Recently Completed Jobs - Always Visible */}
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <CheckCircle className="w-5 h-5 text-green-600" />
@@ -2393,10 +2420,13 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {completedJobs.length === 0 ? (
+          {!completedJobs || completedJobs.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <CheckCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>No completed jobs yet. Complete your first installation to see it here!</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Completed Jobs Yet</h3>
+              <p className="text-sm">
+                Complete your first installation to see it here!
+              </p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -2422,7 +2452,6 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
           )}
         </CardContent>
       </Card>
-      )}
     </div>
   );
 }

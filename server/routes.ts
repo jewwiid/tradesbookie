@@ -11759,13 +11759,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           b.service_type as "serviceType", 
           b.status,
           b.estimated_total as "estimatedTotal",
-          COALESCE(
-            (SELECT sn.proposed_date::text 
-             FROM schedule_negotiations sn 
-             WHERE sn.booking_id = b.id AND (sn.status = 'accepted' OR sn.status = 'accept')
-             ORDER BY sn.created_at DESC LIMIT 1),
-            b.scheduled_date::text
-          ) as "scheduledDate",
+          CASE 
+            WHEN ja.status = 'completed' AND ja.completed_date IS NOT NULL 
+            THEN ja.completed_date::text 
+            ELSE COALESCE(
+              (SELECT sn.proposed_date::text 
+               FROM schedule_negotiations sn 
+               WHERE sn.booking_id = b.id AND (sn.status = 'accepted' OR sn.status = 'accept')
+               ORDER BY sn.created_at DESC LIMIT 1),
+              b.scheduled_date::text
+            ) 
+          END as "scheduledDate",
           COALESCE(
             (SELECT sn.proposed_time_slot
              FROM schedule_negotiations sn 

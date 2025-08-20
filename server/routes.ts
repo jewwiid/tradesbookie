@@ -4143,12 +4143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             qrCode: booking.qrCode,
             createdAt: booking.createdAt,
             // Job assignment specific fields
-            leadFee: (() => {
-              const assignmentFee = assignment.leadFee;
-              const calculatedFee = getLeadFee(booking.serviceType);
-              console.log(`Debug lead fee for booking ${booking.id}: assignment.leadFee=${assignmentFee}, calculated=${calculatedFee}, serviceType=${booking.serviceType}`);
-              return assignmentFee || calculatedFee.toString();
-            })(),
+            leadFee: (assignment.leadFee && parseFloat(assignment.leadFee) > 0) ? assignment.leadFee : getLeadFee(booking.serviceType).toString(),
             assignmentStatus: assignment.status,
             assignedDate: assignment.assignedDate,
             isSelected: booking.installerId === installerId, // Whether customer has selected this installer

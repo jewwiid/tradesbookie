@@ -1327,7 +1327,7 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
                         </div>
                         {job.leadFee && (
                           <span className="text-xs text-gray-500">
-                            Lead Cost: €{job.leadFee}
+                            Lead Fee: €{job.leadFee}
                           </span>
                         )}
                       </div>
@@ -1514,7 +1514,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     {booking.leadFee && (
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
                         <Euro className="w-3 h-3" />
-                        <span>Lead Cost: €{booking.leadFee}</span>
+                        <span>Lead Fee: €{booking.leadFee}</span>
                       </div>
                     )}
                   </div>

@@ -11743,7 +11743,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   // New endpoint for installer schedule calendar
   app.get("/api/installer/:installerId/schedule-calendar", async (req, res) => {
-      try {
+    try {
       const installerId = parseInt(req.params.installerId);
       
       // Get BOTH confirmed schedules AND pending proposals for calendar display

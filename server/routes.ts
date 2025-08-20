@@ -4128,7 +4128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             wallMountOption: booking.wallMountOption,
             addons: Array.isArray(booking.addons) ? booking.addons : [],
             tvInstallations: booking.tvInstallations || [], // Include multi-TV installations
-            tvQuantity: booking.tvQuantity || (booking.tvInstallations && booking.tvInstallations.length > 0 ? booking.tvInstallations.length : 1),
+            tvQuantity: booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0 ? booking.tvInstallations.length : 1,
             address: booking.address,
             preferredDate: booking.preferredDate,
             preferredTime: booking.preferredTime,

@@ -2275,8 +2275,68 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     verifyQRMutation.mutate(qrCode);
   };
 
-  const handleCompleteJob = (beforeAfterPhotos?: any[]) => {
-    completeJobMutation.mutate(beforeAfterPhotos);
+  const handleCompleteJob = async (afterPhotos?: any[]) => {
+    if (!currentBooking) {
+      toast({
+        title: "Error",
+        description: "No current booking data available",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Fetch existing photo progress to get before photos
+      const photoProgressResponse = await fetch(`/api/installer/photo-progress/${currentBooking.id}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!photoProgressResponse.ok) {
+        throw new Error('Failed to fetch existing photo progress');
+      }
+
+      const photoData = await photoProgressResponse.json();
+      const existingProgress = photoData.progress || [];
+      
+      // Get TV count
+      const tvCount = Array.isArray(currentBooking.tvInstallations) 
+        ? currentBooking.tvInstallations.length 
+        : 1;
+
+      // Combine before and after photos for all TVs
+      const combinedPhotos = [];
+      for (let i = 0; i < tvCount; i++) {
+        const existingTvProgress = existingProgress.find((p: any) => p.tvIndex === i);
+        const afterPhotoForTv = afterPhotos?.find((p: any) => p.tvIndex === i);
+        
+        combinedPhotos.push({
+          tvIndex: i,
+          beforePhoto: existingTvProgress?.beforePhotoUrl || '',
+          afterPhoto: afterPhotoForTv?.afterPhoto || ''
+        });
+      }
+
+      // Validate that we have all required photos
+      const missingPhotos = combinedPhotos.filter(tv => !tv.beforePhoto || !tv.afterPhoto);
+      if (missingPhotos.length > 0) {
+        toast({
+          title: "Missing Photos",
+          description: `Missing photos for ${missingPhotos.length} TV(s). Please ensure all before and after photos are captured.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      completeJobMutation.mutate(combinedPhotos);
+    } catch (error) {
+      console.error('Error preparing completion data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to prepare completion data. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleStartJob = (job: any) => {

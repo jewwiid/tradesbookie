@@ -276,6 +276,21 @@ export const jobAssignments = pgTable("job_assignments", {
   leadPaidDate: timestamp("lead_paid_date"),
 });
 
+// Installation photo progress - for persistent photo capture workflow
+export const installationPhotoProgress = pgTable("installation_photo_progress", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id").notNull().references(() => bookings.id),
+  installerId: integer("installer_id").notNull().references(() => installers.id),
+  tvIndex: integer("tv_index").notNull(), // Which TV (0, 1, 2, etc.)
+  beforePhotoUrl: text("before_photo_url"), // Base64 or file path
+  afterPhotoUrl: text("after_photo_url"), // Base64 or file path
+  beforePhotoSource: text("before_photo_source").default("camera"), // "camera" or "upload"
+  afterPhotoSource: text("after_photo_source").default("camera"), // Only "camera" allowed
+  isCompleted: boolean("is_completed").default(false), // Both before & after captured
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Lead pricing structure - what installers pay for different job types
 export const leadPricing = pgTable("lead_pricing", {
   id: serial("id").primaryKey(),
@@ -2176,3 +2191,14 @@ export type AiUsageTracking = typeof aiUsageTracking.$inferSelect;
 export type InsertAiUsageTracking = z.infer<typeof insertAiUsageTrackingSchema>;
 export type AiTool = typeof aiTools.$inferSelect;
 export type InsertAiTool = z.infer<typeof insertAiToolSchema>;
+
+// Installation photo progress insert schema
+export const insertInstallationPhotoProgressSchema = createInsertSchema(installationPhotoProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Installation photo progress types
+export type InstallationPhotoProgress = typeof installationPhotoProgress.$inferSelect;
+export type InsertInstallationPhotoProgress = z.infer<typeof insertInstallationPhotoProgressSchema>;

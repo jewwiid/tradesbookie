@@ -9,6 +9,7 @@ import {
   qrCodeScans, aiProductRecommendations, choiceFlowTracking, aiToolQrCodes, aiInteractionAnalytics,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics, retailerInvoices,
   installerServiceAssignments, customerWallets, customerTransactions, supportTickets, ticketMessages, aiUsageTracking, aiTools, leadRefunds,
+  installationPhotoProgress,
   type User, type UpsertUser,
   type Booking, type InsertBooking,
   type Installer, type InsertInstaller,
@@ -52,7 +53,8 @@ import {
   type AiTool, type InsertAiTool,
   type SelectServiceMetrics, type InsertServiceMetrics,
   type InstallerServiceAssignment, type InsertInstallerServiceAssignment,
-  type AiInteractionAnalytics, type InsertAiInteractionAnalytics
+  type AiInteractionAnalytics, type InsertAiInteractionAnalytics,
+  type InstallationPhotoProgress, type InsertInstallationPhotoProgress
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, or, isNull, sql, inArray } from "drizzle-orm";
@@ -471,6 +473,13 @@ export interface IStorage {
     sessionDurationMinutes?: number;
     actionTaken?: string;
   }): Promise<void>;
+  
+  // Installation photo progress operations
+  createInstallationPhotoProgress(progress: InsertInstallationPhotoProgress): Promise<InstallationPhotoProgress>;
+  getInstallationPhotoProgress(bookingId: number, installerId: number, tvIndex: number): Promise<InstallationPhotoProgress | undefined>;
+  updateInstallationPhotoProgress(id: number, updates: Partial<InsertInstallationPhotoProgress>): Promise<InstallationPhotoProgress>;
+  deleteInstallationPhotoProgress(bookingId: number, installerId: number): Promise<void>;
+  getInstallationPhotoProgressByBooking(bookingId: number, installerId: number): Promise<InstallationPhotoProgress[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3563,6 +3572,53 @@ export class DatabaseStorage implements IStorage {
         .set(updates)
         .where(eq(aiInteractionAnalytics.id, recentInteraction[0].id));
     }
+  }
+  
+  // Installation photo progress operations
+  async createInstallationPhotoProgress(progress: InsertInstallationPhotoProgress): Promise<InstallationPhotoProgress> {
+    const [createdProgress] = await db.insert(installationPhotoProgress).values({
+      ...progress,
+      updatedAt: new Date()
+    }).returning();
+    return createdProgress;
+  }
+
+  async getInstallationPhotoProgress(bookingId: number, installerId: number, tvIndex: number): Promise<InstallationPhotoProgress | undefined> {
+    const [progress] = await db.select().from(installationPhotoProgress)
+      .where(and(
+        eq(installationPhotoProgress.bookingId, bookingId),
+        eq(installationPhotoProgress.installerId, installerId),
+        eq(installationPhotoProgress.tvIndex, tvIndex)
+      ));
+    return progress;
+  }
+
+  async updateInstallationPhotoProgress(id: number, updates: Partial<InsertInstallationPhotoProgress>): Promise<InstallationPhotoProgress> {
+    const [updatedProgress] = await db.update(installationPhotoProgress)
+      .set({
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(installationPhotoProgress.id, id))
+      .returning();
+    return updatedProgress;
+  }
+
+  async deleteInstallationPhotoProgress(bookingId: number, installerId: number): Promise<void> {
+    await db.delete(installationPhotoProgress)
+      .where(and(
+        eq(installationPhotoProgress.bookingId, bookingId),
+        eq(installationPhotoProgress.installerId, installerId)
+      ));
+  }
+
+  async getInstallationPhotoProgressByBooking(bookingId: number, installerId: number): Promise<InstallationPhotoProgress[]> {
+    return await db.select().from(installationPhotoProgress)
+      .where(and(
+        eq(installationPhotoProgress.bookingId, bookingId),
+        eq(installationPhotoProgress.installerId, installerId)
+      ))
+      .orderBy(installationPhotoProgress.tvIndex);
   }
 }
 

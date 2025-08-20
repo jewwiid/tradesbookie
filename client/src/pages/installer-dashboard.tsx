@@ -25,6 +25,7 @@ import LeadPurchaseDialog from "@/components/installer/LeadPurchaseDialog";
 import QRScanner from "@/components/installer/QRScanner";
 import CompletionPhotoCapture from "@/components/installer/CompletionPhotoCapture";
 import BeforeAfterPhotoCapture from "@/components/installer/BeforeAfterPhotoCapture";
+import FlexiblePhotoCapture from "@/components/installer/FlexiblePhotoCapture";
 import ScheduleProposalForm from "@/components/ScheduleProposalForm";
 import ScheduleNegotiation from "@/components/ScheduleNegotiation";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth } from "date-fns";
@@ -2246,12 +2247,27 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
 
       {/* Conditional rendering: Photo Capture or QR Scanner */}
       {showBeforeAfterCapture && currentBooking ? (
-        <BeforeAfterPhotoCapture
+        <FlexiblePhotoCapture
           bookingId={currentBooking.id}
           tvCount={Array.isArray(currentBooking.tvInstallations) ? currentBooking.tvInstallations.length : 1}
-          onPhotosCompleted={handleBeforeAfterPhotosCompleted}
+          tvNames={Array.isArray(currentBooking.tvInstallations) ? 
+            currentBooking.tvInstallations.map((tv: any) => tv.location || `TV ${tv.tvIndex + 1}`) : 
+            [`TV 1`]
+          }
+          workflowStage={
+            verificationData?.isPostWorkScan ? 'after' : 
+            'both' // Default to both before and after photos
+          }
+          allowBeforeUpload={!verificationData?.isPostWorkScan} // Allow upload only if not post-work scan
+          onPhotosComplete={handleBeforeAfterPhotosCompleted}
           onCancel={handleCancelBeforeAfterCapture}
-          isPostWorkScan={verificationData?.isPostWorkScan}
+          onProgressSave={(tvIndex, progress) => {
+            // Show toast when progress is saved
+            toast({
+              title: "Progress Saved",
+              description: `Photo progress saved for ${currentBooking.tvInstallations?.[tvIndex]?.location || `TV ${tvIndex + 1}`}`,
+            });
+          }}
         />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

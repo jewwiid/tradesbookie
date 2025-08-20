@@ -13479,6 +13479,125 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Installation Photo Progress Management Routes
+  // Save photo progress (before/after photos with flexible capture)
+  app.post('/api/installer/photo-progress', async (req, res) => {
+    try {
+      // Check installer authentication
+      if (!req.session.installerAuthenticated || !req.session.installerId) {
+        return res.status(401).json({ message: "Installer not authenticated" });
+      }
+
+      const installerId = req.session.installerId;
+      const { bookingId, tvIndex, beforePhotoUrl, afterPhotoUrl, beforePhotoSource, afterPhotoSource, isCompleted } = req.body;
+
+      if (!bookingId || tvIndex === undefined) {
+        return res.status(400).json({ error: 'Booking ID and TV index are required' });
+      }
+
+      // Check if progress entry already exists
+      const existingProgress = await storage.getInstallationPhotoProgress(bookingId, installerId, tvIndex);
+
+      if (existingProgress) {
+        // Update existing progress
+        const updatedProgress = await storage.updateInstallationPhotoProgress(existingProgress.id, {
+          beforePhotoUrl: beforePhotoUrl || existingProgress.beforePhotoUrl,
+          afterPhotoUrl: afterPhotoUrl || existingProgress.afterPhotoUrl,
+          beforePhotoSource: beforePhotoSource || existingProgress.beforePhotoSource,
+          afterPhotoSource: afterPhotoSource || existingProgress.afterPhotoSource,
+          isCompleted: isCompleted !== undefined ? isCompleted : existingProgress.isCompleted,
+        });
+        res.json({ success: true, progress: updatedProgress });
+      } else {
+        // Create new progress entry
+        const newProgress = await storage.createInstallationPhotoProgress({
+          bookingId,
+          installerId,
+          tvIndex,
+          beforePhotoUrl: beforePhotoUrl || null,
+          afterPhotoUrl: afterPhotoUrl || null,
+          beforePhotoSource: beforePhotoSource || 'camera',
+          afterPhotoSource: afterPhotoSource || 'camera',
+          isCompleted: isCompleted || false,
+        });
+        res.json({ success: true, progress: newProgress });
+      }
+    } catch (error) {
+      console.error('Error saving photo progress:', error);
+      res.status(500).json({ error: 'Failed to save photo progress' });
+    }
+  });
+
+  // Get photo progress for a booking
+  app.get('/api/installer/photo-progress/:bookingId', async (req, res) => {
+    try {
+      // Check installer authentication
+      if (!req.session.installerAuthenticated || !req.session.installerId) {
+        return res.status(401).json({ message: "Installer not authenticated" });
+      }
+
+      const installerId = req.session.installerId;
+      const bookingId = parseInt(req.params.bookingId);
+
+      if (!bookingId) {
+        return res.status(400).json({ error: 'Invalid booking ID' });
+      }
+
+      const progressList = await storage.getInstallationPhotoProgressByBooking(bookingId, installerId);
+      res.json({ success: true, progress: progressList });
+    } catch (error) {
+      console.error('Error retrieving photo progress:', error);
+      res.status(500).json({ error: 'Failed to retrieve photo progress' });
+    }
+  });
+
+  // Get specific TV photo progress
+  app.get('/api/installer/photo-progress/:bookingId/:tvIndex', async (req, res) => {
+    try {
+      // Check installer authentication
+      if (!req.session.installerAuthenticated || !req.session.installerId) {
+        return res.status(401).json({ message: "Installer not authenticated" });
+      }
+
+      const installerId = req.session.installerId;
+      const bookingId = parseInt(req.params.bookingId);
+      const tvIndex = parseInt(req.params.tvIndex);
+
+      if (!bookingId || tvIndex === undefined) {
+        return res.status(400).json({ error: 'Invalid booking ID or TV index' });
+      }
+
+      const progress = await storage.getInstallationPhotoProgress(bookingId, installerId, tvIndex);
+      res.json({ success: true, progress });
+    } catch (error) {
+      console.error('Error retrieving specific photo progress:', error);
+      res.status(500).json({ error: 'Failed to retrieve photo progress' });
+    }
+  });
+
+  // Delete photo progress (reset progress when needed)
+  app.delete('/api/installer/photo-progress/:bookingId', async (req, res) => {
+    try {
+      // Check installer authentication
+      if (!req.session.installerAuthenticated || !req.session.installerId) {
+        return res.status(401).json({ message: "Installer not authenticated" });
+      }
+
+      const installerId = req.session.installerId;
+      const bookingId = parseInt(req.params.bookingId);
+
+      if (!bookingId) {
+        return res.status(400).json({ error: 'Invalid booking ID' });
+      }
+
+      await storage.deleteInstallationPhotoProgress(bookingId, installerId);
+      res.json({ success: true, message: 'Photo progress deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting photo progress:', error);
+      res.status(500).json({ error: 'Failed to delete photo progress' });
+    }
+  });
+
   // Mark installation as complete via QR verification with star calculation
   app.post('/api/installer/complete-installation', async (req, res) => {
     try {

@@ -3005,20 +3005,25 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                                   disabled={!beforeAfterPhotos || beforeAfterPhotos.length === 0}
                                   onCheckedChange={async (checked) => {
                                     try {
-                                      const response = await apiRequest(`/api/booking/${job.booking.id}/showcase`, {
+                                      const response = await fetch(`/api/booking/${job.booking.id}/showcase`, {
                                         method: 'PUT',
                                         body: JSON.stringify({ showcaseInGallery: checked }),
-                                        headers: { 'Content-Type': 'application/json' }
+                                        headers: { 
+                                          'Content-Type': 'application/json',
+                                        }
                                       });
                                       
-                                      if (response.success) {
+                                      if (response.ok) {
+                                        const result = await response.json();
                                         // Update the local state optimistically
                                         job.booking.showcaseInGallery = checked;
                                         
                                         toast({
                                           title: checked ? "Added to Gallery" : "Removed from Gallery",
-                                          description: response.message,
+                                          description: result.message,
                                         });
+                                      } else {
+                                        throw new Error('Failed to update showcase status');
                                       }
                                     } catch (error: any) {
                                       toast({

@@ -1155,7 +1155,10 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
     // Use scheduledDate if available, otherwise use created date for pending jobs
     const jobDate = job.scheduledDate || job.createdAt;
     if (jobDate) {
-      const dateKey = format(new Date(jobDate), 'yyyy-MM-dd');
+      // Handle both string dates and date objects
+      const dateKey = typeof jobDate === 'string' && jobDate.includes(' ')
+        ? jobDate.split(' ')[0]  // Extract just the date part from "2025-08-23 00:00:00"
+        : format(new Date(jobDate), 'yyyy-MM-dd');
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
@@ -1168,7 +1171,10 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
   pendingProposals
     .filter((proposal: any) => proposal.status === 'pending' && proposal.proposedBy === 'installer')
     .forEach((proposal: any) => {
-      const dateKey = format(new Date(proposal.proposedDate), 'yyyy-MM-dd');
+      // Handle both string dates and date objects  
+      const dateKey = typeof proposal.proposedDate === 'string' && proposal.proposedDate.includes('T')
+        ? proposal.proposedDate.split('T')[0]  // Extract date from ISO string "2025-08-24T00:00:00.000Z"
+        : format(new Date(proposal.proposedDate), 'yyyy-MM-dd');
       if (!jobsByDate[dateKey]) {
         jobsByDate[dateKey] = [];
       }

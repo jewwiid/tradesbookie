@@ -42,13 +42,17 @@ const InstallerScheduleCalendar = ({ installerId }: InstallerScheduleCalendarPro
   const monthEnd = endOfMonth(currentDate);
   const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Group installations by date
+  // Group installations by date (including both confirmed and proposed)
   const installationsByDate = scheduledInstalls.reduce((acc: Record<string, ScheduledInstallation[]>, install: ScheduledInstallation) => {
-    const dateKey = format(new Date(install.scheduledDate), 'yyyy-MM-dd');
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
+    // Handle both string dates and date objects
+    const installDate = typeof install.scheduledDate === 'string' 
+      ? install.scheduledDate.split(' ')[0]  // Extract just the date part from "2025-08-23 00:00:00"
+      : format(new Date(install.scheduledDate), 'yyyy-MM-dd');
+    
+    if (!acc[installDate]) {
+      acc[installDate] = [];
     }
-    acc[dateKey].push(install);
+    acc[installDate].push(install);
     return acc;
   }, {});
 
@@ -166,8 +170,8 @@ const InstallerScheduleCalendar = ({ installerId }: InstallerScheduleCalendarPro
                       {dateInstalls.length > 0 && (
                         <div className="absolute bottom-1 left-1 right-1">
                           {(() => {
-                            const confirmedJobs = dateInstalls.filter(job => job.isConfirmed);
-                            const proposedJobs = dateInstalls.filter(job => job.isProposed);
+                            const confirmedJobs = dateInstalls.filter(job => job.isConfirmed || job.eventType === 'confirmed');
+                            const proposedJobs = dateInstalls.filter(job => job.isProposed || job.eventType === 'proposed');
                             
                             return (
                               <div className="space-y-1">

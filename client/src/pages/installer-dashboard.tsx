@@ -1135,6 +1135,7 @@ function RequestCard({ request, onAccept, onDecline, distance }: {
 // Active Jobs Section - where installers manage their assigned bookings and communicate with customers
 function ActiveJobsSection({ installerId }: { installerId?: number }) {
   const { toast } = useToast();
+  const [expandedDetails, setExpandedDetails] = useState<Set<number>>(new Set());
 
   // Fetch installer's assigned bookings
   const { data: activeBookings = [], isLoading, refetch } = useQuery({
@@ -1142,6 +1143,18 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
     enabled: !!installerId,
     refetchInterval: 30000, // Refresh every 30 seconds for new messages
   });
+
+  const toggleDetails = (bookingId: number) => {
+    setExpandedDetails(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(bookingId)) {
+        newSet.delete(bookingId);
+      } else {
+        newSet.add(bookingId);
+      }
+      return newSet;
+    });
+  };
 
   if (!installerId) {
     return (
@@ -1220,7 +1233,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
             <span>Active Jobs ({activeBookings.length})</span>
           </CardTitle>
           <CardDescription>
-            Manage your assigned installations and communicate with customers about scheduling.
+            Active installations requiring your attention
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -1248,12 +1261,15 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     {booking.leadFee && (
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
                         <Euro className="w-3 h-3" />
-                        <span>Lead fee: €{booking.leadFee}</span>
+                        <span>Lead Cost: €{booking.leadFee}</span>
                       </div>
                     )}
                   </div>
                   <div className="text-right space-y-1">
-                    <div className="font-semibold text-green-600">{booking.estimatedTotal}</div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-gray-500">Job Value</div>
+                      <div className="font-semibold text-green-600">€{booking.estimatedTotal}</div>
+                    </div>
                     {booking.createdAt && (
                       <div className="text-sm text-gray-500">
                         Created: {formatDate(booking.createdAt)}
@@ -1267,33 +1283,55 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   </div>
                 </div>
 
-                {/* Service Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Tv className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium">Service:</span>
-                      <span>{booking.serviceType}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Monitor className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium">TV Size:</span>
-                      <span>{booking.tvSize}</span>
-                    </div>
+                {/* Quick Service Info */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}</span>
+                    <span><Monitor className="w-4 h-4 inline mr-1" />{booking.serviceType}</span>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Phone className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium">Phone:</span>
-                      <span>{booking.contactPhone}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Mail className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium">Email:</span>
-                      <span>{booking.contactEmail}</span>
-                    </div>
-                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => toggleDetails(booking.id)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    {expandedDetails.has(booking.id) ? (
+                      <><ChevronUp className="w-4 h-4 mr-1" />Hide Details</>
+                    ) : (
+                      <><ChevronDown className="w-4 h-4 mr-1" />Show Details</>
+                    )}
+                  </Button>
                 </div>
+
+                {/* Expandable Service Details */}
+                {expandedDetails.has(booking.id) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Tv className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium">Service:</span>
+                        <span>{booking.serviceType}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Monitor className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium">TV Size:</span>
+                        <span>{booking.tvSize}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Phone className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium">Phone:</span>
+                        <span>{booking.contactPhone}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Mail className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium">Email:</span>
+                        <span>{booking.contactEmail}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Job Actions Section */}
                 <div className="border-t pt-4 space-y-4">
@@ -1315,36 +1353,58 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     </div>
                   )}
 
-                  {/* Messaging Section */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-gray-900">Schedule Communication</h4>
-                      {booking.status === 'competing' && (
-                        <p className="text-sm text-purple-600 mt-1">
-                          Send your best proposal to win this job
-                        </p>
-                      )}
-                      {booking.isSelected && (
-                        <p className="text-sm text-green-600 mt-1">
-                          Customer selected you! Coordinate the final details.
-                        </p>
-                      )}
+                  {/* Schedule Communication Section - Only show if schedule not confirmed */}
+                  {!(booking.status === 'confirmed' || booking.status === 'assigned') && (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-gray-900">Schedule Communication</h4>
+                          {booking.status === 'competing' && (
+                            <p className="text-sm text-purple-600 mt-1">
+                              Send your best proposal to win this job
+                            </p>
+                          )}
+                          {booking.isSelected && (
+                            <p className="text-sm text-green-600 mt-1">
+                              Customer selected you! Coordinate the final details.
+                            </p>
+                          )}
+                        </div>
+                        <ScheduleProposalForm
+                          bookingId={booking.id}
+                          installerId={installerId}
+                          customerName={booking.contactName}
+                          customerAddress={booking.address}
+                          onProposalSent={() => refetch()}
+                        />
+                      </div>
+                      
+                      <ScheduleNegotiation
+                        bookingId={booking.id}
+                        installerId={installerId}
+                        userType="installer"
+                        customerName={booking.contactName}
+                      />
+                    </>
+                  )}
+
+                  {/* Confirmed Schedule Info - Only show if schedule is confirmed */}
+                  {(booking.status === 'confirmed' || booking.status === 'assigned') && booking.scheduledDate && (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <h4 className="font-medium text-green-800">Schedule Confirmed</h4>
+                      </div>
+                      <p className="text-sm text-green-700">
+                        Installation scheduled for {new Date(booking.scheduledDate).toLocaleDateString('en-IE', {
+                          weekday: 'long',
+                          year: 'numeric', 
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
                     </div>
-                    <ScheduleProposalForm
-                      bookingId={booking.id}
-                      installerId={installerId}
-                      customerName={booking.contactName}
-                      customerAddress={booking.address}
-                      onProposalSent={() => refetch()}
-                    />
-                  </div>
-                  
-                  <ScheduleNegotiation
-                    bookingId={booking.id}
-                    installerId={installerId}
-                    userType="installer"
-                    customerName={booking.contactName}
-                  />
+                  )}
                 </div>
               </CardContent>
             </Card>

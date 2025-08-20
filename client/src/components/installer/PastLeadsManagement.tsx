@@ -469,11 +469,16 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                           );
                           const latestNegotiation = sortedNegotiations[0];
                           
-                          // Determine the proper status based on latest negotiation
+                          // Determine the proper status - prioritize completed/in-progress over negotiations
                           let badgeStatus = lead.status;
                           let badgeText = statusLabels[lead.status as keyof typeof statusLabels] || lead.status;
                           
-                          if (latestNegotiation) {
+                          // If job is completed or in-progress, show that status regardless of negotiations
+                          if (lead.status === 'completed' || lead.status === 'in-progress') {
+                            badgeStatus = lead.status;
+                            badgeText = statusLabels[lead.status as keyof typeof statusLabels];
+                          } else if (latestNegotiation) {
+                            // Only check negotiation status for non-completed jobs
                             if (latestNegotiation.status === 'pending') {
                               badgeStatus = 'proposal_pending';
                               badgeText = 'Proposal Pending';
@@ -1128,11 +1133,16 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                         );
                         const latestNegotiation = sortedNegotiations[0];
                         
-                        // Determine the proper status based on latest negotiation
+                        // Determine the proper status - prioritize completed/in-progress over negotiations
                         let badgeStatus = selectedLead.status;
                         let badgeText = statusLabels[selectedLead.status as keyof typeof statusLabels] || selectedLead.status;
                         
-                        if (latestNegotiation) {
+                        // If job is completed or in-progress, show that status regardless of negotiations
+                        if (selectedLead.status === 'completed' || selectedLead.status === 'in-progress') {
+                          badgeStatus = selectedLead.status;
+                          badgeText = statusLabels[selectedLead.status as keyof typeof statusLabels];
+                        } else if (latestNegotiation) {
+                          // Only check negotiation status for non-completed jobs
                           if (latestNegotiation.status === 'pending') {
                             badgeStatus = 'proposal_pending';
                             badgeText = 'Proposal Pending';

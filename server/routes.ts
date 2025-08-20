@@ -2386,7 +2386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...booking,
         // Override with latest accepted schedule if available
         scheduledDate: formattedScheduledDate,
-        scheduledTime: latestAcceptedSchedule?.proposedTimeSlot || booking.preferredTime,
+        scheduledTime: booking.status === 'open' ? null : (latestAcceptedSchedule?.proposedTimeSlot || booking.preferredTime),
         installer: installer ? {
           id: installer.id,
           name: installer.contactName,
@@ -11697,10 +11697,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       await db.update(bookings)
         .set({ 
           installerId: null,
-          scheduledDate: null,
-          scheduledTime: null
+          scheduledDate: null
         })
         .where(eq(bookings.id, jobAssignment.bookingId!));
+      
+      // Cancel any active schedule negotiations
+      await db.update(scheduleNegotiations)
+        .set({ status: 'cancelled' })
+        .where(and(
+          eq(scheduleNegotiations.bookingId, jobAssignment.bookingId!),
+          inArray(scheduleNegotiations.status, ['accepted', 'pending'])
+        ));
       
       // Send cancellation notification emails
       try {

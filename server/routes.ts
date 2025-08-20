@@ -13963,6 +13963,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         const bookingReviews = allReviews.filter(review => review.bookingId === booking.id);
         const primaryReview = bookingReviews.length > 0 ? bookingReviews[0] : null;
         
+        // Get customer info for review attribution
+        const customer = booking.userId ? await storage.getUser(booking.userId) : null;
+        
         // Calculate real installer reviews and rating
         const installerReviews = allReviews.filter(review => {
           // Get booking for this review to find installer
@@ -13999,14 +14002,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             rating: review.rating,
             title: review.title,
             comment: review.comment,
-            customerName: review.customerName,
+            customerName: customer ? `${customer.firstName} ${customer.lastName}`.trim() : "Verified Customer",
             date: review.createdAt
           })) : [{
             id: null,
             rating: booking.qualityStars || 0,
             title: "Professional Installation",
             comment: "Installation completed to high standards",
-            customerName: "Verified Customer",
+            customerName: customer ? `${customer.firstName} ${customer.lastName}`.trim() : "Verified Customer",
             date: booking.completedDate || booking.updatedAt
           }],
           serviceType: booking.serviceType || 'tv-installation',

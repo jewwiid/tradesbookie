@@ -9078,10 +9078,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }));
       
       // For backward compatibility, also get bookings directly assigned to installer
+      // BUT exclude bookings that are already in purchasedLeads to avoid duplicates
       const allBookings = await storage.getAllBookings();
+      const purchasedBookingIds = transformedPurchasedLeads.map(lead => lead.id);
       const installerBookings = allBookings.filter(booking => {
         // Must be assigned to this installer
         if (booking.installerId !== installerId) {
+          return false;
+        }
+        
+        // Skip if already included in purchased leads to avoid duplicates
+        if (purchasedBookingIds.includes(booking.id)) {
           return false;
         }
         

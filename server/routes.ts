@@ -11632,7 +11632,32 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const negotiationId = parseInt(req.params.id);
       const { status, responseMessage } = req.body;
       
-      await storage.updateScheduleNegotiationStatus(negotiationId, status, responseMessage);
+      // If accepting a new proposal, standardize status and invalidate previous acceptances
+      if (status === 'accepted' || status === 'accept') {
+        // First, set all previous "accepted" or "accept" proposals for this booking to "superseded"
+        const currentNegotiation = await db.execute(sql`
+          SELECT booking_id FROM schedule_negotiations WHERE id = ${negotiationId}
+        `);
+        
+        if (currentNegotiation.rows.length > 0) {
+          const bookingId = currentNegotiation.rows[0].booking_id;
+          
+          // Mark all existing accepted proposals as superseded
+          await db.execute(sql`
+            UPDATE schedule_negotiations 
+            SET status = 'superseded', updated_at = NOW()
+            WHERE booking_id = ${bookingId} 
+              AND (status = 'accepted' OR status = 'accept')
+              AND id != ${negotiationId}
+          `);
+        }
+        
+        // Now update this negotiation to "accepted" (standardized)
+        await storage.updateScheduleNegotiationStatus(negotiationId, 'accepted', responseMessage);
+      } else {
+        // For other statuses (reject, etc.), use as-is
+        await storage.updateScheduleNegotiationStatus(negotiationId, status, responseMessage);
+      }
       
       // Send email notification about response
       const negotiation = await storage.getBookingScheduleNegotiations(req.body.bookingId);
@@ -11641,7 +11666,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (latestNegotiation) {
         const booking = await storage.getBooking(latestNegotiation.bookingId);
         
-        if (status === 'accepted') {
+        if (status === 'accepted' || status === 'accept') {
           // Update booking with confirmed schedule  
           // Automatically set status to "scheduled" (Installation Scheduled)
           await storage.updateBooking(latestNegotiation.bookingId, {

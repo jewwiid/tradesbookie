@@ -55,6 +55,11 @@ export default function ScheduleProposalForm({
     negotiation.installerId === installerId
   );
 
+  // Check if there's already an accepted schedule (for re-scheduling)
+  const hasAcceptedSchedule = Array.isArray(negotiations) && negotiations.some((negotiation: any) => 
+    negotiation.status === 'accepted' || negotiation.status === 'accept'
+  );
+
 
   // Send schedule proposal
   const proposalMutation = useMutation({
@@ -136,17 +141,19 @@ export default function ScheduleProposalForm({
           size="sm" 
           className="bg-blue-600 hover:bg-blue-700"
           disabled={hasPendingProposal}
-          title={hasPendingProposal ? "Waiting for customer response to your proposal" : "Propose an installation schedule"}
+          title={hasPendingProposal ? "Waiting for customer response to your proposal" : 
+                 hasAcceptedSchedule ? "Propose a new schedule to reschedule the installation" : "Propose an installation schedule"}
         >
           <CalendarDays className="w-4 h-4 mr-2" />
-          {hasPendingProposal ? 'Proposal Pending' : 'Propose Schedule'}
+          {hasPendingProposal ? 'Proposal Pending' : 
+           hasAcceptedSchedule ? 'Propose Re-Schedule' : 'Propose Schedule'}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Calendar className="w-5 h-5" />
-            <span>Propose Installation Schedule</span>
+            <span>{hasAcceptedSchedule ? 'Propose Re-Schedule' : 'Propose Installation Schedule'}</span>
           </DialogTitle>
         </DialogHeader>
         

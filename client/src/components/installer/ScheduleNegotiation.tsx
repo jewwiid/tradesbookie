@@ -195,7 +195,7 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
   );
 
   const latestNegotiation = negotiations[0];
-  const isScheduleConfirmed = latestNegotiation?.status === 'accepted';
+  const isScheduleConfirmed = latestNegotiation?.status === 'accepted' || latestNegotiation?.status === 'accept';
 
   return (
     <Card>
@@ -296,7 +296,9 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
           <div className="space-y-4">
             <h3 className="font-medium flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
-              Propose Installation Schedule
+              {negotiations.some((n: any) => n.status === 'accepted' || n.status === 'accept') 
+                ? 'Propose Re-Schedule' 
+                : 'Propose Installation Schedule'}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

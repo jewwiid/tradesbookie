@@ -423,9 +423,34 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                         </p>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <Badge className={statusColors[lead.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
-                          {statusLabels[lead.status as keyof typeof statusLabels] || lead.status}
-                        </Badge>
+{(() => {
+                          // Get negotiations for this specific lead to determine proper status
+                          const leadNegotiations = allNegotiationsData.filter((n: any) => n.bookingId === lead.id);
+                          const sortedNegotiations = leadNegotiations.sort((a: any, b: any) => 
+                            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                          );
+                          const latestNegotiation = sortedNegotiations[0];
+                          
+                          // Determine the proper status based on latest negotiation
+                          let badgeStatus = lead.status;
+                          let badgeText = statusLabels[lead.status as keyof typeof statusLabels] || lead.status;
+                          
+                          if (latestNegotiation) {
+                            if (latestNegotiation.status === 'pending') {
+                              badgeStatus = 'proposal_pending';
+                              badgeText = 'Proposal Pending';
+                            } else if (latestNegotiation.status === 'accepted') {
+                              badgeStatus = 'accepted';
+                              badgeText = 'Schedule Confirmed';
+                            }
+                          }
+                          
+                          return (
+                            <Badge className={statusColors[badgeStatus as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
+                              {badgeText}
+                            </Badge>
+                          );
+                        })()}
                         {isRecentlyUpdated(lead.id) && (
                           <div className="flex items-center gap-1 text-xs text-green-600">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -522,10 +547,17 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                           // Get negotiations for this specific lead from all negotiations data
                           const leadNegotiations = allNegotiationsData.filter((n: any) => n.bookingId === lead.id);
                           
-                          // Check if there's a pending proposal from this installer for this lead
-                          const hasPendingProposal = leadNegotiations.find((n: any) => n.status === 'pending' && n.proposedBy === 'installer');
+                          // Sort by most recent first and get latest negotiation
+                          const sortedNegotiations = leadNegotiations.sort((a: any, b: any) => 
+                            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                          );
+                          const latestNegotiation = sortedNegotiations[0];
                           
-                          const hasAcceptedSchedule = leadNegotiations.find((n: any) => n.status === 'accepted');
+                          // Check if there's a pending proposal from this installer for this lead
+                          const hasPendingProposal = latestNegotiation?.status === 'pending' && latestNegotiation?.proposedBy === 'installer';
+                          
+                          // Only show "confirmed" if the LATEST negotiation is accepted
+                          const hasAcceptedSchedule = latestNegotiation?.status === 'accepted';
                           
                           if (hasAcceptedSchedule) {
                             return (

@@ -105,10 +105,19 @@ export default function QRTracking() {
       status: string; 
       responseMessage?: string;
     }) => {
-      return apiRequest(`/api/schedule-negotiations/${negotiationId}`, {
+      const response = await fetch(`/api/schedule-negotiations/${negotiationId}`, {
         method: 'PATCH',
-        body: { status, responseMessage, bookingId: booking?.id }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status, responseMessage, bookingId: booking?.id })
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to respond to proposal');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       // Refetch both booking and negotiations data
@@ -408,7 +417,7 @@ export default function QRTracking() {
               )}
               
               {/* Display pending schedule proposals */}
-              {scheduleNegotiations.filter((n: any) => n.status === 'pending' && n.proposedBy === 'installer').map((proposal: any) => (
+              {(scheduleNegotiations as any[]).filter((n: any) => n.status === 'pending' && n.proposedBy === 'installer').map((proposal: any) => (
                 <div key={proposal.id} className="mt-4 p-4 border-2 border-amber-200 bg-amber-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-3">
                     <MessageSquare className="w-5 h-5 text-amber-600" />

@@ -153,6 +153,15 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
 
   const allNegotiationsData = Array.isArray(allNegotiations) ? allNegotiations : [];
 
+  // Fetch job assignments to check for actual job status
+  const { data: jobAssignments } = useQuery({
+    queryKey: [`/api/installer/bookings`],
+    enabled: !!installerId,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const jobAssignmentsData = Array.isArray(jobAssignments) ? jobAssignments : [];
+
   // Get the most relevant schedule info to display
   const getScheduleDisplayInfo = () => {
     if (!negotiations.length) {
@@ -433,6 +442,26 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
                       </div>
                       <div className="flex flex-col gap-1">
 {(() => {
+                          // First, check for actual job assignment status (highest priority)
+                          const jobAssignment = jobAssignmentsData.find((job: any) => job.id === lead.id);
+                          if (jobAssignment && jobAssignment.assignmentStatus) {
+                            const assignmentStatus = jobAssignment.assignmentStatus;
+                            if (assignmentStatus === 'in_progress') {
+                              return (
+                                <Badge className="bg-orange-100 text-orange-800">
+                                  Work in Progress
+                                </Badge>
+                              );
+                            }
+                            if (assignmentStatus === 'completed') {
+                              return (
+                                <Badge className="bg-green-100 text-green-800">
+                                  Completed
+                                </Badge>
+                              );
+                            }
+                          }
+                          
                           // Get negotiations for this specific lead to determine proper status
                           const leadNegotiations = allNegotiationsData.filter((n: any) => n.bookingId === lead.id);
                           const sortedNegotiations = leadNegotiations.sort((a: any, b: any) => 

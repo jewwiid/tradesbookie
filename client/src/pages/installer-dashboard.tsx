@@ -1803,9 +1803,10 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
 
                 {/* Job Actions Section */}
                 <div className="border-t pt-4 space-y-4">
-                  {/* Start Work Button for scheduled jobs with confirmed schedule */}
-                  {((booking.status === 'confirmed' || booking.status === 'assigned') || 
-                    (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) && booking.isSelected && (
+                  {/* Start Work Button for scheduled jobs with confirmed schedule OR in progress jobs */}
+                  {(((booking.status === 'confirmed' || booking.status === 'assigned') || 
+                    (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) 
+                    || booking.assignmentStatus === 'in_progress') && booking.isSelected && (
                     <>
                       <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div>

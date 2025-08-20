@@ -50,7 +50,7 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
   // Fetch existing negotiations
   const { data: negotiations = [], isLoading } = useQuery({
     queryKey: ['/api/bookings', bookingId, 'schedule-negotiations'],
-    refetchInterval: 10000 // Refresh every 10 seconds for real-time updates
+    refetchInterval: 60000 // Refresh every minute instead of every 10 seconds to avoid disrupting user input
   });
 
   // Fetch active negotiation
@@ -74,6 +74,7 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/bookings', bookingId, 'schedule-negotiations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/bookings', bookingId, 'active-negotiation'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerId, 'schedule-negotiations'] });
       setNewProposal({ date: "", timeSlot: "", message: "" });
       toast({
         title: "Proposal sent",

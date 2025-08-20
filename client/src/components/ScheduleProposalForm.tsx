@@ -47,7 +47,7 @@ export default function ScheduleProposalForm({
       }
       return response.json();
     },
-    refetchInterval: 5000 // Check every 5 seconds for updates
+    refetchInterval: isOpen ? false : 30000 // Only refresh when dialog is closed, and less frequently
   });
 
   // Check if installer has a pending proposal
@@ -74,12 +74,15 @@ export default function ScheduleProposalForm({
         title: 'Schedule Proposal Sent!',
         description: `Your installation schedule proposal has been sent to ${customerName}.`
       });
-      setIsOpen(false);
+      // Reset form first, then close dialog
       resetForm();
+      setIsOpen(false);
       if (onProposalSent) {
         onProposalSent();
       }
+      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/bookings', bookingId, 'schedule-negotiations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerId, 'schedule-negotiations'] });
     },
     onError: (error) => {
       toast({

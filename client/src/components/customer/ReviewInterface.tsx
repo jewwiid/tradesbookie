@@ -71,42 +71,7 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
     }
   });
 
-  // Update state when existing review data is loaded
-  useEffect(() => {
-    if (existingReviewData && !reviewError) {
-      setExistingReview(existingReviewData);
-      setHasSubmittedReview(true);
-      // Populate form with existing review data
-      setRating(existingReviewData.rating || 5);
-      setTitle(existingReviewData.title || '');
-      setComment(existingReviewData.comment || '');
-    } else if (reviewError) {
-      // If there's a 404 error, that means no review exists - reset states
-      const errorMessage = reviewError?.message || '';
-      if (errorMessage.includes('404')) {
-        setExistingReview(null);
-        setHasSubmittedReview(false);
-      }
-    }
-  }, [existingReviewData, reviewError]);
-
-  // Check if booking can be reviewed
-  const canReview = booking.status === 'completed' && booking.installerId && !hasSubmittedReview && !existingReview;
-  const showReviewForm = canReview || existingReview;
-  
-  // Show loading state while checking for existing reviews
-  if (reviewLoading) {
-    return (
-      <Card className="mt-6">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <div className="text-sm text-gray-500">Checking review status...</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  // IMPORTANT: All hooks must be called before any conditional logic or early returns!
   const submitReviewMutation = useMutation({
     mutationFn: async (reviewData: any) => {
       return apiRequest('POST', '/api/reviews', reviewData);
@@ -144,6 +109,42 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
       });
     }
   });
+
+  // Update state when existing review data is loaded
+  useEffect(() => {
+    if (existingReviewData && !reviewError) {
+      setExistingReview(existingReviewData);
+      setHasSubmittedReview(true);
+      // Populate form with existing review data
+      setRating(existingReviewData.rating || 5);
+      setTitle(existingReviewData.title || '');
+      setComment(existingReviewData.comment || '');
+    } else if (reviewError) {
+      // If there's a 404 error, that means no review exists - reset states
+      const errorMessage = reviewError?.message || '';
+      if (errorMessage.includes('404')) {
+        setExistingReview(null);
+        setHasSubmittedReview(false);
+      }
+    }
+  }, [existingReviewData, reviewError]);
+
+  // Check if booking can be reviewed
+  const canReview = booking.status === 'completed' && booking.installerId && !hasSubmittedReview && !existingReview;
+  const showReviewForm = canReview || existingReview;
+  
+  // Show loading state while checking for existing reviews
+  if (reviewLoading) {
+    return (
+      <Card className="mt-6">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-center">
+            <div className="text-sm text-gray-500">Checking review status...</div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleSubmitReview = async () => {
     if (!rating || !title.trim() || !comment.trim()) {

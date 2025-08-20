@@ -286,11 +286,11 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
                   {Array.from({ length: 5 }, (_, i) => (
                     <Star 
                       key={i} 
-                      className={`w-4 h-4 ${i < existingReview.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
+                      className={`w-4 h-4 ${i < (existingReview.rating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
                     />
                   ))}
                 </div>
-                <span className="font-medium">{existingReview.rating}/5 stars</span>
+                <span className="font-medium">{existingReview.rating || 0}/5 stars</span>
               </div>
               
               <div>
@@ -299,7 +299,11 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
               </div>
               
               <p className="text-sm text-gray-500">
-                Submitted on {new Date(existingReview.createdAt).toLocaleDateString()}
+                Submitted on {existingReview.createdAt ? new Date(existingReview.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long', 
+                  day: 'numeric'
+                }) : 'Unknown date'}
               </p>
             </div>
           </div>

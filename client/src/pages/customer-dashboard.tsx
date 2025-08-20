@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send, Lock, Eye, EyeOff, ChevronDown, Monitor, Sparkles, FileText } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send, Lock, Eye, EyeOff, ChevronDown, Monitor, Sparkles, FileText, Camera } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
@@ -3516,6 +3516,35 @@ function BookingCard({
                         </p>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Installation Photos (for completed bookings) */}
+              {booking.status === 'completed' && (booking as any).beforeAfterPhotos && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
+                    <Camera className="w-4 h-4 mr-2" />
+                    Installation Photos
+                  </h4>
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {(booking as any).beforeAfterPhotos.split(',').map((photo: string, index: number) => (
+                        <div key={index} className="space-y-2">
+                          <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
+                            <img
+                              src={photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`}
+                              alt={`Installation photo ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          </div>
+                          <p className="text-xs text-gray-500 text-center">
+                            Photo {index + 1} of {(booking as any).beforeAfterPhotos.split(',').length}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

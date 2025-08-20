@@ -1130,13 +1130,13 @@ export async function sendInstallerApprovalEmail(
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
         <div style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
-          <h1 style="margin: 0; font-size: 28px;">🎉 Application Approved!</h1>
+          <h1 style="margin: 0; font-size: 28px;">Application Approved!</h1>
           <p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 16px;">Welcome to tradesbook.ie</p>
         </div>
 
         <div style="padding: 30px; background-color: #f8f9fa; border-radius: 0 0 8px 8px;">
           <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-            <h2 style="color: #155724; margin: 0 0 10px 0; font-size: 20px;">🎯 Congratulations!</h2>
+            <h2 style="color: #155724; margin: 0 0 10px 0; font-size: 20px;">Congratulations!</h2>
             <p style="color: #155724; margin: 0; font-size: 16px;">
               ${installerName}, your installer application for <strong>${businessName}</strong> has been approved and you can now access the platform.
             </p>
@@ -1144,20 +1144,20 @@ export async function sendInstallerApprovalEmail(
 
           ${adminScore ? `
             <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-              <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 16px;">📊 Application Score</h3>
+              <h3 style="color: #856404; margin: 0 0 10px 0; font-size: 16px;">Application Score</h3>
               <p style="color: #856404; margin: 0; font-size: 18px; font-weight: bold;">${adminScore}/10</p>
             </div>
           ` : ''}
 
           ${adminComments ? `
             <div style="background-color: #e7f3ff; border: 1px solid #b6d7ff; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-              <h3 style="color: #0056b3; margin: 0 0 10px 0; font-size: 16px;">💬 Admin Feedback</h3>
+              <h3 style="color: #0056b3; margin: 0 0 10px 0; font-size: 16px;">Admin Feedback</h3>
               <p style="color: #0056b3; margin: 0; font-style: italic;">"${adminComments}"</p>
             </div>
           ` : ''}
 
           <div style="background-color: white; border-radius: 8px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 18px;">🚀 Getting Started</h3>
+            <h3 style="color: #2d3748; margin: 0 0 15px 0; font-size: 18px;">Getting Started</h3>
             <ol style="color: #4a5568; padding-left: 20px;">
               <li style="margin-bottom: 10px;">Log into your installer dashboard using your registered email and password</li>
               <li style="margin-bottom: 10px;">Browse available installation requests in your service area</li>
@@ -1186,7 +1186,7 @@ export async function sendInstallerApprovalEmail(
 
     return await sendGmailEmail({
       to: installerEmail,
-      subject: "🎉 Application Approved - Welcome to tradesbook.ie!",
+      subject: "Application Approved - Welcome to tradesbook.ie!",
       html: htmlContent,
       from: getValidFromEmail('installer')
     });

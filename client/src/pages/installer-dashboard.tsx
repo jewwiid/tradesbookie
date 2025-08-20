@@ -1322,7 +1322,7 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                          <DollarSign className="w-4 h-4" />
+                          <Euro className="w-4 h-4" />
                           <span>Job Value: €{job.estimatedTotal}</span>
                         </div>
                         {job.leadFee && (
@@ -2654,7 +2654,7 @@ export default function InstallerDashboard() {
               <span>Reviews</span>
             </TabsTrigger>
             <TabsTrigger value="wallet" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
-              <DollarSign className="w-4 h-4 flex-shrink-0" />
+              <Euro className="w-4 h-4 flex-shrink-0" />
               <span className="hidden lg:inline">Wallet & Credits</span>
               <span className="lg:hidden">Wallet</span>
             </TabsTrigger>
@@ -2705,7 +2705,7 @@ export default function InstallerDashboard() {
                 <CardContent className="p-6">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <DollarSign className="w-8 h-8 text-green-600" />
+                      <Euro className="w-8 h-8 text-green-600" />
                     </div>
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-500">Monthly Earnings</p>

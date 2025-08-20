@@ -13676,16 +13676,50 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       // Send completion notifications
       try {
-        const { sendCompletionNotification } = await import('./emailService.js');
-        await sendCompletionNotification(
-          booking.customerEmail,
-          booking.customerName,
-          {
-            ...booking,
-            installationDate: new Date().toISOString(),
-            installerName: 'Professional Installer'
-          }
-        );
+        const { sendGmailEmail } = await import('./gmailService');
+        await sendGmailEmail({
+          to: booking.customerEmail,
+          subject: `TV Installation Completed - Booking #${booking.qrCode}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="background: linear-gradient(135deg, #10B981, #059669); color: white; padding: 30px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px;">🎉 Installation Complete!</h1>
+                <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Your TV installation is ready to enjoy</p>
+              </div>
+              
+              <div style="padding: 30px; background: #fff;">
+                <h2 style="color: #10B981; margin: 0 0 20px 0;">Hello ${booking.customerName}!</h2>
+                
+                <p style="font-size: 16px; line-height: 1.6; color: #374151;">
+                  Great news! Your TV installation has been completed successfully. Our professional installer has finished the work and your entertainment setup is now ready to use.
+                </p>
+                
+                <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;">
+                  <h3 style="color: #065F46; margin: 0 0 15px 0;">📝 Installation Details</h3>
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Booking Reference:</td><td style="color: #6B7280;">${booking.qrCode}</td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Installation Date:</td><td style="color: #6B7280;">${new Date().toLocaleDateString('en-IE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td></tr>
+                    <tr><td style="padding: 8px 0; font-weight: bold; color: #374151;">Service Type:</td><td style="color: #6B7280;">Professional TV Installation</td></tr>
+                  </table>
+                </div>
+                
+                <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;">
+                  <h3 style="color: #92400E; margin: 0 0 15px 0;">⭐ Rate Your Experience</h3>
+                  <p style="margin: 0; color: #78350F;">
+                    We'd love to hear about your experience! Please consider leaving a review to help other customers and support our installer.
+                  </p>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <p style="color: #6B7280; font-size: 14px;">
+                    Thank you for choosing <strong style="color: #10B981;">tradesbook.ie</strong> for your TV installation needs.
+                  </p>
+                </div>
+              </div>
+            </div>
+          `
+        });
+        console.log(`✅ Installation completion email sent to: ${booking.customerEmail}`);
       } catch (emailError) {
         console.error('Failed to send completion notification:', emailError);
         // Don't fail the completion for email errors

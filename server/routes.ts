@@ -4105,6 +4105,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const booking = await storage.getBooking(assignment.bookingId);
           if (!booking) continue;
           
+          // Get the most relevant schedule date from negotiations
+          const scheduleQuery = await db.execute(sql`
+            SELECT 
+              COALESCE(
+                (SELECT sn.proposed_date::text 
+                 FROM schedule_negotiations sn 
+                 WHERE sn.booking_id = ${booking.id} AND sn.status = 'accepted' 
+                 ORDER BY sn.created_at DESC LIMIT 1),
+                (SELECT sn.proposed_date::text 
+                 FROM schedule_negotiations sn 
+                 WHERE sn.booking_id = ${booking.id} AND sn.status = 'pending' 
+                 ORDER BY sn.created_at DESC LIMIT 1),
+                ${booking.scheduledDate ? booking.scheduledDate.toISOString() : null}
+              ) as negotiated_date,
+              (SELECT sn.proposed_time_slot 
+               FROM schedule_negotiations sn 
+               WHERE sn.booking_id = ${booking.id} 
+               AND sn.status IN ('accepted', 'pending')
+               ORDER BY 
+                 CASE WHEN sn.status = 'accepted' THEN 1 ELSE 2 END,
+                 sn.created_at DESC 
+               LIMIT 1
+              ) as negotiated_time
+          `);
+          
+          const negotiatedSchedule = scheduleQuery.rows[0];
+          
           // Skip if customer has selected a different installer (job is no longer available to this installer)
           if (booking.installerId && booking.installerId !== installerId) {
             console.log(`Skipping booking ${booking.id} - customer selected different installer`);
@@ -4132,6 +4159,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             address: booking.address,
             preferredDate: booking.preferredDate,
             preferredTime: booking.preferredTime,
+            // Use negotiated schedule dates instead of original booking dates
+            scheduledDate: negotiatedSchedule?.negotiated_date || (booking.scheduledDate ? booking.scheduledDate.toISOString() : null),
+            scheduledTime: negotiatedSchedule?.negotiated_time || booking.preferredTime,
             estimatedPrice: booking.estimatedPrice,
             estimatedTotal: booking.estimatedTotal,
             status: booking.installerId === installerId ? booking.status : 'competing', // Special status for competitive phase
@@ -11486,33 +11516,53 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       try {
       const installerId = parseInt(req.params.installerId);
       
-      // Use a direct SQL query since the Drizzle schema has date type issues
+      // Get bookings with negotiated schedule dates
       const scheduledBookings = await db.execute(sql`
         SELECT 
           b.id,
           b.id as "bookingId",
           b.contact_name as "customerName",
           b.address,
-          b.scheduled_date::text as "scheduledDate",
           b.tv_size as "tvSize",
           b.service_type as "serviceType",
           b.status,
           b.estimated_total as "estimatedTotal",
-          ja.id as "jobAssignmentId"
+          ja.id as "jobAssignmentId",
+          -- Get the most relevant schedule date from negotiations
+          COALESCE(
+            (SELECT sn.proposed_date::text 
+             FROM schedule_negotiations sn 
+             WHERE sn.booking_id = b.id AND sn.status = 'accepted' 
+             ORDER BY sn.created_at DESC LIMIT 1),
+            (SELECT sn.proposed_date::text 
+             FROM schedule_negotiations sn 
+             WHERE sn.booking_id = b.id AND sn.status = 'pending' 
+             ORDER BY sn.created_at DESC LIMIT 1),
+            b.scheduled_date::text
+          ) as "scheduledDate"
         FROM bookings b
         INNER JOIN job_assignments ja ON ja.booking_id = b.id
         WHERE ja.installer_id = ${installerId}
           AND (ja.status = 'accepted' OR ja.status = 'assigned')
-          AND b.scheduled_date IS NOT NULL
-        ORDER BY b.scheduled_date
+        ORDER BY 
+          COALESCE(
+            (SELECT sn.proposed_date 
+             FROM schedule_negotiations sn 
+             WHERE sn.booking_id = b.id AND sn.status = 'accepted' 
+             ORDER BY sn.created_at DESC LIMIT 1),
+            (SELECT sn.proposed_date 
+             FROM schedule_negotiations sn 
+             WHERE sn.booking_id = b.id AND sn.status = 'pending' 
+             ORDER BY sn.created_at DESC LIMIT 1),
+            b.scheduled_date
+          )
       `);
 
-
-      // For each booking, get the accepted schedule negotiation to get the time slot
+      // For each booking, get the schedule negotiation details
       const calendarData = await Promise.all(
         scheduledBookings.rows.map(async (booking) => {
           try {
-            // Get accepted schedule negotiation for time details
+            // Get the most relevant schedule negotiation for time details
             const acceptedNegotiation = await db.select({
               proposedTimeSlot: scheduleNegotiations.proposedTimeSlot,
               proposedStartTime: scheduleNegotiations.proposedStartTime,

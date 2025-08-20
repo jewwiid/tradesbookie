@@ -1,0 +1,305 @@
+evmAsk.js:5 Uncaught TypeError: Cannot redefine property: ethereum
+    at Object.defineProperty (<anonymous>)
+    at r.inject (evmAsk.js:5:5093)
+    at window.addEventListener.once (evmAsk.js:5:9013)
+inject @ evmAsk.js:5
+window.addEventListener.once @ evmAsk.js:5
+await in window.addEventListener.once
+(anonymous) @ contentScript.js:10
+iR @ evmAsk.js:5
+(anonymous) @ evmAsk.js:5
+await in (anonymous)
+(anonymous) @ evmAsk.js:5
+(anonymous) @ evmAsk.js:5
+main.ts-loader.js:10 Uncaught TypeError: Cannot set property ethereum of #<Window> which has only a getter
+    at main.ts-loader.js:10:44613
+    at main.ts-loader.js:10:43417
+    at ze (main.ts-loader.js:10:44366)
+    at main.ts-loader.js:29:25445
+    at main.ts-loader.js:29:25831
+    at main.ts-loader.js:29:26624
+(anonymous) @ main.ts-loader.js:10
+(anonymous) @ main.ts-loader.js:10
+ze @ main.ts-loader.js:10
+(anonymous) @ main.ts-loader.js:29
+(anonymous) @ main.ts-loader.js:29
+(anonymous) @ main.ts-loader.js:29
+inpage.js:1 MetaMask encountered an error setting the global Ethereum provider - this is likely due to another Ethereum wallet extension also setting the global Ethereum provider: TypeError: Cannot set property ethereum of #<Window> which has only a getter
+    at a (inpage.js:1:51056)
+    at r.initializeProvider (inpage.js:1:50827)
+    at Object.<anonymous> (inpage.js:1:2312)
+    at Object.<anonymous> (inpage.js:1:6320)
+    at 2.../../shared/modules/provider-injection (inpage.js:1:6333)
+    at s (inpage.js:1:254)
+    at e (inpage.js:1:414)
+    at inpage.js:1:431
+a @ inpage.js:1
+r.initializeProvider @ inpage.js:1
+(anonymous) @ inpage.js:1
+(anonymous) @ inpage.js:1
+2.../../shared/modules/provider-injection @ inpage.js:1
+s @ inpage.js:1
+e @ inpage.js:1
+(anonymous) @ inpage.js:1
+contentScript.bundle.js:12 OrdinalSafe injected
+inpage.js:366 Unable to set StacksProvider
+client:536 WebSocket connection to 'wss://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/?token=KVS8tJaWcPTN' failed: 
+setupWebSocket @ client:536
+(anonymous) @ client:531
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=KVS8tJaWcPTN' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+setupWebSocket @ client:536
+fallback @ client:509
+(anonymous) @ client:555
+queryClient.ts:32  GET https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/auth/user 401 (Unauthorized)
+(anonymous) @ queryClient.ts:32
+fetchFn @ @tanstack_react-query.js?v=c7653160:840
+run @ @tanstack_react-query.js?v=c7653160:494
+start @ @tanstack_react-query.js?v=c7653160:536
+fetch @ @tanstack_react-query.js?v=c7653160:926
+executeFetch_fn @ @tanstack_react-query.js?v=c7653160:2211
+onSubscribe @ @tanstack_react-query.js?v=c7653160:1898
+subscribe @ @tanstack_react-query.js?v=c7653160:24
+(anonymous) @ @tanstack_react-query.js?v=c7653160:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=c7653160:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=c7653160:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=c7653160:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=c7653160:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=c7653160:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=c7653160:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=c7653160:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=c7653160:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=c7653160:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=c7653160:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=c7653160:19432
+commitRoot @ chunk-RPCDYKBN.js?v=c7653160:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=c7653160:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=c7653160:18718
+workLoop @ chunk-RPCDYKBN.js?v=c7653160:197
+flushWork @ chunk-RPCDYKBN.js?v=c7653160:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=c7653160:384
+evmAsk.js:5 Uncaught TypeError: Cannot redefine property: ethereum
+    at Object.defineProperty (<anonymous>)
+    at r.inject (evmAsk.js:5:5093)
+    at window.addEventListener.once (evmAsk.js:5:9013)
+inject @ evmAsk.js:5
+window.addEventListener.once @ evmAsk.js:5
+await in window.addEventListener.once
+(anonymous) @ contentScript.js:10
+iR @ evmAsk.js:5
+(anonymous) @ evmAsk.js:5
+await in (anonymous)
+(anonymous) @ evmAsk.js:5
+(anonymous) @ evmAsk.js:5
+main.ts-loader.js:10 Uncaught TypeError: Cannot set property ethereum of #<Window> which has only a getter
+    at main.ts-loader.js:10:44613
+    at main.ts-loader.js:10:43417
+    at ze (main.ts-loader.js:10:44366)
+    at main.ts-loader.js:29:25445
+    at main.ts-loader.js:29:25831
+    at main.ts-loader.js:29:26624
+(anonymous) @ main.ts-loader.js:10
+(anonymous) @ main.ts-loader.js:10
+ze @ main.ts-loader.js:10
+(anonymous) @ main.ts-loader.js:29
+(anonymous) @ main.ts-loader.js:29
+(anonymous) @ main.ts-loader.js:29
+inpage.js:1 MetaMask encountered an error setting the global Ethereum provider - this is likely due to another Ethereum wallet extension also setting the global Ethereum provider: TypeError: Cannot set property ethereum of #<Window> which has only a getter
+    at a (inpage.js:1:51056)
+    at r.initializeProvider (inpage.js:1:50827)
+    at Object.<anonymous> (inpage.js:1:2312)
+    at Object.<anonymous> (inpage.js:1:6320)
+    at 2.../../shared/modules/provider-injection (inpage.js:1:6333)
+    at s (inpage.js:1:254)
+    at e (inpage.js:1:414)
+    at inpage.js:1:431
+a @ inpage.js:1
+r.initializeProvider @ inpage.js:1
+(anonymous) @ inpage.js:1
+(anonymous) @ inpage.js:1
+2.../../shared/modules/provider-injection @ inpage.js:1
+s @ inpage.js:1
+e @ inpage.js:1
+(anonymous) @ inpage.js:1
+contentScript.bundle.js:12 OrdinalSafe injected
+useAuth.ts:7  GET https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ useAuth.ts:7
+fetchFn @ @tanstack_react-query.js?v=c7653160:840
+run @ @tanstack_react-query.js?v=c7653160:494
+start @ @tanstack_react-query.js?v=c7653160:536
+fetch @ @tanstack_react-query.js?v=c7653160:926
+executeFetch_fn @ @tanstack_react-query.js?v=c7653160:2211
+onSubscribe @ @tanstack_react-query.js?v=c7653160:1898
+subscribe @ @tanstack_react-query.js?v=c7653160:24
+(anonymous) @ @tanstack_react-query.js?v=c7653160:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=c7653160:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=c7653160:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=c7653160:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=c7653160:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=c7653160:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=c7653160:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=c7653160:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=c7653160:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=c7653160:19416
+commitRoot @ chunk-RPCDYKBN.js?v=c7653160:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=c7653160:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=c7653160:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=c7653160:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=c7653160:555
+flush @ @tanstack_react-query.js?v=c7653160:569
+batch @ @tanstack_react-query.js?v=c7653160:587
+dispatch_fn @ @tanstack_react-query.js?v=c7653160:996
+setData @ @tanstack_react-query.js?v=c7653160:696
+onSuccess @ @tanstack_react-query.js?v=c7653160:897
+resolve @ @tanstack_react-query.js?v=c7653160:456
+Promise.then
+run @ @tanstack_react-query.js?v=c7653160:498
+start @ @tanstack_react-query.js?v=c7653160:536
+fetch @ @tanstack_react-query.js?v=c7653160:926
+executeFetch_fn @ @tanstack_react-query.js?v=c7653160:2211
+onSubscribe @ @tanstack_react-query.js?v=c7653160:1898
+subscribe @ @tanstack_react-query.js?v=c7653160:24
+(anonymous) @ @tanstack_react-query.js?v=c7653160:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=c7653160:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=c7653160:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=c7653160:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=c7653160:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=c7653160:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=c7653160:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=c7653160:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=c7653160:19447
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=c7653160:18868
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=c7653160:9119
+commitRootImpl @ chunk-RPCDYKBN.js?v=c7653160:19432
+commitRoot @ chunk-RPCDYKBN.js?v=c7653160:19277
+finishConcurrentRender @ chunk-RPCDYKBN.js?v=c7653160:18805
+performConcurrentWorkOnRoot @ chunk-RPCDYKBN.js?v=c7653160:18718
+workLoop @ chunk-RPCDYKBN.js?v=c7653160:197
+flushWork @ chunk-RPCDYKBN.js?v=c7653160:176
+performWorkUntilDeadline @ chunk-RPCDYKBN.js?v=c7653160:384
+evmAsk.js:5 Uncaught TypeError: Cannot redefine property: ethereum
+    at Object.defineProperty (<anonymous>)
+    at r.inject (evmAsk.js:5:5093)
+    at window.addEventListener.once (evmAsk.js:5:9013)
+inject @ evmAsk.js:5
+window.addEventListener.once @ evmAsk.js:5
+await in window.addEventListener.once
+(anonymous) @ contentScript.js:10
+iR @ evmAsk.js:5
+(anonymous) @ evmAsk.js:5
+await in (anonymous)
+(anonymous) @ evmAsk.js:5
+(anonymous) @ evmAsk.js:5
+main.ts-loader.js:10 Uncaught TypeError: Cannot set property ethereum of #<Window> which has only a getter
+    at main.ts-loader.js:10:44613
+    at main.ts-loader.js:10:43417
+    at ze (main.ts-loader.js:10:44366)
+    at main.ts-loader.js:29:25445
+    at main.ts-loader.js:29:25831
+    at main.ts-loader.js:29:26624
+(anonymous) @ main.ts-loader.js:10
+(anonymous) @ main.ts-loader.js:10
+ze @ main.ts-loader.js:10
+(anonymous) @ main.ts-loader.js:29
+(anonymous) @ main.ts-loader.js:29
+(anonymous) @ main.ts-loader.js:29
+inpage.js:1 MetaMask encountered an error setting the global Ethereum provider - this is likely due to another Ethereum wallet extension also setting the global Ethereum provider: TypeError: Cannot set property ethereum of #<Window> which has only a getter
+    at a (inpage.js:1:51056)
+    at r.initializeProvider (inpage.js:1:50827)
+    at Object.<anonymous> (inpage.js:1:2312)
+    at Object.<anonymous> (inpage.js:1:6320)
+    at 2.../../shared/modules/provider-injection (inpage.js:1:6333)
+    at s (inpage.js:1:254)
+    at e (inpage.js:1:414)
+    at inpage.js:1:431
+a @ inpage.js:1
+r.initializeProvider @ inpage.js:1
+(anonymous) @ inpage.js:1
+(anonymous) @ inpage.js:1
+2.../../shared/modules/provider-injection @ inpage.js:1
+s @ inpage.js:1
+e @ inpage.js:1
+(anonymous) @ inpage.js:1
+contentScript.bundle.js:12 OrdinalSafe injected
+evmAsk.js:5 Uncaught TypeError: Cannot redefine property: ethereum
+    at Object.defineProperty (<anonymous>)
+    at r.inject (evmAsk.js:5:5093)
+    at window.addEventListener.once (evmAsk.js:5:9013)
+inject @ evmAsk.js:5
+window.addEventListener.once @ evmAsk.js:5
+await in window.addEventListener.once
+(anonymous) @ contentScript.js:10
+iR @ evmAsk.js:5
+(anonymous) @ evmAsk.js:5
+await in (anonymous)
+(anonymous) @ evmAsk.js:5
+(anonymous) @ evmAsk.js:5
+main.ts-loader.js:10 Uncaught TypeError: Cannot set property ethereum of #<Window> which has only a getter
+    at main.ts-loader.js:10:44613
+    at main.ts-loader.js:10:43417
+    at ze (main.ts-loader.js:10:44366)
+    at main.ts-loader.js:29:25445
+    at main.ts-loader.js:29:25831
+    at main.ts-loader.js:29:26624
+(anonymous) @ main.ts-loader.js:10
+(anonymous) @ main.ts-loader.js:10
+ze @ main.ts-loader.js:10
+(anonymous) @ main.ts-loader.js:29
+(anonymous) @ main.ts-loader.js:29
+(anonymous) @ main.ts-loader.js:29
+inpage.js:1 MetaMask encountered an error setting the global Ethereum provider - this is likely due to another Ethereum wallet extension also setting the global Ethereum provider: TypeError: Cannot set property ethereum of #<Window> which has only a getter
+    at a (inpage.js:1:51056)
+    at r.initializeProvider (inpage.js:1:50827)
+    at Object.<anonymous> (inpage.js:1:2312)
+    at Object.<anonymous> (inpage.js:1:6320)
+    at 2.../../shared/modules/provider-injection (inpage.js:1:6333)
+    at s (inpage.js:1:254)
+    at e (inpage.js:1:414)
+    at inpage.js:1:431
+a @ inpage.js:1
+r.initializeProvider @ inpage.js:1
+(anonymous) @ inpage.js:1
+(anonymous) @ inpage.js:1
+2.../../shared/modules/provider-injection @ inpage.js:1
+s @ inpage.js:1
+e @ inpage.js:1
+(anonymous) @ inpage.js:1
+contentScript.bundle.js:12 OrdinalSafe injected
+11:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.
+installer-dashboard.tsx:2020 JobCompletionSection mounting - clearing verification data
+qr-scanner.js?v=c7653160:193 Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently
+q @ qr-scanner.js?v=c7653160:193
+scanImage @ qr-scanner.js?v=c7653160:179
+await in scanImage
+(anonymous) @ qr-scanner.js?v=c7653160:299
+installer-dashboard.tsx:2064 QR Verification Success - received data: Response {type: 'basic', url: 'https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1e…6nj.spock.replit.dev/api/installer/verify-qr-code', redirected: false, status: 200, ok: true, …}
+useAuth.ts:7  GET https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ useAuth.ts:7
+fetchFn @ @tanstack_react-query.js?v=c7653160:840
+run @ @tanstack_react-query.js?v=c7653160:494
+start @ @tanstack_react-query.js?v=c7653160:536
+fetch @ @tanstack_react-query.js?v=c7653160:926
+executeFetch_fn @ @tanstack_react-query.js?v=c7653160:2211
+fetch @ @tanstack_react-query.js?v=c7653160:2011
+refetch @ @tanstack_react-query.js?v=c7653160:2001
+onFocus @ @tanstack_react-query.js?v=c7653160:749
+(anonymous) @ @tanstack_react-query.js?v=c7653160:1112
+(anonymous) @ @tanstack_react-query.js?v=c7653160:1111
+batch @ @tanstack_react-query.js?v=c7653160:583
+onFocus @ @tanstack_react-query.js?v=c7653160:1110
+(anonymous) @ @tanstack_react-query.js?v=c7653160:1601
+await in (anonymous)
+(anonymous) @ @tanstack_react-query.js?v=c7653160:313
+onFocus @ @tanstack_react-query.js?v=c7653160:312
+(anonymous) @ @tanstack_react-query.js?v=c7653160:299
+listener @ @tanstack_react-query.js?v=c7653160:270
+11:1 Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.

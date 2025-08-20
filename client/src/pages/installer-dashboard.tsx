@@ -2054,11 +2054,14 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   // QR verification mutation
   const verifyQRMutation = useMutation({
     mutationFn: async (qrCode: string) => {
+      console.log('Making QR verification request with:', { qrCode, installerId });
       const response = await apiRequest('POST', '/api/installer/verify-qr-code', {
         qrCode,
         installerId
       });
-      return response;
+      const data = await response.json();
+      console.log('Parsed JSON data:', data);
+      return data;
     },
     onSuccess: (data) => {
       console.log('QR Verification Success - received data:', data);

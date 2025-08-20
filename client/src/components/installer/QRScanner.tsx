@@ -133,7 +133,7 @@ export default function QRScanner({ onScanSuccess, onError, isLoading, clearResu
           <span>QR Code Scanner</span>
         </CardTitle>
         <CardDescription>
-          Scan the customer's QR code to mark installation as complete
+          Scan the customer's QR code to verify location and unlock the job
         </CardDescription>
       </CardHeader>
       <CardContent>

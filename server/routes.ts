@@ -9016,14 +9016,33 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/reviews", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any)?.id || (req.user as any)?.claims?.sub;
+      console.log('Review submission - userId:', userId);
+      console.log('Review submission - req.body:', req.body);
+      
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
 
       const { bookingId, installerId, rating, title, comment, qrCode } = req.body;
       
+      // Debug the individual fields
+      console.log('Review fields check:', {
+        bookingId: bookingId,
+        installerId: installerId, 
+        rating: rating,
+        title: title,
+        comment: comment
+      });
+      
       // Validate required fields
       if (!bookingId || !installerId || !rating || !title || !comment) {
+        console.log('Missing fields detected:', {
+          hasBookingId: !!bookingId,
+          hasInstallerId: !!installerId,
+          hasRating: !!rating,
+          hasTitle: !!title,
+          hasComment: !!comment
+        });
         return res.status(400).json({ message: "Missing required fields" });
       }
       

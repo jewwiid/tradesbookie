@@ -11531,7 +11531,45 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/bookings/:bookingId/schedule-negotiations", async (req, res) => {
     try {
       const bookingId = parseInt(req.params.bookingId);
-      const negotiations = await storage.getBookingScheduleNegotiations(bookingId);
+      
+      // Temporary workaround using raw SQL query
+      const result = await db.execute(sql`
+        SELECT 
+          sn.*,
+          i.business_name as installer_business_name,
+          i.contact_name as installer_contact_name,
+          i.profile_image_url as installer_profile_image_url
+        FROM schedule_negotiations sn
+        LEFT JOIN installers i ON sn.installer_id = i.id
+        WHERE sn.booking_id = ${bookingId}
+        ORDER BY sn.created_at DESC
+      `);
+      
+      // Transform the results to include installer info
+      const negotiations = result.rows.map((row: any) => ({
+        id: row.id,
+        bookingId: row.booking_id,
+        installerId: row.installer_id,
+        proposedDate: row.proposed_date,
+        proposedTimeSlot: row.proposed_time_slot,
+        proposedStartTime: row.proposed_start_time,
+        proposedEndTime: row.proposed_end_time,
+        proposalMessage: row.proposal_message,
+        status: row.status,
+        proposedBy: row.proposed_by,
+        responseMessage: row.response_message,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        proposedAt: row.proposed_at,
+        respondedAt: row.responded_at,
+        installer: row.installer_business_name ? {
+          id: row.installer_id,
+          businessName: row.installer_business_name,
+          contactName: row.installer_contact_name,
+          profileImageUrl: row.installer_profile_image_url,
+        } : null
+      }));
+      
       res.json(negotiations);
     } catch (error) {
       console.error("Get schedule negotiations error:", error);

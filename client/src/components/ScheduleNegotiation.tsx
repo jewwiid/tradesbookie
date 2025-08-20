@@ -209,7 +209,7 @@ export default function ScheduleNegotiation({
                 )}
                 <span className="font-medium">
                   {negotiation.proposedBy === 'installer' ? 
-                    ((negotiation as any).installer?.businessName || (negotiation as any).installer?.firstName + ' ' + (negotiation as any).installer?.lastName || installerName)
+                    ((negotiation as any).installer?.businessName || (negotiation as any).installer?.contactName || installerName)
                     : customerName}
                 </span>
                 <Badge className={getStatusColor(negotiation.status)}>

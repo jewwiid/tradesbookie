@@ -2239,6 +2239,12 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
       setShowBeforeAfterCapture(false);
       setCurrentBooking(null);
       setScanError('');
+      // Clear all workflow state
+      setSelectedJob(null);
+      setShowBeforePhotos(false);
+      setBeforePhotosCompleted(false);
+      setTakingAfterPhotos(false);
+      clearWorkflowState(); // Clear localStorage state
       refetchCompletedJobs(); // Refresh completed jobs list
       refetchInProgressJobs(); // Refresh in-progress jobs list to remove completed job
       toast({

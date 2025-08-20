@@ -276,25 +276,25 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
         )}
 
         {/* Installation Photos */}
-        {booking.beforeAfterPhotos && (
+        {booking.beforeAfterPhotos && typeof booking.beforeAfterPhotos === 'string' && booking.beforeAfterPhotos.trim() && (
           <div className="bg-gray-50 p-4 rounded-lg">
             <h5 className="font-medium mb-3 flex items-center">
               <Camera className="w-4 h-4 mr-2" />
               Installation Photos
             </h5>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {booking.beforeAfterPhotos.split(',').map((photo: string, index: number) => (
+              {booking.beforeAfterPhotos.split(',').filter(photo => photo.trim()).map((photo: string, index: number) => (
                 <div key={index} className="space-y-2">
                   <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
                     <img
-                      src={photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`}
+                      src={photo.trim().startsWith('data:') ? photo.trim() : `data:image/jpeg;base64,${photo.trim()}`}
                       alt={`Installation photo ${index + 1}`}
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
                   </div>
                   <p className="text-xs text-gray-500 text-center">
-                    Photo {index + 1} of {booking.beforeAfterPhotos!.split(',').length}
+                    Photo {index + 1} of {booking.beforeAfterPhotos.split(',').filter(p => p.trim()).length}
                   </p>
                 </div>
               ))}

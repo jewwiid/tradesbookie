@@ -11877,11 +11877,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         const booking = await storage.getBooking(latestNegotiation.bookingId);
         
         if (status === 'accepted' || status === 'accept') {
-          // Update booking with confirmed schedule  
+          // Update booking with confirmed schedule and assign installer
           // Automatically set status to "scheduled" (Installation Scheduled)
           await storage.updateBooking(latestNegotiation.bookingId, {
             scheduledDate: new Date(latestNegotiation.proposedDate),
-            status: 'scheduled'
+            status: 'scheduled',
+            installerId: latestNegotiation.installerId
           });
           
           // Send confirmation emails to both parties

@@ -2053,6 +2053,48 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     localStorage.removeItem(stateKey);
   };
 
+  // Clear temporary UI state when component initially mounts (but preserve workflow state)
+  useEffect(() => {
+    setScanError('');
+    setCompletionSuccess('');
+    setCurrentBooking(null);
+    setShowBeforeAfterCapture(false);
+    // Don't reset workflow state here - it will be restored by the other useEffect
+    setClearScanner(true); // Trigger QR scanner clear
+    
+    // Reset the clear flag after a brief delay
+    const timer = setTimeout(() => {
+      setClearScanner(false);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Fetch in-progress jobs for this installer
+  const { data: inProgressJobs = [], refetch: refetchInProgressJobs } = useQuery({
+    queryKey: ['/api/installer/bookings'],
+    retry: false,
+    enabled: !!installerId,
+    select: (data: any) => {
+      // Filter only jobs that are in-progress status
+      return data?.filter((job: any) => job.assignmentStatus === 'in_progress') || [];
+    }
+  });
+
+  // Fetch completed jobs
+  const { data: completedJobs = [], refetch: refetchCompletedJobs } = useQuery({
+    queryKey: [`/api/installer/${installerId}/completed-jobs`],
+    enabled: !!installerId,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Fetch photo progress for displaying completed photos
+  const { data: photoProgressData } = useQuery({
+    queryKey: [`/api/installer/photo-progress/${inProgressJobs[0]?.id}`],
+    enabled: inProgressJobs.length > 0 && beforePhotosCompleted,
+    refetchInterval: 10000, // Refresh every 10 seconds to get latest photos
+  });
+
   // Restore workflow state when component mounts and after data is loaded
   useEffect(() => {
     if (!installerId || !inProgressJobs || inProgressJobs.length === 0) return;
@@ -2108,48 +2150,6 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
 
     restoreWorkflowState();
   }, [installerId, inProgressJobs]);
-
-  // Clear temporary UI state when component initially mounts (but preserve workflow state)
-  useEffect(() => {
-    setScanError('');
-    setCompletionSuccess('');
-    setCurrentBooking(null);
-    setShowBeforeAfterCapture(false);
-    // Don't reset workflow state here - it will be restored by the other useEffect
-    setClearScanner(true); // Trigger QR scanner clear
-    
-    // Reset the clear flag after a brief delay
-    const timer = setTimeout(() => {
-      setClearScanner(false);
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Fetch in-progress jobs for this installer
-  const { data: inProgressJobs = [], refetch: refetchInProgressJobs } = useQuery({
-    queryKey: ['/api/installer/bookings'],
-    retry: false,
-    enabled: !!installerId,
-    select: (data: any) => {
-      // Filter only jobs that are in-progress status
-      return data?.filter((job: any) => job.assignmentStatus === 'in_progress') || [];
-    }
-  });
-
-  // Fetch completed jobs
-  const { data: completedJobs = [], refetch: refetchCompletedJobs } = useQuery({
-    queryKey: [`/api/installer/${installerId}/completed-jobs`],
-    enabled: !!installerId,
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
-
-  // Fetch photo progress for displaying completed photos
-  const { data: photoProgressData } = useQuery({
-    queryKey: [`/api/installer/photo-progress/${inProgressJobs[0]?.id}`],
-    enabled: inProgressJobs.length > 0 && beforePhotosCompleted,
-    refetchInterval: 10000, // Refresh every 10 seconds to get latest photos
-  });
 
   // QR verification mutation
   const verifyQRMutation = useMutation({

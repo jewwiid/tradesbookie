@@ -50,7 +50,7 @@ interface EmailOptions {
   replyTo?: string;
 }
 
-export async function sendReviewRequest(booking: any, installer: any): Promise<boolean> {
+export async function sendReviewRequest(booking: any, installer: any, customerEmail: string, customerName: string): Promise<boolean> {
   const subject = `How was your TV installation? - Leave a review for ${installer.businessName}`;
   
   const html = `
@@ -64,7 +64,7 @@ export async function sendReviewRequest(booking: any, installer: any): Promise<b
         <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
           <h2 style="color: #333; margin-bottom: 15px;">Installation Completed</h2>
           <p style="color: #666; line-height: 1.6;">
-            Hi ${booking.customerName},<br><br>
+            Hi ${customerName},<br><br>
             Thank you for choosing ${installer.businessName} for your TV installation. We hope you're enjoying your newly installed TV!
           </p>
         </div>
@@ -106,7 +106,7 @@ export async function sendReviewRequest(booking: any, installer: any): Promise<b
   const text = `
     How was your TV installation?
     
-    Hi ${booking.customerName},
+    Hi ${customerName},
     
     Thank you for choosing ${installer.businessName} for your TV installation. We hope you're enjoying your newly installed TV!
     
@@ -126,7 +126,7 @@ export async function sendReviewRequest(booking: any, installer: any): Promise<b
   `;
 
   return await sendGmailEmail({
-    to: booking.customerEmail,
+    to: customerEmail,
     subject,
     html,
     text

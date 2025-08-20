@@ -13842,7 +13842,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       // Import and use gmail service
       const { sendReviewRequest } = await import('./gmailService.js');
-      const emailSent = await sendReviewRequest(booking, installer);
+      const emailSent = await sendReviewRequest(booking, installer, customerEmail, customerName);
       
       if (emailSent) {
         res.json({ 

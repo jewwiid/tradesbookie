@@ -165,48 +165,46 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
       };
     }
 
-    // Find accepted negotiation first
-    const acceptedNegotiation = negotiations.find((n: any) => n.status === 'accepted');
-    if (acceptedNegotiation) {
+    // Sort negotiations by most recent first (by created_at or updated_at)
+    const sortedNegotiations = [...negotiations].sort((a: any, b: any) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    // Get the most recent negotiation
+    const latestNegotiation = sortedNegotiations[0];
+
+    // Check the status of the most recent negotiation
+    if (latestNegotiation.status === 'pending') {
+      if (latestNegotiation.proposedBy === 'installer') {
+        return {
+          type: 'pending',
+          date: latestNegotiation.proposedDate,
+          time: latestNegotiation.proposedTimeSlot,
+          status: 'Proposal Sent (Awaiting Customer Response)',
+          negotiation: latestNegotiation
+        };
+      } else {
+        return {
+          type: 'customer_pending',
+          date: latestNegotiation.proposedDate,
+          time: latestNegotiation.proposedTimeSlot,
+          status: 'Customer Proposal (Awaiting Your Response)',
+          negotiation: latestNegotiation
+        };
+      }
+    }
+
+    if (latestNegotiation.status === 'accepted') {
       return {
         type: 'accepted',
-        date: acceptedNegotiation.proposedDate,
-        time: acceptedNegotiation.proposedTimeSlot,
+        date: latestNegotiation.proposedDate,
+        time: latestNegotiation.proposedTimeSlot,
         status: 'Schedule Confirmed',
-        negotiation: acceptedNegotiation
+        negotiation: latestNegotiation
       };
     }
 
-    // Find pending negotiation from installer
-    const pendingFromInstaller = negotiations.find((n: any) => 
-      n.status === 'pending' && n.proposedBy === 'installer'
-    );
-    if (pendingFromInstaller) {
-      return {
-        type: 'pending',
-        date: pendingFromInstaller.proposedDate,
-        time: pendingFromInstaller.proposedTimeSlot,
-        status: 'Proposal Sent (Awaiting Customer Response)',
-        negotiation: pendingFromInstaller
-      };
-    }
-
-    // Find pending negotiation from customer
-    const pendingFromCustomer = negotiations.find((n: any) => 
-      n.status === 'pending' && n.proposedBy === 'customer'
-    );
-    if (pendingFromCustomer) {
-      return {
-        type: 'customer_pending',
-        date: pendingFromCustomer.proposedDate,
-        time: pendingFromCustomer.proposedTimeSlot,
-        status: 'Customer Proposal (Awaiting Your Response)',
-        negotiation: pendingFromCustomer
-      };
-    }
-
-    // Latest negotiation (might be declined)
-    const latestNegotiation = negotiations[0] || null;
+    // For rejected or other statuses
     return {
       type: 'latest',
       date: latestNegotiation.proposedDate,

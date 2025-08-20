@@ -54,10 +54,7 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
 
   // Check for existing review
   const { data: existingReviewData, isLoading: reviewLoading, error: reviewError } = useQuery({
-    queryKey: ['/api/bookings', booking.id, 'review'],
-    queryFn: async () => {
-      return await apiRequest('GET', `/api/bookings/${booking.id}/review`);
-    },
+    queryKey: [`/api/bookings/${booking.id}/review`],
     enabled: booking.status === 'completed' && !!booking.installerId,
     retry: (failureCount, error) => {
       // Don't retry on 404 - it just means no review exists
@@ -112,15 +109,7 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
 
   // Update state when existing review data is loaded
   useEffect(() => {
-    console.log('ReviewInterface useEffect:', {
-      existingReviewData,
-      reviewError,
-      hasData: !!existingReviewData,
-      hasError: !!reviewError
-    });
-    
     if (existingReviewData && !reviewError) {
-      console.log('Setting existing review:', existingReviewData);
       setExistingReview(existingReviewData);
       setHasSubmittedReview(true);
       // Populate form with existing review data
@@ -131,7 +120,6 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
       // If there's a 404 error, that means no review exists - reset states
       const errorMessage = reviewError?.message || '';
       if (errorMessage.includes('404')) {
-        console.log('No review found (404), resetting states');
         setExistingReview(null);
         setHasSubmittedReview(false);
       }
@@ -314,11 +302,6 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
                   day: 'numeric'
                 }) : 'Unknown date'}
               </p>
-              
-              {/* Debug info - remove later */}
-              <div className="text-xs text-gray-400 mt-2 p-2 bg-gray-100 rounded">
-                Debug: rating={existingReview.rating}, createdAt={existingReview.createdAt}
-              </div>
             </div>
           </div>
         ) : (

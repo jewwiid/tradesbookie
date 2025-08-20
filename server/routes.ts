@@ -15537,7 +15537,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         }
       }
 
-      // Get completed bookings with both before/after photos AND reviews
+      // Get completed bookings with installer information
       const completedJobs = await db
         .select({
           id: bookings.id,
@@ -15550,9 +15550,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           photoStars: bookings.photoStars,
           reviewStars: bookings.reviewStars,
           completedAt: bookings.updatedAt,
-          createdAt: bookings.createdAt
+          createdAt: bookings.createdAt,
+          installerId: jobAssignments.installerId,
+          installerBusinessName: installers.businessName,
+          installerContactName: installers.contactName,
+          installerProfileImage: installers.profileImage,
+          installerYearsExperience: installers.yearsExperience,
+          installerExpertise: installers.expertise,
+          installerServiceArea: installers.serviceArea,
+          installerAverageRating: installers.averageRating,
+          installerTotalReviews: installers.totalReviews
         })
         .from(bookings)
+        .innerJoin(jobAssignments, eq(bookings.id, jobAssignments.bookingId))
+        .innerJoin(installers, eq(jobAssignments.installerId, installers.id))
         .where(and(...whereConditions))
         .orderBy(desc(bookings.updatedAt))
         .limit(limit)
@@ -15600,16 +15611,22 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
         return {
           id: job.id,
-          // Location info (keep general, remove specific address)
-          location: job.address ? job.address.split(',').slice(-2).join(',').trim() : 'Ireland',
           
-          // Installation details
-          ...displayInfo,
+          // Installer Profile Information
+          installer: {
+            id: job.installerId,
+            businessName: job.installerBusinessName,
+            contactName: job.installerContactName,
+            profileImage: job.installerProfileImage,
+            averageRating: job.installerAverageRating || 0,
+            totalReviews: job.installerTotalReviews || 0,
+            yearsExperience: job.installerYearsExperience || 0,
+            expertise: Array.isArray(job.installerExpertise) ? job.installerExpertise : [],
+            serviceArea: job.installerServiceArea || 'Ireland'
+          },
           
-          // Quality metrics
-          qualityStars: job.qualityStars || 0,
-          photoStars: job.photoStars || 0,
-          reviewStars: job.reviewStars || 0,
+          // Service Type (no sensitive details)
+          serviceType: displayInfo.primaryService,
           
           // Photos (only show if they exist)
           beforeAfterPhotos: beforeAfterPhotos.filter(photo => 
@@ -15629,7 +15646,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             date: job.completedAt || job.createdAt
           },
           
-          // Completion date
+          // Completion date (kept general)
           completedAt: job.completedAt || job.createdAt
         };
       }).filter(job => 

@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Star, MapPin, Calendar, ChevronLeft, ChevronRight, Heart, Lock, Eye, Filter, Tv, Zap, Wrench } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, Heart, Lock, Eye, Filter, Tv, Zap, Wrench, User, Award, TrendingUp, Clock } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/navigation';
@@ -24,17 +24,24 @@ interface CustomerReview {
   date: string;
 }
 
+interface InstallerProfile {
+  id: number;
+  businessName: string;
+  contactName: string;
+  profileImage?: string;
+  averageRating: number;
+  totalReviews: number;
+  yearsExperience: number;
+  expertise: string[];
+  serviceArea: string;
+}
+
 interface InstallationShowcase {
   id: number;
-  location: string;
-  tvCount: number;
-  services: string;
-  primaryService: string;
-  qualityStars: number;
-  photoStars: number;
-  reviewStars: number;
+  installer: InstallerProfile;
   beforeAfterPhotos: BeforeAfterPhoto[];
   review: CustomerReview;
+  serviceType: string;
   completedAt: string;
 }
 
@@ -108,10 +115,10 @@ export default function InstallationShowcase() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Installation Gallery
+              Installer Showcase
             </h1>
             <p className="text-gray-600">
-              Discover our completed professional installations with real customer reviews and before/after photos
+              Discover our professional installers and their completed work with real customer reviews
             </p>
             {!isAuthenticated && (
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -183,9 +190,9 @@ export default function InstallationShowcase() {
           <Card>
             <CardContent className="p-8 text-center">
               <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No installations yet</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No showcases yet</h3>
               <p className="text-gray-600 mb-4">
-                Be among the first to showcase your professional installation experience!
+                Be among the first to experience our professional installation services!
               </p>
               <Button onClick={() => setLocation('/booking')} className="bg-blue-600 hover:bg-blue-700">
                 Book Installation
@@ -193,60 +200,59 @@ export default function InstallationShowcase() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {installations.map((installation) => {
               const currentPhotoIndex = selectedPhotoIndex[installation.id] || 0;
               const currentPhoto = installation.beforeAfterPhotos[currentPhotoIndex];
               const hasMultiplePhotos = installation.beforeAfterPhotos.length > 1;
 
               return (
-                <Card key={installation.id} className="overflow-hidden shadow-lg">
+                <Card key={installation.id} className="overflow-hidden shadow-lg border-0 bg-white">
                   <CardContent className="p-0">
-                    {/* Header */}
-                    <div className="p-6 pb-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center space-x-2 text-sm text-gray-600">
-                          <MapPin className="w-4 h-4" />
-                          <span>{installation.location}</span>
-                          <span>•</span>
-                          <Calendar className="w-4 h-4" />
-                          <span>{formatDate(installation.completedAt)}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant="outline" className="text-blue-600 border-blue-600">
-                            {installation.primaryService}
-                          </Badge>
-                          {installation.tvCount > 1 && (
-                            <Badge variant="secondary">
-                              {installation.tvCount} Units
-                            </Badge>
+                    {/* Installer Profile Banner */}
+                    <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
+                      <div className="flex items-center space-x-4">
+                        {/* Profile Image */}
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                          {installation.installer.profileImage ? (
+                            <img 
+                              src={installation.installer.profileImage} 
+                              alt={installation.installer.businessName}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            installation.installer.businessName.charAt(0)
                           )}
                         </div>
-                      </div>
-
-                      {/* Quality Stars */}
-                      <div className="flex items-center space-x-4 mb-4">
-                        <div className="flex items-center space-x-1">
-                          {Array.from({ length: 5 }, (_, i) => (
-                            <Star 
-                              key={i} 
-                              className={`w-4 h-4 ${
-                                i < installation.qualityStars 
-                                  ? 'text-yellow-400 fill-yellow-400' 
-                                  : 'text-gray-300'
-                              }`} 
-                            />
-                          ))}
-                          <span className="text-sm font-medium ml-1">
-                            {installation.qualityStars}/5 Quality Score
-                          </span>
+                        
+                        {/* Installer Info */}
+                        <div className="flex-1">
+                          <h3 className="font-bold text-lg text-gray-900">
+                            {installation.installer.businessName}
+                          </h3>
+                          <p className="text-gray-600 text-sm">
+                            {installation.installer.contactName} • {installation.installer.serviceArea}
+                          </p>
+                          <div className="flex items-center space-x-4 mt-2">
+                            <div className="flex items-center space-x-1">
+                              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                              <span className="text-sm font-medium text-gray-700">
+                                {installation.installer.averageRating.toFixed(1)}
+                              </span>
+                              <span className="text-xs text-gray-500">({installation.installer.totalReviews} reviews)</span>
+                            </div>
+                            <div className="flex items-center space-x-1 text-xs text-gray-500">
+                              <Award className="w-3 h-3" />
+                              <span>{installation.installer.yearsExperience} years exp.</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {installation.photoStars}/3 Photo • {installation.reviewStars}/2 Review
-                        </div>
+                        
+                        {/* Service Type Badge */}
+                        <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
+                          {installation.serviceType}
+                        </Badge>
                       </div>
-
-                      <p className="text-gray-700">{installation.services}</p>
                     </div>
 
                     {/* Before/After Photos */}
@@ -350,54 +356,13 @@ export default function InstallationShowcase() {
                       </div>
                     )}
 
-                    {/* Customer Review */}
-                    <div className="p-6 pt-4">
+                    {/* Customer Review as Status Update */}
+                    <div className="p-6">
                       {isAuthenticated ? (
-                        <div className="border-l-4 border-l-blue-500 pl-4 bg-gray-50 p-4 rounded-r-lg">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <div className="flex">
-                              {Array.from({ length: 5 }, (_, i) => (
-                                <Star 
-                                  key={i} 
-                                  className={`w-4 h-4 ${
-                                    i < installation.review.rating 
-                                      ? 'text-yellow-400 fill-yellow-400' 
-                                      : 'text-gray-300'
-                                  }`} 
-                                />
-                              ))}
-                            </div>
-                            <span className="font-medium text-sm">{installation.review.rating}/5</span>
-                            <span className="text-gray-500 text-sm">• Customer Review</span>
-                          </div>
-                          
-                          <h4 className="font-semibold mb-2">{installation.review.title}</h4>
-                          <p className="text-gray-700 text-sm leading-relaxed">
-                            {installation.review.comment}
-                          </p>
-                          
-                          <p className="text-xs text-gray-500 mt-3">
-                            Reviewed on {formatDate(installation.review.date)}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="border-l-4 border-l-gray-300 pl-4 bg-gray-50 p-4 rounded-r-lg relative">
-                          <div className="absolute inset-0 bg-white/70 backdrop-blur-sm rounded-r-lg flex items-center justify-center">
-                            <div className="text-center">
-                              <Lock className="w-6 h-6 text-gray-500 mx-auto mb-2" />
-                              <p className="text-sm font-medium text-gray-700">Sign in to read customer reviews</p>
-                              <Button 
-                                size="sm" 
-                                className="mt-2 bg-blue-600 hover:bg-blue-700"
-                                onClick={() => setLocation('/api/login')}
-                              >
-                                Sign In
-                              </Button>
-                            </div>
-                          </div>
-                          
-                          <div className="blur-sm pointer-events-none">
-                            <div className="flex items-center space-x-2 mb-2">
+                        <div className="space-y-4">
+                          {/* Review Header */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
                               <div className="flex">
                                 {Array.from({ length: 5 }, (_, i) => (
                                   <Star 
@@ -410,18 +375,67 @@ export default function InstallationShowcase() {
                                   />
                                 ))}
                               </div>
-                              <span className="font-medium text-sm">{installation.review.rating}/5</span>
-                              <span className="text-gray-500 text-sm">• Customer Review</span>
+                              <span className="font-semibold text-gray-900">{installation.review.rating}/5</span>
                             </div>
-                            
-                            <h4 className="font-semibold mb-2">{installation.review.title}</h4>
-                            <p className="text-gray-700 text-sm leading-relaxed">
+                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                              <Clock className="w-3 h-3" />
+                              <span>Recently completed</span>
+                            </div>
+                          </div>
+                          
+                          {/* Review Content */}
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-2">{installation.review.title}</h4>
+                            <p className="text-gray-700 leading-relaxed">
                               {installation.review.comment}
                             </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+                            <div className="text-center">
+                              <Lock className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                              <p className="text-sm font-medium text-gray-700 mb-3">Sign in to read customer reviews</p>
+                              <Button 
+                                size="sm" 
+                                className="bg-blue-600 hover:bg-blue-700"
+                                onClick={() => setLocation('/api/login')}
+                              >
+                                Sign In
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <div className="blur-sm pointer-events-none space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div className="flex">
+                                  {Array.from({ length: 5 }, (_, i) => (
+                                    <Star 
+                                      key={i} 
+                                      className={`w-4 h-4 ${
+                                        i < installation.review.rating 
+                                          ? 'text-yellow-400 fill-yellow-400' 
+                                          : 'text-gray-300'
+                                      }`} 
+                                    />
+                                  ))}
+                                </div>
+                                <span className="font-semibold text-gray-900">{installation.review.rating}/5</span>
+                              </div>
+                              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                                <Clock className="w-3 h-3" />
+                                <span>Recently completed</span>
+                              </div>
+                            </div>
                             
-                            <p className="text-xs text-gray-500 mt-3">
-                              Reviewed on {formatDate(installation.review.date)}
-                            </p>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 mb-2">{installation.review.title}</h4>
+                              <p className="text-gray-700 leading-relaxed">
+                                {installation.review.comment}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       )}
@@ -445,13 +459,14 @@ export default function InstallationShowcase() {
             )}
 
             {/* CTA for booking */}
-            <Card className="bg-blue-50 border-blue-200">
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
               <CardContent className="p-8 text-center">
+                <TrendingUp className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-blue-900 mb-2">
-                  Ready for Your Professional Installation?
+                  Join Our Professional Network
                 </h3>
                 <p className="text-blue-700 mb-4">
-                  Join our satisfied customers and get professional installation services with quality guarantee.
+                  Experience quality installation services from our verified professional installers.
                 </p>
                 <Button 
                   onClick={() => setLocation('/booking')}

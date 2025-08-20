@@ -20,6 +20,7 @@ import InstallerWalletDashboard from "@/components/installer/InstallerWalletDash
 import PastLeadsManagement from "@/components/installer/PastLeadsManagement";
 import InstallerReviews from "@/components/installer/InstallerReviews";
 import VoucherStatus from "@/components/installer/VoucherStatus";
+import AdminPromotionBanner from "@/components/installer/AdminPromotionBanner";
 import LeadPurchaseDialog from "@/components/installer/LeadPurchaseDialog";
 import QRScanner from "@/components/installer/QRScanner";
 import CompletionPhotoCapture from "@/components/installer/CompletionPhotoCapture";
@@ -2272,6 +2273,9 @@ export default function InstallerDashboard() {
               </Card>
             </div>
 
+            {/* Admin Promotion Banner */}
+            <AdminPromotionBanner installerId={installerProfile?.id} />
+            
             {/* Voucher Status Display */}
             <VoucherStatus installerId={installerProfile?.id} />
 

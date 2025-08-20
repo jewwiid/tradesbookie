@@ -12845,6 +12845,52 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Check admin promotion status for lead fee waivers
+  app.get('/api/installers/:id/admin-promotion-status', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Validate installer ID
+      if (!id || id === 'undefined' || isNaN(parseInt(id))) {
+        return res.status(400).json({ error: 'Invalid installer ID' });
+      }
+      
+      // Check platform settings for active promotions
+      const settings = await storage.getAllPlatformSettings();
+      const freeLeadsPromotion = settings.find(s => s.key === 'free_leads_promotion_enabled');
+      
+      if (freeLeadsPromotion && freeLeadsPromotion.value === 'true') {
+        return res.json({
+          isActive: true,
+          title: 'Free Leads Promotion Active!',
+          description: 'All lead fees are currently waived as part of our special promotion',
+          message: 'Take advantage of this limited-time offer to grow your business without lead costs!'
+        });
+      }
+      
+      // Check if installer has VIP status (also gets free leads)
+      const installer = await storage.getInstaller(parseInt(id));
+      if (installer && installer.isVip) {
+        return res.json({
+          isActive: true,
+          title: 'VIP Status Active',
+          description: 'You have VIP status with free lead access',
+          message: 'As a VIP installer, you get free access to all leads!'
+        });
+      }
+      
+      res.json({ 
+        isActive: false,
+        title: '',
+        description: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Error checking admin promotion status:', error);
+      res.status(500).json({ error: 'Failed to check promotion status' });
+    }
+  });
+
   // Use first lead voucher when purchasing a lead
   app.post('/api/installers/:id/use-first-lead-voucher', async (req, res) => {
     try {

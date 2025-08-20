@@ -175,12 +175,21 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
 
     // Check the status of the most recent negotiation
     if (latestNegotiation.status === 'pending') {
-      if (latestNegotiation.proposedBy === 'installer') {
+      if (latestNegotiation.proposedBy === 'installer' && latestNegotiation.installerId === installerId) {
         return {
           type: 'pending',
           date: latestNegotiation.proposedDate,
           time: latestNegotiation.proposedTimeSlot,
           status: 'Proposal Sent (Awaiting Customer Response)',
+          negotiation: latestNegotiation
+        };
+      } else if (latestNegotiation.proposedBy === 'installer' && latestNegotiation.installerId !== installerId) {
+        // Another installer's pending proposal - show that competition exists
+        return {
+          type: 'other_pending',
+          date: latestNegotiation.proposedDate,
+          time: latestNegotiation.proposedTimeSlot,
+          status: 'Other installer proposal pending - you can still send yours',
           negotiation: latestNegotiation
         };
       } else {
@@ -798,9 +807,12 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
           </DialogHeader>
           
           {selectedLead && (() => {
-            const hasPendingProposal = negotiations.find((n: any) => n.status === 'pending' && n.proposedBy === 'installer');
+            const hasPendingProposal = negotiations.find((n: any) => n.status === 'pending' && n.proposedBy === 'installer' && n.installerId === installerId);
             const hasAcceptedSchedule = negotiations.find((n: any) => n.status === 'accepted');
             const pendingCustomerProposal = negotiations.find((n: any) => n.status === 'pending' && n.proposedBy === 'customer');
+            
+            // Check if other installers have pending proposals (for competitive awareness)
+            const otherPendingProposals = negotiations.filter((n: any) => n.status === 'pending' && n.proposedBy === 'installer' && n.installerId !== installerId);
             
             if (hasPendingProposal) {
               return (

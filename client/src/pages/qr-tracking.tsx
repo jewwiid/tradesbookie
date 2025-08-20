@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   QrCode, 
   Clock, 
@@ -14,7 +16,10 @@ import {
   Phone,
   Camera,
   Star,
-  Loader2
+  Loader2,
+  Check,
+  X,
+  MessageSquare
 } from "lucide-react";
 import Navigation from "@/components/navigation";
 import ExpandableQRCode from "@/components/ExpandableQRCode";
@@ -82,6 +87,34 @@ export default function QRTracking() {
     queryKey: [`/api/bookings/qr/${qrCode}`],
     enabled: !!qrCode,
     refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Fetch schedule negotiations for this booking
+  const { data: scheduleNegotiations = [] } = useQuery({
+    queryKey: [`/api/bookings/${booking?.id}/schedule-negotiations`],
+    enabled: !!booking?.id,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const queryClient = useQueryClient();
+
+  // Mutation to respond to schedule proposals
+  const respondToProposal = useMutation({
+    mutationFn: async ({ negotiationId, status, responseMessage }: { 
+      negotiationId: number; 
+      status: string; 
+      responseMessage?: string;
+    }) => {
+      return apiRequest(`/api/schedule-negotiations/${negotiationId}`, {
+        method: 'PATCH',
+        body: { status, responseMessage, bookingId: booking?.id }
+      });
+    },
+    onSuccess: () => {
+      // Refetch both booking and negotiations data
+      queryClient.invalidateQueries({ queryKey: [`/api/bookings/qr/${qrCode}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/bookings/${booking?.id}/schedule-negotiations`] });
+    },
   });
 
   if (isLoading) {
@@ -373,6 +406,60 @@ export default function QRTracking() {
                   </p>
                 </div>
               )}
+              
+              {/* Display pending schedule proposals */}
+              {scheduleNegotiations.filter((n: any) => n.status === 'pending' && n.proposedBy === 'installer').map((proposal: any) => (
+                <div key={proposal.id} className="mt-4 p-4 border-2 border-amber-200 bg-amber-50 rounded-lg">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MessageSquare className="w-5 h-5 text-amber-600" />
+                    <label className="text-sm font-medium text-amber-800">New Schedule Proposal</label>
+                  </div>
+                  <div className="space-y-2 mb-4">
+                    <p className="text-amber-900 font-medium">
+                      {new Date(proposal.proposedDate).toLocaleDateString('en-IE', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })} at {proposal.proposedTimeSlot}
+                    </p>
+                    {proposal.proposalMessage && (
+                      <p className="text-sm text-amber-700">
+                        <strong>Installer's note:</strong> {proposal.proposalMessage}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => respondToProposal.mutate({
+                        negotiationId: proposal.id,
+                        status: 'accepted',
+                        responseMessage: 'Schedule confirmed'
+                      })}
+                      disabled={respondToProposal.isPending}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Check className="w-4 h-4 mr-1" />
+                      Accept Schedule
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => respondToProposal.mutate({
+                        negotiationId: proposal.id,
+                        status: 'reject',
+                        responseMessage: 'Cannot make this time'
+                      })}
+                      disabled={respondToProposal.isPending}
+                      className="border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Decline
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
 

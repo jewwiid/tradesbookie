@@ -2017,7 +2017,6 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
 
   // Clear verification data when component mounts (tab switch)
   useEffect(() => {
-    console.log('JobCompletionSection mounting - clearing verification data');
     setVerificationData(null);
     setScanError('');
     setCompletionSuccess('');
@@ -2054,17 +2053,14 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
   // QR verification mutation
   const verifyQRMutation = useMutation({
     mutationFn: async (qrCode: string) => {
-      console.log('Making QR verification request with:', { qrCode, installerId });
       const response = await apiRequest('POST', '/api/installer/verify-qr-code', {
         qrCode,
         installerId
       });
       const data = await response.json();
-      console.log('Parsed JSON data:', data);
       return data;
     },
     onSuccess: (data) => {
-      console.log('QR Verification Success - received data:', data);
       setVerificationData(data);
       setCurrentBooking(data.booking);
       setScanError('');
@@ -2073,13 +2069,30 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
       const tvInstallations = Array.isArray(data.booking?.tvInstallations) ? data.booking.tvInstallations : [];
       const tvCount = tvInstallations.length || 1; // Default to 1 for legacy bookings
       
+      // Smart workflow detection: Check if work was started more than 30 minutes ago
+      const now = new Date();
+      const jobStartTime = data.jobAssignment?.acceptedDate ? new Date(data.jobAssignment.acceptedDate) : null;
+      const timeElapsedMinutes = jobStartTime ? (now.getTime() - jobStartTime.getTime()) / (1000 * 60) : 0;
+      const isPostWorkScan = timeElapsedMinutes > 30; // If more than 30 minutes, assume work is done
+      
+      // Store the timing context in verification data
+      setVerificationData({ ...data, isPostWorkScan });
+      
       if (tvCount > 0) {
-        // Show before/after photo capture workflow for star rating system
+        // Show photo capture workflow with context-aware messaging
         setShowBeforeAfterCapture(true);
-        toast({
-          title: "QR Code Verified!",
-          description: `Please capture before and after photos for each TV installation to earn quality stars and qualify for credit refunds.`,
-        });
+        
+        if (isPostWorkScan) {
+          toast({
+            title: "QR Code Verified!",
+            description: `Work completed! Please capture installation photos to document your quality work and earn stars.`,
+          });
+        } else {
+          toast({
+            title: "QR Code Verified!",
+            description: `Please capture before and after photos for each TV installation to earn quality stars and qualify for credit refunds.`,
+          });
+        }
       } else {
         // Fallback for legacy bookings without TV installations
         toast({
@@ -2238,6 +2251,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
           tvCount={Array.isArray(currentBooking.tvInstallations) ? currentBooking.tvInstallations.length : 1}
           onPhotosCompleted={handleBeforeAfterPhotosCompleted}
           onCancel={handleCancelBeforeAfterCapture}
+          isPostWorkScan={verificationData?.isPostWorkScan}
         />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2289,10 +2303,6 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                   <div><strong>Address:</strong> {verificationData.booking?.address || 'N/A'}</div>
                   <div><strong>Service:</strong> {verificationData.booking?.serviceType || 'N/A'}</div>
                   <div><strong>QR Code:</strong> {verificationData.booking?.qrCode || 'N/A'}</div>
-                </div>
-                {/* Debug info */}
-                <div className="text-xs text-gray-600 mt-2">
-                  Debug: verificationData = {JSON.stringify(verificationData, null, 2)}
                 </div>
                 
                 <Button 

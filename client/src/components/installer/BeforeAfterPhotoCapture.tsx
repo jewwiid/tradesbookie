@@ -12,6 +12,7 @@ interface BeforeAfterPhotoCaptureProps {
   tvCount: number;
   onPhotosCompleted: (photos: BeforeAfterPhoto[]) => void;
   onCancel: () => void;
+  isPostWorkScan?: boolean; // Indicates if QR was scanned after work completion
 }
 
 interface BeforeAfterPhoto {
@@ -31,10 +32,11 @@ export default function BeforeAfterPhotoCapture({
   bookingId, 
   tvCount, 
   onPhotosCompleted, 
-  onCancel 
+  onCancel,
+  isPostWorkScan = false
 }: BeforeAfterPhotoCaptureProps) {
   const [currentTvIndex, setCurrentTvIndex] = useState(0);
-  const [currentPhotoType, setCurrentPhotoType] = useState<'before' | 'after'>('before');
+  const [currentPhotoType, setCurrentPhotoType] = useState<'before' | 'after'>(isPostWorkScan ? 'after' : 'before');
   const [capturedPhotos, setCapturedPhotos] = useState<BeforeAfterPhoto[]>(
     Array.from({ length: tvCount }, (_, i) => ({ tvIndex: i }))
   );
@@ -55,7 +57,9 @@ export default function BeforeAfterPhotoCapture({
     onSuccess: () => {
       toast({
         title: "Photos uploaded successfully!",
-        description: "Before and after photos have been saved. You'll earn quality stars for complete photo sets!"
+        description: isPostWorkScan 
+          ? "Installation photos have been saved. You'll earn quality stars for documenting your work!"
+          : "Before and after photos have been saved. You'll earn quality stars for complete photo sets!"
       });
       onPhotosCompleted(capturedPhotos);
     },

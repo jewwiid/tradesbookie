@@ -13436,7 +13436,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           customerName: booking.contactName,
           address: booking.address,
           serviceType: booking.serviceType,
-          scheduledDate: booking.scheduledDate
+          scheduledDate: booking.scheduledDate,
+          tvInstallations: booking.tvInstallations
+        },
+        jobAssignment: {
+          id: installerAssignment.id,
+          status: installerAssignment.status,
+          acceptedDate: installerAssignment.acceptedDate,
+          assignedDate: installerAssignment.assignedDate
         },
         jobAssignmentId: installerAssignment.id
       });

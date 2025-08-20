@@ -262,10 +262,13 @@ export default function ScheduleNegotiation({
                         </div>
 
                         {/* Proposals for this installer */}
-                        <div className="space-y-2 p-3">
+                        <div className="p-3 space-y-3">
                           {displayNegotiations.map((negotiation, index) => (
-                            <div key={negotiation.id} className={`${index > 0 ? 'border-t pt-2' : ''}`}>
-                              <div className="flex items-start justify-between mb-2">
+                            <div key={negotiation.id} className={`
+                              bg-white border border-gray-200 rounded-lg p-3 shadow-sm
+                              ${index > 0 ? 'mt-3' : ''}
+                            `}>
+                              <div className="flex items-start justify-between mb-3">
                                 <Badge className={`${getStatusColor(negotiation.status)} text-xs`}>
                                   {getStatusIcon(negotiation.status)}
                                   <span className="ml-1 capitalize">{negotiation.status.replace('_', ' ')}</span>
@@ -275,37 +278,37 @@ export default function ScheduleNegotiation({
                                 </span>
                               </div>
 
-                              <div className="bg-gray-50 rounded p-2 space-y-1 text-sm">
+                              <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">
                                 <div className="flex items-center space-x-2">
-                                  <Calendar className="w-3 h-3 text-blue-600" />
+                                  <Calendar className="w-4 h-4 text-blue-600" />
                                   <span className="font-medium">{formatDate(negotiation.proposedDate)}</span>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                  <Clock className="w-3 h-3 text-blue-600" />
+                                  <Clock className="w-4 h-4 text-blue-600" />
                                   <span>{getTimeSlotDisplay(negotiation)}</span>
                                 </div>
                               </div>
 
                               {negotiation.proposalMessage && (
-                                <div className="bg-blue-50 border-l-2 border-blue-400 p-2 mt-2">
-                                  <p className="text-xs text-blue-800">{negotiation.proposalMessage}</p>
+                                <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mt-3">
+                                  <p className="text-sm text-blue-800">{negotiation.proposalMessage}</p>
                                 </div>
                               )}
 
                               {negotiation.responseMessage && (
-                                <div className="bg-green-50 border-l-2 border-green-400 p-2 mt-2">
-                                  <p className="text-xs text-green-800">
+                                <div className="bg-green-50 border-l-4 border-green-400 p-3 mt-3">
+                                  <p className="text-sm text-green-800">
                                     <strong>Response:</strong> {negotiation.responseMessage}
                                   </p>
                                 </div>
                               )}
 
                               {canRespond(negotiation) && (
-                                <div className="flex space-x-2 pt-2">
+                                <div className="flex space-x-2 pt-3 border-t border-gray-100 mt-3">
                                   <Button
                                     size="sm"
                                     onClick={() => handleRespond(negotiation, 'accept')}
-                                    className="bg-green-600 hover:bg-green-700 h-8 text-xs"
+                                    className="bg-green-600 hover:bg-green-700 h-8 text-xs flex-1"
                                   >
                                     <CheckCircle className="w-3 h-3 mr-1" />
                                     Accept
@@ -314,7 +317,7 @@ export default function ScheduleNegotiation({
                                     size="sm"
                                     variant="outline"
                                     onClick={() => handleRespond(negotiation, 'reject')}
-                                    className="border-red-200 text-red-600 hover:bg-red-50 h-8 text-xs"
+                                    className="border-red-200 text-red-600 hover:bg-red-50 h-8 text-xs flex-1"
                                   >
                                     <XCircle className="w-3 h-3 mr-1" />
                                     Decline

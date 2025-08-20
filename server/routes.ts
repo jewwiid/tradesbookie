@@ -13958,7 +13958,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       // Get installer details for each booking
       const installations = await Promise.all(paginatedBookings.map(async (booking) => {
+        console.log(`Processing booking ${booking.id} with installerId ${booking.installerId}`);
         const installer = await storage.getInstaller(booking.installerId);
+        console.log(`Found installer:`, installer ? `${installer.businessName}` : 'null');
         const allReviews = await storage.getAllReviews();
         const bookingReviews = allReviews.filter(review => review.bookingId === booking.id);
         const primaryReview = bookingReviews.length > 0 ? bookingReviews[0] : null;

@@ -100,6 +100,7 @@ function Router() {
       <Route path="/store-partner-signup" component={StorePartnerSignup} />
       <Route path="/gallery" component={InstallationShowcase} />
       <Route path="/showcase" component={InstallationShowcase} />
+      <Route path="/installation-showcase" component={InstallationShowcase} />
 
       <Route path="/demo-login" component={DemoLogin} />
       

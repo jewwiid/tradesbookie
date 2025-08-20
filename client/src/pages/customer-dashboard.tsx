@@ -3054,7 +3054,7 @@ function BookingCard({
                             <Euro className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
                             <span className="text-gray-600 flex-shrink-0">Price:</span>
                             <span className="ml-1 font-medium break-words">
-                              €{tv.price || 'TBD'}
+                              €{tv.estimatedTotal || tv.estimatedPrice || tv.price || 'TBD'}
                             </span>
                           </div>
                         </div>

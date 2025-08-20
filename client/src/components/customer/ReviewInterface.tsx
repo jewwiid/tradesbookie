@@ -283,21 +283,38 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
               Installation Photos
             </h5>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {booking.beforeAfterPhotos.map((photo: string, index: number) => (
-                <div key={index} className="space-y-2">
-                  <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
-                    <img
-                      src={photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`}
-                      alt={`Installation photo ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+              {booking.beforeAfterPhotos.map((photo: any, index: number) => {
+                // Debug what type each photo item is
+                console.log('Photo item debug:', { index, type: typeof photo, photo });
+                
+                // Handle different possible data structures
+                let photoSrc = '';
+                if (typeof photo === 'string') {
+                  photoSrc = photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`;
+                } else if (photo && typeof photo === 'object') {
+                  // If it's an object, try common property names for image data
+                  photoSrc = photo.url || photo.src || photo.data || photo.base64 || photo.image || '';
+                  if (photoSrc && !photoSrc.startsWith('data:')) {
+                    photoSrc = `data:image/jpeg;base64,${photoSrc}`;
+                  }
+                }
+                
+                return photoSrc ? (
+                  <div key={index} className="space-y-2">
+                    <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
+                      <img
+                        src={photoSrc}
+                        alt={`Installation photo ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 text-center">
+                      Photo {index + 1} of {booking.beforeAfterPhotos.length}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 text-center">
-                    Photo {index + 1} of {booking.beforeAfterPhotos.length}
-                  </p>
-                </div>
-              ))}
+                ) : null;
+              })}
             </div>
           </div>
         )}

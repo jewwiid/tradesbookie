@@ -8963,7 +8963,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         wallType: booking.wallType || "Drywall", 
         mountType: booking.mountType || "Fixed",
         addons: booking.addons || [],
-        estimatedPrice: booking.estimatedPrice || booking.totalPrice || "0",
+        estimatedPrice: booking.estimatedTotal || booking.estimatedPrice || booking.totalPrice || "0",
         leadFee: (booking as any).jobLeadFee || getLeadFee(booking.serviceType).toString(),
         status: (booking as any).jobAssignmentStatus || booking.status, // Use job assignment status
         scheduledDate: booking.scheduledDate,
@@ -9020,7 +9020,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           wallType: booking.wallType || "Drywall",
           mountType: booking.mountType || "Fixed",
           addons: booking.addons || [],
-          estimatedPrice: booking.estimatedPrice || booking.totalPrice || "0",
+          estimatedPrice: booking.estimatedTotal || booking.estimatedPrice || booking.totalPrice || "0",
           leadFee: getLeadFee(booking.serviceType).toString(),
           status: finalStatus,
           scheduledDate: booking.scheduledDate,

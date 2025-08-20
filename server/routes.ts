@@ -11617,6 +11617,103 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
 
+  // Manual job cancellation endpoint - using booking ID
+  app.post("/api/bookings/:bookingId/cancel-assignment", async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const { reason, cancelledBy } = req.body; // 'customer' or 'installer'
+      
+      // Get the active job assignment for this booking
+      const assignment = await db.select()
+        .from(jobAssignments)
+        .where(and(
+          eq(jobAssignments.bookingId, bookingId),
+          or(
+            eq(jobAssignments.status, 'purchased'),
+            eq(jobAssignments.status, 'accepted'),
+            eq(jobAssignments.status, 'assigned')
+          )
+        ))
+        .limit(1);
+        
+      if (assignment.length === 0) {
+        return res.status(404).json({ error: "No active job assignment found for this booking" });
+      }
+      
+      const jobAssignment = assignment[0];
+      
+      // Verify the assignment is in a cancellable state
+      if (!['purchased', 'accepted', 'assigned'].includes(jobAssignment.status)) {
+        return res.status(400).json({ error: "This job cannot be cancelled in its current state" });
+      }
+      
+      // Get booking details
+      const booking = await storage.getBooking(jobAssignment.bookingId!);
+      if (!booking) {
+        return res.status(404).json({ error: "Booking not found" });
+      }
+      
+      console.log(`🚫 Manual cancellation requested for assignment ${jobAssignment.id} by ${cancelledBy}`);
+      
+      // Update assignment status to cancelled
+      await db.update(jobAssignments)
+        .set({ 
+          status: 'cancelled'
+        })
+        .where(eq(jobAssignments.id, jobAssignment.id));
+        
+      // Process refund if there was a lead fee paid
+      const leadFee = jobAssignment.leadFee ? parseFloat(jobAssignment.leadFee) : 0;
+      const installerId = jobAssignment.installerId;
+      
+      if (installerId && leadFee > 0) {
+        const wallet = await storage.getInstallerWallet(installerId);
+        
+        if (wallet) {
+          const newBalance = parseFloat(wallet.balance) + leadFee;
+          const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - leadFee);
+          
+          await storage.updateInstallerWalletBalance(installerId, newBalance);
+          await storage.updateInstallerWalletTotalSpent(installerId, totalSpent);
+          
+          // Add refund transaction record
+          await storage.addInstallerTransaction({
+            installerId: installerId,
+            type: 'refund',
+            amount: leadFee.toString(),
+            description: `Manual cancellation refund for job #${booking.id} (cancelled by ${cancelledBy})`,
+            jobAssignmentId: jobAssignment.id,
+            status: 'completed'
+          });
+          
+          console.log(`💰 Refunded €${leadFee} to installer ${installerId} for manual cancellation of job ${booking.id}`);
+        }
+      }
+      
+      // Reset booking status back to pending so other installers can take it
+      await storage.updateBookingStatus(jobAssignment.bookingId!, 'pending');
+      
+      // Send cancellation notification emails
+      try {
+        if (booking.contact?.email) {
+          await sendJobCancellationNotification(booking, cancelledBy, reason);
+        }
+      } catch (emailError) {
+        console.error("Failed to send cancellation notification:", emailError);
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Job successfully cancelled and refunded",
+        refundAmount: leadFee 
+      });
+      
+    } catch (error) {
+      console.error("Manual job cancellation error:", error);
+      res.status(500).json({ error: "Failed to cancel job assignment" });
+    }
+  });
+
   app.patch("/api/schedule-negotiations/:id", async (req, res) => {
     try {
       const negotiationId = parseInt(req.params.id);

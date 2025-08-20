@@ -64,6 +64,7 @@ interface BookingDetails {
     profileImageUrl?: string;
   };
   jobAssignment?: {
+    id?: number;
     status: string;
     assignedDate: string;
     acceptedDate?: string;
@@ -124,6 +125,29 @@ export default function QRTracking() {
       queryClient.invalidateQueries({ queryKey: [`/api/bookings/qr/${qrCode}`] });
       queryClient.invalidateQueries({ queryKey: [`/api/bookings/${booking?.id}/schedule-negotiations`] });
     },
+  });
+
+  // Mutation to cancel job assignment
+  const cancelJobAssignment = useMutation({
+    mutationFn: async ({ bookingId, reason }: { bookingId: number; reason: string }) => {
+      const response = await fetch(`/api/bookings/${bookingId}/cancel-assignment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason, cancelledBy: 'customer' })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to cancel job assignment');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/bookings/qr/${qrCode}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/bookings/${booking?.id}/schedule-negotiations`] });
+    }
   });
 
   if (isLoading) {
@@ -469,6 +493,45 @@ export default function QRTracking() {
                   </div>
                 </div>
               ))}
+              
+              {/* Cancel Job button - shows when there's an installer but scheduling is difficult */}
+              {booking.installer && booking.jobAssignment && 
+               !booking.scheduledDate && 
+               scheduleNegotiations.length > 0 && (
+                <div className="mt-4 p-4 border-2 border-red-200 bg-red-50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium text-red-800 mb-1">
+                        Having trouble with scheduling?
+                      </h4>
+                      <p className="text-xs text-red-600">
+                        You can cancel this job assignment to allow other installers to take your booking.
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => {
+                        if (confirm('Are you sure you want to cancel this job? Your booking will be returned to the available pool for other installers.')) {
+                          cancelJobAssignment.mutate({
+                            bookingId: booking.id,
+                            reason: 'Unable to agree on schedule'
+                          });
+                        }
+                      }}
+                      disabled={cancelJobAssignment.isPending}
+                      className="ml-4"
+                    >
+                      {cancelJobAssignment.isPending ? (
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                      ) : (
+                        <X className="w-4 h-4 mr-1" />
+                      )}
+                      Cancel Job
+                    </Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

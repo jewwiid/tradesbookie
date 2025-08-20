@@ -874,6 +874,82 @@ export async function sendScheduleProposalNotification(
   }
 }
 
+// Job cancellation notification
+export async function sendJobCancellationNotification(booking: any, cancelledBy: string, reason?: string) {
+  try {
+    console.log(`Sending job cancellation notification for booking ${booking.id}`);
+    
+    const customerEmail = booking.contact?.email || booking.userId?.toString().includes('@') ? booking.userId : null;
+    const installerEmail = booking.installer?.email;
+    
+    // Customer notification
+    if (customerEmail) {
+      const customerSubject = `TV Installation Cancelled - Booking ${booking.qrCode}`;
+      const customerMessage = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #dc3545;">Installation Cancelled</h2>
+          
+          <p>Your TV installation booking has been cancelled.</p>
+          
+          <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
+            <strong>Cancellation Details:</strong><br>
+            Cancelled by: ${cancelledBy === 'customer' ? 'You' : 'The installer'}<br>
+            ${reason ? `Reason: ${reason}<br>` : ''}
+            Booking Reference: ${booking.qrCode}
+          </div>
+          
+          <p><strong>What happens next:</strong></p>
+          <ul>
+            <li>Your booking is now available for other installers to take</li>
+            <li>You'll receive new installer proposals automatically</li>
+            <li>No additional charges apply</li>
+          </ul>
+          
+          <p>We apologize for any inconvenience. You can track your booking status at any time using your QR code.</p>
+          
+          <p>Best regards,<br>The Tradesbook Team</p>
+        </div>
+      `;
+      
+      await sendEmail(customerEmail, customerSubject, customerMessage);
+      console.log(`Job cancellation email sent to customer: ${customerEmail}`);
+    }
+    
+    // Installer notification  
+    if (installerEmail) {
+      const installerSubject = `Job Cancelled - Booking ${booking.qrCode}`;
+      const installerMessage = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #dc3545;">Job Assignment Cancelled</h2>
+          
+          <p>The job assignment for booking ${booking.qrCode} has been cancelled.</p>
+          
+          <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
+            <strong>Cancellation Details:</strong><br>
+            Cancelled by: ${cancelledBy === 'installer' ? 'You' : 'The customer'}<br>
+            ${reason ? `Reason: ${reason}<br>` : ''}
+            Customer: ${booking.contact?.name || 'Customer'}<br>
+            Location: ${booking.address}
+          </div>
+          
+          <p><strong>Lead fee refund:</strong> Your lead fee has been automatically refunded to your wallet.</p>
+          
+          <p>This job is now available for other installers. You can find new opportunities in your dashboard.</p>
+          
+          <p>Best regards,<br>The Tradesbook Team</p>
+        </div>
+      `;
+      
+      await sendEmail(installerEmail, installerSubject, installerMessage);
+      console.log(`Job cancellation email sent to installer: ${installerEmail}`);
+    }
+    
+  } catch (error) {
+    console.error('Error sending job cancellation notification:', error);
+    throw error;
+  }
+}
+
 export async function sendScheduleConfirmationNotification(
   booking: any,
   negotiation: any

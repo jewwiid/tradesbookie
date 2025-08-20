@@ -1400,6 +1400,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
   const { toast } = useToast();
   const [expandedDetails, setExpandedDetails] = useState<Set<number>>(new Set());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const queryClient = useQueryClient();
 
   // Fetch installer's assigned bookings
   const { data: activeBookings = [], isLoading, refetch } = useQuery({
@@ -1419,6 +1420,39 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
       return newSet;
     });
   };
+
+  // Mutation to cancel job assignment
+  const cancelJobAssignment = useMutation({
+    mutationFn: async ({ bookingId, reason }: { bookingId: number; reason: string }) => {
+      const response = await fetch(`/api/bookings/${bookingId}/cancel-assignment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason, cancelledBy: 'installer' })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to cancel job assignment');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Job Cancelled",
+        description: `Job successfully cancelled. Lead fee of €${data.refundAmount || '0'} has been refunded to your wallet.`,
+      });
+      refetch(); // Refresh the active jobs list
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Cancellation Failed",
+        description: error.message || "Failed to cancel job assignment",
+        variant: "destructive",
+      });
+    }
+  });
 
   if (!installerId) {
     return (
@@ -1856,6 +1890,34 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                             customerAddress={booking.address}
                             onProposalSent={() => refetch()}
                           />
+                          {!booking.scheduledDate && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                if (confirm('Are you sure you want to cancel this job? The lead fee will be refunded to your wallet and this booking will be available for other installers.')) {
+                                  cancelJobAssignment.mutate({
+                                    bookingId: booking.id,
+                                    reason: 'Unable to coordinate schedule with customer'
+                                  });
+                                }
+                              }}
+                              disabled={cancelJobAssignment.isPending}
+                              className="text-xs"
+                            >
+                              {cancelJobAssignment.isPending ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                  Cancelling...
+                                </>
+                              ) : (
+                                <>
+                                  <X className="w-3 h-3 mr-1" />
+                                  Cancel Job
+                                </>
+                              )}
+                            </Button>
+                          )}
                         </div>
                       </div>
                       

@@ -203,8 +203,13 @@ export default function InstallationShowcase() {
           <div className="space-y-6">
             {installations.map((installation) => {
               const currentPhotoIndex = selectedPhotoIndex[installation.id] || 0;
-              const currentPhoto = installation.beforeAfterPhotos[currentPhotoIndex];
-              const hasMultiplePhotos = installation.beforeAfterPhotos.length > 1;
+              const currentPhoto = installation.beforeAfterPhotos?.[currentPhotoIndex];
+              const hasMultiplePhotos = (installation.beforeAfterPhotos?.length || 0) > 1;
+
+              // Skip installations with missing data
+              if (!installation.installer || !installation.beforeAfterPhotos?.length) {
+                return null;
+              }
 
               return (
                 <Card key={installation.id} className="overflow-hidden shadow-lg border-0 bg-white">
@@ -214,43 +219,43 @@ export default function InstallationShowcase() {
                       <div className="flex items-center space-x-4">
                         {/* Profile Image */}
                         <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                          {installation.installer.profileImage ? (
+                          {installation.installer?.profileImage ? (
                             <img 
                               src={installation.installer.profileImage} 
-                              alt={installation.installer.businessName}
+                              alt={installation.installer?.businessName || 'Installer'}
                               className="w-full h-full rounded-full object-cover"
                             />
                           ) : (
-                            installation.installer.businessName.charAt(0)
+                            installation.installer?.businessName?.charAt(0) || 'I'
                           )}
                         </div>
                         
                         {/* Installer Info */}
                         <div className="flex-1">
                           <h3 className="font-bold text-lg text-gray-900">
-                            {installation.installer.businessName}
+                            {installation.installer?.businessName || 'Unknown Installer'}
                           </h3>
                           <p className="text-gray-600 text-sm">
-                            {installation.installer.contactName} • {installation.installer.serviceArea}
+                            {installation.installer?.contactName || 'Unknown'} • {installation.installer?.serviceArea || 'Unknown Area'}
                           </p>
                           <div className="flex items-center space-x-4 mt-2">
                             <div className="flex items-center space-x-1">
                               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
                               <span className="text-sm font-medium text-gray-700">
-                                {installation.installer.averageRating.toFixed(1)}
+                                {(installation.installer?.averageRating || 0).toFixed(1)}
                               </span>
-                              <span className="text-xs text-gray-500">({installation.installer.totalReviews} reviews)</span>
+                              <span className="text-xs text-gray-500">({installation.installer?.totalReviews || 0} reviews)</span>
                             </div>
                             <div className="flex items-center space-x-1 text-xs text-gray-500">
                               <Award className="w-3 h-3" />
-                              <span>{installation.installer.yearsExperience} years exp.</span>
+                              <span>{installation.installer?.yearsExperience || 0} years exp.</span>
                             </div>
                           </div>
                         </div>
                         
                         {/* Service Type Badge */}
                         <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
-                          {installation.serviceType}
+                          {installation.serviceType || 'Installation'}
                         </Badge>
                       </div>
                     </div>
@@ -385,9 +390,9 @@ export default function InstallationShowcase() {
                           
                           {/* Review Content */}
                           <div>
-                            <h4 className="font-semibold text-gray-900 mb-2">{installation.review.title}</h4>
+                            <h4 className="font-semibold text-gray-900 mb-2">{installation.review?.title || 'Installation Review'}</h4>
                             <p className="text-gray-700 leading-relaxed">
-                              {installation.review.comment}
+                              {installation.review?.comment || 'No review comment available.'}
                             </p>
                           </div>
                         </div>

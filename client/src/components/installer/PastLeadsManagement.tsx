@@ -125,6 +125,12 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
     }, 30000);
   };
 
+  // Fetch past leads
+  const { data: pastLeads = [], isLoading } = useQuery<PastLead[]>({
+    queryKey: [`/api/installer/${installerId}/past-leads`],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   // Fetch schedule negotiations for selected lead
   const { data: scheduleNegotiations } = useQuery({
     queryKey: [`/api/bookings/${selectedLead?.id}/schedule-negotiations`],
@@ -205,12 +211,6 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
   };
 
   const scheduleInfo = getScheduleDisplayInfo();
-
-  // Fetch past leads
-  const { data: pastLeads = [], isLoading } = useQuery<PastLead[]>({
-    queryKey: [`/api/installer/${installerId}/past-leads`],
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
 
   // Fetch passed (declined) leads
   const { data: passedLeads = [], isLoading: passedLeadsLoading } = useQuery<PastLead[]>({

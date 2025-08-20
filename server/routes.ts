@@ -11750,6 +11750,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Reset booking status back to open so other installers can take it
       await storage.updateBookingStatus(jobAssignment.bookingId!, 'open');
       
+      // CRITICAL: Invalidate all existing schedule negotiations to prevent automatic re-assignment
+      await db.update(scheduleNegotiations)
+        .set({
+          status: 'cancelled',
+          responseMessage: `Job assignment cancelled by ${cancelledBy}`,
+          respondedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(scheduleNegotiations.bookingId, bookingId));
+      
+      console.log(`🔄 Invalidated all schedule negotiations for booking ${bookingId} due to job cancellation`);
+      
       // Clear installer assignment from the booking
       await db.update(bookings)
         .set({ 
@@ -11758,13 +11770,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         })
         .where(eq(bookings.id, jobAssignment.bookingId!));
       
-      // Cancel any active schedule negotiations
-      await db.update(scheduleNegotiations)
-        .set({ status: 'cancelled' })
-        .where(and(
-          eq(scheduleNegotiations.bookingId, jobAssignment.bookingId!),
-          inArray(scheduleNegotiations.status, ['accepted', 'pending'])
-        ));
+      // This is now handled above with more comprehensive logic
       
       // Send cancellation notification emails
       try {

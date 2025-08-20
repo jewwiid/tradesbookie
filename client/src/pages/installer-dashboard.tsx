@@ -2986,6 +2986,55 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                               </div>
                             </div>
                           )}
+                          
+                          {/* Gallery Showcase Toggle */}
+                          <div className="pt-4 border-t border-gray-200">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h4 className="font-semibold text-gray-900">Gallery Showcase</h4>
+                                <p className="text-sm text-gray-600">
+                                  Add this installation to the public gallery to showcase your work
+                                  {(!beforeAfterPhotos || beforeAfterPhotos.length === 0) && (
+                                    <span className="text-orange-600"> (requires before/after photos)</span>
+                                  )}
+                                </p>
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <Switch
+                                  checked={job.booking?.showcaseInGallery || false}
+                                  disabled={!beforeAfterPhotos || beforeAfterPhotos.length === 0}
+                                  onCheckedChange={async (checked) => {
+                                    try {
+                                      const response = await apiRequest(`/api/booking/${job.booking.id}/showcase`, {
+                                        method: 'PUT',
+                                        body: JSON.stringify({ showcaseInGallery: checked }),
+                                        headers: { 'Content-Type': 'application/json' }
+                                      });
+                                      
+                                      if (response.success) {
+                                        // Update the local state optimistically
+                                        job.booking.showcaseInGallery = checked;
+                                        
+                                        toast({
+                                          title: checked ? "Added to Gallery" : "Removed from Gallery",
+                                          description: response.message,
+                                        });
+                                      }
+                                    } catch (error: any) {
+                                      toast({
+                                        title: "Error",
+                                        description: error.message || "Failed to update showcase status",
+                                        variant: "destructive",
+                                      });
+                                    }
+                                  }}
+                                />
+                                <Badge variant={job.booking?.showcaseInGallery ? "default" : "secondary"}>
+                                  {job.booking?.showcaseInGallery ? "In Gallery" : "Not Showcased"}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}

@@ -13772,7 +13772,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               beforeAfterPhotos: booking.beforeAfterPhotos,
               photoStars: booking.photoStars,
               qualityStars: booking.qualityStars,
-              photoCompletionRate: booking.photoCompletionRate
+              photoCompletionRate: booking.photoCompletionRate,
+              showcaseInGallery: booking.showcaseInGallery
             } : null
           };
         })
@@ -13782,6 +13783,108 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error('Error fetching completed jobs:', error);
       res.status(500).json({ error: 'Failed to fetch completed jobs' });
+    }
+  });
+
+  // Toggle showcase status for completed installation
+  app.put('/api/booking/:id/showcase', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { showcaseInGallery } = req.body;
+      
+      const booking = await storage.getBooking(parseInt(id));
+      if (!booking) {
+        return res.status(404).json({ error: 'Booking not found' });
+      }
+      
+      // Only allow showcase for completed bookings with photos
+      if (booking.status !== 'completed') {
+        return res.status(400).json({ error: 'Only completed installations can be showcased' });
+      }
+      
+      if (!booking.beforeAfterPhotos || booking.beforeAfterPhotos.length === 0) {
+        return res.status(400).json({ error: 'Installations must have before/after photos to be showcased' });
+      }
+      
+      await storage.updateBooking(parseInt(id), { 
+        showcaseInGallery: showcaseInGallery 
+      });
+      
+      res.json({ 
+        success: true, 
+        showcaseInGallery,
+        message: showcaseInGallery ? 'Installation added to showcase gallery' : 'Installation removed from showcase gallery'
+      });
+    } catch (error) {
+      console.error('Error updating showcase status:', error);
+      res.status(500).json({ error: 'Failed to update showcase status' });
+    }
+  });
+
+  // Get showcased installations for gallery
+  app.get('/api/installation-showcase', async (req, res) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const serviceType = req.query.serviceType as string;
+      
+      const bookings = await storage.getAllBookings();
+      
+      // Filter for showcased completed installations with photos
+      let showcasedBookings = bookings.filter(booking => 
+        booking.showcaseInGallery === true &&
+        booking.status === 'completed' &&
+        booking.beforeAfterPhotos && 
+        booking.beforeAfterPhotos.length > 0
+      );
+      
+      // Filter by service type if specified
+      if (serviceType && serviceType !== 'all') {
+        showcasedBookings = showcasedBookings.filter(booking => 
+          booking.serviceType === serviceType
+        );
+      }
+      
+      // Sort by completion date (newest first)
+      showcasedBookings.sort((a, b) => 
+        new Date(b.completedDate || b.updatedAt).getTime() - 
+        new Date(a.completedDate || a.updatedAt).getTime()
+      );
+      
+      const totalCount = showcasedBookings.length;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedBookings = showcasedBookings.slice(startIndex, endIndex);
+      
+      // Transform to gallery format
+      const installations = paginatedBookings.map(booking => ({
+        id: booking.id,
+        location: booking.address,
+        tvCount: booking.tvInstallations?.length || 1,
+        services: booking.serviceDescription || booking.serviceType || 'TV Installation',
+        primaryService: booking.serviceType || 'tv-installation',
+        qualityStars: booking.qualityStars || 0,
+        photoStars: booking.photoStars || 0,
+        reviewStars: booking.reviewStars || 0,
+        beforeAfterPhotos: booking.beforeAfterPhotos || [],
+        review: {
+          rating: booking.qualityStars || 0,
+          title: "Professional Installation",
+          comment: "Installation completed to high standards",
+          date: booking.completedDate || booking.updatedAt
+        },
+        completedAt: booking.completedDate || booking.updatedAt
+      }));
+      
+      res.json({
+        installations,
+        totalCount,
+        page,
+        hasMore: endIndex < totalCount
+      });
+    } catch (error) {
+      console.error('Error fetching showcase installations:', error);
+      res.status(500).json({ error: 'Failed to fetch showcase installations' });
     }
   });
 

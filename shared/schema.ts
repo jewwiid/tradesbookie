@@ -251,6 +251,9 @@ export const bookings = pgTable("bookings", {
   // Demo flag to hide test bookings from real installers
   isDemo: boolean("is_demo").default(false),
   
+  // Gallery showcase flag - installer can mark jobs for public showcase
+  showcaseInGallery: boolean("showcase_in_gallery").default(false),
+  
   // Pre-installation reminder tracking
   reminderSent: boolean("reminder_sent").default(false),
   reminderSentAt: timestamp("reminder_sent_at"),

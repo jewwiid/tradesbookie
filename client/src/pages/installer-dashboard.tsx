@@ -1363,6 +1363,7 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
 function ActiveJobsSection({ installerId }: { installerId?: number }) {
   const { toast } = useToast();
   const [expandedDetails, setExpandedDetails] = useState<Set<number>>(new Set());
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
   // Fetch installer's assigned bookings
   const { data: activeBookings = [], isLoading, refetch } = useQuery({
@@ -1451,8 +1452,6 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
     });
   };
 
-  // Add state for view toggle
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
   return (
     <div className="space-y-6">

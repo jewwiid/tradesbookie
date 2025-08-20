@@ -1,0 +1,54 @@
+hook.js:608 Warning: React has detected a change in the order of Hooks called by ActiveJobsSection. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+1. useState                   useState
+2. useEffect                  useEffect
+3. useState                   useState
+4. useContext                 useContext
+5. useContext                 useContext
+6. useContext                 useContext
+7. useEffect                  useEffect
+8. useState                   useState
+9. useCallback                useCallback
+10. useSyncExternalStore      useSyncExternalStore
+11. useEffect                 useEffect
+12. undefined                 useState
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ Error Component Stack
+    at ActiveJobsSection (installer-dashboard.tsx:1363:30)
+    at div (<anonymous>)
+    at _c5 (tabs.tsx:41:6)
+    at div (<anonymous>)
+    at InstallerDashboard (installer-dashboard.tsx:2073:21)
+
+2
+chunk-RPCDYKBN.js?v=750818b9:11678 Uncaught Error: Rendered more hooks than during the previous render.
+    at ActiveJobsSection (installer-dashboard.tsx:1455:35)
+hook.js:608 The above error occurred in the <ActiveJobsSection> component:
+
+    at ActiveJobsSection (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/pages/installer-dashboard.tsx:2705:30)
+    at div
+    at https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=750818b9:42:13
+    at Presence (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-E4UC4BFD.js?v=750818b9:24:11)
+    at https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…orkspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=750818b9:176:13
+    at _c5 (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=750818b9:42:13
+    at Provider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=750818b9:38:15)
+    at https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=750818b9:54:7
+    at div
+    at div
+    at InstallerDashboard (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/pages/installer-dashboard.tsx:4233:21)
+    at Route (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=750818b9:191:16)
+    at Switch (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=750818b9:247:17)
+    at Router
+    at Provider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=750818b9:38:15)
+    at TooltipProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=750818b9:64:5)
+    at QueryClientProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=750818b9:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+chunk-RPCDYKBN.js?v=750818b9:9129 Uncaught Error: Rendered more hooks than during the previous render.
+    at ActiveJobsSection (installer-dashboard.tsx:1455:35)

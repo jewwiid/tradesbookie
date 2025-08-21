@@ -12,8 +12,7 @@ export default function Footer() {
           <div className="col-span-1 md:col-span-2">
             <h3 className="text-2xl font-bold mb-4">tradesbook.ie</h3>
             <p className="text-gray-300 mb-6 max-w-md">
-              Ireland's premier TV installation platform connecting customers with certified professional installers. 
-              Quality mounting services with AI-powered room previews and real-time tracking.
+              Ireland's premier booking platform for tradespeople. Clean, modern booking management connecting skilled professionals with customers across all trades. AI-powered matching with real-time tracking.
             </p>
             <div className="flex space-x-4">
               <a href="https://www.facebook.com/tradesbook.ie/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
@@ -42,17 +41,17 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/pricing" className="text-gray-300 hover:text-white transition-colors">
-                  TV Mounting Services
+                  Lead Management
                 </Link>
               </li>
               <li>
-                <Link href="/tv-recommendation" className="text-gray-300 hover:text-white transition-colors">
-                  TV Recommendations
+                <Link href="/how-it-works" className="text-gray-300 hover:text-white transition-colors">
+                  How It Works
                 </Link>
               </li>
               <li>
-                <Link href="/tv-setup-assist" className="text-gray-300 hover:text-white transition-colors">
-                  TV Setup Assistance
+                <Link href="/installer-registration" className="text-gray-300 hover:text-white transition-colors">
+                  Join as Tradesperson
                 </Link>
               </li>
               <li>
@@ -180,11 +179,11 @@ export default function Footer() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-400">
             <div>
               <p className="font-medium text-gray-300">Licensed & Insured</p>
-              <p>All installers are fully licensed and carry comprehensive insurance coverage</p>
+              <p>All tradespeople are fully licensed and carry comprehensive insurance coverage</p>
             </div>
             <div>
               <p className="font-medium text-gray-300">Quality Guarantee</p>
-              <p>12-month warranty on all installation work with satisfaction guarantee</p>
+              <p>Professional service guarantee on all trade work with satisfaction promise</p>
             </div>
             <div>
               <p className="font-medium text-gray-300">Secure Payments</p>

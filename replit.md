@@ -1,7 +1,7 @@
-# TV and Product Installation Referral Platform
+# Advanced Booking Platform for Tradespeople
 
 ## Overview
-This project is a sophisticated TV and product installation referral platform connecting service providers with customers. It features an advanced booking and lead management system, leveraging intelligent technological solutions for personalized product recommendations and comprehensive product care analysis. The platform aims to be a leading solution for connecting customers with skilled installers, streamlining the installation process, and offering valuable product care insights. It is designed to support multiple retailers, moving beyond single-retailer exclusivity to capture a broader market, enhancing market potential and business vision.
+This project is a sophisticated booking platform designed for tradespeople to connect with customers and secure quality leads. It features an advanced booking and lead management system, leveraging intelligent technological solutions for personalized service matching and comprehensive job analysis. The platform aims to be Ireland's leading booking platform for tradespeople, starting with TV installation services and expanding to all trades. It is designed as a comprehensive marketplace for tradespeople to access quality leads, with TV installation as the flagship service expanding to support all trade categories.
 
 ## User Preferences
 - Focus on practical, actionable intelligence over generic information

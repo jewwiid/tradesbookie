@@ -8,29 +8,29 @@ export default function HowItWorks() {
   const steps = [
     {
       step: 1,
-      title: "Upload Room Photo",
-      description: "Take a photo of your room where you want the TV mounted. Our AI will analyze the space and provide instant recommendations.",
+      title: "Customer Uploads Photo",
+      description: "Customers upload photos of their space. Our AI analyzes the room and provides professional installation recommendations.",
       icon: <Camera className="w-8 h-8 text-blue-600" />,
       color: "blue"
     },
     {
       step: 2,
-      title: "AI Analysis & Preview",
-      description: "Get AI-powered room analysis with safety recommendations and see a preview of how your TV will look once installed.",
+      title: "AI Analysis & Matching",
+      description: "Our AI analyzes the job requirements and matches customers with the most suitable tradespeople in their area.",
       icon: <Sparkles className="w-8 h-8 text-purple-600" />,
       color: "purple"
     },
     {
       step: 3,
-      title: "Choose Your Service",
-      description: "Select from our Bronze, Silver, or Gold mounting options based on your TV size and preferences.",
+      title: "Service Selection & Quote",
+      description: "Customers select from Bronze, Silver, or Gold mounting options. You receive detailed job requirements with transparent pricing.",
       icon: <Tv className="w-8 h-8 text-green-600" />,
       color: "green"
     },
     {
       step: 4,
-      title: "Schedule & Pay",
-      description: "Pick your preferred date and time, complete secure payment, and receive booking confirmation with QR tracking code.",
+      title: "Accept & Schedule",
+      description: "Accept the job, schedule your preferred date and time, and receive instant booking confirmation with customer details.",
       icon: <Calendar className="w-8 h-8 text-orange-600" />,
       color: "orange"
     }
@@ -39,12 +39,12 @@ export default function HowItWorks() {
   const features = [
     "AI-powered room analysis and safety recommendations",
     "Live preview of your TV installation before booking",
-    "Professional installers with 5+ years experience",
-    "Same-day and next-day installation available",
-    "All mounting hardware and cables included",
-    "90-day installation warranty",
-    "Real-time QR code tracking",
-    "Harvey Norman partnership for TV sourcing"
+    "Vetted tradespeople with 5+ years experience",
+    "Quality leads with transparent pricing",
+    "Low lead fees - only pay for accepted jobs",
+    "Real-time job tracking and communication",
+    "Secure payment processing and protection",
+    "Growing customer base across Ireland"
   ];
 
   return (
@@ -58,7 +58,7 @@ export default function HowItWorks() {
             How tradesbook.ie Works
           </h1>
           <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
-            Professional TV installation made simple with AI-powered room analysis and instant booking
+            Ireland's leading booking platform connecting tradespeople with customers. Get quality leads with AI-powered matching and instant booking.
           </p>
           <Link href="/booking">
             <Button size="lg" className="bg-primary hover:bg-primary/90">
@@ -74,10 +74,10 @@ export default function HowItWorks() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Simple 4-Step Process
+              Simple Process for Quality Leads
             </h2>
             <p className="text-lg text-gray-600">
-              From photo to professional installation in just a few clicks
+              From customer request to confirmed booking in just a few clicks
             </p>
           </div>
 
@@ -114,10 +114,10 @@ export default function HowItWorks() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Why Choose SmartTVMount?
+              Why Choose Tradesbook.ie?
             </h2>
             <p className="text-lg text-gray-600">
-              Advanced technology meets professional installation
+              Advanced technology meets professional trades services
             </p>
           </div>
 
@@ -136,14 +136,14 @@ export default function HowItWorks() {
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Get Started?
+            Ready to Join Our Network?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Book your professional TV installation today
+            Start receiving quality leads for TV installation and other trade services
           </p>
           <Link href="/booking">
             <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-              Book Installation Now
+              Join as Tradesperson
               <Upload className="ml-2 w-5 h-5" />
             </Button>
           </Link>

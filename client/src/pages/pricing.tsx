@@ -181,14 +181,14 @@ export default function Pricing() {
   ];
 
   const included = [
-    "Professional site assessment",
-    "All mounting hardware included",
-    "Cable management system",
-    "Level and secure installation",
-    "Connection testing",
-    "90-day installation warranty",
-    "Clean-up after installation",
-    "Safety inspection"
+    "Verified customer leads with contact details",
+    "Detailed job specifications and photos",
+    "Transparent pricing structure",
+    "Secure payment processing",
+    "Real-time job tracking system",
+    "Customer communication tools",
+    "Professional profile management",
+    "Lead quality guarantee"
   ];
 
   return (
@@ -199,10 +199,10 @@ export default function Pricing() {
       <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Transparent Pricing
+            Transparent Lead Pricing
           </h1>
           <p className="text-xl text-gray-700 mb-8 max-w-3xl mx-auto">
-            Professional TV installation with upfront pricing. No hidden fees, no surprises.
+            Clear lead fees for tradespeople. Know exactly what you'll earn on every job. No hidden costs, maximum transparency.
           </p>
           <div className="flex items-center justify-center space-x-6 text-sm text-gray-600">
             <div className="flex items-center">
@@ -226,10 +226,10 @@ export default function Pricing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Choose Your Service Level
+              TV Installation Lead Tiers
             </h2>
             <p className="text-lg text-gray-600">
-              From simple table setups to premium wall mounting solutions
+              Different service tiers with varying lead fees and earning potential
             </p>
           </div>
 
@@ -265,10 +265,10 @@ export default function Pricing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              What's Included in Every Service
+              What Tradespeople Get
             </h2>
             <p className="text-lg text-gray-600">
-              Professional installation with comprehensive service
+              Complete support and tools for successful job completion
             </p>
           </div>
 
@@ -366,14 +366,14 @@ export default function Pricing() {
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Book Your Installation?
+            Ready to Start Earning More?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Get AI-powered room analysis and professional installation
+            Join our network of professional tradespeople and access quality leads
           </p>
           <Link href="/booking">
             <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-              Start Your Booking
+              Join Our Network
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>

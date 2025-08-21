@@ -269,7 +269,7 @@ export default function Home() {
                 </span>
               </h1>
               <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed mx-auto lg:mx-0 max-w-none">
-                Ireland's most advanced AI-powered booking platform where tradespeople get connected with customers. Starting with TV installation professionals, expanding to all trades. Like Trivago for tradesmen - your go-to source for quality bookings.
+                Ireland's most advanced AI-powered booking platform where tradespeople get connected with customers. Starting with TV installation professionals and expanding to all trades. Your go-to source for quality leads and bookings.
               </p>
               
               {/* Button Container - Stack vertically on small screens, horizontal on larger */}
@@ -285,9 +285,9 @@ export default function Home() {
                       <span className="whitespace-nowrap">View TV Installation</span>
                     </Button>
                   </Link>
-                  <Link href="/tv-setup-assist" className="flex-1 min-w-0">
+                  <Link href="/installer-registration" className="flex-1 min-w-0">
                     <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-emerald-500/20">
-                      <span className="whitespace-nowrap">TV Setup Service</span>
+                      <span className="whitespace-nowrap">Join as Tradesperson</span>
                     </Button>
                   </Link>
                 </div>

@@ -1278,7 +1278,7 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
       console.log('🔧 Making request to:', `/api/admin/installers/${installerId}/vip-working`);
       
       try {
-        const response = await apiRequest(`/api/admin/installers/${installerId}/vip-working`, "PATCH", { isVip, vipNotes });
+        const response = await apiRequest("PATCH", `/api/admin/installers/${installerId}/vip-working`, { isVip, vipNotes });
         console.log('✅ Frontend VIP toggle - API request successful:', response);
         return response;
       } catch (error) {

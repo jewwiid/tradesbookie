@@ -1271,7 +1271,7 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
 
   const toggleVipStatusMutation = useMutation({
     mutationFn: async ({ installerId, isVip, vipNotes }: { installerId: number; isVip: boolean; vipNotes?: string }) => {
-      await apiRequest(`/api/admin/installers/${installerId}/vip`, "PATCH", { isVip, vipNotes });
+      await apiRequest(`/api/admin/installers/${installerId}/vip-fixed`, "PATCH", { isVip, vipNotes });
     },
     onSuccess: (_, { isVip }) => {
       toast({ 

@@ -109,6 +109,14 @@ export const installers = pgTable("installers", {
   vipGrantedAt: timestamp("vip_granted_at"), // When VIP status was granted
   vipNotes: text("vip_notes"), // Admin notes about VIP status
   
+  // VIP Subscription System (€50/month)
+  stripeCustomerId: text("stripe_customer_id"), // Stripe customer ID for subscription
+  stripeSubscriptionId: text("stripe_subscription_id"), // Stripe subscription ID for VIP
+  subscriptionStatus: varchar("subscription_status"), // active, inactive, canceled, past_due
+  subscriptionCurrentPeriodStart: timestamp("subscription_current_period_start"), // Current period start
+  subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end"), // Current period end
+  subscriptionCancelAt: timestamp("subscription_cancel_at"), // When subscription will be canceled
+  
   // Email communication preferences
   emailNotifications: boolean("email_notifications").default(true), // General email notifications
   bookingUpdates: boolean("booking_updates").default(true), // Booking status updates

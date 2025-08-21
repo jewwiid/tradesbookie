@@ -28,6 +28,7 @@ import BeforeAfterPhotoCapture from "@/components/installer/BeforeAfterPhotoCapt
 import FlexiblePhotoCapture from "@/components/installer/FlexiblePhotoCapture";
 import ScheduleProposalForm from "@/components/ScheduleProposalForm";
 import ScheduleNegotiation from "@/components/ScheduleNegotiation";
+import VipSubscriptionModal from "@/components/installer/VipSubscriptionModal";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth } from "date-fns";
 
 import { 
@@ -65,7 +66,8 @@ import {
   Euro,
   ChevronDown,
   ChevronUp,
-  Play
+  Play,
+  Crown
 } from "lucide-react";
 
 interface InstallerStats {
@@ -3061,6 +3063,7 @@ export default function InstallerDashboard() {
   const [selectedRequest, setSelectedRequest] = useState<ClientRequest | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanError, setScanError] = useState<string>('');
+  const [showVipModal, setShowVipModal] = useState(false);
   const [completionSuccess, setCompletionSuccess] = useState<string>('');
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -3719,6 +3722,40 @@ export default function InstallerDashboard() {
                     <div className="ml-4">
                       <p className="text-sm font-medium text-gray-500">Rating</p>
                       <p className="text-3xl font-bold text-gray-900">{currentStats.rating}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* VIP Status Card */}
+              <Card 
+                className={`cursor-pointer transition-all duration-200 ${
+                  installerProfile?.isVip 
+                    ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300 hover:shadow-lg' 
+                    : 'hover:shadow-md border-2 border-dashed border-gray-300 hover:border-yellow-400'
+                }`}
+                onClick={() => setShowVipModal(true)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <Crown className={`w-8 h-8 ${installerProfile?.isVip ? 'text-yellow-600' : 'text-gray-400'}`} />
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-gray-500">Membership</p>
+                        {installerProfile?.isVip && (
+                          <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs">
+                            VIP
+                          </Badge>
+                        )}
+                      </div>
+                      <p className={`text-2xl font-bold ${installerProfile?.isVip ? 'text-yellow-700' : 'text-gray-600'}`}>
+                        {installerProfile?.isVip ? 'VIP Active' : 'Standard'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {installerProfile?.isVip ? 'No lead fees!' : 'Click to upgrade'}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -4544,6 +4581,15 @@ export default function InstallerDashboard() {
           setSelectedRequest(null);
         }}
       />
+
+      {/* VIP Subscription Modal */}
+      {installerProfile?.id && (
+        <VipSubscriptionModal
+          open={showVipModal}
+          onOpenChange={setShowVipModal}
+          installerId={installerProfile.id}
+        />
+      )}
 
     </div>
   );

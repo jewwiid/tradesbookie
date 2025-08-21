@@ -9188,12 +9188,235 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             "failed"
           );
         }
+      } else if (event.type === 'customer.subscription.updated') {
+        const subscription = event.data.object;
+        const customerId = subscription.customer;
+        
+        // Find installer by Stripe customer ID
+        const installer = await db.select().from(installers)
+          .where(eq(installers.stripeCustomerId, customerId))
+          .limit(1);
+        
+        if (installer.length > 0) {
+          const isActive = subscription.status === 'active';
+          await db.update(installers)
+            .set({ 
+              isVip: isActive,
+              subscriptionStatus: subscription.status,
+              subscriptionCurrentPeriodStart: new Date(subscription.current_period_start * 1000),
+              subscriptionCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              vipGrantedBy: isActive ? 'stripe_subscription' : null,
+              vipGrantedAt: isActive ? new Date() : null,
+              updatedAt: new Date()
+            })
+            .where(eq(installers.id, installer[0].id));
+        }
+      } else if (event.type === 'customer.subscription.deleted') {
+        const subscription = event.data.object;
+        const customerId = subscription.customer;
+        
+        // Find installer by Stripe customer ID and remove VIP status
+        const installer = await db.select().from(installers)
+          .where(eq(installers.stripeCustomerId, customerId))
+          .limit(1);
+        
+        if (installer.length > 0) {
+          await db.update(installers)
+            .set({ 
+              isVip: false,
+              subscriptionStatus: 'canceled',
+              stripeSubscriptionId: null,
+              vipGrantedBy: null,
+              vipGrantedAt: null,
+              updatedAt: new Date()
+            })
+            .where(eq(installers.id, installer[0].id));
+        }
       }
       
       res.json({ received: true });
     } catch (error: any) {
       console.error("Webhook error:", error);
       res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
+
+  // ====================== VIP SUBSCRIPTION ENDPOINTS ======================
+  
+  // Create or retrieve VIP subscription for installer
+  app.post('/api/installer/vip-subscription', async (req, res) => {
+    try {
+      const { installerId } = req.body;
+      
+      if (!installerId) {
+        return res.status(400).json({ message: "Installer ID required" });
+      }
+
+      // Get installer details
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+
+      // Check if installer already has an active subscription
+      if (installer.stripeSubscriptionId && installer.subscriptionStatus === 'active') {
+        const subscription = await stripe.subscriptions.retrieve(installer.stripeSubscriptionId);
+        return res.json({
+          subscriptionId: subscription.id,
+          clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+          status: subscription.status
+        });
+      }
+
+      let customerId = installer.stripeCustomerId;
+
+      // Create Stripe customer if not exists
+      if (!customerId) {
+        const customer = await stripe.customers.create({
+          email: installer.email,
+          name: installer.businessName || installer.contactName,
+          metadata: {
+            installerId: installerId.toString(),
+            type: 'installer'
+          }
+        });
+        
+        customerId = customer.id;
+        
+        // Update installer with Stripe customer ID
+        await db.update(installers)
+          .set({ 
+            stripeCustomerId: customerId,
+            updatedAt: new Date()
+          })
+          .where(eq(installers.id, installerId));
+      }
+
+      // Create VIP subscription (€50/month)
+      const subscription = await stripe.subscriptions.create({
+        customer: customerId,
+        items: [{
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: 'VIP Installer Membership',
+              description: 'No lead fees + priority support'
+            },
+            recurring: {
+              interval: 'month'
+            },
+            unit_amount: 5000, // €50.00 in cents
+          }
+        }],
+        payment_behavior: 'default_incomplete',
+        expand: ['latest_invoice.payment_intent'],
+        metadata: {
+          installerId: installerId.toString(),
+          type: 'vip_subscription'
+        }
+      });
+
+      // Update installer with subscription details
+      await db.update(installers)
+        .set({ 
+          stripeSubscriptionId: subscription.id,
+          subscriptionStatus: subscription.status,
+          subscriptionCurrentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : null,
+          subscriptionCurrentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
+          updatedAt: new Date()
+        })
+        .where(eq(installers.id, installerId));
+
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+        status: subscription.status
+      });
+
+    } catch (error: any) {
+      console.error("VIP subscription creation error:", error);
+      res.status(500).json({ message: "Failed to create VIP subscription: " + error.message });
+    }
+  });
+
+  // Cancel VIP subscription
+  app.post('/api/installer/cancel-vip-subscription', async (req, res) => {
+    try {
+      const { installerId } = req.body;
+      
+      if (!installerId) {
+        return res.status(400).json({ message: "Installer ID required" });
+      }
+
+      const installer = await storage.getInstaller(installerId);
+      if (!installer || !installer.stripeSubscriptionId) {
+        return res.status(404).json({ message: "No active subscription found" });
+      }
+
+      // Cancel subscription at period end (so they keep VIP until period ends)
+      const subscription = await stripe.subscriptions.update(installer.stripeSubscriptionId, {
+        cancel_at_period_end: true
+      });
+
+      // Update installer record
+      await db.update(installers)
+        .set({ 
+          subscriptionCancelAt: subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null,
+          updatedAt: new Date()
+        })
+        .where(eq(installers.id, installerId));
+
+      res.json({
+        success: true,
+        message: "VIP subscription will be canceled at the end of the current billing period",
+        cancelAt: subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null
+      });
+
+    } catch (error: any) {
+      console.error("VIP subscription cancellation error:", error);
+      res.status(500).json({ message: "Failed to cancel VIP subscription: " + error.message });
+    }
+  });
+
+  // Get installer's subscription status
+  app.get('/api/installer/:installerId/subscription-status', async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.installerId);
+      
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+
+      let subscriptionDetails = null;
+      if (installer.stripeSubscriptionId) {
+        try {
+          const subscription = await stripe.subscriptions.retrieve(installer.stripeSubscriptionId);
+          subscriptionDetails = {
+            id: subscription.id,
+            status: subscription.status,
+            current_period_start: subscription.current_period_start,
+            current_period_end: subscription.current_period_end,
+            cancel_at_period_end: subscription.cancel_at_period_end,
+            cancel_at: subscription.cancel_at
+          };
+        } catch (stripeError) {
+          console.error("Error fetching subscription from Stripe:", stripeError);
+        }
+      }
+
+      res.json({
+        isVip: installer.isVip,
+        subscriptionStatus: installer.subscriptionStatus,
+        subscriptionDetails,
+        currentPeriodStart: installer.subscriptionCurrentPeriodStart,
+        currentPeriodEnd: installer.subscriptionCurrentPeriodEnd,
+        cancelAt: installer.subscriptionCancelAt
+      });
+
+    } catch (error: any) {
+      console.error("Subscription status error:", error);
+      res.status(500).json({ message: "Failed to get subscription status" });
     }
   });
 

@@ -3529,18 +3529,35 @@ function BookingCard({
                   </h4>
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {(booking as any).beforeAfterPhotos.split(',').map((photo: string, index: number) => (
-                        <div key={index} className="space-y-2">
+                      {(Array.isArray((booking as any).beforeAfterPhotos) ? (booking as any).beforeAfterPhotos : []).flatMap((photoSet: any, tvIndex: number) => {
+                        const photos = [];
+                        if (photoSet.beforePhoto) {
+                          photos.push({
+                            photo: photoSet.beforePhoto,
+                            label: `TV ${tvIndex + 1} - Before`,
+                            key: `${tvIndex}-before`
+                          });
+                        }
+                        if (photoSet.afterPhoto) {
+                          photos.push({
+                            photo: photoSet.afterPhoto,
+                            label: `TV ${tvIndex + 1} - After`,
+                            key: `${tvIndex}-after`
+                          });
+                        }
+                        return photos;
+                      }).map((photoData: any, index: number) => (
+                        <div key={photoData.key} className="space-y-2">
                           <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
                             <img
-                              src={photo.startsWith('data:') ? photo : `data:image/jpeg;base64,${photo}`}
-                              alt={`Installation photo ${index + 1}`}
+                              src={photoData.photo.startsWith('data:') ? photoData.photo : `data:image/jpeg;base64,${photoData.photo}`}
+                              alt={photoData.label}
                               className="w-full h-full object-cover"
                               loading="lazy"
                             />
                           </div>
                           <p className="text-xs text-gray-500 text-center">
-                            Photo {index + 1} of {(booking as any).beforeAfterPhotos.split(',').length}
+                            {photoData.label}
                           </p>
                         </div>
                       ))}

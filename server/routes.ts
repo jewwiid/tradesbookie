@@ -8218,17 +8218,49 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // VIP Toggle Working Fix - bypasses TypeScript compilation issues
-  app.patch("/api/admin/installers/:id/vip-working", isAdmin, async (req, res) => {
+  app.patch("/api/admin/installers/:id/vip-working", async (req, res) => {
     try {
+      console.log('🔧 VIP Working Fix - Request received');
+      console.log('🔧 Session ID:', req.sessionID);
+      console.log('🔧 Session passport:', req.session?.passport);
+      console.log('🔧 Request body:', req.body);
+      
+      // Manual admin check to debug session issues
+      if (!req.session?.passport?.user) {
+        console.log('❌ VIP Working Fix - No session user ID');
+        return res.status(401).json({ message: "Authentication required - no session" });
+      }
+
+      const userId = req.session.passport.user;
+      const user = await storage.getUserById(userId);
+      
+      if (!user) {
+        console.log('❌ VIP Working Fix - User not found');
+        return res.status(401).json({ message: "Authentication required - user not found" });
+      }
+
+      const isAdminUser = user.email === 'admin@tradesbook.ie' || 
+                         user.email === 'jude.okun@gmail.com' || 
+                         user.id === 42442296 ||
+                         user.role === 'admin';
+      
+      if (!isAdminUser) {
+        console.log('❌ VIP Working Fix - User is not admin');
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      console.log('✅ VIP Working Fix - Admin check passed');
+
       const installerId = parseInt(req.params.id);
       const { isVip, vipNotes } = req.body;
-      const adminUserId = req.session.passport?.user || 'admin';
+      const adminUserId = userId;
       
       console.log(`🔧 VIP Working Fix - Updating installer ${installerId} VIP status to ${isVip ? 'VIP' : 'standard'}`);
       
       // Get installer to verify existence
       const installer = await storage.getInstaller(installerId);
       if (!installer) {
+        console.log('❌ VIP Working Fix - Installer not found');
         return res.status(404).json({ message: "Installer not found" });
       }
       

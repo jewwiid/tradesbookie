@@ -1159,7 +1159,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     const settings = await this.getReferralSettings();
-    const discount = settings ? parseFloat(settings.refereeDiscount.toString()) : 10;
+    const discount = settings ? parseFloat(settings.globalDiscountPercentage.toString()) : 10;
 
     return {
       valid: true,
@@ -1197,12 +1197,6 @@ export class DatabaseStorage implements IStorage {
 
   async getAllReferralCodes(): Promise<ReferralCode[]> {
     return await db.select().from(referralCodes).orderBy(referralCodes.createdAt);
-  }
-
-  async getReferralCodeByCode(code: string): Promise<ReferralCode | undefined> {
-    const [referralCode] = await db.select().from(referralCodes)
-      .where(eq(referralCodes.referralCode, code));
-    return referralCode;
   }
 
   async updateReferralCode(id: number, updates: { 

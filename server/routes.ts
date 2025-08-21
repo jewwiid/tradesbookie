@@ -4574,21 +4574,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/referral/validate", async (req, res) => {
-    try {
-      const { code } = req.body;
-      
-      if (!code) {
-        return res.status(400).json({ message: "Referral code required" });
-      }
-      
-      const validation = await storage.validateReferralCode(code);
-      res.json(validation);
-    } catch (error) {
-      console.error("Error validating referral code:", error);
-      res.status(500).json({ message: "Failed to validate referral code" });
-    }
-  });
 
   app.get("/api/referral/earnings/:userId", async (req, res) => {
     try {

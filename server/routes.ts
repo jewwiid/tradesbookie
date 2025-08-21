@@ -9258,6 +9258,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.status(404).json({ message: "Installer not found" });
       }
 
+      console.log('Installer subscription check:', {
+        installerId,
+        stripeSubscriptionId: installer.stripeSubscriptionId,
+        subscriptionStatus: installer.subscriptionStatus
+      });
+
       // Check if installer already has a subscription
       if (installer.stripeSubscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(installer.stripeSubscriptionId, {

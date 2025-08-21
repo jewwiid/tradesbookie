@@ -7166,28 +7166,28 @@ export default function AdminDashboard() {
               <Shield className="w-6 h-6 text-blue-600 mr-3" />
               <span className="text-xl font-bold text-gray-900">Admin Dashboard</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => setLocation("/customer-dashboard")} size="sm">
-                <Users className="w-4 h-4 mr-2" />
-                Customer View
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+              <Button variant="ghost" onClick={() => setLocation("/customer-dashboard")} size="sm" className="px-2 sm:px-3">
+                <Users className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Customer View</span>
               </Button>
-              <Button variant="ghost" onClick={() => setLocation("/installer-dashboard")} size="sm">
-                <Wrench className="w-4 h-4 mr-2" />
-                Installer View
+              <Button variant="ghost" onClick={() => setLocation("/installer-dashboard")} size="sm" className="px-2 sm:px-3">
+                <Wrench className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Installer View</span>
               </Button>
-              <Button variant="ghost" onClick={() => setLocation("/")} size="sm">
-                <Home className="w-4 h-4 mr-2" />
-                Home
+              <Button variant="ghost" onClick={() => setLocation("/")} size="sm" className="px-2 sm:px-3">
+                <Home className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Home</span>
               </Button>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 {user?.profileImageUrl && (
                   <img 
                     src={user.profileImageUrl} 
                     alt="Admin" 
-                    className="w-8 h-8 rounded-full"
+                    className="w-6 h-6 sm:w-8 sm:h-8 rounded-full"
                   />
                 )}
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-xs sm:text-sm font-medium text-gray-700">
                   {user?.firstName || 'Admin'}
                 </span>
               </div>

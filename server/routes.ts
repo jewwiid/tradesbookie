@@ -8220,23 +8220,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // VIP Toggle Working Fix - bypasses TypeScript compilation issues
   app.patch("/api/admin/installers/:id/vip-working", async (req, res) => {
     try {
-      console.log('🔧 VIP Working Fix - Request received');
-      console.log('🔧 Session ID:', req.sessionID);
-      console.log('🔧 Session passport:', req.session?.passport);
-      console.log('🔧 Request body:', req.body);
-      
-      // Manual admin check to debug session issues
+      // Manual admin check to bypass middleware issues
       if (!req.session?.passport?.user) {
-        console.log('❌ VIP Working Fix - No session user ID');
-        return res.status(401).json({ message: "Authentication required - no session" });
+        return res.status(401).json({ message: "Authentication required" });
       }
 
       const userId = req.session.passport.user;
       const user = await storage.getUserById(userId);
       
       if (!user) {
-        console.log('❌ VIP Working Fix - User not found');
-        return res.status(401).json({ message: "Authentication required - user not found" });
+        return res.status(401).json({ message: "Authentication required" });
       }
 
       const isAdminUser = user.email === 'admin@tradesbook.ie' || 
@@ -8245,22 +8238,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
                          user.role === 'admin';
       
       if (!isAdminUser) {
-        console.log('❌ VIP Working Fix - User is not admin');
         return res.status(403).json({ message: "Admin access required" });
       }
-      
-      console.log('✅ VIP Working Fix - Admin check passed');
 
       const installerId = parseInt(req.params.id);
       const { isVip, vipNotes } = req.body;
-      const adminUserId = userId;
-      
-      console.log(`🔧 VIP Working Fix - Updating installer ${installerId} VIP status to ${isVip ? 'VIP' : 'standard'}`);
       
       // Get installer to verify existence
       const installer = await storage.getInstaller(installerId);
       if (!installer) {
-        console.log('❌ VIP Working Fix - Installer not found');
         return res.status(404).json({ message: "Installer not found" });
       }
       
@@ -8271,7 +8257,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       };
       
       if (isVip) {
-        updateData.vipGrantedBy = adminUserId;
+        updateData.vipGrantedBy = userId;
         updateData.vipGrantedAt = new Date();
       } else {
         updateData.vipGrantedBy = null;
@@ -8280,16 +8266,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       await storage.updateInstaller(installerId, updateData);
       
-      const successMessage = `Installer ${isVip ? 'granted' : 'removed'} VIP status successfully`;
-      console.log(`✅ VIP Working Fix - ${successMessage}`);
-      
       res.json({ 
-        message: successMessage,
+        message: `Installer ${isVip ? 'granted' : 'removed'} VIP status successfully`,
         isVip: Boolean(isVip),
-        vipGrantedBy: isVip ? adminUserId : null
+        vipGrantedBy: isVip ? userId : null
       });
     } catch (error) {
-      console.error("❌ VIP Working Fix - Error:", error);
+      console.error("Error updating installer VIP status:", error);
       res.status(500).json({ message: "Failed to update installer VIP status" });
     }
   });

@@ -1271,23 +1271,9 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
 
   const toggleVipStatusMutation = useMutation({
     mutationFn: async ({ installerId, isVip, vipNotes }: { installerId: number; isVip: boolean; vipNotes?: string }) => {
-      console.log('🔧 Frontend VIP toggle - Starting mutation');
-      console.log('🔧 Installer ID:', installerId);
-      console.log('🔧 Is VIP:', isVip);
-      console.log('🔧 VIP Notes:', vipNotes);
-      console.log('🔧 Making request to:', `/api/admin/installers/${installerId}/vip-working`);
-      
-      try {
-        const response = await apiRequest("PATCH", `/api/admin/installers/${installerId}/vip-working`, { isVip, vipNotes });
-        console.log('✅ Frontend VIP toggle - API request successful:', response);
-        return response;
-      } catch (error) {
-        console.error('❌ Frontend VIP toggle - API request failed:', error);
-        throw error;
-      }
+      await apiRequest("PATCH", `/api/admin/installers/${installerId}/vip-working`, { isVip, vipNotes });
     },
     onSuccess: (_, { isVip }) => {
-      console.log('✅ Frontend VIP toggle - Mutation success');
       toast({ 
         title: `Installer ${isVip ? 'granted' : 'removed'} VIP status successfully`,
         description: isVip ? "Installer will now get leads for free" : "Installer will pay standard lead fees"
@@ -1295,7 +1281,7 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
       queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
     },
     onError: (error) => {
-      console.error('❌ Frontend VIP toggle - Mutation error:', error);
+      console.error("VIP toggle error:", error);
       toast({ title: "Failed to update installer VIP status", variant: "destructive" });
     },
   });
@@ -1586,23 +1572,13 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
                     </Badge>
                     <Switch 
                       checked={installer.isVip || false}
-                      onCheckedChange={(checked) => {
-                        console.log('🔧 VIP Switch clicked!');
-                        console.log('🔧 Installer:', installer.businessName, 'ID:', installer.id);
-                        console.log('🔧 Current VIP status:', installer.isVip);
-                        console.log('🔧 New VIP status:', checked);
-                        console.log('🔧 Calling mutation with:', {
-                          installerId: installer.id,
-                          isVip: checked,
-                          vipNotes: checked ? "VIP status granted by admin" : undefined
-                        });
-                        
+                      onCheckedChange={(checked) => 
                         toggleVipStatusMutation.mutate({
                           installerId: installer.id,
                           isVip: checked,
                           vipNotes: checked ? "VIP status granted by admin" : undefined
-                        });
-                      }}
+                        })
+                      }
                       title={installer.isVip ? "Remove VIP status" : "Grant VIP status (free leads)"}
                       className={installer.isVip ? "data-[state=checked]:bg-purple-600" : ""}
                     />

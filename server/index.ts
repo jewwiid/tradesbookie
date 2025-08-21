@@ -1,6 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { registerVipToggleFix } from "./vip-toggle-fix";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeDatabase } from "./db";
 import { createMockProfiles } from "./mockData";
@@ -93,9 +92,6 @@ app.use((req, res, next) => {
     }
     
     const server = await registerRoutes(app);
-    
-    // Register the VIP toggle fix to bypass TypeScript compilation issues
-    registerVipToggleFix(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

@@ -9265,6 +9265,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       });
 
       // Check if installer already has a subscription
+      console.log('Subscription check - installer.stripeSubscriptionId:', installer.stripeSubscriptionId);
+      console.log('Subscription check - typeof:', typeof installer.stripeSubscriptionId);
+      console.log('Subscription check - truthy:', !!installer.stripeSubscriptionId);
+      
       if (installer.stripeSubscriptionId) {
         console.log('Found existing subscription:', installer.stripeSubscriptionId);
         

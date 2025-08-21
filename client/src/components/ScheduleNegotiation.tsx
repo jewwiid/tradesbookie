@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, Clock, MessageSquare, CheckCircle, XCircle, User, Users, ChevronDown } from 'lucide-react';
+import { Calendar, Clock, MessageSquare, CheckCircle, XCircle, User, Users, ChevronDown, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { TIME_SLOTS } from '@/lib/constants';
@@ -91,6 +91,34 @@ export default function ScheduleNegotiation({
       });
     }
   });
+
+  // Delete negotiation mutation
+  const deleteNegotiationMutation = useMutation({
+    mutationFn: async (negotiationId: number) => {
+      return apiRequest('DELETE', `/api/schedule-negotiations/${negotiationId}`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Message deleted",
+        description: "The schedule message has been deleted successfully."
+      });
+      refetch();
+      queryClient.invalidateQueries({ queryKey: [`/api/bookings/${bookingId}`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to delete message. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleDeleteNegotiation = (negotiationId: number) => {
+    if (window.confirm("Are you sure you want to delete this message? This action cannot be undone.")) {
+      deleteNegotiationMutation.mutate(negotiationId);
+    }
+  };
 
   const handleRespond = (negotiation: ScheduleNegotiation, action: 'accept' | 'reject') => {
     setSelectedNegotiation(negotiation);
@@ -303,9 +331,31 @@ export default function ScheduleNegotiation({
                                   {getStatusIcon(negotiation.status)}
                                   <span className="ml-1 capitalize">{negotiation.status.replace('_', ' ')}</span>
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                  {formatTime(negotiation.proposedAt)}
-                                </span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">
+                                    {formatTime(negotiation.proposedAt)}
+                                  </span>
+                                  {(() => {
+                                    // Determine if this is the most recent message across ALL negotiations for this booking
+                                    const allNegotiationsSorted = [...negotiations].sort((a, b) => 
+                                      new Date(b.proposedAt).getTime() - new Date(a.proposedAt).getTime()
+                                    );
+                                    const isLatestMessage = allNegotiationsSorted[0]?.id === negotiation.id;
+                                    
+                                    return !isLatestMessage && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() => handleDeleteNegotiation(negotiation.id)}
+                                        disabled={deleteNegotiationMutation.isPending}
+                                        title="Delete this message"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    );
+                                  })()}
+                                </div>
                               </div>
 
                               <div className="bg-gray-50 rounded-lg p-3 space-y-2 text-sm">

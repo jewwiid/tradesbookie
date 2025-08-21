@@ -9300,8 +9300,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         const price = await stripe.prices.create({
           currency: 'eur',
           product_data: {
-            name: 'VIP Installer Membership',
-            description: 'No lead fees + priority support'
+            name: 'VIP Installer Membership'
           },
           recurring: {
             interval: 'month'

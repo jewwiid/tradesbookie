@@ -238,7 +238,7 @@ export async function sendTvSetupAdminNotification(booking: any): Promise<boolea
     to: 'admin@tradesbook.ie',
     subject,
     html,
-    from: 'bookings@tradesbook.ie',
+    from: 'support@tradesbook.ie',
     replyTo: 'support@tradesbook.ie'
   });
 }
@@ -541,7 +541,7 @@ export async function sendInstallerNotification(installerEmail: string, installe
           
           <div class="footer">
             <p>Dashboard: <a href="https://tradesbook.ie/installer-dashboard">tradesbook.ie/installer-dashboard</a></p>
-            <p>Support: <a href="mailto:installer@tradesbook.ie">installer@tradesbook.ie</a></p>
+            <p>Support: <a href="mailto:support@tradesbook.ie">support@tradesbook.ie</a></p>
             <p style="margin-top: 15px; font-size: 12px; color: #999;">
               This lead notification was sent to approved installers in the service area.
             </p>
@@ -556,7 +556,7 @@ export async function sendInstallerNotification(installerEmail: string, installe
     to: validInstallerEmail,
     subject,
     html,
-    from: 'installer@tradesbook.ie',
+    from: 'support@tradesbook.ie',
     replyTo: 'admin@tradesbook.ie' // Installer replies go to admin
   });
 }
@@ -1335,7 +1335,7 @@ export async function sendInstallerRejectionEmail(installerEmail: string, instal
             <p style="color: #4a5568; font-size: 16px; margin: 0 0 15px 0; line-height: 1.5;">
               If you have questions about this decision or would like guidance on strengthening a future application, please contact our support team.
             </p>
-            <a href="mailto:installer@tradesbook.ie" style="display: inline-block; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+            <a href="mailto:support@tradesbook.ie" style="display: inline-block; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: 600;">
               Contact Support Team
             </a>
           </div>
@@ -1525,7 +1525,7 @@ export async function sendInstallerWelcomeEmail(installerEmail: string, installe
               </div>
 
               <div class="highlight-box">
-                <strong>Need Help?</strong> If you have any questions about the registration process or platform features, please contact us at <a href="mailto:installer@tradesbook.ie">installer@tradesbook.ie</a>
+                <strong>Need Help?</strong> If you have any questions about the registration process or platform features, please contact us at <a href="mailto:support@tradesbook.ie">support@tradesbook.ie</a>
               </div>
             </div>
 
@@ -1543,7 +1543,7 @@ export async function sendInstallerWelcomeEmail(installerEmail: string, installe
       subject: 'Welcome to tradesbook.ie - Registration Confirmed',
       html: htmlContent,
       from: getValidFromEmail('installer'),
-      replyTo: 'installer@tradesbook.ie'
+      replyTo: 'support@tradesbook.ie'
     });
 
     if (success) {

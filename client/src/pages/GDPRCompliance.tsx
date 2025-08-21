@@ -259,7 +259,7 @@ export default function GDPRCompliance() {
               <div className="border rounded-lg p-4">
                 <h4 className="font-semibold">General Privacy Inquiries</h4>
                 <p className="text-sm mt-2">
-                  <strong>Email:</strong> privacy@tradesbook.ie<br />
+                  <strong>Email:</strong> support@tradesbook.ie<br />
                   <strong>Response Time:</strong> Within 30 days
                 </p>
               </div>
@@ -321,7 +321,7 @@ export default function GDPRCompliance() {
         <p className="text-sm text-green-700">
           We're committed to transparency and giving you full control over your personal data. 
           If you have any questions about GDPR compliance or your privacy rights, 
-          don't hesitate to contact us at privacy@tradesbook.ie.
+          don't hesitate to contact us at support@tradesbook.ie.
         </p>
       </div>
     </div>

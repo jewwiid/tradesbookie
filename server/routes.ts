@@ -7482,7 +7482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         • Get expert advice on setup and placement
         • Arrange professional installation if needed
         
-        If you need to make any changes, please contact us at bookings@tradesbook.ie
+        If you need to make any changes, please contact us at support@tradesbook.ie
         
         Best regards,
         The tradesbook.ie Team
@@ -7628,7 +7628,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         to: email,
         subject: customerEmailSubject,
         html: customerEmailHtml,
-        from: 'recommendations@tradesbook.ie'
+        from: 'support@tradesbook.ie'
       });
 
       res.json({ 

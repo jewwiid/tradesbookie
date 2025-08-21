@@ -92,7 +92,7 @@ export async function sendPasswordResetEmail(
                     <li>🛡️ Never share this link with anyone</li>
                 </ul>
                 
-                <p>If you continue to have trouble accessing your account, please contact our support team at help@tradesbook.ie.</p>
+                <p>If you continue to have trouble accessing your account, please contact our support team at support@tradesbook.ie.</p>
                 
                 <p>Best regards,<br>
                 The tradesbook.ie Team</p>

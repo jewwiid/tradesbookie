@@ -3,7 +3,7 @@
 
 export const EMAIL_CONFIG = {
   // Customer-facing emails (using your Google Workspace setup)
-  BOOKINGS: 'bookings@tradesbook.ie', // Alias to support@tradesbook.ie
+  BOOKINGS: 'support@tradesbook.ie', // Standardized customer support email
   SUPPORT: 'support@tradesbook.ie', 
   NOREPLY: 'noreply@tradesbook.ie', // Alias to admin@tradesbook.ie
   
@@ -24,7 +24,7 @@ export function getInstallerNotificationEmail(installerEmail?: string): string {
 export function getValidFromEmail(serviceType: 'booking' | 'support' | 'job' | 'admin' | 'installer'): string {
   switch (serviceType) {
     case 'booking':
-      return EMAIL_CONFIG.BOOKINGS;
+      return EMAIL_CONFIG.SUPPORT;
     case 'job':
       return EMAIL_CONFIG.INSTALLERS; // Use installer alias
     case 'installer':

@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, Clock, MessageSquare, CheckCircle, XCircle, User, Users } from 'lucide-react';
+import { Calendar, Clock, MessageSquare, CheckCircle, XCircle, User, Users, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { TIME_SLOTS } from '@/lib/constants';
@@ -47,6 +47,7 @@ export default function ScheduleNegotiation({
   const [selectedNegotiation, setSelectedNegotiation] = useState<ScheduleNegotiation | null>(null);
   const [actionType, setActionType] = useState<'accept' | 'reject'>('accept');
   const [showAll, setShowAll] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(true);
   const { toast } = useToast();
 
   // Fetch schedule negotiations for this booking
@@ -162,12 +163,26 @@ export default function ScheduleNegotiation({
   if (isLoading) {
     return (
       <Card>
-        <CardContent className="p-6">
-          <div className="animate-pulse space-y-3">
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        <CardHeader className="pb-2">
+          <div 
+            className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded-lg transition-colors"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <CardTitle className="flex items-center space-x-2">
+              <MessageSquare className="w-5 h-5" />
+              <span>Schedule Communication</span>
+            </CardTitle>
+            <ChevronDown className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
           </div>
-        </CardContent>
+        </CardHeader>
+        {isExpanded && (
+          <CardContent className="p-6">
+            <div className="animate-pulse space-y-3">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </CardContent>
+        )}
       </Card>
     );
   }
@@ -175,30 +190,45 @@ export default function ScheduleNegotiation({
   if (negotiations.length === 0) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <MessageSquare className="w-5 h-5" />
-            <span>Schedule Communication</span>
-          </CardTitle>
+        <CardHeader className="pb-2">
+          <div 
+            className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded-lg transition-colors"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <CardTitle className="flex items-center space-x-2">
+              <MessageSquare className="w-5 h-5" />
+              <span>Schedule Communication</span>
+            </CardTitle>
+            <ChevronDown className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+          </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            No schedule proposals yet. The installer will contact you to arrange a convenient time.
-          </p>
-        </CardContent>
+        {isExpanded && (
+          <CardContent>
+            <p className="text-muted-foreground text-center py-8">
+              No schedule proposals yet. The installer will contact you to arrange a convenient time.
+            </p>
+          </CardContent>
+        )}
       </Card>
     );
   }
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <MessageSquare className="w-5 h-5" />
-          <span>Schedule Communication</span>
-        </CardTitle>
+      <CardHeader className="pb-2">
+        <div 
+          className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded-lg transition-colors"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <CardTitle className="flex items-center space-x-2">
+            <MessageSquare className="w-5 h-5" />
+            <span>Schedule Communication</span>
+          </CardTitle>
+          <ChevronDown className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+        </div>
       </CardHeader>
-      <CardContent>
+      {isExpanded && (
+        <CardContent>
         <div className="space-y-4">
           {(() => {
             // Group negotiations by installer and sort by date (newest first)
@@ -387,7 +417,8 @@ export default function ScheduleNegotiation({
             </div>
           </DialogContent>
         </Dialog>
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 }

@@ -55,6 +55,20 @@ export default function InstallerReviews({ installerId }: InstallerReviewsProps)
     );
   };
 
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return 'Date not available';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Date not available';
+      }
+      return date.toLocaleDateString();
+    } catch (error) {
+      return 'Date not available';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -184,7 +198,7 @@ export default function InstallerReviews({ installerId }: InstallerReviewsProps)
                       <div className="flex items-center gap-2 mt-1">
                         {renderStars(review.rating, 'sm')}
                         <span className="text-sm text-gray-500">
-                          {new Date(review.createdAt).toLocaleDateString()}
+                          {formatDate(review.createdAt)}
                         </span>
                       </div>
                     </div>
@@ -207,7 +221,7 @@ export default function InstallerReviews({ installerId }: InstallerReviewsProps)
 
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Calendar className="w-3 h-3" />
-                  <span>Installation completed {new Date(review.completedDate).toLocaleDateString()}</span>
+                  <span>Installation completed {formatDate(review.completedDate)}</span>
                 </div>
               </div>
             ))}
@@ -312,7 +326,7 @@ function PendingReviews({ installerId }: { installerId: number }) {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{new Date(job.booking?.completedDate || job.completedDate).toLocaleDateString()}</span>
+                        <span className="truncate">{formatDate(job.booking?.completedDate || job.completedDate)}</span>
                       </span>
                       <span className="flex items-center gap-1">
                         <MapPin className="w-3 h-3 flex-shrink-0" />

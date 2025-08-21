@@ -50,7 +50,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/installer-registration" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/installer-service-selection" className="text-gray-300 hover:text-white transition-colors">
                   Join as Tradesperson
                 </Link>
               </li>
@@ -92,7 +92,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/installer-registration" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/installer-service-selection" className="text-gray-300 hover:text-white transition-colors">
                   Join as Installer
                 </Link>
               </li>

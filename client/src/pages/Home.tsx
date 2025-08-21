@@ -285,7 +285,7 @@ export default function Home() {
                       <span className="whitespace-nowrap">View Pricing</span>
                     </Button>
                   </Link>
-                  <Link href="/installer-registration" className="flex-1 min-w-0">
+                  <Link href="/installer-service-selection" className="flex-1 min-w-0">
                     <Button className="relative z-50 w-full inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 shadow-lg border border-emerald-500/20">
                       <span className="whitespace-nowrap">Join as Tradesperson</span>
                     </Button>

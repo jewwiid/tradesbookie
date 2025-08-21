@@ -356,7 +356,7 @@ export default function OurInstallers() {
 
               <div className="text-center mt-8">
                 <p className="text-gray-600 mb-4">Don't see your area? We're expanding coverage regularly.</p>
-                <Link href="/installer-registration">
+                <Link href="/installer-service-selection">
                   <Button variant="outline">
                     Join Our Network
                     <Users className="ml-2 w-4 h-4" />
@@ -373,7 +373,7 @@ export default function OurInstallers() {
                   We're actively recruiting qualified installers across Ireland. 
                   Be among the first to join our platform.
                 </p>
-                <Link href="/installer-registration">
+                <Link href="/installer-service-selection">
                   <Button>
                     Become an Installer
                     <Users className="ml-2 w-4 h-4" />
@@ -436,7 +436,7 @@ export default function OurInstallers() {
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <Link href="/installer-registration">
+            <Link href="/installer-service-selection">
               <Button size="lg" variant="outline" className="border-white text-[#2563eb] hover:bg-white hover:text-[#2563eb]">
                 Become an Installer
                 <Users className="ml-2 w-5 h-5" />

@@ -659,7 +659,7 @@ export default function InstallerPending() {
             {profile.approvalStatus === 'rejected' && (
               <Button 
                 variant="default" 
-                onClick={() => setLocation('/installer-registration')}
+                onClick={() => setLocation('/installer-service-selection')}
               >
                 Create New Application
               </Button>

@@ -3439,7 +3439,7 @@ export default function InstallerDashboard() {
                   Sign in as Installer
                 </Button>
               </Link>
-              <Link href="/installer-registration">
+              <Link href="/installer-service-selection">
                 <Button variant="outline" className="w-full" size="lg">
                   Register as New Installer
                 </Button>

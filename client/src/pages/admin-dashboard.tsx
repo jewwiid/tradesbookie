@@ -1257,19 +1257,14 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
 
   const togglePublicVisibilityMutation = useMutation({
     mutationFn: async ({ installerId, isPubliclyVisible }: { installerId: number; isPubliclyVisible: boolean }) => {
-      console.log("🚀 Making API request:", { installerId, isPubliclyVisible });
-      const response = await apiRequest("PATCH", `/api/admin/installers/${installerId}/visibility`, { isPubliclyVisible });
-      console.log("✅ API response:", response);
-      return response;
+      return await apiRequest("PATCH", `/api/admin/installers/${installerId}/visibility`, { isPubliclyVisible });
     },
     onSuccess: () => {
-      console.log("✅ Visibility mutation succeeded");
       toast({ title: "Public visibility updated" });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/installers"] });
       queryClient.invalidateQueries({ queryKey: ["/api/installers"] }); // Update public installer list
     },
-    onError: (error) => {
-      console.error("❌ Visibility mutation failed:", error);
+    onError: () => {
       toast({ title: "Failed to update visibility", variant: "destructive" });
     },
   });
@@ -1557,19 +1552,12 @@ function InstallerManagement({ installerServiceAssignments = [], serviceTypes = 
                     </Badge>
                     <Switch 
                       checked={installer.isPubliclyVisible !== false}
-                      onCheckedChange={(checked) => {
-                        console.log("🔧 Visibility toggle clicked:", {
-                          installerId: installer.id,
-                          currentVisibility: installer.isPubliclyVisible,
-                          newVisibility: checked,
-                          mutationStatus: togglePublicVisibilityMutation.isPending ? 'pending' : 'idle'
-                        });
-                        
+                      onCheckedChange={(checked) => 
                         togglePublicVisibilityMutation.mutate({
                           installerId: installer.id,
                           isPubliclyVisible: checked
-                        });
-                      }}
+                        })
+                      }
                       title={installer.isPubliclyVisible !== false ? "Hide from public view" : "Show in public view"}
                       disabled={togglePublicVisibilityMutation.isPending}
                     />

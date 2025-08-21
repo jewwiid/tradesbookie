@@ -294,7 +294,7 @@ export default function InstallerProfile() {
                             <div className="flex items-center space-x-4 text-sm text-gray-600">
                               <div className="flex items-center space-x-1">
                                 <MapPin className="w-4 h-4" />
-                                <span>{work.location}</span>
+                                <span>Dublin Area</span>
                               </div>
                               <div className="flex items-center space-x-1">
                                 <Calendar className="w-4 h-4" />
@@ -312,7 +312,7 @@ export default function InstallerProfile() {
                                   <img 
                                     src={`data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
                                     alt="Before installation"
-                                    className="w-full h-48 object-cover"
+                                    className="w-full h-24 object-cover"
                                   />
                                   <div className="absolute top-2 left-2">
                                     <Badge className="bg-red-500 hover:bg-red-600">Before</Badge>
@@ -324,7 +324,7 @@ export default function InstallerProfile() {
                                   <img 
                                     src={`data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
                                     alt="After installation"
-                                    className="w-full h-48 object-cover"
+                                    className="w-full h-24 object-cover"
                                   />
                                   <div className="absolute top-2 left-2">
                                     <Badge className="bg-green-500 hover:bg-green-600">After</Badge>
@@ -355,29 +355,6 @@ export default function InstallerProfile() {
                             </div>
                           )}
 
-                          {/* Customer Review */}
-                          {work.customerRating && (
-                            <div className="p-4 border-t">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <div className="flex">
-                                  {Array.from({ length: 5 }, (_, i) => (
-                                    <Star 
-                                      key={i} 
-                                      className={`w-4 h-4 ${
-                                        i < work.customerRating! 
-                                          ? 'text-yellow-400 fill-yellow-400' 
-                                          : 'text-gray-300'
-                                      }`} 
-                                    />
-                                  ))}
-                                </div>
-                                <span className="text-sm text-gray-600">Customer Review</span>
-                              </div>
-                              {work.customerReview && (
-                                <p className="text-sm text-gray-700 italic">"{work.customerReview}"</p>
-                              )}
-                            </div>
-                          )}
                         </div>
                       );
                     })}

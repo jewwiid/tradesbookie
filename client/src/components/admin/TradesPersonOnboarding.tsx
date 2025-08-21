@@ -166,7 +166,7 @@ export default function TradesPersonOnboarding() {
   // Create individual invitation
   const createInvitationMutation = useMutation({
     mutationFn: async (data: OnboardingFormData) => {
-      return await apiRequest("/api/admin/onboarding/create-invitation", "POST", data);
+      return await apiRequest("POST", "/api/admin/onboarding/create-invitation", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding/invitations"] });
@@ -190,7 +190,7 @@ export default function TradesPersonOnboarding() {
   // Create email template
   const createTemplateMutation = useMutation({
     mutationFn: async (data: EmailTemplateFormData) => {
-      return await apiRequest("/api/admin/onboarding/create-email-template", "POST", data);
+      return await apiRequest("POST", "/api/admin/onboarding/create-email-template", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding/email-templates"] });
@@ -212,7 +212,7 @@ export default function TradesPersonOnboarding() {
   // Create installer invitation with auto-generated password
   const createInstallerInvitationMutation = useMutation({
     mutationFn: async (data: OnboardingFormData) => {
-      const response = await apiRequest("/api/admin/invite-installer", "POST", {
+      const response = await apiRequest("POST", "/api/admin/invite-installer", {
         name: data.name,
         email: data.email,
         businessName: data.businessName,
@@ -226,7 +226,7 @@ export default function TradesPersonOnboarding() {
       // If photo was uploaded, set the photo for the installer
       if (data.profilePhotoUrl && response.installer?.id) {
         try {
-          await apiRequest(`/api/installers/${response.installer.id}/profile-photo`, "PUT", {
+          await apiRequest("PUT", `/api/installers/${response.installer.id}/profile-photo`, {
             photoURL: data.profilePhotoUrl
           });
         } catch (photoError) {
@@ -270,7 +270,7 @@ export default function TradesPersonOnboarding() {
 
   const createBasicProfileMutation = useMutation({
     mutationFn: async (data: OnboardingFormData) => {
-      const response = await apiRequest("/api/admin/create-basic-installer", "POST", {
+      const response = await apiRequest("POST", "/api/admin/create-basic-installer", {
         name: data.name,
         email: data.email,
         businessName: data.businessName,
@@ -285,7 +285,7 @@ export default function TradesPersonOnboarding() {
       // If photo was uploaded, set the photo for the installer
       if (data.profilePhotoUrl && response.installer?.id) {
         try {
-          await apiRequest(`/api/installers/${response.installer.id}/profile-photo`, "PUT", {
+          await apiRequest("PUT", `/api/installers/${response.installer.id}/profile-photo`, {
             photoURL: data.profilePhotoUrl
           });
         } catch (photoError) {
@@ -329,7 +329,7 @@ export default function TradesPersonOnboarding() {
   // Change installer password (admin only)
   const changeInstallerPasswordMutation = useMutation({
     mutationFn: async (data: { installerId: string; newPassword: string }) => {
-      return await apiRequest("/api/admin/installer-password", "POST", data);
+      return await apiRequest("POST", "/api/admin/installer-password", data);
     },
     onSuccess: () => {
       toast({
@@ -354,7 +354,7 @@ export default function TradesPersonOnboarding() {
   // Resend invitation
   const resendInvitationMutation = useMutation({
     mutationFn: async (invitationId: number) => {
-      return await apiRequest(`/api/admin/onboarding/resend-invitation/${invitationId}`, "POST", {});
+      return await apiRequest("POST", `/api/admin/onboarding/resend-invitation/${invitationId}`, {});
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding/invitations"] });
@@ -374,7 +374,7 @@ export default function TradesPersonOnboarding() {
 
   // Photo upload handlers
   const handleGetUploadParameters = async () => {
-    const response = await apiRequest("/api/objects/upload", "POST", {});
+    const response = await apiRequest("POST", "/api/objects/upload", {});
     return {
       method: "PUT" as const,
       url: response.uploadURL,

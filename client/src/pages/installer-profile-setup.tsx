@@ -59,10 +59,10 @@ export default function InstallerProfileSetup() {
     mutationFn: async (data: any) => {
       // Use update endpoint for OAuth users who already have an account
       if (currentUser) {
-        return await apiRequest("/api/installers/profile/update", "POST", data);
+        return await apiRequest("POST", "/api/installers/profile/update", data);
       }
       // Use register endpoint for non-OAuth users
-      return await apiRequest("/api/installers/register", "POST", data);
+      return await apiRequest("POST", "/api/installers/register", data);
     },
     onSuccess: (data) => {
       toast({

@@ -6394,6 +6394,198 @@ function EmailPreferencesManagement() {
   );
 }
 
+// Installer Credit Loading Component
+function InstallerCreditLoading() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [selectedInstaller, setSelectedInstaller] = useState<Installer | null>(null);
+  const [creditAmount, setCreditAmount] = useState('35');
+  const [description, setDescription] = useState('');
+  const [showCreditDialog, setShowCreditDialog] = useState(false);
+
+  // Fetch all installers
+  const { data: installers = [], isLoading: installersLoading } = useQuery({
+    queryKey: ['/api/admin/installers'],
+    queryFn: () => fetch('/api/admin/installers', {
+      credentials: 'include'
+    }).then(r => r.json())
+  });
+
+  // Add credits mutation
+  const addCreditsMutation = useMutation({
+    mutationFn: async ({ installerId, amount, description }: { installerId: number; amount: string; description: string }) => {
+      return await apiRequest('POST', `/api/admin/installer/${installerId}/add-credits`, {
+        amount: parseFloat(amount),
+        description
+      });
+    },
+    onSuccess: (response) => {
+      toast({
+        title: "Credits Added Successfully",
+        description: response.message || "Credits have been added to the installer's wallet",
+      });
+      setShowCreditDialog(false);
+      setSelectedInstaller(null);
+      setCreditAmount('35');
+      setDescription('');
+      // Refresh installer data if needed
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/installers'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Adding Credits",
+        description: error.message || "Failed to add credits to installer wallet",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddCredits = () => {
+    if (!selectedInstaller || !creditAmount) return;
+    
+    addCreditsMutation.mutate({
+      installerId: selectedInstaller.id,
+      amount: creditAmount,
+      description: description || 'Admin credit top-up for testing'
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Euro className="w-5 h-5 text-blue-600" />
+          <span>Installer Credit Loading</span>
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            TESTING
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center justify-between p-4 border rounded-lg bg-blue-50 dark:bg-blue-950/20">
+          <div>
+            <h3 className="font-medium">Load Credits to Installer Wallets</h3>
+            <p className="text-sm text-gray-600">
+              Add credits to any installer's wallet for testing the credit system flow
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              ⚠️ This simulates the real credit top-up system for testing purposes
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowCreditDialog(true)}
+            variant="outline"
+            className="border-blue-200 text-blue-700 hover:bg-blue-100"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Load Credits
+          </Button>
+        </div>
+
+        {/* Credit Loading Dialog */}
+        <Dialog open={showCreditDialog} onOpenChange={setShowCreditDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Load Credits to Installer</DialogTitle>
+              <DialogDescription>
+                Add credits to an installer's wallet for testing the credit system
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Installer Selection */}
+              <div>
+                <Label htmlFor="installer-select">Select Installer</Label>
+                <Select 
+                  value={selectedInstaller?.id.toString() || ''} 
+                  onValueChange={(value) => {
+                    const installer = installers.find(i => i.id.toString() === value);
+                    setSelectedInstaller(installer || null);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose an installer..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {installersLoading ? (
+                      <SelectItem value="loading" disabled>
+                        Loading installers...
+                      </SelectItem>
+                    ) : (
+                      installers.map((installer) => (
+                        <SelectItem key={installer.id} value={installer.id.toString()}>
+                          {installer.businessName} ({installer.email})
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Credit Amount */}
+              <div>
+                <Label htmlFor="credit-amount">Credit Amount (€)</Label>
+                <Input
+                  id="credit-amount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={creditAmount}
+                  onChange={(e) => setCreditAmount(e.target.value)}
+                  placeholder="35.00"
+                />
+              </div>
+
+              {/* Quick Amount Buttons */}
+              <div className="grid grid-cols-4 gap-2">
+                {['5', '15', '35', '100'].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCreditAmount(amount)}
+                    className={creditAmount === amount ? "bg-blue-100 border-blue-300" : ""}
+                  >
+                    €{amount}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Description */}
+              <div>
+                <Label htmlFor="description">Description (Optional)</Label>
+                <Input
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Testing credit system flow"
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreditDialog(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAddCredits}
+                disabled={!selectedInstaller || !creditAmount || addCreditsMutation.isPending}
+              >
+                {addCreditsMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Plus className="w-4 h-4 mr-2" />
+                )}
+                Add €{creditAmount}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
+  );
+}
+
 // Platform Settings Management Component
 function PlatformSettingsManagement() {
   const { toast } = useToast();
@@ -6759,6 +6951,9 @@ function PlatformSettingsManagement() {
           )}
         </CardContent>
       </Card>
+
+      {/* Installer Credit Loading */}
+      <InstallerCreditLoading />
 
       {/* Other Platform Settings */}
       <Card>

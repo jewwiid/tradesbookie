@@ -107,6 +107,7 @@ import { QRCodeService } from "./qrCodeService";
 import { generateEmailTemplate, getPresetTemplate, getAllPresetTemplates } from "./aiEmailTemplateService";
 import { AIContentService } from "./services/aiContentService";
 import { checkAiCredits, recordAiUsage, AI_FEATURES, clearAiToolsCache, type AIRequest } from "./aiCreditMiddleware";
+import { InstallerWalletService } from "./installerWalletService";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -15987,6 +15988,62 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error('Error updating AI tool QR code:', error);
       res.status(500).json({ error: 'Failed to update QR code' });
+    }
+  });
+
+  // Admin endpoint for adding credits to installer wallets (for testing credit system)
+  app.post("/api/admin/installer/:installerId/add-credits", isAuthenticated, async (req, res) => {
+    try {
+      // Check if user is admin
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ error: "Admin access required" });
+      }
+
+      const installerId = parseInt(req.params.installerId);
+      const { amount, description } = req.body;
+
+      // Validate input
+      if (isNaN(installerId) || installerId <= 0) {
+        return res.status(400).json({ error: "Invalid installer ID" });
+      }
+
+      if (!amount || isNaN(amount) || amount <= 0) {
+        return res.status(400).json({ error: "Valid amount is required" });
+      }
+
+      // Check if installer exists
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ error: "Installer not found" });
+      }
+
+      // Add credits using the wallet service
+      const walletService = new InstallerWalletService(storage);
+      await walletService.addCredits(
+        installerId, 
+        parseFloat(amount), 
+        `admin-credit-${Date.now()}` // Use a unique admin transaction ID
+      );
+
+      // Add additional transaction with admin note if description provided
+      if (description) {
+        await walletService.addTransaction({
+          installerId,
+          type: 'admin_credit',
+          amount: amount.toString(),
+          description: `Admin credit: ${description}`,
+          status: 'completed'
+        });
+      }
+
+      res.json({ 
+        success: true, 
+        message: `€${amount} credits added to ${installer.businessName}'s wallet` 
+      });
+
+    } catch (error) {
+      console.error("Error adding credits to installer wallet:", error);
+      res.status(500).json({ error: "Failed to add credits" });
     }
   });
 

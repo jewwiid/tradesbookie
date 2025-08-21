@@ -1901,6 +1901,53 @@ export class DatabaseStorage implements IStorage {
     return negotiation;
   }
 
+  async deleteScheduleNegotiation(negotiationId: number, userId: string, isInstaller: boolean = false): Promise<{ success: boolean; message: string }> {
+    // Get the negotiation to verify ownership and check if it's deletable
+    const [negotiation] = await db.select()
+      .from(scheduleNegotiations)
+      .where(eq(scheduleNegotiations.id, negotiationId));
+    
+    if (!negotiation) {
+      return { success: false, message: "Negotiation not found" };
+    }
+    
+    // Get all negotiations for this booking to find the most recent one
+    const allNegotiations = await db.select()
+      .from(scheduleNegotiations)
+      .where(eq(scheduleNegotiations.bookingId, negotiation.bookingId))
+      .orderBy(desc(scheduleNegotiations.createdAt));
+    
+    // Prevent deletion of the most recent negotiation
+    if (allNegotiations.length > 0 && allNegotiations[0].id === negotiationId) {
+      return { success: false, message: "Cannot delete the most recent message" };
+    }
+    
+    // Verify user has permission to delete this negotiation
+    // Only allow deletion if user is the one who created the negotiation OR if they're part of the booking
+    if (isInstaller) {
+      // For installers, check if they own this negotiation or if it's for their booking
+      if (negotiation.installerId.toString() !== userId && negotiation.proposedBy !== 'installer') {
+        return { success: false, message: "Not authorized to delete this negotiation" };
+      }
+    } else {
+      // For customers, verify they're part of this booking
+      const booking = await db.select()
+        .from(bookings)
+        .where(eq(bookings.id, negotiation.bookingId))
+        .limit(1);
+      
+      if (booking.length === 0 || booking[0].userId !== userId) {
+        return { success: false, message: "Not authorized to delete this negotiation" };
+      }
+    }
+    
+    // Delete the negotiation
+    await db.delete(scheduleNegotiations)
+      .where(eq(scheduleNegotiations.id, negotiationId));
+    
+    return { success: true, message: "Message deleted successfully" };
+  }
+
   // Email template operations
   async getEmailTemplate(templateKey: string): Promise<EmailTemplate | undefined> {
     const [template] = await db.select()

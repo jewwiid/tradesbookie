@@ -12607,6 +12607,33 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Delete schedule negotiation endpoint
+  app.delete("/api/schedule-negotiations/:id", async (req, res) => {
+    try {
+      const negotiationId = parseInt(req.params.id);
+      const { user } = req;
+      
+      if (!user) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      // Determine if user is installer or customer
+      const isInstaller = user.role && user.role.includes('installer');
+      const userId = isInstaller ? user.id : user.id; // For installers, use installer ID; for customers, use user ID
+      
+      const result = await storage.deleteScheduleNegotiation(negotiationId, userId, isInstaller);
+      
+      if (!result.success) {
+        return res.status(400).json({ error: result.message });
+      }
+      
+      res.json({ success: true, message: result.message });
+    } catch (error) {
+      console.error("Delete schedule negotiation error:", error);
+      res.status(500).json({ error: "Failed to delete negotiation" });
+    }
+  });
+
   app.patch("/api/schedule-negotiations/:id", async (req, res) => {
     try {
       const negotiationId = parseInt(req.params.id);

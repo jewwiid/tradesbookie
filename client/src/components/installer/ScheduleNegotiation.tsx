@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, addDays } from "date-fns";
-import { Calendar, Clock, CheckCircle, XCircle, MessageSquare, Send, AlertCircle, ChevronDown } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, MessageSquare, Send, AlertCircle, ChevronDown, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -123,6 +123,28 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
     }
   });
 
+  // Delete negotiation mutation
+  const deleteNegotiationMutation = useMutation({
+    mutationFn: async (negotiationId: number) => {
+      return apiRequest('DELETE', `/api/schedule-negotiations/${negotiationId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings', bookingId, 'schedule-negotiations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/bookings', bookingId, 'active-negotiation'] });
+      toast({
+        title: "Message deleted",
+        description: "The schedule message has been deleted successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to delete message. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleCreateProposal = () => {
     if (!newProposal.date) {
       toast({
@@ -159,6 +181,12 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
       status: 'declined',
       message: responseMessage
     });
+  };
+
+  const handleDeleteNegotiation = (negotiationId: number) => {
+    if (window.confirm("Are you sure you want to delete this message? This action cannot be undone.")) {
+      deleteNegotiationMutation.mutate(negotiationId);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -396,22 +424,39 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
             </h3>
 
             <div className="space-y-3">
-              {negotiationsList.map((negotiation: ScheduleNegotiation) => (
-                <div
-                  key={negotiation.id}
-                  className="border rounded-lg p-3 bg-gray-50"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">
-                        {negotiation.proposedBy === 'installer' ? 'Installer' : 'Customer'}
-                      </span>
-                      {getStatusBadge(negotiation.status)}
+              {negotiationsList.map((negotiation: ScheduleNegotiation, index: number) => {
+                const isLatestMessage = index === 0; // First item is most recent (ordered by createdAt DESC)
+                
+                return (
+                  <div
+                    key={negotiation.id}
+                    className="border rounded-lg p-3 bg-gray-50"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm">
+                          {negotiation.proposedBy === 'installer' ? 'Installer' : 'Customer'}
+                        </span>
+                        {getStatusBadge(negotiation.status)}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">
+                          {format(new Date(negotiation.createdAt), 'MMM dd, yyyy')}
+                        </span>
+                        {!isLatestMessage && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => handleDeleteNegotiation(negotiation.id)}
+                            disabled={deleteNegotiationMutation.isPending}
+                            title="Delete this message"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-xs text-gray-500">
-                      {format(new Date(negotiation.createdAt), 'MMM dd, yyyy')}
-                    </span>
-                  </div>
 
                   <p className="text-sm text-gray-700 mb-1">
                     <strong>Date:</strong> {format(new Date(negotiation.proposedDate), 'EEEE, MMMM do, yyyy')}
@@ -438,8 +483,9 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
                       </p>
                     </div>
                   )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

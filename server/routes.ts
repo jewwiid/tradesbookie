@@ -9300,12 +9300,26 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       console.log(`Review submitted for booking ${bookingId}: ${rating} stars -> ${reviewStars} review stars, ${totalQualityStars} total quality stars`);
       
+      // Check and process performance refund if newly eligible
+      let refundMessage = '';
+      if (totalQualityStars >= 3) {
+        try {
+          const { performanceRefundService } = await import('./performanceRefundService');
+          const refundResult = await performanceRefundService.processPerformanceRefund(bookingId);
+          if (refundResult.success && refundResult.refundAmount) {
+            refundMessage = ` Performance refund of €${refundResult.refundAmount.toFixed(2)} processed!`;
+          }
+        } catch (error) {
+          console.error('Error processing performance refund after review:', error);
+        }
+      }
+      
       res.json({ 
         success: true, 
         review,
         reviewStars,
         totalQualityStars,
-        message: `Review submitted! Added ${reviewStars} review stars. Total quality: ${totalQualityStars}/5 stars.`
+        message: `Review submitted! Added ${reviewStars} review stars. Total quality: ${totalQualityStars}/5 stars.${refundMessage}`
       });
     } catch (error) {
       console.error("Error creating review:", error);
@@ -13418,6 +13432,65 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Get all performance refund settings
+  app.get('/api/admin/performance-refund-settings', isAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getPerformanceRefundSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching performance refund settings:', error);
+      res.status(500).json({ error: 'Failed to fetch performance refund settings' });
+    }
+  });
+
+  // Delete performance refund setting
+  app.delete('/api/admin/performance-refund-settings/:id', isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deletePerformanceRefundSetting(parseInt(id));
+      
+      if (success) {
+        res.json({ success: true, message: 'Performance refund setting deleted' });
+      } else {
+        res.status(404).json({ error: 'Performance refund setting not found' });
+      }
+    } catch (error) {
+      console.error('Error deleting performance refund setting:', error);
+      res.status(500).json({ error: 'Failed to delete performance refund setting' });
+    }
+  });
+
+  // Get performance refund summary
+  app.get('/api/admin/performance-refund-summary', isAdmin, async (req, res) => {
+    try {
+      const { performanceRefundService } = await import('./performanceRefundService');
+      const summary = await performanceRefundService.getPerformanceRefundSummary();
+      res.json(summary);
+    } catch (error) {
+      console.error('Error fetching performance refund summary:', error);
+      res.status(500).json({ error: 'Failed to fetch performance refund summary' });
+    }
+  });
+
+  // Manual performance refund processing (admin tool)
+  app.post('/api/admin/process-performance-refund/:bookingId', isAdmin, async (req, res) => {
+    try {
+      const bookingId = parseInt(req.params.bookingId);
+      const { performanceRefundService } = await import('./performanceRefundService');
+      
+      const result = await performanceRefundService.processPerformanceRefund(bookingId);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Error manually processing performance refund:', error);
+      res.status(500).json({ error: 'Failed to process performance refund' });
+    }
+  });
+
   app.delete('/api/admin/performance-refund-settings/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
@@ -13892,8 +13965,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         photoStars,
         qualityStars: totalStars,
         starCalculatedAt: new Date(),
-        eligibleForRefund: true // Eligible for performance-based refund with 3+ stars
+        eligibleForRefund: totalStars >= 3 // Eligible for performance-based refund with 3+ stars
       });
+      
+      // Check and process performance refund if newly eligible
+      if (totalStars >= 3) {
+        try {
+          const { performanceRefundService } = await import('./performanceRefundService');
+          const refundResult = await performanceRefundService.processPerformanceRefund(booking.id);
+          if (refundResult.success) {
+            console.log(`Auto-processed performance refund after photo upload: ${refundResult.message}`);
+          }
+        } catch (error) {
+          console.error('Error processing performance refund after photo upload:', error);
+        }
+      }
       
       // Mark job as completed
       await storage.updateJobStatus(jobAssignmentId, 'completed');

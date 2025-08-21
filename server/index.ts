@@ -74,6 +74,14 @@ app.use((req, res, next) => {
     // Initialize database tables
     await initializeDatabase();
     
+    // Initialize performance refund settings
+    try {
+      const { performanceRefundService } = await import('./performanceRefundService');
+      await performanceRefundService.initializeDefaultSettings();
+    } catch (error) {
+      console.error('Error initializing performance refund settings:', error);
+    }
+    
     // Create mock profiles for testing
     try {
       await createMockProfiles();

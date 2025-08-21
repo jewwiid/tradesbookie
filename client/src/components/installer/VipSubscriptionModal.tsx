@@ -133,7 +133,7 @@ interface VipSubscriptionModalProps {
 }
 
 export default function VipSubscriptionModal({ open, onOpenChange, installerId }: VipSubscriptionModalProps) {
-  const [stripeLoaded, setStripeLoaded] = useState(false);
+  const [stripeInstance, setStripeInstance] = useState<any>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -197,8 +197,8 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
       const initializeStripe = async () => {
         try {
           setLoading(true);
-          await getStripePromise();
-          setStripeLoaded(true);
+          const stripe = await getStripePromise();
+          setStripeInstance(stripe);
         } catch (error: any) {
           setError(error.message);
         } finally {
@@ -225,8 +225,8 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
     onOpenChange(false);
   };
 
-  const isVipActive = subscriptionStatus?.isVip && subscriptionStatus?.subscriptionStatus === 'active';
-  const willCancelAtPeriodEnd = subscriptionStatus?.subscriptionDetails?.cancel_at_period_end;
+  const isVipActive = (subscriptionStatus as any)?.isVip && (subscriptionStatus as any)?.subscriptionStatus === 'active';
+  const willCancelAtPeriodEnd = (subscriptionStatus as any)?.subscriptionDetails?.cancel_at_period_end;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -287,10 +287,10 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
                     </Badge>
                   )}
                 </div>
-                {isVipActive && subscriptionStatus.currentPeriodEnd && (
+                {isVipActive && (subscriptionStatus as any)?.currentPeriodEnd && (
                   <p className="text-sm text-gray-600">
                     {willCancelAtPeriodEnd ? 'Ends' : 'Renews'} on{' '}
-                    {new Date(subscriptionStatus.currentPeriodEnd).toLocaleDateString()}
+                    {new Date((subscriptionStatus as any).currentPeriodEnd).toLocaleDateString()}
                   </p>
                 )}
               </CardContent>
@@ -314,9 +314,9 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
           {!loading && !error && (
             <>
               {/* Show payment form for new subscription */}
-              {clientSecret && stripeLoaded && (
+              {clientSecret && stripeInstance && (
                 <Elements 
-                  stripe={stripeLoaded ? getStripePromise() : null} 
+                  stripe={stripeInstance} 
                   options={{ clientSecret }}
                 >
                   <VipSubscriptionForm
@@ -332,7 +332,7 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
               )}
 
               {/* Show action buttons when no payment in progress */}
-              {!clientSecret && stripeLoaded && (
+              {!clientSecret && stripeInstance && (
                 <div className="space-y-3">
                   {!isVipActive && (
                     <Button 

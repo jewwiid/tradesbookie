@@ -2886,6 +2886,7 @@ function BookingCard({
   const [showDetails, setShowDetails] = useState(false);
   const [showProposals, setShowProposals] = useState(false);
   const [isReviewExpanded, setIsReviewExpanded] = useState(false);
+  const [isPhotosExpanded, setIsPhotosExpanded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Get proposal data for action buttons
@@ -3524,46 +3525,58 @@ function BookingCard({
               {/* Installation Photos (for completed bookings) */}
               {booking.status === 'completed' && (booking as any).beforeAfterPhotos && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <Camera className="w-4 h-4 mr-2" />
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsPhotosExpanded(!isPhotosExpanded)}
+                    className="w-full flex items-center justify-center gap-2 text-sm mb-3"
+                  >
+                    <Camera className="w-4 h-4" />
                     Installation Photos
-                  </h4>
-                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      {(Array.isArray((booking as any).beforeAfterPhotos) ? (booking as any).beforeAfterPhotos : []).flatMap((photoSet: any, tvIndex: number) => {
-                        const photos = [];
-                        if (photoSet.beforePhoto) {
-                          photos.push({
-                            photo: photoSet.beforePhoto,
-                            label: `TV ${tvIndex + 1} - Before`,
-                            key: `${tvIndex}-before`
-                          });
-                        }
-                        if (photoSet.afterPhoto) {
-                          photos.push({
-                            photo: photoSet.afterPhoto,
-                            label: `TV ${tvIndex + 1} - After`,
-                            key: `${tvIndex}-after`
-                          });
-                        }
-                        return photos;
-                      }).map((photoData: any, index: number) => (
-                        <div key={photoData.key} className="space-y-1">
-                          <div className="relative aspect-video rounded-md overflow-hidden border border-gray-300">
-                            <img
-                              src={photoData.photo.startsWith('data:') ? photoData.photo : `data:image/jpeg;base64,${photoData.photo}`}
-                              alt={photoData.label}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
+                    {isPhotosExpanded ? (
+                      <ChevronUp className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </Button>
+                  
+                  {isPhotosExpanded && (
+                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                        {(Array.isArray((booking as any).beforeAfterPhotos) ? (booking as any).beforeAfterPhotos : []).flatMap((photoSet: any, tvIndex: number) => {
+                          const photos = [];
+                          if (photoSet.beforePhoto) {
+                            photos.push({
+                              photo: photoSet.beforePhoto,
+                              label: `TV ${tvIndex + 1} - Before`,
+                              key: `${tvIndex}-before`
+                            });
+                          }
+                          if (photoSet.afterPhoto) {
+                            photos.push({
+                              photo: photoSet.afterPhoto,
+                              label: `TV ${tvIndex + 1} - After`,
+                              key: `${tvIndex}-after`
+                            });
+                          }
+                          return photos;
+                        }).map((photoData: any, index: number) => (
+                          <div key={photoData.key} className="space-y-1">
+                            <div className="relative aspect-video rounded-sm overflow-hidden border border-gray-300">
+                              <img
+                                src={photoData.photo.startsWith('data:') ? photoData.photo : `data:image/jpeg;base64,${photoData.photo}`}
+                                alt={photoData.label}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            </div>
+                            <p className="text-xs text-gray-500 text-center truncate">
+                              {photoData.label}
+                            </p>
                           </div>
-                          <p className="text-xs text-gray-500 text-center">
-                            {photoData.label}
-                          </p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
@@ -3574,33 +3587,13 @@ function BookingCard({
     
     {/* Review Interface for Completed Bookings */}
     {booking.status === 'completed' && booking.installer && (
-      <div className="mt-4">
-        <Button
-          variant="outline"
-          onClick={() => setIsReviewExpanded(!isReviewExpanded)}
-          className="w-full flex items-center justify-center gap-2 text-sm"
-        >
-          <Star className="w-4 h-4" />
-          Your Review
-          {isReviewExpanded ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </Button>
-        
-        {isReviewExpanded && (
-          <div className="mt-3">
-            <ReviewInterface 
-              booking={booking}
-              onReviewSubmitted={() => {
-                // Refresh bookings to show updated stars
-                queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
-              }}
-            />
-          </div>
-        )}
-      </div>
+      <ReviewInterface 
+        booking={booking}
+        onReviewSubmitted={() => {
+          // Refresh bookings to show updated stars
+          queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
+        }}
+      />
     )}
   </div>
   );

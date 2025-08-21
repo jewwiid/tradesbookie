@@ -25,6 +25,8 @@ interface ScheduleNegotiation {
   responseMessage?: string;
   proposedAt: string;
   respondedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface ScheduleNegotiationProps {
@@ -337,9 +339,11 @@ export default function ScheduleNegotiation({
                                   </span>
                                   {(() => {
                                     // Determine if this is the most recent message across ALL negotiations for this booking
-                                    const allNegotiationsSorted = [...negotiations].sort((a, b) => 
-                                      new Date(b.proposedAt).getTime() - new Date(a.proposedAt).getTime()
-                                    );
+                                    const allNegotiationsSorted = [...negotiations].sort((a, b) => {
+                                      const aTime = new Date(a.createdAt).getTime();
+                                      const bTime = new Date(b.createdAt).getTime();
+                                      return bTime - aTime;
+                                    });
                                     const isLatestMessage = allNegotiationsSorted[0]?.id === negotiation.id;
                                     
                                     return !isLatestMessage && (

@@ -9292,21 +9292,30 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           .where(eq(installers.id, installerId));
       }
 
+      // Create or get VIP price
+      let priceId = process.env.STRIPE_VIP_PRICE_ID;
+      
+      if (!priceId) {
+        // Create the price if it doesn't exist
+        const price = await stripe.prices.create({
+          currency: 'eur',
+          product_data: {
+            name: 'VIP Installer Membership',
+            description: 'No lead fees + priority support'
+          },
+          recurring: {
+            interval: 'month'
+          },
+          unit_amount: 5000, // €50.00 in cents
+        });
+        priceId = price.id;
+      }
+
       // Create VIP subscription (€50/month)
       const subscription = await stripe.subscriptions.create({
         customer: customerId,
         items: [{
-          price_data: {
-            currency: 'eur',
-            product_data: {
-              name: 'VIP Installer Membership',
-              description: 'No lead fees + priority support'
-            },
-            recurring: {
-              interval: 'month'
-            },
-            unit_amount: 5000, // €50.00 in cents
-          }
+          price: priceId
         }],
         payment_behavior: 'default_incomplete',
         expand: ['latest_invoice.payment_intent'],

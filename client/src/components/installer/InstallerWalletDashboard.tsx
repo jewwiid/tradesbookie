@@ -105,7 +105,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
         queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/wallet`] });
         toast({
           title: "Demo Credits Added",
-          description: response.message || `€${creditAmount} has been added to your wallet`,
+          description: (response as any)?.message || `€${creditAmount} has been added to your wallet`,
         });
         setCreditAmount('35');
       }

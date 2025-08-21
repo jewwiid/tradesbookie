@@ -19,6 +19,10 @@ export interface BookingData {
   scheduledDate: string;
   scheduledTime: string;
   address: string;
+  streetAddress?: string;
+  town?: string;
+  county?: string;
+  eircode?: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;

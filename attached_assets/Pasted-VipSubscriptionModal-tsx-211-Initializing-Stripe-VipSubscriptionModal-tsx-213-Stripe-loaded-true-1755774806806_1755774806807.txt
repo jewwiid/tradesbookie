@@ -1,0 +1,54 @@
+VipSubscriptionModal.tsx:211 Initializing Stripe...
+VipSubscriptionModal.tsx:213 Stripe loaded: true
+queryClient.ts:15  POST https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/installer/vip-subscription 500 (Internal Server Error)
+apiRequest @ queryClient.ts:15
+mutationFn @ VipSubscriptionModal.tsx:153
+fn @ @tanstack_react-query.js?v=c7653160:1189
+run @ @tanstack_react-query.js?v=c7653160:494
+start @ @tanstack_react-query.js?v=c7653160:536
+execute @ @tanstack_react-query.js?v=c7653160:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=c7653160:2630
+(anonymous) @ @tanstack_react-query.js?v=c7653160:3295
+handleSubscribe @ VipSubscriptionModal.tsx:228
+callCallback2 @ chunk-RPCDYKBN.js?v=c7653160:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=c7653160:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=c7653160:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=c7653160:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=c7653160:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=c7653160:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=c7653160:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=c7653160:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=c7653160:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=c7653160:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=c7653160:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=c7653160:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=c7653160:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=c7653160:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=c7653160:5449
+VipSubscriptionModal.tsx:172 Subscription creation error: Error: 500: {"message":"Payment setup incomplete - no client secret available"}
+    at throwIfResNotOk (queryClient.ts:6:11)
+    at async apiRequest (queryClient.ts:22:3)
+    at async Object.mutationFn (VipSubscriptionModal.tsx:153:24)
+overrideMethod @ hook.js:608
+onError @ VipSubscriptionModal.tsx:172
+execute @ @tanstack_react-query.js?v=c7653160:1254
+await in execute
+mutate @ @tanstack_react-query.js?v=c7653160:2630
+(anonymous) @ @tanstack_react-query.js?v=c7653160:3295
+handleSubscribe @ VipSubscriptionModal.tsx:228
+callCallback2 @ chunk-RPCDYKBN.js?v=c7653160:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=c7653160:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=c7653160:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=c7653160:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=c7653160:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=c7653160:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=c7653160:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=c7653160:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=c7653160:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=c7653160:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=c7653160:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=c7653160:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=c7653160:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=c7653160:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=c7653160:5449

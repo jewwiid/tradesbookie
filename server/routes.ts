@@ -9293,13 +9293,50 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             client_secret: subscription.latest_invoice?.payment_intent?.client_secret
           });
           
-          // If subscription is incomplete, return the client secret
+          // If subscription is incomplete, get or create payment intent
           if (subscription.status === 'incomplete') {
-            const clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
+            let clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
+            
+            // If no payment intent exists, we need to pay the invoice
+            if (!clientSecret && subscription.latest_invoice?.id) {
+              console.log('No payment intent found, paying invoice:', subscription.latest_invoice.id);
+              
+              try {
+                const paidInvoice = await stripe.invoices.pay(subscription.latest_invoice.id, {
+                  expand: ['payment_intent']
+                });
+                
+                clientSecret = paidInvoice.payment_intent?.client_secret;
+                console.log('Created payment intent via invoice payment:', clientSecret ? 'success' : 'failed');
+              } catch (invoiceError) {
+                console.error('Error paying invoice:', invoiceError);
+                
+                // If paying invoice fails, try to create a setup intent for payment method collection
+                try {
+                  const setupIntent = await stripe.setupIntents.create({
+                    customer: subscription.customer,
+                    usage: 'off_session',
+                    payment_method_types: ['card']
+                  });
+                  
+                  console.log('Created setup intent as fallback:', setupIntent.id);
+                  
+                  return res.json({
+                    subscriptionId: subscription.id,
+                    clientSecret: setupIntent.client_secret,
+                    status: subscription.status,
+                    setupMode: true // Indicates this is for payment method setup
+                  });
+                } catch (setupError) {
+                  console.error('Error creating setup intent:', setupError);
+                  return res.status(500).json({ message: 'Unable to set up payment for subscription' });
+                }
+              }
+            }
             
             if (!clientSecret) {
-              console.error('No client secret found for incomplete subscription');
-              return res.status(500).json({ message: 'Payment setup incomplete - no client secret available' });
+              console.error('Still no client secret after attempting payment setup');
+              return res.status(500).json({ message: 'Payment setup incomplete - unable to create payment intent' });
             }
             
             return res.json({

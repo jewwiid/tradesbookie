@@ -9267,44 +9267,50 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Check if installer already has a subscription
       if (installer.stripeSubscriptionId) {
         console.log('Found existing subscription:', installer.stripeSubscriptionId);
-        const subscription = await stripe.subscriptions.retrieve(installer.stripeSubscriptionId, {
-          expand: ['latest_invoice.payment_intent']
-        });
         
-        console.log('Retrieved subscription:', {
-          id: subscription.id,
-          status: subscription.status,
-          latest_invoice_id: subscription.latest_invoice?.id,
-          payment_intent_id: subscription.latest_invoice?.payment_intent?.id,
-          client_secret: subscription.latest_invoice?.payment_intent?.client_secret
-        });
-        
-        // If subscription is incomplete, get the client secret
-        if (subscription.status === 'incomplete') {
-          let clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
+        try {
+          const subscription = await stripe.subscriptions.retrieve(installer.stripeSubscriptionId, {
+            expand: ['latest_invoice.payment_intent']
+          });
           
-          // If no client secret, manually fetch the payment intent
-          if (!clientSecret && subscription.latest_invoice?.payment_intent?.id) {
-            const paymentIntent = await stripe.paymentIntents.retrieve(
-              subscription.latest_invoice.payment_intent.id
-            );
-            clientSecret = paymentIntent.client_secret;
-            console.log('Manually fetched client secret:', clientSecret);
+          console.log('Retrieved subscription:', {
+            id: subscription.id,
+            status: subscription.status,
+            latest_invoice_id: subscription.latest_invoice?.id,
+            payment_intent_id: subscription.latest_invoice?.payment_intent?.id,
+            client_secret: subscription.latest_invoice?.payment_intent?.client_secret
+          });
+          
+          // If subscription is incomplete, return the client secret
+          if (subscription.status === 'incomplete') {
+            const clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
+            
+            if (!clientSecret) {
+              console.error('No client secret found for incomplete subscription');
+              return res.status(500).json({ message: 'Payment setup incomplete - no client secret available' });
+            }
+            
+            return res.json({
+              subscriptionId: subscription.id,
+              clientSecret: clientSecret,
+              status: subscription.status
+            });
           }
           
-          return res.json({
-            subscriptionId: subscription.id,
-            clientSecret: clientSecret,
-            status: subscription.status
-          });
-        }
-        
-        // If active, no payment needed
-        if (subscription.status === 'active') {
-          return res.json({
-            subscriptionId: subscription.id,
-            status: subscription.status,
-            clientSecret: null // No payment needed
+          // If active, no payment needed
+          if (subscription.status === 'active') {
+            return res.json({
+              subscriptionId: subscription.id,
+              status: subscription.status,
+              clientSecret: null
+            });
+          }
+        } catch (stripeError) {
+          console.error('Error retrieving subscription from Stripe:', stripeError);
+          // Clear invalid subscription ID from database
+          await storage.updateInstallerStripeInfo(installerId, { 
+            stripeSubscriptionId: null,
+            subscriptionStatus: null 
           });
         }
       }

@@ -13813,10 +13813,23 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         .filter(job => job.status === 'completed')
         .sort((a, b) => new Date(b.completedDate || 0).getTime() - new Date(a.completedDate || 0).getTime());
       
-      // Get booking details for each completed job
+      // Get booking details for each completed job and check for existing reviews
       const completedJobsWithDetails = await Promise.all(
         completedJobs.map(async (job) => {
           const booking = await storage.getBooking(job.bookingId);
+          
+          // Check if this booking already has a customer review
+          let hasCustomerReview = false;
+          if (booking) {
+            try {
+              const review = await storage.getReviewsByBooking(booking.id);
+              hasCustomerReview = !!review;
+            } catch (error) {
+              console.error('Error checking reviews for booking:', booking.id, error);
+              hasCustomerReview = false;
+            }
+          }
+          
           return {
             ...job,
             booking: booking ? {
@@ -13836,7 +13849,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               photoStars: booking.photoStars,
               qualityStars: booking.qualityStars,
               photoCompletionRate: booking.photoCompletionRate,
-              showcaseInGallery: booking.showcaseInGallery
+              showcaseInGallery: booking.showcaseInGallery,
+              hasCustomerReview: hasCustomerReview
             } : null
           };
         })

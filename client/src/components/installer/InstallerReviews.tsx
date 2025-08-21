@@ -301,29 +301,29 @@ function PendingReviews({ installerId }: { installerId: number }) {
 
         <div className="space-y-4">
           {jobsWithoutReviews.slice(0, 5).map((job) => (
-            <div key={job.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
-              <div className="flex-1">
+            <div key={job.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-gray-50 rounded-lg border">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <User className="w-5 h-5 text-blue-600" />
                   </div>
-                  <div>
-                    <h5 className="font-medium text-gray-900">{job.booking?.customerName}</h5>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
+                  <div className="min-w-0 flex-1">
+                    <h5 className="font-medium text-gray-900 truncate">{job.booking?.customerName}</h5>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-1 text-sm text-gray-500">
                       <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {new Date(job.booking?.completedDate || job.completedDate).toLocaleDateString()}
+                        <Calendar className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{new Date(job.booking?.completedDate || job.completedDate).toLocaleDateString()}</span>
                       </span>
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {job.booking?.address}
+                        <MapPin className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{job.booking?.address}</span>
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="text-xs">
+              <div className="flex items-center justify-between sm:justify-end gap-3 flex-shrink-0">
+                <Badge variant="outline" className="text-xs whitespace-nowrap">
                   {job.booking?.serviceType || 'Installation'}
                 </Badge>
                 <Button
@@ -335,17 +335,19 @@ function PendingReviews({ installerId }: { installerId: number }) {
                     job.booking?.customerEmail,
                     job.booking?.customerName
                   )}
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50 whitespace-nowrap"
                 >
                   {sendingReviews.includes(job.bookingId) ? (
                     <>
                       <div className="animate-spin rounded-full h-3 w-3 border-b border-blue-600 mr-1"></div>
-                      Sending...
+                      <span className="hidden sm:inline">Sending...</span>
+                      <span className="sm:hidden">...</span>
                     </>
                   ) : (
                     <>
-                      <Mail className="w-3 h-3 mr-1" />
-                      Request Review
+                      <Mail className="w-3 h-3 sm:mr-1" />
+                      <span className="hidden sm:inline">Request Review</span>
+                      <span className="sm:hidden">Request</span>
                     </>
                   )}
                 </Button>

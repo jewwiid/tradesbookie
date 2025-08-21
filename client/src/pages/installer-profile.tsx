@@ -304,7 +304,16 @@ export default function InstallerProfile() {
                           </div>
 
                           {/* Before/After Photos */}
-                          {currentPhoto && (
+                          {work.beforeAfterPhotos.length === 0 ? (
+                            <div className="p-6 text-center bg-gray-50 border-t">
+                              <div className="text-gray-400">
+                                <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p className="text-sm">Installation photos not available</p>
+                              </div>
+                            </div>
+                          ) : currentPhoto && (
                             <div className="relative">
                               <div className="grid grid-cols-2 gap-1">
                                 {/* Before Photo */}
@@ -352,6 +361,28 @@ export default function InstallerProfile() {
                                   </button>
                                 </div>
                               )}
+                            </div>
+                          )}
+
+                          {/* Customer Review */}
+                          {work.customerReview && (
+                            <div className="p-4 border-t">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className="flex">
+                                  {Array.from({ length: 5 }, (_, i) => (
+                                    <Star 
+                                      key={i} 
+                                      className={`w-4 h-4 ${
+                                        i < (work.customerRating || 5)
+                                          ? 'text-yellow-400 fill-yellow-400' 
+                                          : 'text-gray-300'
+                                      }`} 
+                                    />
+                                  ))}
+                                </div>
+                                <span className="text-sm text-gray-600">Customer Review</span>
+                              </div>
+                              <p className="text-sm text-gray-700 italic">"{work.customerReview}"</p>
                             </div>
                           )}
 

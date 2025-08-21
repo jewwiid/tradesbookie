@@ -827,7 +827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return {
             id: job.id,
             location: booking.address || 'Location not specified',
-            serviceType: booking.serviceType || 'TV Installation',
+            serviceType: 'TV Installation', // Always show TV Installation for public profiles
             completedAt: job.completedDate || job.createdAt,
             qualityStars: job.qualityStars || 5,
             beforeAfterPhotos: beforeAfterPhotos,

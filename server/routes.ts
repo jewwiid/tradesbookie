@@ -8176,21 +8176,37 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const installerId = parseInt(req.params.id);
       const { isPubliclyVisible } = req.body;
       
-      console.log(`Updating installer ${installerId} public visibility to ${isPubliclyVisible ? 'visible' : 'hidden'}`);
+      console.log(`🔧 Visibility Update Request:`, {
+        installerId,
+        isPubliclyVisible,
+        bodyType: typeof isPubliclyVisible,
+        requestBody: req.body
+      });
       
       // Update the installer visibility in the database
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
       
       if (!installer) {
+        console.log(`❌ Installer ${installerId} not found`);
         return res.status(404).json({ message: "Installer not found" });
       }
       
-      await storage.updateInstaller(installerId, { isPubliclyVisible });
+      console.log(`📋 Found installer:`, {
+        id: installer.id,
+        businessName: installer.businessName,
+        currentVisibility: installer.isPubliclyVisible
+      });
       
-      res.json({ message: "Installer visibility updated successfully" });
+      const result = await storage.updateInstaller(installerId, { isPubliclyVisible });
+      console.log(`✅ Update result:`, {
+        id: result.id,
+        newVisibility: result.isPubliclyVisible
+      });
+      
+      res.json({ message: "Installer visibility updated successfully", newVisibility: result.isPubliclyVisible });
     } catch (error) {
-      console.error("Error updating installer visibility:", error);
+      console.error("❌ Error updating installer visibility:", error);
       res.status(500).json({ message: "Failed to update installer visibility" });
     }
   });

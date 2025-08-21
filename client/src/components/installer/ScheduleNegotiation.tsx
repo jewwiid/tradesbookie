@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, addDays } from "date-fns";
-import { Calendar, Clock, CheckCircle, XCircle, MessageSquare, Send, AlertCircle } from "lucide-react";
+import { Calendar, Clock, CheckCircle, XCircle, MessageSquare, Send, AlertCircle, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +45,7 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
     message: ""
   });
   const [responseMessage, setResponseMessage] = useState("");
+  const [isExpanded, setIsExpanded] = useState(true); // New state for expanded/collapsed
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -181,41 +182,64 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Schedule Negotiation
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-gray-500">
-            Loading schedule negotiations...
+        <CardHeader className="pb-2">
+          <div 
+            className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded-lg transition-colors"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Schedule Communication
+            </CardTitle>
+            <ChevronDown className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
           </div>
-        </CardContent>
+          {isExpanded && (
+            <CardDescription>
+              Coordinate installation timing with {isInstaller ? customerName : "the installer"}
+            </CardDescription>
+          )}
+        </CardHeader>
+        {isExpanded && (
+          <CardContent>
+            <div className="text-center py-8 text-gray-500">
+              Loading schedule negotiations...
+            </div>
+          </CardContent>
+        )}
       </Card>
     );
   }
 
-  const pendingNegotiation = negotiations.find((n: ScheduleNegotiation) => 
+  const negotiationsList = negotiations as ScheduleNegotiation[];
+  const pendingNegotiation = negotiationsList.find((n: ScheduleNegotiation) => 
     n.status === 'pending' && n.proposedBy !== (isInstaller ? 'installer' : 'customer')
   );
 
-  const latestNegotiation = negotiations[0];
-  const isScheduleConfirmed = latestNegotiation?.status === 'accepted' || latestNegotiation?.status === 'accept';
+  const latestNegotiation = negotiationsList[0];
+  const isScheduleConfirmed = latestNegotiation?.status === 'accepted';
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Schedule Negotiation
-        </CardTitle>
-        <CardDescription>
-          Coordinate installation timing with {isInstaller ? customerName : "the installer"}
-        </CardDescription>
+      <CardHeader className="pb-2">
+        <div 
+          className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-6 px-6 py-2 rounded-lg transition-colors"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Schedule Communication
+          </CardTitle>
+          <ChevronDown className={`h-5 w-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+        </div>
+        {isExpanded && (
+          <CardDescription>
+            Coordinate installation timing with {isInstaller ? customerName : "the installer"}
+          </CardDescription>
+        )}
       </CardHeader>
 
-      <CardContent className="space-y-6">
+      {isExpanded && (
+        <CardContent className="space-y-6">
         {isScheduleConfirmed && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-center gap-2 text-green-800 font-medium mb-2">
@@ -302,7 +326,7 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
           <div className="space-y-4">
             <h3 className="font-medium flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
-              {negotiations.some((n: any) => n.status === 'accepted' || n.status === 'accept') 
+              {negotiationsList.some((n: any) => n.status === 'accepted') 
                 ? 'Propose Re-Schedule' 
                 : 'Propose Installation Schedule'}
             </h3>
@@ -363,7 +387,7 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
         )}
 
         {/* Negotiation History */}
-        {negotiations.length > 0 && (
+        {negotiationsList.length > 0 && (
           <div className="space-y-4">
             <Separator />
             <h3 className="font-medium flex items-center gap-2">
@@ -372,7 +396,7 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
             </h3>
 
             <div className="space-y-3">
-              {negotiations.map((negotiation: ScheduleNegotiation) => (
+              {negotiationsList.map((negotiation: ScheduleNegotiation) => (
                 <div
                   key={negotiation.id}
                   className="border rounded-lg p-3 bg-gray-50"
@@ -419,7 +443,8 @@ export function ScheduleNegotiation({ bookingId, installerId, customerName, isIn
             </div>
           </div>
         )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 }

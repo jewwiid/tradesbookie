@@ -7683,10 +7683,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }).length;
       
       // Calculate platform revenue from lead fees (not customer payments)
+      // NEW: Use the stored totalLeadFee from database for accurate multi-TV calculations
       let totalRevenue = 0;
       for (const booking of bookings) {
-        const leadFee = getLeadFee(booking.serviceType);
-        totalRevenue += leadFee;
+        // Use stored totalLeadFee if available (accurate for multi-TV bookings)
+        const storedLeadFee = parseFloat(booking.totalLeadFee || '0');
+        if (storedLeadFee > 0) {
+          totalRevenue += storedLeadFee;
+        } else {
+          // Fallback to old calculation for legacy bookings without totalLeadFee
+          if (booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0) {
+            // Multi-TV booking: sum all TV lead fees
+            booking.tvInstallations.forEach((tv: any) => {
+              if (tv.serviceType) {
+                totalRevenue += getLeadFee(tv.serviceType);
+              }
+            });
+          } else {
+            // Single TV booking: use main service type
+            totalRevenue += getLeadFee(booking.serviceType);
+          }
+        }
       }
       
       // Average lead fee per booking
@@ -7708,7 +7725,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         totalBookings,
         monthlyBookings,
         revenue: Math.round(totalRevenue),
-        appFees: Math.round(avgLeadFee),
+        appFees: Math.round(totalRevenue), // NEW: App fees = total revenue in lead generation model
         totalUsers: bookings.filter(b => b.userId).length,
         totalInstallers: installers.length,
         activeBookings,

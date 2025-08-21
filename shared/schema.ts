@@ -206,6 +206,9 @@ export const bookings = pgTable("bookings", {
   // Credit refund eligibility
   eligibleForRefund: boolean("eligible_for_refund").default(false),
   refundPercentage: decimal("refund_percentage", { precision: 5, scale: 2 }).default("0.00"),
+  
+  // Lead fee calculation and audit
+  totalLeadFee: decimal("total_lead_fee", { precision: 8, scale: 2 }).default("0.00"), // Total lead fee for this booking (sum of all TVs)
   refundAmount: decimal("refund_amount", { precision: 8, scale: 2 }).default("0.00"),
   refundProcessed: boolean("refund_processed").default(false),
   refundProcessedAt: timestamp("refund_processed_at"),

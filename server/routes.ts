@@ -2102,6 +2102,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NEW: Audit endpoint to check for lead fee calculation discrepancies
+  app.get("/api/admin/audit-lead-fees", async (req, res) => {
+    try {
+      // Check user is admin
+      if (!req.user || req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const bookings = await storage.getAllBookings();
+      const discrepancies: any[] = [];
+      let auditSummary = {
+        totalBookings: bookings.length,
+        multiTVBookings: 0,
+        singleTVBookings: 0,
+        discrepanciesFound: 0,
+        totalDiscrepancyAmount: 0
+      };
+
+      for (const booking of bookings) {
+        let expectedLeadFee = 0;
+        let actualLeadFee = parseFloat(booking.totalLeadFee || '0');
+        let bookingType = 'single';
+
+        if (booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0) {
+          // Multi-TV booking
+          bookingType = 'multi';
+          auditSummary.multiTVBookings++;
+          booking.tvInstallations.forEach((tv: any) => {
+            if (tv.serviceType) {
+              expectedLeadFee += getLeadFee(tv.serviceType);
+            }
+          });
+        } else {
+          // Single TV booking
+          auditSummary.singleTVBookings++;
+          expectedLeadFee = getLeadFee(booking.serviceType || 'bronze');
+        }
+
+        const difference = Math.abs(expectedLeadFee - actualLeadFee);
+        if (difference > 0.01) {
+          const discrepancy = {
+            bookingId: booking.id,
+            qrCode: booking.qrCode,
+            bookingType,
+            expectedLeadFee: expectedLeadFee.toFixed(2),
+            actualLeadFee: actualLeadFee.toFixed(2),
+            difference: difference.toFixed(2),
+            serviceTypes: bookingType === 'multi' 
+              ? booking.tvInstallations.map((tv: any) => tv.serviceType).join(', ')
+              : booking.serviceType,
+            createdAt: booking.createdAt
+          };
+          
+          discrepancies.push(discrepancy);
+          auditSummary.discrepanciesFound++;
+          auditSummary.totalDiscrepancyAmount += difference;
+        }
+      }
+
+      auditSummary.totalDiscrepancyAmount = parseFloat(auditSummary.totalDiscrepancyAmount.toFixed(2));
+
+      console.log('🔍 Lead fee audit completed:', auditSummary);
+
+      res.json({
+        success: true,
+        summary: auditSummary,
+        discrepancies: discrepancies.sort((a, b) => parseFloat(b.difference) - parseFloat(a.difference))
+      });
+
+    } catch (error) {
+      console.error('Error auditing lead fees:', error);
+      res.status(500).json({ message: "Failed to audit lead fees", error: String(error) });
+    }
+  });
+
   // Booking routes
   app.post("/api/bookings", async (req, res) => {
     try {
@@ -2123,6 +2198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let totalEstimatedPrice = 0;
       let totalAddonsPrice = 0;
       let totalBookingEstimate = 0;
+      let totalLeadFee = 0; // NEW: Track total lead fee for audit and validation
       
       if (rawData.tvInstallations && Array.isArray(rawData.tvInstallations) && rawData.tvInstallations.length > 0) {
         // Multi-TV booking: calculate pricing for each TV
@@ -2131,15 +2207,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawData.tvInstallations.forEach((tv: any, index: number) => {
           if (tv.serviceType && tv.addons) {
             const tvPricing = calculatePricing(tv.serviceType, tv.addons);
+            const tvLeadFee = getLeadFee(tv.serviceType); // NEW: Calculate lead fee for each TV
+            
             tv.estimatedPrice = tvPricing.estimatedPrice;
             tv.estimatedAddonsPrice = tvPricing.addonsPrice;
             tv.estimatedTotal = tvPricing.totalEstimate;
+            tv.leadFee = tvLeadFee; // NEW: Store lead fee for each TV
             
             totalEstimatedPrice += tvPricing.estimatedPrice;
             totalAddonsPrice += tvPricing.addonsPrice;
             totalBookingEstimate += tvPricing.totalEstimate;
+            totalLeadFee += tvLeadFee; // NEW: Sum up lead fees
             
-            console.log(`TV ${index + 1} (${tv.location || 'Unknown location'}): ${tv.tvSize}" ${tv.serviceType} = €${tvPricing.totalEstimate}`);
+            console.log(`TV ${index + 1} (${tv.location || 'Unknown location'}): ${tv.tvSize}" ${tv.serviceType} = €${tvPricing.totalEstimate} (Lead Fee: €${tvLeadFee})`);
           }
         });
         
@@ -2152,10 +2232,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rawData.serviceType || 'bronze',
           rawData.addons || []
         );
+        const singleLeadFee = getLeadFee(rawData.serviceType || 'bronze'); // NEW: Calculate lead fee for single TV
         
         totalEstimatedPrice = pricing.estimatedPrice;
         totalAddonsPrice = pricing.addonsPrice;
         totalBookingEstimate = pricing.totalEstimate;
+        totalLeadFee = singleLeadFee; // NEW: Set lead fee for single TV
       }
       
       // Set installerId to null for initial booking creation
@@ -2165,6 +2247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       rawData.estimatedPrice = totalEstimatedPrice.toFixed(2);
       rawData.estimatedTotal = totalBookingEstimate.toFixed(2);
       rawData.estimatedAddonsPrice = totalAddonsPrice.toFixed(2);
+      rawData.totalLeadFee = totalLeadFee.toFixed(2); // NEW: Store calculated lead fee for audit
       
       // Add contact information (get from authenticated user or request)
       if (req.user) {
@@ -2188,11 +2271,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Booking created without invoice tracking, auth method: ${(req.session as any).authMethod}`);
       }
       
-      console.log('Raw data after processing:', {
+      // NEW: Validate lead fee calculations for consistency
+      const expectedLeadFee = rawData.tvInstallations && rawData.tvInstallations.length > 0 
+        ? rawData.tvInstallations.reduce((sum: number, tv: any) => sum + (tv.leadFee || 0), 0)
+        : getLeadFee(rawData.serviceType || 'bronze');
+      
+      if (Math.abs(totalLeadFee - expectedLeadFee) > 0.01) {
+        console.error('🚨 LEAD FEE CALCULATION MISMATCH:', {
+          calculated: totalLeadFee,
+          expected: expectedLeadFee,
+          difference: Math.abs(totalLeadFee - expectedLeadFee),
+          tvInstallations: rawData.tvInstallations?.map((tv: any) => ({
+            serviceType: tv.serviceType,
+            leadFee: tv.leadFee
+          })) || [],
+          singleServiceType: rawData.serviceType
+        });
+        throw new Error(`Lead fee calculation mismatch: calculated ${totalLeadFee}, expected ${expectedLeadFee}`);
+      }
+
+      console.log('✅ Booking pricing validation passed:', {
         roomAnalysis: rawData.roomAnalysis,
         roomAnalysisType: typeof rawData.roomAnalysis,
         referralDiscount: rawData.referralDiscount,
-        referralDiscountType: typeof rawData.referralDiscount
+        referralDiscountType: typeof rawData.referralDiscount,
+        totalLeadFee: rawData.totalLeadFee,
+        expectedLeadFee: expectedLeadFee,
+        tvCount: rawData.tvInstallations?.length || 1,
+        isMultiTV: !!(rawData.tvInstallations && rawData.tvInstallations.length > 0),
+        totalBookingValue: totalBookingEstimate
       });
       
       const bookingData = insertBookingSchema.parse(rawData);
@@ -2263,6 +2370,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({ booking: tempBooking, qrCode: `data:image/svg+xml;base64,${Buffer.from('<svg>Demo QR</svg>').toString('base64')}` });
         } else {
           throw dbError;
+        }
+      }
+
+      // NEW: Additional validation after successful booking creation
+      if (booking && booking.id) {
+        console.log('📋 Booking created successfully:', {
+          bookingId: booking.id,
+          qrCode: booking.qrCode,
+          totalLeadFee: booking.totalLeadFee,
+          estimatedTotal: booking.estimatedTotal,
+          tvCount: booking.tvInstallations?.length || 1,
+          timestamp: new Date().toISOString()
+        });
+
+        // Validation: Ensure stored lead fee matches calculation
+        const storedLeadFee = parseFloat(booking.totalLeadFee || '0');
+        if (Math.abs(storedLeadFee - totalLeadFee) > 0.01) {
+          console.error('🚨 CRITICAL: Stored lead fee does not match calculated value!', {
+            stored: storedLeadFee,
+            calculated: totalLeadFee,
+            bookingId: booking.id
+          });
         }
       }
 

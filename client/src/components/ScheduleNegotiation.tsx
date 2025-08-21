@@ -262,9 +262,8 @@ export default function ScheduleNegotiation({
         <div className="space-y-4">
           {(() => {
             // Group negotiations by installer and sort by date (newest first)
-            const sortedNegotiations = [...negotiations].sort((a, b) => 
-              new Date(b.proposedAt).getTime() - new Date(a.proposedAt).getTime()
-            );
+            // Data is already sorted by created_at DESC from the API
+            const sortedNegotiations = [...negotiations];
             
             const groupedByInstaller = sortedNegotiations.reduce((acc, negotiation) => {
               const installerKey = negotiation.proposedBy === 'installer' ? 
@@ -338,13 +337,9 @@ export default function ScheduleNegotiation({
                                     {formatTime(negotiation.proposedAt)}
                                   </span>
                                   {(() => {
-                                    // Determine if this is the most recent message across ALL negotiations for this booking
-                                    const allNegotiationsSorted = [...negotiations].sort((a, b) => {
-                                      const aTime = new Date(a.createdAt).getTime();
-                                      const bTime = new Date(b.createdAt).getTime();
-                                      return bTime - aTime;
-                                    });
-                                    const isLatestMessage = allNegotiationsSorted[0]?.id === negotiation.id;
+                                    // Since negotiations are already sorted by created_at DESC from API,
+                                    // the first negotiation (index 0) is the most recent
+                                    const isLatestMessage = negotiations[0]?.id === negotiation.id;
                                     
                                     return !isLatestMessage && (
                                       <Button

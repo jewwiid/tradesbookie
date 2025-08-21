@@ -365,7 +365,7 @@ export default function BookingTracker() {
                 <Badge className="bg-green-100 text-green-800">Available</Badge>
               </div>
               <p className="text-sm text-blue-700 mb-4">Professional TV wall mounting and setup services by certified installers.</p>
-              <Link href="/book">
+              <Link href="/booking?service=tv-installation">
                 <Button className="w-full bg-blue-600 hover:bg-blue-700">
                   Book TV Installation
                   <ArrowRight className="w-4 h-4 ml-2" />

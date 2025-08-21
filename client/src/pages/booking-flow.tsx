@@ -19,8 +19,10 @@ import { useBookingData } from "@/hooks/use-booking-data";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
+import { getServiceConfig, getDefaultService, isServiceActive } from "@/lib/service-configs";
 
-const TOTAL_STEPS = 9; // Updated to include TV quantity step
+// Dynamic total steps based on service type
+// const TOTAL_STEPS = 9; // Updated to include TV quantity step - now dynamic
 
 export default function BookingFlow() {
   const [, setLocation] = useLocation();
@@ -49,12 +51,30 @@ export default function BookingFlow() {
     ...rawBookingData
   } as any;
   const [currentStep, setCurrentStep] = useState(1);
+  const [currentService, setCurrentService] = useState<string>('tv-installation');
   
-  // Check URL parameters for direct installer booking
+  // Get service configuration
+  const serviceConfig = getServiceConfig(currentService);
+  const TOTAL_STEPS = serviceConfig?.totalSteps || 9;
+  
+  // Check URL parameters for service type and direct installer booking
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
+    const serviceParam = urlParams.get('service');
     const installerId = urlParams.get('installer');
     const isDirect = urlParams.get('direct') === 'true';
+    
+    // Set service type from URL parameter
+    if (serviceParam && isServiceActive(serviceParam)) {
+      setCurrentService(serviceParam);
+      // Update booking data with service type
+      updateBookingData({ primaryServiceType: serviceParam });
+    } else {
+      // Default to TV installation if no valid service specified
+      const defaultService = getDefaultService();
+      setCurrentService(defaultService);
+      updateBookingData({ primaryServiceType: defaultService });
+    }
     
     if (installerId && isDirect && !isDirectBooking()) {
       // Fetch installer info and set direct booking
@@ -65,7 +85,7 @@ export default function BookingFlow() {
         })
         .catch(err => console.error('Failed to fetch installer:', err));
     }
-  }, [setDirectInstaller, isDirectBooking]);
+  }, [setDirectInstaller, isDirectBooking, updateBookingData]);
 
   const handleExit = () => {
     if (confirm("Are you sure you want to exit? Your progress will be lost.")) {
@@ -229,8 +249,36 @@ export default function BookingFlow() {
   };
 
   const renderStep = () => {
-    switch (currentStep) {
-      case 1:
+    if (!serviceConfig) {
+      return (
+        <div className="text-center p-8">
+          <p className="text-red-600">Invalid service configuration</p>
+          <Button onClick={() => setLocation('/')} className="mt-4">
+            Return Home
+          </Button>
+        </div>
+      );
+    }
+
+    const stepIndex = currentStep - 1;
+    const currentStepConfig = serviceConfig.steps[stepIndex];
+    
+    if (!currentStepConfig) {
+      return (
+        <div className="text-center p-8">
+          <p className="text-red-600">Step not found</p>
+          <Button onClick={() => setLocation('/')} className="mt-4">
+            Return Home
+          </Button>
+        </div>
+      );
+    }
+
+    // Dynamic component rendering based on service configuration
+    // For now, we map to existing components for TV installation
+    // Future services will have their own components
+    switch (currentStepConfig.component) {
+      case 'TVQuantitySelector':
         return (
           <TVQuantitySelector 
             bookingData={bookingData} 
@@ -239,24 +287,62 @@ export default function BookingFlow() {
             removeTvInstallation={removeTvInstallation}
           />
         );
-      case 2:
+      case 'PhotoUpload':
         return <PhotoUpload bookingData={bookingData} updateBookingData={updateBookingData} onNext={nextStep} />;
-      case 3:
+      case 'TVSizeSelector':
         return <TVSizeSelector bookingData={bookingData} updateBookingData={updateBookingData} updateTvInstallation={updateTvInstallation} />;
-      case 4:
+      case 'ServiceSelector':
         return <ServiceSelector bookingData={bookingData} updateBookingData={updateBookingData} updateTvInstallation={updateTvInstallation} />;
-      case 5:
+      case 'WallTypeSelector':
         return <WallTypeSelector bookingData={bookingData} updateBookingData={updateBookingData} updateTvInstallation={updateTvInstallation} />;
-      case 6:
+      case 'MountTypeSelector':
         return <MountTypeSelector bookingData={bookingData} updateBookingData={updateBookingData} updateTvInstallation={updateTvInstallation} />;
-      case 7:
+      case 'AddonSelector':
         return <AddonSelector bookingData={bookingData} updateBookingData={updateBookingData} updateTvInstallation={updateTvInstallation} updateCurrentTvInstallation={updateCurrentTvInstallation} />;
-      case 8:
+      case 'ScheduleSelector':
         return <ScheduleSelector bookingData={bookingData} updateBookingData={updateBookingData} />;
-      case 9:
+      case 'ContactForm':
         return <ContactForm bookingData={bookingData} updateBookingData={updateBookingData} onComplete={() => setLocation("/customer")} />;
+      
+      // Future service components can be added here
+      case 'ElectricalServiceSelector':
+      case 'PlumbingServiceSelector':
+      case 'UrgencySelector':
+      case 'SafetyRequirementsSelector':
+      case 'WaterAccessSelector':
+      case 'PropertyTypeSelector':
+        return (
+          <div className="text-center p-8">
+            <h3 className="text-lg font-semibold mb-4">{currentStepConfig.name}</h3>
+            <p className="text-gray-600 mb-6">{currentStepConfig.description}</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <p className="text-blue-800 font-medium mb-2">Coming Soon!</p>
+              <p className="text-blue-600 text-sm">
+                This service is currently under development. Please check back soon or contact support for updates.
+              </p>
+            </div>
+            <Button onClick={() => setLocation('/')} className="mt-6">
+              Return Home
+            </Button>
+          </div>
+        );
+      
       default:
-        return null;
+        return (
+          <div className="text-center p-8">
+            <h3 className="text-lg font-semibold mb-4">{currentStepConfig.name}</h3>
+            <p className="text-gray-600 mb-6">{currentStepConfig.description}</p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+              <p className="text-yellow-800 font-medium mb-2">Component Not Implemented</p>
+              <p className="text-yellow-600 text-sm">
+                The component '{currentStepConfig.component}' is not yet implemented.
+              </p>
+            </div>
+            <Button onClick={() => setLocation('/')} className="mt-6">
+              Return Home
+            </Button>
+          </div>
+        );
     }
   };
 
@@ -267,9 +353,23 @@ export default function BookingFlow() {
       <div className="bg-white shadow-sm border-b border-border">
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-muted-foreground">
-              Step {currentStep} of {TOTAL_STEPS}
-            </span>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Step {currentStep} of {TOTAL_STEPS}
+                </span>
+                {serviceConfig && currentStep <= serviceConfig.steps.length && (
+                  <span className="text-xs text-gray-500">
+                    • {serviceConfig.steps[currentStep - 1]?.name}
+                  </span>
+                )}
+              </div>
+              {serviceConfig && (
+                <Badge variant="outline" className="text-xs">
+                  {serviceConfig.name}
+                </Badge>
+              )}
+            </div>
             <Button variant="ghost" size="sm" onClick={handleExit}>
               <X className="w-4 h-4" />
             </Button>

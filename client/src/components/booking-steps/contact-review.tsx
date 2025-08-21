@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { User, Mail, Phone, MapPin, ArrowLeft, Tag, CheckCircle, XCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, ArrowLeft } from 'lucide-react';
 import { useBooking } from '@/hooks/use-booking';
-import { apiRequest } from '@/lib/queryClient';
 
 interface ContactReviewProps {
   onNext: () => void;
@@ -24,17 +23,10 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
     town: bookingData.town || '',
     county: bookingData.county || '',
     eircode: bookingData.eircode || '',
-    customerNotes: bookingData.customerNotes || '',
-    referralCode: bookingData.referralCode || ''
+    customerNotes: bookingData.customerNotes || ''
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [referralValidation, setReferralValidation] = useState<{
-    isValid: boolean | null;
-    discount: number;
-    message: string;
-    isValidating: boolean;
-  }>({ isValid: null, discount: 0, message: '', isValidating: false });
 
   useEffect(() => {
     updateBookingData(formData);
@@ -83,73 +75,6 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-    
-    // Handle referral code changes with debounced validation
-    if (field === 'referralCode') {
-      handleReferralCodeChange(value);
-    }
-  };
-
-  const handleReferralCodeChange = (code: string) => {
-    // Clear previous validation state
-    setReferralValidation({ isValid: null, discount: 0, message: '', isValidating: false });
-    
-    if (code.trim() === '') {
-      // Reset discount when referral code is cleared
-      updateBookingData({ referralCode: '', referralDiscount: 0 });
-      return;
-    }
-
-    // Debounce validation
-    const timeoutId = setTimeout(() => {
-      validateReferralCode(code.trim().toUpperCase());
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  };
-
-  const validateReferralCode = async (code: string) => {
-    if (!code) return;
-    
-    setReferralValidation(prev => ({ ...prev, isValidating: true }));
-    
-    try {
-      const response = await apiRequest('POST', '/api/referral/validate', { code });
-      const validation = await response.json();
-      
-      if (validation.valid) {
-        const discountAmount = (bookingData.total * validation.discountPercentage) / 100;
-        setReferralValidation({
-          isValid: true,
-          discount: discountAmount,
-          message: `${validation.discountPercentage}% discount applied!`,
-          isValidating: false
-        });
-        // Update booking data with referral code and discount
-        updateBookingData({ 
-          referralCode: code, 
-          referralDiscount: discountAmount 
-        });
-      } else {
-        setReferralValidation({
-          isValid: false,
-          discount: 0,
-          message: validation.message || 'Invalid referral code',
-          isValidating: false
-        });
-        // Clear referral data if invalid
-        updateBookingData({ referralCode: '', referralDiscount: 0 });
-      }
-    } catch (error) {
-      console.error('Referral validation error:', error);
-      setReferralValidation({
-        isValid: false,
-        discount: 0,
-        message: 'Error validating referral code',
-        isValidating: false
-      });
-      updateBookingData({ referralCode: '', referralDiscount: 0 });
     }
   };
 
@@ -210,21 +135,9 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
               </div>
             )}
             <div className="border-t pt-2 mt-4">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal:</span>
-                <span>€{bookingData.total.toFixed(2)}</span>
-              </div>
-              {bookingData.referralDiscount && bookingData.referralDiscount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Referral Discount:</span>
-                  <span>-€{bookingData.referralDiscount.toFixed(2)}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-semibold text-lg">
-                <span>Total:</span>
-                <span className="text-green-600">
-                  €{((bookingData.total || 0) - (bookingData.referralDiscount || 0)).toFixed(2)}
-                </span>
+              <div className="flex justify-between font-semibold">
+                <span>Estimated Total:</span>
+                <span className="text-green-600">€{bookingData.total.toFixed(2)}</span>
               </div>
               <div className="text-xs text-gray-500 mt-1">
                 Pay installer directly • Cash • Card • Bank Transfer
@@ -357,46 +270,6 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
                 </Label>
               </div>
             </div>
-          </div>
-
-          <div>
-            <Label htmlFor="referralCode" className="text-base font-medium">
-              <Tag className="w-4 h-4 inline mr-2" />
-              Referral Code (Optional)
-            </Label>
-            <div className="relative mt-2">
-              <Input
-                id="referralCode"
-                value={formData.referralCode}
-                onChange={(e) => handleInputChange('referralCode', e.target.value.toUpperCase())}
-                placeholder="Enter referral code for discount"
-                className={`pr-10 ${
-                  referralValidation.isValid === true 
-                    ? 'border-green-500 focus:ring-green-500' 
-                    : referralValidation.isValid === false 
-                    ? 'border-red-500 focus:ring-red-500' 
-                    : ''
-                }`}
-              />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                {referralValidation.isValidating && (
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-                )}
-                {referralValidation.isValid === true && (
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                )}
-                {referralValidation.isValid === false && (
-                  <XCircle className="w-4 h-4 text-red-500" />
-                )}
-              </div>
-            </div>
-            {referralValidation.message && (
-              <p className={`text-sm mt-1 ${
-                referralValidation.isValid === true ? 'text-green-600' : 'text-red-500'
-              }`}>
-                {referralValidation.message}
-              </p>
-            )}
           </div>
 
           <div>

@@ -9258,14 +9258,29 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.status(404).json({ message: "Installer not found" });
       }
 
-      // Check if installer already has an active subscription
-      if (installer.stripeSubscriptionId && installer.subscriptionStatus === 'active') {
-        const subscription = await stripe.subscriptions.retrieve(installer.stripeSubscriptionId);
-        return res.json({
-          subscriptionId: subscription.id,
-          clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
-          status: subscription.status
+      // Check if installer already has a subscription
+      if (installer.stripeSubscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(installer.stripeSubscriptionId, {
+          expand: ['latest_invoice.payment_intent']
         });
+        
+        // If subscription is incomplete, return the client secret for payment
+        if (subscription.status === 'incomplete') {
+          return res.json({
+            subscriptionId: subscription.id,
+            clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,
+            status: subscription.status
+          });
+        }
+        
+        // If active, no payment needed
+        if (subscription.status === 'active') {
+          return res.json({
+            subscriptionId: subscription.id,
+            status: subscription.status,
+            clientSecret: null // No payment needed
+          });
+        }
       }
 
       let customerId = installer.stripeCustomerId;

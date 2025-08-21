@@ -9269,15 +9269,23 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.log('Found existing subscription:', installer.stripeSubscriptionId);
         
         try {
+          console.log('About to retrieve subscription from Stripe:', installer.stripeSubscriptionId);
           const subscription = await stripe.subscriptions.retrieve(installer.stripeSubscriptionId, {
             expand: ['latest_invoice.payment_intent']
           });
           
-          console.log('Retrieved subscription:', {
+          console.log('Successfully retrieved subscription from Stripe');
+          console.log('Full subscription object keys:', Object.keys(subscription));
+          console.log('Retrieved subscription details:', {
             id: subscription.id,
             status: subscription.status,
+            latest_invoice: subscription.latest_invoice ? 'exists' : 'null',
             latest_invoice_id: subscription.latest_invoice?.id,
+            latest_invoice_status: subscription.latest_invoice?.status,
+            payment_intent_exists: subscription.latest_invoice?.payment_intent ? 'exists' : 'null',
             payment_intent_id: subscription.latest_invoice?.payment_intent?.id,
+            payment_intent_status: subscription.latest_invoice?.payment_intent?.status,
+            client_secret_exists: subscription.latest_invoice?.payment_intent?.client_secret ? 'exists' : 'null',
             client_secret: subscription.latest_invoice?.payment_intent?.client_secret
           });
           

@@ -244,7 +244,7 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Crown className="w-5 h-5 text-yellow-600" />
@@ -255,148 +255,205 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* VIP Benefits */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Star className="w-5 h-5 text-yellow-500" />
-                VIP Benefits
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>No lead fees (save €12-35 per job)</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>Priority customer support</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>VIP badge on your profile</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Check className="w-4 h-4 text-green-500" />
-                <span>Cancel anytime</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Current Status */}
-          {subscriptionStatus && (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Current Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge variant={isVipActive ? "default" : "secondary"}>
-                    {isVipActive ? "VIP Active" : "Standard Member"}
-                  </Badge>
-                  {willCancelAtPeriodEnd && (
-                    <Badge variant="outline" className="text-orange-600 border-orange-300">
-                      Canceling Soon
-                    </Badge>
-                  )}
-                </div>
-                {isVipActive && (subscriptionStatus as any)?.currentPeriodEnd && (
-                  <p className="text-sm text-gray-600">
-                    {willCancelAtPeriodEnd ? 'Ends' : 'Renews'} on{' '}
-                    {new Date((subscriptionStatus as any).currentPeriodEnd).toLocaleDateString()}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Payment Form or Action Buttons */}
+        <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+          {/* Loading State */}
           {loading && (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin" />
-              <span className="ml-2">Loading...</span>
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin" />
+              <span className="ml-3 text-lg">Loading payment system...</span>
             </div>
           )}
 
+          {/* Error State */}
           {error && (
-            <div className="text-center py-4 text-red-600">
-              <p>{error}</p>
+            <div className="text-center py-8 text-red-600">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="font-medium">Payment Setup Error</p>
+                <p className="text-sm mt-1">{error}</p>
+              </div>
             </div>
           )}
 
+          {/* Main Content - 2 Column Layout */}
           {!loading && !error && (
-            <>
-              {/* Show payment form for new subscription */}
-              {clientSecret && stripeInstance && (
-                <Elements 
-                  stripe={stripeInstance} 
-                  options={{ clientSecret }}
-                >
-                  <VipSubscriptionForm
-                    installerId={installerId}
-                    clientSecret={clientSecret}
-                    onSuccess={handlePaymentSuccess}
-                    onCancel={() => {
-                      setClientSecret(null);
-                      setError(null);
-                    }}
-                  />
-                </Elements>
-              )}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Benefits & Status */}
+              <div className="space-y-4">
+                {/* VIP Benefits */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Star className="w-5 h-5 text-yellow-500" />
+                      VIP Benefits
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center gap-3 text-sm">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span><strong>No lead fees</strong> - Save €12-35 per job</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span><strong>Priority support</strong> - Get help faster</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span><strong>VIP badge</strong> - Stand out to customers</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span><strong>Cancel anytime</strong> - No long-term commitment</span>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Show action buttons when no payment in progress */}
-              {!clientSecret && stripeInstance && (
-                <div className="space-y-3">
-                  {!isVipActive && (
-                    <Button 
-                      onClick={handleSubscribe}
-                      disabled={createSubscription.isPending}
-                      className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
-                    >
-                      {createSubscription.isPending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Setting up...
-                        </>
-                      ) : (
-                        <>
-                          <Crown className="w-4 h-4 mr-2" />
-                          Subscribe for €50/month
-                        </>
+                {/* Current Status */}
+                {subscriptionStatus && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-xl">Current Status</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                        <Badge 
+                          variant={isVipActive ? "default" : "secondary"}
+                          className={isVipActive ? "bg-yellow-500 hover:bg-yellow-600" : ""}
+                        >
+                          {isVipActive ? "VIP Active" : "Standard Member"}
+                        </Badge>
+                        {willCancelAtPeriodEnd && (
+                          <Badge variant="outline" className="text-orange-600 border-orange-300">
+                            Canceling Soon
+                          </Badge>
+                        )}
+                      </div>
+                      {isVipActive && (subscriptionStatus as any)?.currentPeriodEnd && (
+                        <p className="text-sm text-gray-600">
+                          {willCancelAtPeriodEnd ? 'Membership ends' : 'Next billing'} on{' '}
+                          <span className="font-medium">
+                            {new Date((subscriptionStatus as any).currentPeriodEnd).toLocaleDateString()}
+                          </span>
+                        </p>
                       )}
-                    </Button>
-                  )}
+                    </CardContent>
+                  </Card>
+                )}
 
-                  {isVipActive && !willCancelAtPeriodEnd && (
-                    <Button 
-                      onClick={handleCancel}
-                      disabled={cancelSubscription.isPending}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      {cancelSubscription.isPending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Canceling...
-                        </>
-                      ) : (
-                        <>
-                          <X className="w-4 h-4 mr-2" />
-                          Cancel Subscription
-                        </>
-                      )}
-                    </Button>
-                  )}
-
-                  <div className="text-center">
-                    <p className="text-xs text-gray-500">
-                      Secure payments powered by Stripe
+                {/* Value Proposition */}
+                <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Zap className="w-5 h-5 text-yellow-600" />
+                      <span className="font-semibold text-yellow-800">Pay for itself quickly!</span>
+                    </div>
+                    <p className="text-sm text-yellow-700">
+                      Just 2-3 jobs per month and VIP pays for itself. 
+                      Most installers save €200+ monthly on lead fees.
                     </p>
-                  </div>
-                </div>
-              )}
-            </>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Column - Payment Form & Actions */}
+              <div className="space-y-4">
+                {/* Payment Form */}
+                {clientSecret && stripeInstance && (
+                  <Card className="border-2 border-yellow-200">
+                    <CardHeader>
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-green-600" />
+                        Secure Payment
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Elements 
+                        stripe={stripeInstance} 
+                        options={{ clientSecret }}
+                      >
+                        <VipSubscriptionForm
+                          installerId={installerId}
+                          clientSecret={clientSecret}
+                          onSuccess={handlePaymentSuccess}
+                          onCancel={() => {
+                            setClientSecret(null);
+                            setError(null);
+                          }}
+                        />
+                      </Elements>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Action Buttons */}
+                {!clientSecret && stripeInstance && (
+                  <Card className="border-2 border-yellow-200">
+                    <CardContent className="p-6">
+                      {!isVipActive && (
+                        <div className="text-center space-y-4">
+                          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-200">
+                            <div className="text-2xl font-bold text-yellow-800 mb-1">€50/month</div>
+                            <div className="text-sm text-yellow-700">Cancel anytime</div>
+                          </div>
+                          
+                          <Button 
+                            onClick={handleSubscribe}
+                            disabled={createSubscription.isPending}
+                            className="w-full h-12 text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                          >
+                            {createSubscription.isPending ? (
+                              <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Setting up payment...
+                              </>
+                            ) : (
+                              <>
+                                <Crown className="w-5 h-5 mr-2" />
+                                Upgrade to VIP Now
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+
+                      {isVipActive && !willCancelAtPeriodEnd && (
+                        <div className="text-center space-y-4">
+                          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                            <div className="text-lg font-semibold text-green-800 mb-1">VIP Active</div>
+                            <div className="text-sm text-green-700">Enjoying zero lead fees</div>
+                          </div>
+                          
+                          <Button 
+                            onClick={handleCancel}
+                            disabled={cancelSubscription.isPending}
+                            variant="outline"
+                            className="w-full h-10"
+                          >
+                            {cancelSubscription.isPending ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Canceling...
+                              </>
+                            ) : (
+                              <>
+                                <X className="w-4 h-4 mr-2" />
+                                Cancel Subscription
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
+
+                      <div className="text-center mt-4 pt-4 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+                          <Shield className="w-3 h-3" />
+                          Secure payments powered by Stripe
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </DialogContent>

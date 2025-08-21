@@ -319,7 +319,9 @@ export default function InstallerProfile() {
                                 {/* Before Photo */}
                                 <div className="relative">
                                   <img 
-                                    src={`data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
+                                    src={currentPhoto.beforePhoto.startsWith('http') 
+                                      ? currentPhoto.beforePhoto 
+                                      : `data:image/jpeg;base64,${currentPhoto.beforePhoto}`}
                                     alt="Before installation"
                                     className="w-full h-24 object-cover"
                                   />
@@ -331,7 +333,9 @@ export default function InstallerProfile() {
                                 {/* After Photo */}
                                 <div className="relative">
                                   <img 
-                                    src={`data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
+                                    src={currentPhoto.afterPhoto.startsWith('http') 
+                                      ? currentPhoto.afterPhoto 
+                                      : `data:image/jpeg;base64,${currentPhoto.afterPhoto}`}
                                     alt="After installation"
                                     className="w-full h-24 object-cover"
                                   />

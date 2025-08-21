@@ -800,8 +800,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Installer not found" });
       }
 
-      // Only show public profiles for VIP installers who are active
-      if (!installer.isActive || !installer.isVip) {
+      // Only show public profiles for active installers
+      // VIP installers get enhanced profiles, but all active installers should have basic public profiles
+      if (!installer.isActive) {
         return res.status(404).json({ error: "Installer profile not available" });
       }
 

@@ -3644,6 +3644,11 @@ export default function InstallerDashboard() {
               <span className="hidden sm:inline">Active Jobs</span>
               <span className="sm:hidden">Jobs</span>
             </TabsTrigger>
+            <TabsTrigger value="job-completion" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline">Job Completion</span>
+              <span className="lg:hidden">Complete</span>
+            </TabsTrigger>
             <TabsTrigger value="reviews" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <Star className="w-4 h-4 flex-shrink-0" />
               <span>Reviews</span>
@@ -3652,11 +3657,6 @@ export default function InstallerDashboard() {
               <Euro className="w-4 h-4 flex-shrink-0" />
               <span className="hidden lg:inline">Wallet & Credits</span>
               <span className="lg:hidden">Wallet</span>
-            </TabsTrigger>
-            <TabsTrigger value="job-completion" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
-              <CheckCircle className="w-4 h-4 flex-shrink-0" />
-              <span className="hidden lg:inline">Job Completion</span>
-              <span className="lg:hidden">Complete</span>
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <Settings className="w-4 h-4 flex-shrink-0" />

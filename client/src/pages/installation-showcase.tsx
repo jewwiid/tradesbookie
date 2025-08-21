@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Star, ChevronLeft, ChevronRight, Heart, Lock, Eye, Filter, Tv, Zap, Wrench, User, Award, TrendingUp, Clock } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, Heart, Lock, Eye, Filter, Tv, Zap, Wrench, User, Award, TrendingUp, Clock, Crown } from 'lucide-react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/navigation';
@@ -34,6 +34,7 @@ interface InstallerProfile {
   yearsExperience: number;
   expertise: string[];
   serviceArea: string;
+  isVip?: boolean;
 }
 
 interface InstallationShowcase {
@@ -237,8 +238,8 @@ export default function InstallationShowcase() {
                     {/* Installer Profile Banner */}
                     <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
                       <div className="flex items-center space-x-4">
-                        {/* Profile Image */}
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                        {/* Profile Image with VIP Badge */}
+                        <div className="relative w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
                           {installation.installer?.profileImage ? (
                             <img 
                               src={installation.installer.profileImage} 
@@ -248,13 +249,28 @@ export default function InstallationShowcase() {
                           ) : (
                             installation.installer?.businessName?.charAt(0) || 'I'
                           )}
+                          {installation.installer?.isVip && (
+                            <div className="absolute -top-1 -right-1">
+                              <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md">
+                                <Crown className="w-3 h-3" />
+                              </div>
+                            </div>
+                          )}
                         </div>
                         
                         {/* Installer Info */}
                         <div className="flex-1">
-                          <h3 className="font-bold text-lg text-gray-900">
-                            {installation.installer?.businessName || 'Unknown Installer'}
-                          </h3>
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-bold text-lg text-gray-900">
+                              {installation.installer?.businessName || 'Unknown Installer'}
+                            </h3>
+                            {installation.installer?.isVip && (
+                              <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs px-2 py-1">
+                                <Crown className="w-3 h-3 mr-1" />
+                                VIP
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-gray-600 text-sm">
                             {installation.installer?.contactName || 'Unknown'} • {installation.installer?.serviceArea || 'Unknown Area'}
                           </p>

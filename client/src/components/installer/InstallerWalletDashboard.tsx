@@ -21,7 +21,9 @@ import {
   Calendar,
   Shield,
   Zap,
-  Star
+  Star,
+  Image,
+  Users
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -391,6 +393,45 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
                         )}
                       </div>
                     </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-full mt-1 ${installerProfile?.isVip ? 'bg-pink-100' : 'bg-gray-100'}`}>
+                        <Image className={`w-4 h-4 ${installerProfile?.isVip ? 'text-pink-600' : 'text-gray-400'}`} />
+                      </div>
+                      <div>
+                        <p className="font-medium">Gallery Showcase</p>
+                        <p className="text-sm text-gray-600">Work featured on gallery page</p>
+                        {installerProfile?.isVip && (
+                          <Badge variant="secondary" className="mt-1 text-xs bg-pink-100 text-pink-800">Active</Badge>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-full mt-1 ${installerProfile?.isVip ? 'bg-indigo-100' : 'bg-gray-100'}`}>
+                        <Users className={`w-4 h-4 ${installerProfile?.isVip ? 'text-indigo-600' : 'text-gray-400'}`} />
+                      </div>
+                      <div>
+                        <p className="font-medium">Public Profile Page</p>
+                        <p className="text-sm text-gray-600">Professional profile visibility</p>
+                        {installerProfile?.isVip && (
+                          <Badge variant="secondary" className="mt-1 text-xs bg-indigo-100 text-indigo-800">Available</Badge>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-full mt-1 ${installerProfile?.isVip ? 'bg-teal-100' : 'bg-gray-100'}`}>
+                        <Calendar className={`w-4 h-4 ${installerProfile?.isVip ? 'text-teal-600' : 'text-gray-400'}`} />
+                      </div>
+                      <div>
+                        <p className="font-medium">Direct Booking</p>
+                        <p className="text-sm text-gray-600">Customers can book you directly</p>
+                        {installerProfile?.isVip && (
+                          <Badge variant="secondary" className="mt-1 text-xs bg-teal-100 text-teal-800">Available</Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -438,7 +479,7 @@ export default function InstallerWalletDashboard({ installerId }: InstallerWalle
                     <Crown className="w-12 h-12 text-yellow-600 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold mb-2">Unlock VIP Benefits</h3>
                     <p className="text-gray-600 mb-4">
-                      For just €50/month, eliminate lead fees and access exclusive VIP features
+                      For just €50/month, eliminate lead fees and unlock gallery showcase, public profile page, direct booking, and more exclusive VIP features
                     </p>
                     <Button 
                       onClick={() => setShowVipModal(true)}

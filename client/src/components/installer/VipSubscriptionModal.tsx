@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Star, Crown, Zap, Shield, Check, Loader2, X } from 'lucide-react';
+import { Star, Crown, Zap, Shield, Check, Loader2, X, Eye, Image, Users, Calendar } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Load Stripe
@@ -288,22 +288,36 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center gap-3 text-sm">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                      <span><strong>No lead fees</strong> - Save €12-35 per job</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                      <span><strong>Priority support</strong> - Get help faster</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                      <span><strong>VIP badge</strong> - Stand out to customers</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                      <span><strong>Cancel anytime</strong> - No long-term commitment</span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span><strong>No lead fees</strong> - Save €12-35 per job</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span><strong>Priority support</strong> - Get help faster</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span><strong>VIP badge</strong> - Stand out to customers</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span><strong>Gallery showcase</strong> - Work featured on gallery page</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span><strong>Public profile page</strong> - Professional profile visibility</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span><strong>Direct booking</strong> - Customers can book you directly</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span><strong>Cancel anytime</strong> - No long-term commitment</span>
+                      </div>
+                    </>
                   </CardContent>
                 </Card>
 
@@ -327,11 +341,11 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
                           </Badge>
                         )}
                       </div>
-                      {isVipActive && (subscriptionStatus as any)?.currentPeriodEnd && (
+                      {isVipActive && subscriptionStatus && typeof subscriptionStatus === 'object' && 'currentPeriodEnd' in subscriptionStatus && subscriptionStatus.currentPeriodEnd && (
                         <p className="text-sm text-gray-600">
                           {willCancelAtPeriodEnd ? 'Membership ends' : 'Next billing'} on{' '}
                           <span className="font-medium">
-                            {new Date((subscriptionStatus as any).currentPeriodEnd).toLocaleDateString()}
+                            {new Date(subscriptionStatus.currentPeriodEnd as string).toLocaleDateString()}
                           </span>
                         </p>
                       )}

@@ -800,8 +800,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Installer not found" });
       }
 
-      // Only show active installers (removing isPubliclyVisible check since it may not exist)
-      if (!installer.isActive) {
+      // Only show public profiles for VIP installers who are active
+      if (!installer.isActive || !installer.isVip) {
         return res.status(404).json({ error: "Installer profile not available" });
       }
 
@@ -2552,6 +2552,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (installer.approvalStatus !== 'approved') {
         return res.status(400).json({ message: "Installer is not approved for bookings" });
+      }
+      
+      // Only VIP installers can accept direct bookings
+      if (!installer.isVip) {
+        return res.status(400).json({ message: "Direct booking is only available for VIP installers" });
       }
       
       // Create the booking with direct installer assignment
@@ -6418,6 +6423,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             insurance: installer.insurance,
             certifications: installer.certifications,
             isAvailable: installer.isAvailable, // Show availability status for badge system
+            isVip: installer.isVip, // Add VIP status for UI display
+            canBeBookedDirectly: installer.isVip, // Only VIP installers can be booked directly
             services: installerServices.map(assignment => ({
               id: assignment.serviceType.id,
               key: assignment.serviceType.key,
@@ -6439,6 +6446,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           installer.services.some(service => service.key === serviceType)
         );
       }
+      
+      // Sort installers: VIP first, then by availability, then alphabetically
+      publicInstallers.sort((a, b) => {
+        // VIP installers first
+        if (a.isVip && !b.isVip) return -1;
+        if (!a.isVip && b.isVip) return 1;
+        
+        // Then by availability
+        if (a.isAvailable && !b.isAvailable) return -1;
+        if (!a.isAvailable && b.isAvailable) return 1;
+        
+        // Finally alphabetically by business name
+        return a.businessName.localeCompare(b.businessName);
+      });
       
       res.json(publicInstallers);
     } catch (error) {
@@ -14594,13 +14615,22 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       const bookings = await storage.getAllBookings();
       
-      // Filter for showcased completed installations with photos
-      let showcasedBookings = bookings.filter(booking => 
-        booking.showcaseInGallery === true &&
-        booking.status === 'completed' &&
-        booking.beforeAfterPhotos && 
-        booking.beforeAfterPhotos.length > 0
-      );
+      // Filter for showcased completed installations with photos from VIP installers only
+      let showcasedBookings = [];
+      
+      for (const booking of bookings) {
+        if (booking.showcaseInGallery === true &&
+            booking.status === 'completed' &&
+            booking.beforeAfterPhotos && 
+            booking.beforeAfterPhotos.length > 0) {
+          
+          // Check if installer is VIP
+          const installer = await storage.getInstaller(booking.installerId);
+          if (installer && installer.isVip) {
+            showcasedBookings.push(booking);
+          }
+        }
+      }
       
       // Filter by service type if specified
       if (serviceType && serviceType !== 'all') {

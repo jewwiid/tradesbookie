@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import InstallerProfile from "@/components/installer-profile";
 import InstallerLocationMap from "@/components/InstallerLocationMap";
-import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock, Eye, UserCheck } from "lucide-react";
+import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock, Eye, UserCheck, Crown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 export default function OurInstallers() {
@@ -203,8 +203,18 @@ export default function OurInstallers() {
                         </div>
                       )}
                       
-                      {/* Availability Badge */}
-                      {installer.isAvailable && (
+                      {/* VIP Badge - Takes priority */}
+                      {installer.isVip && (
+                        <div className="absolute -top-1 -right-1">
+                          <div className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center shadow-md">
+                            <Crown className="w-3 h-3 mr-1" />
+                            VIP
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Availability Badge - Only show if not VIP (to avoid overlap) */}
+                      {!installer.isVip && installer.isAvailable && (
                         <div className="absolute -top-1 -right-1">
                           <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center">
                             <div className="w-2 h-2 bg-white rounded-full mr-1"></div>
@@ -252,19 +262,33 @@ export default function OurInstallers() {
 
                     {/* Action Buttons */}
                     <div className="space-y-2">
-                      <Button 
-                        className="w-full bg-primary hover:bg-primary/90" 
-                        onClick={() => window.location.href = `/booking?installer=${installer.id}&direct=true`}
-                      >
-                        Book This Installer Directly
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        className="w-full text-xs" 
-                        onClick={() => window.location.href = '/booking'}
-                      >
-                        Book via Marketplace
-                      </Button>
+                      {installer.isVip ? (
+                        <>
+                          <Button 
+                            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold" 
+                            onClick={() => window.location.href = `/booking?installer=${installer.id}&direct=true`}
+                          >
+                            <Crown className="w-4 h-4 mr-2" />
+                            Book VIP Installer Directly
+                          </Button>
+                          <Button 
+                            variant="outline"
+                            className="w-full text-xs border-yellow-200 hover:bg-yellow-50" 
+                            onClick={() => window.location.href = `/installer/${installer.id}/public-profile`}
+                          >
+                            <Eye className="w-3 h-3 mr-1" />
+                            View VIP Profile
+                          </Button>
+                        </>
+                      ) : (
+                        <Button 
+                          variant="outline"
+                          className="w-full" 
+                          onClick={() => window.location.href = '/booking'}
+                        >
+                          Book via Marketplace
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

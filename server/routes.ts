@@ -2102,6 +2102,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NEW: Helper function to calculate accurate lead fee for any booking
+  function calculateBookingLeadFee(booking: any): number {
+    // Use stored totalLeadFee if available (most accurate)
+    const storedLeadFee = parseFloat(booking.totalLeadFee || '0');
+    if (storedLeadFee > 0) {
+      return storedLeadFee;
+    }
+
+    // Fallback calculation for legacy bookings
+    if (booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0) {
+      // Multi-TV booking: sum all TV lead fees
+      return booking.tvInstallations.reduce((sum: number, tv: any) => {
+        return sum + (tv.serviceType ? getLeadFee(tv.serviceType) : 0);
+      }, 0);
+    } else {
+      // Single TV booking: use main service type
+      return getLeadFee(booking.serviceType || 'bronze');
+    }
+  }
+
   // NEW: Audit endpoint to check for lead fee calculation discrepancies
   app.get("/api/admin/audit-lead-fees", async (req, res) => {
     try {
@@ -4486,7 +4506,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             qrCode: booking.qrCode,
             createdAt: booking.createdAt,
             // Job assignment specific fields
-            leadFee: (assignment.leadFee && parseFloat(assignment.leadFee) > 0) ? assignment.leadFee : getLeadFee(booking.serviceType).toString(),
+            leadFee: (assignment.leadFee && parseFloat(assignment.leadFee) > 0) ? assignment.leadFee : calculateBookingLeadFee(booking).toString(),
             assignmentStatus: assignment.status,
             assignedDate: assignment.assignedDate,
             isSelected: booking.installerId === installerId, // Whether customer has selected this installer
@@ -5444,8 +5464,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const shouldPayFee = await storage.shouldInstallerPayLeadFee(targetInstallerId);
         
         if (shouldPayFee) {
-          // Calculate lead fee based on service type
-          const leadFee = getLeadFee(booking.serviceType);
+          // Calculate lead fee based on service type (handles multi-TV)
+          const leadFee = calculateBookingLeadFee(booking);
           
           // Check wallet balance
           const wallet = await storage.getInstallerWallet(targetInstallerId);
@@ -5466,7 +5486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         // Determine lead fee and fee status based on exemption
-        const finalLeadFee = shouldPayFee ? getLeadFee(booking.serviceType) : 0;
+        const finalLeadFee = shouldPayFee ? calculateBookingLeadFee(booking) : 0;
         const feeStatus = shouldPayFee ? "paid" : "exempt";
         
         // Create job assignment for demo lead purchase

@@ -79,6 +79,34 @@ async function getLeadFeeForService(serviceType: string): Promise<number> {
   }
 }
 
+// NEW: Helper function to calculate accurate lead fee for any booking (handles multi-TV)
+function calculateBookingLeadFeeSync(booking: any): number {
+  // Use stored totalLeadFee if available (most accurate)
+  const storedLeadFee = parseFloat(booking.totalLeadFee || '0');
+  if (storedLeadFee > 0) {
+    return storedLeadFee;
+  }
+
+  // Fallback calculation for legacy bookings
+  if (booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0) {
+    // Multi-TV booking: sum all TV lead fees using fallback values
+    return booking.tvInstallations.reduce((sum: number, tv: any) => {
+      const fallbackFees: Record<string, number> = {
+        'table-top-small': 12, 'table-top-large': 15, 'bronze': 20,
+        'silver': 25, 'silver-wall': 25, 'gold': 30, 'gold-large': 35
+      };
+      return sum + (fallbackFees[tv.serviceType] || 20);
+    }, 0);
+  } else {
+    // Single TV booking: use main service type
+    const fallbackFees: Record<string, number> = {
+      'table-top-small': 12, 'table-top-large': 15, 'bronze': 20,
+      'silver': 25, 'silver-wall': 25, 'gold': 30, 'gold-large': 35
+    };
+    return fallbackFees[booking.serviceType] || 20;
+  }
+}
+
 export async function getWebsiteMetrics(): Promise<WebsiteMetrics> {
   try {
     // Get real booking data from database
@@ -90,8 +118,8 @@ export async function getWebsiteMetrics(): Promise<WebsiteMetrics> {
     // In lead generation model, platform revenue comes from lead fees, not customer payments
     let totalRevenue = 0;
     for (const booking of bookings) {
-      // Get the lead fee for this service type from pricing config
-      const leadFee = await getLeadFeeForService(booking.serviceType);
+      // NEW: Use accurate calculation that handles multi-TV bookings
+      const leadFee = calculateBookingLeadFeeSync(booking);
       totalRevenue += leadFee;
     }
     
@@ -165,7 +193,7 @@ export async function getRealTimeStats(): Promise<RealTimeStats> {
     let todayRevenue = 0;
     
     for (const booking of todayBookingsArray) {
-      const leadFee = await getLeadFeeForService(booking.serviceType);
+      const leadFee = calculateBookingLeadFeeSync(booking);
       todayRevenue += leadFee;
     }
 
@@ -215,7 +243,7 @@ async function extractGeographicData(bookings: any[]): Promise<Array<{county: st
       }
       counties[county].count++;
       // Use lead fee instead of customer payment for platform revenue
-      const leadFee = await getLeadFeeForService(booking.serviceType);
+      const leadFee = calculateBookingLeadFeeSync(booking);
       counties[county].revenue += leadFee;
     }
   }
@@ -257,7 +285,7 @@ async function generateMonthlyTrends(bookings: any[]): Promise<Array<{month: str
     }
     months[monthKey].bookings++;
     // Use lead fee instead of customer payment for platform revenue
-    const leadFee = await getLeadFeeForService(booking.serviceType);
+    const leadFee = calculateBookingLeadFeeSync(booking);
     months[monthKey].revenue += leadFee;
   }
 

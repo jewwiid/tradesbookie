@@ -67,7 +67,8 @@ import {
   ChevronDown,
   ChevronUp,
   Play,
-  Crown
+  Crown,
+  RefreshCw
 } from "lucide-react";
 
 interface InstallerStats {
@@ -3083,6 +3084,14 @@ export default function InstallerDashboard() {
     emergencyCallout: false,
     weekendAvailable: false
   });
+
+  // Password management state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
   
   // Get current installer profile
   const { data: installerProfile, isLoading: profileLoading, error: profileError } = useQuery({
@@ -3304,6 +3313,63 @@ export default function InstallerDashboard() {
       });
     },
   });
+
+  // Password change handler
+  const handlePasswordChange = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all password fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "New password and confirmation don't match.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: "Password Too Short",
+        description: "Password must be at least 6 characters long.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await apiRequest('POST', '/api/installer/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+
+      toast({
+        title: "Password Updated",
+        description: "Your password has been changed successfully."
+      });
+
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error: any) {
+      toast({
+        title: "Password Change Failed",
+        description: error.message || "Failed to change password. Please check your current password.",
+        variant: "destructive"
+      });
+    } finally {
+      setChangingPassword(false);
+    }
+  };
 
   // Accept request mutation
   const acceptRequestMutation = useMutation({
@@ -4508,6 +4574,63 @@ export default function InstallerDashboard() {
 
               <TabsContent value="settings" className="space-y-4">
                 <div className="space-y-4">
+                  {/* Password Management Section */}
+                  <div className="border rounded-lg p-4 space-y-4">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Lock className="w-4 h-4 text-red-500" />
+                      <span className="font-medium">Password Management</span>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <Input
+                          id="currentPassword"
+                          type="password"
+                          value={passwordData.currentPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                          placeholder="Enter current password"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="newPassword">New Password</Label>
+                        <Input
+                          id="newPassword"
+                          type="password"
+                          value={passwordData.newPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                          placeholder="Enter new password"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <Input
+                          id="confirmPassword"
+                          type="password"
+                          value={passwordData.confirmPassword}
+                          onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          placeholder="Confirm new password"
+                          className="mt-1"
+                        />
+                      </div>
+                      {passwordData.newPassword && passwordData.confirmPassword && 
+                       passwordData.newPassword !== passwordData.confirmPassword && (
+                        <p className="text-sm text-red-600">Passwords don't match</p>
+                      )}
+                      <Button 
+                        onClick={handlePasswordChange}
+                        disabled={changingPassword || !passwordData.currentPassword || !passwordData.newPassword || passwordData.newPassword !== passwordData.confirmPassword}
+                        className="w-full mt-2"
+                      >
+                        {changingPassword && <RefreshCw className="w-4 h-4 mr-2 animate-spin" />}
+                        <Lock className="w-4 h-4 mr-2" />
+                        Update Password
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Service Preferences */}
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">

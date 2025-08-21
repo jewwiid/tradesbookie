@@ -14778,6 +14778,55 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Installer password change endpoint
+  app.post('/api/installer/change-password', async (req, res) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const { currentPassword, newPassword } = req.body;
+      
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Current password and new password are required" });
+      }
+      
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters long" });
+      }
+      
+      // Get installer by email
+      const installer = await storage.getInstallerByEmail(req.user.email);
+      if (!installer) {
+        return res.status(404).json({ error: "Installer not found" });
+      }
+      
+      // Verify current password
+      const bcrypt = require('bcrypt');
+      if (!installer.passwordHash || !await bcrypt.compare(currentPassword, installer.passwordHash)) {
+        return res.status(401).json({ error: "Current password is incorrect" });
+      }
+      
+      // Hash new password
+      const newPasswordHash = await bcrypt.hash(newPassword, 10);
+      
+      // Update installer password
+      const updatedInstaller = await storage.updateInstaller(installer.id, {
+        passwordHash: newPasswordHash
+      });
+      
+      if (!updatedInstaller) {
+        return res.status(500).json({ error: "Failed to update password" });
+      }
+      
+      res.json({ success: true, message: "Password updated successfully" });
+      
+    } catch (error) {
+      console.error('Change installer password error:', error);
+      res.status(500).json({ error: "Failed to change password" });
+    }
+  });
+
   // Password reset endpoints
   app.post('/api/password-reset/request', async (req, res) => {
     try {

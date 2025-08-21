@@ -440,7 +440,7 @@ export default function ContactForm({ bookingData, updateBookingData, onComplete
             type="tel"
             value={bookingData.contact?.phone || ''}
             onChange={(e) => handleInputChange('phone', e.target.value)}
-            placeholder="+353 1 234 5678"
+            placeholder="+353851159264"
             required
           />
         </div>

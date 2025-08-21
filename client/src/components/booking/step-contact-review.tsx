@@ -127,7 +127,7 @@ export function StepContactReview({ onSubmit, onBack, isSubmitting = false }: St
               type="tel"
               value={contact.phone || ''}
               onChange={(e) => handleContactChange('phone', e.target.value)}
-              placeholder="+353 1 234 5678"
+              placeholder="+353851159264"
             />
           </div>
           

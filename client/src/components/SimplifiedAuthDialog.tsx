@@ -505,7 +505,7 @@ export default function SimplifiedAuthDialog({
                       <Input
                         id="profile-phone"
                         type="tel"
-                        placeholder="+353 1 234 5678"
+                        placeholder="+353851159264"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         className="mt-1"
@@ -625,7 +625,7 @@ export default function SimplifiedAuthDialog({
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="+353 1 234 5678"
+                    placeholder="+353851159264"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="mt-1"

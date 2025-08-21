@@ -321,7 +321,7 @@ export default function StorePartnerSignup() {
                         <FormItem>
                           <FormLabel>Phone Number *</FormLabel>
                           <FormControl>
-                            <Input placeholder="+353 1 234 5678" {...field} />
+                            <Input placeholder="+353851159264" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

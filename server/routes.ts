@@ -6795,7 +6795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 <h3>Need Help?</h3>
                 <p>Contact our support team:</p>
                 <p><strong>Email:</strong> support@tradesbook.ie</p>
-                <p><strong>Phone:</strong> +353 1 234 5678</p>
+                <p><strong>Phone:</strong> +353851159264</p>
               </div>
               
               <div style="text-align: center; margin-top: 30px;">

@@ -241,7 +241,7 @@ export default function InstallerProfileSetup() {
                     required
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+353 1 234 5678"
+                    placeholder="+353851159264"
                     className="mt-1"
                   />
                 </div>

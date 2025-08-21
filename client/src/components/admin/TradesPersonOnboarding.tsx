@@ -645,7 +645,7 @@ export default function TradesPersonOnboarding() {
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+353 1 234 5678"
+                    placeholder="+353851159264"
                   />
                 </div>
 
@@ -826,7 +826,7 @@ export default function TradesPersonOnboarding() {
                     id="reg-phone"
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+353 1 234 5678"
+                    placeholder="+353851159264"
                   />
                 </div>
 

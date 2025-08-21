@@ -173,7 +173,7 @@ export async function sendTvSetupBookingConfirmation(booking: any): Promise<bool
         <div style="background: #667eea; color: white; padding: 20px; border-radius: 8px; text-align: center;">
           <h3 style="margin-top: 0;">What's Next?</h3>
           <p style="margin-bottom: 15px;">Our technical team will contact you within 24 hours to schedule your remote setup session.</p>
-          <p style="margin-bottom: 0;"><strong>Contact:</strong> support@tradesbook.ie | +353 1 234 5678</p>
+          <p style="margin-bottom: 0;"><strong>Contact:</strong> support@tradesbook.ie | +353851159264</p>
         </div>
       </div>
       

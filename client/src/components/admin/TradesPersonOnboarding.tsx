@@ -615,6 +615,10 @@ export default function TradesPersonOnboarding() {
                 <UserPlus className="h-5 w-5" />
                 Invite Tradesperson
               </CardTitle>
+              <p className="text-sm text-gray-600">
+                Creates an invitation record that will appear in the "Manage Invitations" tab. 
+                The tradesperson will need to complete their own registration using the invitation.
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -757,12 +761,12 @@ export default function TradesPersonOnboarding() {
 
               <div className="flex gap-2">
                 <Button 
-                  onClick={handleCreateInstallerInvitation}
-                  disabled={createInstallerInvitationMutation.isPending}
+                  onClick={handleCreateInvitation}
+                  disabled={createInvitationMutation.isPending}
                   className="flex items-center gap-2"
                 >
                   <Send className="h-4 w-4" />
-                  {createInstallerInvitationMutation.isPending ? "Creating..." : "Create Invitation with Auto Password"}
+                  {createInvitationMutation.isPending ? "Creating..." : "Send Invitation"}
                 </Button>
               </div>
             </CardContent>
@@ -777,6 +781,10 @@ export default function TradesPersonOnboarding() {
                 <Users className="h-5 w-5" />
                 Register Installer Directly
               </CardTitle>
+              <p className="text-sm text-gray-600">
+                Creates actual installer accounts with auto-generated passwords and sends welcome emails. 
+                These appear in the main installer list, not in invitation management.
+              </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

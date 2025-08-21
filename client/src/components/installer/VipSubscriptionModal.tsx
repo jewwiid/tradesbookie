@@ -153,12 +153,23 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
       const response = await apiRequest('POST', '/api/installer/vip-subscription', {
         installerId
       });
-      return response.json();
+      if (!response.ok) {
+        throw new Error('Failed to create subscription');
+      }
+      const data = await response.json();
+      console.log('Subscription response:', data);
+      return data;
     },
     onSuccess: (data) => {
-      setClientSecret(data.clientSecret);
+      console.log('Setting clientSecret:', data.clientSecret);
+      if (data.clientSecret) {
+        setClientSecret(data.clientSecret);
+      } else {
+        setError('No payment required - subscription already exists');
+      }
     },
     onError: (error: any) => {
+      console.error('Subscription creation error:', error);
       setError(error.message || 'Failed to create subscription');
       toast({
         title: "Error",
@@ -197,9 +208,12 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
       const initializeStripe = async () => {
         try {
           setLoading(true);
+          console.log('Initializing Stripe...');
           const stripe = await getStripePromise();
+          console.log('Stripe loaded:', !!stripe);
           setStripeInstance(stripe);
         } catch (error: any) {
+          console.error('Stripe initialization error:', error);
           setError(error.message);
         } finally {
           setLoading(false);

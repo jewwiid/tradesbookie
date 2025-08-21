@@ -9338,6 +9338,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         })
         .where(eq(installers.id, installerId));
 
+      console.log('Subscription created:', {
+        id: subscription.id,
+        status: subscription.status,
+        latest_invoice: subscription.latest_invoice?.id,
+        payment_intent: subscription.latest_invoice?.payment_intent?.id,
+        client_secret: subscription.latest_invoice?.payment_intent?.client_secret
+      });
+
       res.json({
         subscriptionId: subscription.id,
         clientSecret: subscription.latest_invoice?.payment_intent?.client_secret,

@@ -9296,12 +9296,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       let priceId = process.env.STRIPE_VIP_PRICE_ID;
       
       if (!priceId) {
-        // Create the price if it doesn't exist
+        // First create the product
+        const product = await stripe.products.create({
+          name: 'VIP Installer Membership'
+        });
+
+        // Then create the price for that product
         const price = await stripe.prices.create({
           currency: 'eur',
-          product_data: {
-            name: 'VIP Installer Membership'
-          },
+          product: product.id,
           recurring: {
             interval: 'month'
           },

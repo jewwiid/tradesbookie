@@ -10,7 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send, Lock, Eye, EyeOff, ChevronDown, Monitor, Sparkles, FileText, Camera } from 'lucide-react';
+import { MapPin, Clock, User, Phone, Mail, CheckCircle, AlertCircle, Star, Home, Tv, Calendar, Euro, QrCode, AlertTriangle, LogIn, UserPlus, RefreshCw, Edit3, Save, X, Users, Award, ChevronRight, Bot, Gift, HelpCircle, Settings, Zap, Search, MessageSquare, Bell, Wallet, CreditCard, Send, Lock, Eye, EyeOff, ChevronDown, Monitor, Sparkles, FileText, Camera, ChevronUp } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
@@ -2885,6 +2885,7 @@ function BookingCard({
   const setLocation = locationData?.[1];
   const [showDetails, setShowDetails] = useState(false);
   const [showProposals, setShowProposals] = useState(false);
+  const [isReviewExpanded, setIsReviewExpanded] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Get proposal data for action buttons
@@ -3528,7 +3529,7 @@ function BookingCard({
                     Installation Photos
                   </h4>
                   <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                       {(Array.isArray((booking as any).beforeAfterPhotos) ? (booking as any).beforeAfterPhotos : []).flatMap((photoSet: any, tvIndex: number) => {
                         const photos = [];
                         if (photoSet.beforePhoto) {
@@ -3547,8 +3548,8 @@ function BookingCard({
                         }
                         return photos;
                       }).map((photoData: any, index: number) => (
-                        <div key={photoData.key} className="space-y-2">
-                          <div className="relative aspect-video rounded-lg overflow-hidden border border-gray-300">
+                        <div key={photoData.key} className="space-y-1">
+                          <div className="relative aspect-video rounded-md overflow-hidden border border-gray-300">
                             <img
                               src={photoData.photo.startsWith('data:') ? photoData.photo : `data:image/jpeg;base64,${photoData.photo}`}
                               alt={photoData.label}
@@ -3573,13 +3574,33 @@ function BookingCard({
     
     {/* Review Interface for Completed Bookings */}
     {booking.status === 'completed' && booking.installer && (
-      <ReviewInterface 
-        booking={booking}
-        onReviewSubmitted={() => {
-          // Refresh bookings to show updated stars
-          queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
-        }}
-      />
+      <div className="mt-4">
+        <Button
+          variant="outline"
+          onClick={() => setIsReviewExpanded(!isReviewExpanded)}
+          className="w-full flex items-center justify-center gap-2 text-sm"
+        >
+          <Star className="w-4 h-4" />
+          Your Review
+          {isReviewExpanded ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </Button>
+        
+        {isReviewExpanded && (
+          <div className="mt-3">
+            <ReviewInterface 
+              booking={booking}
+              onReviewSubmitted={() => {
+                // Refresh bookings to show updated stars
+                queryClient.invalidateQueries({ queryKey: ['/api/auth/user/bookings'] });
+              }}
+            />
+          </div>
+        )}
+      </div>
     )}
   </div>
   );

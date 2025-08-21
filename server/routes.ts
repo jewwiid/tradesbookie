@@ -8217,6 +8217,50 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // VIP Toggle Working Fix - bypasses TypeScript compilation issues
+  app.patch("/api/admin/installers/:id/vip-working", isAdmin, async (req, res) => {
+    try {
+      const installerId = parseInt(req.params.id);
+      const { isVip, vipNotes } = req.body;
+      const adminUserId = req.session.passport?.user || 'admin';
+      
+      console.log(`🔧 VIP Working Fix - Updating installer ${installerId} VIP status to ${isVip ? 'VIP' : 'standard'}`);
+      
+      // Get installer to verify existence
+      const installer = await storage.getInstaller(installerId);
+      if (!installer) {
+        return res.status(404).json({ message: "Installer not found" });
+      }
+      
+      // Update VIP status with admin tracking
+      const updateData: any = { 
+        isVip: Boolean(isVip),
+        vipNotes: vipNotes || null
+      };
+      
+      if (isVip) {
+        updateData.vipGrantedBy = adminUserId;
+        updateData.vipGrantedAt = new Date();
+      } else {
+        updateData.vipGrantedBy = null;
+        updateData.vipGrantedAt = null;
+      }
+      
+      await storage.updateInstaller(installerId, updateData);
+      
+      const successMessage = `Installer ${isVip ? 'granted' : 'removed'} VIP status successfully`;
+      console.log(`✅ VIP Working Fix - ${successMessage}`);
+      
+      res.json({ 
+        message: successMessage,
+        isVip: Boolean(isVip),
+        vipGrantedBy: isVip ? adminUserId : null
+      });
+    } catch (error) {
+      console.error("❌ VIP Working Fix - Error:", error);
+      res.status(500).json({ message: "Failed to update installer VIP status" });
+    }
+  });
 
   // Admin installer image upload endpoint
   app.post("/api/admin/installers/:id/image", isAuthenticated, isAdmin, upload.single('profileImage'), async (req, res) => {

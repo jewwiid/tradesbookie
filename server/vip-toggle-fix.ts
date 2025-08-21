@@ -7,13 +7,17 @@ export function registerVipToggleFix(app: Express) {
   app.patch("/api/admin/installers/:id/vip-fixed", async (req: any, res: any) => {
     try {
       console.log('🔧 VIP Toggle Fix - Request received');
+      console.log('🔧 VIP Toggle Fix - Session ID:', req.sessionID);
+      console.log('🔧 VIP Toggle Fix - Session passport:', req.session?.passport);
       
-      // Check admin authentication
-      const userId = req.session?.passport?.user;
-      if (!userId) {
-        console.log('❌ VIP Toggle Fix - No user ID in session');
+      // Check admin authentication - match the pattern from main routes
+      if (!req.session?.passport?.user) {
+        console.log('❌ VIP Toggle Fix - No session user ID');
         return res.status(401).json({ message: "Authentication required" });
       }
+
+      const userId = req.session.passport.user;
+      console.log('🔧 VIP Toggle Fix - Session user ID:', userId);
 
       const user = await storage.getUserById(userId);
       if (!user) {

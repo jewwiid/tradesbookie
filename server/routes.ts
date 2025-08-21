@@ -846,22 +846,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get installer rating data
       const ratingData = await storage.getInstallerRating(installerId);
 
+      // Parse expertise - handle both string and array formats
+      let expertise = [];
+      if (installer.expertise) {
+        try {
+          expertise = typeof installer.expertise === 'string' ? JSON.parse(installer.expertise) : installer.expertise;
+          if (!Array.isArray(expertise)) {
+            expertise = [];
+          }
+        } catch (e) {
+          expertise = [];
+        }
+      }
+
       // Return public profile data
       const publicProfile = {
         id: installer.id,
         businessName: installer.businessName,
         contactName: installer.contactName,
-        email: installer.email,
-        phone: installer.phone,
+        // Only show contact details for VIP installers
+        email: installer.isVip ? installer.email : null,
+        phone: installer.isVip ? installer.phone : null,
         serviceArea: installer.serviceArea,
         address: installer.address,
         yearsExperience: installer.yearsExperience || 1,
         averageRating: ratingData.averageRating,
         totalReviews: ratingData.totalReviews,
-        expertise: installer.expertise || [],
+        expertise: expertise,
         bio: installer.bio || '',
         profileImageUrl: installer.profileImageUrl,
         isActive: installer.isActive,
+        isVip: installer.isVip, // Include VIP status for frontend logic
         completedJobs: totalJobs,
         completedWork: validCompletedWork
       };

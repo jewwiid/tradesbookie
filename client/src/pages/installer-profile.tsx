@@ -395,21 +395,25 @@ export default function InstallerProfile() {
                 <CardTitle>Contact Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Phone className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Phone</p>
-                    <p className="font-medium">{installer.phone}</p>
+                {installer.phone && (
+                  <div className="flex items-center space-x-3">
+                    <Phone className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="font-medium">{installer.phone}</p>
+                    </div>
                   </div>
-                </div>
+                )}
                 
-                <div className="flex items-center space-x-3">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-600">Email</p>
-                    <p className="font-medium">{installer.email}</p>
+                {installer.email && (
+                  <div className="flex items-center space-x-3">
+                    <Mail className="w-5 h-5 text-gray-400" />
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="font-medium">{installer.email}</p>
+                    </div>
                   </div>
-                </div>
+                )}
                 
                 <div className="flex items-center space-x-3">
                   <MapPin className="w-5 h-5 text-gray-400" />
@@ -419,21 +423,29 @@ export default function InstallerProfile() {
                   </div>
                 </div>
 
-                <Separator />
-                
-                <Button className="w-full" asChild>
-                  <a href={`tel:${installer.phone}`}>
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call Now
-                  </a>
-                </Button>
-                
-                <Button variant="outline" className="w-full" asChild>
-                  <a href={`mailto:${installer.email}`}>
-                    <Mail className="w-4 h-4 mr-2" />
-                    Send Email
-                  </a>
-                </Button>
+                {(installer.phone || installer.email) && (
+                  <>
+                    <Separator />
+                    
+                    {installer.phone && (
+                      <Button className="w-full" asChild>
+                        <a href={`tel:${installer.phone}`}>
+                          <Phone className="w-4 h-4 mr-2" />
+                          Call Now
+                        </a>
+                      </Button>
+                    )}
+                    
+                    {installer.email && (
+                      <Button variant="outline" className="w-full" asChild>
+                        <a href={`mailto:${installer.email}`}>
+                          <Mail className="w-4 h-4 mr-2" />
+                          Send Email
+                        </a>
+                      </Button>
+                    )}
+                  </>
+                )}
               </CardContent>
             </Card>
 

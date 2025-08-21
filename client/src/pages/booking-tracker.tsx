@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, MapPin, Phone, Mail, Package, CreditCard, User, Plus, ArrowRight } from 'lucide-react';
+import { CalendarDays, MapPin, Phone, Mail, Package, CreditCard, User, Plus, ArrowRight, Tv, Zap, Wrench, Droplets, Hammer } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/Footer';
@@ -341,6 +341,115 @@ export default function BookingTracker() {
           )}
         </>
       )}
+
+      {/* Book Service Section */}
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="w-5 h-5" />
+            Book a Service
+          </CardTitle>
+          <CardDescription>
+            Ready to book a new service? TV Installation is available now, with more trades coming soon.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* TV Installation - Active */}
+            <div className="p-4 border border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Tv className="w-5 h-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-900">TV Installation</h3>
+                </div>
+                <Badge className="bg-green-100 text-green-800">Available</Badge>
+              </div>
+              <p className="text-sm text-blue-700 mb-4">Professional TV wall mounting and setup services by certified installers.</p>
+              <Link href="/book">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  Book TV Installation
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Electrical - Coming Soon */}
+            <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 opacity-60">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-gray-500" />
+                  <h3 className="font-semibold text-gray-700">Electrical Services</h3>
+                </div>
+                <Badge className="bg-gray-100 text-gray-600">Coming Soon</Badge>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">Electrical repairs, installations, and safety inspections.</p>
+              <Button disabled className="w-full">
+                Coming Soon
+              </Button>
+            </div>
+
+            {/* Plumbing - Coming Soon */}
+            <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 opacity-60">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Droplets className="w-5 h-5 text-gray-500" />
+                  <h3 className="font-semibold text-gray-700">Plumbing</h3>
+                </div>
+                <Badge className="bg-gray-100 text-gray-600">Coming Soon</Badge>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">Pipe repairs, fixture installations, and emergency callouts.</p>
+              <Button disabled className="w-full">
+                Coming Soon
+              </Button>
+            </div>
+
+            {/* General Maintenance - Coming Soon */}
+            <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 opacity-60">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-5 h-5 text-gray-500" />
+                  <h3 className="font-semibold text-gray-700">General Maintenance</h3>
+                </div>
+                <Badge className="bg-gray-100 text-gray-600">Coming Soon</Badge>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">Home repairs, furniture assembly, and maintenance tasks.</p>
+              <Button disabled className="w-full">
+                Coming Soon
+              </Button>
+            </div>
+
+            {/* Home Improvement - Coming Soon */}
+            <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 opacity-60">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Hammer className="w-5 h-5 text-gray-500" />
+                  <h3 className="font-semibold text-gray-700">Home Improvement</h3>
+                </div>
+                <Badge className="bg-gray-100 text-gray-600">Coming Soon</Badge>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">Kitchen fitting, bathroom renovations, and home upgrades.</p>
+              <Button disabled className="w-full">
+                Coming Soon
+              </Button>
+            </div>
+
+            {/* More Services - Coming Soon */}
+            <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 opacity-60">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-gray-500" />
+                  <h3 className="font-semibold text-gray-700">More Services</h3>
+                </div>
+                <Badge className="bg-gray-100 text-gray-600">Coming Soon</Badge>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">Expanding to cover all your home service needs.</p>
+              <Button disabled className="w-full">
+                Coming Soon
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Help Section */}
       <Card className="mt-8">

@@ -75,9 +75,45 @@ export default function ExpandableQRCode({
         
         {isExpanded && (
           <div className="mt-3 bg-gray-50 p-4 border rounded-lg text-center space-y-3">
-            <QRCode value={qrCodeUrl} size={size} />
+            <Dialog>
+              <DialogTrigger asChild>
+                <div className="cursor-pointer hover:opacity-80 transition-opacity">
+                  <QRCode value={qrCodeUrl} size={size} />
+                </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>{title}</DialogTitle>
+                  <DialogDescription>
+                    {description}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col items-center space-y-4">
+                  <QRCode value={qrCodeUrl} size={300} />
+                  <div className="text-center space-y-2">
+                    {bookingId && (
+                      <p className="text-sm text-gray-500 font-mono">
+                        Booking: {bookingId}
+                      </p>
+                    )}
+                    <p className="text-xs text-gray-400">
+                      Scan to track installation progress
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={downloadQRCode}
+                    className="space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download QR Code</span>
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
             <div className="space-y-2">
               <p className="text-sm text-gray-600">{description}</p>
+              <p className="text-xs text-blue-600">Click on QR code above for larger view</p>
               {bookingId && (
                 <p className="text-xs text-gray-500 font-mono">
                   Booking: {bookingId}

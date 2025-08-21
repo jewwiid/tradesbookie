@@ -265,11 +265,11 @@ export default function Home() {
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 mb-6 leading-tight mx-auto lg:mx-0">
                 Ireland's Leading{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                  Home Improvement Platform
+                  Booking Platform for Tradespeople
                 </span>
               </h1>
               <p className="text-lg lg:text-xl text-gray-600 mb-8 leading-relaxed mx-auto lg:mx-0 max-w-none">
-                Tradesbook.ie connects you with Ireland's certified TV installation professionals. Book instantly, track your service, and get expert setup for all your entertainment needs.
+                Ireland's most advanced AI-powered booking platform where tradespeople get connected with customers. Starting with TV installation professionals, expanding to all trades. Like Trivago for tradesmen - your go-to source for quality bookings.
               </p>
               
               {/* Button Container - Stack vertically on small screens, horizontal on larger */}
@@ -297,15 +297,15 @@ export default function Home() {
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3 text-sm text-gray-500 relative z-20">
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                  <span>Certified Installers</span>
+                  <span>Quality Lead Generation</span>
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                  <span>Instant Booking</span>
+                  <span>AI-Powered Matching</span>
                 </div>
                 <div className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                  <span>Live Tracking</span>
+                  <span>Instant Notifications</span>
                 </div>
               </div>
             </div>
@@ -395,10 +395,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Our Services
+              Trade Services Available
             </h2>
             <p className="text-xl text-gray-600">
-              Professional home improvement services across Ireland
+              Connect with customers across Ireland's growing trades market
             </p>
           </div>
           
@@ -410,7 +410,7 @@ export default function Home() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-3">TV Installation</h3>
                 <p className="text-gray-600 mb-6 flex-grow">
-                  Professional TV mounting, setup, and cable management by certified installers.
+                  Our flagship service - TV mounting, setup, and cable management. High-value leads from €125-€380 per job.
                 </p>
                 <Link href="/tv-installation">
                   <Button className="w-full bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600 mt-auto">
@@ -425,9 +425,9 @@ export default function Home() {
                 <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Bolt className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Home Setup</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Smart Home & Electrical</h3>
                 <p className="text-gray-600 mb-6 flex-grow">
-                  Complete smart home integration, device setup, and home automation configuration.
+                  Expanding soon - smart home integration, lighting, and electrical work. Join our waitlist for early access.
                 </p>
                 <Button className="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 mt-auto">
                   Coming Soon
@@ -440,9 +440,9 @@ export default function Home() {
                 <div className="w-16 h-16 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6">
                   <Wrench className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">General Installation</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Plumbing & Heating</h3>
                 <p className="text-gray-600 mb-6 flex-grow">
-                  Professional installation services for appliances, fixtures, and home improvements.
+                  Coming soon - boiler service, plumbing repairs, and heating installations. Be first to access new markets.
                 </p>
                 <Button className="w-full bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 mt-auto">
                   Coming Soon

@@ -225,6 +225,26 @@ export class StoreAuthService {
   }
 
   /**
+   * Map technical AI tool names to user-friendly display names
+   */
+  private mapAiToolName(toolName: string): string {
+    const toolMapping: Record<string, string> = {
+      'ai-chat': 'AI Chat Helper',
+      'product-finder': 'Product Finder',
+      'electronics-comparison': 'Product Comparison',
+      'tv-preview': 'TV Preview',
+      'product-info': 'Product Information',
+      'product-care': 'Product Care Guide',
+      'faq': 'FAQ Assistant',
+      'ai-helper': 'AI Helper'
+    };
+    
+    return toolMapping[toolName] || toolName.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  }
+
+  /**
    * Get store dashboard data with metrics
    */
   async getStoreDashboard(storeUserId: number): Promise<StoreDashboardData | null> {
@@ -330,7 +350,7 @@ export class StoreAuthService {
       // Only get AI interactions that came from QR codes assigned to this store
       let recentAiInteractions: any[] = [];
       if (storeQrCodeIds.length > 0) {
-        recentAiInteractions = await db.select({
+        const rawAiInteractions = await db.select({
           aiTool: aiInteractionAnalytics.aiTool,
           interactionType: aiInteractionAnalytics.interactionType,
           productQuery: aiInteractionAnalytics.productQuery,
@@ -344,6 +364,12 @@ export class StoreAuthService {
         .where(sql`qr_code_id = ANY(${storeQrCodeIds})`)
         .orderBy(desc(aiInteractionAnalytics.createdAt))
         .limit(10);
+
+        // Map the AI tool names to user-friendly names
+        recentAiInteractions = rawAiInteractions.map(interaction => ({
+          ...interaction,
+          aiTool: this.mapAiToolName(interaction.aiTool)
+        }));
       }
 
       // AI metrics - only from store's QR codes
@@ -487,7 +513,7 @@ export class StoreAuthService {
           activeStaffCount: currentMetrics.activeStaffCount,
           totalAiInteractions: aiMetricsResult.totalInteractions,
           aiInteractionsThisMonth: aiMetricsResult.thisMonthInteractions,
-          topAiTool: topAiTool[0]?.aiTool || 'None',
+          topAiTool: topAiTool[0]?.aiTool ? this.mapAiToolName(topAiTool[0].aiTool) : 'None',
           avgProcessingTime: Math.round(aiMetricsResult.avgProcessingTime || 0)
         },
         recentActivity: {
@@ -501,7 +527,7 @@ export class StoreAuthService {
             count: q.count
           })),
           aiToolUsage: aiToolUsage.map(tool => ({
-            aiTool: tool.aiTool,
+            aiTool: this.mapAiToolName(tool.aiTool),
             count: tool.count,
             avgProcessingTime: Math.round(tool.avgProcessingTime || 0),
             errorRate: Math.round((tool.errorRate || 0) * 100) / 100

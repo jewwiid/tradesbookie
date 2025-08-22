@@ -562,42 +562,113 @@ export async function sendInstallerNotification(installerEmail: string, installe
 }
 
 export async function sendAdminNotification(subject: string, content: string, data?: any): Promise<boolean> {
-  // Format booking data if provided
+  // Format data if provided - could be booking data, user registration, or installer registration
   let formattedDataSection = '';
   if (data) {
-    formattedDataSection = `
-      <div class="booking-details">
-        <h3>Booking Details</h3>
-        <div class="detail-row">
-          <span class="detail-label">Booking ID:</span>
-          <span>${data.qrCode || 'N/A'}</span>
+    // Handle installer registration data
+    if (data.businessName && data.yearsExperience !== undefined) {
+      formattedDataSection = `
+        <div class="booking-details">
+          <h3>Installer Registration Details</h3>
+          <div class="detail-row">
+            <span class="detail-label">Name:</span>
+            <span>${data.name || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Email:</span>
+            <span>${data.email || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Business Name:</span>
+            <span>${data.businessName || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Phone:</span>
+            <span>${data.phone || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Address:</span>
+            <span>${data.address || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Service Area:</span>
+            <span>${data.serviceArea || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Years Experience:</span>
+            <span>${data.yearsExperience || 0} years</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Selected Service:</span>
+            <span>${data.selectedServiceType || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Registration Date:</span>
+            <span>${new Date(data.registrationDate).toLocaleString() || 'N/A'}</span>
+          </div>
         </div>
-        <div class="detail-row">
-          <span class="detail-label">Service Type:</span>
-          <span>${data.serviceType || 'N/A'}</span>
+      `;
+    }
+    // Handle user registration data
+    else if (data.role && data.registrationDate) {
+      formattedDataSection = `
+        <div class="booking-details">
+          <h3>User Registration Details</h3>
+          <div class="detail-row">
+            <span class="detail-label">Name:</span>
+            <span>${data.name || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Email:</span>
+            <span>${data.email || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Role:</span>
+            <span>${data.role || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Registration Date:</span>
+            <span>${new Date(data.registrationDate).toLocaleString() || 'N/A'}</span>
+          </div>
         </div>
-        <div class="detail-row">
-          <span class="detail-label">TV Size:</span>
-          <span>${data.tvSize || 'N/A'}"</span>
+      `;
+    }
+    // Handle booking data (existing)
+    else if (data.qrCode || data.totalPrice || data.estimatedTotal) {
+      formattedDataSection = `
+        <div class="booking-details">
+          <h3>Booking Details</h3>
+          <div class="detail-row">
+            <span class="detail-label">Booking ID:</span>
+            <span>${data.qrCode || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Service Type:</span>
+            <span>${data.serviceType || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">TV Size:</span>
+            <span>${data.tvSize || 'N/A'}"</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Address:</span>
+            <span>${data.address || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Total Price:</span>
+            <span>€${data.totalPrice || data.estimatedTotal || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Installer Earnings:</span>
+            <span>€${data.installerEarnings || data.estimatedPrice || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Difficulty:</span>
+            <span>${data.difficulty || 'Standard'}</span>
+          </div>
         </div>
-        <div class="detail-row">
-          <span class="detail-label">Address:</span>
-          <span>${data.address || 'N/A'}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Total Price:</span>
-          <span>€${data.totalPrice || data.estimatedTotal || 'N/A'}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Installer Earnings:</span>
-          <span>€${data.installerEarnings || data.estimatedPrice || 'N/A'}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Difficulty:</span>
-          <span>${data.difficulty || 'Standard'}</span>
-        </div>
-      </div>
-    `;
+      `;
+    }
   }
 
   const html = `

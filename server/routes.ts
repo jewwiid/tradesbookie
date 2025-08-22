@@ -769,6 +769,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Don't fail registration if email fails
       }
       
+      // Send admin notification for new installer registration
+      try {
+        const { sendAdminNotification } = await import('./gmailService');
+        await sendAdminNotification(
+          `New Installer Registration - ${businessName}`,
+          `A new installer has registered on tradesbook.ie and is awaiting approval`,
+          {
+            name: fullName,
+            email: email,
+            businessName: businessName,
+            phone: phone,
+            address: address,
+            serviceArea: county,
+            yearsExperience: yearsExperience,
+            selectedServiceType: selectedServiceType,
+            registrationDate: new Date().toISOString(),
+            adminEmail: 'jude.okun@gmail.com'
+          }
+        );
+        console.log(`✅ Admin notification sent for new installer registration: ${email}`);
+      } catch (notificationError) {
+        console.error('❌ Failed to send admin notification for installer registration:', notificationError);
+        // Don't fail registration if notification fails
+      }
+      
       // Return installer data (without password hash)
       const { passwordHash: _, ...installerData } = installer;
       res.status(201).json({

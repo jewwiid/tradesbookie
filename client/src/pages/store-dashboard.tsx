@@ -1198,9 +1198,9 @@ function AiToolDetails({ toolKey, toolName }: { toolKey: string; toolName: strin
                       <div className="mb-3">
                         <p className="text-sm font-medium text-orange-600 dark:text-orange-400 mb-1">Recommended Products:</p>
                         <div className="flex flex-wrap gap-1">
-                          {interaction.recommendedProducts.slice(0, 3).map((product: string, idx: number) => (
+                          {interaction.recommendedProducts.slice(0, 3).map((product: any, idx: number) => (
                             <Badge key={idx} variant="outline" className="text-xs">
-                              {product}
+                              {typeof product === 'string' ? product : (product?.name || product?.title || 'Product')}
                             </Badge>
                           ))}
                           {interaction.recommendedProducts.length > 3 && (
@@ -1208,6 +1208,18 @@ function AiToolDetails({ toolKey, toolName }: { toolKey: string; toolName: strin
                               +{interaction.recommendedProducts.length - 3} more
                             </Badge>
                           )}
+                        </div>
+                      </div>
+                    )}
+
+                    {interaction.comparisonResult && typeof interaction.comparisonResult === 'object' && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-1">Comparison Details:</p>
+                        <div className="text-sm bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded">
+                          {Object.keys(interaction.comparisonResult).length > 0 ? 
+                            `Compared ${Object.keys(interaction.comparisonResult).length} products` : 
+                            'Comparison completed'
+                          }
                         </div>
                       </div>
                     )}

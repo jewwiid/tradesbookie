@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package } from "lucide-react";
-import { format } from "date-fns";
+import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { format, subDays, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 
 interface StoreUser {
   id: number;
@@ -89,6 +89,8 @@ interface StoreDashboardData {
 export default function StoreDashboard() {
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/store/:retailerName/dashboard");
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'week' | 'all'>('today');
 
   // Check if user is authenticated
   const { data: storeUser, isLoading: userLoading, error: userError } = useQuery({
@@ -130,6 +132,39 @@ export default function StoreDashboard() {
     } catch (error) {
       console.error("Logout error:", error);
     }
+  };
+
+  // Filter function for date ranges
+  const filterByDate = (item: { scannedAt?: Date; createdAt?: Date; usedAt?: Date }) => {
+    const itemDate = item.scannedAt || item.createdAt || item.usedAt;
+    if (!itemDate) return true;
+
+    const today = startOfDay(new Date());
+    const yesterday = startOfDay(subDays(new Date(), 1));
+    const weekAgo = startOfDay(subDays(new Date(), 7));
+
+    switch (dateFilter) {
+      case 'today':
+        return isWithinInterval(new Date(itemDate), { start: today, end: endOfDay(new Date()) });
+      case 'yesterday':
+        return isWithinInterval(new Date(itemDate), { start: yesterday, end: endOfDay(yesterday) });
+      case 'week':
+        return isWithinInterval(new Date(itemDate), { start: weekAgo, end: endOfDay(new Date()) });
+      case 'all':
+      default:
+        return true;
+    }
+  };
+
+  // Navigation helpers
+  const navigateDate = (direction: 'prev' | 'next') => {
+    setSelectedDate(prev => {
+      if (direction === 'prev') {
+        return subDays(prev, 1);
+      } else {
+        return subDays(prev, -1); // Add 1 day
+      }
+    });
   };
 
   if (userLoading) {
@@ -197,6 +232,52 @@ export default function StoreDashboard() {
           </Alert>
         ) : dashboardData ? (
           <div className="space-y-6">
+            {/* Date Filter Controls */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between flex-wrap gap-4">
+                  <div className="flex items-center space-x-4">
+                    <Filter className="h-5 w-5 text-gray-500" />
+                    <span className="font-medium">Filter by Date:</span>
+                    <div className="flex space-x-2">
+                      {(['today', 'yesterday', 'week', 'all'] as const).map((filter) => (
+                        <Button
+                          key={filter}
+                          onClick={() => setDateFilter(filter)}
+                          variant={dateFilter === filter ? "default" : "outline"}
+                          size="sm"
+                        >
+                          {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {dateFilter !== 'all' && (
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        onClick={() => navigateDate('prev')}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-sm font-medium px-3">
+                        {format(selectedDate, 'MMM d, yyyy')}
+                      </span>
+                      <Button
+                        onClick={() => navigateDate('next')}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Metrics Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
@@ -306,9 +387,9 @@ export default function StoreDashboard() {
                   <CardDescription>Latest AI tool access via QR codes</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {dashboardData.recentActivity.qrScans.length > 0 ? (
-                      dashboardData.recentActivity.qrScans.map((scan, index) => (
+                  <div className="max-h-96 overflow-y-auto space-y-4 pr-2">
+                    {dashboardData.recentActivity.qrScans.filter(filterByDate).length > 0 ? (
+                      dashboardData.recentActivity.qrScans.filter(filterByDate).slice(0, 10).map((scan, index) => (
                         <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 hover:shadow-md transition-shadow">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
@@ -389,8 +470,13 @@ export default function StoreDashboard() {
                       ))
                     ) : (
                       <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                        No QR scans recorded yet
+                        {dateFilter === 'all' ? 'No QR scans recorded yet' : `No QR scans for ${dateFilter === 'today' ? 'today' : dateFilter === 'yesterday' ? 'yesterday' : 'this week'}`}
                       </p>
+                    )}
+                    {dashboardData.recentActivity.qrScans.filter(filterByDate).length > 10 && (
+                      <div className="text-center pt-2 border-t">
+                        <p className="text-xs text-gray-500">Showing latest 10 entries • Scroll for more</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>
@@ -406,11 +492,11 @@ export default function StoreDashboard() {
                   <CardDescription>Latest customer questions and AI responses</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {dashboardData.recentActivity.qrScans.filter(scan => scan.userPrompt || scan.aiResponse).length > 0 ? (
+                  <div className="max-h-96 overflow-y-auto space-y-4 pr-2">
+                    {dashboardData.recentActivity.qrScans.filter(scan => (scan.userPrompt || scan.aiResponse) && filterByDate(scan)).length > 0 ? (
                       dashboardData.recentActivity.qrScans
-                        .filter(scan => scan.userPrompt || scan.aiResponse)
-                        .slice(0, 5)
+                        .filter(scan => (scan.userPrompt || scan.aiResponse) && filterByDate(scan))
+                        .slice(0, 8)
                         .map((interaction, index) => (
                         <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
                           <div className="flex items-center justify-between">
@@ -459,8 +545,13 @@ export default function StoreDashboard() {
                       ))
                     ) : (
                       <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                        No AI interactions recorded yet
+                        {dateFilter === 'all' ? 'No AI interactions recorded yet' : `No AI interactions for ${dateFilter === 'today' ? 'today' : dateFilter === 'yesterday' ? 'yesterday' : 'this week'}`}
                       </p>
+                    )}
+                    {dashboardData.recentActivity.qrScans.filter(scan => (scan.userPrompt || scan.aiResponse) && filterByDate(scan)).length > 8 && (
+                      <div className="text-center pt-2 border-t">
+                        <p className="text-xs text-gray-500">Showing latest 8 entries • Scroll for more</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>
@@ -476,9 +567,9 @@ export default function StoreDashboard() {
                   <CardDescription>Latest staff referral code usage</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {dashboardData.recentActivity.referralUses.length > 0 ? (
-                      dashboardData.recentActivity.referralUses.map((referral, index) => (
+                  <div className="max-h-96 overflow-y-auto space-y-4 pr-2">
+                    {dashboardData.recentActivity.referralUses.filter(filterByDate).length > 0 ? (
+                      dashboardData.recentActivity.referralUses.filter(filterByDate).slice(0, 10).map((referral, index) => (
                         <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                           <div className="flex-1">
                             <p className="font-medium">{referral.staffName || 'Staff Member'}</p>
@@ -516,11 +607,11 @@ export default function StoreDashboard() {
                   <CardDescription>Most searched products by customers</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
                     {(() => {
-                      // Extract product queries from customer questions in QR scan data
+                      // Extract product queries from customer questions in QR scan data  
                       const productQueries = dashboardData.recentActivity.qrScans
-                        .filter(scan => scan.userPrompt)
+                        .filter(scan => scan.userPrompt && filterByDate(scan))
                         .flatMap(scan => {
                           const prompt = scan.userPrompt.toLowerCase();
                           const queries: string[] = [];
@@ -615,10 +706,12 @@ export default function StoreDashboard() {
                   <CardDescription>Performance and usage statistics</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
                     {(() => {
                       // Extract AI tool usage from QR scan data
-                      const toolUsage = dashboardData.recentActivity.qrScans.reduce((acc, scan) => {
+                      const toolUsage = dashboardData.recentActivity.qrScans
+                        .filter(filterByDate)
+                        .reduce((acc, scan) => {
                         const tool = scan.aiTool || 'Unknown';
                         if (!acc[tool]) {
                           acc[tool] = { count: 0, totalProcessingTime: 0, errors: 0 };
@@ -670,11 +763,11 @@ export default function StoreDashboard() {
                   <CardDescription>Most queried and recommended items</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
                     {(() => {
                       // Extract popular products from AI responses
                       const productMentions = dashboardData.recentActivity.qrScans
-                        .filter(scan => scan.aiResponse)
+                        .filter(scan => scan.aiResponse && filterByDate(scan))
                         .flatMap(scan => {
                           const response = scan.aiResponse.toLowerCase();
                           const products: string[] = [];

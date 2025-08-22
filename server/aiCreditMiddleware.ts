@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
+import { AIAnalyticsService } from "./aiAnalyticsService";
 
 // Dynamic AI tools cache
 let aiToolsCache: Map<string, { creditCost: number; isActive: boolean }> = new Map();
@@ -287,6 +288,37 @@ export async function recordAiUsage(req: AIRequest): Promise<void> {
   try {
     // Record usage with QR code tracking
     await storage.incrementAiUsage(userId, sessionId, aiFeature, isPaidRequest, qrCodeId, storeLocation);
+    
+    // Record detailed AI interaction analytics (this was missing!)
+    // Determine interaction type based on AI feature
+    let interactionType: 'query' | 'comparison' | 'analysis' | 'recommendation';
+    switch (aiFeature) {
+      case 'tv-comparison':
+        interactionType = 'comparison';
+        break;
+      case 'product-care':
+        interactionType = 'analysis';
+        break;
+      case 'find-my-product':
+        interactionType = 'recommendation';
+        break;
+      default:
+        interactionType = 'query';
+    }
+    
+    await AIAnalyticsService.trackInteraction({
+      aiTool: aiFeature,
+      interactionType,
+      userPrompt: req.body?.model || req.body?.question || req.body?.product || 'AI request',
+      aiResponse: 'Response recorded after completion',
+      qrCodeId: qrCodeId || null,
+      storeLocation: storeLocation || null,
+      userId: userId || null,
+      sessionId,
+      credits: creditCost,
+      requestDuration: 0, // Could be enhanced to track actual duration
+      userSatisfaction: null
+    });
 
     // Record store QR scan if QR parameters are present
     if (qrCodeId && storeLocation) {
@@ -332,11 +364,11 @@ export async function recordAiUsage(req: AIRequest): Promise<void> {
       const wallet = await storage.getCustomerWallet(userId);
       if (wallet) {
         const newBalance = parseFloat(wallet.balance) - creditCost;
-        await storage.updateCustomerWalletBalance(userId, newBalance);
+        await storage.updateCustomerWalletBalance(userId as string, newBalance);
         
         // Add transaction record
         await storage.addCustomerTransaction({
-          userId,
+          userId: userId as string,
           type: 'ai_usage',
           amount: (-creditCost).toString(),
           description: `AI ${aiFeature.replace('-', ' ')} request`,
@@ -368,7 +400,7 @@ export async function getAiUsageSummary(userId: string) {
       if (!toolConfig.isActive) continue;
       
       // Check remaining free usage for this feature
-      const freeUsageCheck = await storage.checkAiFreeUsageLimit(userId, null, featureKey, FREE_USAGE_LIMIT);
+      const freeUsageCheck = await storage.checkAiFreeUsageLimit(userId as string, null, featureKey, FREE_USAGE_LIMIT);
       const remainingFree = Math.max(0, FREE_USAGE_LIMIT - freeUsageCheck.usageCount);
       totalFreeCreditsRemaining += remainingFree;
     }

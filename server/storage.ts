@@ -6,7 +6,7 @@ import {
   leadQualityTracking, antiManipulation, customerVerification, resources,
   platformSettings, performanceRefundSettings, firstLeadVouchers, passwordResetTokens, tvSetupBookings,
   consultations, downloadableGuides, videoTutorials, productCategories,
-  qrCodeScans, aiProductRecommendations, choiceFlowTracking, aiToolQrCodes, aiInteractionAnalytics,
+  qrCodeScans, aiProductRecommendations, choiceFlowTracking, aiToolQrCodes, aiInteractionAnalytics, storeQrScans,
   onboardingInvitations, tradesPersonEmailTemplates, serviceTypes, serviceMetrics, retailerInvoices,
   installerServiceAssignments, customerWallets, customerTransactions, supportTickets, ticketMessages, aiUsageTracking, aiTools, leadRefunds,
   installationPhotoProgress,
@@ -54,6 +54,7 @@ import {
   type SelectServiceMetrics, type InsertServiceMetrics,
   type InstallerServiceAssignment, type InsertInstallerServiceAssignment,
   type AiInteractionAnalytics, type InsertAiInteractionAnalytics,
+  type StoreQrScan, type InsertStoreQrScan,
   type InstallationPhotoProgress, type InsertInstallationPhotoProgress
 } from "@shared/schema";
 import { db } from "./db";

@@ -15133,6 +15133,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   // AI FAQ/Q&A System endpoints
   app.post("/api/faq/ask", checkAiCredits(AI_FEATURES.FAQ), async (req: AIRequest, res) => {
+    const startTime = Date.now();
     try {
       const { question } = req.body;
       
@@ -15141,9 +15142,26 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
 
       const response = await askQuestion(question);
+      const processingTime = Date.now() - startTime;
       
-      // Record AI usage after successful response
+      // Record AI usage for credit tracking
       await recordAiUsage(req);
+      
+      // Track detailed AI interaction for analytics
+      const { AIAnalyticsService } = await import('./aiAnalyticsService');
+      await AIAnalyticsService.trackInteraction({
+        userId: req.user?.id?.toString(),
+        sessionId: req.sessionId || 'unknown',
+        qrCodeId: req.body.qrCodeId,
+        storeLocation: req.body.storeLocation,
+        aiTool: 'FAQ System',
+        interactionType: 'query',
+        userPrompt: question,
+        aiResponse: JSON.stringify(response),
+        processingTimeMs: processingTime,
+        creditUsed: true,
+        errorOccurred: false
+      });
       
       res.json(response);
     } catch (error) {
@@ -15168,6 +15186,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   // AI TV Comparison endpoint
   app.post("/api/ai/compare-tvs", checkAiCredits(AI_FEATURES.TV_COMPARISON), async (req: AIRequest, res) => {
+    const startTime = Date.now();
     try {
       const { model1, model2 } = req.body;
       
@@ -15176,9 +15195,30 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
 
       const comparison = await compareTVModels(model1, model2);
+      const processingTime = Date.now() - startTime;
       
-      // Record AI usage after successful comparison
+      // Record AI usage for credit tracking
       await recordAiUsage(req);
+      
+      // Track detailed AI interaction for analytics
+      const { AIAnalyticsService } = await import('./aiAnalyticsService');
+      await AIAnalyticsService.trackInteraction({
+        userId: req.user?.id?.toString(),
+        sessionId: req.sessionId || 'unknown',
+        qrCodeId: req.body.qrCodeId,
+        storeLocation: req.body.storeLocation,
+        aiTool: 'TV Comparison',
+        interactionType: 'comparison',
+        userPrompt: `Compare ${model1} vs ${model2}`,
+        productModel1: model1,
+        productModel2: model2,
+        category: 'TV',
+        aiResponse: JSON.stringify(comparison),
+        processingTimeMs: processingTime,
+        comparisonResult: comparison,
+        creditUsed: true,
+        errorOccurred: false
+      });
       
       res.json(comparison);
     } catch (error) {
@@ -15191,7 +15231,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // AI Electronic Product Comparison endpoint
-  app.post("/api/ai/compare-electronics", async (req, res) => {
+  app.post("/api/ai/compare-electronics", checkAiCredits(AI_FEATURES.TV_COMPARISON), async (req: AIRequest, res) => {
+    const startTime = Date.now();
     try {
       const { product1, product2, productCategory, questionnaire } = req.body;
       
@@ -15220,6 +15261,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         productCategory, 
         isSkipComparison ? {} : questionnaire
       );
+      const processingTime = Date.now() - startTime;
+      
+      // Record AI usage for credit tracking
+      await recordAiUsage(req);
+      
+      // Track detailed AI interaction for analytics
+      const { AIAnalyticsService } = await import('./aiAnalyticsService');
+      await AIAnalyticsService.trackInteraction({
+        userId: req.user?.id?.toString(),
+        sessionId: req.sessionId || 'unknown',
+        qrCodeId: req.body.qrCodeId,
+        storeLocation: req.body.storeLocation,
+        aiTool: 'Product Comparison',
+        interactionType: 'comparison',
+        userPrompt: `Compare ${product1} vs ${product2}`,
+        productModel1: product1,
+        productModel2: product2,
+        category: productCategory,
+        aiResponse: JSON.stringify(comparison),
+        processingTimeMs: processingTime,
+        comparisonResult: comparison,
+        creditUsed: true,
+        errorOccurred: false
+      });
+      
       res.json(comparison);
     } catch (error) {
       console.error("Error comparing electronic products:", error);
@@ -15261,6 +15327,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   // AI Product Information endpoint
   app.post("/api/ai/product-info", checkAiCredits(AI_FEATURES.PRODUCT_INFO), async (req: AIRequest, res) => {
+    const startTime = Date.now();
     try {
       const { model } = req.body;
       
@@ -15273,9 +15340,28 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       console.log(`🔍 Getting product info for: ${model}`);
       
       const productInfo = await getProductInfo(model);
+      const processingTime = Date.now() - startTime;
       
-      // Record AI usage after successful response
+      // Record AI usage for credit tracking
       await recordAiUsage(req);
+      
+      // Track detailed AI interaction for analytics
+      const { AIAnalyticsService } = await import('./aiAnalyticsService');
+      await AIAnalyticsService.trackInteraction({
+        userId: req.user?.id?.toString(),
+        sessionId: req.sessionId || 'unknown',
+        qrCodeId: req.body.qrCodeId,
+        storeLocation: req.body.storeLocation,
+        aiTool: 'Product Information',
+        interactionType: 'query',
+        userPrompt: model,
+        productQuery: model,
+        aiResponse: JSON.stringify(productInfo),
+        processingTimeMs: processingTime,
+        recommendedProducts: productInfo ? [productInfo] : [],
+        creditUsed: true,
+        errorOccurred: false
+      });
       
       res.json(productInfo);
     } catch (error) {

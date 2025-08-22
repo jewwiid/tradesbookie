@@ -630,12 +630,12 @@ export default function TradesPersonOnboarding() {
       </div>
 
       <Tabs defaultValue="invite" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="invite">Send Invitations</TabsTrigger>
-          <TabsTrigger value="register">Direct Registration</TabsTrigger>
-          <TabsTrigger value="templates">Email Templates</TabsTrigger>
-          <TabsTrigger value="passwords">Password Management</TabsTrigger>
-          <TabsTrigger value="manage">Manage Invitations</TabsTrigger>
+        <TabsList className="w-full flex flex-wrap sm:grid sm:grid-cols-5 gap-1 sm:gap-0">
+          <TabsTrigger value="invite" className="flex-1 min-w-0 text-xs sm:text-sm">Send Invitations</TabsTrigger>
+          <TabsTrigger value="register" className="flex-1 min-w-0 text-xs sm:text-sm">Direct Registration</TabsTrigger>
+          <TabsTrigger value="templates" className="flex-1 min-w-0 text-xs sm:text-sm">Email Templates</TabsTrigger>
+          <TabsTrigger value="passwords" className="flex-1 min-w-0 text-xs sm:text-sm">Password Management</TabsTrigger>
+          <TabsTrigger value="manage" className="flex-1 min-w-0 text-xs sm:text-sm">Manage Invitations</TabsTrigger>
         </TabsList>
 
         {/* Send Individual Invitations */}

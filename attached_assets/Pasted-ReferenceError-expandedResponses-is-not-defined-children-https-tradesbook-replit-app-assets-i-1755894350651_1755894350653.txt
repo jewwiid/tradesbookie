@@ -1,0 +1,39 @@
+ReferenceError: expandedResponses is not defined
+    children https://tradesbook.replit.app/assets/index-DInYbs5j.js:1108
+    e5 https://tradesbook.replit.app/assets/index-DInYbs5j.js:1108
+    r2 https://tradesbook.replit.app/assets/index-DInYbs5j.js:38
+    RN https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    aM https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    sM https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    zq https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    qv https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    WN https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    y4 https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    Pc https://tradesbook.replit.app/assets/index-DInYbs5j.js:38
+    ha https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+index-DInYbs5j.js:40:161
+    MN https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    callback https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    e4 https://tradesbook.replit.app/assets/index-DInYbs5j.js:38
+    f4 https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    XI https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    Bq https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    Wq https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    qc https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    y4 https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    Pc https://tradesbook.replit.app/assets/index-DInYbs5j.js:38
+    ha https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+SES_UNCAUGHT_EXCEPTION: ReferenceError: expandedResponses is not defined
+    children https://tradesbook.replit.app/assets/index-DInYbs5j.js:1108
+    e5 https://tradesbook.replit.app/assets/index-DInYbs5j.js:1108
+    r2 https://tradesbook.replit.app/assets/index-DInYbs5j.js:38
+    RN https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    aM https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    sM https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    zq https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    qv https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    WN https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    y4 https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+    Pc https://tradesbook.replit.app/assets/index-DInYbs5j.js:38
+    ha https://tradesbook.replit.app/assets/index-DInYbs5j.js:40
+lockdown-install.js:1:143245

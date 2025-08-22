@@ -117,6 +117,17 @@ export default function StoreDashboard() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'week' | 'all'>('today');
   const [activeTab, setActiveTab] = useState<string>('overview');
+  const [expandedResponses, setExpandedResponses] = useState<Set<string>>(new Set());
+
+  const toggleResponseExpansion = (interactionId: string) => {
+    const newExpanded = new Set(expandedResponses);
+    if (newExpanded.has(interactionId)) {
+      newExpanded.delete(interactionId);
+    } else {
+      newExpanded.add(interactionId);
+    }
+    setExpandedResponses(newExpanded);
+  };
 
   // Define AI tools with their display names and icons
   const aiTools = [
@@ -1047,7 +1058,12 @@ export default function StoreDashboard() {
             {/* Individual AI Tool Tabs */}
             {aiTools.map((tool) => (
               <TabsContent key={tool.key} value={tool.key} className="space-y-6">
-                <AiToolDetails toolKey={tool.key} toolName={tool.name} />
+                <AiToolDetails 
+                  toolKey={tool.key} 
+                  toolName={tool.name}
+                  expandedResponses={expandedResponses}
+                  toggleResponseExpansion={toggleResponseExpansion}
+                />
               </TabsContent>
             ))}
           </Tabs>
@@ -1058,18 +1074,12 @@ export default function StoreDashboard() {
 }
 
 // AI Tool Details Component
-function AiToolDetails({ toolKey, toolName }: { toolKey: string; toolName: string }) {
-  const [expandedResponses, setExpandedResponses] = useState<Set<string>>(new Set());
-
-  const toggleResponseExpansion = (interactionId: string) => {
-    const newExpanded = new Set(expandedResponses);
-    if (newExpanded.has(interactionId)) {
-      newExpanded.delete(interactionId);
-    } else {
-      newExpanded.add(interactionId);
-    }
-    setExpandedResponses(newExpanded);
-  };
+function AiToolDetails({ toolKey, toolName, expandedResponses, toggleResponseExpansion }: { 
+  toolKey: string; 
+  toolName: string;
+  expandedResponses: Set<string>;
+  toggleResponseExpansion: (interactionId: string) => void;
+}) {
 
   // Helper function to format AI responses
   const formatAiResponse = (response: string, truncate: boolean = true): string => {

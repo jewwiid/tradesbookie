@@ -17432,16 +17432,24 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Store dashboard data - get metrics and recent activity
   app.get("/api/store/dashboard", async (req, res) => {
     try {
+      console.log("Store dashboard request - Session ID:", req.sessionID);
+      console.log("Store dashboard request - Session data:", JSON.stringify(req.session, null, 2));
+      console.log("Store dashboard request - Store user exists:", !!req.session.storeUser);
+      
       // Check if store user is authenticated
       if (!req.session.storeUser) {
+        console.log("Store dashboard - No store user in session");
         return res.status(401).json({ error: "Store authentication required" });
       }
 
+      console.log("Store dashboard - Calling getStoreDashboard for user ID:", req.session.storeUser.id);
       const dashboardData = await storeAuthService.getStoreDashboard(req.session.storeUser.id);
 
       if (dashboardData) {
+        console.log("Store dashboard - Success, returning data");
         res.json(dashboardData);
       } else {
+        console.log("Store dashboard - No data found");
         res.status(404).json({ error: "Store dashboard data not found" });
       }
     } catch (error) {

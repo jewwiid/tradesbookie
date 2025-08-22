@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package, ChevronLeft, ChevronRight, Filter, Trash2, RefreshCw, Database, AlertTriangle, Monitor, Cpu, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package, ChevronLeft, ChevronRight, Filter, Trash2, RefreshCw, Database, AlertTriangle, Monitor, Tv, Cpu, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 
 interface StoreUser {
@@ -135,7 +135,8 @@ export default function StoreDashboard() {
     { key: 'product-finder', name: 'Product Finder', icon: Search },
     { key: 'product-info', name: 'Product Information', icon: Package },
     { key: 'electronics-comparison', name: 'Product Comparison', icon: BarChart3 },
-    { key: 'tv-preview', name: 'TV Preview', icon: Monitor }
+    { key: 'tv-preview', name: 'TV Preview', icon: Monitor },
+    { key: 'tv-recommendation', name: 'TV Recommendation', icon: Tv }
   ];
 
   // Check if user is authenticated

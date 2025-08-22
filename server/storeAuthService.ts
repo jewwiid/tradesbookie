@@ -1,6 +1,6 @@
 import { eq, and, desc, sql, gte } from "drizzle-orm";
 import { db } from "./db";
-import { storeUsers, storeMetrics, storeQrScans, storeReferralUsage, aiInteractionAnalytics, type StoreUser, type InsertStoreUser } from "@shared/schema";
+import { storeUsers, storeMetrics, storeQrScans, storeReferralUsage, aiInteractionAnalytics, aiToolQrCodes, type StoreUser, type InsertStoreUser } from "@shared/schema";
 import { retailerDetectionService } from "./retailerDetectionService";
 import bcrypt from "bcrypt";
 
@@ -770,9 +770,9 @@ export class StoreAuthService {
       }
 
       // Get QR codes for this store
-      const storeQrCodes = await db.select({ id: qrCodeGeneration.id })
-        .from(qrCodeGeneration)
-        .where(eq(qrCodeGeneration.storeId, storeUserId));
+      const storeQrCodes = await db.select({ id: aiToolQrCodes.id })
+        .from(aiToolQrCodes)
+        .where(eq(aiToolQrCodes.storeId, storeUserId));
 
       const storeQrCodeIds = storeQrCodes.map(qr => qr.id);
 

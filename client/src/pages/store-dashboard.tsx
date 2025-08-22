@@ -94,7 +94,7 @@ export default function StoreDashboard() {
   const { data: storeUser, isLoading: userLoading, error: userError } = useQuery({
     queryKey: ["/api/store/me"],
     queryFn: async (): Promise<{ storeUser: StoreUser }> => {
-      const response = await apiRequest("/api/store/me");
+      const response = await apiRequest("GET", "/api/store/me");
       if (!response.ok) {
         if (response.status === 401) {
           // Redirect to login if not authenticated
@@ -113,7 +113,7 @@ export default function StoreDashboard() {
   const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useQuery({
     queryKey: ["/api/store/dashboard"],
     queryFn: async (): Promise<StoreDashboardData> => {
-      const response = await apiRequest("/api/store/dashboard");
+      const response = await apiRequest("GET", "/api/store/dashboard");
       if (!response.ok) {
         throw new Error("Failed to fetch dashboard data");
       }
@@ -124,7 +124,7 @@ export default function StoreDashboard() {
 
   const handleLogout = async () => {
     try {
-      await apiRequest("/api/store/logout", { method: "POST" });
+      await apiRequest("POST", "/api/store/logout");
       const retailerName = params?.retailerName || 'store';
       setLocation(`/store/${retailerName}`);
     } catch (error) {

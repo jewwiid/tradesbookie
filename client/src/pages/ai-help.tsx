@@ -229,7 +229,28 @@ export default function AIHelpPage() {
     }
     // Handle AI tool direct access via QR codes
     else if (toolParam && qrParam) {
-      // Map tool keys to tabs based on actual AI tools in database
+      // Special handling for TV Recommendation - redirect to dedicated page
+      if (toolParam === 'tv-recommendation') {
+        // Track the QR scan for analytics first
+        if (storeParam && qrParam) {
+          try {
+            fetch(`/api/qr-scan/${qrParam}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ storeLocation: storeParam })
+            });
+          } catch (error) {
+            console.log('QR scan tracking failed:', error);
+          }
+        }
+        
+        // Redirect to dedicated TV recommendation page with QR tracking params
+        const redirectUrl = `/tv-recommendation?qr=${qrParam}&store=${encodeURIComponent(storeParam || '')}`;
+        window.location.href = redirectUrl;
+        return;
+      }
+      
+      // Map other tool keys to tabs based on actual AI tools in database
       const toolTabMap: Record<string, string> = {
         'tv-preview': 'find',           // TV Preview -> Find My Product tab
         'product-care': 'care',         // Product Care Analysis -> Product Care tab

@@ -6925,9 +6925,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Track detailed AI interaction for analytics
       const { AIAnalyticsService } = await import('./aiAnalyticsService');
+      const sessionId = req.sessionID || req.session?.id || `tv-session-${Date.now()}`;
       await AIAnalyticsService.trackInteraction({
         userId: req.user?.id?.toString(),
-        sessionId: req.sessionID || req.session?.id || 'unknown',
+        sessionId: sessionId,
         qrCodeId: qrCodeId,
         storeLocation: storeLocation,
         aiTool: 'tv-recommendation',

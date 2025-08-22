@@ -356,10 +356,12 @@ export class StoreAuthService {
           interactionType: aiInteractionAnalytics.interactionType,
           productQuery: aiInteractionAnalytics.productQuery,
           userPrompt: aiInteractionAnalytics.userPrompt,
+          aiResponse: aiInteractionAnalytics.aiResponse,
           recommendedProducts: aiInteractionAnalytics.recommendedProducts,
           processingTimeMs: aiInteractionAnalytics.processingTimeMs,
           createdAt: aiInteractionAnalytics.createdAt,
-          sessionId: aiInteractionAnalytics.sessionId
+          sessionId: aiInteractionAnalytics.sessionId,
+          qrCodeId: aiInteractionAnalytics.qrCodeId
         })
         .from(aiInteractionAnalytics)
         .where(inArray(aiInteractionAnalytics.qrCodeId, storeQrCodeIds))

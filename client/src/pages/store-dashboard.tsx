@@ -309,17 +309,60 @@ export default function StoreDashboard() {
                   <div className="space-y-4">
                     {dashboardData.recentActivity.qrScans.length > 0 ? (
                       dashboardData.recentActivity.qrScans.map((scan, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <div className="flex-1">
+                        <div key={index} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-2">
+                          <div className="flex items-center justify-between">
                             <p className="font-medium">{scan.aiTool || 'AI Tool Access'}</p>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              QR: {scan.qrCodeId}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
                               {format(new Date(scan.scannedAt), "MMM d, h:mm a")}
-                            </p>
+                            </span>
+                          </div>
+                          
+                          {/* User Question */}
+                          {scan.userPrompt && (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                              <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">Customer Asked:</p>
+                              <p className="text-sm text-blue-800 dark:text-blue-200">
+                                {scan.userPrompt.length > 120 
+                                  ? `${scan.userPrompt.substring(0, 120)}...` 
+                                  : scan.userPrompt}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* AI Response */}
+                          {scan.aiResponse && (
+                            <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                              <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">AI Responded:</p>
+                              <p className="text-sm text-green-800 dark:text-green-200">
+                                {scan.aiResponse.length > 150 
+                                  ? `${scan.aiResponse.substring(0, 150)}...` 
+                                  : scan.aiResponse}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {/* Product Query */}
+                          {scan.productQuery && (
+                            <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded">
+                              <p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">Product:</p>
+                              <p className="text-sm text-purple-800 dark:text-purple-200">{scan.productQuery}</p>
+                            </div>
+                          )}
+                          
+                          {/* Technical Details */}
+                          <div className="flex items-center justify-between pt-1 border-t border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
+                              <span>QR: {scan.qrCodeId}</span>
+                              {scan.interactionType && (
+                                <span className="capitalize">{scan.interactionType}</span>
+                              )}
+                              {scan.processingTimeMs && (
+                                <span>{scan.processingTimeMs}ms</span>
+                              )}
+                            </div>
+                            {scan.errorOccurred && (
+                              <span className="text-xs text-red-500 font-medium">Error</span>
+                            )}
                           </div>
                         </div>
                       ))

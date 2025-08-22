@@ -261,14 +261,27 @@ export class StoreAuthService {
         activeStaffCount: 0
       };
 
-      // Get recent QR scans
+      // Get recent QR scans with linked AI interaction details
       const recentQrScans = await db.select({
         qrCodeId: storeQrScans.qrCodeId,
         aiTool: storeQrScans.aiTool,
         scannedAt: storeQrScans.scannedAt,
-        sessionId: storeQrScans.sessionId
+        sessionId: storeQrScans.sessionId,
+        // Include AI interaction details
+        userPrompt: aiInteractionAnalytics.userPrompt,
+        aiResponse: aiInteractionAnalytics.aiResponse,
+        productQuery: aiInteractionAnalytics.productQuery,
+        interactionType: aiInteractionAnalytics.interactionType,
+        processingTimeMs: aiInteractionAnalytics.processingTimeMs,
+        recommendedProducts: aiInteractionAnalytics.recommendedProducts,
+        comparisonResult: aiInteractionAnalytics.comparisonResult,
+        errorOccurred: aiInteractionAnalytics.errorOccurred
       })
       .from(storeQrScans)
+      .leftJoin(
+        aiInteractionAnalytics,
+        eq(storeQrScans.sessionId, aiInteractionAnalytics.sessionId)
+      )
       .where(
         and(
           eq(storeQrScans.retailerCode, user.retailerCode),

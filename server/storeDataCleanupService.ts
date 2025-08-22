@@ -1,5 +1,5 @@
 import { db } from './db';
-import { and, eq, gte, lte, sql } from 'drizzle-orm';
+import { and, eq, gte, lte, sql, inArray } from 'drizzle-orm';
 import { storeQrScans, storeReferralUsage, aiInteractionAnalytics } from '@shared/schema';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, subDays, subWeeks } from 'date-fns';
 
@@ -48,7 +48,7 @@ export class StoreDataCleanupService {
       if (qrScansToDelete.length > 0) {
         const qrScanIds = qrScansToDelete.map(scan => scan.id);
         await db.delete(storeQrScans)
-          .where(sql`id = ANY(${qrScanIds})`);
+          .where(inArray(storeQrScans.id, qrScanIds));
         deletedQrScans = qrScansToDelete.length;
         console.log(`✅ Deleted ${deletedQrScans} QR scans`);
       }
@@ -69,7 +69,7 @@ export class StoreDataCleanupService {
       if (referralsToDelete.length > 0) {
         const referralIds = referralsToDelete.map(ref => ref.id);
         await db.delete(storeReferralUsage)
-          .where(sql`id = ANY(${referralIds})`);
+          .where(inArray(storeReferralUsage.id, referralIds));
         deletedReferrals = referralsToDelete.length;
         console.log(`✅ Deleted ${deletedReferrals} completed referral records`);
       }
@@ -89,7 +89,7 @@ export class StoreDataCleanupService {
           .from(aiInteractionAnalytics)
           .where(
             and(
-              sql`${aiInteractionAnalytics.qrCodeId} IN (${qrCodeIds.map(id => `'${id}'`).join(',')})`,
+              inArray(aiInteractionAnalytics.qrCodeId, qrCodeIds),
               gte(aiInteractionAnalytics.createdAt, startDate),
               lte(aiInteractionAnalytics.createdAt, endDate)
             )
@@ -98,7 +98,7 @@ export class StoreDataCleanupService {
         if (aiInteractionsToDelete.length > 0) {
           const aiInteractionIds = aiInteractionsToDelete.map(ai => ai.id);
           await db.delete(aiInteractionAnalytics)
-            .where(sql`id = ANY(${aiInteractionIds})`);
+            .where(inArray(aiInteractionAnalytics.id, aiInteractionIds));
           deletedAiInteractions = aiInteractionsToDelete.length;
           console.log(`✅ Deleted ${deletedAiInteractions} AI interactions`);
         }
@@ -174,7 +174,7 @@ export class StoreDataCleanupService {
           .from(aiInteractionAnalytics)
           .where(
             and(
-              sql`${aiInteractionAnalytics.qrCodeId} IN (${qrCodeIds.map(id => `'${id}'`).join(',')})`,
+              inArray(aiInteractionAnalytics.qrCodeId, qrCodeIds),
               gte(aiInteractionAnalytics.createdAt, startDate),
               lte(aiInteractionAnalytics.createdAt, endDate)
             )

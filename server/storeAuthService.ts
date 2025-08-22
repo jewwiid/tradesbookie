@@ -361,7 +361,7 @@ export class StoreAuthService {
           sessionId: aiInteractionAnalytics.sessionId
         })
         .from(aiInteractionAnalytics)
-        .where(sql`qr_code_id = ANY(${storeQrCodeIds})`)
+        .where(sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`)
         .orderBy(desc(aiInteractionAnalytics.createdAt))
         .limit(10);
 
@@ -385,7 +385,7 @@ export class StoreAuthService {
           avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`
         })
         .from(aiInteractionAnalytics)
-        .where(sql`qr_code_id = ANY(${storeQrCodeIds})`);
+        .where(sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`);
       }
 
       // Top AI tool used - only from store's QR codes
@@ -396,7 +396,7 @@ export class StoreAuthService {
           count: sql<number>`count(*)`
         })
         .from(aiInteractionAnalytics)
-        .where(sql`qr_code_id = ANY(${storeQrCodeIds})`)
+        .where(sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`)
         .groupBy(aiInteractionAnalytics.aiTool)
         .orderBy(desc(sql`count(*)`))
         .limit(1);
@@ -412,7 +412,7 @@ export class StoreAuthService {
         .from(aiInteractionAnalytics)
         .where(
           and(
-            sql`qr_code_id = ANY(${storeQrCodeIds})`,
+            sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`,
             sql`${aiInteractionAnalytics.productQuery} is not null`
           )
         )
@@ -431,7 +431,7 @@ export class StoreAuthService {
           errorRate: sql<number>`(count(*) filter (where ${aiInteractionAnalytics.errorOccurred} = true)::float / count(*)) * 100`
         })
         .from(aiInteractionAnalytics)
-        .where(sql`qr_code_id = ANY(${storeQrCodeIds})`)
+        .where(sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`)
         .groupBy(aiInteractionAnalytics.aiTool)
         .orderBy(desc(sql`count(*)`));
       }
@@ -448,7 +448,7 @@ export class StoreAuthService {
           .from(aiInteractionAnalytics)
           .where(
             and(
-              sql`qr_code_id = ANY(${storeQrCodeIds})`,
+              sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`,
               sql`${aiInteractionAnalytics.recommendedProducts} != '[]'::jsonb`
             )
           );
@@ -751,6 +751,95 @@ export class StoreAuthService {
 
     } catch (error) {
       console.error('Error updating store metrics:', error);
+    }
+  }
+
+  /**
+   * Get detailed analytics for a specific AI tool
+   */
+  async getAiToolDetails(storeUserId: number, toolName: string): Promise<any> {
+    try {
+      // Get store user info
+      const storeUser = await db.select()
+        .from(storeUsers)
+        .where(eq(storeUsers.id, storeUserId))
+        .limit(1);
+
+      if (!storeUser.length) {
+        return null;
+      }
+
+      // Get QR codes for this store
+      const storeQrCodes = await db.select({ id: qrCodeGeneration.id })
+        .from(qrCodeGeneration)
+        .where(eq(qrCodeGeneration.storeId, storeUserId));
+
+      const storeQrCodeIds = storeQrCodes.map(qr => qr.id);
+
+      if (storeQrCodeIds.length === 0) {
+        return {
+          toolName: this.mapAiToolName(toolName),
+          totalInteractions: 0,
+          interactions: [],
+          summaryStats: {
+            avgProcessingTime: 0,
+            totalPrompts: 0,
+            successfulResponses: 0,
+            errorRate: 0
+          }
+        };
+      }
+
+      // Get all interactions for this specific tool
+      const interactions = await db.select({
+        id: aiInteractionAnalytics.id,
+        aiTool: aiInteractionAnalytics.aiTool,
+        interactionType: aiInteractionAnalytics.interactionType,
+        productQuery: aiInteractionAnalytics.productQuery,
+        userPrompt: aiInteractionAnalytics.userPrompt,
+        aiResponse: aiInteractionAnalytics.aiResponse,
+        recommendedProducts: aiInteractionAnalytics.recommendedProducts,
+        modelUsed: aiInteractionAnalytics.modelUsed,
+        processingTimeMs: aiInteractionAnalytics.processingTimeMs,
+        creditsUsed: aiInteractionAnalytics.creditsUsed,
+        sessionId: aiInteractionAnalytics.sessionId,
+        userEmail: aiInteractionAnalytics.userEmail,
+        createdAt: aiInteractionAnalytics.createdAt,
+        qrCodeId: aiInteractionAnalytics.qrCodeId
+      })
+      .from(aiInteractionAnalytics)
+      .where(
+        sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}]) AND ai_tool = ${toolName}`
+      )
+      .orderBy(desc(aiInteractionAnalytics.createdAt));
+
+      // Calculate summary statistics
+      const totalInteractions = interactions.length;
+      const avgProcessingTime = totalInteractions > 0 
+        ? Math.round(interactions.reduce((sum, i) => sum + (i.processingTimeMs || 0), 0) / totalInteractions)
+        : 0;
+      
+      const successfulResponses = interactions.filter(i => i.aiResponse && i.aiResponse.trim().length > 0).length;
+      const errorRate = totalInteractions > 0 ? ((totalInteractions - successfulResponses) / totalInteractions) * 100 : 0;
+
+      return {
+        toolName: this.mapAiToolName(toolName),
+        totalInteractions,
+        interactions: interactions.map(interaction => ({
+          ...interaction,
+          aiTool: this.mapAiToolName(interaction.aiTool)
+        })),
+        summaryStats: {
+          avgProcessingTime,
+          totalPrompts: totalInteractions,
+          successfulResponses,
+          errorRate: Math.round(errorRate * 100) / 100
+        }
+      };
+
+    } catch (error) {
+      console.error('Error getting AI tool details:', error);
+      return null;
     }
   }
 }

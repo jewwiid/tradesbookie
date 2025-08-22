@@ -17483,6 +17483,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Get detailed AI tool analytics for a store
+  app.get("/api/store/ai-tool/:toolName", async (req, res) => {
+    try {
+      // Check if store user is authenticated
+      if (!req.session.storeUser) {
+        return res.status(401).json({ error: "Store authentication required" });
+      }
+
+      const storeUserId = req.session.storeUser.id;
+      const { toolName } = req.params;
+
+      const toolDetails = await storeAuthService.getAiToolDetails(storeUserId, toolName);
+      
+      if (!toolDetails) {
+        return res.status(404).json({ error: "AI tool details not found" });
+      }
+
+      return res.json(toolDetails);
+
+    } catch (error) {
+      console.error("Error getting AI tool details:", error);
+      return res.status(500).json({ error: "Failed to get AI tool details" });
+    }
+  });
+
   // Store data cleanup endpoints
   app.post("/api/store/data/preview-delete", async (req, res) => {
     try {

@@ -7,10 +7,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package, ChevronLeft, ChevronRight, Filter, Trash2, RefreshCw, Database, AlertTriangle } from "lucide-react";
+import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package, ChevronLeft, ChevronRight, Filter, Trash2, RefreshCw, Database, AlertTriangle, Monitor, Cpu, Eye } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 
 interface StoreUser {
@@ -106,6 +107,15 @@ export default function StoreDashboard() {
   const [, params] = useRoute("/store/:retailerName/dashboard");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'week' | 'all'>('today');
+  const [activeTab, setActiveTab] = useState<string>('overview');
+
+  // Define AI tools with their display names and icons
+  const aiTools = [
+    { key: 'ai-chat', name: 'AI Chat Helper', icon: MessageSquare },
+    { key: 'product-finder', name: 'Product Finder', icon: Search },
+    { key: 'electronics-comparison', name: 'Product Comparison', icon: BarChart3 },
+    { key: 'tv-preview', name: 'TV Preview', icon: Monitor }
+  ];
 
   // Check if user is authenticated
   const { data: storeUser, isLoading: userLoading, error: userError } = useQuery({
@@ -138,6 +148,21 @@ export default function StoreDashboard() {
     },
     enabled: !!storeUser // Only fetch dashboard data if user is authenticated
   });
+
+  // Fetch AI tool details for specific tools
+  const useAiToolDetails = (toolName: string) => {
+    return useQuery({
+      queryKey: ["/api/store/ai-tool", toolName],
+      queryFn: async () => {
+        const response = await apiRequest("GET", `/api/store/ai-tool/${toolName}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${toolName} details`);
+        }
+        return response.json();
+      },
+      enabled: !!storeUser && activeTab === toolName
+    });
+  };
 
   const handleLogout = async () => {
     try {
@@ -246,8 +271,26 @@ export default function StoreDashboard() {
             </AlertDescription>
           </Alert>
         ) : dashboardData ? (
-          <div className="space-y-6">
-            {/* Date Filter Controls */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="overview" className="flex items-center space-x-2">
+                <Activity className="h-4 w-4" />
+                <span>Overview</span>
+              </TabsTrigger>
+              {aiTools.map((tool) => {
+                const IconComponent = tool.icon;
+                return (
+                  <TabsTrigger key={tool.key} value={tool.key} className="flex items-center space-x-2">
+                    <IconComponent className="h-4 w-4" />
+                    <span className="hidden sm:inline">{tool.name}</span>
+                    <span className="sm:hidden">{tool.key}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-6">
+              {/* Date Filter Controls */}
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between flex-wrap gap-4">
@@ -921,9 +964,204 @@ export default function StoreDashboard() {
                 </div>
               </CardContent>
             </Card>
-          </div>
+            </TabsContent>
+
+            {/* Individual AI Tool Tabs */}
+            {aiTools.map((tool) => (
+              <TabsContent key={tool.key} value={tool.key} className="space-y-6">
+                <AiToolDetails toolKey={tool.key} toolName={tool.name} />
+              </TabsContent>
+            ))}
+          </Tabs>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+// AI Tool Details Component
+function AiToolDetails({ toolKey, toolName }: { toolKey: string; toolName: string }) {
+  const { data: toolData, isLoading, error } = useQuery({
+    queryKey: ["/api/store/ai-tool", toolKey],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/store/ai-tool/${toolKey}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${toolName} details`);
+      }
+      return response.json();
+    }
+  });
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+        <p>Loading {toolName} data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Error loading {toolName} data. Please try refreshing the page.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!toolData || toolData.totalInteractions === 0) {
+    return (
+      <Alert>
+        <AlertDescription>
+          No {toolName} interactions found for your store yet.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Tool Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Interactions</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{toolData.totalInteractions}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Processing Time</CardTitle>
+            <Cpu className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{toolData.summaryStats.avgProcessingTime}ms</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Math.round((toolData.summaryStats.successfulResponses / toolData.summaryStats.totalPrompts) * 100)}%
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{toolData.summaryStats.errorRate}%</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Interactions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Eye className="h-5 w-5 mr-2" />
+            Recent {toolName} Interactions
+          </CardTitle>
+          <CardDescription>
+            Latest interactions from your store's QR code scans
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {toolData.interactions.slice(0, 10).map((interaction: any, index: number) => (
+              <div key={interaction.id || index} className="border rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Badge variant="secondary">{interaction.aiTool}</Badge>
+                      <span className="text-sm text-gray-500">
+                        {format(new Date(interaction.createdAt), 'MMM d, yyyy HH:mm')}
+                      </span>
+                    </div>
+                    
+                    {interaction.userPrompt && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Customer Asked:</p>
+                        <p className="text-sm bg-blue-50 dark:bg-blue-900/20 p-2 rounded">{interaction.userPrompt}</p>
+                      </div>
+                    )}
+
+                    {interaction.productQuery && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-purple-600 dark:text-purple-400 mb-1">Product Query:</p>
+                        <p className="text-sm bg-purple-50 dark:bg-purple-900/20 p-2 rounded">{interaction.productQuery}</p>
+                      </div>
+                    )}
+
+                    {interaction.aiResponse && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">AI Response:</p>
+                        <p className="text-sm bg-green-50 dark:bg-green-900/20 p-2 rounded max-h-32 overflow-y-auto">
+                          {interaction.aiResponse.length > 300 
+                            ? `${interaction.aiResponse.substring(0, 300)}...` 
+                            : interaction.aiResponse}
+                        </p>
+                      </div>
+                    )}
+
+                    {interaction.recommendedProducts && interaction.recommendedProducts.length > 0 && (
+                      <div className="mb-3">
+                        <p className="text-sm font-medium text-orange-600 dark:text-orange-400 mb-1">Recommended Products:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {interaction.recommendedProducts.slice(0, 3).map((product: string, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {product}
+                            </Badge>
+                          ))}
+                          {interaction.recommendedProducts.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{interaction.recommendedProducts.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="text-right text-sm text-gray-500 space-y-1">
+                    {interaction.processingTimeMs && (
+                      <div>{interaction.processingTimeMs}ms</div>
+                    )}
+                    {interaction.modelUsed && (
+                      <div className="text-xs">{interaction.modelUsed}</div>
+                    )}
+                    {interaction.creditsUsed && (
+                      <Badge variant="outline" className="text-xs">
+                        {interaction.creditsUsed} credits
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
+                {interaction.sessionId && (
+                  <div className="text-xs text-gray-400 border-t pt-2">
+                    Session: {interaction.sessionId.substring(0, 8)}...
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

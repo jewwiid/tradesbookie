@@ -48,17 +48,7 @@ export default function StoreLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (formData: StoreLoginForm): Promise<StoreLoginResponse> => {
-      const response = await apiRequest("/api/store/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Login failed");
-      }
-
+      const response = await apiRequest("POST", "/api/store/login", formData);
       return response.json();
     },
     onSuccess: (data) => {
@@ -80,17 +70,7 @@ export default function StoreLogin() {
 
   const registerMutation = useMutation({
     mutationFn: async (formData: StoreLoginForm & { retailerName: string }) => {
-      const response = await apiRequest("/api/store/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Registration failed");
-      }
-
+      const response = await apiRequest("POST", "/api/store/register", formData);
       return response.json();
     },
     onSuccess: (data) => {

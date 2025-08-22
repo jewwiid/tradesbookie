@@ -183,6 +183,42 @@ export default function StoreDashboard() {
     }
   };
 
+  // Helper function to format AI responses
+  const formatAiResponse = (response: string): string => {
+    try {
+      // Try to parse as JSON first
+      const parsed = JSON.parse(response);
+      
+      // If it's a product info response
+      if (parsed.name && parsed.brand) {
+        return `Found ${parsed.brand} ${parsed.name} - ${parsed.price || 'Price not available'}. ${parsed.overview ? parsed.overview.substring(0, 100) + '...' : ''}`;
+      }
+      
+      // If it's an array of products
+      if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name) {
+        const product = parsed[0];
+        return `Found ${product.brand || ''} ${product.name || ''} - ${product.price || 'Price not available'}. ${product.overview ? product.overview.substring(0, 100) + '...' : ''}`;
+      }
+      
+      // If it's a comparison result
+      if (parsed.comparison && parsed.recommendation) {
+        return `Comparison completed: ${parsed.recommendation.substring(0, 150)}...`;
+      }
+      
+      // If it's a string within JSON
+      if (typeof parsed === 'string') {
+        return parsed.length > 150 ? `${parsed.substring(0, 150)}...` : parsed;
+      }
+      
+      // Fallback: return truncated original
+      return response.length > 150 ? `${response.substring(0, 150)}...` : response;
+      
+    } catch {
+      // If not JSON, just return truncated text
+      return response.length > 150 ? `${response.substring(0, 150)}...` : response;
+    }
+  };
+
   // Filter function for date ranges
   const filterByDate = (item: { scannedAt?: Date; createdAt?: Date; usedAt?: Date }) => {
     const itemDate = item.scannedAt || item.createdAt || item.usedAt;
@@ -533,9 +569,7 @@ export default function StoreDashboard() {
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">AI Responded:</p>
                                   <p className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
-                                    {scan.aiResponse.length > 200 
-                                      ? `${scan.aiResponse.substring(0, 200)}...` 
-                                      : scan.aiResponse}
+                                    {formatAiResponse(scan.aiResponse)}
                                   </p>
                                 </div>
                               </div>
@@ -630,9 +664,7 @@ export default function StoreDashboard() {
                             <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
                               <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">AI Responded:</p>
                               <p className="text-sm text-green-800 dark:text-green-200">
-                                {interaction.aiResponse.length > 120 
-                                  ? `${interaction.aiResponse.substring(0, 120)}...` 
-                                  : interaction.aiResponse}
+                                {formatAiResponse(interaction.aiResponse)}
                               </p>
                             </div>
                           )}
@@ -1120,9 +1152,7 @@ function AiToolDetails({ toolKey, toolName }: { toolKey: string; toolName: strin
                       <div className="mb-3">
                         <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">AI Response:</p>
                         <p className="text-sm bg-green-50 dark:bg-green-900/20 p-2 rounded max-h-32 overflow-y-auto">
-                          {interaction.aiResponse.length > 300 
-                            ? `${interaction.aiResponse.substring(0, 300)}...` 
-                            : interaction.aiResponse}
+                          {formatAiResponse(interaction.aiResponse)}
                         </p>
                       </div>
                     )}

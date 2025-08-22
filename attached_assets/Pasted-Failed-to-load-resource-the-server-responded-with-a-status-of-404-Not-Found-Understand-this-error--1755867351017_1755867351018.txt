@@ -1,0 +1,100 @@
+Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+/api/store/ai-tool/product-finder:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+/api/store/ai-tool/ai-chat:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+/api/store/ai-tool/product-finder:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+queryClient.ts:15  GET https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/store/ai-tool/electronics-comparison 404 (Not Found)
+apiRequest @ queryClient.ts:15
+queryFn @ store-dashboard.tsx:987
+fetchFn @ @tanstack_react-query.js?v=44079f53:840
+run @ @tanstack_react-query.js?v=44079f53:494
+start @ @tanstack_react-query.js?v=44079f53:536
+fetch @ @tanstack_react-query.js?v=44079f53:926
+executeFetch_fn @ @tanstack_react-query.js?v=44079f53:2211
+onSubscribe @ @tanstack_react-query.js?v=44079f53:1898
+subscribe @ @tanstack_react-query.js?v=44079f53:24
+(anonymous) @ @tanstack_react-query.js?v=44079f53:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=44079f53:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=44079f53:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=44079f53:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=44079f53:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=44079f53:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=44079f53:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=44079f53:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=44079f53:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=44079f53:19416
+commitRoot @ chunk-RPCDYKBN.js?v=44079f53:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=44079f53:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=44079f53:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=44079f53:18627Understand this error
+queryClient.ts:15  GET https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/store/ai-tool/tv-preview 404 (Not Found)
+apiRequest @ queryClient.ts:15
+queryFn @ store-dashboard.tsx:987
+fetchFn @ @tanstack_react-query.js?v=44079f53:840
+run @ @tanstack_react-query.js?v=44079f53:494
+start @ @tanstack_react-query.js?v=44079f53:536
+fetch @ @tanstack_react-query.js?v=44079f53:926
+executeFetch_fn @ @tanstack_react-query.js?v=44079f53:2211
+onSubscribe @ @tanstack_react-query.js?v=44079f53:1898
+subscribe @ @tanstack_react-query.js?v=44079f53:24
+(anonymous) @ @tanstack_react-query.js?v=44079f53:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=44079f53:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=44079f53:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=44079f53:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=44079f53:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=44079f53:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=44079f53:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=44079f53:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=44079f53:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=44079f53:19416
+commitRoot @ chunk-RPCDYKBN.js?v=44079f53:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=44079f53:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=44079f53:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=44079f53:18627Understand this error
+queryClient.ts:15  GET https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/store/ai-tool/ai-chat 404 (Not Found)
+apiRequest @ queryClient.ts:15
+queryFn @ store-dashboard.tsx:987
+fetchFn @ @tanstack_react-query.js?v=44079f53:840
+run @ @tanstack_react-query.js?v=44079f53:494
+start @ @tanstack_react-query.js?v=44079f53:536
+fetch @ @tanstack_react-query.js?v=44079f53:926
+executeFetch_fn @ @tanstack_react-query.js?v=44079f53:2211
+onSubscribe @ @tanstack_react-query.js?v=44079f53:1898
+subscribe @ @tanstack_react-query.js?v=44079f53:24
+(anonymous) @ @tanstack_react-query.js?v=44079f53:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=44079f53:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=44079f53:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=44079f53:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=44079f53:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=44079f53:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=44079f53:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=44079f53:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=44079f53:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=44079f53:19416
+commitRoot @ chunk-RPCDYKBN.js?v=44079f53:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=44079f53:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=44079f53:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=44079f53:18627Understand this error
+queryClient.ts:15  GET https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/api/store/ai-tool/product-finder 404 (Not Found)
+apiRequest @ queryClient.ts:15
+queryFn @ store-dashboard.tsx:987
+fetchFn @ @tanstack_react-query.js?v=44079f53:840
+run @ @tanstack_react-query.js?v=44079f53:494
+start @ @tanstack_react-query.js?v=44079f53:536
+fetch @ @tanstack_react-query.js?v=44079f53:926
+executeFetch_fn @ @tanstack_react-query.js?v=44079f53:2211
+onSubscribe @ @tanstack_react-query.js?v=44079f53:1898
+subscribe @ @tanstack_react-query.js?v=44079f53:24
+(anonymous) @ @tanstack_react-query.js?v=44079f53:3022
+subscribeToStore @ chunk-RPCDYKBN.js?v=44079f53:11984
+commitHookEffectListMount @ chunk-RPCDYKBN.js?v=44079f53:16915
+commitPassiveMountOnFiber @ chunk-RPCDYKBN.js?v=44079f53:18156
+commitPassiveMountEffects_complete @ chunk-RPCDYKBN.js?v=44079f53:18129
+commitPassiveMountEffects_begin @ chunk-RPCDYKBN.js?v=44079f53:18119
+commitPassiveMountEffects @ chunk-RPCDYKBN.js?v=44079f53:18109
+flushPassiveEffectsImpl @ chunk-RPCDYKBN.js?v=44079f53:19490
+flushPassiveEffects @ chunk-RPCDYKBN.js?v=44079f53:19447
+commitRootImpl @ chunk-RPCDYKBN.js?v=44079f53:19416
+commitRoot @ chunk-RPCDYKBN.js?v=44079f53:19277
+performSyncWorkOnRoot @ chunk-RPCDYKBN.js?v=44079f53:18895
+flushSyncCallbacks @ chunk-RPCDYKBN.js?v=44079f53:9119
+(anonymous) @ chunk-RPCDYKBN.js?v=44079f53:18627Understand this error

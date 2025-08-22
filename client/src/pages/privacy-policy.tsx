@@ -52,6 +52,9 @@ export default function PrivacyPolicy() {
                   <li>Address and location information for service delivery</li>
                   <li>Payment information (processed securely through Stripe)</li>
                   <li>Account credentials and authentication data</li>
+                  <li>QR code scan data (store location, device type, scan timestamps)</li>
+                  <li>Session-based analytics for guest users</li>
+                  <li>Store partnership tracking data for retail partners</li>
                 </ul>
               </div>
               
@@ -62,6 +65,10 @@ export default function PrivacyPolicy() {
                   <li>TV size, mount type, and installation preferences</li>
                   <li>Booking details, scheduling, and service requirements</li>
                   <li>Communication history with installers and support</li>
+                  <li>AI interaction data (questions, product preferences, comparison requests)</li>
+                  <li>Product search queries and recommendation preferences</li>
+                  <li>AI chat conversations and support interactions</li>
+                  <li>Product comparison and recommendation history</li>
                 </ul>
               </div>
 
@@ -72,6 +79,9 @@ export default function PrivacyPolicy() {
                   <li>Website usage patterns and interaction data</li>
                   <li>Cookies and similar tracking technologies</li>
                   <li>Location data (with your permission)</li>
+                  <li>QR code usage analytics and scan frequency data</li>
+                  <li>AI tool interaction processing times and error tracking</li>
+                  <li>Store-specific analytics and performance metrics</li>
                 </ul>
               </div>
             </CardContent>
@@ -94,6 +104,10 @@ export default function PrivacyPolicy() {
                     <li>Match you with qualified installers</li>
                     <li>Generate AI-powered room previews</li>
                     <li>Facilitate communication between customers and installers</li>
+                    <li>AI-powered product recommendations and comparisons</li>
+                    <li>Personalized AI assistance and chat support</li>
+                    <li>QR code usage analytics for store partners</li>
+                    <li>Store-specific analytics and performance tracking</li>
                   </ul>
                 </div>
                 
@@ -131,9 +145,11 @@ export default function PrivacyPolicy() {
                 <h4 className="font-semibold mb-2">With Third-Party Services</h4>
                 <ul className="list-disc list-inside space-y-1 text-gray-700">
                   <li><strong>Stripe:</strong> For secure payment processing</li>
-                  <li><strong>OpenAI:</strong> For AI-powered room analysis (images only)</li>
+                  <li><strong>OpenAI:</strong> For AI-powered room analysis and chat assistance</li>
+                  <li><strong>Perplexity API:</strong> For product recommendations and comparisons</li>
                   <li><strong>Email Services:</strong> For transactional communications</li>
                   <li><strong>Analytics:</strong> For website performance and user experience</li>
+                  <li><strong>Store Partners:</strong> Data sharing with retail partners for QR analytics</li>
                 </ul>
               </div>
 
@@ -207,6 +223,9 @@ export default function PrivacyPolicy() {
                     <li>Restrict data processing</li>
                     <li>Object to automated decision-making</li>
                     <li>Lodge complaints with supervisory authorities</li>
+                    <li>Opt-out of QR code tracking and analytics</li>
+                    <li>Disable AI interaction data collection</li>
+                    <li>Control store partnership data sharing</li>
                   </ul>
                 </div>
               </div>
@@ -218,6 +237,13 @@ export default function PrivacyPolicy() {
                     privacy@tradesbook.ie
                   </a>{" "}
                   or use the contact information below.
+                </p>
+                <p className="text-sm text-gray-700 mt-2">
+                  <strong>Opt-out Options:</strong> You can disable QR code tracking, AI analytics, and store partnership data sharing through your{" "}
+                  <a href="/cookie-preferences" className="text-indigo-600 hover:underline">
+                    cookie preferences
+                  </a>{" "}
+                  or by contacting our Data Protection Officer.
                 </p>
               </div>
             </CardContent>
@@ -253,6 +279,22 @@ export default function PrivacyPolicy() {
                 <p className="text-gray-700">
                   Used to deliver relevant advertisements and track campaign effectiveness. 
                   These require your consent and can be managed in your privacy preferences.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold mb-2">QR Code Tracking Cookies</h4>
+                <p className="text-gray-700">
+                  Track QR code usage for store analytics and performance measurement. 
+                  Can be disabled without affecting core website functionality.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold mb-2">AI Interaction Cookies</h4>
+                <p className="text-gray-700">
+                  Store session data for AI-powered features including chat assistance, product recommendations, and comparison tools. 
+                  Required for AI credit system and can be managed through preferences.
                 </p>
               </div>
             </CardContent>

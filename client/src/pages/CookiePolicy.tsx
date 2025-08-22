@@ -61,6 +61,8 @@ export default function CookiePolicy() {
               <li><strong>Session cookies:</strong> Maintain your login status</li>
               <li><strong>Security cookies:</strong> Protect against fraudulent activity</li>
               <li><strong>Load balancing cookies:</strong> Distribute traffic efficiently</li>
+              <li><strong>QR code session cookies:</strong> Track QR code interactions and store context</li>
+              <li><strong>AI credit tracking cookies:</strong> Monitor AI usage for billing purposes</li>
             </ul>
 
             <h4 className="font-semibold mt-4">Performance Cookies</h4>
@@ -71,6 +73,9 @@ export default function CookiePolicy() {
             <ul className="list-disc pl-6 mt-2">
               <li><strong>Analytics cookies:</strong> Track website usage and performance</li>
               <li><strong>Error tracking cookies:</strong> Help identify and fix technical issues</li>
+              <li><strong>QR code tracking cookies:</strong> Analyze QR code scan patterns and effectiveness</li>
+              <li><strong>Store-specific analytics cookies:</strong> Track performance metrics for retail partners</li>
+              <li><strong>AI interaction analytics cookies:</strong> Monitor AI tool usage and success rates</li>
             </ul>
 
             <h4 className="font-semibold mt-4">Functional Cookies</h4>
@@ -81,6 +86,9 @@ export default function CookiePolicy() {
               <li><strong>Preference cookies:</strong> Remember your settings and choices</li>
               <li><strong>Language cookies:</strong> Remember your preferred language</li>
               <li><strong>Location cookies:</strong> Remember your location preferences</li>
+              <li><strong>AI interaction session cookies:</strong> Maintain conversation context for AI tools</li>
+              <li><strong>Product preference storage cookies:</strong> Remember your product searches and comparisons</li>
+              <li><strong>AI session history cookies:</strong> Store recent AI interactions for better experience</li>
             </ul>
 
             <h4 className="font-semibold mt-4">Targeting Cookies</h4>
@@ -113,6 +121,18 @@ export default function CookiePolicy() {
             <h4 className="font-semibold mt-4">Analytics Services</h4>
             <ul className="list-disc pl-6 mt-2">
               <li><strong>Google Analytics:</strong> Website traffic and user behavior analysis</li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">AI Services</h4>
+            <ul className="list-disc pl-6 mt-2">
+              <li><strong>OpenAI:</strong> AI-powered chat assistance and room analysis</li>
+              <li><strong>Perplexity API:</strong> Product information and comparison services</li>
+            </ul>
+
+            <h4 className="font-semibold mt-4">Store Partnership Services</h4>
+            <ul className="list-disc pl-6 mt-2">
+              <li><strong>Retail Partners:</strong> QR code analytics and store performance tracking</li>
+              <li><strong>Store Analytics Providers:</strong> Data collection for store-specific insights</li>
             </ul>
 
             <h4 className="font-semibold mt-4">Communication Services</h4>
@@ -176,6 +196,9 @@ export default function CookiePolicy() {
               <li><strong>Preference cookies:</strong> 12 months</li>
               <li><strong>Analytics cookies:</strong> 24 months</li>
               <li><strong>Marketing cookies:</strong> 12 months</li>
+              <li><strong>QR code tracking cookies:</strong> 6 months</li>
+              <li><strong>AI interaction cookies:</strong> 90 days</li>
+              <li><strong>Store analytics cookies:</strong> 24 months</li>
             </ul>
           </CardContent>
         </Card>

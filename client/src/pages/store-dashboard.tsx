@@ -137,7 +137,7 @@ export default function StoreDashboard() {
     { key: 'electronics-comparison', name: 'Product Comparison', icon: BarChart3 },
     { key: 'tv-preview', name: 'TV Preview', icon: Monitor },
     { key: 'tv-recommendation', name: 'TV Recommendation', icon: Tv },
-    { key: 'faq', name: 'FAQ Helper', icon: HelpCircle },
+    { key: 'faq', name: 'FAQ Assistant', icon: HelpCircle },
     { key: 'product-care', name: 'Product Care Analysis', icon: Shield },
     { key: 'tv-comparison', name: 'TV Comparison', icon: BarChart3 },
     { key: 'email-template', name: 'Email Templates', icon: Mail }

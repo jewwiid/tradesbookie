@@ -313,12 +313,17 @@ export class StoreAuthService {
         ? `${user.retailerCode} ${user.storeCode}`
         : user.retailerCode;
 
-      // First, get all QR codes that belong to this store
+      // First, get all QR codes that belong to this store from store_qr_scans
       const storeQrCodes = await db.select({
-        qrCodeId: sql<string>`ai_tool_qr_codes.qr_code_id`
+        qrCodeId: storeQrScans.qrCodeId
       })
-      .from(sql`ai_tool_qr_codes`)
-      .where(sql`ai_tool_qr_codes.store_location = ${storeLocationFilter}`);
+      .from(storeQrScans)
+      .where(
+        and(
+          eq(storeQrScans.retailerCode, user.retailerCode),
+          user.storeCode ? eq(storeQrScans.storeCode, user.storeCode) : sql`1=1`
+        )
+      );
 
       const storeQrCodeIds = storeQrCodes.map(qr => qr.qrCodeId);
 

@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package, ChevronLeft, ChevronRight, Filter, Trash2, RefreshCw, Database, AlertTriangle, Monitor, Cpu, Eye } from "lucide-react";
+import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package, ChevronLeft, ChevronRight, Filter, Trash2, RefreshCw, Database, AlertTriangle, Monitor, Cpu, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 
 interface StoreUser {
@@ -192,31 +192,39 @@ export default function StoreDashboard() {
       
       // If it's a product info response
       if (parsed.name && parsed.brand) {
-        return `Found ${parsed.brand} ${parsed.name} - ${parsed.price || 'Price not available'}. ${parsed.overview ? parsed.overview.substring(0, 100) + '...' : ''}`;
+        const overview = parsed.overview || '';
+        return truncate && overview.length > 100 ? 
+          `Found ${parsed.brand} ${parsed.name} - ${parsed.price || 'Price not available'}. ${overview.substring(0, 100)}...` :
+          `Found ${parsed.brand} ${parsed.name} - ${parsed.price || 'Price not available'}. ${overview}`;
       }
       
       // If it's an array of products
       if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name) {
         const product = parsed[0];
-        return `Found ${product.brand || ''} ${product.name || ''} - ${product.price || 'Price not available'}. ${product.overview ? product.overview.substring(0, 100) + '...' : ''}`;
+        const overview = product.overview || '';
+        return truncate && overview.length > 100 ? 
+          `Found ${product.brand || ''} ${product.name || ''} - ${product.price || 'Price not available'}. ${overview.substring(0, 100)}...` :
+          `Found ${product.brand || ''} ${product.name || ''} - ${product.price || 'Price not available'}. ${overview}`;
       }
       
       // If it's a comparison result
       if (parsed.comparison && parsed.recommendation) {
-        return `Comparison completed: ${parsed.recommendation.substring(0, 150)}...`;
+        return truncate && parsed.recommendation.length > 150 ? 
+          `Comparison completed: ${parsed.recommendation.substring(0, 150)}...` :
+          `Comparison completed: ${parsed.recommendation}`;
       }
       
       // If it's a string within JSON
       if (typeof parsed === 'string') {
-        return parsed.length > 150 ? `${parsed.substring(0, 150)}...` : parsed;
+        return truncate && parsed.length > 150 ? `${parsed.substring(0, 150)}...` : parsed;
       }
       
-      // Fallback: return truncated original
-      return response.length > 150 ? `${response.substring(0, 150)}...` : response;
+      // Fallback: return truncated or full original
+      return truncate && response.length > 150 ? `${response.substring(0, 150)}...` : response;
       
     } catch {
-      // If not JSON, just return truncated text
-      return response.length > 150 ? `${response.substring(0, 150)}...` : response;
+      // If not JSON, just return truncated or full text
+      return truncate && response.length > 150 ? `${response.substring(0, 150)}...` : response;
     }
   };
 
@@ -1023,39 +1031,59 @@ export default function StoreDashboard() {
 
 // AI Tool Details Component
 function AiToolDetails({ toolKey, toolName }: { toolKey: string; toolName: string }) {
+  const [expandedResponses, setExpandedResponses] = useState<Set<string>>(new Set());
+
+  const toggleResponseExpansion = (interactionId: string) => {
+    const newExpanded = new Set(expandedResponses);
+    if (newExpanded.has(interactionId)) {
+      newExpanded.delete(interactionId);
+    } else {
+      newExpanded.add(interactionId);
+    }
+    setExpandedResponses(newExpanded);
+  };
+
   // Helper function to format AI responses
-  const formatAiResponse = (response: string): string => {
+  const formatAiResponse = (response: string, truncate: boolean = true): string => {
     try {
       // Try to parse as JSON first
       const parsed = JSON.parse(response);
       
       // If it's a product info response
       if (parsed.name && parsed.brand) {
-        return `Found ${parsed.brand} ${parsed.name} - ${parsed.price || 'Price not available'}. ${parsed.overview ? parsed.overview.substring(0, 100) + '...' : ''}`;
+        const overview = parsed.overview || '';
+        return truncate && overview.length > 100 ? 
+          `Found ${parsed.brand} ${parsed.name} - ${parsed.price || 'Price not available'}. ${overview.substring(0, 100)}...` :
+          `Found ${parsed.brand} ${parsed.name} - ${parsed.price || 'Price not available'}. ${overview}`;
       }
       
       // If it's an array of products
       if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name) {
         const product = parsed[0];
-        return `Found ${product.brand || ''} ${product.name || ''} - ${product.price || 'Price not available'}. ${product.overview ? product.overview.substring(0, 100) + '...' : ''}`;
+        const overview = product.overview || '';
+        return truncate && overview.length > 100 ? 
+          `Found ${product.brand || ''} ${product.name || ''} - ${product.price || 'Price not available'}. ${overview.substring(0, 100)}...` :
+          `Found ${product.brand || ''} ${product.name || ''} - ${product.price || 'Price not available'}. ${overview}`;
       }
       
       // If it's a comparison result
       if (parsed.comparison && parsed.recommendation) {
-        return `Comparison completed: ${parsed.recommendation.substring(0, 150)}...`;
+        return truncate && parsed.recommendation.length > 150 ? 
+          `Comparison completed: ${parsed.recommendation.substring(0, 150)}...` :
+          `Comparison completed: ${parsed.recommendation}`;
       }
       
       // If it's a string within JSON
       if (typeof parsed === 'string') {
-        return parsed.length > 150 ? `${parsed.substring(0, 150)}...` : parsed;
+        return truncate && parsed.length > 150 ? `${parsed.substring(0, 150)}...` : parsed;
       }
       
-      // Fallback: return truncated original
-      return response.length > 150 ? `${response.substring(0, 150)}...` : response;
+      // Fallback: return truncated or full original
+      return truncate && response.length > 150 ? `${response.substring(0, 150)}...` : response;
       
     } catch {
-      // If not JSON, just return truncated text
-      return response.length > 150 ? `${response.substring(0, 150)}...` : response;
+      // If not JSON, just return truncated or full text
+      return truncate && response.length > 150 ? `${response.substring(0, 150)}...` : response;
     }
   };
 
@@ -1187,10 +1215,38 @@ function AiToolDetails({ toolKey, toolName }: { toolKey: string; toolName: strin
 
                     {interaction.aiResponse && (
                       <div className="mb-3">
-                        <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-1">AI Response:</p>
-                        <p className="text-sm bg-green-50 dark:bg-green-900/20 p-2 rounded max-h-32 overflow-y-auto">
-                          {formatAiResponse(interaction.aiResponse)}
-                        </p>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-sm font-medium text-green-600 dark:text-green-400">AI Response:</p>
+                          {interaction.aiResponse.length > 150 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleResponseExpansion(interaction.id || index.toString())}
+                              className="h-6 px-2 text-xs"
+                            >
+                              {expandedResponses.has(interaction.id || index.toString()) ? (
+                                <>
+                                  <ChevronUp className="h-3 w-3 mr-1" />
+                                  Show Less
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="h-3 w-3 mr-1" />
+                                  Show More
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                        <div className="text-sm bg-green-50 dark:bg-green-900/20 p-2 rounded">
+                          {expandedResponses.has(interaction.id || index.toString()) ? (
+                            <div className="max-h-96 overflow-y-auto">
+                              {formatAiResponse(interaction.aiResponse, false)}
+                            </div>
+                          ) : (
+                            formatAiResponse(interaction.aiResponse, true)
+                          )}
+                        </div>
                       </div>
                     )}
 

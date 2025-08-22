@@ -17406,6 +17406,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Store user info - get current authenticated store user
+  app.get("/api/store/me", async (req, res) => {
+    try {
+      // Check if store user is authenticated
+      if (!req.session.storeUser) {
+        return res.status(401).json({ error: "Store authentication required" });
+      }
+
+      res.json({ storeUser: req.session.storeUser });
+    } catch (error) {
+      console.error("Store me error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Store dashboard data - get metrics and recent activity
   app.get("/api/store/dashboard", async (req, res) => {
     try {

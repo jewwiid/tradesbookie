@@ -576,10 +576,38 @@ export default function StoreDashboard() {
                               <div className="flex items-start gap-2">
                                 <Bot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">AI Responded:</p>
-                                  <p className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
-                                    {formatAiResponse(scan.aiResponse)}
-                                  </p>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <p className="text-xs font-semibold text-green-700 dark:text-green-300">AI Responded:</p>
+                                    {scan.aiResponse.length > 150 && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => toggleResponseExpansion(`qr-${scan.sessionId || scan.qrCodeId}`)}
+                                        className="h-5 px-2 text-xs"
+                                      >
+                                        {expandedResponses.has(`qr-${scan.sessionId || scan.qrCodeId}`) ? (
+                                          <>
+                                            <ChevronUp className="h-3 w-3 mr-1" />
+                                            Show Less
+                                          </>
+                                        ) : (
+                                          <>
+                                            <ChevronDown className="h-3 w-3 mr-1" />
+                                            Show More
+                                          </>
+                                        )}
+                                      </Button>
+                                    )}
+                                  </div>
+                                  <div className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
+                                    {expandedResponses.has(`qr-${scan.sessionId || scan.qrCodeId}`) ? (
+                                      <div className="max-h-96 overflow-y-auto">
+                                        {formatAiResponse(scan.aiResponse, false)}
+                                      </div>
+                                    ) : (
+                                      formatAiResponse(scan.aiResponse, true)
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>

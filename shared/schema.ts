@@ -2310,6 +2310,12 @@ export const storeReferralUsage = pgTable("store_referral_usage", {
   bookingId: integer("booking_id"), // which booking used the referral
   discountAmount: decimal("discount_amount", { precision: 8, scale: 2 }).default("0.00"),
   rewardAmount: decimal("reward_amount", { precision: 8, scale: 2 }).default("0.00"),
+  
+  // Installation completion tracking
+  installationCompleted: boolean("installation_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  commissionEarned: decimal("commission_earned", { precision: 8, scale: 2 }).default("0.00"), // Actual earnings from completed installations
+  
   usedAt: timestamp("used_at").defaultNow(),
 });
 

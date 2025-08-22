@@ -14485,6 +14485,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Update booking status to completed
       await storage.updateBookingStatus(booking.id, 'completed');
       
+      // Update referral commission tracking for completed installations
+      try {
+        const { storeReferralCompletionService } = await import('./storeReferralCompletionService');
+        await storeReferralCompletionService.recordInstallationCompletion(booking.id);
+      } catch (referralError) {
+        console.error('Error updating referral completion:', referralError);
+        // Don't fail installation completion for referral tracking errors
+      }
+      
       // Note: Installer payment is handled directly by customer, no platform wallet transaction needed
       
       // Send completion notifications
@@ -17440,7 +17449,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const dashboardData = await storeAuthService.getStoreDashboard(req.session.storeUser.id);
 
       if (dashboardData) {
-        res.json(dashboardData);
+        // Get completion-based earnings (actual commission from completed installations)
+        const { storeReferralCompletionService } = await import('./storeReferralCompletionService');
+        const completedEarnings = await storeReferralCompletionService.getCompletedReferralEarnings(
+          req.session.storeUser.retailerCode, 
+          req.session.storeUser.storeCode
+        );
+        
+        // Get staff completion metrics
+        const staffMetrics = await storeReferralCompletionService.getStaffCompletionMetrics(
+          req.session.storeUser.retailerCode, 
+          req.session.storeUser.storeCode
+        );
+
+        // Add completion-based data to the dashboard
+        const enhancedDashboard = {
+          ...dashboardData,
+          metrics: {
+            ...dashboardData.metrics,
+            completedReferralEarnings: completedEarnings.toFixed(2), // Actual earnings from completed installations
+            pendingEarnings: (parseFloat(dashboardData.metrics.totalReferralEarnings) - completedEarnings).toFixed(2) // Bookings not yet completed
+          },
+          staffMetrics: staffMetrics // Individual staff performance based on completion rates
+        };
+
+        res.json(enhancedDashboard);
       } else {
         res.status(404).json({ error: "Store dashboard data not found" });
       }

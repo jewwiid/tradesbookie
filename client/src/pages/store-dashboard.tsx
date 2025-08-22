@@ -23,11 +23,21 @@ interface StoreMetrics {
   totalReferralUses: number;
   referralUsesThisMonth: number;
   totalReferralEarnings: string;
+  completedReferralEarnings: string; // NEW: Actual earnings from completed installations
+  pendingEarnings: string; // NEW: Earnings from bookings not yet completed
   activeStaffCount: number;
   totalAiInteractions: number;
   aiInteractionsThisMonth: number;
   topAiTool: string;
   avgProcessingTime: number;
+}
+
+interface StaffMetric {
+  staffName: string;
+  totalBookings: number;
+  completedInstallations: number;
+  completionRate: number;
+  totalCommissionEarned: number;
 }
 
 interface QrScan {
@@ -62,6 +72,7 @@ interface StoreDashboardData {
     storeCode?: string;
   };
   metrics: StoreMetrics;
+  staffMetrics: StaffMetric[]; // NEW: Staff performance based on completion rates
   recentActivity: {
     qrScans: QrScan[];
     referralUses: ReferralUse[];
@@ -335,16 +346,21 @@ export default function StoreDashboard() {
 
             {/* Secondary Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card>
+              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 dark:from-green-950 dark:to-emerald-950 dark:border-green-800">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Referral Earnings</CardTitle>
+                  <CardTitle className="text-sm font-medium">Commission Earnings</CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">€{dashboardData.metrics.totalReferralEarnings}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Total earnings from referrals
+                  <div className="text-2xl font-bold text-green-600">€{dashboardData.metrics.completedReferralEarnings || '0.00'}</div>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    From completed installations
                   </p>
+                  {dashboardData.metrics.pendingEarnings && parseFloat(dashboardData.metrics.pendingEarnings) > 0 && (
+                    <div className="text-sm text-amber-600">
+                      <span className="font-medium">€{dashboardData.metrics.pendingEarnings}</span> pending completion
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -362,6 +378,50 @@ export default function StoreDashboard() {
               </Card>
 
             </div>
+
+            {/* Staff Performance Metrics */}
+            {dashboardData.staffMetrics && dashboardData.staffMetrics.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Users className="h-5 w-5 mr-2" />
+                    Staff Performance (Installation Completion)
+                  </CardTitle>
+                  <CardDescription>Commission earned based on successful installations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="max-h-96 overflow-y-auto space-y-4 pr-2">
+                    {dashboardData.staffMetrics.map((staff, index) => (
+                      <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full">
+                              <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                              <div className="font-medium">{staff.staffName}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {staff.completedInstallations} of {staff.totalBookings} installations completed
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-bold text-green-600">€{staff.totalCommissionEarned.toFixed(2)}</div>
+                            <div className="text-sm text-muted-foreground">{staff.completionRate}% success rate</div>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                            style={{ width: `${staff.completionRate}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

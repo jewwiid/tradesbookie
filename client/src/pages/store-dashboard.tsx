@@ -122,6 +122,7 @@ export default function StoreDashboard() {
   const aiTools = [
     { key: 'ai-chat', name: 'AI Chat Helper', icon: MessageSquare },
     { key: 'product-finder', name: 'Product Finder', icon: Search },
+    { key: 'product-info', name: 'Product Information', icon: Package },
     { key: 'electronics-comparison', name: 'Product Comparison', icon: BarChart3 },
     { key: 'tv-preview', name: 'TV Preview', icon: Monitor }
   ];

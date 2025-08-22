@@ -231,9 +231,9 @@ export class StoreAuthService {
     const toolMapping: Record<string, string> = {
       'ai-chat': 'AI Chat Helper',
       'product-finder': 'Product Finder',
+      'product-info': 'Product Information',
       'electronics-comparison': 'Product Comparison',
       'tv-preview': 'TV Preview',
-      'product-info': 'Product Information',
       'product-care': 'Product Care Guide',
       'faq': 'FAQ Assistant',
       'ai-helper': 'AI Helper'

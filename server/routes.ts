@@ -6924,6 +6924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await recordAiUsage(req);
       
       // Track detailed AI interaction for analytics
+      console.log('About to track TV recommendation analytics for session:', req.sessionId);
       const { AIAnalyticsService } = await import('./aiAnalyticsService');
       await AIAnalyticsService.trackInteraction({
         userId: req.user?.id?.toString(),

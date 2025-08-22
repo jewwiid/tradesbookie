@@ -1,6 +1,6 @@
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, desc, sql, gte } from "drizzle-orm";
 import { db } from "./db";
-import { storeUsers, storeMetrics, storeQrScans, storeReferralUsage, type StoreUser, type InsertStoreUser } from "@shared/schema";
+import { storeUsers, storeMetrics, storeQrScans, storeReferralUsage, aiInteractionAnalytics, type StoreUser, type InsertStoreUser } from "@shared/schema";
 import { retailerDetectionService } from "./retailerDetectionService";
 import bcrypt from "bcrypt";
 
@@ -30,6 +30,10 @@ export interface StoreDashboardData {
     referralUsesThisMonth: number;
     totalReferralEarnings: string;
     activeStaffCount: number;
+    totalAiInteractions: number;
+    aiInteractionsThisMonth: number;
+    topAiTool: string;
+    avgProcessingTime: number;
   };
   recentActivity: {
     qrScans: Array<{
@@ -43,6 +47,33 @@ export interface StoreDashboardData {
       staffName?: string;
       discountAmount: string;
       usedAt: Date;
+    }>;
+    aiInteractions: Array<{
+      aiTool: string;
+      interactionType: string;
+      productQuery?: string;
+      userPrompt?: string;
+      recommendedProducts?: any[];
+      processingTimeMs?: number;
+      createdAt: Date;
+      sessionId: string;
+    }>;
+  };
+  analytics: {
+    topProductQueries: Array<{
+      query: string;
+      count: number;
+    }>;
+    aiToolUsage: Array<{
+      aiTool: string;
+      count: number;
+      avgProcessingTime: number;
+      errorRate: number;
+    }>;
+    popularProducts: Array<{
+      productName: string;
+      queryCount: number;
+      recommendationCount: number;
     }>;
   };
 }
@@ -264,6 +295,139 @@ export class StoreAuthService {
       .orderBy(desc(storeReferralUsage.usedAt))
       .limit(10);
 
+      // Get AI interaction analytics for this store
+      const storeLocationFilter = user.storeCode 
+        ? `${user.retailerCode} ${user.storeCode}`
+        : user.retailerCode;
+
+      // Recent AI interactions
+      const recentAiInteractions = await db.select({
+        aiTool: aiInteractionAnalytics.aiTool,
+        interactionType: aiInteractionAnalytics.interactionType,
+        productQuery: aiInteractionAnalytics.productQuery,
+        userPrompt: aiInteractionAnalytics.userPrompt,
+        recommendedProducts: aiInteractionAnalytics.recommendedProducts,
+        processingTimeMs: aiInteractionAnalytics.processingTimeMs,
+        createdAt: aiInteractionAnalytics.createdAt,
+        sessionId: aiInteractionAnalytics.sessionId
+      })
+      .from(aiInteractionAnalytics)
+      .where(eq(aiInteractionAnalytics.storeLocation, storeLocationFilter))
+      .orderBy(desc(aiInteractionAnalytics.createdAt))
+      .limit(10);
+
+      // AI metrics
+      const currentMonth = new Date();
+      currentMonth.setDate(1);
+      currentMonth.setHours(0, 0, 0, 0);
+
+      const aiMetrics = await db.select({
+        totalInteractions: sql<number>`count(*)`,
+        thisMonthInteractions: sql<number>`count(*) filter (where ${aiInteractionAnalytics.createdAt} >= ${currentMonth})`,
+        avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`
+      })
+      .from(aiInteractionAnalytics)
+      .where(eq(aiInteractionAnalytics.storeLocation, storeLocationFilter));
+
+      // Top AI tool used
+      const topAiTool = await db.select({
+        aiTool: aiInteractionAnalytics.aiTool,
+        count: sql<number>`count(*)`
+      })
+      .from(aiInteractionAnalytics)
+      .where(eq(aiInteractionAnalytics.storeLocation, storeLocationFilter))
+      .groupBy(aiInteractionAnalytics.aiTool)
+      .orderBy(desc(sql`count(*)`))
+      .limit(1);
+
+      // Top product queries
+      const topProductQueries = await db.select({
+        query: aiInteractionAnalytics.productQuery,
+        count: sql<number>`count(*)`
+      })
+      .from(aiInteractionAnalytics)
+      .where(
+        and(
+          eq(aiInteractionAnalytics.storeLocation, storeLocationFilter),
+          sql`${aiInteractionAnalytics.productQuery} is not null`
+        )
+      )
+      .groupBy(aiInteractionAnalytics.productQuery)
+      .orderBy(desc(sql`count(*)`))
+      .limit(10);
+
+      // AI tool usage statistics
+      const aiToolUsage = await db.select({
+        aiTool: aiInteractionAnalytics.aiTool,
+        count: sql<number>`count(*)`,
+        avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`,
+        errorRate: sql<number>`(count(*) filter (where ${aiInteractionAnalytics.errorOccurred} = true)::float / count(*)) * 100`
+      })
+      .from(aiInteractionAnalytics)
+      .where(eq(aiInteractionAnalytics.storeLocation, storeLocationFilter))
+      .groupBy(aiInteractionAnalytics.aiTool)
+      .orderBy(desc(sql`count(*)`));
+
+      // Extract popular products from recommendations
+      const popularProducts: Array<{ productName: string; queryCount: number; recommendationCount: number }> = [];
+      
+      try {
+        const productData = await db.select({
+          recommendedProducts: aiInteractionAnalytics.recommendedProducts,
+          productQuery: aiInteractionAnalytics.productQuery
+        })
+        .from(aiInteractionAnalytics)
+        .where(
+          and(
+            eq(aiInteractionAnalytics.storeLocation, storeLocationFilter),
+            sql`${aiInteractionAnalytics.recommendedProducts} != '[]'::jsonb`
+          )
+        );
+
+        const productCounts: Record<string, { queryCount: number; recommendationCount: number }> = {};
+
+        productData.forEach(row => {
+          // Count product queries
+          if (row.productQuery) {
+            const queryKey = row.productQuery.toLowerCase();
+            if (!productCounts[queryKey]) {
+              productCounts[queryKey] = { queryCount: 0, recommendationCount: 0 };
+            }
+            productCounts[queryKey].queryCount++;
+          }
+
+          // Count product recommendations
+          if (row.recommendedProducts && Array.isArray(row.recommendedProducts)) {
+            row.recommendedProducts.forEach((product: any) => {
+              const productName = product.name || product.title || product.model || 'Unknown Product';
+              const productKey = productName.toLowerCase();
+              if (!productCounts[productKey]) {
+                productCounts[productKey] = { queryCount: 0, recommendationCount: 0 };
+              }
+              productCounts[productKey].recommendationCount++;
+            });
+          }
+        });
+
+        // Convert to array and sort by total activity
+        popularProducts.push(...Object.entries(productCounts)
+          .map(([name, counts]) => ({
+            productName: name,
+            queryCount: counts.queryCount,
+            recommendationCount: counts.recommendationCount
+          }))
+          .sort((a, b) => (b.queryCount + b.recommendationCount) - (a.queryCount + a.recommendationCount))
+          .slice(0, 10));
+      } catch (error) {
+        console.error('Error extracting popular products:', error);
+      }
+
+      const aiMetricsResult = aiMetrics[0] || {
+        totalInteractions: 0,
+        thisMonthInteractions: 0,
+        avgProcessingTime: 0
+      };
+
       return {
         storeInfo: {
           storeName: user.storeName,
@@ -276,11 +440,29 @@ export class StoreAuthService {
           totalReferralUses: currentMetrics.totalReferralUses,
           referralUsesThisMonth: currentMetrics.referralUsesThisMonth,
           totalReferralEarnings: currentMetrics.totalReferralEarnings,
-          activeStaffCount: currentMetrics.activeStaffCount
+          activeStaffCount: currentMetrics.activeStaffCount,
+          totalAiInteractions: aiMetricsResult.totalInteractions,
+          aiInteractionsThisMonth: aiMetricsResult.thisMonthInteractions,
+          topAiTool: topAiTool[0]?.aiTool || 'None',
+          avgProcessingTime: Math.round(aiMetricsResult.avgProcessingTime || 0)
         },
         recentActivity: {
           qrScans: recentQrScans,
-          referralUses: recentReferrals
+          referralUses: recentReferrals,
+          aiInteractions: recentAiInteractions
+        },
+        analytics: {
+          topProductQueries: topProductQueries.map(q => ({
+            query: q.query || 'Unknown',
+            count: q.count
+          })),
+          aiToolUsage: aiToolUsage.map(tool => ({
+            aiTool: tool.aiTool,
+            count: tool.count,
+            avgProcessingTime: Math.round(tool.avgProcessingTime || 0),
+            errorRate: Math.round((tool.errorRate || 0) * 100) / 100
+          })),
+          popularProducts
         }
       };
 

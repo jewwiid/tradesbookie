@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity } from "lucide-react";
+import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap } from "lucide-react";
 import { format } from "date-fns";
 
 interface StoreUser {
@@ -24,6 +24,10 @@ interface StoreMetrics {
   referralUsesThisMonth: number;
   totalReferralEarnings: string;
   activeStaffCount: number;
+  totalAiInteractions: number;
+  aiInteractionsThisMonth: number;
+  topAiTool: string;
+  avgProcessingTime: number;
 }
 
 interface QrScan {
@@ -40,6 +44,17 @@ interface ReferralUse {
   usedAt: Date;
 }
 
+interface AiInteraction {
+  aiTool: string;
+  interactionType: string;
+  productQuery?: string;
+  userPrompt?: string;
+  recommendedProducts?: any[];
+  processingTimeMs?: number;
+  createdAt: Date;
+  sessionId: string;
+}
+
 interface StoreDashboardData {
   storeInfo: {
     storeName: string;
@@ -50,6 +65,24 @@ interface StoreDashboardData {
   recentActivity: {
     qrScans: QrScan[];
     referralUses: ReferralUse[];
+    aiInteractions: AiInteraction[];
+  };
+  analytics: {
+    topProductQueries: Array<{
+      query: string;
+      count: number;
+    }>;
+    aiToolUsage: Array<{
+      aiTool: string;
+      count: number;
+      avgProcessingTime: number;
+      errorRate: number;
+    }>;
+    popularProducts: Array<{
+      productName: string;
+      queryCount: number;
+      recommendationCount: number;
+    }>;
   };
 }
 
@@ -181,6 +214,19 @@ export default function StoreDashboard() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">AI Interactions</CardTitle>
+                  <Brain className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{dashboardData.metrics.totalAiInteractions}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {dashboardData.metrics.aiInteractionsThisMonth} this month
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Referral Uses</CardTitle>
                   <Users className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
@@ -192,6 +238,22 @@ export default function StoreDashboard() {
                 </CardContent>
               </Card>
 
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Top AI Tool</CardTitle>
+                  <Zap className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{dashboardData.metrics.topAiTool}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Avg: {dashboardData.metrics.avgProcessingTime}ms
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Secondary Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Referral Earnings</CardTitle>
@@ -217,10 +279,23 @@ export default function StoreDashboard() {
                   </p>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Processing Speed</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{dashboardData.metrics.avgProcessingTime}ms</div>
+                  <p className="text-xs text-muted-foreground">
+                    Average AI response time
+                  </p>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Recent QR Scans */}
               <Card>
                 <CardHeader>
@@ -251,6 +326,57 @@ export default function StoreDashboard() {
                     ) : (
                       <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                         No QR scans recorded yet
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Recent AI Interactions */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Brain className="h-5 w-5 mr-2" />
+                    Recent AI Interactions
+                  </CardTitle>
+                  <CardDescription>Latest AI tool usage and queries</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {dashboardData.recentActivity.aiInteractions.length > 0 ? (
+                      dashboardData.recentActivity.aiInteractions.map((interaction, index) => (
+                        <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge variant="outline">{interaction.aiTool}</Badge>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {format(new Date(interaction.createdAt), "MMM d, h:mm a")}
+                            </span>
+                          </div>
+                          {interaction.productQuery && (
+                            <p className="text-sm font-medium">{interaction.productQuery}</p>
+                          )}
+                          {interaction.userPrompt && (
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                              {interaction.userPrompt.length > 60 
+                                ? `${interaction.userPrompt.substring(0, 60)}...` 
+                                : interaction.userPrompt}
+                            </p>
+                          )}
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {interaction.interactionType}
+                            </span>
+                            {interaction.processingTimeMs && (
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {interaction.processingTimeMs}ms
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                        No AI interactions recorded yet
                       </p>
                     )}
                   </div>
@@ -288,6 +414,101 @@ export default function StoreDashboard() {
                     ) : (
                       <p className="text-gray-500 dark:text-gray-400 text-center py-4">
                         No referral uses recorded yet
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* AI Analytics */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Top Product Queries */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Search className="h-5 w-5 mr-2" />
+                    Top Product Queries
+                  </CardTitle>
+                  <CardDescription>Most searched products by customers</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {dashboardData.analytics.topProductQueries.length > 0 ? (
+                      dashboardData.analytics.topProductQueries.map((query, index) => (
+                        <div key={index} className="flex items-center justify-between">
+                          <span className="text-sm font-medium truncate flex-1">
+                            {query.query}
+                          </span>
+                          <Badge variant="secondary">{query.count}</Badge>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                        No product queries recorded yet
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AI Tool Usage */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    AI Tool Usage
+                  </CardTitle>
+                  <CardDescription>Performance and usage statistics</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {dashboardData.analytics.aiToolUsage.length > 0 ? (
+                      dashboardData.analytics.aiToolUsage.map((tool, index) => (
+                        <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium">{tool.aiTool}</span>
+                            <Badge>{tool.count}</Badge>
+                          </div>
+                          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                            <span>Avg: {tool.avgProcessingTime}ms</span>
+                            <span>Error: {tool.errorRate}%</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                        No AI tool usage recorded yet
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Popular Products */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <TrendingUp className="h-5 w-5 mr-2" />
+                    Popular Products
+                  </CardTitle>
+                  <CardDescription>Most queried and recommended items</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {dashboardData.analytics.popularProducts.length > 0 ? (
+                      dashboardData.analytics.popularProducts.map((product, index) => (
+                        <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                          <p className="font-medium truncate mb-1">{product.productName}</p>
+                          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                            <span>{product.queryCount} queries</span>
+                            <span>{product.recommendationCount} recommendations</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                        No popular products recorded yet
                       </p>
                     )}
                   </div>

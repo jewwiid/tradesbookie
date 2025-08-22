@@ -3523,6 +3523,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Update referral code statistics
             await storage.updateReferralCodeStats(referralCodeId, rewardAmount);
             
+            // Track referral usage for store analytics if it's a staff referral
+            if (salesStaffStore && referralCode.salesStaffStore) {
+              try {
+                const { retailerDetectionService } = await import('./retailerDetectionService');
+                const parsedCode = retailerDetectionService.detectRetailerFromReferralCode(validatedData.referralCode);
+                
+                if (parsedCode && parsedCode.retailerCode) {
+                  await storeAuthService.trackReferralUsage(
+                    validatedData.referralCode,
+                    parsedCode.retailerCode,
+                    parsedCode.storeCode,
+                    salesStaffName || referralCode.salesStaffName,
+                    validatedData.email,
+                    booking.id,
+                    discountAmount.toString(),
+                    rewardAmount.toString()
+                  );
+                  console.log(`Store tracking: Recorded referral usage for ${parsedCode.retailerCode} ${parsedCode.storeCode || 'main'} store`);
+                }
+              } catch (storeTrackingError) {
+                console.error('Error tracking referral for store analytics:', storeTrackingError);
+                // Don't fail booking if store tracking fails
+              }
+            }
+            
             console.log(`Created referral usage tracking for code ${validatedData.referralCode}, booking ${booking.id}, discount €${discountAmount}, reward €${rewardAmount}`);
           }
         } catch (referralTrackingError) {

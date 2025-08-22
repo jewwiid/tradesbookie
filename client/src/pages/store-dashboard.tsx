@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap } from "lucide-react";
+import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package } from "lucide-react";
 import { format } from "date-fns";
 
 interface StoreUser {
@@ -309,43 +309,64 @@ export default function StoreDashboard() {
                   <div className="space-y-4">
                     {dashboardData.recentActivity.qrScans.length > 0 ? (
                       dashboardData.recentActivity.qrScans.map((scan, index) => (
-                        <div key={index} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-2">
+                        <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3 hover:shadow-md transition-shadow">
                           <div className="flex items-center justify-between">
-                            <p className="font-medium">{scan.aiTool || 'AI Tool Access'}</p>
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                                <QrCode className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-sm">{scan.aiTool || 'AI Tool Access'}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Session: {scan.sessionId?.substring(0, 8)}</p>
+                              </div>
+                            </div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                               {format(new Date(scan.scannedAt), "MMM d, h:mm a")}
                             </span>
                           </div>
                           
                           {/* User Question */}
                           {scan.userPrompt && (
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                              <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">Customer Asked:</p>
-                              <p className="text-sm text-blue-800 dark:text-blue-200">
-                                {scan.userPrompt.length > 120 
-                                  ? `${scan.userPrompt.substring(0, 120)}...` 
-                                  : scan.userPrompt}
-                              </p>
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border-l-4 border-blue-400">
+                              <div className="flex items-start gap-2">
+                                <MessageSquare className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">Customer Asked:</p>
+                                  <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                                    {scan.userPrompt}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           )}
                           
                           {/* AI Response */}
                           {scan.aiResponse && (
-                            <div className="bg-green-50 dark:bg-green-900/20 p-2 rounded">
-                              <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">AI Responded:</p>
-                              <p className="text-sm text-green-800 dark:text-green-200">
-                                {scan.aiResponse.length > 150 
-                                  ? `${scan.aiResponse.substring(0, 150)}...` 
-                                  : scan.aiResponse}
-                              </p>
+                            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border-l-4 border-green-400">
+                              <div className="flex items-start gap-2">
+                                <Bot className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">AI Responded:</p>
+                                  <p className="text-sm text-green-800 dark:text-green-200 leading-relaxed">
+                                    {scan.aiResponse.length > 200 
+                                      ? `${scan.aiResponse.substring(0, 200)}...` 
+                                      : scan.aiResponse}
+                                  </p>
+                                </div>
+                              </div>
                             </div>
                           )}
                           
                           {/* Product Query */}
                           {scan.productQuery && (
-                            <div className="bg-purple-50 dark:bg-purple-900/20 p-2 rounded">
-                              <p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">Product:</p>
-                              <p className="text-sm text-purple-800 dark:text-purple-200">{scan.productQuery}</p>
+                            <div className="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border-l-4 border-purple-400">
+                              <div className="flex items-start gap-2">
+                                <Package className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1">Product Searched:</p>
+                                  <p className="text-sm text-purple-800 dark:text-purple-200 font-medium">{scan.productQuery}</p>
+                                </div>
+                              </div>
                             </div>
                           )}
                           
@@ -382,39 +403,58 @@ export default function StoreDashboard() {
                     <Brain className="h-5 w-5 mr-2" />
                     Recent AI Interactions
                   </CardTitle>
-                  <CardDescription>Latest AI tool usage and queries</CardDescription>
+                  <CardDescription>Latest customer questions and AI responses</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {dashboardData.recentActivity.aiInteractions.length > 0 ? (
-                      dashboardData.recentActivity.aiInteractions.map((interaction, index) => (
-                        <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <Badge variant="outline">{interaction.aiTool}</Badge>
+                    {dashboardData.recentActivity.qrScans.filter(scan => scan.userPrompt || scan.aiResponse).length > 0 ? (
+                      dashboardData.recentActivity.qrScans
+                        .filter(scan => scan.userPrompt || scan.aiResponse)
+                        .slice(0, 5)
+                        .map((interaction, index) => (
+                        <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Brain className="w-4 h-4 text-purple-600" />
+                              <Badge variant="outline" className="text-xs">{interaction.aiTool}</Badge>
+                            </div>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {format(new Date(interaction.createdAt), "MMM d, h:mm a")}
+                              {format(new Date(interaction.scannedAt), "MMM d, h:mm a")}
                             </span>
                           </div>
-                          {interaction.productQuery && (
-                            <p className="text-sm font-medium">{interaction.productQuery}</p>
-                          )}
+                          
+                          {/* Customer Question */}
                           {interaction.userPrompt && (
-                            <p className="text-sm text-gray-600 dark:text-gray-300">
-                              {interaction.userPrompt.length > 60 
-                                ? `${interaction.userPrompt.substring(0, 60)}...` 
-                                : interaction.userPrompt}
-                            </p>
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                              <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">Customer Asked:</p>
+                              <p className="text-sm text-blue-800 dark:text-blue-200">
+                                {interaction.userPrompt.length > 100 
+                                  ? `${interaction.userPrompt.substring(0, 100)}...` 
+                                  : interaction.userPrompt}
+                              </p>
+                            </div>
                           )}
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {interaction.interactionType}
-                            </span>
-                            {interaction.processingTimeMs && (
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                {interaction.processingTimeMs}ms
+
+                          {/* AI Response Summary */}
+                          {interaction.aiResponse && (
+                            <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
+                              <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">AI Responded:</p>
+                              <p className="text-sm text-green-800 dark:text-green-200">
+                                {interaction.aiResponse.length > 120 
+                                  ? `${interaction.aiResponse.substring(0, 120)}...` 
+                                  : interaction.aiResponse}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Processing Time */}
+                          {interaction.processingTimeMs && (
+                            <div className="flex justify-end">
+                              <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                                Processed in {interaction.processingTimeMs}ms
                               </span>
-                            )}
-                          </div>
+                            </div>
+                          )}
                         </div>
                       ))
                     ) : (
@@ -477,20 +517,35 @@ export default function StoreDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {dashboardData.analytics.topProductQueries.length > 0 ? (
-                      dashboardData.analytics.topProductQueries.map((query, index) => (
-                        <div key={index} className="flex items-center justify-between">
-                          <span className="text-sm font-medium truncate flex-1">
-                            {query.query}
-                          </span>
-                          <Badge variant="secondary">{query.count}</Badge>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                        No product queries recorded yet
-                      </p>
-                    )}
+                    {(() => {
+                      // Extract product queries from QR scan data
+                      const productQueries = dashboardData.recentActivity.qrScans
+                        .filter(scan => scan.productQuery)
+                        .reduce((acc, scan) => {
+                          const query = scan.productQuery;
+                          acc[query] = (acc[query] || 0) + 1;
+                          return acc;
+                        }, {} as Record<string, number>);
+                      
+                      const topQueries = Object.entries(productQueries)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 5);
+                      
+                      return topQueries.length > 0 ? (
+                        topQueries.map(([query, count], index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                            <span className="text-sm font-medium truncate flex-1">
+                              {query}
+                            </span>
+                            <Badge variant="secondary">{count}</Badge>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                          No product queries recorded yet
+                        </p>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>
@@ -506,24 +561,46 @@ export default function StoreDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {dashboardData.analytics.aiToolUsage.length > 0 ? (
-                      dashboardData.analytics.aiToolUsage.map((tool, index) => (
-                        <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium">{tool.aiTool}</span>
-                            <Badge>{tool.count}</Badge>
+                    {(() => {
+                      // Extract AI tool usage from QR scan data
+                      const toolUsage = dashboardData.recentActivity.qrScans.reduce((acc, scan) => {
+                        const tool = scan.aiTool || 'Unknown';
+                        if (!acc[tool]) {
+                          acc[tool] = { count: 0, totalProcessingTime: 0, errors: 0 };
+                        }
+                        acc[tool].count++;
+                        if (scan.processingTimeMs) {
+                          acc[tool].totalProcessingTime += scan.processingTimeMs;
+                        }
+                        if (scan.errorOccurred) {
+                          acc[tool].errors++;
+                        }
+                        return acc;
+                      }, {} as Record<string, { count: number; totalProcessingTime: number; errors: number }>);
+                      
+                      const sortedTools = Object.entries(toolUsage)
+                        .sort(([,a], [,b]) => b.count - a.count)
+                        .slice(0, 5);
+                      
+                      return sortedTools.length > 0 ? (
+                        sortedTools.map(([tool, stats], index) => (
+                          <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-medium text-sm">{tool}</span>
+                              <Badge variant="outline">{stats.count} uses</Badge>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 dark:text-gray-400">
+                              <span>Avg: {stats.count > 0 ? Math.round(stats.totalProcessingTime / stats.count) : 0}ms</span>
+                              <span>Success: {stats.count > 0 ? Math.round(((stats.count - stats.errors) / stats.count) * 100) : 100}%</span>
+                            </div>
                           </div>
-                          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                            <span>Avg: {tool.avgProcessingTime}ms</span>
-                            <span>Error: {tool.errorRate}%</span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                        No AI tool usage recorded yet
-                      </p>
-                    )}
+                        ))
+                      ) : (
+                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                          No AI tool usage recorded yet
+                        </p>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>
@@ -539,21 +616,69 @@ export default function StoreDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {dashboardData.analytics.popularProducts.length > 0 ? (
-                      dashboardData.analytics.popularProducts.map((product, index) => (
-                        <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                          <p className="font-medium truncate mb-1">{product.productName}</p>
-                          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                            <span>{product.queryCount} queries</span>
-                            <span>{product.recommendationCount} recommendations</span>
+                    {(() => {
+                      // Extract popular products from AI responses
+                      const productMentions = dashboardData.recentActivity.qrScans
+                        .filter(scan => scan.aiResponse)
+                        .flatMap(scan => {
+                          const response = scan.aiResponse.toLowerCase();
+                          const products: string[] = [];
+                          
+                          // Common TV brands and models mentioned in responses
+                          const tvPatterns = [
+                            /samsung[\s\w]*(?:qled|oled|neo|crystal|uhd|4k|smart)[\s\w]*/g,
+                            /lg[\s\w]*(?:oled|nanocell|uhd|4k|smart)[\s\w]*/g,
+                            /sony[\s\w]*(?:bravia|oled|led|4k|smart)[\s\w]*/g,
+                            /tcl[\s\w]*(?:qled|roku|google|android)[\s\w]*/g,
+                            /hisense[\s\w]*(?:uled|roku|vidaa)[\s\w]*/g,
+                            /(\d{2}["-]?\s?inch|55["-]?|65["-]?|75["-]?|85["-]?)\s?[\w\s]*tv/g
+                          ];
+                          
+                          tvPatterns.forEach(pattern => {
+                            const matches = response.match(pattern);
+                            if (matches) {
+                              matches.forEach(match => {
+                                const cleaned = match.replace(/\s+/g, ' ').trim();
+                                if (cleaned.length > 3) {
+                                  products.push(cleaned);
+                                }
+                              });
+                            }
+                          });
+                          
+                          return products;
+                        })
+                        .reduce((acc, product) => {
+                          const normalized = product.toLowerCase();
+                          acc[normalized] = (acc[normalized] || 0) + 1;
+                          return acc;
+                        }, {} as Record<string, number>);
+                      
+                      const popularProducts = Object.entries(productMentions)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 5)
+                        .map(([product, count]) => ({
+                          productName: product.split(' ').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                          ).join(' '),
+                          mentions: count
+                        }));
+                      
+                      return popularProducts.length > 0 ? (
+                        popularProducts.map((product, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                            <span className="text-sm font-medium truncate flex-1">
+                              {product.productName}
+                            </span>
+                            <Badge variant="secondary">{product.mentions}</Badge>
                           </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-                        No popular products recorded yet
-                      </p>
-                    )}
+                        ))
+                      ) : (
+                        <p className="text-gray-500 dark:text-gray-400 text-center py-4">
+                          No popular products recorded yet
+                        </p>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>

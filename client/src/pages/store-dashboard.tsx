@@ -1023,6 +1023,42 @@ export default function StoreDashboard() {
 
 // AI Tool Details Component
 function AiToolDetails({ toolKey, toolName }: { toolKey: string; toolName: string }) {
+  // Helper function to format AI responses
+  const formatAiResponse = (response: string): string => {
+    try {
+      // Try to parse as JSON first
+      const parsed = JSON.parse(response);
+      
+      // If it's a product info response
+      if (parsed.name && parsed.brand) {
+        return `Found ${parsed.brand} ${parsed.name} - ${parsed.price || 'Price not available'}. ${parsed.overview ? parsed.overview.substring(0, 100) + '...' : ''}`;
+      }
+      
+      // If it's an array of products
+      if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name) {
+        const product = parsed[0];
+        return `Found ${product.brand || ''} ${product.name || ''} - ${product.price || 'Price not available'}. ${product.overview ? product.overview.substring(0, 100) + '...' : ''}`;
+      }
+      
+      // If it's a comparison result
+      if (parsed.comparison && parsed.recommendation) {
+        return `Comparison completed: ${parsed.recommendation.substring(0, 150)}...`;
+      }
+      
+      // If it's a string within JSON
+      if (typeof parsed === 'string') {
+        return parsed.length > 150 ? `${parsed.substring(0, 150)}...` : parsed;
+      }
+      
+      // Fallback: return truncated original
+      return response.length > 150 ? `${response.substring(0, 150)}...` : response;
+      
+    } catch {
+      // If not JSON, just return truncated text
+      return response.length > 150 ? `${response.substring(0, 150)}...` : response;
+    }
+  };
+
   const { data: toolData, isLoading, error } = useQuery({
     queryKey: ["/api/store/ai-tool", toolKey],
     queryFn: async () => {

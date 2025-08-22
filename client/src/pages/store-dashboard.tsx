@@ -50,6 +50,15 @@ interface QrScan {
   aiTool?: string;
   scannedAt: Date;
   sessionId: string;
+  // AI interaction details from joined data
+  userPrompt?: string;
+  aiResponse?: string;
+  productQuery?: string;
+  interactionType?: string;
+  processingTimeMs?: number;
+  recommendedProducts?: any[];
+  comparisonResult?: any;
+  errorOccurred?: boolean;
 }
 
 interface ReferralUse {
@@ -708,7 +717,7 @@ export default function StoreDashboard() {
                       const productQueries = dashboardData.recentActivity.qrScans
                         .filter(scan => scan.userPrompt && filterByDate(scan))
                         .flatMap(scan => {
-                          const prompt = scan.userPrompt.toLowerCase();
+                          const prompt = scan.userPrompt?.toLowerCase() || '';
                           const queries: string[] = [];
                           
                           // Extract TV size queries
@@ -864,7 +873,7 @@ export default function StoreDashboard() {
                       const productMentions = dashboardData.recentActivity.qrScans
                         .filter(scan => scan.aiResponse && filterByDate(scan))
                         .flatMap(scan => {
-                          const response = scan.aiResponse.toLowerCase();
+                          const response = scan.aiResponse?.toLowerCase() || '';
                           const products: string[] = [];
                           
                           // Common TV brands and models mentioned in responses
@@ -1185,11 +1194,7 @@ function DataCleanupSection() {
   // Preview deletion mutation
   const previewMutation = useMutation({
     mutationFn: async (timeWindow: string) => {
-      const response = await apiRequest('/api/store/data/preview-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timeWindow })
-      });
+      const response = await apiRequest('POST', '/api/store/data/preview-delete', { timeWindow });
       if (!response.ok) {
         throw new Error('Failed to preview data deletion');
       }
@@ -1211,11 +1216,7 @@ function DataCleanupSection() {
   // Delete data mutation
   const deleteMutation = useMutation({
     mutationFn: async (timeWindow: string) => {
-      const response = await apiRequest('/api/store/data/cleanup', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ timeWindow, confirm: true })
-      });
+      const response = await apiRequest('DELETE', '/api/store/data/cleanup', { timeWindow, confirm: true });
       if (!response.ok) {
         throw new Error('Failed to delete data');
       }

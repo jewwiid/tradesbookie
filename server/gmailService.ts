@@ -711,7 +711,7 @@ export async function sendAdminNotification(subject: string, content: string, da
   `;
 
   return await sendGmailEmail({
-    to: 'admin@tradesbook.ie',
+    to: 'jude.okun@gmail.com',
     subject: `[tradesbook.ie] ${subject}`,
     html,
     from: 'system@tradesbook.ie'

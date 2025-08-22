@@ -5,8 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package, ChevronLeft, ChevronRight, Filter } from "lucide-react";
+import { Loader2, QrCode, Users, TrendingUp, Calendar, LogOut, Store, Activity, Brain, Search, BarChart3, Zap, MessageSquare, Bot, Package, ChevronLeft, ChevronRight, Filter, Trash2, RefreshCw, Database, AlertTriangle } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from "date-fns";
 
 interface StoreUser {
@@ -880,6 +884,20 @@ export default function StoreDashboard() {
               </Card>
             </div>
 
+            {/* Data Management */}
+            <Card className="border-orange-200 dark:border-orange-800">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Database className="h-5 w-5 mr-2" />
+                  Data Management
+                </CardTitle>
+                <CardDescription>Clean up historical data to free up database space</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DataCleanupSection />
+              </CardContent>
+            </Card>
+
             {/* Store Info */}
             <Card>
               <CardHeader>
@@ -906,6 +924,220 @@ export default function StoreDashboard() {
           </div>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+// Data cleanup component
+function DataCleanupSection() {
+  const [selectedTimeWindow, setSelectedTimeWindow] = useState<string>('');
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const timeWindowOptions = [
+    { value: 'today', label: 'Today' },
+    { value: 'yesterday', label: 'Yesterday' },
+    { value: 'this_week', label: 'This Week' },
+    { value: 'last_week', label: 'Last Week' },
+    { value: 'last_30_days', label: 'Last 30 Days' }
+  ];
+
+  // Preview deletion mutation
+  const previewMutation = useMutation({
+    mutationFn: async (timeWindow: string) => {
+      const response = await apiRequest('/api/store/data/preview-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timeWindow })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to preview data deletion');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setPreviewData(data);
+      setIsDialogOpen(true);
+    },
+    onError: (error) => {
+      toast({
+        title: "Preview Failed",
+        description: "Unable to preview data deletion. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete data mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (timeWindow: string) => {
+      const response = await apiRequest('/api/store/data/cleanup', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timeWindow, confirm: true })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete data');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Data Cleaned Successfully",
+        description: `Deleted ${data.totalDeleted} records from ${data.description.toLowerCase()}`,
+        variant: "default"
+      });
+      setIsDialogOpen(false);
+      setPreviewData(null);
+      setSelectedTimeWindow('');
+      // Refresh dashboard data
+      queryClient.invalidateQueries({ queryKey: ['/api/store/dashboard'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Cleanup Failed",
+        description: "Unable to clean up data. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handlePreview = () => {
+    if (!selectedTimeWindow) {
+      toast({
+        title: "Time Window Required",
+        description: "Please select a time window for data cleanup",
+        variant: "destructive"
+      });
+      return;
+    }
+    previewMutation.mutate(selectedTimeWindow);
+  };
+
+  const handleConfirmDelete = () => {
+    if (previewData?.timeWindow) {
+      deleteMutation.mutate(previewData.timeWindow);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Alert className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Data cleanup permanently removes historical records to free up database space. 
+          Only completed referral data will be deleted - pending earnings are preserved.
+        </AlertDescription>
+      </Alert>
+
+      <div className="flex flex-col sm:flex-row gap-4 items-end">
+        <div className="flex-1">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+            Select Time Window
+          </label>
+          <Select value={selectedTimeWindow} onValueChange={setSelectedTimeWindow}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose data to clean..." />
+            </SelectTrigger>
+            <SelectContent>
+              {timeWindowOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button 
+          onClick={handlePreview}
+          disabled={!selectedTimeWindow || previewMutation.isPending}
+          className="min-w-[120px]"
+        >
+          {previewMutation.isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Loading...
+            </>
+          ) : (
+            <>
+              <Search className="h-4 w-4 mr-2" />
+              Preview
+            </>
+          )}
+        </Button>
+      </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <Trash2 className="h-5 w-5 mr-2 text-red-500" />
+              Confirm Data Cleanup
+            </DialogTitle>
+            <DialogDescription>
+              Review the data that will be permanently deleted from {previewData?.description?.toLowerCase()}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {previewData && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">QR Code Scans</span>
+                  <Badge variant="secondary">{previewData.preview.qrScansCount} records</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Completed Referrals</span>
+                  <Badge variant="secondary">{previewData.preview.referralsCount} records</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">AI Interactions</span>
+                  <Badge variant="secondary">{previewData.preview.aiInteractionsCount} records</Badge>
+                </div>
+                <div className="border-t pt-3 flex justify-between items-center font-semibold">
+                  <span>Total Records</span>
+                  <Badge variant="destructive">{previewData.totalRecords} to delete</Badge>
+                </div>
+              </div>
+
+              {previewData.totalRecords === 0 && (
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    No data found for the selected time window.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={deleteMutation.isPending || previewData?.totalRecords === 0}
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Data
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

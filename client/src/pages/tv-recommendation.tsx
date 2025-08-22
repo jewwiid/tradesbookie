@@ -193,9 +193,22 @@ export default function TVRecommendation() {
   const urlParams = new URLSearchParams(window.location.search);
   const qrCodeId = urlParams.get('qr');
   const storeLocation = urlParams.get('store');
+  
+  // Debug QR parameters on page load
+  useEffect(() => {
+    if (qrCodeId || storeLocation) {
+      console.log('TV Recommendation page loaded with QR params:', { qrCodeId, storeLocation });
+    }
+  }, [qrCodeId, storeLocation]);
 
   const recommendationMutation = useMutation<TVRecommendation, Error, Record<string, string>>({
     mutationFn: async (questionnaire: Record<string, string>) => {
+      console.log('Submitting TV recommendation with data:', { 
+        answers: questionnaire, 
+        qrCodeId, 
+        storeLocation 
+      });
+      
       const response = await fetch('/api/tv-recommendation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

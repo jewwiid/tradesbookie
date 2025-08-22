@@ -341,7 +341,7 @@ export class StoreAuthService {
           sessionId: aiInteractionAnalytics.sessionId
         })
         .from(aiInteractionAnalytics)
-        .where(sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`)
+        .where(sql`${aiInteractionAnalytics.qrCodeId} IN (${storeQrCodeIds.map(id => `'${id}'`).join(',')})`)
         .orderBy(desc(aiInteractionAnalytics.createdAt))
         .limit(10);
       }
@@ -359,7 +359,7 @@ export class StoreAuthService {
           avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`
         })
         .from(aiInteractionAnalytics)
-        .where(sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`);
+        .where(sql`${aiInteractionAnalytics.qrCodeId} IN (${storeQrCodeIds.map(id => `'${id}'`).join(',')})`);
       }
 
       // Top AI tool used - only from store's QR codes
@@ -370,7 +370,7 @@ export class StoreAuthService {
           count: sql<number>`count(*)`
         })
         .from(aiInteractionAnalytics)
-        .where(sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`)
+        .where(sql`${aiInteractionAnalytics.qrCodeId} IN (${storeQrCodeIds.map(id => `'${id}'`).join(',')})`)
         .groupBy(aiInteractionAnalytics.aiTool)
         .orderBy(desc(sql`count(*)`))
         .limit(1);
@@ -386,7 +386,7 @@ export class StoreAuthService {
         .from(aiInteractionAnalytics)
         .where(
           and(
-            sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`,
+            sql`${aiInteractionAnalytics.qrCodeId} IN (${storeQrCodeIds.map(id => `'${id}'`).join(',')})`,
             sql`${aiInteractionAnalytics.productQuery} is not null`
           )
         )
@@ -405,7 +405,7 @@ export class StoreAuthService {
           errorRate: sql<number>`(count(*) filter (where ${aiInteractionAnalytics.errorOccurred} = true)::float / count(*)) * 100`
         })
         .from(aiInteractionAnalytics)
-        .where(sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`)
+        .where(sql`${aiInteractionAnalytics.qrCodeId} IN (${storeQrCodeIds.map(id => `'${id}'`).join(',')})`)
         .groupBy(aiInteractionAnalytics.aiTool)
         .orderBy(desc(sql`count(*)`));
       }
@@ -422,7 +422,7 @@ export class StoreAuthService {
           .from(aiInteractionAnalytics)
           .where(
             and(
-              sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`,
+              sql`${aiInteractionAnalytics.qrCodeId} IN (${storeQrCodeIds.map(id => `'${id}'`).join(',')})`,
               sql`${aiInteractionAnalytics.recommendedProducts} != '[]'::jsonb`
             )
           );

@@ -185,7 +185,7 @@ export default function StoreDashboard() {
   };
 
   // Helper function to format AI responses
-  const formatAiResponse = (response: string): string => {
+  const formatAiResponse = (response: string, truncate: boolean = true): string => {
     try {
       // Try to parse as JSON first
       const parsed = JSON.parse(response);

@@ -17371,17 +17371,25 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         };
         req.session.storeToken = result.token;
 
-        res.json({
-          success: true,
-          message: result.message,
-          storeUser: {
-            id: result.storeUser.id,
-            email: result.storeUser.email,
-            storeName: result.storeUser.storeName,
-            retailerCode: result.storeUser.retailerCode,
-            storeCode: result.storeUser.storeCode
-          },
-          token: result.token
+        // Save session explicitly to ensure it's persisted
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Store session save error:", saveErr);
+            return res.status(500).json({ error: "Session save failed" });
+          }
+
+          res.json({
+            success: true,
+            message: result.message,
+            storeUser: {
+              id: result.storeUser.id,
+              email: result.storeUser.email,
+              storeName: result.storeUser.storeName,
+              retailerCode: result.storeUser.retailerCode,
+              storeCode: result.storeUser.storeCode
+            },
+            token: result.token
+          });
         });
       } else {
         res.status(401).json({ error: result.message });

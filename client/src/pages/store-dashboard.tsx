@@ -212,6 +212,12 @@ export default function StoreDashboard() {
       // Try to parse as JSON first
       const parsed = JSON.parse(response);
       
+      // If it's a FAQ response with answer field
+      if (parsed.answer && typeof parsed.answer === 'string') {
+        const answer = parsed.answer;
+        return truncate && answer.length > 150 ? `${answer.substring(0, 150)}...` : answer;
+      }
+      
       // If it's a TV recommendation response
       if (parsed.type && parsed.model && parsed.reasons) {
         return formatTvRecommendation(response, truncate);
@@ -1266,6 +1272,12 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
     try {
       // Try to parse as JSON first
       const parsed = JSON.parse(response);
+      
+      // If it's a FAQ response with answer field
+      if (parsed.answer && typeof parsed.answer === 'string') {
+        const answer = parsed.answer;
+        return truncate && answer.length > 150 ? `${answer.substring(0, 150)}...` : answer;
+      }
       
       // If it's a TV recommendation response
       if (parsed.type && parsed.model && parsed.reasons) {

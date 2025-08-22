@@ -6908,15 +6908,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // TV Recommendation API
-  app.post('/api/tv-recommendation', async (req, res) => {
+  app.post('/api/tv-recommendation', checkAiCredits(AI_FEATURES.TV_RECOMMENDATION), async (req: AIRequest, res) => {
+    const startTime = Date.now();
     try {
-      const { answers } = req.body;
+      const { answers, qrCodeId, storeLocation } = req.body;
       
       if (!answers || typeof answers !== 'object') {
         return res.status(400).json({ error: "Valid answers object required" });
       }
 
       const recommendation = await generateTVRecommendation(answers);
+      const processingTime = Date.now() - startTime;
+      
+      // Record AI usage for credit tracking
+      await recordAiUsage(req);
+      
+      // Track detailed AI interaction for analytics
+      const { AIAnalyticsService } = await import('./aiAnalyticsService');
+      await AIAnalyticsService.trackInteraction({
+        userId: req.user?.id?.toString(),
+        sessionId: req.sessionId || 'unknown',
+        qrCodeId: qrCodeId,
+        storeLocation: storeLocation,
+        aiTool: 'TV Recommendation',
+        interactionType: 'recommendation',
+        userPrompt: `TV preferences: ${JSON.stringify(answers)}`,
+        category: 'televisions',
+        priceRange: answers.budget,
+        aiResponse: JSON.stringify(recommendation),
+        processingTimeMs: processingTime,
+        recommendedProducts: recommendation.currentModels || [],
+        creditUsed: true,
+        errorOccurred: false
+      });
+      
       res.json(recommendation);
     } catch (error) {
       console.error("TV recommendation error:", error);

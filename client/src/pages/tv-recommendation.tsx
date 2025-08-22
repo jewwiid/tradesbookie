@@ -189,12 +189,21 @@ export default function TVRecommendation() {
   });
   const { toast } = useToast();
 
+  // Get QR tracking parameters from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const qrCodeId = urlParams.get('qr');
+  const storeLocation = urlParams.get('store');
+
   const recommendationMutation = useMutation<TVRecommendation, Error, Record<string, string>>({
     mutationFn: async (questionnaire: Record<string, string>) => {
       const response = await fetch('/api/tv-recommendation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers: questionnaire })
+        body: JSON.stringify({ 
+          answers: questionnaire,
+          qrCodeId: qrCodeId,
+          storeLocation: storeLocation
+        })
       });
       if (!response.ok) throw new Error('Failed to get recommendation');
       return response.json();

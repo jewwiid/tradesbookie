@@ -65,7 +65,8 @@ export const AI_FEATURES = {
   FAQ: 'faq',
   PRODUCT_INFO: 'product-info',
   EMAIL_TEMPLATE: 'email-template',
-  TV_COMPARISON: 'tv-comparison'
+  TV_COMPARISON: 'tv-comparison',
+  TV_RECOMMENDATION: 'tv-recommendation'
 } as const;
 
 // Free usage limits per feature - resets every 24 hours for authenticated users

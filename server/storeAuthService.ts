@@ -237,6 +237,7 @@ export class StoreAuthService {
       'tv-recommendation': 'TV Recommendation',
       'product-care': 'Product Care Guide',
       'faq': 'FAQ Assistant',
+      'FAQ System': 'FAQ Assistant',
       'ai-helper': 'AI Helper'
     };
     
@@ -772,10 +773,13 @@ export class StoreAuthService {
         return null;
       }
 
+      // Handle FAQ tool name mismatch - 'faq' request should match 'FAQ System' in database
+      const databaseToolName = toolName === 'faq' ? 'FAQ System' : toolName;
+
       // Get real AI interaction data from database
       const interactions = await db.select()
         .from(aiInteractionAnalytics)
-        .where(eq(aiInteractionAnalytics.aiTool, toolName))
+        .where(eq(aiInteractionAnalytics.aiTool, databaseToolName))
         .orderBy(desc(aiInteractionAnalytics.createdAt))
         .limit(50);
 

@@ -139,6 +139,12 @@ export default function StoreDashboard() {
     { key: 'tv-recommendation', name: 'TV Recommendation', icon: Tv }
   ];
 
+  // Helper function to get display name from AI tool key
+  const getAiToolDisplayName = (toolKey: string): string => {
+    const tool = aiTools.find(t => t.key === toolKey);
+    return tool ? tool.name : toolKey;
+  };
+
   // Check if user is authenticated
   const { data: storeUser, isLoading: userLoading, error: userError } = useQuery({
     queryKey: ["/api/store/me"],
@@ -624,7 +630,7 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                                 <QrCode className="w-4 h-4 text-blue-600" />
                               </div>
                               <div>
-                                <p className="font-semibold text-sm">{scan.aiTool || 'AI Tool Access'}</p>
+                                <p className="font-semibold text-sm">{scan.aiTool ? getAiToolDisplayName(scan.aiTool) : 'AI Tool Access'}</p>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">Session: {scan.sessionId?.substring(0, 8)}</p>
                               </div>
                             </div>
@@ -755,7 +761,7 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
                               <Brain className="w-4 h-4 text-purple-600" />
-                              <Badge variant="outline" className="text-xs">{interaction.aiTool}</Badge>
+                              <Badge variant="outline" className="text-xs">{getAiToolDisplayName(interaction.aiTool)}</Badge>
                             </div>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
                               {format(new Date(interaction.scannedAt), "MMM d, h:mm a")}
@@ -961,7 +967,7 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                       const toolUsage = dashboardData.recentActivity.qrScans
                         .filter(filterByDate)
                         .reduce((acc, scan) => {
-                        const tool = scan.aiTool || 'Unknown';
+                        const tool = scan.aiTool ? getAiToolDisplayName(scan.aiTool) : 'Unknown';
                         if (!acc[tool]) {
                           acc[tool] = { count: 0, totalProcessingTime: 0, errors: 0 };
                         }
@@ -1386,7 +1392,7 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      <Badge variant="secondary">{interaction.aiTool}</Badge>
+                      <Badge variant="secondary">{getAiToolDisplayName(interaction.aiTool)}</Badge>
                       <span className="text-sm text-gray-500">
                         {format(new Date(interaction.createdAt), 'MMM d, yyyy HH:mm')}
                       </span>

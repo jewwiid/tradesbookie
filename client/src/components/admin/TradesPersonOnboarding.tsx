@@ -74,6 +74,10 @@ interface OnboardingFormData {
 interface EmailTemplateFormData {
   templateName: string;
   tradeSkill: string;
+  serviceType: string;
+  businessName: string;
+  customPromptDirection: string;
+  allowProfileCreation: boolean;
   subject: string;
   content: string;
 }
@@ -126,6 +130,10 @@ export default function TradesPersonOnboarding() {
   const [emailTemplateData, setEmailTemplateData] = useState<EmailTemplateFormData>({
     templateName: "",
     tradeSkill: "",
+    serviceType: "",
+    businessName: "",
+    customPromptDirection: "",
+    allowProfileCreation: false,
     subject: "",
     content: ""
   });
@@ -135,6 +143,16 @@ export default function TradesPersonOnboarding() {
     tone: 'professional' as 'professional' | 'friendly' | 'persuasive',
     focus: 'opportunity' as 'earnings' | 'flexibility' | 'skills' | 'opportunity'
   });
+
+  // Available services for the dropdown
+  const AVAILABLE_SERVICES = [
+    { value: "tv-installation", label: "TV Installation", description: "Wall mounting, table setup, cable management" },
+    { value: "home-security", label: "Home Security", description: "CCTV, alarm systems, smart locks" },
+    { value: "smart-home", label: "Smart Home Setup", description: "IoT devices, automation, smart lighting" },
+    { value: "electrical-work", label: "Electrical Services", description: "Outlets, wiring, electrical repairs" },
+    { value: "furniture-assembly", label: "Furniture Assembly", description: "IKEA, custom furniture, mounting" },
+    { value: "general-handyman", label: "General Handyman", description: "Various home maintenance and repair tasks" }
+  ];
 
   const [passwordChangeData, setPasswordChangeData] = useState({
     installerId: "",
@@ -194,7 +212,16 @@ export default function TradesPersonOnboarding() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/onboarding/email-templates"] });
-      setEmailTemplateData({ templateName: "", tradeSkill: "", subject: "", content: "" });
+      setEmailTemplateData({ 
+        templateName: "", 
+        tradeSkill: "", 
+        serviceType: "", 
+        businessName: "", 
+        customPromptDirection: "", 
+        allowProfileCreation: false, 
+        subject: "", 
+        content: "" 
+      });
       toast({
         title: "Template Created",
         description: "Email template has been created successfully.",
@@ -466,10 +493,10 @@ export default function TradesPersonOnboarding() {
   };
 
   const handleCreateTemplate = () => {
-    if (!emailTemplateData.templateName || !emailTemplateData.tradeSkill || !emailTemplateData.subject || !emailTemplateData.content) {
+    if (!emailTemplateData.templateName || !emailTemplateData.tradeSkill || !emailTemplateData.serviceType || !emailTemplateData.subject || !emailTemplateData.content) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all template fields.",
+        description: "Please fill in all required template fields (template name, trade skill, service type, subject, and content).",
         variant: "destructive",
       });
       return;
@@ -478,10 +505,10 @@ export default function TradesPersonOnboarding() {
   };
 
   const handleGenerateAITemplate = async () => {
-    if (!emailTemplateData.tradeSkill) {
+    if (!emailTemplateData.tradeSkill || !emailTemplateData.serviceType) {
       toast({
-        title: "Trade Skill Required",
-        description: "Please select a trade skill before generating AI content.",
+        title: "Required Fields Missing",
+        description: "Please select both trade skill and service type before generating AI content.",
         variant: "destructive",
       });
       return;
@@ -491,6 +518,10 @@ export default function TradesPersonOnboarding() {
     try {
       const response = await apiRequest("POST", "/api/admin/onboarding/generate-ai-template", {
         tradeSkill: emailTemplateData.tradeSkill,
+        serviceType: emailTemplateData.serviceType,
+        businessName: emailTemplateData.businessName,
+        customPromptDirection: emailTemplateData.customPromptDirection,
+        allowProfileCreation: emailTemplateData.allowProfileCreation,
         templateName: emailTemplateData.templateName,
         tone: aiOptions.tone,
         focus: aiOptions.focus
@@ -1020,6 +1051,71 @@ export default function TradesPersonOnboarding() {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div>
+                  <Label htmlFor="serviceType">Target Service Type *</Label>
+                  <Select 
+                    value={emailTemplateData.serviceType} 
+                    onValueChange={(value) => setEmailTemplateData(prev => ({ ...prev, serviceType: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select service type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AVAILABLE_SERVICES.map((service) => (
+                        <SelectItem key={service.value} value={service.value}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{service.label}</span>
+                            <span className="text-xs text-gray-500">{service.description}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="businessName">Business Name (Optional)</Label>
+                  <Input
+                    id="businessName"
+                    value={emailTemplateData.businessName}
+                    onChange={(e) => setEmailTemplateData(prev => ({ ...prev, businessName: e.target.value }))}
+                    placeholder="e.g., Smith Carpentry Ltd"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">If provided, AI will personalize the content for this specific business</p>
+                </div>
+
+                <div>
+                  <Label htmlFor="customPromptDirection">Custom AI Direction (Optional)</Label>
+                  <Input
+                    id="customPromptDirection"
+                    value={emailTemplateData.customPromptDirection}
+                    onChange={(e) => setEmailTemplateData(prev => ({ ...prev, customPromptDirection: e.target.value }))}
+                    placeholder="e.g., Focus on weekend availability, mention local area"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Additional guidance for AI content generation</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="allowProfileCreation"
+                  checked={emailTemplateData.allowProfileCreation}
+                  onChange={(e) => setEmailTemplateData(prev => ({ ...prev, allowProfileCreation: e.target.checked }))}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="allowProfileCreation" className="font-medium text-blue-900">
+                    Include Profile Creation Consent
+                  </Label>
+                  <p className="text-sm text-blue-700 mt-1">
+                    AI will include option for tradesperson to consent to TradesBook creating their profile on their behalf, 
+                    highlighting benefits like direct customer payments, no platform cuts, and AI-powered tools.
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -1148,7 +1244,7 @@ export default function TradesPersonOnboarding() {
                   rows={12}
                 />
                 <div className="text-sm text-gray-500 mt-2">
-                  Available variables: {"{"}{"name"}, {"{"}{"tradeSkill"}, {"{"}{"invitationUrl"}, {"{"}{"platformBenefits"}, {"{"}{"estimatedEarnings"}
+                  Available variables: {"{"}{"name"}, {"{"}{"businessName"}, {"{"}{"tradeSkill"}, {"{"}{"serviceType"}, {"{"}{"invitationUrl"}, {"{"}{"platformBenefits"}, {"{"}{"estimatedEarnings"}, {"{"}{"consentSection"}
                 </div>
               </div>
 

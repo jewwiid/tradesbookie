@@ -16020,14 +16020,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // AI-powered email template generation
   app.post('/api/admin/onboarding/generate-ai-template', async (req, res) => {
     try {
-      const { tradeSkill, templateName, tone, focus } = req.body;
+      const { 
+        tradeSkill, 
+        serviceType, 
+        businessName, 
+        customPromptDirection, 
+        allowProfileCreation,
+        templateName, 
+        tone, 
+        focus 
+      } = req.body;
       
       if (!tradeSkill) {
         return res.status(400).json({ error: 'Trade skill is required' });
       }
       
+      if (!serviceType) {
+        return res.status(400).json({ error: 'Service type is required' });
+      }
+      
       const aiTemplate = await generateEmailTemplate({
         tradeSkill,
+        serviceType,
+        businessName,
+        customPromptDirection,
+        allowProfileCreation,
         templateName,
         tone: tone || 'professional',
         focus: focus || 'opportunity'
@@ -16066,6 +16083,49 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error('Error fetching preset templates:', error);
       res.status(500).json({ error: 'Failed to fetch preset templates' });
+    }
+  });
+
+  // Get available service types for email template generation
+  app.get('/api/admin/onboarding/service-types', async (req, res) => {
+    try {
+      const serviceTypes = [
+        {
+          value: "tv-installation",
+          label: "TV Installation",
+          description: "Wall mounting, setup, cable management"
+        },
+        {
+          value: "home-security",
+          label: "Home Security",
+          description: "CCTV, alarms, smart locks"
+        },
+        {
+          value: "smart-home",
+          label: "Smart Home Setup",
+          description: "IoT devices, automation, voice assistants"
+        },
+        {
+          value: "electrical-work",
+          label: "Electrical Services",
+          description: "Outlets, wiring, electrical repairs"
+        },
+        {
+          value: "furniture-assembly",
+          label: "Furniture Assembly",
+          description: "IKEA assembly, mounting, hardware"
+        },
+        {
+          value: "general-handyman",
+          label: "General Handyman",
+          description: "Maintenance, repairs, various installations"
+        }
+      ];
+      
+      res.json(serviceTypes);
+    } catch (error) {
+      console.error('Error fetching service types:', error);
+      res.status(500).json({ error: 'Failed to fetch service types' });
     }
   });
 

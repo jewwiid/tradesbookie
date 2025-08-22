@@ -3,7 +3,47 @@ import OpenAI from "openai";
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Trade skills with their specific relevance to TV installation
+// Service types with specific contexts for different services
+const SERVICE_CONTEXTS = {
+  "tv-installation": {
+    name: "TV Installation",
+    description: "Wall mounting, table setup, cable management, smart TV configuration",
+    avgEarnings: "€120-350 per installation",
+    benefits: ["High demand service", "Quick turnaround", "Repeat customers", "Premium add-ons available"]
+  },
+  "home-security": {
+    name: "Home Security",
+    description: "CCTV installation, alarm systems, smart locks, security monitoring",
+    avgEarnings: "€200-500 per installation",
+    benefits: ["Growing market", "Recurring maintenance", "Premium pricing", "Technical expertise valued"]
+  },
+  "smart-home": {
+    name: "Smart Home Setup",
+    description: "IoT devices, automation systems, smart lighting, voice assistants",
+    avgEarnings: "€150-400 per installation",
+    benefits: ["Cutting-edge technology", "High-value customers", "Ongoing support opportunities", "Future-proof skills"]
+  },
+  "electrical-work": {
+    name: "Electrical Services",
+    description: "Outlet installation, wiring, electrical repairs, safety inspections",
+    avgEarnings: "€180-450 per job",
+    benefits: ["Essential service", "Premium rates", "Safety-critical work", "Licensed expertise"]
+  },
+  "furniture-assembly": {
+    name: "Furniture Assembly",
+    description: "IKEA assembly, custom furniture, mounting, hardware installation",
+    avgEarnings: "€80-200 per job",
+    benefits: ["Consistent demand", "Quick jobs", "Flexible scheduling", "Low risk work"]
+  },
+  "general-handyman": {
+    name: "General Handyman Services",
+    description: "Various home maintenance, repairs, installations, problem-solving",
+    avgEarnings: "€100-300 per job",
+    benefits: ["Diverse work", "Skill utilization", "Problem-solving satisfaction", "Broad customer base"]
+  }
+};
+
+// Trade skills with their specific relevance to various services
 const TRADE_SKILL_CONTEXTS = {
   carpenter: {
     skills: "wall mounting, custom installations, furniture assembly, structural modifications",
@@ -314,6 +354,10 @@ P.S. Our specialist installers average 15-25 installations per month - focus on 
 
 interface EmailTemplateRequest {
   tradeSkill: string;
+  serviceType?: string;
+  businessName?: string;
+  customPromptDirection?: string;
+  allowProfileCreation?: boolean;
   templateName?: string;
   tone?: 'professional' | 'friendly' | 'persuasive';
   focus?: 'earnings' | 'flexibility' | 'skills' | 'opportunity';
@@ -329,40 +373,80 @@ interface EmailTemplateResponse {
  * Generate AI-powered email template for tradesperson onboarding
  */
 export async function generateEmailTemplate(request: EmailTemplateRequest): Promise<EmailTemplateResponse> {
-  const { tradeSkill, templateName, tone = 'professional', focus = 'opportunity' } = request;
+  const { 
+    tradeSkill, 
+    serviceType = 'tv-installation', 
+    businessName, 
+    customPromptDirection, 
+    allowProfileCreation = false,
+    templateName, 
+    tone = 'professional', 
+    focus = 'opportunity' 
+  } = request;
   
-  const context = TRADE_SKILL_CONTEXTS[tradeSkill as keyof typeof TRADE_SKILL_CONTEXTS];
+  const tradeContext = TRADE_SKILL_CONTEXTS[tradeSkill as keyof typeof TRADE_SKILL_CONTEXTS];
+  const serviceContext = SERVICE_CONTEXTS[serviceType as keyof typeof SERVICE_CONTEXTS];
   
-  if (!context) {
+  if (!tradeContext) {
     throw new Error(`Unknown trade skill: ${tradeSkill}`);
   }
+  
+  if (!serviceContext) {
+    throw new Error(`Unknown service type: ${serviceType}`);
+  }
 
-  const prompt = `Create a compelling email template for inviting a ${context.skills} professional to join our TV installation service network (tradesbook.ie).
+  // Build business-specific context
+  const businessContext = businessName ? `\nBusiness Context: This email is specifically targeted at ${businessName}, so personalize the content accordingly.` : '';
+  
+  // Build custom direction context
+  const customContext = customPromptDirection ? `\nCustom Direction: ${customPromptDirection}` : '';
+  
+  // Build consent section context
+  const consentContext = allowProfileCreation ? `\nProfile Creation Consent: Include a section offering the option for TradesBook to create their profile on their behalf, highlighting benefits like:\n- Customers come to them directly through the platform\n- They handle payments directly with customers (no platform cuts)\n- Access to AI tools that make work easier for both customer and business\n- Early access as the platform builds new services and grows into a major business` : '';
+  
+  const prompt = `Create a compelling email template for inviting a ${tradeContext.skills} professional to join our ${serviceContext.name} service network (tradesbook.ie).
 
-Context:
+Trade Context:
 - Target: ${tradeSkill} professionals in Ireland
-- Their skills: ${context.skills}
-- TV installation relevance: ${context.tvRelevance}
-- Potential earnings: ${context.earnings}
-- Specialties they can offer: ${context.specialties.join(', ')}
+- Their core skills: ${tradeContext.skills}
+- Service relevance: ${tradeContext.tvRelevance}
+- Trade-specific potential earnings: ${tradeContext.earnings}
+- Their specialties: ${tradeContext.specialties.join(', ')}
+
+Service Context:
+- Service: ${serviceContext.name}
+- Service description: ${serviceContext.description}
+- Service earnings potential: ${serviceContext.avgEarnings}
+- Service benefits: ${serviceContext.benefits.join(', ')}
+
+Personalization:
+- Tone: ${tone}
+- Primary focus: ${focus}${businessContext}${customContext}${consentContext}
 
 Requirements:
-- Tone: ${tone}
-- Primary focus: ${focus}
-- Include specific benefits for their trade skill
-- Mention realistic earning potential
-- Include personalization variables: {{name}}, {{tradeSkill}}, {{invitationUrl}}
+- Include specific benefits for their trade skill in relation to this service
+- Mention realistic earning potential combining trade and service contexts
+- Include personalization variables: {{name}}, {{businessName}}, {{tradeSkill}}, {{serviceType}}, {{invitationUrl}}, {{platformBenefits}}, {{estimatedEarnings}}
+- If consent option is requested, include {{consentSection}} variable
 - Professional but approachable language
 - Irish market context
-- Call-to-action to join the network
-- Length: 150-300 words
-- Format: Professional email with clear structure
+- Strong call-to-action to join the network
+- Length: 200-400 words
+- Format: Professional email with clear structure and value proposition
+
+Platform Benefits to Highlight:
+- No upfront costs or fees for joining
+- Direct customer payments (platform doesn't take cuts)
+- Professional booking and payment system
+- AI tools to make work easier
+- Quality customer base that values expertise
+- Opportunity to be early adopters as we build into a major business
 
 Focus areas based on selection:
-- earnings: Emphasize income potential and financial benefits
+- earnings: Emphasize income potential and financial benefits from both trade skills and service type
 - flexibility: Highlight work-life balance and scheduling flexibility  
-- skills: Focus on how their existing skills translate perfectly
-- opportunity: Emphasize business growth and market opportunity
+- skills: Focus on how their existing trade skills translate perfectly to this service
+- opportunity: Emphasize business growth and market opportunity in this service area
 
 Please respond with JSON in this exact format:
 {

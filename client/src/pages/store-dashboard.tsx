@@ -245,6 +245,31 @@ export default function StoreDashboard() {
     }
   };
 
+  // Helper function to format customer questions, especially JSON data
+  const formatCustomerQuestion = (prompt: string): string => {
+    try {
+      // Check if it contains TV preferences JSON
+      if (prompt.includes('TV preferences:') && prompt.includes('{')) {
+        const jsonPart = prompt.substring(prompt.indexOf('{'));
+        const parsed = JSON.parse(jsonPart);
+        
+        const usage = parsed.usage || 'Not specified';
+        const budget = parsed.budget || 'Not specified';
+        const room = parsed.room || 'Not specified';
+        const gaming = parsed.gaming || 'Not specified';
+        const features = parsed.features || 'Not specified';
+        
+        return `TV preferences: ${usage} viewing, ${budget} budget, ${room} room, gaming ${gaming}, features: ${features}`;
+      }
+      
+      // For other long prompts, truncate normally
+      return prompt.length > 100 ? `${prompt.substring(0, 100)}...` : prompt;
+    } catch {
+      // If JSON parsing fails, just truncate
+      return prompt.length > 100 ? `${prompt.substring(0, 100)}...` : prompt;
+    }
+  };
+
   // Helper function to format TV recommendation responses specifically
   const formatTvRecommendation = (response: string, truncate: boolean = true): string => {
     try {
@@ -615,8 +640,8 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                                 <MessageSquare className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs font-semibold text-blue-700 dark:text-blue-300 mb-1">Customer Asked:</p>
-                                  <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
-                                    {scan.userPrompt}
+                                  <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed break-words overflow-hidden">
+                                    {formatCustomerQuestion(scan.userPrompt)}
                                   </p>
                                 </div>
                               </div>
@@ -741,10 +766,8 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                           {interaction.userPrompt && (
                             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                               <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">Customer Asked:</p>
-                              <p className="text-sm text-blue-800 dark:text-blue-200">
-                                {interaction.userPrompt.length > 100 
-                                  ? `${interaction.userPrompt.substring(0, 100)}...` 
-                                  : interaction.userPrompt}
+                              <p className="text-sm text-blue-800 dark:text-blue-200 break-words overflow-hidden">
+                                {formatCustomerQuestion(interaction.userPrompt)}
                               </p>
                             </div>
                           )}

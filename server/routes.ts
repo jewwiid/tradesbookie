@@ -6930,7 +6930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sessionId: req.sessionId || 'unknown',
         qrCodeId: qrCodeId,
         storeLocation: storeLocation,
-        aiTool: 'TV Recommendation',
+        aiTool: 'tv-recommendation',
         interactionType: 'recommendation',
         userPrompt: `TV preferences: ${JSON.stringify(answers)}`,
         category: 'televisions',

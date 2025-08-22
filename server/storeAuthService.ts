@@ -234,6 +234,7 @@ export class StoreAuthService {
       'product-info': 'Product Information',
       'electronics-comparison': 'Product Comparison',
       'tv-preview': 'TV Preview',
+      'tv-recommendation': 'TV Recommendation',
       'product-care': 'Product Care Guide',
       'faq': 'FAQ Assistant',
       'ai-helper': 'AI Helper'

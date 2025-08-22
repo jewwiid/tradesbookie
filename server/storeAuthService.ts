@@ -769,46 +769,34 @@ export class StoreAuthService {
         return null;
       }
 
-      // TEMPORARY: Return sample data to get tabs working with proper names
-      // TODO: Fix the Drizzle query issue and implement real data
+      // Get real AI interaction data from database
+      const interactions = await db.select()
+        .from(aiInteractionAnalytics)
+        .where(eq(aiInteractionAnalytics.aiTool, toolName))
+        .orderBy(desc(aiInteractionAnalytics.createdAt))
+        .limit(50);
+
+      // Calculate real summary statistics
+      const totalInteractions = interactions.length;
+      const avgProcessingTime = totalInteractions > 0 
+        ? Math.round(interactions.reduce((sum, i) => sum + (i.processingTimeMs || 0), 0) / totalInteractions)
+        : 0;
       
-      const sampleInteractions = [
-        {
-          id: 1,
-          aiTool: toolName,
-          interactionType: 'query',
-          userPrompt: 'Sample user question for ' + this.mapAiToolName(toolName),
-          aiResponse: 'Sample AI response showing this tool is working',
-          processingTimeMs: 1200,
-          sessionId: 'sample-session-123',
-          createdAt: new Date(),
-          qrCodeId: 'qr-sample-001'
-        },
-        {
-          id: 2,
-          aiTool: toolName,
-          interactionType: 'query',
-          userPrompt: 'Another sample question',
-          aiResponse: 'Another sample response',
-          processingTimeMs: 850,
-          sessionId: 'sample-session-456',
-          createdAt: new Date(Date.now() - 3600000), // 1 hour ago
-          qrCodeId: 'qr-sample-002'
-        }
-      ];
+      const successfulResponses = interactions.filter(i => i.aiResponse && i.aiResponse.trim().length > 0).length;
+      const errorRate = totalInteractions > 0 ? ((totalInteractions - successfulResponses) / totalInteractions) * 100 : 0;
 
       return {
         toolName: this.mapAiToolName(toolName),
-        totalInteractions: sampleInteractions.length,
-        interactions: sampleInteractions.map(interaction => ({
+        totalInteractions,
+        interactions: interactions.map(interaction => ({
           ...interaction,
           aiTool: this.mapAiToolName(interaction.aiTool)
         })),
         summaryStats: {
-          avgProcessingTime: 1025,
-          totalPrompts: sampleInteractions.length,
-          successfulResponses: sampleInteractions.length,
-          errorRate: 0
+          avgProcessingTime,
+          totalPrompts: totalInteractions,
+          successfulResponses,
+          errorRate: Math.round(errorRate * 100) / 100
         }
       };
 

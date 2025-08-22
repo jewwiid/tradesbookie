@@ -80,11 +80,16 @@ export class StoreDataCleanupService {
         .from(storeQrScans)
         .where(storeFilter);
 
+      // Build store location filter for AI interactions
+      const storeLocationPattern = `${retailerCode}${storeCode ? `-${storeCode}` : ''}`;
+      
+      let aiInteractionsToDelete = [];
+      
+      // Delete AI interactions by QR code IDs (if any exist)
       if (storeQrCodes.length > 0) {
         const qrCodeIds = storeQrCodes.map(qr => qr.qrCodeId);
         
-        // Delete AI interactions within time range that came from store QR codes
-        const aiInteractionsToDelete = await db
+        const qrBasedInteractions = await db
           .select({ id: aiInteractionAnalytics.id })
           .from(aiInteractionAnalytics)
           .where(
@@ -94,14 +99,32 @@ export class StoreDataCleanupService {
               lte(aiInteractionAnalytics.createdAt, endDate)
             )
           );
-
-        if (aiInteractionsToDelete.length > 0) {
-          const aiInteractionIds = aiInteractionsToDelete.map(ai => ai.id);
-          await db.delete(aiInteractionAnalytics)
-            .where(inArray(aiInteractionAnalytics.id, aiInteractionIds));
-          deletedAiInteractions = aiInteractionsToDelete.length;
-          console.log(`✅ Deleted ${deletedAiInteractions} AI interactions`);
-        }
+        
+        aiInteractionsToDelete.push(...qrBasedInteractions);
+      }
+      
+      // Also delete AI interactions by store location pattern
+      const locationBasedInteractions = await db
+        .select({ id: aiInteractionAnalytics.id })
+        .from(aiInteractionAnalytics)
+        .where(
+          and(
+            eq(aiInteractionAnalytics.storeLocation, storeLocationPattern),
+            gte(aiInteractionAnalytics.createdAt, startDate),
+            lte(aiInteractionAnalytics.createdAt, endDate)
+          )
+        );
+      
+      aiInteractionsToDelete.push(...locationBasedInteractions);
+      
+      // Remove duplicates
+      const uniqueInteractionIds = Array.from(new Set(aiInteractionsToDelete.map(ai => ai.id)));
+      
+      if (uniqueInteractionIds.length > 0) {
+        await db.delete(aiInteractionAnalytics)
+          .where(inArray(aiInteractionAnalytics.id, uniqueInteractionIds));
+        deletedAiInteractions = uniqueInteractionIds.length;
+        console.log(`✅ Deleted ${deletedAiInteractions} AI interactions`);
       }
 
       console.log(`🎉 Data cleanup completed. Total deleted: ${deletedQrScans + deletedReferrals + deletedAiInteractions} records`);
@@ -159,17 +182,20 @@ export class StoreDataCleanupService {
           )
         );
 
-      // Count AI interactions from store QR codes
+      // Count AI interactions from store QR codes and store location
       const storeQrCodes = await db
         .select({ qrCodeId: storeQrScans.qrCodeId })
         .from(storeQrScans)
         .where(storeFilter);
 
+      const storeLocationPattern = `${retailerCode}${storeCode ? `-${storeCode}` : ''}`;
       let aiInteractionsCount = 0;
+      
+      // Count QR-based interactions
       if (storeQrCodes.length > 0) {
         const qrCodeIds = storeQrCodes.map(qr => qr.qrCodeId);
         
-        const aiCount = await db
+        const qrBasedCount = await db
           .select({ count: sql<number>`count(*)` })
           .from(aiInteractionAnalytics)
           .where(
@@ -180,8 +206,22 @@ export class StoreDataCleanupService {
             )
           );
         
-        aiInteractionsCount = aiCount[0]?.count || 0;
+        aiInteractionsCount += qrBasedCount[0]?.count || 0;
       }
+      
+      // Count location-based interactions
+      const locationBasedCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(aiInteractionAnalytics)
+        .where(
+          and(
+            eq(aiInteractionAnalytics.storeLocation, storeLocationPattern),
+            gte(aiInteractionAnalytics.createdAt, startDate),
+            lte(aiInteractionAnalytics.createdAt, endDate)
+          )
+        );
+      
+      aiInteractionsCount += locationBasedCount[0]?.count || 0;
 
       return {
         qrScansCount: qrScansCount[0]?.count || 0,

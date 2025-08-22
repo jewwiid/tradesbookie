@@ -295,6 +295,10 @@ export default function VipSubscriptionModal({ open, onOpenChange, installerId }
                       </div>
                       <div className="flex items-center gap-3 text-sm">
                         <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <span><strong>Email alerts</strong> - Get notified of new bookings instantly</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm">
+                        <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
                         <span><strong>Priority support</strong> - Get help faster</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm">

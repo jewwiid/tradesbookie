@@ -2493,24 +2493,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             );
           }
 
-          // Notify all approved installers about new booking
+          // Notify only VIP installers about new booking (VIP feature)
           const installers = await storage.getAllInstallers();
-          const approvedInstallers = installers.filter(installer => 
-            installer.approvalStatus === 'approved' && installer.email
+          const vipInstallers = installers.filter(installer => 
+            installer.approvalStatus === 'approved' && 
+            installer.email && 
+            installer.isVip === true
           );
           
-          console.log(`Notifying ${approvedInstallers.length} approved installers about new booking ${bookingDetails.qrCode}`);
+          console.log(`Notifying ${vipInstallers.length} VIP installers about new booking ${bookingDetails.qrCode} (VIP exclusive feature)`);
           
-          for (const installer of approvedInstallers) {
+          for (const installer of vipInstallers) {
             try {
               await sendInstallerNotification(
                 installer.email,
                 installer.contactName || installer.businessName,
                 bookingDetails
               );
-              console.log(`Email sent to installer: ${installer.email}`);
+              console.log(`VIP email alert sent to installer: ${installer.email}`);
             } catch (emailError) {
-              console.error(`Failed to send email to installer ${installer.email}:`, emailError);
+              console.error(`Failed to send VIP email alert to installer ${installer.email}:`, emailError);
             }
           }
 

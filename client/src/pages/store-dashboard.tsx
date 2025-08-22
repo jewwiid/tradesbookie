@@ -1018,30 +1018,54 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                       const productMentions = dashboardData.recentActivity.qrScans
                         .filter(scan => scan.aiResponse && filterByDate(scan))
                         .flatMap(scan => {
-                          const response = scan.aiResponse?.toLowerCase() || '';
                           const products: string[] = [];
                           
-                          // Common TV brands and models mentioned in responses
-                          const tvPatterns = [
-                            /samsung[\s\w]*(?:qled|oled|neo|crystal|uhd|4k|smart)[\s\w]*/g,
-                            /lg[\s\w]*(?:oled|nanocell|uhd|4k|smart)[\s\w]*/g,
-                            /sony[\s\w]*(?:bravia|oled|led|4k|smart)[\s\w]*/g,
-                            /tcl[\s\w]*(?:qled|roku|google|android)[\s\w]*/g,
-                            /hisense[\s\w]*(?:uled|roku|vidaa)[\s\w]*/g,
-                            /(\d{2}["-]?\s?inch|55["-]?|65["-]?|75["-]?|85["-]?)\s?[\w\s]*tv/g
-                          ];
-                          
-                          tvPatterns.forEach(pattern => {
-                            const matches = response.match(pattern);
-                            if (matches) {
-                              matches.forEach(match => {
-                                const cleaned = match.replace(/\s+/g, ' ').trim();
-                                if (cleaned.length > 3) {
-                                  products.push(cleaned);
+                          try {
+                            // Try to parse as JSON first (for TV recommendations)
+                            const parsed = JSON.parse(scan.aiResponse || '');
+                            
+                            // Extract main recommended model
+                            if (parsed.model) {
+                              products.push(parsed.model);
+                            }
+                            
+                            // Extract alternative models
+                            if (parsed.currentModels && Array.isArray(parsed.currentModels)) {
+                              parsed.currentModels.forEach((model: any) => {
+                                if (model.brand && model.model) {
+                                  products.push(`${model.brand} ${model.model}`);
                                 }
                               });
                             }
-                          });
+                            
+                            // Extract brand/name from product info responses
+                            if (parsed.brand && parsed.name) {
+                              products.push(`${parsed.brand} ${parsed.name}`);
+                            }
+                          } catch {
+                            // If not JSON, fall back to text pattern matching
+                            const response = scan.aiResponse?.toLowerCase() || '';
+                            const tvPatterns = [
+                              /samsung[\s\w]*(?:qled|oled|neo|crystal|uhd|4k|smart)[\s\w]*/g,
+                              /lg[\s\w]*(?:oled|nanocell|uhd|4k|smart)[\s\w]*/g,
+                              /sony[\s\w]*(?:bravia|oled|led|4k|smart)[\s\w]*/g,
+                              /tcl[\s\w]*(?:qled|roku|google|android)[\s\w]*/g,
+                              /hisense[\s\w]*(?:uled|roku|vidaa)[\s\w]*/g,
+                              /(\d{2}["-]?\s?inch|55["-]?|65["-]?|75["-]?|85["-]?)\s?[\w\s]*tv/g
+                            ];
+                            
+                            tvPatterns.forEach(pattern => {
+                              const matches = response.match(pattern);
+                              if (matches) {
+                                matches.forEach(match => {
+                                  const cleaned = match.replace(/\s+/g, ' ').trim();
+                                  if (cleaned.length > 3) {
+                                    products.push(cleaned);
+                                  }
+                                });
+                              }
+                            });
+                          }
                           
                           return products;
                         })

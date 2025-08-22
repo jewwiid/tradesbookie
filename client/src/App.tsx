@@ -57,6 +57,8 @@ import TVInstallation from "@/pages/tv-installation";
 import CustomerProfileSetup from "@/pages/customer-profile-setup";
 import StorePartnerSignup from "@/pages/store-partner-signup";
 import InstallationShowcase from "@/pages/installation-showcase";
+import StoreLogin from "@/pages/store-login";
+import StoreDashboard from "@/pages/store-dashboard";
 import ScrollToTop from "@/components/ScrollToTop";
 
 
@@ -101,6 +103,10 @@ function Router() {
       <Route path="/gallery" component={InstallationShowcase} />
       <Route path="/showcase" component={InstallationShowcase} />
       <Route path="/installation-showcase" component={InstallationShowcase} />
+      
+      {/* Store Authentication Routes */}
+      <Route path="/store/:retailerName" component={StoreLogin} />
+      <Route path="/store/:retailerName/dashboard" component={StoreDashboard} />
 
       <Route path="/demo-login" component={DemoLogin} />
       

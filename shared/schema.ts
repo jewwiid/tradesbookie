@@ -2236,3 +2236,113 @@ export const insertInstallationPhotoProgressSchema = createInsertSchema(installa
 // Installation photo progress types
 export type InstallationPhotoProgress = typeof installationPhotoProgress.$inferSelect;
 export type InsertInstallationPhotoProgress = z.infer<typeof insertInstallationPhotoProgressSchema>;
+
+// Store Users - for store-specific login accounts
+export const storeUsers = pgTable("store_users", {
+  id: serial("id").primaryKey(),
+  email: varchar("email").unique().notNull(),
+  passwordHash: varchar("password_hash").notNull(),
+  retailerCode: varchar("retailer_code").notNull(), // HN, CR, DD, etc.
+  storeCode: varchar("store_code"), // BLA, CKM, CRK, etc. (optional for retailers without specific stores)
+  storeName: varchar("store_name").notNull(), // Full store name like "Harvey Norman Blanchardstown"
+  isActive: boolean("is_active").default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Store Metrics - aggregate metrics for each store
+export const storeMetrics = pgTable("store_metrics", {
+  id: serial("id").primaryKey(),
+  retailerCode: varchar("retailer_code").notNull(),
+  storeCode: varchar("store_code"), // nullable for retailers without specific stores
+  storeName: varchar("store_name").notNull(),
+  
+  // QR Code metrics
+  totalQrScans: integer("total_qr_scans").default(0),
+  uniqueQrUsers: integer("unique_qr_users").default(0),
+  qrScansThisMonth: integer("qr_scans_this_month").default(0),
+  qrScansLastMonth: integer("qr_scans_last_month").default(0),
+  
+  // Referral code metrics
+  totalReferralUses: integer("total_referral_uses").default(0),
+  uniqueReferralUsers: integer("unique_referral_users").default(0),
+  referralUsesThisMonth: integer("referral_uses_this_month").default(0),
+  referralUsesLastMonth: integer("referral_uses_last_month").default(0),
+  totalReferralEarnings: decimal("total_referral_earnings", { precision: 8, scale: 2 }).default("0.00"),
+  
+  // AI Tool usage metrics
+  totalAiToolUsage: integer("total_ai_tool_usage").default(0),
+  aiToolUsageThisMonth: integer("ai_tool_usage_this_month").default(0),
+  aiToolUsageLastMonth: integer("ai_tool_usage_last_month").default(0),
+  
+  // Staff metrics
+  activeStaffCount: integer("active_staff_count").default(0),
+  
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Store QR Scans - detailed tracking of QR code usage per store
+export const storeQrScans = pgTable("store_qr_scans", {
+  id: serial("id").primaryKey(),
+  qrCodeId: varchar("qr_code_id").notNull(),
+  retailerCode: varchar("retailer_code").notNull(),
+  storeCode: varchar("store_code"),
+  storeName: varchar("store_name").notNull(),
+  userId: varchar("user_id"), // nullable for guest scans
+  sessionId: varchar("session_id").notNull(),
+  aiTool: varchar("ai_tool"), // which AI tool was accessed via QR
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  scannedAt: timestamp("scanned_at").defaultNow(),
+});
+
+// Store Referral Usage - detailed tracking of staff referral code usage per store
+export const storeReferralUsage = pgTable("store_referral_usage", {
+  id: serial("id").primaryKey(),
+  referralCode: varchar("referral_code").notNull(),
+  retailerCode: varchar("retailer_code").notNull(),
+  storeCode: varchar("store_code"),
+  storeName: varchar("store_name").notNull(),
+  staffName: varchar("staff_name"), // extracted from referral code
+  customerId: varchar("customer_id"), // who used the referral
+  bookingId: integer("booking_id"), // which booking used the referral
+  discountAmount: decimal("discount_amount", { precision: 8, scale: 2 }).default("0.00"),
+  rewardAmount: decimal("reward_amount", { precision: 8, scale: 2 }).default("0.00"),
+  usedAt: timestamp("used_at").defaultNow(),
+});
+
+// Store insert schemas
+export const insertStoreUserSchema = createInsertSchema(storeUsers).omit({
+  id: true,
+  lastLoginAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStoreMetricsSchema = createInsertSchema(storeMetrics).omit({
+  id: true,
+  lastUpdated: true,
+  createdAt: true,
+});
+
+export const insertStoreQrScanSchema = createInsertSchema(storeQrScans).omit({
+  id: true,
+  scannedAt: true,
+});
+
+export const insertStoreReferralUsageSchema = createInsertSchema(storeReferralUsage).omit({
+  id: true,
+  usedAt: true,
+});
+
+// Store types
+export type StoreUser = typeof storeUsers.$inferSelect;
+export type InsertStoreUser = z.infer<typeof insertStoreUserSchema>;
+export type StoreMetrics = typeof storeMetrics.$inferSelect;
+export type InsertStoreMetrics = z.infer<typeof insertStoreMetricsSchema>;
+export type StoreQrScan = typeof storeQrScans.$inferSelect;
+export type InsertStoreQrScan = z.infer<typeof insertStoreQrScanSchema>;
+export type StoreReferralUsage = typeof storeReferralUsage.$inferSelect;
+export type InsertStoreReferralUsage = z.infer<typeof insertStoreReferralUsageSchema>;

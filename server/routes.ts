@@ -108,6 +108,7 @@ import { generateEmailTemplate, getPresetTemplate, getAllPresetTemplates } from 
 import { AIContentService } from "./services/aiContentService";
 import { checkAiCredits, recordAiUsage, AI_FEATURES, clearAiToolsCache, type AIRequest } from "./aiCreditMiddleware";
 import { InstallerWalletService } from "./installerWalletService";
+import { storeAuthService } from "./storeAuthService";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -17183,6 +17184,213 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.sendStatus(404);
       }
       return res.sendStatus(500);
+    }
+  });
+
+  // Store Authentication Routes
+
+  // Store registration - first time setup with email and store code/name as password
+  app.post("/api/store/register", async (req, res) => {
+    try {
+      const { email, password, retailerName } = req.body;
+
+      if (!email || !password || !retailerName) {
+        return res.status(400).json({ 
+          error: "Email, store code/password, and retailer name are required" 
+        });
+      }
+
+      const result = await storeAuthService.registerStore(email, password, retailerName);
+
+      if (result.success) {
+        res.status(201).json({
+          success: true,
+          message: result.message,
+          storeUser: {
+            id: result.storeUser?.id,
+            email: result.storeUser?.email,
+            storeName: result.storeUser?.storeName,
+            retailerCode: result.storeUser?.retailerCode
+          }
+        });
+      } else {
+        res.status(400).json({ error: result.message });
+      }
+    } catch (error) {
+      console.error("Store registration error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Store login - authenticate with email and store code/name as password
+  app.post("/api/store/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ 
+          error: "Email and store code/password are required" 
+        });
+      }
+
+      const result = await storeAuthService.loginStore(email, password);
+
+      if (result.success && result.storeUser && result.token) {
+        // Set store session
+        req.session.storeUser = {
+          id: result.storeUser.id,
+          email: result.storeUser.email,
+          storeName: result.storeUser.storeName,
+          retailerCode: result.storeUser.retailerCode,
+          storeCode: result.storeUser.storeCode
+        };
+        req.session.storeToken = result.token;
+
+        res.json({
+          success: true,
+          message: result.message,
+          storeUser: {
+            id: result.storeUser.id,
+            email: result.storeUser.email,
+            storeName: result.storeUser.storeName,
+            retailerCode: result.storeUser.retailerCode,
+            storeCode: result.storeUser.storeCode
+          },
+          token: result.token
+        });
+      } else {
+        res.status(401).json({ error: result.message });
+      }
+    } catch (error) {
+      console.error("Store login error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Store logout
+  app.post("/api/store/logout", async (req, res) => {
+    try {
+      if (req.session.storeUser) {
+        delete req.session.storeUser;
+        delete req.session.storeToken;
+      }
+      res.json({ success: true, message: "Logged out successfully" });
+    } catch (error) {
+      console.error("Store logout error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Store dashboard data - get metrics and recent activity
+  app.get("/api/store/dashboard", async (req, res) => {
+    try {
+      // Check if store user is authenticated
+      if (!req.session.storeUser) {
+        return res.status(401).json({ error: "Store authentication required" });
+      }
+
+      const dashboardData = await storeAuthService.getStoreDashboard(req.session.storeUser.id);
+
+      if (dashboardData) {
+        res.json(dashboardData);
+      } else {
+        res.status(404).json({ error: "Store dashboard data not found" });
+      }
+    } catch (error) {
+      console.error("Store dashboard error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Get current store user info
+  app.get("/api/store/me", async (req, res) => {
+    try {
+      if (!req.session.storeUser) {
+        return res.status(401).json({ error: "Store authentication required" });
+      }
+
+      res.json({
+        storeUser: req.session.storeUser
+      });
+    } catch (error) {
+      console.error("Store user info error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Track QR code scan for store analytics
+  app.post("/api/store/track-qr-scan", async (req, res) => {
+    try {
+      const { 
+        qrCodeId, 
+        retailerCode, 
+        storeCode, 
+        userId, 
+        sessionId, 
+        aiTool,
+        ipAddress,
+        userAgent 
+      } = req.body;
+
+      if (!qrCodeId || !retailerCode || !sessionId) {
+        return res.status(400).json({ 
+          error: "QR code ID, retailer code, and session ID are required" 
+        });
+      }
+
+      await storeAuthService.trackQrScan(
+        qrCodeId,
+        retailerCode,
+        storeCode,
+        userId,
+        sessionId,
+        aiTool,
+        ipAddress,
+        userAgent
+      );
+
+      res.json({ success: true, message: "QR scan tracked successfully" });
+    } catch (error) {
+      console.error("QR scan tracking error:", error);
+      res.status(500).json({ error: "Failed to track QR scan" });
+    }
+  });
+
+  // Track referral code usage for store analytics
+  app.post("/api/store/track-referral", async (req, res) => {
+    try {
+      const { 
+        referralCode, 
+        retailerCode, 
+        storeCode, 
+        staffName, 
+        customerId, 
+        bookingId,
+        discountAmount,
+        rewardAmount 
+      } = req.body;
+
+      if (!referralCode || !retailerCode || !customerId) {
+        return res.status(400).json({ 
+          error: "Referral code, retailer code, and customer ID are required" 
+        });
+      }
+
+      await storeAuthService.trackReferralUsage(
+        referralCode,
+        retailerCode,
+        storeCode,
+        staffName,
+        customerId,
+        bookingId,
+        discountAmount,
+        rewardAmount
+      );
+
+      res.json({ success: true, message: "Referral usage tracked successfully" });
+    } catch (error) {
+      console.error("Referral tracking error:", error);
+      res.status(500).json({ error: "Failed to track referral usage" });
     }
   });
 

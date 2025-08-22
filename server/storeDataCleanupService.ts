@@ -80,8 +80,8 @@ export class StoreDataCleanupService {
         .from(storeQrScans)
         .where(storeFilter);
 
-      // Build store location filter for AI interactions
-      const storeLocationPattern = `${retailerCode}${storeCode ? `-${storeCode}` : ''}`;
+      // Build store location filter for AI interactions (space format to match dashboard)
+      const storeLocationPattern = `${retailerCode}${storeCode ? ` ${storeCode}` : ''}`;
       
       let aiInteractionsToDelete = [];
       
@@ -188,7 +188,7 @@ export class StoreDataCleanupService {
         .from(storeQrScans)
         .where(storeFilter);
 
-      const storeLocationPattern = `${retailerCode}${storeCode ? `-${storeCode}` : ''}`;
+      const storeLocationPattern = `${retailerCode}${storeCode ? ` ${storeCode}` : ''}`;
       let aiInteractionsCount = 0;
       
       // Count QR-based interactions

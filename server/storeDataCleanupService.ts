@@ -110,7 +110,7 @@ export class StoreDataCleanupService {
 
     } catch (error) {
       console.error('Error during store data cleanup:', error);
-      throw new Error(`Failed to clean up store data: ${error.message}`);
+      throw new Error(`Failed to clean up store data: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -191,7 +191,7 @@ export class StoreDataCleanupService {
 
     } catch (error) {
       console.error('Error getting delete preview count:', error);
-      throw new Error(`Failed to get delete preview: ${error.message}`);
+      throw new Error(`Failed to get delete preview: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

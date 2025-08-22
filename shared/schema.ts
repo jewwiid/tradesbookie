@@ -1171,6 +1171,7 @@ export const resources = pgTable("resources", {
   // Brand/Company information
   brand: text("brand"), // Sony, Samsung, LG, Harvey Norman, etc.
   companyName: text("company_name"), // For partner companies
+  serviceTypeId: integer("service_type_id"), // Link to service types for filtering
   
   // Link information
   externalUrl: text("external_url"), // Link to external resource
@@ -1226,7 +1227,10 @@ export const installerServiceAssignmentsRelations = relations(installerServiceAs
 }));
 
 export const resourcesRelations = relations(resources, ({ one }) => ({
-  // No direct relations needed currently
+  serviceType: one(serviceTypes, {
+    fields: [resources.serviceTypeId],
+    references: [serviceTypes.id],
+  }),
 }));
 
 // Customer Resources Tables for downloadable guides and video tutorials
@@ -1238,6 +1242,7 @@ export const downloadableGuides = pgTable("downloadable_guides", {
   fileSize: text("file_size").notNull(), // e.g., "2.1 MB"
   fileUrl: text("file_url"), // URL to the actual file
   category: text("category").default("general"), // compatibility, speed, remote-control, etc.
+  serviceTypeId: integer("service_type_id"), // Link to service types for filtering
   downloadCount: integer("download_count").default(0),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
@@ -1254,11 +1259,26 @@ export const videoTutorials = pgTable("video_tutorials", {
   thumbnailEmoji: text("thumbnail_emoji").default("📺"), // Fallback emoji thumbnail
   level: text("level").notNull(), // Beginner, Intermediate, Advanced
   category: text("category").default("general"), // setup, troubleshooting, optimization, etc.
+  serviceTypeId: integer("service_type_id"), // Link to service types for filtering
   viewCount: integer("view_count").default(0),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+export const downloadableGuidesRelations = relations(downloadableGuides, ({ one }) => ({
+  serviceType: one(serviceTypes, {
+    fields: [downloadableGuides.serviceTypeId],
+    references: [serviceTypes.id],
+  }),
+}));
+
+export const videoTutorialsRelations = relations(videoTutorials, ({ one }) => ({
+  serviceType: one(serviceTypes, {
+    fields: [videoTutorials.serviceTypeId],
+    references: [serviceTypes.id],
+  }),
+}));
 
 // Platform settings for admin configuration
 export const platformSettings = pgTable("platform_settings", {

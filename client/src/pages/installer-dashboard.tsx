@@ -29,6 +29,7 @@ import FlexiblePhotoCapture from "@/components/installer/FlexiblePhotoCapture";
 import ScheduleProposalForm from "@/components/ScheduleProposalForm";
 import ScheduleNegotiation from "@/components/ScheduleNegotiation";
 import VipSubscriptionModal from "@/components/installer/VipSubscriptionModal";
+import InstallerGuides from "@/components/installer/InstallerGuides";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isSameMonth } from "date-fns";
 
 import { 
@@ -68,7 +69,11 @@ import {
   ChevronUp,
   Play,
   Crown,
-  RefreshCw
+  RefreshCw,
+  FileText,
+  Download,
+  ExternalLink,
+  BookOpen
 } from "lucide-react";
 
 interface InstallerStats {
@@ -3697,7 +3702,7 @@ export default function InstallerDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
         <Tabs defaultValue="requests" className="w-full">
           {/* Mobile-first responsive tabs */}
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 mb-6 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 mb-6 h-auto p-1">
             <TabsTrigger value="requests" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
               <NavigationIcon className="w-4 h-4 flex-shrink-0" />
               <span className="hidden sm:inline">Lead Requests</span>
@@ -3731,6 +3736,11 @@ export default function InstallerDashboard() {
               <Settings className="w-4 h-4 flex-shrink-0" />
               <span className="hidden lg:inline">Profile Settings</span>
               <span className="lg:hidden">Profile</span>
+            </TabsTrigger>
+            <TabsTrigger value="guides" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 px-1 text-xs sm:text-sm">
+              <FileText className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:inline">Guides & Tutorials</span>
+              <span className="lg:hidden">Guides</span>
             </TabsTrigger>
           </TabsList>
 
@@ -4406,6 +4416,23 @@ export default function InstallerDashboard() {
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Basic Information
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="guides" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-primary" />
+                  Guides & Resources
+                </CardTitle>
+                <CardDescription>
+                  Access downloadable guides and video tutorials for your services
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <InstallerGuides installerId={installerProfile?.id} />
               </CardContent>
             </Card>
           </TabsContent>

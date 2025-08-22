@@ -16428,6 +16428,70 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Installer-specific resource endpoints (filtered by service type)
+  app.get('/api/installer/resources', async (req, res) => {
+    try {
+      const { serviceTypeIds } = req.query;
+      const typeIds = Array.isArray(serviceTypeIds) ? serviceTypeIds.map(Number) : [Number(serviceTypeIds)];
+      
+      const resources = await storage.getResourcesByServiceTypes(typeIds.filter(id => !isNaN(id)));
+      res.json(resources);
+    } catch (error) {
+      console.error('Error fetching installer resources:', error);
+      res.status(500).json({ error: 'Failed to fetch resources' });
+    }
+  });
+
+  app.get('/api/installer/downloadable-guides', async (req, res) => {
+    try {
+      const { serviceTypeIds } = req.query;
+      const typeIds = Array.isArray(serviceTypeIds) ? serviceTypeIds.map(Number) : [Number(serviceTypeIds)];
+      
+      const guides = await storage.getDownloadableGuidesByServiceTypes(typeIds.filter(id => !isNaN(id)));
+      res.json(guides);
+    } catch (error) {
+      console.error('Error fetching installer downloadable guides:', error);
+      res.status(500).json({ error: 'Failed to fetch downloadable guides' });
+    }
+  });
+
+  app.get('/api/installer/video-tutorials', async (req, res) => {
+    try {
+      const { serviceTypeIds } = req.query;
+      const typeIds = Array.isArray(serviceTypeIds) ? serviceTypeIds.map(Number) : [Number(serviceTypeIds)];
+      
+      const videos = await storage.getVideoTutorialsByServiceTypes(typeIds.filter(id => !isNaN(id)));
+      res.json(videos);
+    } catch (error) {
+      console.error('Error fetching installer video tutorials:', error);
+      res.status(500).json({ error: 'Failed to fetch video tutorials' });
+    }
+  });
+
+  // Track guide downloads
+  app.post('/api/installer/downloadable-guides/:id/download', async (req, res) => {
+    try {
+      const guideId = parseInt(req.params.id);
+      await storage.incrementGuideDownloadCount(guideId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error tracking guide download:', error);
+      res.status(500).json({ error: 'Failed to track download' });
+    }
+  });
+
+  // Track video views
+  app.post('/api/installer/video-tutorials/:id/view', async (req, res) => {
+    try {
+      const videoId = parseInt(req.params.id);
+      await storage.incrementVideoViewCount(videoId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error tracking video view:', error);
+      res.status(500).json({ error: 'Failed to track view' });
+    }
+  });
+
   app.post('/api/installers/:id/services', async (req, res) => {
     try {
       const installerId = parseInt(req.params.id);

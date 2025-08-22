@@ -480,6 +480,13 @@ export interface IStorage {
   updateInstallationPhotoProgress(id: number, updates: Partial<InsertInstallationPhotoProgress>): Promise<InstallationPhotoProgress>;
   deleteInstallationPhotoProgress(bookingId: number, installerId: number): Promise<void>;
   getInstallationPhotoProgressByBooking(bookingId: number, installerId: number): Promise<InstallationPhotoProgress[]>;
+
+  // Installer-specific resource operations (filtered by service type)
+  getResourcesByServiceTypes(serviceTypeIds: number[]): Promise<Resource[]>;
+  getDownloadableGuidesByServiceTypes(serviceTypeIds: number[]): Promise<DownloadableGuide[]>;
+  getVideoTutorialsByServiceTypes(serviceTypeIds: number[]): Promise<VideoTutorial[]>;
+  incrementGuideDownloadCount(guideId: number): Promise<void>;
+  incrementVideoViewCount(videoId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3660,6 +3667,72 @@ export class DatabaseStorage implements IStorage {
         eq(installationPhotoProgress.installerId, installerId)
       ))
       .orderBy(installationPhotoProgress.tvIndex);
+  }
+
+  // Installer-specific resource operations (filtered by service type)
+  async getResourcesByServiceTypes(serviceTypeIds: number[]): Promise<Resource[]> {
+    if (serviceTypeIds.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(resources)
+      .where(or(
+        inArray(resources.serviceTypeId, serviceTypeIds),
+        isNull(resources.serviceTypeId) // Include general resources
+      ))
+      .orderBy(desc(resources.createdAt));
+  }
+
+  async getDownloadableGuidesByServiceTypes(serviceTypeIds: number[]): Promise<DownloadableGuide[]> {
+    if (serviceTypeIds.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(downloadableGuides)
+      .where(and(
+        eq(downloadableGuides.isActive, true),
+        or(
+          inArray(downloadableGuides.serviceTypeId, serviceTypeIds),
+          isNull(downloadableGuides.serviceTypeId) // Include general guides
+        )
+      ))
+      .orderBy(desc(downloadableGuides.createdAt));
+  }
+
+  async getVideoTutorialsByServiceTypes(serviceTypeIds: number[]): Promise<VideoTutorial[]> {
+    if (serviceTypeIds.length === 0) return [];
+    
+    return await db
+      .select()
+      .from(videoTutorials)
+      .where(and(
+        eq(videoTutorials.isActive, true),
+        or(
+          inArray(videoTutorials.serviceTypeId, serviceTypeIds),
+          isNull(videoTutorials.serviceTypeId) // Include general tutorials
+        )
+      ))
+      .orderBy(desc(videoTutorials.createdAt));
+  }
+
+  async incrementGuideDownloadCount(guideId: number): Promise<void> {
+    await db
+      .update(downloadableGuides)
+      .set({
+        downloadCount: sql`${downloadableGuides.downloadCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(downloadableGuides.id, guideId));
+  }
+
+  async incrementVideoViewCount(videoId: number): Promise<void> {
+    await db
+      .update(videoTutorials)
+      .set({
+        viewCount: sql`${videoTutorials.viewCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(videoTutorials.id, videoId));
   }
 }
 

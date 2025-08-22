@@ -300,126 +300,152 @@ export class StoreAuthService {
         ? `${user.retailerCode} ${user.storeCode}`
         : user.retailerCode;
 
-      // Recent AI interactions
-      const recentAiInteractions = await db.select({
-        aiTool: aiInteractionAnalytics.aiTool,
-        interactionType: aiInteractionAnalytics.interactionType,
-        productQuery: aiInteractionAnalytics.productQuery,
-        userPrompt: aiInteractionAnalytics.userPrompt,
-        recommendedProducts: aiInteractionAnalytics.recommendedProducts,
-        processingTimeMs: aiInteractionAnalytics.processingTimeMs,
-        createdAt: aiInteractionAnalytics.createdAt,
-        sessionId: aiInteractionAnalytics.sessionId
+      // First, get all QR codes that belong to this store
+      const storeQrCodes = await db.select({
+        qrCodeId: sql<string>`ai_tool_qr_codes.qr_code_id`
       })
-      .from(aiInteractionAnalytics)
-      .where(eq(aiInteractionAnalytics.storeLocation, storeLocationFilter))
-      .orderBy(desc(aiInteractionAnalytics.createdAt))
-      .limit(10);
+      .from(sql`ai_tool_qr_codes`)
+      .where(sql`ai_tool_qr_codes.store_location = ${storeLocationFilter}`);
 
-      // AI metrics
+      const storeQrCodeIds = storeQrCodes.map(qr => qr.qrCodeId);
+
+      // Only get AI interactions that came from QR codes assigned to this store
+      let recentAiInteractions: any[] = [];
+      if (storeQrCodeIds.length > 0) {
+        recentAiInteractions = await db.select({
+          aiTool: aiInteractionAnalytics.aiTool,
+          interactionType: aiInteractionAnalytics.interactionType,
+          productQuery: aiInteractionAnalytics.productQuery,
+          userPrompt: aiInteractionAnalytics.userPrompt,
+          recommendedProducts: aiInteractionAnalytics.recommendedProducts,
+          processingTimeMs: aiInteractionAnalytics.processingTimeMs,
+          createdAt: aiInteractionAnalytics.createdAt,
+          sessionId: aiInteractionAnalytics.sessionId
+        })
+        .from(aiInteractionAnalytics)
+        .where(sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`)
+        .orderBy(desc(aiInteractionAnalytics.createdAt))
+        .limit(10);
+      }
+
+      // AI metrics - only from store's QR codes
       const currentMonth = new Date();
       currentMonth.setDate(1);
       currentMonth.setHours(0, 0, 0, 0);
 
-      const aiMetrics = await db.select({
-        totalInteractions: sql<number>`count(*)`,
-        thisMonthInteractions: sql<number>`count(*) filter (where ${aiInteractionAnalytics.createdAt} >= ${currentMonth})`,
-        avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`
-      })
-      .from(aiInteractionAnalytics)
-      .where(eq(aiInteractionAnalytics.storeLocation, storeLocationFilter));
+      let aiMetrics: any[] = [];
+      if (storeQrCodeIds.length > 0) {
+        aiMetrics = await db.select({
+          totalInteractions: sql<number>`count(*)`,
+          thisMonthInteractions: sql<number>`count(*) filter (where ${aiInteractionAnalytics.createdAt} >= ${currentMonth})`,
+          avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`
+        })
+        .from(aiInteractionAnalytics)
+        .where(sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`);
+      }
 
-      // Top AI tool used
-      const topAiTool = await db.select({
-        aiTool: aiInteractionAnalytics.aiTool,
-        count: sql<number>`count(*)`
-      })
-      .from(aiInteractionAnalytics)
-      .where(eq(aiInteractionAnalytics.storeLocation, storeLocationFilter))
-      .groupBy(aiInteractionAnalytics.aiTool)
-      .orderBy(desc(sql`count(*)`))
-      .limit(1);
+      // Top AI tool used - only from store's QR codes
+      let topAiTool: any[] = [];
+      if (storeQrCodeIds.length > 0) {
+        topAiTool = await db.select({
+          aiTool: aiInteractionAnalytics.aiTool,
+          count: sql<number>`count(*)`
+        })
+        .from(aiInteractionAnalytics)
+        .where(sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`)
+        .groupBy(aiInteractionAnalytics.aiTool)
+        .orderBy(desc(sql`count(*)`))
+        .limit(1);
+      }
 
-      // Top product queries
-      const topProductQueries = await db.select({
-        query: aiInteractionAnalytics.productQuery,
-        count: sql<number>`count(*)`
-      })
-      .from(aiInteractionAnalytics)
-      .where(
-        and(
-          eq(aiInteractionAnalytics.storeLocation, storeLocationFilter),
-          sql`${aiInteractionAnalytics.productQuery} is not null`
-        )
-      )
-      .groupBy(aiInteractionAnalytics.productQuery)
-      .orderBy(desc(sql`count(*)`))
-      .limit(10);
-
-      // AI tool usage statistics
-      const aiToolUsage = await db.select({
-        aiTool: aiInteractionAnalytics.aiTool,
-        count: sql<number>`count(*)`,
-        avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`,
-        errorRate: sql<number>`(count(*) filter (where ${aiInteractionAnalytics.errorOccurred} = true)::float / count(*)) * 100`
-      })
-      .from(aiInteractionAnalytics)
-      .where(eq(aiInteractionAnalytics.storeLocation, storeLocationFilter))
-      .groupBy(aiInteractionAnalytics.aiTool)
-      .orderBy(desc(sql`count(*)`));
-
-      // Extract popular products from recommendations
-      const popularProducts: Array<{ productName: string; queryCount: number; recommendationCount: number }> = [];
-      
-      try {
-        const productData = await db.select({
-          recommendedProducts: aiInteractionAnalytics.recommendedProducts,
-          productQuery: aiInteractionAnalytics.productQuery
+      // Top product queries - only from store's QR codes
+      let topProductQueries: any[] = [];
+      if (storeQrCodeIds.length > 0) {
+        topProductQueries = await db.select({
+          query: aiInteractionAnalytics.productQuery,
+          count: sql<number>`count(*)`
         })
         .from(aiInteractionAnalytics)
         .where(
           and(
-            eq(aiInteractionAnalytics.storeLocation, storeLocationFilter),
-            sql`${aiInteractionAnalytics.recommendedProducts} != '[]'::jsonb`
+            sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`,
+            sql`${aiInteractionAnalytics.productQuery} is not null`
           )
-        );
+        )
+        .groupBy(aiInteractionAnalytics.productQuery)
+        .orderBy(desc(sql`count(*)`))
+        .limit(10);
+      }
 
-        const productCounts: Record<string, { queryCount: number; recommendationCount: number }> = {};
+      // AI tool usage statistics - only from store's QR codes
+      let aiToolUsage: any[] = [];
+      if (storeQrCodeIds.length > 0) {
+        aiToolUsage = await db.select({
+          aiTool: aiInteractionAnalytics.aiTool,
+          count: sql<number>`count(*)`,
+          avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`,
+          errorRate: sql<number>`(count(*) filter (where ${aiInteractionAnalytics.errorOccurred} = true)::float / count(*)) * 100`
+        })
+        .from(aiInteractionAnalytics)
+        .where(sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`)
+        .groupBy(aiInteractionAnalytics.aiTool)
+        .orderBy(desc(sql`count(*)`));
+      }
 
-        productData.forEach(row => {
-          // Count product queries
-          if (row.productQuery) {
-            const queryKey = row.productQuery.toLowerCase();
-            if (!productCounts[queryKey]) {
-              productCounts[queryKey] = { queryCount: 0, recommendationCount: 0 };
-            }
-            productCounts[queryKey].queryCount++;
-          }
+      // Extract popular products from recommendations - only from store's QR codes
+      const popularProducts: Array<{ productName: string; queryCount: number; recommendationCount: number }> = [];
+      
+      if (storeQrCodeIds.length > 0) {
+        try {
+          const productData = await db.select({
+            recommendedProducts: aiInteractionAnalytics.recommendedProducts,
+            productQuery: aiInteractionAnalytics.productQuery
+          })
+          .from(aiInteractionAnalytics)
+          .where(
+            and(
+              sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`,
+              sql`${aiInteractionAnalytics.recommendedProducts} != '[]'::jsonb`
+            )
+          );
 
-          // Count product recommendations
-          if (row.recommendedProducts && Array.isArray(row.recommendedProducts)) {
-            row.recommendedProducts.forEach((product: any) => {
-              const productName = product.name || product.title || product.model || 'Unknown Product';
-              const productKey = productName.toLowerCase();
-              if (!productCounts[productKey]) {
-                productCounts[productKey] = { queryCount: 0, recommendationCount: 0 };
+          const productCounts: Record<string, { queryCount: number; recommendationCount: number }> = {};
+
+          productData.forEach(row => {
+            // Count product queries
+            if (row.productQuery) {
+              const queryKey = row.productQuery.toLowerCase();
+              if (!productCounts[queryKey]) {
+                productCounts[queryKey] = { queryCount: 0, recommendationCount: 0 };
               }
-              productCounts[productKey].recommendationCount++;
-            });
-          }
-        });
+              productCounts[queryKey].queryCount++;
+            }
 
-        // Convert to array and sort by total activity
-        popularProducts.push(...Object.entries(productCounts)
-          .map(([name, counts]) => ({
-            productName: name,
-            queryCount: counts.queryCount,
-            recommendationCount: counts.recommendationCount
-          }))
-          .sort((a, b) => (b.queryCount + b.recommendationCount) - (a.queryCount + a.recommendationCount))
-          .slice(0, 10));
-      } catch (error) {
-        console.error('Error extracting popular products:', error);
+            // Count product recommendations
+            if (row.recommendedProducts && Array.isArray(row.recommendedProducts)) {
+              row.recommendedProducts.forEach((product: any) => {
+                const productName = product.name || product.title || product.model || 'Unknown Product';
+                const productKey = productName.toLowerCase();
+                if (!productCounts[productKey]) {
+                  productCounts[productKey] = { queryCount: 0, recommendationCount: 0 };
+                }
+                productCounts[productKey].recommendationCount++;
+              });
+            }
+          });
+
+          // Convert to array and sort by total activity
+          popularProducts.push(...Object.entries(productCounts)
+            .map(([name, counts]) => ({
+              productName: name,
+              queryCount: counts.queryCount,
+              recommendationCount: counts.recommendationCount
+            }))
+            .sort((a, b) => (b.queryCount + b.recommendationCount) - (a.queryCount + a.recommendationCount))
+            .slice(0, 10));
+        } catch (error) {
+          console.error('Error extracting popular products:', error);
+        }
       }
 
       const aiMetricsResult = aiMetrics[0] || {

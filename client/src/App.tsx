@@ -107,6 +107,7 @@ function Router() {
       {/* Store Authentication Routes */}
       <Route path="/store/:retailerName" component={StoreLogin} />
       <Route path="/store/:retailerName/dashboard" component={StoreDashboard} />
+      <Route path="/store-dashboard" component={StoreDashboard} />
 
       <Route path="/demo-login" component={DemoLogin} />
       

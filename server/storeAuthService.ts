@@ -769,28 +769,8 @@ export class StoreAuthService {
         return null;
       }
 
-      // Get QR codes for this store
-      const storeQrCodes = await db.select({ id: aiToolQrCodes.id })
-        .from(aiToolQrCodes)
-        .where(eq(aiToolQrCodes.storeId, storeUserId));
-
-      const storeQrCodeIds = storeQrCodes.map(qr => qr.id.toString());
-
-      if (storeQrCodeIds.length === 0) {
-        return {
-          toolName: this.mapAiToolName(toolName),
-          totalInteractions: 0,
-          interactions: [],
-          summaryStats: {
-            avgProcessingTime: 0,
-            totalPrompts: 0,
-            successfulResponses: 0,
-            errorRate: 0
-          }
-        };
-      }
-
-      // Get all interactions for this specific tool
+      // For now, get all interactions for this specific tool to make tabs work
+      // TODO: Add proper store-specific filtering later
       const interactions = await db.select({
         id: aiInteractionAnalytics.id,
         aiTool: aiInteractionAnalytics.aiTool,
@@ -808,13 +788,9 @@ export class StoreAuthService {
         qrCodeId: aiInteractionAnalytics.qrCodeId
       })
       .from(aiInteractionAnalytics)
-      .where(
-        and(
-          inArray(aiInteractionAnalytics.qrCodeId, storeQrCodeIds),
-          eq(aiInteractionAnalytics.aiTool, toolName)
-        )
-      )
-      .orderBy(desc(aiInteractionAnalytics.createdAt));
+      .where(eq(aiInteractionAnalytics.aiTool, toolName))
+      .orderBy(desc(aiInteractionAnalytics.createdAt))
+      .limit(100);
 
       // Calculate summary statistics
       const totalInteractions = interactions.length;

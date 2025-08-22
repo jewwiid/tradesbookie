@@ -1180,6 +1180,26 @@ function AiToolDetails({ toolKey, toolName, expandedResponses, toggleResponseExp
   toggleResponseExpansion: (interactionId: string) => void;
 }) {
 
+  // Define AI tools mapping within this component
+  const aiToolsMapping = [
+    { key: 'ai-chat', name: 'AI Chat Helper' },
+    { key: 'product-finder', name: 'Product Finder' },
+    { key: 'product-info', name: 'Product Information' },
+    { key: 'electronics-comparison', name: 'Product Comparison' },
+    { key: 'tv-preview', name: 'TV Preview' },
+    { key: 'tv-recommendation', name: 'TV Recommendation' },
+    { key: 'faq', name: 'FAQ Assistant' },
+    { key: 'product-care', name: 'Product Care Analysis' },
+    { key: 'tv-comparison', name: 'TV Comparison' },
+    { key: 'email-template', name: 'Email Templates' }
+  ];
+
+  // Helper function to get display name from AI tool key
+  const getAiToolDisplayName = (toolKey: string): string => {
+    const tool = aiToolsMapping.find(t => t.key === toolKey);
+    return tool ? tool.name : toolKey;
+  };
+
   // Helper function to format customer questions, especially JSON data
   const formatCustomerQuestion = (prompt: string): string => {
     try {

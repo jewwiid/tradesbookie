@@ -1,0 +1,40 @@
+store-dashboard.tsx:1399 Uncaught ReferenceError: getAiToolDisplayName is not defined
+    at store-dashboard.tsx:1399:51
+    at Array.map (<anonymous>)
+    at AiToolDetails (store-dashboard.tsx:1394:49)
+
+store-dashboard.tsx:1399 Uncaught ReferenceError: getAiToolDisplayName is not defined
+    at store-dashboard.tsx:1399:51
+    at Array.map (<anonymous>)
+    at AiToolDetails (store-dashboard.tsx:1394:49)
+hook.js:608 The above error occurred in the <AiToolDetails> component:
+
+    at AiToolDetails (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/pages/store-dashboard.tsx:1933:3)
+    at div
+    at https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=44079f53:42:13
+    at Presence (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-E4UC4BFD.js?v=44079f53:24:11)
+    at https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…orkspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=44079f53:176:13
+    at _c5 (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=44079f53:42:13
+    at Provider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=44079f53:38:15)
+    at https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=44079f53:54:7
+    at div
+    at div
+    at StoreDashboard (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.dev/src/pages/store-dashboard.tsx:36:27)
+    at Route (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=44079f53:191:16)
+    at Switch (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=44079f53:247:17)
+    at Router
+    at Provider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=44079f53:38:15)
+    at TooltipProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=44079f53:64:5)
+    at QueryClientProvider (https://3cc91570-fa8c-43bf-95a5-55159acf6009-00-1enanm0aay6nj.spock.replit.…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=44079f53:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+chunk-RPCDYKBN.js?v=44079f53:9129 Uncaught ReferenceError: getAiToolDisplayName is not defined
+    at store-dashboard.tsx:1399:51
+    at Array.map (<anonymous>)
+    at AiToolDetails (store-dashboard.tsx:1394:49)
+﻿
+

@@ -202,6 +202,11 @@ export default function StoreDashboard() {
       // Try to parse as JSON first
       const parsed = JSON.parse(response);
       
+      // If it's a TV recommendation response
+      if (parsed.type && parsed.model && parsed.reasons) {
+        return formatTvRecommendation(response, truncate);
+      }
+      
       // If it's a product info response
       if (parsed.name && parsed.brand) {
         const overview = parsed.overview || '';
@@ -237,6 +242,42 @@ export default function StoreDashboard() {
     } catch {
       // If not JSON, just return truncated or full text
       return truncate && response.length > 150 ? `${response.substring(0, 150)}...` : response;
+    }
+  };
+
+  // Helper function to format TV recommendation responses specifically
+  const formatTvRecommendation = (response: string, truncate: boolean = true): string => {
+    try {
+      const parsed = JSON.parse(response);
+      
+      if (parsed.type && parsed.model && parsed.reasons) {
+        const reasons = Array.isArray(parsed.reasons) ? parsed.reasons.join(' ') : '';
+        const alternatives = parsed.currentModels ? ` Also suggested: ${parsed.currentModels.map((m: any) => `${m.brand} ${m.model} (${m.price})`).slice(0, 2).join(', ')}` : '';
+        
+        if (truncate) {
+          return `Recommended: ${parsed.model} (${parsed.priceRange}). ${reasons.substring(0, 120)}...${alternatives}`;
+        }
+        
+        return `📺 Recommended: ${parsed.model}
+💰 Price Range: ${parsed.priceRange}
+📋 Type: ${parsed.type}
+
+Why this TV:
+${Array.isArray(parsed.reasons) ? parsed.reasons.map((r: string) => `• ${r}`).join('\n') : ''}
+
+Pros:
+${Array.isArray(parsed.pros) ? parsed.pros.slice(0, 3).map((p: string) => `✓ ${p}`).join('\n') : ''}
+
+Best For:
+${Array.isArray(parsed.bestFor) ? parsed.bestFor.map((b: string) => `• ${b}`).join('\n') : ''}${parsed.currentModels && parsed.currentModels.length > 0 ? `
+
+Alternative Options:
+${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - ${m.price}`).join('\n')}` : ''}`.trim();
+      }
+      
+      return response;
+    } catch {
+      return response;
     }
   };
 
@@ -1082,11 +1123,52 @@ function AiToolDetails({ toolKey, toolName, expandedResponses, toggleResponseExp
   toggleResponseExpansion: (interactionId: string) => void;
 }) {
 
+  // Helper function to format TV recommendation responses specifically
+  const formatTvRecommendation = (response: string, truncate: boolean = true): string => {
+    try {
+      const parsed = JSON.parse(response);
+      
+      if (parsed.type && parsed.model && parsed.reasons) {
+        const reasons = Array.isArray(parsed.reasons) ? parsed.reasons.join(' ') : '';
+        const alternatives = parsed.currentModels ? ` Also suggested: ${parsed.currentModels.map((m: any) => `${m.brand} ${m.model} (${m.price})`).slice(0, 2).join(', ')}` : '';
+        
+        if (truncate) {
+          return `Recommended: ${parsed.model} (${parsed.priceRange}). ${reasons.substring(0, 120)}...${alternatives}`;
+        }
+        
+        return `📺 Recommended: ${parsed.model}
+💰 Price Range: ${parsed.priceRange}
+📋 Type: ${parsed.type}
+
+Why this TV:
+${Array.isArray(parsed.reasons) ? parsed.reasons.map((r: string) => `• ${r}`).join('\n') : ''}
+
+Pros:
+${Array.isArray(parsed.pros) ? parsed.pros.slice(0, 3).map((p: string) => `✓ ${p}`).join('\n') : ''}
+
+Best For:
+${Array.isArray(parsed.bestFor) ? parsed.bestFor.map((b: string) => `• ${b}`).join('\n') : ''}${parsed.currentModels && parsed.currentModels.length > 0 ? `
+
+Alternative Options:
+${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - ${m.price}`).join('\n')}` : ''}`.trim();
+      }
+      
+      return response;
+    } catch {
+      return response;
+    }
+  };
+
   // Helper function to format AI responses
   const formatAiResponse = (response: string, truncate: boolean = true): string => {
     try {
       // Try to parse as JSON first
       const parsed = JSON.parse(response);
+      
+      // If it's a TV recommendation response
+      if (parsed.type && parsed.model && parsed.reasons) {
+        return formatTvRecommendation(response, truncate);
+      }
       
       // If it's a product info response
       if (parsed.name && parsed.brand) {

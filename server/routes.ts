@@ -17664,6 +17664,73 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Store data management endpoints (aliases for frontend compatibility)
+  app.post("/api/store/data-management/delete-preview", async (req, res) => {
+    try {
+      if (!req.session.storeUser) {
+        return res.status(401).json({ error: "Store authentication required" });
+      }
+
+      const { timeWindow } = req.body;
+      if (!timeWindow) {
+        return res.status(400).json({ error: "Time window is required" });
+      }
+
+      const { storeDataCleanupService } = await import('./storeDataCleanupService');
+      const preview = await storeDataCleanupService.previewDeleteCount(
+        req.session.storeUser.retailerCode,
+        req.session.storeUser.storeCode,
+        timeWindow
+      );
+
+      const description = storeDataCleanupService.getTimeWindowDescription(timeWindow);
+
+      res.json({ 
+        preview,
+        timeWindow,
+        description,
+        totalRecords: preview.qrScansCount + preview.referralsCount + preview.aiInteractionsCount
+      });
+    } catch (error) {
+      console.error("Store data management preview error:", error);
+      res.status(500).json({ error: "Failed to preview data deletion" });
+    }
+  });
+
+  app.post("/api/store/data-management/delete", async (req, res) => {
+    try {
+      if (!req.session.storeUser) {
+        return res.status(401).json({ error: "Store authentication required" });
+      }
+
+      const { timeWindow } = req.body;
+      if (!timeWindow) {
+        return res.status(400).json({ error: "Time window is required" });
+      }
+
+      const { storeDataCleanupService } = await import('./storeDataCleanupService');
+      const result = await storeDataCleanupService.deleteStoreDataByTimeWindow(
+        req.session.storeUser.retailerCode,
+        req.session.storeUser.storeCode,
+        timeWindow
+      );
+
+      const description = storeDataCleanupService.getTimeWindowDescription(timeWindow);
+
+      res.json({ 
+        success: true,
+        result,
+        timeWindow,
+        description,
+        totalDeleted: result.deletedQrScans + result.deletedReferrals + result.deletedAiInteractions,
+        message: `Successfully deleted ${result.deletedQrScans + result.deletedReferrals + result.deletedAiInteractions} records for ${description}`
+      });
+    } catch (error) {
+      console.error("Store data management delete error:", error);
+      res.status(500).json({ error: error.message || "Failed to delete store data" });
+    }
+  });
+
   // Get current store user info
   app.get("/api/store/me", async (req, res) => {
     try {

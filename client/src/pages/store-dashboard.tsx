@@ -1400,7 +1400,9 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                         <div className="flex flex-wrap gap-1">
                           {interaction.recommendedProducts.slice(0, 3).map((product: any, idx: number) => (
                             <Badge key={idx} variant="outline" className="text-xs">
-                              {typeof product === 'string' ? product : (product?.name || product?.title || 'Product')}
+                              {typeof product === 'string' ? product : 
+                               (product?.brand && product?.model ? `${product.brand} ${product.model}` :
+                                product?.name || product?.title || 'Product')}
                             </Badge>
                           ))}
                           {interaction.recommendedProducts.length > 3 && (
@@ -1412,17 +1414,46 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                       </div>
                     )}
 
-                    {interaction.comparisonResult && typeof interaction.comparisonResult === 'object' && (
-                      <div className="mb-3">
-                        <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-1">Comparison Details:</p>
-                        <div className="text-sm bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded">
-                          {Object.keys(interaction.comparisonResult).length > 0 ? 
-                            `Compared ${Object.keys(interaction.comparisonResult).length} products` : 
-                            'Comparison completed'
+                    {(() => {
+                      // For TV recommendations, show alternative models as comparison
+                      if (interaction.aiTool === 'TV Recommendation' && interaction.aiResponse) {
+                        try {
+                          const parsed = JSON.parse(interaction.aiResponse);
+                          if (parsed.currentModels && parsed.currentModels.length > 0) {
+                            return (
+                              <div className="mb-3">
+                                <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-1">Alternative Options:</p>
+                                <div className="text-sm bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded space-y-1">
+                                  {parsed.currentModels.slice(0, 2).map((model: any, idx: number) => (
+                                    <div key={idx} className="flex justify-between items-center">
+                                      <span className="font-medium">{model.brand} {model.model}</span>
+                                      <span className="text-indigo-600 dark:text-indigo-400">{model.price}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            );
                           }
-                        </div>
-                      </div>
-                    )}
+                        } catch {}
+                      }
+                      
+                      // Original comparison logic for other tools
+                      if (interaction.comparisonResult && typeof interaction.comparisonResult === 'object') {
+                        return (
+                          <div className="mb-3">
+                            <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-1">Comparison Details:</p>
+                            <div className="text-sm bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded">
+                              {Object.keys(interaction.comparisonResult).length > 0 ? 
+                                `Compared ${Object.keys(interaction.comparisonResult).length} products` : 
+                                'Comparison completed'
+                              }
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      return null;
+                    })()}
                   </div>
 
                   <div className="text-right text-sm text-gray-500 space-y-1">

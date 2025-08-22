@@ -7,7 +7,8 @@ import {
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
   insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, insertAiToolSchema, 
   users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers, 
-  scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions, declinedRequests
+  scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions, declinedRequests,
+  storeUsers
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, inArray, isNotNull, sql, or, not, gte, lt } from "drizzle-orm";
@@ -17211,6 +17212,103 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         return res.sendStatus(404);
       }
       return res.sendStatus(500);
+    }
+  });
+
+  // Admin Store User Management Routes
+  app.get("/api/admin/store-users", async (req, res) => {
+    try {
+      const storeUsers = await db.select()
+        .from(storeUsers as any)
+        .orderBy(desc((storeUsers as any).createdAt));
+      
+      res.json(storeUsers);
+    } catch (error) {
+      console.error("Error fetching store users:", error);
+      res.status(500).json({ message: "Failed to fetch store users" });
+    }
+  });
+
+  app.post("/api/admin/store-users", async (req, res) => {
+    try {
+      const { email, password, retailerCode, storeCode } = req.body;
+      
+      if (!email || !password || !retailerCode) {
+        return res.status(400).json({ message: "Email, password, and retailer code are required" });
+      }
+
+      const result = await storeAuthService.registerStore(email, password, 'Harvey Norman');
+      
+      if (result.success) {
+        res.status(201).json({ 
+          success: true, 
+          message: result.message,
+          storeUser: result.storeUser 
+        });
+      } else {
+        res.status(400).json({ message: result.message });
+      }
+    } catch (error) {
+      console.error("Error creating store user:", error);
+      res.status(500).json({ message: "Failed to create store user" });
+    }
+  });
+
+  app.patch("/api/admin/store-users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { email, password, retailerCode, storeCode } = req.body;
+      
+      const updates: any = {};
+      if (email) updates.email = email;
+      if (retailerCode) updates.retailerCode = retailerCode;
+      if (storeCode !== undefined) updates.storeCode = storeCode;
+      
+      // Hash password if provided
+      if (password) {
+        const bcrypt = await import('bcrypt');
+        updates.passwordHash = await bcrypt.hash(password, 10);
+      }
+
+      const [updatedUser] = await db.update(storeUsers as any)
+        .set(updates)
+        .where(eq((storeUsers as any).id, userId))
+        .returning();
+
+      if (updatedUser) {
+        res.json({ 
+          success: true, 
+          message: "Store user updated successfully",
+          storeUser: updatedUser 
+        });
+      } else {
+        res.status(404).json({ message: "Store user not found" });
+      }
+    } catch (error) {
+      console.error("Error updating store user:", error);
+      res.status(500).json({ message: "Failed to update store user" });
+    }
+  });
+
+  app.delete("/api/admin/store-users/:id", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      const [deletedUser] = await db.delete(storeUsers as any)
+        .where(eq((storeUsers as any).id, userId))
+        .returning();
+
+      if (deletedUser) {
+        res.json({ 
+          success: true, 
+          message: "Store user deleted successfully" 
+        });
+      } else {
+        res.status(404).json({ message: "Store user not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting store user:", error);
+      res.status(500).json({ message: "Failed to delete store user" });
     }
   });
 

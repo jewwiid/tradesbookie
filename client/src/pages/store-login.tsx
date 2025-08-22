@@ -208,9 +208,6 @@ export default function StoreLogin() {
                   required
                   disabled={isLoading}
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Use your store code (e.g., BLA for Blanchardstown) or store name as password
-                </p>
               </div>
 
               <Button

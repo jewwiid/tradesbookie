@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Store, MapPin, Save, X, Building2, ShoppingBag } from 'lucide-react';
+import { Plus, Edit, Trash2, Store, MapPin, Save, X, Building2, ShoppingBag, UserCog, Key } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -34,11 +34,32 @@ interface StoreLocationForm {
   isNew: boolean;
 }
 
+interface StoreUser {
+  id: number;
+  email: string;
+  retailerCode: string;
+  storeCode?: string;
+  storeName: string;
+  isActive: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
+}
+
+interface StoreCredentialForm {
+  email: string;
+  password: string;
+  retailerCode: string;
+  storeCode?: string;
+  isNew: boolean;
+}
+
 export default function StoreManagement() {
   const [editingRetailer, setEditingRetailer] = useState<NewRetailerForm | null>(null);
   const [editingStore, setEditingStore] = useState<StoreLocationForm | null>(null);
+  const [editingCredential, setEditingCredential] = useState<StoreCredentialForm | null>(null);
   const [isRetailerDialogOpen, setIsRetailerDialogOpen] = useState(false);
   const [isStoreDialogOpen, setIsStoreDialogOpen] = useState(false);
+  const [isCredentialDialogOpen, setIsCredentialDialogOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("overview");
   
   const queryClient = useQueryClient();
@@ -47,6 +68,11 @@ export default function StoreManagement() {
   // Fetch all retailers
   const { data: retailers, isLoading } = useQuery<Retailer[]>({
     queryKey: ['/api/retail-partner/retailers'],
+  });
+
+  // Fetch store users (credentials)
+  const { data: storeUsers, isLoading: storeUsersLoading } = useQuery<StoreUser[]>({
+    queryKey: ['/api/admin/store-users'],
   });
 
   // Create new retailer mutation
@@ -145,6 +171,71 @@ export default function StoreManagement() {
       toast({
         title: "Error",
         description: error.message || "Failed to update store locations",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Store credential management mutations
+  const createStoreUserMutation = useMutation({
+    mutationFn: async (credentialData: Omit<StoreCredentialForm, 'isNew'>) => {
+      return apiRequest('POST', '/api/admin/store-users', credentialData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Store login credentials created successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/store-users'] });
+      setIsCredentialDialogOpen(false);
+      setEditingCredential(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create store credentials",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const updateStoreUserMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: number; updates: Partial<StoreCredentialForm> }) => {
+      return apiRequest('PATCH', `/api/admin/store-users/${id}`, updates);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Store credentials updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/store-users'] });
+      setIsCredentialDialogOpen(false);
+      setEditingCredential(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update store credentials",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const deleteStoreUserMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('DELETE', `/api/admin/store-users/${id}`, {});
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Store credentials deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/store-users'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete store credentials",
         variant: "destructive",
       });
     }
@@ -266,6 +357,83 @@ export default function StoreManagement() {
     });
   };
 
+  // Store credential management handlers
+  const handleAddCredential = () => {
+    setEditingCredential({
+      email: '',
+      password: '',
+      retailerCode: 'HN', // Default to Harvey Norman
+      storeCode: '',
+      isNew: true
+    });
+    setIsCredentialDialogOpen(true);
+  };
+
+  const handleEditCredential = (storeUser: StoreUser) => {
+    setEditingCredential({
+      email: storeUser.email,
+      password: '', // Don't pre-fill password for security
+      retailerCode: storeUser.retailerCode,
+      storeCode: storeUser.storeCode || '',
+      isNew: false
+    });
+    setIsCredentialDialogOpen(true);
+  };
+
+  const handleSaveCredential = () => {
+    if (!editingCredential || !editingCredential.email || !editingCredential.retailerCode) {
+      toast({
+        title: "Validation Error",
+        description: "Email and retailer are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (editingCredential.isNew) {
+      if (!editingCredential.password) {
+        toast({
+          title: "Validation Error",
+          description: "Password is required for new credentials",
+          variant: "destructive",
+        });
+        return;
+      }
+      createStoreUserMutation.mutate({
+        email: editingCredential.email,
+        password: editingCredential.password,
+        retailerCode: editingCredential.retailerCode,
+        storeCode: editingCredential.storeCode || undefined
+      });
+    } else {
+      // Find existing store user to update
+      const existingUser = storeUsers?.find(u => 
+        u.email === editingCredential.email && 
+        u.retailerCode === editingCredential.retailerCode
+      );
+      if (existingUser) {
+        const updates: any = {
+          email: editingCredential.email,
+          retailerCode: editingCredential.retailerCode,
+          storeCode: editingCredential.storeCode || undefined
+        };
+        if (editingCredential.password) {
+          updates.password = editingCredential.password;
+        }
+        updateStoreUserMutation.mutate({
+          id: existingUser.id,
+          updates
+        });
+      }
+    }
+  };
+
+  const handleDeleteCredential = (storeUser: StoreUser) => {
+    if (window.confirm(`Are you sure you want to delete store credentials for ${storeUser.email}?`)) {
+      deleteStoreUserMutation.mutate(storeUser.id);
+    }
+  };
+
   const getRetailerStats = (retailer: Retailer) => {
     const storeCount = Object.keys(retailer.storeLocations).length;
     return { storeCount };
@@ -303,6 +471,7 @@ export default function StoreManagement() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="retailers">Manage Retailers/Franchises</TabsTrigger>
             <TabsTrigger value="locations">Manage Store Locations</TabsTrigger>
+            <TabsTrigger value="credentials">Store Login Credentials</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -479,6 +648,107 @@ export default function StoreManagement() {
               </Card>
             ))}
           </TabsContent>
+
+          {/* Store Credentials Management Tab */}
+          <TabsContent value="credentials" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Store Login Credentials</h3>
+              <Button onClick={handleAddCredential}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Store Credentials
+              </Button>
+            </div>
+
+            {storeUsersLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <div className="text-gray-500">Loading store credentials...</div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {storeUsers?.map((storeUser) => {
+                  const retailer = retailers?.find(r => r.code === storeUser.retailerCode);
+                  const storeName = storeUser.storeCode && retailer?.storeLocations?.[storeUser.storeCode] 
+                    ? `${retailer.fullName} ${retailer.storeLocations[storeUser.storeCode]}`
+                    : retailer?.fullName || storeUser.retailerCode;
+
+                  return (
+                    <Card key={storeUser.id}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              <UserCog className="w-5 h-5 text-blue-600" />
+                              <div>
+                                <CardTitle className="text-lg">{storeUser.email}</CardTitle>
+                                <p className="text-sm text-gray-600">
+                                  {storeName}
+                                  {storeUser.storeCode && (
+                                    <Badge variant="outline" className="ml-2">
+                                      {storeUser.storeCode}
+                                    </Badge>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              variant={storeUser.isActive ? "default" : "secondary"}
+                              className={storeUser.isActive ? "bg-green-600" : ""}
+                            >
+                              {storeUser.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditCredential(storeUser)}
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteCredential(storeUser)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600">Retailer Code:</span>
+                            <span className="ml-2 font-mono">{storeUser.retailerCode}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Store Code:</span>
+                            <span className="ml-2 font-mono">{storeUser.storeCode || 'All stores'}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Created:</span>
+                            <span className="ml-2">{new Date(storeUser.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Last Login:</span>
+                            <span className="ml-2">{storeUser.lastLoginAt ? new Date(storeUser.lastLoginAt).toLocaleDateString() : 'Never'}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                {storeUsers?.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    No store credentials configured yet. Click "Add Store Credentials" to get started.
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
 
         {/* Retailer Add/Edit Dialog */}
@@ -629,6 +899,106 @@ export default function StoreManagement() {
                     onClick={() => {
                       setIsStoreDialogOpen(false);
                       setEditingStore(null);
+                    }}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Store Credentials Add/Edit Dialog */}
+        <Dialog open={isCredentialDialogOpen} onOpenChange={setIsCredentialDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {editingCredential?.isNew ? 'Add Store Credentials' : 'Edit Store Credentials'}
+              </DialogTitle>
+            </DialogHeader>
+            {editingCredential && (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="credential-email">Store Email*</Label>
+                  <Input
+                    id="credential-email"
+                    type="email"
+                    value={editingCredential.email}
+                    onChange={(e) => setEditingCredential({...editingCredential, email: e.target.value})}
+                    placeholder="e.g., carrickmines@HarveyNorman.com"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="credential-password">
+                    Password{editingCredential.isNew ? '*' : ' (leave blank to keep current)'}
+                  </Label>
+                  <Input
+                    id="credential-password"
+                    type="password"
+                    value={editingCredential.password}
+                    onChange={(e) => setEditingCredential({...editingCredential, password: e.target.value})}
+                    placeholder="Store code or custom password"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="credential-retailer">Retailer*</Label>
+                  <Select 
+                    value={editingCredential.retailerCode} 
+                    onValueChange={(value) => setEditingCredential({...editingCredential, retailerCode: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {retailers?.map(retailer => (
+                        <SelectItem key={retailer.code} value={retailer.code}>
+                          {retailer.fullName} ({retailer.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="credential-store">Store Location (Optional)</Label>
+                  <Select 
+                    value={editingCredential.storeCode || ''} 
+                    onValueChange={(value) => setEditingCredential({...editingCredential, storeCode: value || undefined})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All stores (leave blank for all)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All stores</SelectItem>
+                      {editingCredential.retailerCode && 
+                        retailers?.find(r => r.code === editingCredential.retailerCode)?.storeLocations &&
+                        Object.entries(retailers.find(r => r.code === editingCredential.retailerCode)!.storeLocations).map(([code, name]) => (
+                          <SelectItem key={code} value={code}>
+                            {name} ({code})
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center gap-2 pt-4">
+                  <Button
+                    onClick={handleSaveCredential}
+                    disabled={createStoreUserMutation.isPending || updateStoreUserMutation.isPending}
+                  >
+                    <Save className="w-4 h-4 mr-1" />
+                    {createStoreUserMutation.isPending || updateStoreUserMutation.isPending ? 'Saving...' : 'Save Credentials'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsCredentialDialogOpen(false);
+                      setEditingCredential(null);
                     }}
                   >
                     <X className="w-4 h-4 mr-1" />

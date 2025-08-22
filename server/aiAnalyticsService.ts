@@ -103,7 +103,6 @@ export class AIAnalyticsService {
       }
     } catch (error) {
       console.error('Failed to track AI interaction:', error);
-      console.error('Analytics data attempted:', JSON.stringify(analyticsRecord, null, 2));
       // Don't throw error to avoid breaking the main AI functionality
     }
   }

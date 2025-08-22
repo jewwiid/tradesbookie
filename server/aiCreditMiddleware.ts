@@ -306,19 +306,8 @@ export async function recordAiUsage(req: AIRequest): Promise<void> {
         interactionType = 'query';
     }
     
-    await AIAnalyticsService.trackInteraction({
-      aiTool: aiFeature,
-      interactionType,
-      userPrompt: req.body?.model || req.body?.question || req.body?.product || 'AI request',
-      aiResponse: 'Response recorded after completion',
-      qrCodeId: qrCodeId || null,
-      storeLocation: storeLocation || null,
-      userId: userId || null,
-      sessionId,
-      credits: creditCost,
-      requestDuration: 0, // Could be enhanced to track actual duration
-      userSatisfaction: null
-    });
+    // Note: Detailed AI analytics tracking is now handled in individual endpoints
+    // This ensures real AI response data is captured instead of placeholder text
 
     // Record store QR scan if QR parameters are present
     if (qrCodeId && storeLocation) {

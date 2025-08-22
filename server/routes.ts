@@ -15355,7 +15355,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         aiTool: 'Product Information',
         interactionType: 'query',
         userPrompt: model,
-        productQuery: model,
+        productQuery: productInfo?.name || model,
         aiResponse: JSON.stringify(productInfo),
         processingTimeMs: processingTime,
         recommendedProducts: productInfo ? [productInfo] : [],

@@ -809,7 +809,10 @@ export class StoreAuthService {
       })
       .from(aiInteractionAnalytics)
       .where(
-        sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}]) AND ai_tool = ${toolName}`
+        and(
+          sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`,
+          eq(aiInteractionAnalytics.aiTool, toolName)
+        )
       )
       .orderBy(desc(aiInteractionAnalytics.createdAt));
 

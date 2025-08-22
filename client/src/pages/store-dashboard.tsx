@@ -518,26 +518,81 @@ export default function StoreDashboard() {
                 <CardContent>
                   <div className="space-y-3">
                     {(() => {
-                      // Extract product queries from QR scan data
+                      // Extract product queries from customer questions in QR scan data
                       const productQueries = dashboardData.recentActivity.qrScans
-                        .filter(scan => scan.productQuery)
-                        .reduce((acc, scan) => {
-                          const query = scan.productQuery;
-                          acc[query] = (acc[query] || 0) + 1;
+                        .filter(scan => scan.userPrompt)
+                        .flatMap(scan => {
+                          const prompt = scan.userPrompt.toLowerCase();
+                          const queries: string[] = [];
+                          
+                          // Extract TV size queries
+                          const sizeMatches = prompt.match(/(\d{2,3})["\s]*inch|(\d{2,3})["\s]*tv|(\d{2,3})"|\b(32|40|43|50|55|65|75|85)\b/g);
+                          if (sizeMatches) {
+                            sizeMatches.forEach(match => {
+                              const size = match.replace(/[^0-9]/g, '');
+                              if (parseInt(size) >= 32) {
+                                queries.push(`${size}" TV`);
+                              }
+                            });
+                          }
+                          
+                          // Extract brand queries
+                          const brandPatterns = [
+                            /samsung/g, /lg/g, /sony/g, /tcl/g, /hisense/g, /philips/g, /panasonic/g
+                          ];
+                          brandPatterns.forEach(pattern => {
+                            if (pattern.test(prompt)) {
+                              const brand = pattern.source.charAt(0).toUpperCase() + pattern.source.slice(1);
+                              queries.push(`${brand} TV`);
+                            }
+                          });
+                          
+                          // Extract feature queries
+                          const featurePatterns = [
+                            /smart\s*tv/g, /4k/g, /oled/g, /qled/g, /led/g, /uhd/g
+                          ];
+                          featurePatterns.forEach(pattern => {
+                            const matches = prompt.match(pattern);
+                            if (matches) {
+                              matches.forEach(match => {
+                                queries.push(match.toUpperCase());
+                              });
+                            }
+                          });
+                          
+                          // Extract price queries
+                          const priceMatches = prompt.match(/under\s*[€$]?(\d+)|below\s*[€$]?(\d+)|budget.*[€$]?(\d+)/g);
+                          if (priceMatches) {
+                            priceMatches.forEach(match => {
+                              queries.push(`Budget ${match}`);
+                            });
+                          }
+                          
+                          return queries;
+                        })
+                        .reduce((acc, query) => {
+                          const normalized = query.toLowerCase();
+                          acc[normalized] = (acc[normalized] || 0) + 1;
                           return acc;
                         }, {} as Record<string, number>);
                       
                       const topQueries = Object.entries(productQueries)
                         .sort(([,a], [,b]) => b - a)
-                        .slice(0, 5);
+                        .slice(0, 5)
+                        .map(([query, count]) => ({
+                          query: query.split(' ').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1)
+                          ).join(' '),
+                          count
+                        }));
                       
                       return topQueries.length > 0 ? (
-                        topQueries.map(([query, count], index) => (
+                        topQueries.map((item, index) => (
                           <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
                             <span className="text-sm font-medium truncate flex-1">
-                              {query}
+                              {item.query}
                             </span>
-                            <Badge variant="secondary">{count}</Badge>
+                            <Badge variant="secondary">{item.count}</Badge>
                           </div>
                         ))
                       ) : (

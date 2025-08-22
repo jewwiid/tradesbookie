@@ -3506,6 +3506,14 @@ export class DatabaseStorage implements IStorage {
     await db.delete(aiTools).where(eq(aiTools.id, id));
   }
 
+  // Store QR Scan tracking functions
+  async createStoreQrScan(storeQrScan: InsertStoreQrScan): Promise<StoreQrScan> {
+    const [scan] = await db.insert(storeQrScans)
+      .values(storeQrScan)
+      .returning();
+    return scan;
+  }
+
   async updateAiToolStatus(id: number, isActive: boolean): Promise<void> {
     await db.update(aiTools)
       .set({ isActive, updatedAt: new Date() })

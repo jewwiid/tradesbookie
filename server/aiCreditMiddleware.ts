@@ -288,6 +288,45 @@ export async function recordAiUsage(req: AIRequest): Promise<void> {
     // Record usage with QR code tracking
     await storage.incrementAiUsage(userId, sessionId, aiFeature, isPaidRequest, qrCodeId, storeLocation);
 
+    // Record store QR scan if QR parameters are present
+    if (qrCodeId && storeLocation) {
+      try {
+        // Parse store information from storeLocation parameter
+        // Expected format: "Harvey Norman Carrickmines" -> retailerCode: "HN", storeName: "Harvey Norman Carrickmines"
+        let retailerCode = 'UNKNOWN';
+        let storeCode = null;
+        
+        if (storeLocation.toLowerCase().includes('harvey norman')) {
+          retailerCode = 'HN';
+          // Extract store code from location name - could be improved with a lookup table
+          if (storeLocation.toLowerCase().includes('carrickmines')) {
+            storeCode = 'CKM';
+          }
+        } else if (storeLocation.toLowerCase().includes('currys')) {
+          retailerCode = 'CU';
+        } else if (storeLocation.toLowerCase().includes('did electrical')) {
+          retailerCode = 'DID';
+        } else if (storeLocation.toLowerCase().includes('power city')) {
+          retailerCode = 'PC';
+        }
+
+        await storage.createStoreQrScan({
+          qrCodeId,
+          retailerCode,
+          storeCode,
+          storeName: storeLocation,
+          userId: userId || null,
+          sessionId,
+          aiTool: aiFeature,
+          ipAddress: req.ip || null,
+          userAgent: req.get('User-Agent') || null
+        });
+      } catch (storeQrError) {
+        console.error('Error recording store QR scan:', storeQrError);
+        // Don't fail the main request if store tracking fails
+      }
+    }
+
     // Deduct credits if it was a paid request
     if (isPaidRequest && userId) {
       const wallet = await storage.getCustomerWallet(userId);

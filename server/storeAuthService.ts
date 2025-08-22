@@ -1,4 +1,4 @@
-import { eq, and, desc, sql, gte } from "drizzle-orm";
+import { eq, and, desc, sql, gte, inArray } from "drizzle-orm";
 import { db } from "./db";
 import { storeUsers, storeMetrics, storeQrScans, storeReferralUsage, aiInteractionAnalytics, aiToolQrCodes, type StoreUser, type InsertStoreUser } from "@shared/schema";
 import { retailerDetectionService } from "./retailerDetectionService";
@@ -361,7 +361,7 @@ export class StoreAuthService {
           sessionId: aiInteractionAnalytics.sessionId
         })
         .from(aiInteractionAnalytics)
-        .where(sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`)
+        .where(inArray(aiInteractionAnalytics.qrCodeId, storeQrCodeIds))
         .orderBy(desc(aiInteractionAnalytics.createdAt))
         .limit(10);
 
@@ -385,7 +385,7 @@ export class StoreAuthService {
           avgProcessingTime: sql<number>`avg(${aiInteractionAnalytics.processingTimeMs})`
         })
         .from(aiInteractionAnalytics)
-        .where(sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`);
+        .where(inArray(aiInteractionAnalytics.qrCodeId, storeQrCodeIds));
       }
 
       // Top AI tool used - only from store's QR codes
@@ -396,7 +396,7 @@ export class StoreAuthService {
           count: sql<number>`count(*)`
         })
         .from(aiInteractionAnalytics)
-        .where(sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`)
+        .where(inArray(aiInteractionAnalytics.qrCodeId, storeQrCodeIds))
         .groupBy(aiInteractionAnalytics.aiTool)
         .orderBy(desc(sql`count(*)`))
         .limit(1);
@@ -412,7 +412,7 @@ export class StoreAuthService {
         .from(aiInteractionAnalytics)
         .where(
           and(
-            sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`,
+            inArray(aiInteractionAnalytics.qrCodeId, storeQrCodeIds),
             sql`${aiInteractionAnalytics.productQuery} is not null`
           )
         )
@@ -431,7 +431,7 @@ export class StoreAuthService {
           errorRate: sql<number>`(count(*) filter (where ${aiInteractionAnalytics.errorOccurred} = true)::float / count(*)) * 100`
         })
         .from(aiInteractionAnalytics)
-        .where(sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`)
+        .where(inArray(aiInteractionAnalytics.qrCodeId, storeQrCodeIds))
         .groupBy(aiInteractionAnalytics.aiTool)
         .orderBy(desc(sql`count(*)`));
       }
@@ -448,7 +448,7 @@ export class StoreAuthService {
           .from(aiInteractionAnalytics)
           .where(
             and(
-              sql`qr_code_id = ANY(ARRAY[${storeQrCodeIds.map(id => `'${id}'`).join(',')}])`,
+              inArray(aiInteractionAnalytics.qrCodeId, storeQrCodeIds),
               sql`${aiInteractionAnalytics.recommendedProducts} != '[]'::jsonb`
             )
           );
@@ -774,7 +774,7 @@ export class StoreAuthService {
         .from(aiToolQrCodes)
         .where(eq(aiToolQrCodes.storeId, storeUserId));
 
-      const storeQrCodeIds = storeQrCodes.map(qr => qr.id);
+      const storeQrCodeIds = storeQrCodes.map(qr => qr.id.toString());
 
       if (storeQrCodeIds.length === 0) {
         return {
@@ -810,7 +810,7 @@ export class StoreAuthService {
       .from(aiInteractionAnalytics)
       .where(
         and(
-          sql`${aiInteractionAnalytics.qrCodeId} = ANY(${storeQrCodeIds})`,
+          inArray(aiInteractionAnalytics.qrCodeId, storeQrCodeIds),
           eq(aiInteractionAnalytics.aiTool, toolName)
         )
       )

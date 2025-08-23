@@ -49,6 +49,7 @@ import TvSetupPayment from "@/pages/tv-setup-payment";
 import TvSetupTracker from "@/pages/tv-setup-tracker";
 import CustomerResources from "@/pages/customer-resources";
 import AIHelpPage from "@/pages/ai-help";
+import AIPrivacyPolicy from "@/pages/ai-privacy-policy";
 import ConsultationBooking from "@/pages/consultation-booking";
 import ConsultationSuccess from "@/pages/consultation-success";
 import AdminProductCategories from "@/pages/AdminProductCategories";
@@ -94,6 +95,7 @@ function Router() {
       <Route path="/tv-setup-tracker" component={TvSetupTracker} />
       <Route path="/customer-resources" component={CustomerResources} />
       <Route path="/ai-help" component={AIHelpPage} />
+      <Route path="/ai-privacy-policy" component={AIPrivacyPolicy} />
       <Route path="/consultation" component={ConsultationBooking} />
       <Route path="/consultation-booking" component={ConsultationBooking} />
       <Route path="/consultation-success" component={ConsultationSuccess} />

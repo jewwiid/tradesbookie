@@ -1,6 +1,7 @@
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import AIHelpWidget from "@/components/AIHelpWidget";
+import AIConsentBox from "@/components/AIConsentBox";
 import CreditDisplay from "@/components/CreditDisplay";
 import CreditErrorHandler from "@/components/CreditErrorHandler";
 import { MessageCircle, Zap, Clock, CheckCircle, ArrowRightLeft, DollarSign, Shield, ChevronLeft, ChevronRight } from "lucide-react";
@@ -179,6 +180,12 @@ export default function AIHelpPage() {
   const [productModel, setProductModel] = useState('');
   const [productInfo, setProductInfo] = useState<ProductInfo | null>(null);
   const [creditError, setCreditError] = useState<any>(null);
+  
+  // Consent states for different AI tools
+  const [chatConsent, setChatConsent] = useState(false);
+  const [productInfoConsent, setProductInfoConsent] = useState(false);
+  const [comparisonConsent, setComparisonConsent] = useState(false);
+  const [findProductConsent, setFindProductConsent] = useState(false);
   
   // QR code tracking parameters
   const [qrCodeId, setQrCodeId] = useState<string | null>(null);
@@ -656,7 +663,7 @@ export default function AIHelpPage() {
   });
 
   const handleGetProductInfo = () => {
-    if (productModel.trim()) {
+    if (productModel.trim() && productInfoConsent) {
       getProductInfo.mutate({ model: productModel.trim() });
     }
   };
@@ -1137,7 +1144,7 @@ export default function AIHelpPage() {
   };
 
   const handleElectronicsCompare = () => {
-    if (canProceedFromCategory && canProceedFromModels && canProceedFromQuestions) {
+    if (canProceedFromCategory && canProceedFromModels && canProceedFromQuestions && comparisonConsent) {
       const finalCategory = productCategory === 'other' ? customCategory.trim() : productCategory.trim();
       compareElectronics.mutate({ 
         product1: product1.trim(), 
@@ -1935,8 +1942,14 @@ export default function AIHelpPage() {
               <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4 text-center px-2 flex-shrink-0">
                 Ask me anything about TV installation & electronics
               </h2>
-              <div className="flex-1 min-h-0">
-                <AIHelpWidget qrCodeId={qrCodeId} storeLocation={storeLocation} />
+              <div className="flex-1 min-h-0 space-y-4">
+                <AIConsentBox 
+                  onConsentChange={setChatConsent}
+                  className="mb-4"
+                />
+                <div className={`${chatConsent ? '' : 'pointer-events-none opacity-50'}`}>
+                  <AIHelpWidget qrCodeId={qrCodeId} storeLocation={storeLocation} />
+                </div>
               </div>
             </div>
           ) : activeTab === 'compare' ? (
@@ -1970,9 +1983,15 @@ export default function AIHelpPage() {
                       }}
                     />
                   </div>
+                  
+                  <AIConsentBox 
+                    onConsentChange={setProductInfoConsent}
+                    className="mb-4"
+                  />
+                  
                   <Button
                     onClick={handleGetProductInfo}
-                    disabled={!productModel.trim() || getProductInfo.isPending}
+                    disabled={!productModel.trim() || !productInfoConsent || getProductInfo.isPending}
                     className="w-full bg-blue-600 hover:bg-blue-700"
                   >
                     {getProductInfo.isPending ? (
@@ -2320,6 +2339,12 @@ export default function AIHelpPage() {
                           >
                             Previous
                           </Button>
+                          
+                          <AIConsentBox 
+                            onConsentChange={setFindProductConsent}
+                            className="mb-4"
+                          />
+                          
                           <Button
                             onClick={() => {
                               // Include custom product input if provided
@@ -2329,13 +2354,15 @@ export default function AIHelpPage() {
                                   customProduct: customProductInput.trim()
                                 })
                               };
-                              getRecommendations.mutate({ 
-                                category: selectedCategory, 
-                                answers: enhancedAnswers, 
-                                budget: maxBudget 
-                              });
+                              if (findProductConsent) {
+                                getRecommendations.mutate({ 
+                                  category: selectedCategory, 
+                                  answers: enhancedAnswers, 
+                                  budget: maxBudget 
+                                });
+                              }
                             }}
-                            disabled={!canProceedToResults || getRecommendations.isPending}
+                            disabled={!canProceedToResults || !findProductConsent || getRecommendations.isPending}
                             className="w-full bg-green-600 hover:bg-green-700"
                           >
                             {getRecommendations.isPending ? (
@@ -2649,7 +2676,7 @@ export default function AIHelpPage() {
                         
                         <Button
                           onClick={async () => {
-                            if (!canProceedFromModels) return;
+                            if (!canProceedFromModels || !comparisonConsent) return;
                             
                             setIsComparing(true);
                             
@@ -2678,7 +2705,7 @@ export default function AIHelpPage() {
                               setIsComparing(false);
                             }
                           }}
-                          disabled={!canProceedFromModels || isComparing}
+                          disabled={!canProceedFromModels || !comparisonConsent || isComparing}
                           variant="outline"
                           className="w-full border-2 border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400"
                         >
@@ -2757,9 +2784,14 @@ export default function AIHelpPage() {
                         >
                           Previous
                         </Button>
+                        <AIConsentBox 
+                          onConsentChange={setComparisonConsent}
+                          className="mb-4"
+                        />
+                        
                         <Button
                           onClick={handleElectronicsCompare}
-                          disabled={!canProceedFromQuestions || compareElectronics.isPending}
+                          disabled={!canProceedFromQuestions || !comparisonConsent || compareElectronics.isPending}
                           className="w-full bg-purple-600 hover:bg-purple-700"
                         >
                           {compareElectronics.isPending ? (

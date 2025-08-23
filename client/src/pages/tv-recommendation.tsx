@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import HarveyNormanBooking from '@/components/HarveyNormanBooking';
 import Navigation from '@/components/navigation';
 import Footer from '@/components/Footer';
+import AIConsentBox from '@/components/AIConsentBox';
 
 interface QuestionData {
   id: string;
@@ -176,11 +177,12 @@ const questions: QuestionData[] = [
 ];
 
 export default function TVRecommendation() {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(-1); // Start at -1 to show consent first
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [recommendation, setRecommendation] = useState<TVRecommendation | null>(null);
   const [showContactForm, setShowContactForm] = useState(false);
   const [showHarveyNormanBooking, setShowHarveyNormanBooking] = useState(false);
+  const [hasConsent, setHasConsent] = useState(false);
   const [contactInfo, setContactInfo] = useState({
     name: '',
     email: '',
@@ -257,7 +259,10 @@ export default function TVRecommendation() {
   };
 
   const handleNext = () => {
-    if (currentStep < questions.length - 1) {
+    if (currentStep === -1 && hasConsent) {
+      // Move from consent to first question
+      setCurrentStep(0);
+    } else if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
       // Generate recommendation
@@ -268,14 +273,17 @@ export default function TVRecommendation() {
   const handlePrevious = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
+    } else if (currentStep === 0) {
+      setCurrentStep(-1); // Go back to consent
     }
   };
 
   const handleRestart = () => {
-    setCurrentStep(0);
+    setCurrentStep(-1);
     setAnswers({});
     setRecommendation(null);
     setShowContactForm(false);
+    setHasConsent(false);
     setContactInfo({ name: '', email: '', phone: '', message: '' });
   };
 
@@ -314,9 +322,9 @@ I'm interested in learning more about this TV and discussing purchase options. P
     });
   };
 
-  const currentQuestion = questions[currentStep];
-  const isAnswered = answers[currentQuestion?.id];
-  const progress = ((currentStep + 1) / questions.length) * 100;
+  const currentQuestion = currentStep >= 0 ? questions[currentStep] : null;
+  const isAnswered = currentQuestion ? answers[currentQuestion.id] : false;
+  const progress = currentStep >= 0 ? ((currentStep + 1) / questions.length) * 100 : 0;
 
   if (showHarveyNormanBooking) {
     return (
@@ -694,58 +702,106 @@ I'm interested in learning more about this TV and discussing purchase options. P
           <p className="text-gray-600">Answer 5 questions to get your perfect TV match</p>
         </div>
 
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm text-gray-500">Question {currentStep + 1} of {questions.length}</span>
-            <span className="text-sm text-gray-500">{Math.round(progress)}% Complete</span>
-          </div>
-          <Progress value={progress} className="w-full" />
-        </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                {currentQuestion.icon}
-              </div>
-              <CardTitle className="text-xl">{currentQuestion.question}</CardTitle>
+        {currentStep >= 0 && (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm text-gray-500">Question {currentStep + 1} of {questions.length}</span>
+              <span className="text-sm text-gray-500">{Math.round(progress)}% Complete</span>
             </div>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup
-              value={answers[currentQuestion.id] || ''}
-              onValueChange={(value) => handleAnswerChange(currentQuestion.id, value)}
-              className="space-y-4"
-            >
-              {currentQuestion.options.map((option) => (
-                <div 
-                  key={option.value} 
-                  className={`flex items-start space-x-3 p-4 rounded-lg border transition-colors cursor-pointer ${
-                    answers[currentQuestion.id] === option.value 
-                      ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200' 
-                      : 'hover:bg-gray-50 border-gray-200'
-                  }`}
-                  onClick={() => handleAnswerChange(currentQuestion.id, option.value)}
-                >
-                  <RadioGroupItem value={option.value} id={option.value} className="mt-1" />
-                  <div className="flex-1">
-                    <Label htmlFor={option.value} className="font-medium cursor-pointer">
-                      {option.label}
-                    </Label>
-                    {option.description && (
-                      <p className="text-sm text-gray-500 mt-1">{option.description}</p>
-                    )}
+            <Progress value={progress} className="w-full" />
+          </div>
+        )}
+
+        {currentStep === -1 ? (
+          // Consent Screen
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl text-center">AI-Powered TV Recommendations</CardTitle>
+              <CardDescription className="text-center">
+                Our AI assistant will analyze your preferences to suggest the perfect TV for your needs
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">How It Works</h3>
+                <div className="grid md:grid-cols-3 gap-4 text-sm text-gray-600">
+                  <div className="text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-blue-600 font-bold">1</span>
+                    </div>
+                    <p>Answer 5 quick questions about your TV needs</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-blue-600 font-bold">2</span>
+                    </div>
+                    <p>AI analyzes your preferences and viewing habits</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-blue-600 font-bold">3</span>
+                    </div>
+                    <p>Receive personalized TV recommendations with explanations</p>
                   </div>
                 </div>
-              ))}
-            </RadioGroup>
-          </CardContent>
-        </Card>
+              </div>
+              
+              <AIConsentBox 
+                onConsentChange={setHasConsent}
+                className="mt-6"
+              />
+            </CardContent>
+          </Card>
+        ) : (
+          // Question Screen
+          <Card>
+            <CardHeader>
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  {currentQuestion?.icon}
+                </div>
+                <CardTitle className="text-xl">{currentQuestion?.question}</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <RadioGroup
+                value={currentQuestion ? answers[currentQuestion.id] || '' : ''}
+                onValueChange={(value) => currentQuestion && handleAnswerChange(currentQuestion.id, value)}
+                className="space-y-4"
+              >
+                {currentQuestion?.options.map((option) => (
+                  <div 
+                    key={option.value} 
+                    className={`flex items-start space-x-3 p-4 rounded-lg border transition-colors cursor-pointer ${
+                      currentQuestion && answers[currentQuestion.id] === option.value 
+                        ? 'bg-blue-50 border-blue-300 ring-2 ring-blue-200' 
+                        : 'hover:bg-gray-50 border-gray-200'
+                    }`}
+                    onClick={() => currentQuestion && handleAnswerChange(currentQuestion.id, option.value)}
+                  >
+                    <RadioGroupItem value={option.value} id={option.value} className="mt-1" />
+                    <div className="flex-1">
+                      <Label htmlFor={option.value} className="font-medium cursor-pointer">
+                        {option.label}
+                      </Label>
+                      {option.description && (
+                        <p className="text-sm text-gray-500 mt-1">{option.description}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </RadioGroup>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="flex justify-between mt-8">
           <Button
             onClick={handlePrevious}
-            disabled={currentStep === 0}
+            disabled={currentStep === -1}
             variant="outline"
             className="flex items-center space-x-2"
           >
@@ -755,13 +811,18 @@ I'm interested in learning more about this TV and discussing purchase options. P
 
           <Button
             onClick={handleNext}
-            disabled={!isAnswered || recommendationMutation.isPending}
+            disabled={currentStep === -1 ? !hasConsent : !isAnswered || recommendationMutation.isPending}
             className="flex items-center space-x-2"
           >
             {recommendationMutation.isPending ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 <span>Generating...</span>
+              </>
+            ) : currentStep === -1 ? (
+              <>
+                <Sparkles className="w-4 h-4" />
+                <span>Start Quiz</span>
               </>
             ) : currentStep === questions.length - 1 ? (
               <>

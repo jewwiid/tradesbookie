@@ -40,7 +40,7 @@ export default function AIConsentBox({ onConsentChange, className = "" }: AICons
             <p className="flex items-start">
               <Info className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
               <span>
-                This AI tool analyzes your preferences to provide personalized product recommendations. 
+                This AI tool uses OpenAI and Perplexity services to analyze your preferences and provide personalized product recommendations. 
                 No personal data is stored, and the AI has no malicious capabilities.
               </span>
             </p>

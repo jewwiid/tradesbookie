@@ -54,6 +54,46 @@ export default function AIPrivacyPolicy() {
             </CardContent>
           </Card>
 
+          {/* AI Providers */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Cpu className="w-6 h-6 mr-3 text-purple-600" />
+                AI Technology Partners
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-gray-700">
+                Our AI tools are powered by industry-leading AI services to provide you with accurate and helpful information.
+              </p>
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">OpenAI GPT-4o</h4>
+                  <p className="text-sm text-gray-700">
+                    Powers our chat assistant, product care analysis, and recommendation engine. 
+                    Provides natural language understanding and personalized responses.
+                  </p>
+                </div>
+                
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-gray-900 mb-2">Perplexity API</h4>
+                  <p className="text-sm text-gray-700">
+                    Retrieves detailed product information and specifications from trusted sources. 
+                    Ensures accurate and up-to-date product data.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Privacy Note:</strong> When you use our AI tools, your queries are processed by these services 
+                  according to their respective privacy policies. No personal identifying information is shared.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* How AI Tools Work */}
           <Card>
             <CardHeader>

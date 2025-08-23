@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Link } from "wouter";
-import { Bolt, Home, Euro, CheckCircle, ArrowLeft, Phone, Mail, MapPin } from "lucide-react";
+import { Bolt, Home, Euro, CheckCircle, ArrowLeft, Phone, Mail, MapPin, Sun, TrendingDown, Shield, DollarSign, Leaf, Clock, Award, Zap } from "lucide-react";
 
 const solarEnquirySchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -180,6 +180,197 @@ export default function SolarEnquiry() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Why Solar Energy Section */}
+      <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Why Should You Look Into Solar Energy?
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Solar panels are becoming a smart choice for Irish homeowners. With high energy costs, government grants, and Ireland's push for sustainability, now is the perfect time to consider solar for your home.
+          </p>
+        </div>
+
+        {/* Key Benefits Grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <TrendingDown className="h-12 w-12 text-green-500 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 mb-2">Cut Bills by 50%</h3>
+              <p className="text-sm text-gray-600">A typical 4kW system can save ~€1,500/year</p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Clock className="h-12 w-12 text-blue-500 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 mb-2">Fast Payback</h3>
+              <p className="text-sm text-gray-600">Most systems pay for themselves in 5–7 years</p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Euro className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 mb-2">Government Grants</h3>
+              <p className="text-sm text-gray-600">Up to €1,800 grants plus 0% VAT</p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardContent className="pt-6">
+              <Home className="h-12 w-12 text-purple-500 mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 mb-2">Boost Home Value</h3>
+              <p className="text-sm text-gray-600">Properties with solar can sell for up to 4% more</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Additional Benefits */}
+        <Card className="mb-16">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Key Benefits of Solar Energy in Ireland</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <strong>Earn from the grid</strong> – get 15–25c per kWh for surplus energy (up to €400/year tax-free)
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <strong>Works in Irish weather</strong> – panels generate power even on cloudy days
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <strong>Low maintenance, long life</strong> – 25+ year lifespan with minimal upkeep
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <strong>Reduce carbon footprint</strong> – a 4kW system offsets the same CO₂ as 2.4 acres of forest annually
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <strong>Proven track record</strong> – over 120,000 homes in Ireland already have solar panels
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <strong>Similar to Germany's success</strong> – Ireland gets ~1,100 kWh/m² of solar energy per year
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Stats Table */}
+        <Card className="mb-16">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Quick Stats for Ireland</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-200">
+                <thead>
+                  <tr className="bg-yellow-50">
+                    <th className="border border-gray-200 p-3 text-left font-semibold">Factor</th>
+                    <th className="border border-gray-200 p-3 text-left font-semibold">Typical Value (Residential)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border border-gray-200 p-3">Average system size</td>
+                    <td className="border border-gray-200 p-3">4 kW (~10 panels)</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="border border-gray-200 p-3">Annual generation (Dublin)</td>
+                    <td className="border border-gray-200 p-3">~3,900 kWh</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 p-3">Annual household consumption</td>
+                    <td className="border border-gray-200 p-3">~4,200 kWh</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="border border-gray-200 p-3">Annual bill savings</td>
+                    <td className="border border-gray-200 p-3 font-semibold text-green-600">€1,500 – €1,700</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 p-3">SEAI grant</td>
+                    <td className="border border-gray-200 p-3 font-semibold text-blue-600">Up to €1,800</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="border border-gray-200 p-3">Export earnings</td>
+                    <td className="border border-gray-200 p-3">Up to €400/year (tax-free)</td>
+                  </tr>
+                  <tr>
+                    <td className="border border-gray-200 p-3">Payback period</td>
+                    <td className="border border-gray-200 p-3 font-semibold text-orange-600">5–7 years</td>
+                  </tr>
+                  <tr className="bg-gray-50">
+                    <td className="border border-gray-200 p-3">Panel lifespan</td>
+                    <td className="border border-gray-200 p-3">25–30+ years</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* FAQ Section */}
+        <Card className="mb-16">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Frequently Asked Questions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Do solar panels work on cloudy days in Ireland?</h4>
+                <p className="text-gray-600">Yes. Panels generate electricity from daylight, not just direct sunlight, so they still produce power on overcast days.</p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">How much can I save?</h4>
+                <p className="text-gray-600">On average, homeowners cut 50% off annual electricity bills. A typical 4kW system saves ~€1,500/year.</p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">What's the payback time?</h4>
+                <p className="text-gray-600">Most systems pay back in 5–7 years thanks to grants and high energy prices.</p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Are there grants or supports available?</h4>
+                <p className="text-gray-600">Yes. SEAI provides up to €1,800, and all installations benefit from 0% VAT. You'll also earn credits for exported energy under the Clean Export Guarantee.</p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Do panels need much maintenance?</h4>
+                <p className="text-gray-600">No. With no moving parts, panels need only occasional cleaning and a check every few years. They come with 25-year warranties.</p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-2">Is now the right time?</h4>
+                <p className="text-gray-600">Yes. Grants and zero VAT are in place now, but may taper down. High energy prices mean every year you wait costs you savings.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -513,18 +704,34 @@ export default function SolarEnquiry() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start">
-                  <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-1 flex-shrink-0" />
+                  <Award className="w-5 h-5 text-green-600 mr-3 mt-1 flex-shrink-0" />
                   <div>
-                    <h4 className="font-semibold text-gray-900">15+ Years Experience</h4>
-                    <p className="text-sm text-gray-600">Trusted solar specialists across Ireland</p>
+                    <h4 className="font-semibold text-gray-900">Specialist in Residential Solar PV</h4>
+                    <p className="text-sm text-gray-600">For Irish homes with proven track record</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <Shield className="w-5 h-5 text-green-600 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">SEAI-Registered Installers</h4>
+                    <p className="text-sm text-gray-600">Ensuring eligibility for all grants</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <Zap className="w-5 h-5 text-green-600 mr-3 mt-1 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Custom System Design</h4>
+                    <p className="text-sm text-gray-600">Tailored to your roof and household usage</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start">
                   <CheckCircle className="w-5 h-5 text-green-600 mr-3 mt-1 flex-shrink-0" />
                   <div>
-                    <h4 className="font-semibold text-gray-900">SEAI Approved</h4>
-                    <p className="text-sm text-gray-600">Fully certified for grant applications</p>
+                    <h4 className="font-semibold text-gray-900">End-to-End Service</h4>
+                    <p className="text-sm text-gray-600">From consultation to installation and aftercare</p>
                   </div>
                 </div>
                 

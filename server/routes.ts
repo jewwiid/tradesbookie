@@ -8,7 +8,7 @@ import {
   insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, insertAiToolSchema, 
   users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers, 
   scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions, declinedRequests,
-  storeUsers
+  storeUsers, resources
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, inArray, isNotNull, sql, or, not, gte, lt } from "drizzle-orm";
@@ -12043,42 +12043,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { category, brand, featured } = req.query;
       
-      let resources;
+      // Use storage methods that are already working correctly
+      let resourceList;
       if (featured === 'true') {
-        // Use basic query for featured resources to avoid column issues
-        resources = await db.select()
-          .from(schema.resources)
-          .where(and(
-            eq(schema.resources.isActive, true),
-            eq(schema.resources.featured, true)
-          ))
-          .orderBy(desc(schema.resources.priority), desc(schema.resources.createdAt));
+        resourceList = await storage.getFeaturedResources();
       } else if (category) {
-        // Use basic query for category filtering
-        resources = await db.select()
-          .from(schema.resources)
-          .where(and(
-            eq(schema.resources.isActive, true),
-            eq(schema.resources.category, category as string)
-          ))
-          .orderBy(desc(schema.resources.priority), desc(schema.resources.createdAt));
+        resourceList = await storage.getResourcesByCategory(category as string);
       } else if (brand) {
-        // Use basic query for brand filtering
-        resources = await db.select()
-          .from(schema.resources)
-          .where(and(
-            eq(schema.resources.isActive, true),
-            eq(schema.resources.brand, brand as string)
-          ))
-          .orderBy(desc(schema.resources.priority), desc(schema.resources.createdAt));
+        resourceList = await storage.getResourcesByBrand(brand as string);
       } else {
-        // Use basic query to avoid storage method issues
-        resources = await db.select()
-          .from(schema.resources)
-          .orderBy(desc(schema.resources.priority), desc(schema.resources.createdAt));
+        resourceList = await storage.getAllResources();
       }
       
-      res.json(resources);
+      res.json(resourceList);
     } catch (error) {
       console.error("Error fetching resources:", error);
       res.status(500).json({ message: "Failed to fetch resources" });

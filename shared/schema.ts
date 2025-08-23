@@ -1171,7 +1171,6 @@ export const resources = pgTable("resources", {
   // Brand/Company information
   brand: text("brand"), // Sony, Samsung, LG, Harvey Norman, etc.
   companyName: text("company_name"), // For partner companies
-  serviceTypeId: integer("service_type_id"), // Link to service types for filtering
   
   // Link information
   externalUrl: text("external_url"), // Link to external resource
@@ -1226,12 +1225,7 @@ export const installerServiceAssignmentsRelations = relations(installerServiceAs
   }),
 }));
 
-export const resourcesRelations = relations(resources, ({ one }) => ({
-  serviceType: one(serviceTypes, {
-    fields: [resources.serviceTypeId],
-    references: [serviceTypes.id],
-  }),
-}));
+// Removed resourcesRelations as serviceTypeId field was removed
 
 // Customer Resources Tables for downloadable guides and video tutorials
 export const downloadableGuides = pgTable("downloadable_guides", {

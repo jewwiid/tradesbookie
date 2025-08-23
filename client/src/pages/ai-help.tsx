@@ -259,12 +259,13 @@ export default function AIHelpPage() {
       
       // Map other tool keys to tabs based on actual AI tools in database
       const toolTabMap: Record<string, string> = {
-        'tv-preview': 'find',           // TV Preview -> Find My Product tab
-        'product-care': 'care',         // Product Care Analysis -> Product Care tab
-        'faq': 'chat',                  // Smart FAQ -> Chat tab
-        'product-info': 'compare',      // Product Information -> Compare Products tab  
-        'email-template': 'chat',       // Email Templates -> Chat tab
-        'tv-comparison': 'electronics'  // TV Comparison -> Electronics tab
+        'tv-preview': 'find',                    // TV Preview -> Find My Product tab
+        'product-care': 'care',                  // Product Care Analysis -> Product Care tab
+        'faq': 'chat',                           // Smart FAQ -> Chat tab
+        'product-info': 'compare',               // Product Information -> Compare Products tab  
+        'email-template': 'chat',                // Email Templates -> Chat tab
+        'tv-comparison': 'electronics',          // TV Comparison -> Electronics tab
+        'electronics-comparison': 'electronics'  // Electronics Comparison -> Electronics tab
       };
       
       const targetTab = toolTabMap[toolParam] || 'chat';

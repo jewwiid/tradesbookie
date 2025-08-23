@@ -12045,13 +12045,37 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       
       let resources;
       if (featured === 'true') {
-        resources = await storage.getFeaturedResources();
+        // Use basic query for featured resources to avoid column issues
+        resources = await db.select()
+          .from(schema.resources)
+          .where(and(
+            eq(schema.resources.isActive, true),
+            eq(schema.resources.featured, true)
+          ))
+          .orderBy(desc(schema.resources.priority), desc(schema.resources.createdAt));
       } else if (category) {
-        resources = await storage.getResourcesByCategory(category as string);
+        // Use basic query for category filtering
+        resources = await db.select()
+          .from(schema.resources)
+          .where(and(
+            eq(schema.resources.isActive, true),
+            eq(schema.resources.category, category as string)
+          ))
+          .orderBy(desc(schema.resources.priority), desc(schema.resources.createdAt));
       } else if (brand) {
-        resources = await storage.getResourcesByBrand(brand as string);
+        // Use basic query for brand filtering
+        resources = await db.select()
+          .from(schema.resources)
+          .where(and(
+            eq(schema.resources.isActive, true),
+            eq(schema.resources.brand, brand as string)
+          ))
+          .orderBy(desc(schema.resources.priority), desc(schema.resources.createdAt));
       } else {
-        resources = await storage.getActiveResources();
+        // Use basic query to avoid storage method issues
+        resources = await db.select()
+          .from(schema.resources)
+          .orderBy(desc(schema.resources.priority), desc(schema.resources.createdAt));
       }
       
       res.json(resources);

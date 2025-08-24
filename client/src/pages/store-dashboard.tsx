@@ -139,8 +139,7 @@ export default function StoreDashboard() {
     { key: 'tv-recommendation', name: 'TV Recommendation', icon: Tv },
     { key: 'faq', name: 'FAQ Assistant', icon: HelpCircle },
     { key: 'product-care', name: 'Product Care Analysis', icon: Shield },
-    { key: 'tv-comparison', name: 'TV Comparison', icon: BarChart3 },
-    { key: 'email-template', name: 'Email Templates', icon: Mail }
+    { key: 'tv-comparison', name: 'TV Comparison', icon: BarChart3 }
   ];
 
   // Helper function to get display name from AI tool key
@@ -420,7 +419,7 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
           </Alert>
         ) : dashboardData ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="flex w-full overflow-x-auto space-x-1 bg-muted p-1 rounded-md">
               <TabsTrigger value="overview" className="flex items-center space-x-2">
                 <Activity className="h-4 w-4" />
                 <span>Overview</span>
@@ -430,8 +429,8 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                 return (
                   <TabsTrigger key={tool.key} value={tool.key} className="flex items-center space-x-2">
                     <IconComponent className="h-4 w-4" />
-                    <span className="hidden sm:inline">{tool.name}</span>
-                    <span className="sm:hidden">{tool.key}</span>
+                    <span className="hidden lg:inline">{tool.name}</span>
+                    <span className="lg:hidden text-xs">{tool.key.split('-')[0]}</span>
                   </TabsTrigger>
                 );
               })}
@@ -771,7 +770,7 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
                               <Brain className="w-4 h-4 text-purple-600" />
-                              <Badge variant="outline" className="text-xs">{getAiToolDisplayName(interaction.aiTool)}</Badge>
+                              <Badge variant="outline" className="text-xs">{getAiToolDisplayName(interaction.aiTool || 'unknown')}</Badge>
                             </div>
                             <span className="text-xs text-gray-500 dark:text-gray-400">
                               {format(new Date(interaction.scannedAt), "MMM d, h:mm a")}
@@ -1196,8 +1195,7 @@ function AiToolDetails({ toolKey, toolName, expandedResponses, toggleResponseExp
     { key: 'tv-recommendation', name: 'TV Recommendation' },
     { key: 'faq', name: 'FAQ Assistant' },
     { key: 'product-care', name: 'Product Care Analysis' },
-    { key: 'tv-comparison', name: 'TV Comparison' },
-    { key: 'email-template', name: 'Email Templates' }
+    { key: 'tv-comparison', name: 'TV Comparison' }
   ];
 
   // Helper function to get display name from AI tool key

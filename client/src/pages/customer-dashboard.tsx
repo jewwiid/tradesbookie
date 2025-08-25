@@ -2144,6 +2144,9 @@ export default function CustomerDashboard() {
                                 
                                 // Refresh tickets list to update status
                                 refetchTickets();
+                                
+                                // Close the dialog after successful send
+                                setSelectedTicket(null);
                               }
                             } catch (error: any) {
                               toast({

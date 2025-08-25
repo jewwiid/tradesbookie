@@ -197,10 +197,12 @@ export default function WallMountPricingManagement() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both wall mount and service tier queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/wall-mount-pricing"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/service-tiers"] });
       toast({
         title: "Wall Mount Option Created",
-        description: "New wall mount pricing option created successfully",
+        description: "New wall mount pricing option created successfully. Booking flow updated in real-time.",
       });
       setShowCreateDialog(false);
     },
@@ -220,10 +222,12 @@ export default function WallMountPricingManagement() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both wall mount and service tier queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/wall-mount-pricing"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/service-tiers"] });
       toast({
         title: "Wall Mount Option Updated",
-        description: "Wall mount pricing updated successfully",
+        description: "Wall mount pricing updated successfully. Booking flow updated in real-time.",
       });
       setEditingPricing(null);
     },
@@ -243,10 +247,12 @@ export default function WallMountPricingManagement() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both wall mount and service tier queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/wall-mount-pricing"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/service-tiers"] });
       toast({
         title: "Wall Mount Option Deleted",
-        description: "Wall mount pricing deleted successfully",
+        description: "Wall mount pricing deleted successfully. Booking flow updated in real-time.",
       });
     },
     onError: (error: any) => {

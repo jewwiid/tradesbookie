@@ -238,10 +238,12 @@ export default function PricingManagement() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both admin and public pricing queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pricing"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/service-tiers"] });
       toast({
         title: "Pricing Created",
-        description: "Pricing configuration created successfully",
+        description: "Pricing configuration created successfully. Booking flow updated in real-time.",
       });
       setShowCreateDialog(false);
     },
@@ -261,10 +263,12 @@ export default function PricingManagement() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both admin and public pricing queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pricing"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/service-tiers"] });
       toast({
         title: "Pricing Updated",
-        description: "Pricing configuration updated successfully",
+        description: "Pricing configuration updated successfully. Booking flow updated in real-time.",
       });
       setEditingPricing(null);
     },
@@ -284,10 +288,12 @@ export default function PricingManagement() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both admin and public pricing queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pricing"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/service-tiers"] });
       toast({
         title: "Pricing Deleted",
-        description: "Pricing configuration deleted successfully",
+        description: "Pricing configuration deleted successfully. Booking flow updated in real-time.",
       });
     },
     onError: (error: any) => {
@@ -306,10 +312,12 @@ export default function PricingManagement() {
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate both admin and public pricing queries for real-time updates
       queryClient.invalidateQueries({ queryKey: ["/api/admin/pricing"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/service-tiers"] });
       toast({
         title: "Pricing Initialized",
-        description: "Default pricing configurations created successfully",
+        description: "Default pricing configurations created successfully. Booking flow updated in real-time.",
       });
     },
     onError: (error: any) => {

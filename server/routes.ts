@@ -5681,12 +5681,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         leadFeeStatus: feeStatus,
         leadPaidDate: new Date()
       });
-
-      // Update booking status to "competing" to indicate it has been purchased by installer(s)
-      // but customer hasn't selected anyone yet
-      await storage.updateBooking(requestId, {
-        status: "competing"
-      });
       
       let newBalance = currentBalance;
       let totalSpent = parseFloat(wallet.totalSpent);

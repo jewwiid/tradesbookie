@@ -1477,7 +1477,11 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
         title: "Job Cancelled",
         description: `Job successfully cancelled. Lead fee of €${data.refundAmount || '0'} has been refunded to your wallet.`,
       });
-      refetch(); // Refresh the active jobs list
+      // Refresh all relevant data after job cancellation
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'available-leads'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile?.id}/wallet`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'stats'] });
     },
     onError: (error: any) => {
       toast({
@@ -1844,7 +1848,11 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                             bookingId={booking.id}
                             installerId={installerId}
                             customerName={booking.contactName}
-                            onStatusUpdated={() => refetch()}
+                            onStatusUpdated={() => {
+                              // Refresh all relevant data after status update
+                              queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'bookings'] });
+                              queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'stats'] });
+                            }}
                           />
                         )}
                       </div>
@@ -1888,7 +1896,10 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                             customerName={booking.contactName}
                             customerAddress={booking.address}
                             onProposalSent={() => {
-                              refetch();
+                              // Refresh all relevant data after proposal sent
+                              queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'bookings'] });
+                              queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile?.id}/schedule-negotiations`] });
+                              queryClient.invalidateQueries({ queryKey: ['/api/bookings', booking.id, 'schedule-negotiations'] });
                               setExpandedDetails(prev => {
                                 const newSet = new Set(prev);
                                 newSet.delete(booking.id + 2000);
@@ -1938,7 +1949,12 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                             installerId={installerId}
                             customerName={booking.contactName}
                             customerAddress={booking.address}
-                            onProposalSent={() => refetch()}
+                            onProposalSent={() => {
+                              // Refresh all relevant data after proposal sent
+                              queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'bookings'] });
+                              queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile?.id}/schedule-negotiations`] });
+                              queryClient.invalidateQueries({ queryKey: ['/api/bookings', booking.id, 'schedule-negotiations'] });
+                            }}
                           />
                           {!booking.scheduledDate && (
                             <Button

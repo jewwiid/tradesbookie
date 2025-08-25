@@ -5060,6 +5060,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/harvey-norman/validate", async (req, res) => {
+    try {
+      const { referralCode, bookingAmount } = req.body;
+      
+      if (!referralCode || !bookingAmount) {
+        return res.status(400).json({ message: "Referral code and booking amount required" });
+      }
+      
+      const result = await harveyNormanReferralService.validateAndCalculateDiscount(
+        referralCode.trim().toUpperCase(),
+        parseFloat(bookingAmount)
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error validating Harvey Norman referral code:", error);
+      res.status(500).json({ message: "Failed to validate referral code" });
+    }
+  });
+
   app.post("/api/harvey-norman/deactivate/:id", async (req, res) => {
     try {
       const { id } = req.params;

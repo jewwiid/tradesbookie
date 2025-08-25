@@ -389,24 +389,17 @@ export default function SupportTicketManagement() {
                 </div>
               </div>
 
-              {/* Original Message */}
+              {/* Subject */}
               <div>
                 <Label className="font-semibold">Subject</Label>
                 <div className="mt-1 font-medium">{selectedTicket.subject}</div>
               </div>
 
-              <div>
-                <Label className="font-semibold">Original Message</Label>
-                <div className="mt-1 p-3 bg-blue-50 rounded border border-blue-200">
-                  <div className="whitespace-pre-wrap">{selectedTicket.message}</div>
-                </div>
-              </div>
-
               <Separator />
 
-              {/* Conversation */}
+              {/* Full Conversation */}
               <div>
-                <Label className="font-semibold">Conversation</Label>
+                <Label className="font-semibold">Full Conversation ({messages.length} messages)</Label>
                 <div className="mt-3 space-y-4 max-h-64 overflow-y-auto">
                   {messagesLoading ? (
                     <div className="flex items-center justify-center py-4">

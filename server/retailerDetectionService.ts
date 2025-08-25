@@ -420,12 +420,36 @@ export class RetailerDetectionService {
           .limit(1);
       }
 
+      // SECURITY CHECK: If no invoice was found, also check by normalized invoice
+      if (existingUser.length === 0) {
+        existingUser = await db.select()
+          .from(users)
+          .where(
+            or(
+              eq(users.retailerInvoiceNumber, invoiceNumber),
+              eq(users.retailerInvoiceNumber, normalizedInvoiceNumber)
+            )
+          )
+          .limit(1);
+      }
+
       let user;
       let isNewRegistration = false;
 
       if (existingUser.length > 0) {
-        // User exists, update registration method if needed
+        // User exists - SECURITY CHECK: If they have a password, require proper authentication
         user = existingUser[0];
+        
+        // 🚨 CRITICAL SECURITY CHECK 🚨
+        if (user.passwordHash) {
+          return {
+            success: false,
+            message: "This account has a password set. Please use the login form with your email and password for security.",
+            requiresPassword: true,
+            userEmail: user.email,
+            hasPassword: true
+          };
+        }
         
         if (user.registrationMethod !== 'invoice') {
           await db.update(users)

@@ -7058,6 +7058,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         });
       } else {
+        // Handle security-related errors with special response codes
+        if (result.requiresPassword) {
+          // User has a password set - require proper authentication
+          console.log(`🔒 Security block: User with invoice ${invoiceNumber} has password, requiring proper login`);
+          return res.status(423).json({ 
+            error: result.message,
+            requiresPassword: true,
+            userEmail: result.userEmail,
+            security: "This account is secured with a password. Please use the standard login."
+          });
+        }
+        
         res.status(401).json({ error: result.message });
       }
     } catch (error) {

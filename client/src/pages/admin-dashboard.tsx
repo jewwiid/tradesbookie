@@ -73,7 +73,8 @@ import {
   Filter,
   Send,
   Wrench,
-  X
+  X,
+  MessageSquare
 } from "lucide-react";
 import EmailTemplateManagement from "@/components/admin/EmailTemplateManagement";
 import ResourcesManagement from "@/components/ResourcesManagement";
@@ -95,6 +96,7 @@ import DownloadableGuidesManagement from "@/components/admin/DownloadableGuidesM
 import VideoTutorialsManagement from "@/components/admin/VideoTutorialsManagement";
 import StoreManagement from "@/components/admin/StoreManagement";
 import AiToolsManagement from "@/components/admin/AiToolsManagement";
+import SupportTicketManagement from "@/components/admin/SupportTicketManagement";
 
 interface AdminStats {
   totalBookings: number;
@@ -7286,6 +7288,10 @@ export default function AdminDashboard() {
               <MapPin className="w-4 h-4" />
               <span>Stores</span>
             </TabsTrigger>
+            <TabsTrigger value="support" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
+              <MessageSquare className="w-4 h-4" />
+              <span>Support</span>
+            </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center space-x-2 px-3 py-2 text-sm whitespace-nowrap flex-shrink-0">
               <Settings className="w-4 h-4" />
               <span>Settings</span>
@@ -7409,6 +7415,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="stores" className="space-y-6">
             <StoreManagement />
+          </TabsContent>
+
+          <TabsContent value="support" className="space-y-6">
+            <SupportTicketManagement />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

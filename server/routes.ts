@@ -11318,7 +11318,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             <div style="padding: 15px; background-color: #f5f5f5; border-radius: 5px; margin: 10px 0;">
               ${message.replace(/\n/g, '<br>')}
             </div>
-            <p><a href="https://tradesbook.ie/admin#support">View in Admin Dashboard</a></p>
+            <p><a href="https://tradesbook.ie/admin#support">Reply to Ticket in Admin Dashboard</a></p>
           `
         });
       } catch (emailError) {

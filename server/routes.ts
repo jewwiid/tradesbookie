@@ -11535,8 +11535,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
       
       const ticketId = parseInt(req.params.ticketId);
+      console.log(`[ADMIN] Fetching messages for ticket ${ticketId}`);
       
       const messages = await storage.getTicketMessages(ticketId);
+      console.log(`[ADMIN] Found ${messages.length} messages for ticket ${ticketId}:`, messages.map(m => ({ id: m.id, isAdminReply: m.isAdminReply, message: m.message.substring(0, 50) })));
+      
       res.json(messages);
     } catch (error: any) {
       console.error("Error fetching ticket messages (admin):", error);

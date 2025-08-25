@@ -7,10 +7,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, Clock, MessageSquare, Send, CalendarDays } from 'lucide-react';
+import { Calendar, Clock, MessageSquare, Send, CalendarDays, Heart, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { TIME_SLOTS } from '@/lib/constants';
+
+interface BookingDetails {
+  id: number;
+  customerName?: string;
+  address?: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  status?: string;
+}
 
 interface ScheduleProposalFormProps {
   bookingId: number;
@@ -36,6 +45,18 @@ export default function ScheduleProposalForm({
   const [proposedEndTime, setProposedEndTime] = useState('');
   const [proposalMessage, setProposalMessage] = useState('');
   const { toast } = useToast();
+
+  // Fetch booking details to get customer preferences
+  const { data: bookingDetails } = useQuery<BookingDetails>({
+    queryKey: [`/api/bookings/${bookingId}`],
+    queryFn: async () => {
+      const response = await fetch(`/api/bookings/${bookingId}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    }
+  });
 
   // Check for existing pending proposals from this installer
   const { data: negotiations = [], isLoading, error } = useQuery<any[]>({
@@ -197,6 +218,59 @@ export default function ScheduleProposalForm({
             )}
           </div>
 
+          {/* Customer Preferred Schedule - Prominent Display */}
+          {bookingDetails?.preferredDate && (
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <Heart className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-green-900 mb-2">Customer's Preferred Schedule</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="w-4 h-4 text-green-600" />
+                      <span className="font-medium text-green-800">
+                        {new Date(bookingDetails.preferredDate).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long', 
+                          day: 'numeric'
+                        })}
+                      </span>
+                    </div>
+                    {bookingDetails.preferredTime && (
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4 text-green-600" />
+                        <span className="font-medium text-green-800">
+                          {(() => {
+                            const slot = TIME_SLOTS.find(s => s.value === bookingDetails.preferredTime);
+                            return slot ? slot.label : bookingDetails.preferredTime;
+                          })()} 
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2 p-2 bg-green-100 rounded">
+                    <p className="text-xs text-green-700">
+                      💡 <strong>Tip:</strong> Matching the customer's preferred schedule increases your chances of getting selected!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* No Preferred Schedule Notice */}
+          {!bookingDetails?.preferredDate && bookingDetails && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 text-amber-600" />
+                <p className="text-sm text-amber-800">
+                  Customer didn't specify a preferred schedule - propose your best available time!
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Date Selection */}
           <div className="space-y-2">
             <Label htmlFor="proposed-date">Installation Date *</Label>
@@ -207,24 +281,52 @@ export default function ScheduleProposalForm({
               onChange={(e) => setProposedDate(e.target.value)}
               min={getMinDate()}
               required
+              className={bookingDetails?.preferredDate && proposedDate === bookingDetails.preferredDate.split('T')[0] ? 
+                'border-green-500 bg-green-50' : ''}
             />
+            {bookingDetails?.preferredDate && proposedDate === bookingDetails.preferredDate.split('T')[0] && (
+              <p className="text-xs text-green-600 flex items-center space-x-1">
+                <Heart className="w-3 h-3" />
+                <span>Matches customer's preferred date! 🎯</span>
+              </p>
+            )}
           </div>
 
           {/* Time Slot Selection */}
           <div className="space-y-2">
             <Label htmlFor="time-slot">Time Slot *</Label>
             <Select value={proposedTimeSlot} onValueChange={setProposedTimeSlot} required>
-              <SelectTrigger>
+              <SelectTrigger className={bookingDetails?.preferredTime && proposedTimeSlot === bookingDetails.preferredTime ? 
+                'border-green-500 bg-green-50' : ''}>
                 <SelectValue placeholder="Select a time slot" />
               </SelectTrigger>
               <SelectContent>
                 {timeSlots.map((slot) => (
-                  <SelectItem key={slot.value} value={slot.value}>
-                    {slot.label}
+                  <SelectItem 
+                    key={slot.value} 
+                    value={slot.value}
+                    className={bookingDetails?.preferredTime === slot.value ? 
+                      'bg-green-100 border-l-4 border-green-500' : ''}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span>{slot.label}</span>
+                      {bookingDetails?.preferredTime === slot.value && (
+                        <div className="flex items-center space-x-1 ml-2">
+                          <Heart className="w-3 h-3 text-green-600" />
+                          <span className="text-xs text-green-600 font-medium">Preferred</span>
+                        </div>
+                      )}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {bookingDetails?.preferredTime && proposedTimeSlot === bookingDetails.preferredTime && (
+              <p className="text-xs text-green-600 flex items-center space-x-1">
+                <Heart className="w-3 h-3" />
+                <span>Perfect match with customer's preferred time! ⭐</span>
+              </p>
+            )}
           </div>
 
           {/* Specific Time Inputs */}

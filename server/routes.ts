@@ -11495,7 +11495,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               <div style="padding: 15px; background-color: #f0f9ff; border-radius: 5px; margin: 15px 0;">
                 ${message.replace(/\n/g, '<br>')}
               </div>
-              <p><a href="https://tradesbook.ie/dashboard#support">View Full Conversation</a></p>
+              <p><a href="https://tradesbook.ie/customer-dashboard#support">View Full Conversation</a></p>
               <p>Best regards,<br>Tradesbook Support Team</p>
             `
           });

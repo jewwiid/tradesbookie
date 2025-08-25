@@ -21,6 +21,8 @@ import {
   CheckCircle, 
   AlertCircle,
   Clock,
+  Calendar,
+  Heart,
   ArrowRight,
   Loader2
 } from 'lucide-react';
@@ -39,6 +41,15 @@ interface Lead {
   distance?: string;
   earnings?: string;
   leadFee?: number;
+}
+
+interface BookingDetails {
+  id: number;
+  customerName?: string;
+  address?: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  status?: string;
 }
 
 interface VoucherEligibility {
@@ -84,6 +95,19 @@ export default function LeadPurchaseDialog({
     enabled: !!installerId && open,
   });
 
+  // Fetch booking details to get customer preferences
+  const { data: bookingDetails } = useQuery<BookingDetails>({
+    queryKey: [`/api/bookings/${lead?.id}`],
+    enabled: !!lead?.id && open,
+    queryFn: async () => {
+      const response = await fetch(`/api/bookings/${lead!.id}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    }
+  });
+
   // Purchase lead mutation
   const purchaseLeadMutation = useMutation({
     mutationFn: async () => {
@@ -97,16 +121,19 @@ export default function LeadPurchaseDialog({
           originalLeadFee: lead.leadFee || 0
         });
         
-        if (voucherResponse.success) {
+        const voucherData = await voucherResponse.json();
+        if (voucherData.success) {
           // Complete the lead assignment after voucher application
-          return await apiRequest('POST', `/api/installer/${installerId}/purchase-lead/${lead.id}`);
+          const purchaseResponse = await apiRequest('POST', `/api/installer/${installerId}/purchase-lead/${lead.id}`);
+          return await purchaseResponse.json();
         }
       }
       
       // Regular wallet-based purchase
-      return await apiRequest('POST', `/api/installer/${installerId}/purchase-lead/${lead.id}`);
+      const response = await apiRequest('POST', `/api/installer/${installerId}/purchase-lead/${lead.id}`);
+      return await response.json();
     },
-    onSuccess: (response) => {
+    onSuccess: (responseData) => {
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/wallet`] });
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/available-leads`] });
       queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/past-leads`] });
@@ -118,7 +145,7 @@ export default function LeadPurchaseDialog({
         title: "Lead Purchased Successfully!",
         description: wasVoucherUsed 
           ? "Your first lead voucher was applied - this lead fee was covered! Customer details are now available."
-          : response.message || "Customer contact details are now available in your purchased leads.",
+          : responseData.message || "Customer contact details are now available in your purchased leads.",
       });
       
       onOpenChange(false);
@@ -180,6 +207,70 @@ export default function LeadPurchaseDialog({
               </div>
             </CardContent>
           </Card>
+
+          {/* Customer Preferred Schedule */}
+          {bookingDetails?.preferredDate && (
+            <Card className="border-green-200 bg-green-50">
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-3">
+                  <Heart className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-green-900 mb-2">Customer's Preferred Schedule</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 text-green-600" />
+                        <span className="font-medium text-green-800">
+                          {new Date(bookingDetails.preferredDate).toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long', 
+                            day: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                      {bookingDetails.preferredTime && (
+                        <div className="flex items-center space-x-2">
+                          <Clock className="w-4 h-4 text-green-600" />
+                          <span className="font-medium text-green-800">
+                            {(() => {
+                              const timeSlots = [
+                                { value: '9:00', label: '9:00 AM - 11:00 AM' },
+                                { value: '11:00', label: '11:00 AM - 1:00 PM' },
+                                { value: '13:00', label: '1:00 PM - 3:00 PM' },
+                                { value: '15:00', label: '3:00 PM - 5:00 PM' },
+                                { value: '17:00', label: '5:00 PM - 7:00 PM' }
+                              ];
+                              const slot = timeSlots.find(s => s.value === bookingDetails.preferredTime);
+                              return slot ? slot.label : bookingDetails.preferredTime;
+                            })()} 
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-3 p-2 bg-green-100 rounded">
+                      <p className="text-xs text-green-700">
+                        💡 <strong>Customer insight:</strong> This customer has specific time preferences. Matching their schedule will improve your chances of being selected!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* No Preferred Schedule Notice */}
+          {!bookingDetails?.preferredDate && bookingDetails && (
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="p-3">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                  <p className="text-sm text-amber-800">
+                    Customer didn't specify a preferred schedule - you can propose any convenient time!
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Voucher Application */}
           {hasVoucher && (
@@ -284,7 +375,7 @@ export default function LeadPurchaseDialog({
             ) : (
               <>
                 <CreditCard className="w-4 h-4 mr-2" />
-                Purchase for €{finalCost.toFixed(2)}
+                Purchase for {finalCost} Credits
               </>
             )}
           </Button>

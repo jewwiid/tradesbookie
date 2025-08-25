@@ -360,7 +360,7 @@ export default function SupportTicketManagement() {
           </DialogHeader>
 
           {selectedTicket && (
-            <div className="flex flex-col h-full min-h-0">
+            <div className="flex flex-col h-full min-h-0 gap-4">
               {/* Ticket Header */}
               <div className="bg-gray-50 p-4 rounded-lg flex-shrink-0">
                 <div className="grid grid-cols-2 gap-4">
@@ -472,37 +472,38 @@ export default function SupportTicketManagement() {
                   placeholder="Type your reply to the customer..."
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
-                  rows={4}
+                  rows={3}
                 />
 
                 <div className="text-sm text-gray-500">
                   The customer will receive an email notification with your reply.
                 </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-2 pt-2">
+                  <Button variant="outline" onClick={() => setShowTicketDialog(false)}>
+                    Close
+                  </Button>
+                  <Button
+                    onClick={handleSendReply}
+                    disabled={!replyMessage.trim() || replyMutation.isPending}
+                  >
+                    {replyMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Reply
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowTicketDialog(false)}>
-              Close
-            </Button>
-            <Button
-              onClick={handleSendReply}
-              disabled={!replyMessage.trim() || replyMutation.isPending}
-            >
-              {replyMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                <>
-                  <Send className="w-4 h-4 mr-2" />
-                  Send Reply
-                </>
-              )}
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -11541,6 +11541,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Get declined requests for this installer to filter them out
       const declinedRequestIds = await storage.getDeclinedRequestsForInstaller(installerId);
       
+      // Get all booking IDs that this installer has already purchased
+      const purchasedBookingIds = await db.select({
+        bookingId: jobAssignments.bookingId
+      })
+      .from(jobAssignments)
+      .where(and(
+        eq(jobAssignments.installerId, installerId),
+        or(
+          eq(jobAssignments.leadFeeStatus, 'paid'),
+          eq(jobAssignments.leadFeeStatus, 'exempt')
+        )
+      ));
+      
+      const purchasedIds = purchasedBookingIds.map(row => row.bookingId);
+      
       // Get all unassigned bookings that can be purchased as leads
       const allBookings = await storage.getAllBookings();
       const availableBookings = await Promise.all(allBookings.filter(booking => {
@@ -11548,7 +11563,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         const isAvailable = (booking.status === "open" || booking.status === "pending" || booking.status === "urgent" || booking.status === "confirmed") &&
           !booking.installerId && // Not assigned to any installer yet
           booking.assignmentType !== 'direct' && // Exclude directly assigned bookings
-          !declinedRequestIds.includes(booking.id); // Not declined by this installer
+          !declinedRequestIds.includes(booking.id) && // Not declined by this installer
+          !purchasedIds.includes(booking.id); // Not already purchased by this installer
         
         // Demo filtering logic
         if (installerId === 2) {

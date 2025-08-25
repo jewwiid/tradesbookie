@@ -348,8 +348,8 @@ export default function SupportTicketManagement() {
 
       {/* Ticket Detail Dialog */}
       <Dialog open={showTicketDialog} onOpenChange={setShowTicketDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center space-x-2">
               <MessageSquare className="w-5 h-5" />
               <span>Support Ticket #{selectedTicket?.id}</span>
@@ -360,9 +360,9 @@ export default function SupportTicketManagement() {
           </DialogHeader>
 
           {selectedTicket && (
-            <div className="space-y-6">
+            <div className="flex flex-col h-full min-h-0">
               {/* Ticket Header */}
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-gray-50 p-4 rounded-lg flex-shrink-0">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="font-semibold">Customer</Label>
@@ -391,17 +391,17 @@ export default function SupportTicketManagement() {
               </div>
 
               {/* Subject */}
-              <div>
+              <div className="flex-shrink-0">
                 <Label className="font-semibold">Subject</Label>
                 <div className="mt-1 font-medium">{selectedTicket.subject}</div>
               </div>
 
-              <Separator />
+              <Separator className="flex-shrink-0" />
 
               {/* Full Conversation */}
-              <div>
-                <Label className="font-semibold">Conversation ({messages.length} messages)</Label>
-                <div className="mt-3 space-y-3 max-h-96 overflow-y-auto p-4 bg-gray-50 rounded-lg border">
+              <div className="flex-1 min-h-0 flex flex-col">
+                <Label className="font-semibold mb-3 flex-shrink-0">Conversation ({messages.length} messages)</Label>
+                <div className="flex-1 space-y-3 overflow-y-auto p-4 bg-gray-50 rounded-lg border">
                   {messagesLoading ? (
                     <div className="flex items-center justify-center py-4">
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -445,10 +445,10 @@ export default function SupportTicketManagement() {
                 </div>
               </div>
 
-              <Separator />
+              <Separator className="flex-shrink-0" />
 
               {/* Reply Section */}
-              <div className="space-y-4">
+              <div className="space-y-4 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <Label className="font-semibold">Reply to Customer</Label>
                   <div className="flex items-center space-x-2">

@@ -419,18 +419,19 @@ ${parsed.currentModels.slice(0, 2).map((m: any) => `• ${m.brand} ${m.model} - 
           </Alert>
         ) : dashboardData ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="flex w-full overflow-x-auto space-x-1 bg-muted p-1 rounded-md">
-              <TabsTrigger value="overview" className="flex items-center space-x-2">
-                <Activity className="h-4 w-4" />
-                <span>Overview</span>
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-1 bg-muted p-1 rounded-md h-auto">
+              <TabsTrigger value="overview" className="flex items-center justify-center space-x-1 text-xs lg:text-sm px-2 py-2">
+                <Activity className="h-3 w-3 lg:h-4 lg:w-4" />
+                <span className="hidden sm:inline">Overview</span>
+                <span className="sm:hidden">Over</span>
               </TabsTrigger>
               {aiTools.map((tool) => {
                 const IconComponent = tool.icon;
                 return (
-                  <TabsTrigger key={tool.key} value={tool.key} className="flex items-center space-x-2">
-                    <IconComponent className="h-4 w-4" />
-                    <span className="hidden lg:inline">{tool.name}</span>
-                    <span className="lg:hidden text-xs">{tool.key.split('-')[0]}</span>
+                  <TabsTrigger key={tool.key} value={tool.key} className="flex items-center justify-center space-x-1 text-xs lg:text-sm px-2 py-2">
+                    <IconComponent className="h-3 w-3 lg:h-4 lg:w-4" />
+                    <span className="hidden md:inline truncate">{tool.name}</span>
+                    <span className="md:hidden truncate">{tool.key.split('-')[0]}</span>
                   </TabsTrigger>
                 );
               })}

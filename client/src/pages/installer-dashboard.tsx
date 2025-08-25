@@ -1670,44 +1670,44 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   </div>
                 </div>
 
-                {/* Job Content - Always show quick service info */}
+                {/* Job Content */}
                 <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
-                        {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
-                          <>
-                            <span><Tv className="w-4 h-4 inline mr-1" />Multi-TV Installation</span>
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                              {booking.tvInstallations.length} TVs
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              ({booking.tvInstallations.map(tv => tv.location || 'Room').join(', ')})
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}"</span>
-                            <span><Monitor className="w-4 h-4 inline mr-1" />{booking.serviceType}</span>
-                          </>
-                        )}
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDetails(booking.id);
-                        }}
-                        className="text-blue-600 hover:text-blue-800"
-                      >
-                        {expandedDetails.has(booking.id) ? (
-                          <><ChevronUp className="w-4 h-4 mr-1" />Hide Details</>
-                        ) : (
-                          <><ChevronDown className="w-4 h-4 mr-1" />Show Details</>
-                        )}
-                      </Button>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
+                      <>
+                        <span><Tv className="w-4 h-4 inline mr-1" />Multi-TV Installation</span>
+                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                          {booking.tvInstallations.length} TVs
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({booking.tvInstallations.map(tv => tv.location || 'Room').join(', ')})
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}"</span>
+                        <span><Monitor className="w-4 h-4 inline mr-1" />{booking.serviceType}</span>
+                      </>
+                    )}
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleDetails(booking.id);
+                    }}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    {expandedDetails.has(booking.id) ? (
+                      <><ChevronUp className="w-4 h-4 mr-1" />Hide Details</>
+                    ) : (
+                      <><ChevronDown className="w-4 h-4 mr-1" />Show Details</>
+                    )}
+                  </Button>
                 </div>
 
-                {/* Expandable Service Details - Only show when not collapsed */}
+                {/* Expandable Service Details */}
                 {!collapsedJobs.has(booking.id) && expandedDetails.has(booking.id) && (
                   <div className="bg-gray-50 p-4 rounded-lg space-y-4">
                     {/* Contact Information */}
@@ -1843,14 +1843,14 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                       </div>
                     )}
                   </div>
-                )}
+                    )}
 
-                {/* Job Actions Section */}
-                <div className="border-t pt-4 space-y-4">
-                  {/* Start Work Button for scheduled jobs with confirmed schedule OR in progress jobs */}
-                  {(((booking.status === 'confirmed' || booking.status === 'assigned') || 
-                    (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) 
-                    || booking.assignmentStatus === 'in_progress') && booking.isSelected && (
+                    {/* Job Actions Section */}
+                    <div className="border-t pt-4 space-y-4">
+                      {/* Start Work Button for scheduled jobs with confirmed schedule OR in progress jobs */}
+                      {(((booking.status === 'confirmed' || booking.status === 'assigned') || 
+                        (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) 
+                        || booking.assignmentStatus === 'in_progress') && booking.isSelected && (
                     <>
                       <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div>
@@ -2025,25 +2025,28 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                           customerName={booking.contactName}
                         />
                       )}
-
-                  {/* Confirmed Schedule Info - Only show if schedule is confirmed */}
-                  {((booking.status === 'confirmed' || booking.status === 'assigned') || 
-                    (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) && booking.scheduledDate && (
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <h4 className="font-medium text-green-800">Schedule Confirmed</h4>
-                      </div>
-                      <p className="text-sm text-green-700">
-                        Installation scheduled for {new Date(booking.scheduledDate).toLocaleDateString('en-IE', {
-                          weekday: 'long',
-                          year: 'numeric', 
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
                     </div>
-                  )}
+
+                    {/* Confirmed Schedule Info - Only show if schedule is confirmed */}
+                    {((booking.status === 'confirmed' || booking.status === 'assigned') || 
+                      (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) && booking.scheduledDate && (
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <h4 className="font-medium text-green-800">Schedule Confirmed</h4>
+                        </div>
+                        <p className="text-sm text-green-700">
+                          Installation scheduled for {new Date(booking.scheduledDate).toLocaleDateString('en-IE', {
+                            weekday: 'long',
+                            year: 'numeric', 
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
                 </div>
               </CardContent>
             </Card>

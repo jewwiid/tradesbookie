@@ -97,7 +97,7 @@ export default function SupportTicketManagement() {
 
   // Fetch ticket messages when a ticket is selected
   const { data: messages = [], isLoading: messagesLoading } = useQuery<TicketMessage[]>({
-    queryKey: ["/api/support/tickets", selectedTicket?.id, "messages"],
+    queryKey: ["/api/admin/support/tickets", selectedTicket?.id, "messages"],
     enabled: !!selectedTicket?.id,
   });
 
@@ -112,7 +112,7 @@ export default function SupportTicketManagement() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/support/tickets"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/support/tickets", selectedTicket?.id, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/support/tickets", selectedTicket?.id, "messages"] });
       setReplyMessage("");
       setNewStatus("");
       toast({

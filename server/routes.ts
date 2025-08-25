@@ -11526,6 +11526,24 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Get ticket messages (admin only)
+  app.get("/api/admin/support/tickets/:ticketId/messages", isAuthenticated, async (req, res) => {
+    try {
+      const userRole = (req as any).user.role;
+      if (userRole !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const ticketId = parseInt(req.params.ticketId);
+      
+      const messages = await storage.getTicketMessages(ticketId);
+      res.json(messages);
+    } catch (error: any) {
+      console.error("Error fetching ticket messages (admin):", error);
+      res.status(500).json({ message: "Failed to fetch ticket messages" });
+    }
+  });
+
   // Get available leads for installer
   app.get("/api/installer/:installerId/available-leads", async (req, res) => {
     try {

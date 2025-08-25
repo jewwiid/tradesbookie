@@ -115,6 +115,7 @@ export default function SupportTicketManagement() {
       queryClient.invalidateQueries({ queryKey: [`/api/admin/support/tickets/${selectedTicket?.id}/messages`] });
       setReplyMessage("");
       setNewStatus("");
+      setShowTicketDialog(false);
       toast({
         title: "Reply Sent",
         description: "Your reply has been sent to the customer and they'll receive an email notification.",

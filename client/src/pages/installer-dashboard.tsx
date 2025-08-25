@@ -1433,6 +1433,7 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
 function ActiveJobsSection({ installerId }: { installerId?: number }) {
   const { toast } = useToast();
   const [expandedDetails, setExpandedDetails] = useState<Set<number>>(new Set());
+  const [collapsedJobs, setCollapsedJobs] = useState<Set<number>>(new Set());
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const queryClient = useQueryClient();
 
@@ -1445,6 +1446,18 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
 
   const toggleDetails = (bookingId: number) => {
     setExpandedDetails(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(bookingId)) {
+        newSet.delete(bookingId);
+      } else {
+        newSet.add(bookingId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleJobCollapse = (bookingId: number) => {
+    setCollapsedJobs(prev => {
       const newSet = new Set(prev);
       if (newSet.has(bookingId)) {
         newSet.delete(bookingId);
@@ -1600,12 +1613,22 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
           {viewMode === 'list' ? (
             activeBookings.map((booking: any) => (
             <Card key={booking.id} className="border-l-4 border-l-blue-500">
-              <CardContent className="p-6 space-y-4">
-                {/* Booking Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <CardContent className="p-4 sm:p-6 space-y-4">
+                {/* Clickable Job Header */}
+                <div 
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                  onClick={() => toggleJobCollapse(booking.id)}
+                >
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-semibold text-lg">{booking.contactName}</h3>
+                      <div className="flex items-center space-x-2">
+                        {collapsedJobs.has(booking.id) ? (
+                          <ChevronDown className="w-4 h-4 text-gray-500" />
+                        ) : (
+                          <ChevronUp className="w-4 h-4 text-gray-500" />
+                        )}
+                        <h3 className="font-semibold text-lg">{booking.contactName}</h3>
+                      </div>
                       <Badge className={getStatusColor(booking.status)}>
                         {booking.status === 'competing' ? 'Bidding' : booking.status.replace('_', ' ')}
                       </Badge>
@@ -1615,16 +1638,24 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <MapPin className="w-4 h-4" />
-                      <span className="text-sm">{booking.address}</span>
-                    </div>
-                    {booking.leadFee && (
-                      <div className="flex items-center space-x-2 text-sm text-gray-500">
-                        <Euro className="w-3 h-3" />
-                        <span>Lead Fee: €{booking.leadFee}</span>
+                    {/* Summary info always visible */}
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center space-x-1">
+                        <MapPin className="w-4 h-4" />
+                        <span className="truncate max-w-[200px] sm:max-w-none">{booking.address}</span>
                       </div>
-                    )}
+                      {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
+                        <div className="flex items-center space-x-1">
+                          <Tv className="w-4 h-4" />
+                          <span>{booking.tvInstallations.length} TVs</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center space-x-1">
+                          <Tv className="w-4 h-4" />
+                          <span>{booking.tvSize}" {booking.serviceType}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="text-right space-y-1">
                     <div className="space-y-1">
@@ -1636,50 +1667,48 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                         Created: {formatDate(booking.createdAt)}
                       </div>
                     )}
-                    {booking.status === 'competing' && (
-                      <div className="text-xs text-purple-600 font-medium">
-                        Multiple installers bidding
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Quick Service Info */}
+                {/* Job Content - Always show quick service info */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
-                      <>
-                        <span><Tv className="w-4 h-4 inline mr-1" />Multi-TV Installation</span>
-                        <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
-                          {booking.tvInstallations.length} TVs
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          ({booking.tvInstallations.map(tv => tv.location || 'Room').join(', ')})
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}"</span>
-                        <span><Monitor className="w-4 h-4 inline mr-1" />{booking.serviceType}</span>
-                      </>
-                    )}
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => toggleDetails(booking.id)}
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    {expandedDetails.has(booking.id) ? (
-                      <><ChevronUp className="w-4 h-4 mr-1" />Hide Details</>
-                    ) : (
-                      <><ChevronDown className="w-4 h-4 mr-1" />Show Details</>
-                    )}
-                  </Button>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        {booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 1 ? (
+                          <>
+                            <span><Tv className="w-4 h-4 inline mr-1" />Multi-TV Installation</span>
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                              {booking.tvInstallations.length} TVs
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ({booking.tvInstallations.map(tv => tv.location || 'Room').join(', ')})
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span><Tv className="w-4 h-4 inline mr-1" />{booking.tvSize}"</span>
+                            <span><Monitor className="w-4 h-4 inline mr-1" />{booking.serviceType}</span>
+                          </>
+                        )}
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleDetails(booking.id);
+                        }}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        {expandedDetails.has(booking.id) ? (
+                          <><ChevronUp className="w-4 h-4 mr-1" />Hide Details</>
+                        ) : (
+                          <><ChevronDown className="w-4 h-4 mr-1" />Show Details</>
+                        )}
+                      </Button>
                 </div>
 
-                {/* Expandable Service Details */}
-                {expandedDetails.has(booking.id) && (
+                {/* Expandable Service Details - Only show when not collapsed */}
+                {!collapsedJobs.has(booking.id) && expandedDetails.has(booking.id) && (
                   <div className="bg-gray-50 p-4 rounded-lg space-y-4">
                     {/* Contact Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1987,8 +2016,8 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                         </div>
                       </div>
                       
-                      {/* Only show full schedule negotiation when expanded */}
-                      {expandedDetails.has(booking.id + 1000) && (
+                      {/* Only show full schedule negotiation when expanded and not collapsed */}
+                      {!collapsedJobs.has(booking.id) && expandedDetails.has(booking.id + 1000) && (
                         <ScheduleNegotiation
                           bookingId={booking.id}
                           installerId={installerId}
@@ -1996,8 +2025,6 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                           customerName={booking.contactName}
                         />
                       )}
-                    </>
-                  )}
 
                   {/* Confirmed Schedule Info - Only show if schedule is confirmed */}
                   {((booking.status === 'confirmed' || booking.status === 'assigned') || 

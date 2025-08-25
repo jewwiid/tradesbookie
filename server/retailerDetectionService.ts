@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db } from "./db";
 import { retailerInvoices, users } from "../shared/schema";
 
@@ -356,10 +356,21 @@ export class RetailerDetectionService {
         };
       }
 
-      // Look up invoice in database
+      // Normalize invoice number for database lookup
+      // Convert "HN-CKM-2597067" to "HNCKM2597067" 
+      const normalizedInvoiceNumber = parsedInvoice.storeCode 
+        ? `${parsedInvoice.retailerCode}${parsedInvoice.storeCode}${parsedInvoice.invoiceNumber}`
+        : `${parsedInvoice.retailerCode}${parsedInvoice.invoiceNumber}`;
+
+      // Look up invoice in database using both original and normalized formats
       let invoiceData = await db.select()
         .from(retailerInvoices)
-        .where(eq(retailerInvoices.invoiceNumber, invoiceNumber))
+        .where(
+          or(
+            eq(retailerInvoices.invoiceNumber, invoiceNumber),
+            eq(retailerInvoices.invoiceNumber, normalizedInvoiceNumber)
+          )
+        )
         .limit(1);
 
       let invoice;

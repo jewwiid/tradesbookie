@@ -1586,8 +1586,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllSupportTickets(): Promise<SupportTicket[]> {
-    return await db.select().from(supportTickets)
-      .orderBy(desc(supportTickets.createdAt));
+    const tickets = await db.select({
+      id: supportTickets.id,
+      userId: supportTickets.userId,
+      subject: supportTickets.subject,
+      status: supportTickets.status,
+      priority: supportTickets.priority,
+      category: supportTickets.category,
+      assignedTo: supportTickets.assignedTo,
+      createdAt: supportTickets.createdAt,
+      updatedAt: supportTickets.updatedAt,
+      closedAt: supportTickets.closedAt,
+      userName: sql<string>`COALESCE(${users.firstName} || ' ' || ${users.lastName}, ${users.firstName}, ${users.lastName}, SPLIT_PART(${users.email}, '@', 1))`,
+      userEmail: users.email,
+      message: sql<string>`(
+        SELECT ${ticketMessages.message}
+        FROM ${ticketMessages}
+        WHERE ${ticketMessages.ticketId} = ${supportTickets.id}
+        AND ${ticketMessages.isAdminReply} = false
+        ORDER BY ${ticketMessages.createdAt} ASC
+        LIMIT 1
+      )`
+    })
+    .from(supportTickets)
+    .leftJoin(users, eq(supportTickets.userId, users.id))
+    .orderBy(desc(supportTickets.createdAt));
+    
+    return tickets as SupportTicket[];
   }
 
   async updateSupportTicketStatus(id: number, status: string, assignedTo?: string): Promise<void> {
@@ -1627,9 +1652,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTicketMessages(ticketId: number): Promise<TicketMessage[]> {
-    return await db.select().from(ticketMessages)
-      .where(eq(ticketMessages.ticketId, ticketId))
-      .orderBy(ticketMessages.createdAt);
+    const messages = await db.select({
+      id: ticketMessages.id,
+      ticketId: ticketMessages.ticketId,
+      userId: ticketMessages.userId,
+      message: ticketMessages.message,
+      isAdminReply: ticketMessages.isAdminReply,
+      createdAt: ticketMessages.createdAt,
+      userName: sql<string>`COALESCE(${users.firstName} || ' ' || ${users.lastName}, ${users.firstName}, ${users.lastName}, SPLIT_PART(${users.email}, '@', 1))`,
+      userEmail: users.email
+    })
+    .from(ticketMessages)
+    .leftJoin(users, eq(ticketMessages.userId, users.id))
+    .where(eq(ticketMessages.ticketId, ticketId))
+    .orderBy(ticketMessages.createdAt);
+    
+    return messages as TicketMessage[];
   }
 
   // AI Usage Tracking operations

@@ -399,12 +399,12 @@ export default function SupportTicketManagement() {
 
               {/* Full Conversation */}
               <div>
-                <Label className="font-semibold">Full Conversation ({messages.length} messages)</Label>
-                <div className="mt-3 space-y-4 max-h-64 overflow-y-auto">
+                <Label className="font-semibold">Conversation ({messages.length} messages)</Label>
+                <div className="mt-3 space-y-3 max-h-96 overflow-y-auto p-4 bg-gray-50 rounded-lg border">
                   {messagesLoading ? (
                     <div className="flex items-center justify-center py-4">
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Loading messages...
+                      Loading conversation...
                     </div>
                   ) : messages.length === 0 ? (
                     <div className="text-center py-4 text-gray-500">
@@ -414,28 +414,30 @@ export default function SupportTicketManagement() {
                     messages.map((message) => (
                       <div
                         key={message.id}
-                        className={`p-3 rounded-lg ${
-                          message.isAdminReply
-                            ? "bg-green-50 border border-green-200 ml-8"
-                            : "bg-gray-50 border border-gray-200 mr-8"
+                        className={`p-3 rounded-lg max-w-[80%] border ${
+                          message.isAdminReply 
+                            ? 'bg-blue-100 border-blue-200 ml-auto text-right' 
+                            : 'bg-white border-gray-200 mr-auto'
                         }`}
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            {message.isAdminReply ? (
-                              <Badge className="bg-green-100 text-green-800">Support Team</Badge>
-                            ) : (
-                              <Badge variant="outline">Customer</Badge>
-                            )}
-                            <span className="text-sm text-gray-500">
-                              {message.userName || message.userEmail}
-                            </span>
-                          </div>
-                          <span className="text-xs text-gray-400">
-                            {formatDateTime(message.createdAt)}
-                          </span>
+                        <div className="flex items-center gap-2 mb-1">
+                          {message.isAdminReply ? (
+                            <>
+                              <span className="text-sm font-medium text-blue-700">Support Team</span>
+                              <span className="text-xs text-blue-600">
+                                {formatDateTime(message.createdAt)}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-sm font-medium text-gray-700">Customer</span>
+                              <span className="text-xs text-gray-500">
+                                {formatDateTime(message.createdAt)}
+                              </span>
+                            </>
+                          )}
                         </div>
-                        <div className="whitespace-pre-wrap text-sm">{message.message}</div>
+                        <div className="text-sm text-gray-800 whitespace-pre-wrap">{message.message}</div>
                       </div>
                     ))
                   )}

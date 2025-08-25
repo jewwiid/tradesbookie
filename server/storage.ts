@@ -601,14 +601,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async verifyUserEmail(userId: string): Promise<void> {
+    // Get user to check registration method
+    const user = await this.getUser(userId);
+    
+    const updateData: any = { 
+      emailVerified: true, 
+      emailVerificationToken: null,
+      emailVerificationExpires: null,
+      updatedAt: new Date() 
+    };
+
+    // If user registered via invoice, mark their profile as completed too
+    if (user?.registrationMethod === 'invoice') {
+      updateData.profileCompleted = true;
+    }
+
     await db
       .update(users)
-      .set({ 
-        emailVerified: true, 
-        emailVerificationToken: null,
-        emailVerificationExpires: null,
-        updatedAt: new Date() 
-      })
+      .set(updateData)
       .where(eq(users.id, userId));
   }
 

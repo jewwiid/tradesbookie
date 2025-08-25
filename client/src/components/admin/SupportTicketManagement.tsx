@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Separator } from "@/components/ui/separator";
 import { 
   MessageSquare, 
@@ -25,7 +26,8 @@ import {
   Search,
   Reply,
   Eye,
-  Loader2
+  Loader2,
+  Trash2
 } from "lucide-react";
 
 interface SupportTicket {
@@ -155,6 +157,29 @@ export default function SupportTicketManagement() {
     }
   });
 
+  // Delete ticket mutation
+  const deleteTicketMutation = useMutation({
+    mutationFn: async (ticketId: number) => {
+      const response = await apiRequest('DELETE', `/api/admin/support/tickets/${ticketId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/support/tickets"] });
+      setShowTicketDialog(false);
+      toast({
+        title: "Ticket Deleted",
+        description: "Support ticket has been permanently deleted.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete ticket",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Filter tickets
   const filteredTickets = tickets.filter((ticket) => {
     const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
@@ -185,6 +210,10 @@ export default function SupportTicketManagement() {
 
   const handleStatusChange = (ticketId: number, status: string) => {
     updateStatusMutation.mutate({ ticketId, status });
+  };
+
+  const handleDeleteTicket = (ticketId: number) => {
+    deleteTicketMutation.mutate(ticketId);
   };
 
   const getStatusBadge = (status: string) => {
@@ -335,6 +364,44 @@ export default function SupportTicketManagement() {
                             <Eye className="w-4 h-4 mr-1" />
                             View
                           </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-red-600 hover:text-red-800 border-red-200 hover:border-red-300"
+                              >
+                                <Trash2 className="w-4 h-4 mr-1" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Support Ticket</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this support ticket? This action cannot be undone and will permanently remove the ticket and all its messages.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteTicket(ticket.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                  disabled={deleteTicketMutation.isPending}
+                                >
+                                  {deleteTicketMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                      Deleting...
+                                    </>
+                                  ) : (
+                                    "Delete Ticket"
+                                  )}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -11544,6 +11544,29 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
+  // Delete support ticket (admin only)
+  app.delete("/api/admin/support/tickets/:ticketId", isAuthenticated, async (req, res) => {
+    try {
+      const userRole = (req as any).user.role;
+      if (userRole !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const ticketId = parseInt(req.params.ticketId);
+      
+      const deleted = await storage.deleteSupportTicket(ticketId);
+      
+      if (deleted) {
+        res.json({ success: true, message: "Support ticket deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete support ticket" });
+      }
+    } catch (error: any) {
+      console.error("Error deleting support ticket:", error);
+      res.status(500).json({ message: "Failed to delete support ticket" });
+    }
+  });
+
   // Get available leads for installer
   app.get("/api/installer/:installerId/available-leads", async (req, res) => {
     try {

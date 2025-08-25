@@ -204,6 +204,7 @@ export interface IStorage {
   getAllSupportTickets(): Promise<SupportTicket[]>;
   updateSupportTicketStatus(id: number, status: string, assignedTo?: string): Promise<void>;
   closeSupportTicket(id: number): Promise<void>;
+  deleteSupportTicket(id: number): Promise<boolean>;
   addTicketMessage(message: InsertTicketMessage): Promise<TicketMessage>;
   getTicketMessages(ticketId: number): Promise<TicketMessage[]>;
 
@@ -1642,6 +1643,23 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(supportTickets.id, id));
+  }
+
+  async deleteSupportTicket(id: number): Promise<boolean> {
+    try {
+      // First delete all messages associated with the ticket
+      await db.delete(ticketMessages)
+        .where(eq(ticketMessages.ticketId, id));
+      
+      // Then delete the ticket itself
+      await db.delete(supportTickets)
+        .where(eq(supportTickets.id, id));
+      
+      return true;
+    } catch (error) {
+      console.error("Error deleting support ticket:", error);
+      return false;
+    }
   }
 
   async addTicketMessage(message: InsertTicketMessage): Promise<TicketMessage> {

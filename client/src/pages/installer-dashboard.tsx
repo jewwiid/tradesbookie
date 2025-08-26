@@ -1598,7 +1598,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {viewMode === 'list' ? (
+          {viewMode === 'list' ? 
             activeBookings.map((booking: any) => (
             <Card key={booking.id} className="border-l-4 border-l-blue-500">
               <CardContent className="p-6 space-y-4">
@@ -1823,7 +1823,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   {(((booking.status === 'confirmed' || booking.status === 'assigned') || 
                     (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) 
                     || booking.assignmentStatus === 'in_progress') && booking.isSelected && (
-                    <>
+                    <div>
                       <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                         <div>
                           <h4 className="font-medium text-yellow-800">
@@ -1912,7 +1912,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                           />
                         </div>
                       )}
-                    </>
+                    </div>
                   )}
 
                   {/* Schedule Communication Section - Only show if schedule not confirmed */}
@@ -2022,7 +2022,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                 </div>
               </CardContent>
             </Card>
-          ))) : (
+          ) : (
             <ActiveJobsCalendar activeBookings={activeBookings} />
           )}
         </CardContent>

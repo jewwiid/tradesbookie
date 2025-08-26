@@ -60,15 +60,82 @@ export default function SimplifiedAuthDialog({
 
   // Initial Invoice Check
   const invoiceCheckMutation = useMutation({
-    mutationFn: async (data: { invoiceNumber: string }) => {
+    mutationFn: async (data: { invoiceNumber: string; email?: string }) => {
       const response = await apiRequest('POST', '/api/auth/invoice-login', data);
       if (!response.ok) {
         const error = await response.json();
+        
+        // Handle specific security-related status codes
+        if (response.status === 424 && error.requiresEmailVerification) {
+          // User needs email verification - trigger email-login step
+          return { 
+            ...error, 
+            requiresEmailVerification: true, 
+            statusCode: 424,
+            userEmail: error.userEmail 
+          };
+        }
+        
+        if (response.status === 423 && error.requiresPassword) {
+          // User has password set - they need to use standard login
+          return { 
+            ...error, 
+            requiresPassword: true, 
+            statusCode: 423,
+            userEmail: error.userEmail 
+          };
+        }
+        
+        if (response.status === 422 && error.emailMismatch) {
+          // Email provided doesn't match account
+          return { 
+            ...error, 
+            emailMismatch: true, 
+            statusCode: 422 
+          };
+        }
+        
         throw new Error(error.error || 'Invoice login failed');
       }
       return response.json();
     },
     onSuccess: (data) => {
+      // Handle security-related responses
+      if (data.requiresEmailVerification) {
+        // User needs email verification for security
+        setCurrentInvoiceInfo(data);
+        setEmail(data.userEmail || ''); // Pre-fill email for user convenience
+        setInvoiceStep('email-login');
+        toast({
+          title: "Security Verification Required",
+          description: data.error || "Please verify your email address to access this account.",
+        });
+        return;
+      }
+      
+      if (data.requiresPassword) {
+        // User has password set - redirect to standard login
+        toast({
+          title: "Password Required",
+          description: data.error || "This account has a password set. Please use the standard login.",
+          variant: "destructive",
+        });
+        setActiveTab('email'); // Switch to email tab for password login
+        setEmailAuthEmail(data.userEmail || '');
+        return;
+      }
+      
+      if (data.emailMismatch) {
+        // Email provided doesn't match account
+        toast({
+          title: "Email Mismatch",
+          description: data.error || "The email address provided does not match the account.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Normal successful login responses
       if (data.user?.isTemporaryAccount) {
         // New invoice - show profile completion form
         setCurrentInvoiceInfo(data);
@@ -244,7 +311,8 @@ export default function SimplifiedAuthDialog({
       });
       return;
     }
-    invoiceEmailLoginMutation.mutate({
+    // Use the same mutation but with email parameter for verification
+    invoiceCheckMutation.mutate({
       invoiceNumber: invoiceNumber.trim(),
       email: email.trim()
     });
@@ -563,10 +631,10 @@ export default function SimplifiedAuthDialog({
                       </Button>
                       <Button 
                         onClick={handleInvoiceEmailLogin}
-                        disabled={invoiceEmailLoginMutation.isPending}
+                        disabled={invoiceCheckMutation.isPending}
                         className="flex-1 gradient-bg"
                       >
-                        {invoiceEmailLoginMutation.isPending ? 'Signing In...' : 'Sign In'}
+                        {invoiceCheckMutation.isPending ? 'Verifying...' : 'Verify Email'}
                       </Button>
                     </div>
                   </>

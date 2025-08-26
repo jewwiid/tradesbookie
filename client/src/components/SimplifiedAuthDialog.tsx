@@ -106,7 +106,7 @@ export default function SimplifiedAuthDialog({
       if (data.requiresEmailVerification) {
         // User needs email verification for security
         setCurrentInvoiceInfo(data);
-        setEmail(data.userEmail || ''); // Pre-fill email for user convenience
+        setEmail(''); // Don't pre-fill - user must know the email address
         setInvoiceStep('email-login');
         toast({
           title: "Security Verification Required",
@@ -123,7 +123,7 @@ export default function SimplifiedAuthDialog({
           variant: "destructive",
         });
         setActiveTab('email'); // Switch to email tab for password login
-        setEmailAuthEmail(data.userEmail || '');
+        setEmailAuthEmail(''); // Don't pre-fill for security
         return;
       }
       

@@ -4741,9 +4741,11 @@ export default function InstallerDashboard() {
         onOpenChange={setShowPurchaseDialog}
         onPurchaseSuccess={() => {
           // Refresh all relevant data
-          queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'available-leads'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'stats'] });
-          queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile?.id}/wallet`] });
+          if (installerProfile?.id) {
+            queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile.id, 'available-leads'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile.id, 'stats'] });
+            queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile.id}/wallet`] });
+          }
           setSelectedLeadForPurchase(null);
           setSelectedRequest(null);
         }}

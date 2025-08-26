@@ -61,7 +61,13 @@ export default function SimplifiedAuthDialog({
   // Initial Invoice Check
   const invoiceCheckMutation = useMutation({
     mutationFn: async (data: { invoiceNumber: string; email?: string }) => {
-      const response = await apiRequest('POST', '/api/auth/invoice-login', data);
+      // Use fetch directly to handle special status codes without throwing errors
+      const response = await fetch('/api/auth/invoice-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
       const responseData = await response.json();
       
       if (!response.ok) {

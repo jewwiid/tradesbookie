@@ -13,7 +13,7 @@ import BookingFlow from "@/pages/booking-flow";
 import CustomerDashboard from "@/pages/customer-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 
-import InstallerDashboard from "@/pages/installer-dashboard";
+// import InstallerDashboard from "@/pages/installer-dashboard";
 import InstallerRegistration from "@/pages/installer-registration";
 import InstallerLogin from "@/pages/installer-login";
 import InstallerServiceSelection from "@/pages/installer-service-selection";
@@ -127,8 +127,8 @@ function Router() {
       <Route path="/installer-login" component={InstallerLogin} />
       <Route path="/installer-pending" component={InstallerPending} />
       <Route path="/installer-profile-setup" component={InstallerProfileSetup} />
-      <Route path="/installer-dashboard/:id?" component={InstallerDashboard} />
-      <Route path="/installer/dashboard/:id?" component={InstallerDashboard} />
+      {/* <Route path="/installer-dashboard/:id?" component={InstallerDashboard} />
+      <Route path="/installer/dashboard/:id?" component={InstallerDashboard} /> */}
       <Route path="/installer/:id" component={InstallerProfile} />
 
       <Route path="/admin" component={AdminDashboard} />

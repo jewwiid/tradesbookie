@@ -317,7 +317,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           return [result.lat, result.lng];
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.warn('Geocoding API error for', address, '- using fallback coordinates');
       }
@@ -1183,7 +1183,7 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
     queryKey: [`/api/installer/${activeBookings[0]?.installerId}/schedule-negotiations`],
     enabled: activeBookings.length > 0,
     refetchInterval: 30000
-  });
+  }) as { data: any[] };
 
   // Group active bookings by scheduled date AND include pending proposals
   const jobsByDate = activeBookings.reduce((acc: Record<string, any[]>, job: any) => {
@@ -1442,7 +1442,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
     queryKey: [`/api/installer/bookings`],
     enabled: !!installerId,
     refetchInterval: 30000, // Refresh every 30 seconds for new messages
-  });
+  }) as { data: any[], isLoading: boolean, refetch: () => void };
 
   const toggleDetails = (bookingId: number) => {
     setExpandedDetails(prev => {
@@ -1598,10 +1598,11 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {viewMode === 'list' ? (
-            activeBookings.map((booking: any) => (
-              <Card key={booking.id} className="border-l-4 border-l-blue-500">
-                <CardContent className="p-6 space-y-4">
+          <div>
+            {viewMode === 'list' && activeBookings.length > 0 && (
+              <div className="space-y-4">
+                {activeBookings.map((booking: any) => (
+                  <div key={booking.id} className="border border-gray-200 rounded-lg p-4">
                 {/* Booking Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-2">
@@ -2019,13 +2020,19 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                       </p>
                     </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-            ))
-          ) : (
-            <ActiveJobsCalendar activeBookings={activeBookings} />
-          )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {viewMode === 'list' && activeBookings.length === 0 && (
+              <div className="text-center py-8 text-gray-500">No active bookings</div>
+            )}
+            
+            {viewMode === 'calendar' && (
+              <ActiveJobsCalendar activeBookings={activeBookings} />
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -3284,14 +3291,14 @@ export default function InstallerDashboard() {
     queryKey: [`/api/installer/${installerProfile?.id}/past-leads`],
     enabled: !!installerProfile?.id,
     refetchInterval: 30000
-  });
+  }) as { data: any[] };
 
   // Fetch reviews for rating calculation
-  const { data: reviewStats } = useQuery({
+  const { data: reviewStats = {} } = useQuery({
     queryKey: [`/api/installer/${installerProfile?.id}/reviews`],
     enabled: !!installerProfile?.id,
     refetchInterval: 30000
-  });
+  }) as { data: any };
 
   // Calculate real stats from actual data
   const currentMonth = new Date().getMonth();

@@ -65,8 +65,11 @@ export default function SimplifiedAuthDialog({
       const responseData = await response.json();
       
       if (!response.ok) {
+        console.log('Response not ok. Status:', response.status, 'Data:', responseData);
+        
         // Handle specific security-related status codes as "successful" responses
         if (response.status === 424 && responseData.requiresEmailVerification) {
+          console.log('424 status detected - treating as success for email verification');
           // User needs email verification - return as success to trigger email-login step
           return { 
             ...responseData, 
@@ -102,8 +105,11 @@ export default function SimplifiedAuthDialog({
       return responseData;
     },
     onSuccess: (data) => {
+      console.log('Invoice check onSuccess triggered with data:', data);
+      
       // Handle security-related responses
       if (data.requiresEmailVerification) {
+        console.log('Email verification required - transitioning to email-login step');
         // User needs email verification for security
         setCurrentInvoiceInfo(data);
         setEmail(''); // Don't pre-fill - user must know the email address

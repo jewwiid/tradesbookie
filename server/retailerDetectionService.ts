@@ -334,7 +334,7 @@ export class RetailerDetectionService {
   /**
    * Enhanced login with retailer detection
    */
-  async loginWithInvoice(invoiceNumber: string): Promise<{
+  async loginWithInvoice(invoiceNumber: string, providedEmail?: string): Promise<{
     success: boolean;
     user?: any;
     message: string;
@@ -343,6 +343,12 @@ export class RetailerDetectionService {
     requiresVerification?: boolean;
     showStoreSignup?: boolean;
     unknownInvoice?: string;
+    requiresPassword?: boolean;
+    requiresEmailVerification?: boolean;
+    userEmail?: string;
+    hasPassword?: boolean;
+    needsEmailAuth?: boolean;
+    emailMismatch?: boolean;
   }> {
     try {
       // Detect retailer from invoice
@@ -448,6 +454,27 @@ export class RetailerDetectionService {
             requiresPassword: true,
             userEmail: user.email,
             hasPassword: true
+          };
+        }
+        
+        // 🔐 ENHANCED SECURITY: For users without passwords, require email verification as additional factor
+        // This is a new security enhancement to prevent unauthorized access using just the invoice number
+        if (!providedEmail) {
+          return {
+            success: false,
+            message: "For security, please provide the email address associated with this invoice.",
+            requiresEmailVerification: true,
+            userEmail: user.email,
+            needsEmailAuth: true
+          };
+        }
+        
+        // Verify the provided email matches the account email
+        if (providedEmail.toLowerCase() !== user.email.toLowerCase()) {
+          return {
+            success: false,
+            message: "The email address provided does not match the account associated with this invoice.",
+            emailMismatch: true
           };
         }
         

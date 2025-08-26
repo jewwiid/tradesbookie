@@ -7005,7 +7005,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Retailer Invoice Authentication API
   app.post('/api/auth/invoice-login', async (req, res) => {
     try {
-      const { invoiceNumber } = req.body;
+      const { invoiceNumber, email } = req.body;
       
       if (!invoiceNumber) {
         return res.status(400).json({ error: "Invoice number is required" });
@@ -7013,8 +7013,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { retailerDetectionService } = await import('./retailerDetectionService');
       
-      // Use enhanced retailer detection service for login
-      const result = await retailerDetectionService.loginWithInvoice(invoiceNumber);
+      // Use enhanced retailer detection service for login with email verification
+      const result = await retailerDetectionService.loginWithInvoice(invoiceNumber, email);
       
       if (result.success && result.user) {
         // First, logout any existing user session to ensure clean state
@@ -7067,6 +7067,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
             requiresPassword: true,
             userEmail: result.userEmail,
             security: "This account is secured with a password. Please use the standard login."
+          });
+        }
+        
+        if (result.requiresEmailVerification) {
+          // User without password - require email verification for security
+          console.log(`🔐 Security enhancement: User with invoice ${invoiceNumber} requires email verification`);
+          return res.status(424).json({ 
+            error: result.message,
+            requiresEmailVerification: true,
+            userEmail: result.userEmail,
+            security: "For your security, please verify your email address to access this account."
+          });
+        }
+        
+        if (result.emailMismatch) {
+          // Email provided doesn't match the account
+          console.log(`❌ Email mismatch for invoice ${invoiceNumber}`);
+          return res.status(422).json({ 
+            error: result.message,
+            emailMismatch: true
           });
         }
         

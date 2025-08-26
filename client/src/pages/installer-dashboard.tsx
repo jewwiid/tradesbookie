@@ -1598,10 +1598,10 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {viewMode === 'list' ? (
+          {viewMode === 'list' ? 
             activeBookings.map((booking: any) => (
-            <Card key={booking.id} className="border-l-4 border-l-blue-500">
-              <CardContent className="p-6 space-y-4">
+              <Card key={booking.id} className="border-l-4 border-l-blue-500">
+                <CardContent className="p-6 space-y-4">
                 {/* Booking Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-2">
@@ -2022,7 +2022,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                 </div>
               </CardContent>
             </Card>
-          )) : (
+          ) : (
             <ActiveJobsCalendar activeBookings={activeBookings} />
           )}
         </CardContent>

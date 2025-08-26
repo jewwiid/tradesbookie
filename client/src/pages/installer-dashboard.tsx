@@ -1859,15 +1859,16 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                       </div>
 
                       {/* Reschedule Option for confirmed jobs */}
-                      <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div>
-                          <h4 className="font-medium text-gray-800 text-sm">Need to Reschedule?</h4>
-                          <p className="text-xs text-gray-600 mt-1">
-                            If you can't make the scheduled time, propose a new date to the customer.
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button 
+                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-3 sm:space-y-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-800 text-sm">Need to Reschedule?</h4>
+                            <p className="text-xs text-gray-600 mt-1">
+                              If you can't make the scheduled time, propose a new date to the customer.
+                            </p>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <Button 
                             variant="ghost" 
                             size="sm" 
                             onClick={() => toggleDetails(booking.id + 2000)} // Different offset for reschedule section
@@ -1918,7 +1919,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   {!((booking.status === 'confirmed' || booking.status === 'assigned') || 
                      (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) && (
                     <>
-                      <div className="flex items-center justify-between">
+                      <div className="space-y-3">
                         <div>
                           <h4 className="font-medium text-gray-900">Schedule Communication</h4>
                           {booking.status === 'competing' && (
@@ -1932,7 +1933,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:space-x-2">
                           <Button 
                             variant="ghost" 
                             size="sm" 

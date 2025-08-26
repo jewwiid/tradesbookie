@@ -62,42 +62,44 @@ export default function SimplifiedAuthDialog({
   const invoiceCheckMutation = useMutation({
     mutationFn: async (data: { invoiceNumber: string; email?: string }) => {
       const response = await apiRequest('POST', '/api/auth/invoice-login', data);
+      const responseData = await response.json();
+      
       if (!response.ok) {
-        const error = await response.json();
-        
-        // Handle specific security-related status codes
-        if (response.status === 424 && error.requiresEmailVerification) {
-          // User needs email verification - trigger email-login step
+        // Handle specific security-related status codes as "successful" responses
+        if (response.status === 424 && responseData.requiresEmailVerification) {
+          // User needs email verification - return as success to trigger email-login step
           return { 
-            ...error, 
+            ...responseData, 
             requiresEmailVerification: true, 
             statusCode: 424,
-            userEmail: error.userEmail 
+            userEmail: responseData.userEmail 
           };
         }
         
-        if (response.status === 423 && error.requiresPassword) {
-          // User has password set - they need to use standard login
+        if (response.status === 423 && responseData.requiresPassword) {
+          // User has password set - return as success to trigger password login
           return { 
-            ...error, 
+            ...responseData, 
             requiresPassword: true, 
             statusCode: 423,
-            userEmail: error.userEmail 
+            userEmail: responseData.userEmail 
           };
         }
         
-        if (response.status === 422 && error.emailMismatch) {
-          // Email provided doesn't match account
+        if (response.status === 422 && responseData.emailMismatch) {
+          // Email provided doesn't match account - return as success to show error
           return { 
-            ...error, 
+            ...responseData, 
             emailMismatch: true, 
             statusCode: 422 
           };
         }
         
-        throw new Error(error.error || 'Invoice login failed');
+        // Only throw errors for actual failures
+        throw new Error(responseData.error || 'Invoice login failed');
       }
-      return response.json();
+      
+      return responseData;
     },
     onSuccess: (data) => {
       // Handle security-related responses

@@ -60,116 +60,15 @@ export default function SimplifiedAuthDialog({
 
   // Initial Invoice Check
   const invoiceCheckMutation = useMutation({
-    mutationFn: async (data: { invoiceNumber: string; email?: string }) => {
-      // Use fetch directly to handle special status codes without throwing errors
-      const response = await fetch('/api/auth/invoice-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-        credentials: 'include'
-      });
-      const responseData = await response.json();
-      
+    mutationFn: async (data: { invoiceNumber: string }) => {
+      const response = await apiRequest('POST', '/api/auth/invoice-login', data);
       if (!response.ok) {
-        // Handle specific security-related status codes as "successful" responses
-        if (response.status === 424 && responseData.requiresEmailVerification) {
-          // User needs email verification - return as success to trigger email-login step
-          return { 
-            ...responseData, 
-            requiresEmailVerification: true, 
-            statusCode: 424,
-            userEmail: responseData.userEmail 
-          };
-        }
-        
-        if (response.status === 423 && responseData.requiresPassword) {
-          // User has password set - return as success to trigger password login
-          return { 
-            ...responseData, 
-            requiresPassword: true, 
-            statusCode: 423,
-            userEmail: responseData.userEmail 
-          };
-        }
-        
-        if (response.status === 422 && responseData.emailMismatch) {
-          // Email provided doesn't match account - return as success to show error
-          return { 
-            ...responseData, 
-            emailMismatch: true, 
-            statusCode: 422 
-          };
-        }
-        
-        if (response.status === 425 && responseData.requiresUserDetails) {
-          // New invoice - collect user details upfront
-          return { 
-            ...responseData, 
-            requiresUserDetails: true, 
-            statusCode: 425,
-            invoiceNumber: responseData.invoiceNumber,
-            retailerInfo: responseData.retailerInfo
-          };
-        }
-        
-        // Only throw errors for actual failures
-        throw new Error(responseData.error || 'Invoice login failed');
+        const error = await response.json();
+        throw new Error(error.error || 'Invoice login failed');
       }
-      
-      return responseData;
+      return response.json();
     },
     onSuccess: (data) => {
-      // Handle security-related responses
-      if (data.requiresEmailVerification) {
-        // User needs email verification for security
-        setCurrentInvoiceInfo(data);
-        setEmail(''); // Don't pre-fill - user must know the email address
-        setInvoiceStep('email-login');
-        toast({
-          title: "Security Verification Required",
-          description: data.error || "Please verify your email address to access this account.",
-        });
-        return;
-      }
-      
-      if (data.requiresPassword) {
-        // User has password set - redirect to standard login
-        toast({
-          title: "Password Required",
-          description: data.error || "This account has a password set. Please use the standard login.",
-          variant: "destructive",
-        });
-        setActiveTab('email'); // Switch to email tab for password login
-        setEmailAuthEmail(''); // Don't pre-fill for security
-        return;
-      }
-      
-      if (data.emailMismatch) {
-        // Email provided doesn't match account
-        toast({
-          title: "Email Mismatch",
-          description: data.error || "The email address provided does not match the account.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (data.requiresUserDetails) {
-        // New invoice - show profile completion form directly
-        setCurrentInvoiceInfo(data);
-        setEmail(''); // Clear email field for new user
-        setFirstName('');
-        setLastName('');
-        setPhone('');
-        setInvoiceStep('profile-completion');
-        toast({
-          title: "New Invoice Detected!",
-          description: data.error || "Please provide your contact details to create your account.",
-        });
-        return;
-      }
-      
-      // Normal successful login responses
       if (data.user?.isTemporaryAccount) {
         // New invoice - show profile completion form
         setCurrentInvoiceInfo(data);
@@ -345,8 +244,7 @@ export default function SimplifiedAuthDialog({
       });
       return;
     }
-    // Use the same mutation but with email parameter for verification
-    invoiceCheckMutation.mutate({
+    invoiceEmailLoginMutation.mutate({
       invoiceNumber: invoiceNumber.trim(),
       email: email.trim()
     });
@@ -665,10 +563,10 @@ export default function SimplifiedAuthDialog({
                       </Button>
                       <Button 
                         onClick={handleInvoiceEmailLogin}
-                        disabled={invoiceCheckMutation.isPending}
+                        disabled={invoiceEmailLoginMutation.isPending}
                         className="flex-1 gradient-bg"
                       >
-                        {invoiceCheckMutation.isPending ? 'Verifying...' : 'Verify Email'}
+                        {invoiceEmailLoginMutation.isPending ? 'Signing In...' : 'Sign In'}
                       </Button>
                     </div>
                   </>

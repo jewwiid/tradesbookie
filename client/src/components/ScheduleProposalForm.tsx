@@ -172,18 +172,20 @@ export default function ScheduleProposalForm({
       <DialogTrigger asChild>
         <Button 
           size="sm" 
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-blue-600 hover:bg-blue-700 flex-shrink-0 min-w-0 text-xs sm:text-sm"
           disabled={hasPendingProposal}
           title={hasPendingProposal ? "Waiting for customer response to your proposal" : 
                  (isReschedule || hasAcceptedSchedule) ? "Propose a new schedule to reschedule the installation" : 
                  otherPendingProposals.length > 0 ? `Send your proposal to compete with ${otherPendingProposals.length} other installer proposal${otherPendingProposals.length > 1 ? 's' : ''}` :
                  "Propose an installation schedule"}
         >
-          <CalendarDays className="w-4 h-4 mr-2" />
-          {hasPendingProposal ? 'Proposal Pending' : 
-           (isReschedule || hasAcceptedSchedule) ? 'Request Reschedule' : 
-           otherPendingProposals.length > 0 ? `Propose Schedule (${otherPendingProposals.length + 1} competing)` :
-           'Propose Schedule'}
+          <CalendarDays className="w-4 h-4 mr-1 sm:mr-2 flex-shrink-0" />
+          <span className="truncate">
+            {hasPendingProposal ? 'Proposal Pending' : 
+             (isReschedule || hasAcceptedSchedule) ? 'Request Reschedule' : 
+             otherPendingProposals.length > 0 ? `Propose Schedule (${otherPendingProposals.length + 1} competing)` :
+             'Propose Schedule'}
+          </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">

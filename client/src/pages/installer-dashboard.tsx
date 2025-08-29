@@ -1863,12 +1863,12 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                     (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) 
                     || booking.assignmentStatus === 'in_progress') && booking.isSelected && (
                     <>
-                      <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <div className="p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-3">
                         <div>
-                          <h4 className="font-medium text-yellow-800">
+                          <h4 className="font-medium text-yellow-800 text-sm sm:text-base">
                             {booking.assignmentStatus === 'in_progress' ? 'Work in Progress' : 'Ready to Start Installation'}
                           </h4>
-                          <p className="text-sm text-yellow-600 mt-1">
+                          <p className="text-xs sm:text-sm text-yellow-600 mt-1">
                             {booking.assignmentStatus === 'in_progress' ? (
                               'Installation work has begun. Scan the customer\'s QR code to access the Job Completion tab and finish the job.'
                             ) : (
@@ -1878,7 +1878,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                         </div>
                         {booking.assignmentStatus === 'in_progress' ? (
                           <div className="flex items-center space-x-2">
-                            <div className="px-4 py-2 bg-orange-100 text-orange-800 rounded-lg text-sm font-medium flex items-center space-x-2">
+                            <div className="px-3 sm:px-4 py-2 bg-orange-100 text-orange-800 rounded-lg text-xs sm:text-sm font-medium flex items-center space-x-2">
                               <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
                               <span>In Progress</span>
                             </div>
@@ -1898,7 +1898,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                       </div>
 
                       {/* Reschedule Option for confirmed jobs */}
-                      <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
                         <div>
                           <h4 className="font-medium text-gray-800 text-sm">Need to Reschedule?</h4>
                           <p className="text-xs text-gray-600 mt-1">
@@ -1910,7 +1910,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                             variant="ghost" 
                             size="sm" 
                             onClick={() => toggleDetails(booking.id + 2000)} // Different offset for reschedule section
-                            className="text-gray-600 hover:text-gray-800 text-xs"
+                            className="text-gray-600 hover:text-gray-800 text-xs flex-shrink-0"
                           >
                             {expandedDetails.has(booking.id + 2000) ? (
                               <><ChevronUp className="w-3 h-3 mr-1" />Hide</>
@@ -1957,45 +1957,47 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                   {!((booking.status === 'confirmed' || booking.status === 'assigned') || 
                      (booking.status === 'scheduled' && (booking.negotiationStatus === 'accept' || booking.negotiationStatus === 'accepted'))) && (
                     <>
-                      <div className="flex items-center justify-between">
+                      <div className="space-y-3">
                         <div>
-                          <h4 className="font-medium text-gray-900">Schedule Communication</h4>
+                          <h4 className="font-medium text-gray-900 text-sm sm:text-base">Schedule Communication</h4>
                           {booking.status === 'competing' && (
-                            <p className="text-sm text-purple-600 mt-1">
+                            <p className="text-xs sm:text-sm text-purple-600 mt-1">
                               Send your best proposal to win this job
                             </p>
                           )}
                           {booking.isSelected && (
-                            <p className="text-sm text-green-600 mt-1">
+                            <p className="text-xs sm:text-sm text-green-600 mt-1">
                               Customer selected you! Coordinate the final details.
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex flex-wrap items-center gap-2 w-full">
                           <Button 
                             variant="ghost" 
                             size="sm" 
                             onClick={() => toggleDetails(booking.id + 1000)} // Use offset to avoid collision
-                            className="text-blue-600 hover:text-blue-800"
+                            className="text-blue-600 hover:text-blue-800 flex-shrink-0 min-w-0 text-xs sm:text-sm"
                           >
                             {expandedDetails.has(booking.id + 1000) ? (
-                              <><ChevronUp className="w-4 h-4 mr-1" />Hide History</>
+                              <><ChevronUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />Hide History</>
                             ) : (
-                              <><ChevronDown className="w-4 h-4 mr-1" />Show History</>
+                              <><ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />Show History</>
                             )}
                           </Button>
-                          <ScheduleProposalForm
-                            bookingId={booking.id}
-                            installerId={installerId}
-                            customerName={booking.contactName}
-                            customerAddress={booking.address}
-                            onProposalSent={() => {
-                              // Refresh all relevant data after proposal sent
-                              queryClient.invalidateQueries({ queryKey: ['/api/installer', installerId, 'bookings'] });
-                              queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/schedule-negotiations`] });
-                              queryClient.invalidateQueries({ queryKey: ['/api/bookings', booking.id, 'schedule-negotiations'] });
-                            }}
-                          />
+                          <div className="flex-shrink-0 min-w-0">
+                            <ScheduleProposalForm
+                              bookingId={booking.id}
+                              installerId={installerId}
+                              customerName={booking.contactName}
+                              customerAddress={booking.address}
+                              onProposalSent={() => {
+                                // Refresh all relevant data after proposal sent
+                                queryClient.invalidateQueries({ queryKey: ['/api/installer', installerId, 'bookings'] });
+                                queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerId}/schedule-negotiations`] });
+                                queryClient.invalidateQueries({ queryKey: ['/api/bookings', booking.id, 'schedule-negotiations'] });
+                              }}
+                            />
+                          </div>
                           {!booking.scheduledDate && (
                             <Button
                               size="sm"
@@ -2009,7 +2011,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                                 }
                               }}
                               disabled={cancelJobAssignment.isPending}
-                              className="text-xs"
+                              className="text-xs flex-shrink-0 min-w-0"
                             >
                               {cancelJobAssignment.isPending ? (
                                 <>

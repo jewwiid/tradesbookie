@@ -107,6 +107,9 @@ export default function EmailTemplateManagement() {
     queryKey: ["/api/admin/email-templates"],
   });
 
+  // Type the query response
+  const typedTemplates = templates as EmailTemplate[];
+
   const createMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/admin/email-templates", data),
     onSuccess: () => {
@@ -308,7 +311,7 @@ export default function EmailTemplateManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          {templates.length === 0 ? (
+          {typedTemplates.length === 0 ? (
             <div className="text-center py-8 space-y-4">
               <Mail className="h-12 w-12 mx-auto text-muted-foreground" />
               <div>
@@ -322,7 +325,7 @@ export default function EmailTemplateManagement() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {templates.map((template: EmailTemplate) => (
+              {typedTemplates.map((template: EmailTemplate) => (
                 <Card key={template.id} className="border">
                   <CardContent className="p-4">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

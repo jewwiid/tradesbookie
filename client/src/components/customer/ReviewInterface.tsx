@@ -75,7 +75,7 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
     mutationFn: async (reviewData: any) => {
       return apiRequest('POST', '/api/reviews', reviewData);
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       toast({
         title: "Review submitted successfully!",
         description: "Thank you for your feedback. Your installer will receive 2 additional quality stars.",
@@ -112,12 +112,13 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
   // Update state when existing review data is loaded
   useEffect(() => {
     if (existingReviewData && !reviewError) {
-      setExistingReview(existingReviewData);
+      const typedReviewData = existingReviewData as ExistingReview;
+      setExistingReview(typedReviewData);
       setHasSubmittedReview(true);
       // Populate form with existing review data
-      setRating(existingReviewData.rating || 5);
-      setTitle(existingReviewData.title || '');
-      setComment(existingReviewData.comment || '');
+      setRating(typedReviewData.rating || 5);
+      setTitle(typedReviewData.title || '');
+      setComment(typedReviewData.comment || '');
     } else if (reviewError) {
       // If there's a 404 error, that means no review exists - reset states
       const errorMessage = reviewError?.message || '';
@@ -207,7 +208,7 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
         {/* Installer Info */}
         <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-            {booking.installer.profileImageUrl ? (
+            {booking.installer?.profileImageUrl ? (
               <img 
                 src={booking.installer.profileImageUrl} 
                 alt={booking.installer.businessName}
@@ -218,19 +219,19 @@ export default function ReviewInterface({ booking, onReviewSubmitted }: ReviewIn
             )}
           </div>
           <div className="flex-1">
-            <h4 className="font-semibold">{booking.installer.businessName}</h4>
-            <p className="text-sm text-gray-600">{booking.installer.contactName}</p>
+            <h4 className="font-semibold">{booking.installer?.businessName}</h4>
+            <p className="text-sm text-gray-600">{booking.installer?.contactName}</p>
             <div className="flex items-center space-x-2 mt-1">
               <div className="flex">
                 {Array.from({ length: 5 }, (_, i) => (
                   <Star 
                     key={i} 
-                    className={`w-4 h-4 ${i < Math.floor(booking.installer.averageRating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
+                    className={`w-4 h-4 ${i < Math.floor(booking.installer?.averageRating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} 
                   />
                 ))}
               </div>
               <span className="text-sm text-gray-600">
-                {booking.installer.averageRating.toFixed(1)} ({booking.installer.totalReviews} reviews)
+                {booking.installer?.averageRating.toFixed(1)} ({booking.installer?.totalReviews} reviews)
               </span>
             </div>
           </div>

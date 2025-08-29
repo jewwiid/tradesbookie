@@ -7,6 +7,10 @@ interface QRCodeGeneratorProps {
   className?: string;
 }
 
+interface QRCodeResponse {
+  qrCode: string;
+}
+
 export default function QRCodeGenerator({ text, size = 200, className = "" }: QRCodeGeneratorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -15,8 +19,11 @@ export default function QRCodeGenerator({ text, size = 200, className = "" }: QR
     enabled: !!text
   });
 
+  // Type the QR data response
+  const typedQrData = qrData as QRCodeResponse | undefined;
+
   useEffect(() => {
-    if (qrData?.qrCode && canvasRef.current) {
+    if (typedQrData?.qrCode && canvasRef.current) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       
@@ -27,10 +34,10 @@ export default function QRCodeGenerator({ text, size = 200, className = "" }: QR
           canvas.height = size;
           ctx.drawImage(img, 0, 0, size, size);
         };
-        img.src = qrData.qrCode;
+        img.src = typedQrData.qrCode;
       }
     }
-  }, [qrData, size]);
+  }, [typedQrData, size]);
 
   return (
     <canvas

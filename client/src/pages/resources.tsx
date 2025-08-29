@@ -62,8 +62,11 @@ export default function Resources() {
     queryKey: ["/api/resources"],
   });
 
+  // Type the resources data
+  const typedResources = resources as Resource[] | undefined;
+
   // Filter resources based on search and filters
-  const filteredResources = resources?.filter((resource: Resource) => {
+  const filteredResources = typedResources?.filter((resource: Resource) => {
     const matchesSearch = searchQuery === "" || 
       resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       resource.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -76,15 +79,15 @@ export default function Resources() {
   });
 
   // Get unique categories and brands from resources
-  const categories = [...new Set(resources?.map((r: Resource) => r.category) || [])];
-  const brands = [...new Set(resources?.map((r: Resource) => r.brand).filter(Boolean) || [])];
+  const categories = [...new Set(typedResources?.map((r: Resource) => r.category) || [])];
+  const brands = [...new Set(typedResources?.map((r: Resource) => r.brand).filter((brand): brand is string => Boolean(brand)) || [])];
 
   // Separate featured and regular resources
   const featuredResources = filteredResources?.filter((r: Resource) => r.featured) || [];
   const regularResources = filteredResources?.filter((r: Resource) => !r.featured) || [];
 
-  const getIcon = (iconType: string) => {
-    const IconComponent = iconTypeMap[iconType as keyof typeof iconTypeMap] || ExternalLink;
+  const getIcon = (iconType: string | null | undefined) => {
+    const IconComponent = iconTypeMap[(iconType || 'link') as keyof typeof iconTypeMap] || ExternalLink;
     return <IconComponent className="h-5 w-5" />;
   };
 
@@ -348,7 +351,7 @@ export default function Resources() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map(category => (
+                  {categories.map((category: string) => (
                     <SelectItem key={category} value={category}>
                       {category.charAt(0).toUpperCase() + category.slice(1)}
                     </SelectItem>
@@ -361,7 +364,7 @@ export default function Resources() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Brands</SelectItem>
-                  {brands.map(brand => (
+                  {brands.map((brand: string) => (
                     <SelectItem key={brand} value={brand}>
                       {brand}
                     </SelectItem>

@@ -104,10 +104,7 @@ export default function StoreManagement() {
   // Update retailer mutation
   const updateRetailerMutation = useMutation({
     mutationFn: async ({ code, updates }: { code: string; updates: Partial<NewRetailerForm> }) => {
-      return apiRequest(`/api/retail-partner/retailers/${code}`, {
-        method: 'PATCH',
-        body: updates
-      });
+      return apiRequest('PATCH', `/api/retail-partner/retailers/${code}`, updates);
     },
     onSuccess: () => {
       toast({
@@ -130,9 +127,7 @@ export default function StoreManagement() {
   // Delete retailer mutation
   const deleteRetailerMutation = useMutation({
     mutationFn: async (retailerCode: string) => {
-      return apiRequest(`/api/retail-partner/retailers/${retailerCode}`, {
-        method: 'DELETE'
-      });
+      return apiRequest('DELETE', `/api/retail-partner/retailers/${retailerCode}`);
     },
     onSuccess: () => {
       toast({
@@ -153,10 +148,7 @@ export default function StoreManagement() {
   // Update store locations mutation
   const updateStoresMutation = useMutation({
     mutationFn: async ({ retailerCode, storeLocations }: { retailerCode: string; storeLocations: Record<string, string> }) => {
-      return apiRequest(`/api/retail-partner/retailers/${retailerCode}/stores`, {
-        method: 'PUT',
-        body: { storeLocations }
-      });
+      return apiRequest('PUT', `/api/retail-partner/retailers/${retailerCode}/stores`, { storeLocations });
     },
     onSuccess: (data, variables) => {
       toast({

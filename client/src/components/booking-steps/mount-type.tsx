@@ -17,7 +17,7 @@ export default function MountType({ onNext, onBack }: MountTypeProps) {
   };
 
   const handleWallMountSelect = (needsWallMount: boolean) => {
-    updateData({ needsWallMount, wallMountOption: needsWallMount ? undefined : null });
+    updateData({ needsWallMount, wallMountOption: needsWallMount ? undefined : undefined });
   };
 
   const handleWallMountOptionSelect = (wallMountOption: string) => {

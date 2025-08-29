@@ -85,7 +85,7 @@ export default function FlexiblePhotoCapture({
         isCompleted: false
       });
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data: any, variables) => {
       onProgressSave?.(variables.tvIndex, data.progress);
       queryClient.invalidateQueries({ queryKey: ['/api/installer/photo-progress', bookingId] });
     },
@@ -100,10 +100,11 @@ export default function FlexiblePhotoCapture({
 
   // Initialize photos from progress data
   useEffect(() => {
-    if (progressData?.progress) {
+    const typedProgressData = progressData as any;
+    if (typedProgressData?.progress) {
       const initialPhotos = new Map();
       
-      progressData.progress.forEach((progress: PhotoProgress) => {
+      typedProgressData.progress.forEach((progress: PhotoProgress) => {
         if (progress.beforePhotoUrl) {
           initialPhotos.set(`${progress.tvIndex}-before`, {
             base64: progress.beforePhotoUrl,

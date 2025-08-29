@@ -84,6 +84,39 @@ interface InstallerStats {
   activeRequests: number;
 }
 
+interface InstallerProfile {
+  id: number;
+  contactName?: string;
+  businessName?: string;
+  email?: string;
+  phone?: string;
+  serviceArea?: string;
+  bio?: string;
+  yearsExperience?: number;
+  certifications?: string;
+  emergencyCallout?: boolean;
+  weekendAvailable?: boolean;
+  approvalStatus?: string;
+  isAvailable?: boolean;
+  isVip?: boolean;
+  profileImageUrl?: string;
+  insurance?: string;
+  preferredCommunication?: string;
+  responseTime?: string;
+  cleanupPolicy?: string;
+  calloutFee?: string;
+  teamSize?: string;
+  additionalCharges?: string;
+  vehicleType?: string;
+  languages?: string[];
+}
+
+interface CurrentUser {
+  id: number;
+  role?: string;
+  email?: string;
+}
+
 interface ClientRequest {
   id: number;
   address: string;
@@ -317,7 +350,7 @@ function IrelandMap({ requests, onRequestSelect, selectedRequest }: {
           return [result.lat, result.lng];
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error.name !== 'AbortError') {
         console.warn('Geocoding API error for', address, '- using fallback coordinates');
       }
@@ -1185,6 +1218,9 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
     refetchInterval: 30000
   });
 
+  // Type the pending proposals data
+  const typedPendingProposals = pendingProposals as any[];
+
   // Group active bookings by scheduled date AND include pending proposals
   const jobsByDate = activeBookings.reduce((acc: Record<string, any[]>, job: any) => {
     // Use scheduledDate if available, otherwise use created date for pending jobs
@@ -1203,7 +1239,7 @@ function ActiveJobsCalendar({ activeBookings }: { activeBookings: any[] }) {
   }, {});
 
   // Add pending proposals to the calendar
-  pendingProposals
+  typedPendingProposals
     .filter((proposal: any) => proposal.status === 'pending' && proposal.proposedBy === 'installer')
     .forEach((proposal: any) => {
       // Handle both string dates and date objects  
@@ -1444,6 +1480,9 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
     refetchInterval: 30000, // Refresh every 30 seconds for new messages
   });
 
+  // Type the active bookings data
+  const typedActiveBookings = activeBookings as any[];
+
   const toggleDetails = (bookingId: number) => {
     setExpandedDetails(prev => {
       const newSet = new Set(prev);
@@ -1519,7 +1558,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
     );
   }
 
-  if (activeBookings.length === 0) {
+  if (typedActiveBookings.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -1570,7 +1609,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
             <div>
               <CardTitle className="flex items-center space-x-2">
                 <Wrench className="w-5 h-5" />
-                <span>Active Jobs ({activeBookings.length})</span>
+                <span>Active Jobs ({typedActiveBookings.length})</span>
               </CardTitle>
               <CardDescription>
                 Active installations requiring your attention
@@ -1599,7 +1638,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
         </CardHeader>
         <CardContent className="space-y-4">
           {viewMode === 'list' ? (
-            activeBookings.map((booking: any) => (
+            typedActiveBookings.map((booking: any) => (
             <Card key={booking.id} className="border-l-4 border-l-blue-500">
               <CardContent className="p-6 space-y-4">
                 {/* Booking Header */}
@@ -1655,7 +1694,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
                           {booking.tvInstallations.length} TVs
                         </span>
                         <span className="text-xs text-gray-500">
-                          ({booking.tvInstallations.map(tv => tv.location || 'Room').join(', ')})
+                          ({booking.tvInstallations.map((tv: any) => tv.location || 'Room').join(', ')})
                         </span>
                       </>
                     ) : (
@@ -2022,7 +2061,7 @@ function ActiveJobsSection({ installerId }: { installerId?: number }) {
               </CardContent>
             </Card>
           ))) : (
-            <ActiveJobsCalendar activeBookings={activeBookings} />
+            <ActiveJobsCalendar activeBookings={typedActiveBookings} />
           )}
         </CardContent>
       </Card>
@@ -2116,12 +2155,18 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
+  // Type the completed jobs data
+  const typedCompletedJobs = completedJobs as any[];
+
   // Fetch photo progress for displaying completed photos
   const { data: photoProgressData } = useQuery({
     queryKey: [`/api/installer/photo-progress/${inProgressJobs[0]?.id}`],
     enabled: inProgressJobs.length > 0 && beforePhotosCompleted,
     refetchInterval: 10000, // Refresh every 10 seconds to get latest photos
   });
+
+  // Type the photo progress data
+  const typedPhotoProgressData = photoProgressData as any;
 
   // Restore workflow state when component mounts and after data is loaded
   useEffect(() => {
@@ -2546,9 +2591,9 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                     <div className="space-y-2">
                       <h5 className="text-sm font-medium text-gray-700">Before Photo</h5>
                       <div className="w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
-                        {photoProgressData?.progress?.find((p: any) => p.tvIndex === index)?.beforePhotoUrl ? (
+                        {typedPhotoProgressData?.progress?.find((p: any) => p.tvIndex === index)?.beforePhotoUrl ? (
                           <img 
-                            src={photoProgressData.progress.find((p: any) => p.tvIndex === index).beforePhotoUrl}
+                            src={typedPhotoProgressData.progress.find((p: any) => p.tvIndex === index).beforePhotoUrl}
                             alt={`${tvName} Before`}
                             className="w-full h-full object-cover"
                           />
@@ -2708,12 +2753,12 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
                               )}
                               
                               {/* Display Before Photos Thumbnails */}
-                              {beforePhotosCompleted && photoProgressData?.progress && Array.isArray(photoProgressData.progress) && (
+                              {beforePhotosCompleted && typedPhotoProgressData?.progress && Array.isArray(typedPhotoProgressData.progress) && (
                                 <div className="mt-3 pt-3 border-t border-gray-100">
                                   <h5 className="text-xs font-medium text-gray-700 mb-2">Before Photos:</h5>
                                   <div className="grid grid-cols-2 gap-2">
                                     {job.tvInstallations?.map((tv: any, index: number) => {
-                                      const progressItem = photoProgressData.progress.find((p: any) => p.tvIndex === index);
+                                      const progressItem = typedPhotoProgressData.progress.find((p: any) => p.tvIndex === index);
                                       const beforePhoto = progressItem?.beforePhotoUrl;
                                       return (
                                         <div key={index} className="text-center">
@@ -2851,7 +2896,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {!completedJobs || completedJobs.length === 0 ? (
+          {!typedCompletedJobs || typedCompletedJobs.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <CheckCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">No Completed Jobs Yet</h3>
@@ -2861,7 +2906,7 @@ function JobCompletionSection({ installerId }: { installerId?: number }) {
             </div>
           ) : (
             <div className="space-y-4">
-              {completedJobs.slice(0, 5).map((job: any) => {
+              {typedCompletedJobs.slice(0, 5).map((job: any) => {
                 const isExpanded = expandedJobId === job.id;
                 const beforeAfterPhotos = job.booking?.beforeAfterPhotos || [];
                 
@@ -3121,26 +3166,32 @@ export default function InstallerDashboard() {
     retry: false
   });
 
+  // Type the installer profile data
+  const typedInstallerProfile = installerProfile as InstallerProfile;
+
   // Fetch current user to check for admin status
   const { data: currentUser } = useQuery({
     queryKey: ['/api/auth/user'],
     retry: false,
   });
 
+  // Type the current user data
+  const typedCurrentUser = currentUser as CurrentUser;
+
   // Check if current user is admin viewing installer dashboard
-  const isAdminView = currentUser?.role === 'admin' || 
-                      currentUser?.email === 'admin@tradesbook.ie' || 
-                      currentUser?.email === 'jude.okun@gmail.com';
+  const isAdminView = typedCurrentUser?.role === 'admin' || 
+                      typedCurrentUser?.email === 'admin@tradesbook.ie' || 
+                      typedCurrentUser?.email === 'jude.okun@gmail.com';
   
   // Initialize availability status from database
-  const [isOnline, setIsOnline] = useState(installerProfile?.isAvailable || false);
+  const [isOnline, setIsOnline] = useState(typedInstallerProfile?.isAvailable || false);
   
   // Update local state when profile loads
   useEffect(() => {
-    if (installerProfile?.isAvailable !== undefined) {
-      setIsOnline(installerProfile.isAvailable);
+    if (typedInstallerProfile?.isAvailable !== undefined) {
+      setIsOnline(typedInstallerProfile.isAvailable);
     }
-  }, [installerProfile?.isAvailable]);
+  }, [typedInstallerProfile?.isAvailable]);
 
   // Profile photo upload mutation
   const profilePhotoMutation = useMutation({
@@ -3263,9 +3314,9 @@ export default function InstallerDashboard() {
 
   // Fetch available requests from API
   const { data: availableRequests = [], isLoading: requestsLoading } = useQuery({
-    queryKey: ['/api/installer', installerProfile?.id, 'available-leads'],
+    queryKey: ['/api/installer', typedInstallerProfile?.id, 'available-leads'],
     queryFn: async () => {
-      const res = await fetch(`/api/installer/${installerProfile?.id}/available-leads`);
+      const res = await fetch(`/api/installer/${typedInstallerProfile?.id}/available-leads`);
       if (!res.ok) {
         console.error('Failed to fetch available leads:', res.status);
         return [];
@@ -3273,29 +3324,35 @@ export default function InstallerDashboard() {
       const data = await res.json();
       return Array.isArray(data) ? data : [];
     },
-    enabled: !!installerProfile?.id,
+    enabled: !!typedInstallerProfile?.id,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Fetch past leads for monthly stats calculation
   const { data: pastLeads = [] } = useQuery({
-    queryKey: [`/api/installer/${installerProfile?.id}/past-leads`],
-    enabled: !!installerProfile?.id,
+    queryKey: [`/api/installer/${typedInstallerProfile?.id}/past-leads`],
+    enabled: !!typedInstallerProfile?.id,
     refetchInterval: 30000
   });
 
+  // Type the past leads data
+  const typedPastLeads = pastLeads as any[];
+
   // Fetch reviews for rating calculation
   const { data: reviewStats } = useQuery({
-    queryKey: [`/api/installer/${installerProfile?.id}/reviews`],
-    enabled: !!installerProfile?.id,
+    queryKey: [`/api/installer/${typedInstallerProfile?.id}/reviews`],
+    enabled: !!typedInstallerProfile?.id,
     refetchInterval: 30000
   });
+
+  // Type the review stats data
+  const typedReviewStats = reviewStats as any;
 
   // Calculate real stats from actual data
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   
-  const monthlyLeads = pastLeads.filter((lead: any) => {
+  const monthlyLeads = typedPastLeads.filter((lead: any) => {
     const leadDate = new Date(lead.createdAt);
     return leadDate.getMonth() === currentMonth && leadDate.getFullYear() === currentYear;
   });
@@ -3307,7 +3364,7 @@ export default function InstallerDashboard() {
   const stats: InstallerStats = {
     monthlyJobs: monthlyLeads.length,
     earnings: monthlyEarnings,
-    rating: reviewStats?.averageRating || 0,
+    rating: typedReviewStats?.averageRating || 0,
     activeRequests: availableRequests.length
   };
 
@@ -3315,7 +3372,7 @@ export default function InstallerDashboard() {
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
       return await apiRequest("POST", "/api/installers/profile", {
-        installerId: installerProfile?.id,
+        installerId: typedInstallerProfile?.id,
         ...data
       });
     },
@@ -3397,7 +3454,7 @@ export default function InstallerDashboard() {
   const acceptRequestMutation = useMutation({
     mutationFn: async (requestId: number) => {
       return apiRequest('POST', `/api/installer/accept-request/${requestId}`, {
-        installerId: installerProfile?.id
+        installerId: typedInstallerProfile?.id
       });
     },
     onSuccess: (data: any, requestId) => {
@@ -3406,11 +3463,11 @@ export default function InstallerDashboard() {
         description: "Professional email sent to customer with your contact details. They will reach out within 24 hours to confirm scheduling.",
         duration: 6000,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'available-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', typedInstallerProfile?.id, 'available-leads'] });
       
       // Update local stats to reflect accepted job - refresh queries to get updated data
-      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile?.id}/past-leads`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile?.id}/reviews`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/installer/${typedInstallerProfile?.id}/past-leads`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/installer/${typedInstallerProfile?.id}/reviews`] });
       
       // Remove the accepted request from selected state
       if (selectedRequest?.id === requestId) {
@@ -3464,7 +3521,7 @@ export default function InstallerDashboard() {
       });
       
       // Invalidate and refresh the available leads list
-      queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile?.id, 'available-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/installer', typedInstallerProfile?.id, 'available-leads'] });
       
       // Remove the declined request from selected state
       if (selectedRequest?.id === requestId) {
@@ -3482,7 +3539,7 @@ export default function InstallerDashboard() {
 
   // Check approval status and redirect if needed
   useEffect(() => {
-    if (installerProfile && installerProfile.approvalStatus !== "approved") {
+    if (typedInstallerProfile && typedInstallerProfile.approvalStatus !== "approved") {
       // Redirect to pending page for non-approved installers
       window.location.href = "/installer-pending";
     }
@@ -3490,19 +3547,19 @@ export default function InstallerDashboard() {
 
   // Populate profile data when dialog is opened
   useEffect(() => {
-    if (installerProfile && showProfileDialog) {
+    if (typedInstallerProfile && showProfileDialog) {
       setProfileData({
-        name: installerProfile.contactName || "",
-        businessName: installerProfile.businessName || "",
-        email: installerProfile.email || "",
-        phone: installerProfile.phone || "",
-        serviceArea: installerProfile.serviceArea || "",
-        county: installerProfile.serviceArea || "",
-        bio: installerProfile.bio || "",
-        experience: installerProfile.yearsExperience?.toString() || "",
-        certifications: installerProfile.certifications || "",
-        emergencyCallout: installerProfile.emergencyCallout || false,
-        weekendAvailable: installerProfile.weekendAvailable || false
+        name: typedInstallerProfile.contactName || "",
+        businessName: typedInstallerProfile.businessName || "",
+        email: typedInstallerProfile.email || "",
+        phone: typedInstallerProfile.phone || "",
+        serviceArea: typedInstallerProfile.serviceArea || "",
+        county: typedInstallerProfile.serviceArea || "",
+        bio: typedInstallerProfile.bio || "",
+        experience: typedInstallerProfile.yearsExperience?.toString() || "",
+        certifications: typedInstallerProfile.certifications || "",
+        emergencyCallout: typedInstallerProfile.emergencyCallout || false,
+        weekendAvailable: typedInstallerProfile.weekendAvailable || false
       });
     }
   }, [installerProfile, showProfileDialog]);
@@ -3550,7 +3607,7 @@ export default function InstallerDashboard() {
     );
   }
 
-  if (profileLoading || (installerProfile && installerProfile.approvalStatus !== "approved")) {
+  if (profileLoading || (typedInstallerProfile && typedInstallerProfile.approvalStatus !== "approved")) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
         <div className="text-center">
@@ -3669,7 +3726,7 @@ export default function InstallerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 relative">
       {/* Navigation */}
-      <Navigation isInstallerContext={true} installerProfile={installerProfile} />
+      <Navigation isInstallerContext={true} installerProfile={typedInstallerProfile} />
       
       {/* Installer Dashboard Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
@@ -3823,7 +3880,7 @@ export default function InstallerDashboard() {
               {/* VIP Status Card */}
               <Card 
                 className={`cursor-pointer transition-all duration-200 ${
-                  installerProfile?.isVip 
+                  typedInstallerProfile?.isVip 
                     ? 'bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-300 hover:shadow-lg' 
                     : 'hover:shadow-md border-2 border-dashed border-gray-300 hover:border-yellow-400'
                 }`}
@@ -3832,22 +3889,22 @@ export default function InstallerDashboard() {
                 <CardContent className="p-6">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <Crown className={`w-8 h-8 ${installerProfile?.isVip ? 'text-yellow-600' : 'text-gray-400'}`} />
+                      <Crown className={`w-8 h-8 ${typedInstallerProfile?.isVip ? 'text-yellow-600' : 'text-gray-400'}`} />
                     </div>
                     <div className="ml-4 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium text-gray-500">Membership</p>
-                        {installerProfile?.isVip && (
+                        {typedInstallerProfile?.isVip && (
                           <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs">
                             VIP
                           </Badge>
                         )}
                       </div>
-                      <p className={`text-2xl font-bold ${installerProfile?.isVip ? 'text-yellow-700' : 'text-gray-600'}`}>
-                        {installerProfile?.isVip ? 'VIP Active' : 'Standard'}
+                      <p className={`text-2xl font-bold ${typedInstallerProfile?.isVip ? 'text-yellow-700' : 'text-gray-600'}`}>
+                        {typedInstallerProfile?.isVip ? 'VIP Active' : 'Standard'}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {installerProfile?.isVip ? 'No lead fees!' : 'Click to upgrade'}
+                        {typedInstallerProfile?.isVip ? 'No lead fees!' : 'Click to upgrade'}
                       </p>
                     </div>
                   </div>
@@ -3856,10 +3913,10 @@ export default function InstallerDashboard() {
             </div>
 
             {/* Admin Promotion Banner */}
-            <AdminPromotionBanner installerId={installerProfile?.id} />
+            <AdminPromotionBanner installerId={typedInstallerProfile?.id} />
             
             {/* Voucher Status Display */}
-            <VoucherStatus installerId={installerProfile?.id} />
+            <VoucherStatus installerId={typedInstallerProfile?.id} />
 
             {/* View Toggle */}
             <div className="flex justify-between items-center mb-6">
@@ -3915,7 +3972,6 @@ export default function InstallerDashboard() {
                             requests={availableRequests}
                             onRequestSelect={handleRequestToggle}
                             selectedRequest={selectedRequest || undefined}
-                            className="h-full"
                           />
                         </div>
                         
@@ -3989,7 +4045,6 @@ export default function InstallerDashboard() {
                           requests={availableRequests}
                           onRequestSelect={handleRequestToggle}
                           selectedRequest={selectedRequest || undefined}
-                          className="h-full w-full"
                         />
                       </div>
                       
@@ -4054,25 +4109,25 @@ export default function InstallerDashboard() {
           </TabsContent>
 
           <TabsContent value="past-leads" className="space-y-6">
-            <PastLeadsManagement installerId={installerProfile?.id} />
+            <PastLeadsManagement installerId={typedInstallerProfile?.id} />
           </TabsContent>
 
           <TabsContent value="active-jobs" className="space-y-6">
-            <ActiveJobsSection installerId={installerProfile?.id} />
+            <ActiveJobsSection installerId={typedInstallerProfile?.id} />
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-6">
-            <InstallerReviews installerId={installerProfile?.id} />
+            <InstallerReviews installerId={typedInstallerProfile?.id} />
           </TabsContent>
 
           <TabsContent value="wallet" className="space-y-6">
-            {installerProfile && (
-              <InstallerWalletDashboard installerId={installerProfile.id} />
+            {typedInstallerProfile && (
+              <InstallerWalletDashboard installerId={typedInstallerProfile.id} />
             )}
           </TabsContent>
 
           <TabsContent value="job-completion" className="space-y-6">
-            <JobCompletionSection installerId={installerProfile?.id} />
+            <JobCompletionSection installerId={typedInstallerProfile?.id} />
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-6">
@@ -4085,7 +4140,7 @@ export default function InstallerDashboard() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Current Profile Information Display */}
-                {installerProfile && (
+                {typedInstallerProfile && (
                   <div className="space-y-6">
                     {/* Basic Information Section */}
                     <div>
@@ -4097,18 +4152,18 @@ export default function InstallerDashboard() {
                         <div className="space-y-4">
                           <div className="border-l-4 border-primary pl-4">
                             <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Contact Name</Label>
-                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.contactName || "Not provided"}</p>
+                            <p className="text-base font-medium text-gray-900 mt-1">{typedInstallerProfile.contactName || "Not provided"}</p>
                           </div>
                           <div className="border-l-4 border-gray-200 pl-4">
                             <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide">Business Name</Label>
-                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.businessName || "Not provided"}</p>
+                            <p className="text-base font-medium text-gray-900 mt-1">{typedInstallerProfile.businessName || "Not provided"}</p>
                           </div>
                           <div className="border-l-4 border-gray-200 pl-4">
                             <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide flex items-center gap-1">
                               <Mail className="w-3 h-3" />
                               Email
                             </Label>
-                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.email || "Not provided"}</p>
+                            <p className="text-base font-medium text-gray-900 mt-1">{typedInstallerProfile.email || "Not provided"}</p>
                           </div>
                         </div>
                         <div className="space-y-4">
@@ -4117,14 +4172,14 @@ export default function InstallerDashboard() {
                               <Phone className="w-3 h-3" />
                               Phone
                             </Label>
-                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.phone || "Not provided"}</p>
+                            <p className="text-base font-medium text-gray-900 mt-1">{typedInstallerProfile.phone || "Not provided"}</p>
                           </div>
                           <div className="border-l-4 border-gray-200 pl-4">
                             <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide flex items-center gap-1">
                               <MapPin className="w-3 h-3" />
                               Service Area
                             </Label>
-                            <p className="text-base font-medium text-gray-900 mt-1">{installerProfile.serviceArea || "Not specified"}</p>
+                            <p className="text-base font-medium text-gray-900 mt-1">{typedInstallerProfile.serviceArea || "Not specified"}</p>
                           </div>
                           <div className="border-l-4 border-gray-200 pl-4">
                             <Label className="text-sm font-medium text-gray-600 uppercase tracking-wide flex items-center gap-1">
@@ -4132,7 +4187,7 @@ export default function InstallerDashboard() {
                               Experience
                             </Label>
                             <p className="text-base font-medium text-gray-900 mt-1">
-                              {installerProfile.yearsExperience ? `${installerProfile.yearsExperience} years` : "Not specified"}
+                              {typedInstallerProfile.yearsExperience ? `${typedInstallerProfile.yearsExperience} years` : "Not specified"}
                             </p>
                           </div>
                           
@@ -4142,12 +4197,12 @@ export default function InstallerDashboard() {
                               Insurance Status
                             </Label>
                             <div className="flex items-center gap-2 mt-1">
-                              {installerProfile.insurance ? (
+                              {typedInstallerProfile.insurance ? (
                                 <div>
                                   <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
                                     ✓ Insured
                                   </Badge>
-                                  <p className="text-sm text-gray-600 mt-1">{installerProfile.insurance}</p>
+                                  <p className="text-sm text-gray-600 mt-1">{typedInstallerProfile.insurance}</p>
                                 </div>
                               ) : (
                                 <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">
@@ -4168,7 +4223,7 @@ export default function InstallerDashboard() {
                       </h3>
                       <div className="bg-gray-50 p-4 rounded-lg border">
                         <p className="text-gray-700 leading-relaxed">
-                          {installerProfile.bio || "No bio provided yet. Add a bio to help customers learn more about your experience and services."}
+                          {typedInstallerProfile.bio || "No bio provided yet. Add a bio to help customers learn more about your experience and services."}
                         </p>
                       </div>
                     </div>
@@ -4181,18 +4236,18 @@ export default function InstallerDashboard() {
                       </h3>
                       <div className="flex items-center gap-3">
                         <Badge 
-                          variant={installerProfile.approvalStatus === 'approved' ? 'default' : 'secondary'}
+                          variant={typedInstallerProfile.approvalStatus === 'approved' ? 'default' : 'secondary'}
                           className="px-3 py-1 text-sm font-medium"
                         >
-                          {installerProfile.approvalStatus === 'approved' ? '✓ Approved' : 'Pending Approval'}
+                          {typedInstallerProfile.approvalStatus === 'approved' ? '✓ Approved' : 'Pending Approval'}
                         </Badge>
-                        {installerProfile.approvalStatus !== 'approved' && (
+                        {typedInstallerProfile.approvalStatus !== 'approved' && (
                           <span className="text-sm text-gray-600">Your profile is under review by our team</span>
                         )}
                       </div>
                     </div>
                     {/* Profile Enhancement Section - Only for approved installers */}
-                    {installerProfile.approvalStatus === 'approved' && (
+                    {typedInstallerProfile.approvalStatus === 'approved' && (
                       <div className="space-y-6 pt-6 border-t">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                           <Edit className="w-5 h-5 text-primary" />
@@ -4209,10 +4264,10 @@ export default function InstallerDashboard() {
                               <div>
                                 <Label htmlFor="profileImage">Profile Photo</Label>
                                 <div className="space-y-3">
-                                  {installerProfile.profileImageUrl && (
+                                  {typedInstallerProfile.profileImageUrl && (
                                     <div className="flex items-center gap-3">
                                       <img
-                                        src={installerProfile.profileImageUrl}
+                                        src={typedInstallerProfile.profileImageUrl}
                                         alt="Profile"
                                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
                                       />
@@ -4247,7 +4302,7 @@ export default function InstallerDashboard() {
                                 <Input
                                   id="certifications"
                                   placeholder="e.g., CEDIA, AVIXA certified"
-                                  defaultValue={installerProfile.certifications || ""}
+                                  defaultValue={typedInstallerProfile.certifications || ""}
                                 />
                               </div>
                             </div>
@@ -4258,7 +4313,7 @@ export default function InstallerDashboard() {
                                 id="bio"
                                 placeholder="Tell customers about your experience, specialties, and what makes you unique..."
                                 rows={4}
-                                defaultValue={installerProfile.bio || ""}
+                                defaultValue={typedInstallerProfile.bio || ""}
                               />
                             </div>
                           </CardContent>
@@ -4273,7 +4328,7 @@ export default function InstallerDashboard() {
                             <div className="grid md:grid-cols-2 gap-4">
                               <div>
                                 <Label htmlFor="preferredCommunication">Preferred Communication Method</Label>
-                                <Select defaultValue={installerProfile.preferredCommunication || ""}>
+                                <Select defaultValue={typedInstallerProfile.preferredCommunication || ""}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="How do you prefer to be contacted?" />
                                   </SelectTrigger>
@@ -4288,7 +4343,7 @@ export default function InstallerDashboard() {
                               
                               <div>
                                 <Label htmlFor="responseTime">Response Time Commitment</Label>
-                                <Select defaultValue={installerProfile.responseTime || ""}>
+                                <Select defaultValue={typedInstallerProfile.responseTime || ""}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="How quickly do you respond?" />
                                   </SelectTrigger>
@@ -4308,7 +4363,7 @@ export default function InstallerDashboard() {
                                 id="cleanupPolicy"
                                 placeholder="Describe your cleanup policy after installation..."
                                 rows={3}
-                                defaultValue={installerProfile.cleanupPolicy || ""}
+                                defaultValue={typedInstallerProfile.cleanupPolicy || ""}
                               />
                             </div>
                           </CardContent>
@@ -4327,14 +4382,14 @@ export default function InstallerDashboard() {
                                   id="calloutFee"
                                   type="number"
                                   placeholder="0"
-                                  defaultValue={installerProfile.calloutFee || ""}
+                                  defaultValue={typedInstallerProfile.calloutFee || ""}
                                 />
                                 <p className="text-xs text-gray-500 mt-1">Leave blank if no callout fee</p>
                               </div>
                               
                               <div>
                                 <Label htmlFor="teamSize">Team Size</Label>
-                                <Select defaultValue={installerProfile.teamSize || ""}>
+                                <Select defaultValue={typedInstallerProfile.teamSize || ""}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="How many people on your team?" />
                                   </SelectTrigger>
@@ -4354,7 +4409,7 @@ export default function InstallerDashboard() {
                                 id="additionalCharges"
                                 placeholder="Describe any additional charges for complex installations..."
                                 rows={3}
-                                defaultValue={installerProfile.additionalCharges || ""}
+                                defaultValue={typedInstallerProfile.additionalCharges || ""}
                               />
                             </div>
                           </CardContent>
@@ -4369,7 +4424,7 @@ export default function InstallerDashboard() {
                             <div className="grid md:grid-cols-2 gap-4">
                               <div>
                                 <Label htmlFor="vehicleType">Vehicle Type</Label>
-                                <Select defaultValue={installerProfile.vehicleType || ""}>
+                                <Select defaultValue={typedInstallerProfile.vehicleType || ""}>
                                   <SelectTrigger>
                                     <SelectValue placeholder="What vehicle do you use?" />
                                   </SelectTrigger>
@@ -4387,7 +4442,7 @@ export default function InstallerDashboard() {
                                 <Input
                                   id="languages"
                                   placeholder="e.g., English, Irish, Polish"
-                                  defaultValue={installerProfile.languages?.join(', ') || ""}
+                                  defaultValue={typedInstallerProfile.languages?.join(', ') || ""}
                                 />
                               </div>
                             </div>
@@ -4412,7 +4467,7 @@ export default function InstallerDashboard() {
                     )}
 
                     {/* Message for non-approved installers */}
-                    {installerProfile.approvalStatus !== 'approved' && (
+                    {typedInstallerProfile.approvalStatus !== 'approved' && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
                         <div className="flex items-center gap-2 text-yellow-800">
                           <AlertCircle className="w-4 h-4" />
@@ -4449,7 +4504,7 @@ export default function InstallerDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <InstallerGuides installerId={installerProfile?.id} />
+                <InstallerGuides installerId={typedInstallerProfile?.id} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -4735,16 +4790,16 @@ export default function InstallerDashboard() {
 
       {/* Lead Purchase Dialog */}
       <LeadPurchaseDialog
-        lead={selectedLeadForPurchase}
-        installerId={installerProfile?.id || 0}
+        lead={selectedLeadForPurchase as any}
+        installerId={typedInstallerProfile?.id || 0}
         open={showPurchaseDialog}
         onOpenChange={setShowPurchaseDialog}
         onPurchaseSuccess={() => {
           // Refresh all relevant data
-          if (installerProfile?.id) {
-            queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile.id, 'available-leads'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/installer', installerProfile.id, 'stats'] });
-            queryClient.invalidateQueries({ queryKey: [`/api/installer/${installerProfile.id}/wallet`] });
+          if (typedInstallerProfile?.id) {
+            queryClient.invalidateQueries({ queryKey: ['/api/installer', typedInstallerProfile.id, 'available-leads'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/installer', typedInstallerProfile.id, 'stats'] });
+            queryClient.invalidateQueries({ queryKey: [`/api/installer/${typedInstallerProfile.id}/wallet`] });
           }
           setSelectedLeadForPurchase(null);
           setSelectedRequest(null);
@@ -4752,11 +4807,11 @@ export default function InstallerDashboard() {
       />
 
       {/* VIP Subscription Modal */}
-      {installerProfile?.id && (
+      {typedInstallerProfile?.id && (
         <VipSubscriptionModal
           open={showVipModal}
           onOpenChange={setShowVipModal}
-          installerId={installerProfile.id}
+          installerId={typedInstallerProfile.id}
         />
       )}
 

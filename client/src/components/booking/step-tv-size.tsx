@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tv, Sparkles } from 'lucide-react';
 import { useBooking } from '@/lib/booking-context';
-import { TV_SIZES } from '@/lib/constants';
+import { TV_SIZES } from '@/lib/constants.tsx';
 import { apiRequest } from '@/lib/queryClient';
 
 interface StepTVSizeProps {

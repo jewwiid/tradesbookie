@@ -2284,7 +2284,7 @@ function BookingManagement() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">€{booking.totalPrice ? (typeof booking.totalPrice === 'number' ? booking.totalPrice.toFixed(2) : booking.totalPrice) : '0.00'}</div>
+                      <div className="font-medium">€{booking.totalPrice ? (typeof booking.totalPrice === 'number' ? (booking.totalPrice as number).toFixed(2) : booking.totalPrice) : '0.00'}</div>
                       <div className="text-sm text-gray-500">Lead Fee: €{booking.leadFee ? (typeof booking.leadFee === 'number' ? booking.leadFee.toFixed(2) : booking.leadFee) : '0.00'}</div>
                     </div>
                   </TableCell>
@@ -5729,7 +5729,7 @@ function EmailPreferencesManagement() {
     if (selectedUsers.length === filteredUsers.length) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(filteredUsers.map(user => user.id));
+      setSelectedUsers(filteredUsers.map((user: any) => user.id));
     }
   };
 
@@ -5737,7 +5737,7 @@ function EmailPreferencesManagement() {
     if (selectedInstallers.length === filteredInstallers.length) {
       setSelectedInstallers([]);
     } else {
-      setSelectedInstallers(filteredInstallers.map(installer => installer.id.toString()));
+      setSelectedInstallers(filteredInstallers.map((installer: any) => installer.id.toString()));
     }
   };
 
@@ -6423,7 +6423,7 @@ function InstallerCreditLoading() {
         description
       });
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       toast({
         title: "Credits Added Successfully",
         description: response.message || "Credits have been added to the installer's wallet",
@@ -6503,7 +6503,7 @@ function InstallerCreditLoading() {
                 <Select 
                   value={selectedInstaller?.id.toString() || ''} 
                   onValueChange={(value) => {
-                    const installer = installers.find(i => i.id.toString() === value);
+                    const installer = installers.find((i: any) => i.id.toString() === value);
                     setSelectedInstaller(installer || null);
                   }}
                 >
@@ -6516,7 +6516,7 @@ function InstallerCreditLoading() {
                         Loading installers...
                       </SelectItem>
                     ) : (
-                      installers.map((installer) => (
+                      installers.map((installer: any) => (
                         <SelectItem key={installer.id} value={installer.id.toString()}>
                           {installer.businessName} ({installer.email})
                         </SelectItem>
@@ -6684,8 +6684,8 @@ function PlatformSettingsManagement() {
   });
 
   const handleToggleFirstLeadVouchers = async () => {
-    const voucherSetting = settings.find(s => s.key === 'first_lead_voucher_enabled');
-    const freeLeadsPromotion = settings.find(s => s.key === 'free_leads_promotion_enabled');
+    const voucherSetting = settings.find((s: any) => s.key === 'first_lead_voucher_enabled');
+    const freeLeadsPromotion = settings.find((s: any) => s.key === 'free_leads_promotion_enabled');
     const newValue = voucherSetting?.value === 'true' ? 'false' : 'true';
     
     // Check if Free Leads Promotion is running - can't enable both at same time
@@ -6718,8 +6718,8 @@ function PlatformSettingsManagement() {
   };
 
   const handleToggleFreeLeadsPromotion = async () => {
-    const freeLeadsPromotion = settings.find(s => s.key === 'free_leads_promotion_enabled');
-    const voucherSetting = settings.find(s => s.key === 'first_lead_voucher_enabled');
+    const freeLeadsPromotion = settings.find((s: any) => s.key === 'free_leads_promotion_enabled');
+    const voucherSetting = settings.find((s: any) => s.key === 'first_lead_voucher_enabled');
     const newValue = freeLeadsPromotion?.value === 'true' ? 'false' : 'true';
     
     // Check if First Lead Voucher System is running - can't enable both at same time
@@ -6751,8 +6751,8 @@ function PlatformSettingsManagement() {
     }
   };
 
-  const isVoucherSystemEnabled = settings.find(s => s.key === 'first_lead_voucher_enabled')?.value === 'true';
-  const isFreeLeadsPromotionEnabled = settings.find(s => s.key === 'free_leads_promotion_enabled')?.value === 'true';
+  const isVoucherSystemEnabled = settings.find((s: any) => s.key === 'first_lead_voucher_enabled')?.value === 'true';
+  const isFreeLeadsPromotionEnabled = settings.find((s: any) => s.key === 'free_leads_promotion_enabled')?.value === 'true';
 
   if (isLoading) {
     return (
@@ -6867,7 +6867,7 @@ function PlatformSettingsManagement() {
                       <span className="text-sm font-medium">Eligible Installers</span>
                     </div>
                     <p className="text-2xl font-bold">
-                      {vouchers.filter(v => v.isEligible && !v.isUsed).length}
+                      {vouchers.filter((v: any) => v.isEligible && !v.isUsed).length}
                     </p>
                   </CardContent>
                 </Card>
@@ -6879,7 +6879,7 @@ function PlatformSettingsManagement() {
                       <span className="text-sm font-medium">Vouchers Used</span>
                     </div>
                     <p className="text-2xl font-bold">
-                      {vouchers.filter(v => v.isUsed).length}
+                      {vouchers.filter((v: any) => v.isUsed).length}
                     </p>
                   </CardContent>
                 </Card>
@@ -6891,7 +6891,7 @@ function PlatformSettingsManagement() {
                       <span className="text-sm font-medium">Total Value</span>
                     </div>
                     <p className="text-2xl font-bold">
-                      €{vouchers.reduce((sum, v) => sum + (v.voucherAmount || 0), 0)}
+                      €{vouchers.reduce((sum: any, v: any) => sum + (v.voucherAmount || 0), 0)}
                     </p>
                   </CardContent>
                 </Card>
@@ -6914,7 +6914,7 @@ function PlatformSettingsManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {vouchers.map((voucher) => (
+                      {vouchers.map((voucher: any) => (
                         <TableRow key={voucher.id}>
                           <TableCell>
                             <div>
@@ -6981,7 +6981,7 @@ function PlatformSettingsManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {settings.map((setting) => (
+                  {settings.map((setting: any) => (
                     <TableRow key={setting.key}>
                       <TableCell>
                         <code className="text-sm font-mono bg-gray-100 px-2 py-1 rounded">
@@ -7052,7 +7052,7 @@ function PlatformSettingsManagement() {
                 <Input
                   id="settingValue"
                   value={selectedSetting.value}
-                  onChange={(e) => setSelectedSetting(prev => ({ ...prev, value: e.target.value }))}
+                  onChange={(e) => setSelectedSetting((prev: any) => ({ ...prev, value: e.target.value }))}
                   placeholder="Enter setting value"
                 />
               </div>
@@ -7061,7 +7061,7 @@ function PlatformSettingsManagement() {
                 <Input
                   id="settingCategory"
                   value={selectedSetting.category || ''}
-                  onChange={(e) => setSelectedSetting(prev => ({ ...prev, category: e.target.value }))}
+                  onChange={(e) => setSelectedSetting((prev: any) => ({ ...prev, category: e.target.value }))}
                   placeholder="Enter category (optional)"
                 />
               </div>
@@ -7070,7 +7070,7 @@ function PlatformSettingsManagement() {
                 <Input
                   id="settingDescription"
                   value={selectedSetting.description || ''}
-                  onChange={(e) => setSelectedSetting(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) => setSelectedSetting((prev: any) => ({ ...prev, description: e.target.value }))}
                   placeholder="Enter description (optional)"
                 />
               </div>

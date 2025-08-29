@@ -39,7 +39,9 @@ export default function TvSizeSelection({ onNext, onBack }: TvSizeSelectionProps
         
         {/* AI Preview Section */}
         {data.photo && data.tvSize && (
-          <AIPreview className="mb-8" />
+          <div className="mb-8">
+            <AIPreview />
+          </div>
         )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">

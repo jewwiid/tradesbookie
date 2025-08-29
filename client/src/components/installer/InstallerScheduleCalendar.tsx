@@ -31,11 +31,14 @@ const InstallerScheduleCalendar = ({ installerId }: InstallerScheduleCalendarPro
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Fetch scheduled installations for calendar
-  const { data: scheduledInstalls = [], isLoading, refetch } = useQuery({
+  const { data: scheduledInstallsData = [], isLoading, refetch } = useQuery({
     queryKey: [`/api/installer/${installerId}/schedule-calendar`],
     enabled: !!installerId,
     refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
   });
+
+  // Type the query response
+  const scheduledInstalls = scheduledInstallsData as ScheduledInstallation[];
 
   // Get calendar days for current month
   const monthStart = startOfMonth(currentDate);
@@ -170,14 +173,14 @@ const InstallerScheduleCalendar = ({ installerId }: InstallerScheduleCalendarPro
                       {dateInstalls.length > 0 && (
                         <div className="absolute bottom-1 left-1 right-1">
                           {(() => {
-                            const confirmedJobs = dateInstalls.filter(job => job.isConfirmed || job.eventType === 'confirmed');
-                            const proposedJobs = dateInstalls.filter(job => job.isProposed || job.eventType === 'proposed');
+                            const confirmedJobs = dateInstalls.filter((job: ScheduledInstallation) => job.isConfirmed || job.eventType === 'confirmed');
+                            const proposedJobs = dateInstalls.filter((job: ScheduledInstallation) => job.isProposed || job.eventType === 'proposed');
                             
                             return (
                               <div className="space-y-1">
                                 {confirmedJobs.length > 0 && (() => {
-                                  const completedJobs = confirmedJobs.filter(job => job.status === 'completed');
-                                  const activeJobs = confirmedJobs.filter(job => job.status !== 'completed');
+                                  const completedJobs = confirmedJobs.filter((job: ScheduledInstallation) => job.status === 'completed');
+                                  const activeJobs = confirmedJobs.filter((job: ScheduledInstallation) => job.status !== 'completed');
                                   
                                   return (
                                     <>
@@ -239,7 +242,7 @@ const InstallerScheduleCalendar = ({ installerId }: InstallerScheduleCalendarPro
           {selectedDate ? (
             selectedDateInstalls.length > 0 ? (
               <div className="space-y-4">
-                {selectedDateInstalls.map(install => (
+                {selectedDateInstalls.map((install: ScheduledInstallation) => (
                   <div key={install.id} className="border rounded-lg p-4">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center space-x-2">

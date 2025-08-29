@@ -30,8 +30,7 @@ export default function ServiceSelection({ onNext, onBack }: ServiceSelectionPro
 
   const handleServiceSelect = (service: ServiceTier) => {
     updateData({ 
-      serviceTierId: service.id,
-      serviceType: service.key,
+      serviceTierId: parseInt(service.id, 10),
       basePrice: service.customerPrice 
     });
   };
@@ -78,7 +77,7 @@ export default function ServiceSelection({ onNext, onBack }: ServiceSelectionPro
               key={service.key}
               onClick={() => handleServiceSelect(service)}
               className={`w-full p-6 border-2 rounded-2xl transition-all duration-300 text-left ${
-                data.serviceTierId === service.id
+                data.serviceTierId === parseInt(service.id, 10)
                   ? 'border-primary bg-gradient-to-br from-blue-50 to-indigo-50'
                   : 'border-gray-200 hover:border-primary hover:bg-blue-50'
               }`}

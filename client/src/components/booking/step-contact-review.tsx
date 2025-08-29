@@ -31,7 +31,7 @@ export function StepContactReview({ onSubmit, onBack, isSubmitting = false }: St
       });
       return response;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data.valid) {
         setReferralValidation({
           valid: true,

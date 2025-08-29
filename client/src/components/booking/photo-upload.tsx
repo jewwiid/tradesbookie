@@ -635,7 +635,7 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
                         <div className="mb-3">
                           <h6 className="text-xs font-medium text-gray-600 mb-2">KEY FACTORS</h6>
                           <div className="flex flex-wrap gap-2">
-                            {currentAnalysis.difficultyAssessment.factors.map((factor, idx) => (
+                            {currentAnalysis.difficultyAssessment.factors.map((factor: string, idx: number) => (
                               <span key={idx} className="px-3 py-1.5 bg-white rounded-lg text-xs font-medium text-gray-700 border shadow-sm">
                                 {factor}
                               </span>
@@ -671,7 +671,7 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
                       <div className="mb-2">
                         <h5 className="text-sm font-medium text-foreground">Recommendations:</h5>
                         <ul className="text-sm text-muted-foreground list-disc list-inside">
-                          {currentAnalysis.recommendations.map((rec, idx) => (
+                          {currentAnalysis.recommendations.map((rec: string, idx: number) => (
                             <li key={idx}>{rec}</li>
                           ))}
                         </ul>
@@ -681,7 +681,7 @@ export default function PhotoUpload({ bookingData, updateBookingData, onNext }: 
                       <div>
                         <h5 className="text-sm font-medium text-warning">Considerations:</h5>
                         <ul className="text-sm text-muted-foreground list-disc list-inside">
-                          {currentAnalysis.warnings.map((warning, idx) => (
+                          {currentAnalysis.warnings.map((warning: string, idx: number) => (
                             <li key={idx}>{warning}</li>
                           ))}
                         </ul>

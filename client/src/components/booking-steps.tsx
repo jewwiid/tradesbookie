@@ -69,43 +69,43 @@ export default function BookingSteps({
     
     // Create preview URL for immediate display
     const previewUrl = URL.createObjectURL(file);
-    onUpdateForm({ roomPhotoUrl: previewUrl });
+    onUpdateForm({ roomPhotoBase64: previewUrl });
   };
 
   // AI preview generation removed from intermediate steps
   // Will only occur at final booking summary step
 
-  const handleServiceSelect = (serviceId: number, price: string) => {
+  const handleServiceSelect = (serviceId: number, price: number) => {
     onUpdateForm({ 
       serviceTierId: serviceId, 
       basePrice: price,
-      totalPrice: calculateTotal(price, formData.addOns)
+      totalPrice: calculateTotal(price, formData.selectedAddOns)
     });
   };
 
   const handleAddOnToggle = (addOn: AddOnOption, checked: boolean) => {
-    let newAddOns = [...formData.addOns];
+    let newAddOns = [...formData.selectedAddOns];
     
     if (checked) {
-      newAddOns.push({ id: addOn.id, price: addOn.price });
+      newAddOns.push({ id: addOn.id, name: addOn.name, price: addOn.price });
     } else {
       newAddOns = newAddOns.filter(item => item.id !== addOn.id);
     }
 
-    const addOnsTotal = newAddOns.reduce((sum, item) => sum + parseFloat(item.price), 0).toFixed(2);
+    const addOnTotal = newAddOns.reduce((sum, item) => sum + item.price, 0);
     const totalPrice = calculateTotal(formData.basePrice, newAddOns);
 
     onUpdateForm({ 
-      addOns: newAddOns,
-      addOnsTotal,
+      selectedAddOns: newAddOns,
+      addOnTotal,
       totalPrice
     });
   };
 
-  const calculateTotal = (basePrice: string, addOns: Array<{id: number, price: string}>) => {
-    const base = parseFloat(basePrice || "0");
-    const addOnsSum = addOns.reduce((sum, addon) => sum + parseFloat(addon.price), 0);
-    return (base + addOnsSum).toFixed(2);
+  const calculateTotal = (basePrice: number, addOns: Array<{id: number, name: string, price: number}>) => {
+    const base = basePrice || 0;
+    const addOnsSum = addOns.reduce((sum, addon) => sum + addon.price, 0);
+    return base + addOnsSum;
   };
 
   const isStepValid = () => {
@@ -113,8 +113,8 @@ export default function BookingSteps({
       case 1: return true; // Photo upload is optional
       case 2: return formData.tvSize > 0;
       case 3: return formData.serviceTierId > 0;
-      case 4: return formData.wallType !== "";
-      case 5: return formData.mountType !== "";
+      case 4: return formData.wallType !== undefined;
+      case 5: return formData.mountType !== undefined;
       case 6: return true; // Add-ons are optional
       case 7: return formData.preferredDate !== "" && formData.preferredTime !== "";
       case 8: return formData.customerName !== "" && formData.customerEmail !== "" && 
@@ -190,7 +190,7 @@ export default function BookingSteps({
                       onChange={handleFileUpload}
                     />
                     
-                    {!formData.roomPhotoUrl ? (
+                    {!formData.roomPhotoBase64 ? (
                       <label htmlFor="photoUpload" className="cursor-pointer block">
                         <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                         <p className="text-lg text-gray-600 mb-2">Click to upload or drag and drop</p>
@@ -199,7 +199,7 @@ export default function BookingSteps({
                     ) : (
                       <div>
                         <img
-                          src={formData.roomPhotoUrl}
+                          src={formData.roomPhotoBase64}
                           alt="Room preview"
                           className="max-w-full h-64 object-cover rounded-xl mx-auto mb-3"
                         />
@@ -238,19 +238,19 @@ export default function BookingSteps({
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-                    {TV_SIZES.map((tv) => (
+                    {TV_SIZES.map((tvSize) => (
                       <Button
-                        key={tv.size}
-                        variant={formData.tvSize === tv.size ? "default" : "outline"}
+                        key={tvSize}
+                        variant={formData.tvSize === tvSize ? "default" : "outline"}
                         className="p-6 h-auto flex-col space-y-3 hover:border-primary hover:bg-blue-50"
                         onClick={() => {
-                          onUpdateForm({ tvSize: tv.size });
+                          onUpdateForm({ tvSize: tvSize });
                         }}
                       >
                         <Tv className="w-8 h-8" />
                         <div>
-                          <div className="text-lg font-semibold">{tv.label}</div>
-                          <div className="text-sm text-gray-500">{tv.category}</div>
+                          <div className="text-lg font-semibold">{tvSize}"</div>
+                          <div className="text-sm text-gray-500">TV Size</div>
                         </div>
                       </Button>
                     ))}
@@ -320,7 +320,7 @@ export default function BookingSteps({
                   </div>
 
                   {/* Progressive AI Preview Teaser */}
-                  {formData.roomPhotoUrl && (
+                  {formData.roomPhotoBase64 && (
                     <div className="mb-8">
                       <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
                         <div className="flex items-center mb-4">
@@ -332,7 +332,7 @@ export default function BookingSteps({
                         
                         <div className="relative">
                           <img
-                            src={formData.roomPhotoUrl}
+                            src={formData.roomPhotoBase64}
                             alt="Your room"
                             className="w-full h-64 object-cover rounded-xl"
                           />
@@ -362,7 +362,7 @@ export default function BookingSteps({
                         key={wall.key}
                         variant={formData.wallType === wall.key ? "default" : "outline"}
                         className="p-6 h-auto text-left hover:border-primary hover:bg-blue-50"
-                        onClick={() => onUpdateForm({ wallType: wall.key })}
+                        onClick={() => onUpdateForm({ wallType: wall.key as 'drywall' | 'concrete' | 'brick' | 'other' })}
                       >
                         <div className="w-full">
                           <h3 className="text-lg font-semibold text-gray-900 mb-2">{wall.name}</h3>
@@ -401,7 +401,7 @@ export default function BookingSteps({
                   </div>
 
                   {/* Progressive AI Preview Teaser */}
-                  {formData.roomPhotoUrl && (
+                  {formData.roomPhotoBase64 && (
                     <div className="mb-8">
                       <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-6 border border-purple-100">
                         <div className="flex items-center mb-4">
@@ -413,7 +413,7 @@ export default function BookingSteps({
                         
                         <div className="relative">
                           <img
-                            src={formData.roomPhotoUrl}
+                            src={formData.roomPhotoBase64}
                             alt="Your room"
                             className="w-full h-64 object-cover rounded-xl"
                           />
@@ -443,7 +443,7 @@ export default function BookingSteps({
                         key={mount.key}
                         variant={formData.mountType === mount.key ? "default" : "outline"}
                         className="w-full p-6 text-left hover:border-primary hover:bg-blue-50"
-                        onClick={() => onUpdateForm({ mountType: mount.key })}
+                        onClick={() => onUpdateForm({ mountType: mount.key as 'fixed' | 'tilting' | 'full-motion' })}
                       >
                         <div className="flex items-center">
                           <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mr-4">
@@ -495,7 +495,7 @@ export default function BookingSteps({
                         <div className="flex items-center space-x-4">
                           <Checkbox
                             id={`addon-${addon.id}`}
-                            checked={formData.addOns.some(item => item.id === addon.id)}
+                            checked={formData.selectedAddOns.some(item => item.id === addon.id)}
                             onCheckedChange={(checked) => handleAddOnToggle(addon, checked as boolean)}
                           />
                           <div className="flex-1">
@@ -832,7 +832,7 @@ export default function BookingSteps({
                   </div>
 
                   {/* Final AI Preview */}
-                  {formData.roomPhotoUrl && (
+                  {formData.roomPhotoBase64 && (
                     <div className="mb-8">
                       <div className="bg-gradient-to-br from-gold-50 to-yellow-50 rounded-2xl p-6 border border-yellow-200">
                         <div className="flex items-center justify-between mb-4">
@@ -866,7 +866,7 @@ export default function BookingSteps({
                           {!formData.aiPreviewUrl ? (
                             <>
                               <img
-                                src={formData.roomPhotoUrl}
+                                src={formData.roomPhotoBase64}
                                 alt="Your room"
                                 className="w-full h-64 object-cover rounded-xl"
                               />
@@ -876,7 +876,7 @@ export default function BookingSteps({
                                 </div>
                               </div>
                             </>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -894,11 +894,10 @@ export default function BookingSteps({
                         <span className="text-gray-600">Service:</span>
                         <span>€{formData.basePrice}</span>
                       </div>
-                      {formData.addOns.map((addon) => {
-                        const service = addOnServices.find(s => s.id === addon.id);
+                      {formData.selectedAddOns.map((addon) => {
                         return (
                           <div key={addon.id} className="flex justify-between">
-                            <span className="text-gray-600">{service?.name}:</span>
+                            <span className="text-gray-600">{addon.name}:</span>
                             <span>€{addon.price}</span>
                           </div>
                         );

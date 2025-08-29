@@ -7,6 +7,20 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Star, MessageSquare, User, Calendar, CheckCircle2, Award, Mail, MapPin } from "lucide-react";
 
+const formatDate = (dateString: string | null | undefined): string => {
+  if (!dateString) return 'Date not available';
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'Date not available';
+    }
+    return date.toLocaleDateString();
+  } catch (error) {
+    return 'Date not available';
+  }
+};
+
 interface Review {
   id: number;
   userId: string;
@@ -53,20 +67,6 @@ export default function InstallerReviews({ installerId }: InstallerReviewsProps)
         ))}
       </div>
     );
-  };
-
-  const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return 'Date not available';
-    
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return 'Date not available';
-      }
-      return date.toLocaleDateString();
-    } catch (error) {
-      return 'Date not available';
-    }
   };
 
   if (isLoading) {
@@ -257,7 +257,7 @@ function PendingReviews({ installerId }: { installerId: number }) {
         installerId,
         customerEmail,
         customerName
-      });
+      }) as any;
 
       if (response.success) {
         toast({

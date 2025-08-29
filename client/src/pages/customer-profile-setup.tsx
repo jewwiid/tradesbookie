@@ -9,7 +9,7 @@ import { useLocation } from 'wouter';
 import { User, Mail, Phone, CheckCircle, AlertCircle } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
-interface User {
+interface UserData {
   id: number;
   email: string;
   firstName?: string;
@@ -29,6 +29,9 @@ export default function CustomerProfileSetup() {
     retry: false,
   });
 
+  // Type the user data to avoid TypeScript errors
+  const typedUser = currentUser as UserData;
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -40,15 +43,15 @@ export default function CustomerProfileSetup() {
 
   // Update form data when user data loads
   useEffect(() => {
-    if (currentUser) {
+    if (typedUser) {
       setFormData({
-        firstName: currentUser.firstName || '',
-        lastName: currentUser.lastName || '',
-        phone: currentUser.phone || '',
-        email: currentUser.email || ''
+        firstName: typedUser.firstName || '',
+        lastName: typedUser.lastName || '',
+        phone: typedUser.phone || '',
+        email: typedUser.email || ''
       });
     }
-  }, [currentUser]);
+  }, [typedUser]);
 
   // Check if form is valid
   useEffect(() => {
@@ -112,7 +115,7 @@ export default function CustomerProfileSetup() {
     );
   }
 
-  if (!currentUser) {
+  if (!typedUser) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <Card className="max-w-md w-full">
@@ -139,7 +142,7 @@ export default function CustomerProfileSetup() {
   }
 
   // Check if profile is already complete
-  const isProfileComplete = currentUser.firstName && currentUser.lastName && currentUser.phone;
+  const isProfileComplete = typedUser.firstName && typedUser.lastName && typedUser.phone;
   
   if (isProfileComplete) {
     return (
@@ -187,9 +190,9 @@ export default function CustomerProfileSetup() {
             <div className="flex items-center justify-center gap-2 text-blue-800">
               <Mail className="w-4 h-4" />
               <span className="font-medium">
-                {currentUser.registrationMethod === 'invoice' 
-                  ? `Signed in via retailer invoice: ${currentUser.email}`
-                  : `Signed in as: ${currentUser.email}`
+                {typedUser.registrationMethod === 'invoice' 
+                  ? `Signed in via retailer invoice: ${typedUser.email}`
+                  : `Signed in as: ${typedUser.email}`
                 }
               </span>
             </div>
@@ -241,11 +244,11 @@ export default function CustomerProfileSetup() {
                   id="email"
                   type="email"
                   value={formData.email}
-                  readOnly={currentUser.registrationMethod === 'invoice'}
+                  readOnly={typedUser.registrationMethod === 'invoice'}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   className="mt-1 bg-gray-50"
                 />
-                {currentUser.registrationMethod === 'invoice' && (
+                {typedUser.registrationMethod === 'invoice' && (
                   <p className="text-sm text-gray-500 mt-1">
                     Email address from your retailer invoice
                   </p>

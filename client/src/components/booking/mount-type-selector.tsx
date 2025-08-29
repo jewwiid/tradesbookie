@@ -125,8 +125,10 @@ export default function MountTypeSelector({ bookingData, updateBookingData, upda
     };
     
     // Filter wall mounts based on selected mount type
+    if (!currentMountType) return wallMountPricing; // Return all if no mount type selected
+    
     const selectedMountTypeDB = mountTypeMapping[currentMountType];
-    if (!selectedMountTypeDB) return wallMountPricing; // Return all if no mount type selected
+    if (!selectedMountTypeDB) return wallMountPricing; // Return all if mapping not found
     
     return wallMountPricing.filter(mount => mount.mountType === selectedMountTypeDB);
   };

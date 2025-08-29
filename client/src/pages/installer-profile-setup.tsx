@@ -12,6 +12,13 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Wrench, MapPin, Star, Shield, CheckCircle, ArrowLeft, User, Mail } from "lucide-react";
 
+interface CurrentUser {
+  id: number;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 export default function InstallerProfileSetup() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -21,6 +28,9 @@ export default function InstallerProfileSetup() {
     queryKey: ["/api/auth/user"],
     retry: false,
   });
+
+  // Type the current user data
+  const typedCurrentUser = currentUser as CurrentUser;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -46,19 +56,19 @@ export default function InstallerProfileSetup() {
 
   // Pre-populate form with OAuth user data
   useEffect(() => {
-    if (currentUser) {
+    if (typedCurrentUser) {
       setFormData(prev => ({
         ...prev,
-        email: currentUser.email || "",
-        name: `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim()
+        email: typedCurrentUser.email || "",
+        name: `${typedCurrentUser.firstName || ""} ${typedCurrentUser.lastName || ""}`.trim()
       }));
     }
-  }, [currentUser]);
+  }, [typedCurrentUser]);
 
   const createInstallerMutation = useMutation({
     mutationFn: async (data: any) => {
       // Use update endpoint for OAuth users who already have an account
-      if (currentUser) {
+      if (typedCurrentUser) {
         return await apiRequest("POST", "/api/installers/profile/update", data);
       }
       // Use register endpoint for non-OAuth users
@@ -134,7 +144,7 @@ export default function InstallerProfileSetup() {
   ];
 
   // Redirect if not authenticated
-  if (!currentUser) {
+  if (!typedCurrentUser) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <Card className="max-w-md w-full">
@@ -178,7 +188,7 @@ export default function InstallerProfileSetup() {
           <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-4">
             <div className="flex items-center justify-center gap-2 text-green-800">
               <Mail className="w-4 h-4" />
-              <span className="font-medium">Signed in as: {currentUser.email}</span>
+              <span className="font-medium">Signed in as: {typedCurrentUser.email}</span>
             </div>
           </div>
         </div>

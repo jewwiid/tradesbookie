@@ -71,17 +71,22 @@ export default function VideoTutorialsManagement() {
   const queryClient = useQueryClient();
 
   // Fetch video tutorials from both sources
-  const { data: tutorials = [], isLoading } = useQuery({
+  const { data: tutorialsData = [], isLoading } = useQuery({
     queryKey: ["/api/admin/video-tutorials"]
   });
 
+  // Type the query responses
+  const tutorials = tutorialsData as VideoTutorial[];
+
   // Fetch tutorials from general resources
-  const { data: resourceTutorials = [] } = useQuery({
+  const { data: resourceTutorialsData = [] } = useQuery({
     queryKey: ["/api/admin/resources"],
     select: (data: any[]) => data.filter((resource: any) => 
       resource.type === 'tutorial' || resource.type === 'video'
     ),
   });
+
+  const resourceTutorials = resourceTutorialsData as any[];
 
   // Create tutorial mutation
   const createTutorialMutation = useMutation({

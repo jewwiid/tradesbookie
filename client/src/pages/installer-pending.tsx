@@ -134,12 +134,22 @@ export default function InstallerPending() {
   };
 
   const handleArrayFieldChange = (field: string, value: string, checked: boolean) => {
-    setProfileForm(prev => ({
-      ...prev,
-      [field]: checked 
-        ? [...(prev[field as keyof typeof prev] as string[]), value]
-        : (prev[field as keyof typeof prev] as string[]).filter(item => item !== value)
-    }));
+    setProfileForm(prev => {
+      const currentValue = prev[field as keyof typeof prev];
+      
+      // Only handle if the current value is actually an array
+      if (Array.isArray(currentValue)) {
+        return {
+          ...prev,
+          [field]: checked 
+            ? [...currentValue, value]
+            : currentValue.filter(item => item !== value)
+        };
+      }
+      
+      // For non-array fields, just return the previous state
+      return prev;
+    });
   };
 
   const fetchProfile = async () => {

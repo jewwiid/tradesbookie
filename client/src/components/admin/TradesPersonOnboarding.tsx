@@ -251,9 +251,10 @@ export default function TradesPersonOnboarding() {
       });
 
       // If photo was uploaded, set the photo for the installer
-      if (data.profilePhotoUrl && response.installer?.id) {
+      const typedResponse = response as any;
+      if (data.profilePhotoUrl && typedResponse.installer?.id) {
         try {
-          await apiRequest("PUT", `/api/installers/${response.installer.id}/profile-photo`, {
+          await apiRequest("PUT", `/api/installers/${typedResponse.installer.id}/profile-photo`, {
             photoURL: data.profilePhotoUrl
           });
         } catch (photoError) {
@@ -310,9 +311,10 @@ export default function TradesPersonOnboarding() {
       });
 
       // If photo was uploaded, set the photo for the installer
-      if (data.profilePhotoUrl && response.installer?.id) {
+      const typedResponse = response as any;
+      if (data.profilePhotoUrl && typedResponse.installer?.id) {
         try {
-          await apiRequest("PUT", `/api/installers/${response.installer.id}/profile-photo`, {
+          await apiRequest("PUT", `/api/installers/${typedResponse.installer.id}/profile-photo`, {
             photoURL: data.profilePhotoUrl
           });
         } catch (photoError) {
@@ -401,7 +403,7 @@ export default function TradesPersonOnboarding() {
 
   // Photo upload handlers
   const handleGetUploadParameters = async () => {
-    const response = await apiRequest("POST", "/api/objects/upload", {});
+    const response = await apiRequest("POST", "/api/objects/upload", {}) as any;
     return {
       method: "PUT" as const,
       url: response.uploadURL,

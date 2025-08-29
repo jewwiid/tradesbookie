@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Home } from 'lucide-react';
 import { useBooking } from '@/lib/booking-context';
-import { WALL_TYPES } from '@/lib/constants';
+import { WALL_TYPES } from '@/lib/constants.tsx';
 
 interface StepWallTypeProps {
   onNext: () => void;

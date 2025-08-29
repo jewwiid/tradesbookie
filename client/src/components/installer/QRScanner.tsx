@@ -162,7 +162,7 @@ export default function QRScanner({ onScanSuccess, onError, isLoading, clearResu
             {!isScanning ? (
               <Button 
                 onClick={startScanning} 
-                disabled={hasPermission === false || isLoading}
+                disabled={hasPermission !== true || isLoading}
                 className="w-full sm:w-auto"
               >
                 {isLoading ? (

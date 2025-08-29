@@ -139,8 +139,12 @@ export default function InstallerServiceSelection() {
     refetchInterval: 60000, // Refresh every minute
   });
 
+  // Type the query responses as arrays
+  const typedServiceMetrics = serviceMetrics as any[] | undefined;
+  const typedActiveServiceTypes = activeServiceTypes as any[] | undefined;
+
   // Convert metrics to lookup map for easy access
-  const metricsMap = serviceMetrics?.reduce((acc: any, metric: any) => {
+  const metricsMap = typedServiceMetrics?.reduce((acc: any, metric: any) => {
     acc[metric.serviceType.key] = metric;
     return acc;
   }, {}) || {};
@@ -150,7 +154,7 @@ export default function InstallerServiceSelection() {
   // but hidden from UI per user request. This data can be used for admin analytics.
   const services = defaultServices.map(service => {
     const metrics = metricsMap[service.id];
-    const isActiveInDb = activeServiceTypes?.some((st: any) => st.key === service.id && st.isActive);
+    const isActiveInDb = typedActiveServiceTypes?.some((st: any) => st.key === service.id && st.isActive);
     
     return {
       ...service,

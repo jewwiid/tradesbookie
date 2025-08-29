@@ -7,7 +7,7 @@ interface ServiceCardsProps {
   serviceTiers: ServiceTierOption[];
   tvSize: number;
   selectedService?: number;
-  onSelectService: (serviceId: number, price: string) => void;
+  onSelectService: (serviceId: number, price: number) => void;
 }
 
 export default function ServiceCards({

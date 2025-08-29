@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ServiceCard } from '@/components/ui/service-card';
 import { Wrench } from 'lucide-react';
 import { useBooking } from '@/lib/booking-context';
-import { SERVICE_TIERS } from '@/lib/constants';
+import { SERVICE_TIERS } from '@/lib/constants.tsx';
 
 interface StepServiceSelectionProps {
   onNext: () => void;

@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus } from 'lucide-react';
 import { useBooking } from '@/lib/booking-context';
-import { ADDON_SERVICES } from '@/lib/constants';
+import { ADDON_SERVICES } from '@/lib/constants.tsx';
 
 interface StepAddonsProps {
   onNext: () => void;
@@ -48,7 +48,7 @@ export function StepAddons({ onNext, onBack }: StepAddonsProps) {
         </div>
 
         <div className="space-y-4 mb-8">
-          {Object.entries(ADDON_SERVICES).map(([key, addon]) => (
+          {Object.entries(ADDON_SERVICES).map(([key, addon]: [string, any]) => (
             <label
               key={key}
               className={`flex items-center p-4 border-2 rounded-2xl cursor-pointer transition-all duration-300 ${

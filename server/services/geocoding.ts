@@ -60,8 +60,7 @@ const IRISH_CITIES_TOWNS: Record<string, GeocodeResult> = {
   'letterkenny': { lat: 54.9539, lng: -7.7338, formattedAddress: 'Letterkenny, Donegal, Ireland', county: 'Donegal', city: 'Letterkenny' },
   'carrickmines': { lat: 53.2769, lng: -6.1522, formattedAddress: 'Carrickmines, Dublin, Ireland', county: 'Dublin', city: 'Carrickmines' },
   'fonthill': { lat: 53.3433, lng: -6.4286, formattedAddress: 'Fonthill, Dublin, Ireland', county: 'Dublin', city: 'Fonthill' },
-  'kinsale road': { lat: 51.8833, lng: -8.5167, formattedAddress: 'Kinsale Road, Cork, Ireland', county: 'Cork', city: 'Kinsale Road' },
-  'castlebar': { lat: 53.8547, lng: -9.2977, formattedAddress: 'Castlebar, Mayo, Ireland', county: 'Mayo', city: 'Castlebar' }
+  'kinsale road': { lat: 51.8833, lng: -8.5167, formattedAddress: 'Kinsale Road, Cork, Ireland', county: 'Cork', city: 'Kinsale Road' }
 };
 
 // Extract Eircode from Irish address
@@ -164,7 +163,7 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
         
         if (data.length > 0) {
           // Pick the most specific result that matches our criteria
-          const result = data.find(item => {
+          const result = data.find((item: any) => {
             // Prefer results with higher accuracy (house, building level)
             const type = item.type || '';
             const category = item.category || '';

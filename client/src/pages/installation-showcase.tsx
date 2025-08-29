@@ -22,6 +22,7 @@ interface CustomerReview {
   title: string;
   comment: string;
   date: string;
+  customerName?: string;
 }
 
 interface InstallerProfile {
@@ -42,6 +43,7 @@ interface InstallationShowcase {
   installer: InstallerProfile;
   beforeAfterPhotos: BeforeAfterPhoto[];
   review: CustomerReview;
+  reviews?: CustomerReview[];
   serviceType: string;
   completedAt: string;
 }
@@ -224,8 +226,9 @@ export default function InstallationShowcase() {
               const hasMultiplePhotos = (installation.beforeAfterPhotos?.length || 0) > 1;
 
               const currentReviewIndex = selectedReviewIndex[installation.id] || 0;
-              const currentReview = installation.reviews?.[currentReviewIndex];
-              const hasMultipleReviews = (installation.reviews?.length || 0) > 1;
+              const reviewsArray = installation.reviews || (installation.review ? [installation.review] : []);
+              const currentReview = reviewsArray[currentReviewIndex];
+              const hasMultipleReviews = reviewsArray.length > 1;
 
               // Skip installations with missing data
               if (!installation.installer || !installation.beforeAfterPhotos?.length) {
@@ -418,18 +421,18 @@ export default function InstallationShowcase() {
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleReviewNavigation(installation.id, 'prev', installation.reviews.length)}
+                                    onClick={() => handleReviewNavigation(installation.id, 'prev', reviewsArray.length)}
                                     className="h-6 w-6 p-0"
                                   >
                                     <ChevronLeft className="w-3 h-3" />
                                   </Button>
                                   <span className="text-xs text-gray-500 px-2">
-                                    {currentReviewIndex + 1} / {installation.reviews.length}
+                                    {currentReviewIndex + 1} / {reviewsArray.length}
                                   </span>
                                   <Button
                                     variant="ghost"
                                     size="sm"
-                                    onClick={() => handleReviewNavigation(installation.id, 'next', installation.reviews.length)}
+                                    onClick={() => handleReviewNavigation(installation.id, 'next', reviewsArray.length)}
                                     className="h-6 w-6 p-0"
                                   >
                                     <ChevronRight className="w-3 h-3" />

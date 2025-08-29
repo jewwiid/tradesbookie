@@ -18,6 +18,19 @@ export interface TVInstallation {
   roomPhotoBase64?: string;
   aiPreviewUrl?: string;
   location?: string; // e.g., "Living Room", "Bedroom 1", "Kitchen"
+  roomAnalysis?: {
+    recommendations: string[];
+    warnings: string[];
+    confidence: "high" | "medium" | "low";
+    difficultyAssessment?: {
+      level: "easy" | "moderate" | "difficult" | "expert";
+      factors: string[];
+      estimatedTime: string;
+      additionalCosts: string[];
+      skillsRequired: string[];
+      priceImpact: "none" | "low" | "medium" | "high";
+    };
+  };
 }
 
 export interface BookingData {
@@ -80,6 +93,16 @@ export interface BookingData {
     county?: string;
     eircode?: string;
   };
+
+  // Contact fields (for backward compatibility)
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  address?: string;
+  streetAddress?: string;
+  town?: string;
+  county?: string;
+  eircode?: string;
 
   // Harvey Norman Referral
   referralCode?: string;

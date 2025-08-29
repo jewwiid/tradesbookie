@@ -285,7 +285,7 @@ export default function PastLeadsManagement({ installerId }: PurchasedLeadsManag
       if (jobStatus) {
         try {
           // Get job assignments for this lead
-          const jobAssignments = await apiRequest('GET', `/api/installer/${installerId}/job-assignments`);
+          const jobAssignments = await apiRequest('GET', `/api/installer/${installerId}/job-assignments`) as unknown as any[];
           const jobAssignment = jobAssignments.find((job: any) => job.bookingId === leadId);
           
           if (jobAssignment) {

@@ -10,6 +10,34 @@ import InstallerLocationMap from "@/components/InstallerLocationMap";
 import { Star, MapPin, CheckCircle, Award, Users, ArrowRight, Shield, Clock, Eye, UserCheck, Crown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
+interface PlatformStats {
+  totalInstallers: number;
+  countiesCovered: number;
+  averageRating: number;
+  completedInstallations: number;
+}
+
+interface Installer {
+  id: number;
+  businessName?: string;
+  contactName?: string;
+  serviceArea?: string;
+  profileImageUrl?: string;
+  isVip?: boolean;
+  isAvailable?: boolean;
+  insurance?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+interface Review {
+  id: number;
+  installerId: number;
+  rating: number;
+  comment?: string;
+}
+
 export default function OurInstallers() {
   // Fetch installers from the database
   const { data: installers, isLoading: installersLoading } = useQuery({
@@ -29,18 +57,23 @@ export default function OurInstallers() {
     retry: false,
   });
 
+  // Type the query responses
+  const typedInstallers = installers as Installer[] | undefined;
+  const typedAllReviews = allReviews as Review[];
+  const typedPlatformStats = platformStats as PlatformStats | undefined;
+
   // Function to get review stats for an installer
   const getInstallerReviewStats = (installerId: number) => {
-    if (!allReviews || !Array.isArray(allReviews)) {
+    if (!typedAllReviews || !Array.isArray(typedAllReviews)) {
       return { averageRating: 0, totalReviews: 0 };
     }
-    const installerReviews = allReviews.filter((review: any) => review.installerId === installerId);
+    const installerReviews = typedAllReviews.filter((review: Review) => review.installerId === installerId);
     
     if (installerReviews.length === 0) {
       return { averageRating: 0, totalReviews: 0 };
     }
 
-    const totalRating = installerReviews.reduce((sum: number, review: any) => sum + review.rating, 0);
+    const totalRating = installerReviews.reduce((sum: number, review: Review) => sum + review.rating, 0);
     const averageRating = (totalRating / installerReviews.length).toFixed(1);
     
     return { 
@@ -62,19 +95,19 @@ export default function OurInstallers() {
 
   // Generate service areas from actual installer registrations
   const serviceAreas = React.useMemo(() => {
-    if (!installers || !Array.isArray(installers) || installers.length === 0) return [];
+    if (!typedInstallers || !Array.isArray(typedInstallers) || typedInstallers.length === 0) return [];
     
     // Extract unique service areas from approved installers
-    const areas = installers
-      .filter((installer: any) => installer.serviceArea) // Only installers with service areas
-      .map((installer: any) => installer.serviceArea)
-      .filter((area: string, index: number, self: string[]) => 
+    const areas = typedInstallers
+      .filter((installer: Installer) => installer.serviceArea) // Only installers with service areas
+      .map((installer: Installer) => installer.serviceArea)
+      .filter((area: string | undefined, index: number, self: (string | undefined)[]) => 
         area && self.indexOf(area) === index // Remove duplicates and empty values
       )
       .sort(); // Sort alphabetically
     
-    return areas;
-  }, [installers]);
+    return areas as string[];
+  }, [typedInstallers]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -115,7 +148,7 @@ export default function OurInstallers() {
                 {statsLoading ? (
                   <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
-                  platformStats?.totalInstallers || 0
+                  typedPlatformStats?.totalInstallers || 0
                 )}
               </div>
               <div className="text-gray-600">Professional Installers</div>
@@ -125,7 +158,7 @@ export default function OurInstallers() {
                 {statsLoading ? (
                   <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
-                  platformStats?.countiesCovered || 0
+                  typedPlatformStats?.countiesCovered || 0
                 )}
               </div>
               <div className="text-gray-600">Counties Covered</div>
@@ -135,7 +168,7 @@ export default function OurInstallers() {
                 {statsLoading ? (
                   <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
-                  platformStats?.averageRating > 0 ? platformStats.averageRating : "N/A"
+                  typedPlatformStats?.averageRating && typedPlatformStats.averageRating > 0 ? typedPlatformStats.averageRating : "N/A"
                 )}
               </div>
               <div className="text-gray-600">Average Rating</div>
@@ -145,7 +178,7 @@ export default function OurInstallers() {
                 {statsLoading ? (
                   <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
                 ) : (
-                  platformStats?.completedInstallations || 0
+                  typedPlatformStats?.completedInstallations || 0
                 )}
               </div>
               <div className="text-gray-600">Installations Completed</div>
@@ -184,7 +217,7 @@ export default function OurInstallers() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {installers?.map((installer: any) => (
+              {typedInstallers?.map((installer: Installer) => (
                 <Card key={installer.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-6">
                     {/* Profile Photo */}
@@ -314,9 +347,9 @@ export default function OurInstallers() {
             <div className="w-full h-96 bg-gray-200 rounded-lg animate-pulse flex items-center justify-center">
               <div className="text-gray-500">Loading map...</div>
             </div>
-          ) : installers && installers.length > 0 ? (
+          ) : typedInstallers && typedInstallers.length > 0 ? (
             <InstallerLocationMap
-              installers={installers}
+              installers={typedInstallers as any[]}
               height="500px"
               className="mb-8"
             />

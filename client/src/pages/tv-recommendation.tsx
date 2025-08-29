@@ -542,7 +542,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
                           {tv.keyFeatures && (
                             <div className="mb-3">
                               <div className="flex flex-wrap gap-1">
-                                {(Array.isArray(tv.keyFeatures) ? tv.keyFeatures : [tv.keyFeatures]).map((feature, idx) => (
+                                {(Array.isArray(tv.keyFeatures) ? tv.keyFeatures : [tv.keyFeatures]).map((feature: any, idx: number) => (
                                   <Badge key={idx} variant="outline" className="text-xs">
                                     {feature}
                                   </Badge>
@@ -556,7 +556,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
                               <div>
                                 <h6 className="text-xs font-medium text-gray-600 mb-1">ADVANTAGES</h6>
                                 <ul className="text-xs space-y-1">
-                                  {tv.pros.slice(0, 3).map((pro, idx) => (
+                                  {tv.pros.slice(0, 3).map((pro: any, idx: number) => (
                                     <li key={idx} className="flex items-start">
                                       <span className="text-green-500 mr-1">✓</span>
                                       <span className="text-gray-700">{pro}</span>
@@ -570,7 +570,7 @@ I'm interested in learning more about this TV and discussing purchase options. P
                               <div>
                                 <h6 className="text-xs font-medium text-gray-600 mb-1">CONSIDERATIONS</h6>
                                 <ul className="text-xs space-y-1">
-                                  {tv.cons.slice(0, 3).map((con, idx) => (
+                                  {tv.cons.slice(0, 3).map((con: any, idx: number) => (
                                     <li key={idx} className="flex items-start">
                                       <span className="text-amber-500 mr-1">⚠</span>
                                       <span className="text-gray-700">{con}</span>

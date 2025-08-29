@@ -8,6 +8,24 @@ import ExpandableQRCode from "@/components/ExpandableQRCode";
 import { Tv, Home, CheckCircle, Clock, Wrench } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
 
+interface BookingData {
+  id: number;
+  status: string;
+  qrCode: string;
+  tvSize: number;
+  serviceTier?: {
+    name: string;
+  };
+  wallType: string;
+  mountType: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
+  address: string;
+  totalPrice: number;
+  originalImageUrl?: string;
+  aiPreviewUrl?: string;
+}
+
 export default function CustomerDashboard() {
   const { qrCode } = useParams();
   const [, setLocation] = useLocation();
@@ -17,18 +35,21 @@ export default function CustomerDashboard() {
     enabled: !!qrCode,
   });
 
+  // Type the booking data to avoid TypeScript errors
+  const typedBooking = booking as BookingData;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your booking...</p>
+          <p className="mt-4 text-gray-600">Loading your typedBooking...</p>
         </div>
       </div>
     );
   }
 
-  if (!booking) {
+  if (!typedBooking) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Card className="w-full max-w-md mx-4">
@@ -61,7 +82,7 @@ export default function CustomerDashboard() {
     }
   };
 
-  const statusInfo = getStatusInfo(booking.status);
+  const statusInfo = getStatusInfo(typedBooking.status);
   const StatusIcon = statusInfo.icon;
 
   return (
@@ -88,13 +109,13 @@ export default function CustomerDashboard() {
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Booking QR Code</h2>
             <p className="text-gray-600 mb-6">Save this QR code to quickly access your booking details and track installation progress</p>
             <div className="flex justify-center mb-4">
-              <QRCode value={`${window.location.origin}/qr-tracking/${booking.qrCode}`} size={200} />
+              <QRCode value={`${window.location.origin}/qr-tracking/${typedBooking.qrCode}`} size={200} />
             </div>
-            <p className="text-sm text-gray-500 mb-4">Booking ID: {booking.id}</p>
+            <p className="text-sm text-gray-500 mb-4">Booking ID: {typedBooking.id}</p>
             <div className="flex justify-center">
               <ExpandableQRCode 
-                qrCode={booking.qrCode}
-                bookingId={booking.id}
+                qrCode={typedBooking.qrCode}
+                bookingId={typedBooking.id}
                 title="Download Booking QR Code"
                 description="Download this QR code to track your installation progress"
               />
@@ -109,7 +130,7 @@ export default function CustomerDashboard() {
               <CardTitle>Request Status</CardTitle>
               <Badge className={statusInfo.color}>
                 <StatusIcon className="w-4 h-4 mr-1" />
-                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                {typedBooking.status.charAt(0).toUpperCase() + typedBooking.status.slice(1)}
               </Badge>
             </div>
           </CardHeader>
@@ -117,7 +138,7 @@ export default function CustomerDashboard() {
             <div className="space-y-4">
               <div className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
-                  ['confirmed', 'assigned', 'in_progress', 'completed'].includes(booking.status) 
+                  ['confirmed', 'assigned', 'in_progress', 'completed'].includes(typedBooking.status) 
                     ? 'bg-green-500' : 'bg-gray-300'
                 }`}>
                   <CheckCircle className="w-5 h-5 text-white" />
@@ -130,7 +151,7 @@ export default function CustomerDashboard() {
               
               <div className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
-                  ['assigned', 'in_progress', 'completed'].includes(booking.status) 
+                  ['assigned', 'in_progress', 'completed'].includes(typedBooking.status) 
                     ? 'bg-green-500' : 'bg-yellow-500'
                 }`}>
                   <Clock className="w-5 h-5 text-white" />
@@ -143,15 +164,15 @@ export default function CustomerDashboard() {
               
               <div className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-4 ${
-                  booking.status === 'completed' ? 'bg-green-500' : 'bg-gray-300'
+                  typedBooking.status === 'completed' ? 'bg-green-500' : 'bg-gray-300'
                 }`}>
                   <Wrench className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <div className={`font-semibold ${booking.status === 'completed' ? 'text-gray-900' : 'text-gray-500'}`}>
+                  <div className={`font-semibold ${typedBooking.status === 'completed' ? 'text-gray-900' : 'text-gray-500'}`}>
                     Installation Day
                   </div>
-                  <div className={`text-sm ${booking.status === 'completed' ? 'text-gray-600' : 'text-gray-500'}`}>
+                  <div className={`text-sm ${typedBooking.status === 'completed' ? 'text-gray-600' : 'text-gray-500'}`}>
                     We'll arrive at your scheduled time
                   </div>
                 </div>
@@ -172,19 +193,19 @@ export default function CustomerDashboard() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">TV Size:</span>
-                    <span className="font-medium">{booking.tvSize}"</span>
+                    <span className="font-medium">{typedBooking.tvSize}"</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Service:</span>
-                    <span className="font-medium">{booking.serviceTier?.name}</span>
+                    <span className="font-medium">{typedBooking.serviceTier?.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Wall Type:</span>
-                    <span className="font-medium">{booking.wallType}</span>
+                    <span className="font-medium">{typedBooking.wallType}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Mount Type:</span>
-                    <span className="font-medium">{booking.mountType}</span>
+                    <span className="font-medium">{typedBooking.mountType}</span>
                   </div>
                 </div>
               </div>
@@ -195,20 +216,20 @@ export default function CustomerDashboard() {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Date:</span>
                     <span className="font-medium">
-                      {booking.scheduledDate ? formatDate(booking.scheduledDate) : 'Not scheduled'}
+                      {typedBooking.scheduledDate ? formatDate(typedBooking.scheduledDate) : 'Not scheduled'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Time:</span>
-                    <span className="font-medium">{booking.scheduledTime || 'Not scheduled'}</span>
+                    <span className="font-medium">{typedBooking.scheduledTime || 'Not scheduled'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Address:</span>
-                    <span className="font-medium">{booking.address}</span>
+                    <span className="font-medium">{typedBooking.address}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Estimated Cost:</span>
-                    <span className="font-medium text-lg">{formatPrice(booking.totalPrice)}</span>
+                    <span className="font-medium text-lg">{formatPrice(typedBooking.totalPrice)}</span>
                   </div>
                   <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
                     <div className="text-green-800 text-sm font-medium">Pay Installer Directly</div>
@@ -219,25 +240,25 @@ export default function CustomerDashboard() {
             </div>
 
             {/* AI Preview */}
-            {(booking.originalImageUrl || booking.aiPreviewUrl) && (
+            {(typedBooking.originalImageUrl || typedBooking.aiPreviewUrl) && (
               <div className="mt-6 pt-6 border-t">
                 <h3 className="font-semibold text-gray-900 mb-3">AI Room Preview</h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {booking.originalImageUrl && (
+                  {typedBooking.originalImageUrl && (
                     <div>
                       <p className="text-sm text-gray-600 mb-2">Before</p>
                       <img 
-                        src={booking.originalImageUrl} 
+                        src={typedBooking.originalImageUrl} 
                         alt="Room before installation"
                         className="w-full h-48 object-cover rounded-lg"
                       />
                     </div>
                   )}
-                  {booking.aiPreviewUrl && (
+                  {typedBooking.aiPreviewUrl && (
                     <div>
                       <p className="text-sm text-gray-600 mb-2">After (AI Preview)</p>
                       <img 
-                        src={booking.aiPreviewUrl} 
+                        src={typedBooking.aiPreviewUrl} 
                         alt="AI preview with TV"
                         className="w-full h-48 object-cover rounded-lg"
                       />

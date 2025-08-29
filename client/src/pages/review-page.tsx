@@ -10,6 +10,17 @@ import { Star, ArrowLeft, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 
+interface Booking {
+  id: number;
+  installerId?: number;
+  userId?: number;
+  tvSize?: string;
+  address?: string;
+  scheduledDate?: string;
+  createdAt?: string;
+  status?: string;
+}
+
 export default function ReviewPage() {
   const { qrCode } = useParams();
   const { toast } = useToast();
@@ -25,6 +36,9 @@ export default function ReviewPage() {
     queryKey: ['/api/track', qrCode],
     enabled: !!qrCode
   });
+
+  // Type the booking data
+  const typedBooking = booking as Booking | undefined;
 
   // Submit review mutation
   const submitReview = useMutation({
@@ -65,9 +79,9 @@ export default function ReviewPage() {
     }
 
     submitReview.mutate({
-      bookingId: booking?.id,
-      installerId: booking?.installerId,
-      userId: booking?.userId,
+      bookingId: typedBooking?.id,
+      installerId: typedBooking?.installerId,
+      userId: typedBooking?.userId,
       rating,
       title: reviewTitle,
       comment: reviewText,
@@ -87,7 +101,7 @@ export default function ReviewPage() {
     );
   }
 
-  if (!booking) {
+  if (!typedBooking) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <Card className="max-w-md mx-auto">
@@ -157,14 +171,14 @@ export default function ReviewPage() {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-semibold text-gray-900 mb-2">Installation Details</h3>
               <div className="text-sm text-gray-600 space-y-1">
-                <p><strong>Service:</strong> {booking.tvSize}" TV Installation</p>
-                <p><strong>Address:</strong> {booking.address}</p>
-                <p><strong>Date:</strong> {new Date(booking.scheduledDate || booking.createdAt).toLocaleDateString()}</p>
+                <p><strong>Service:</strong> {typedBooking.tvSize}" TV Installation</p>
+                <p><strong>Address:</strong> {typedBooking.address}</p>
+                <p><strong>Date:</strong> {new Date(typedBooking.scheduledDate || typedBooking.createdAt || new Date()).toLocaleDateString()}</p>
                 <p><strong>Status:</strong> 
                   <span className={`ml-1 px-2 py-1 rounded text-xs ${
-                    booking.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                    typedBooking.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
                   }`}>
-                    {booking.status?.charAt(0).toUpperCase() + booking.status?.slice(1)}
+                    {typedBooking.status ? typedBooking.status.charAt(0).toUpperCase() + typedBooking.status.slice(1) : 'Unknown'}
                   </span>
                 </p>
               </div>

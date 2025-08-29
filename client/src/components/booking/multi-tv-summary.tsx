@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tv, MapPin, Settings, Euro, Edit2 } from "lucide-react";
 import { useBookingData } from "@/hooks/use-booking-data";
+import { SERVICE_PRICING } from "@/lib/pricing";
 
 interface MultiTvSummaryProps {
   onEditTv: (index: number) => void;
@@ -13,6 +14,13 @@ export default function MultiTvSummary({ onEditTv, onNext }: MultiTvSummaryProps
   const { bookingData, calculateTotalPrice } = useBookingData();
   const tvInstallations = bookingData.tvInstallations || [];
   const totalPrice = calculateTotalPrice();
+
+  // Calculate price for individual TV
+  const calculateTvPrice = (tv: any) => {
+    const basePrice = tv.basePrice || SERVICE_PRICING[tv.serviceType]?.customerPrice || 0;
+    const addonsPrice = tv.addons?.reduce((sum: number, addon: any) => sum + addon.price, 0) || 0;
+    return basePrice + addonsPrice;
+  };
 
   return (
     <div className="text-center">
@@ -71,7 +79,7 @@ export default function MultiTvSummary({ onEditTv, onNext }: MultiTvSummaryProps
                 
                 <div className="mt-3 text-right">
                   <div className="text-2xl font-bold text-primary">
-                    €{tv.estimatedTotal?.toFixed(2) || '0.00'}
+                    €{calculateTvPrice(tv).toFixed(2)}
                   </div>
                 </div>
               </div>

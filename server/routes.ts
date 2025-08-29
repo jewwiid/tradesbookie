@@ -3,10 +3,10 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import Stripe from "stripe";
 import { storage } from "./storage";
-import { 
+import {
   insertBookingSchema, insertUserSchema, insertReviewSchema, insertScheduleNegotiationSchema,
-  insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, insertAiToolSchema, 
-  users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers, 
+  insertResourceSchema, tvSetupBookingFormSchema, insertProductCategorySchema, insertAiToolSchema,
+  users, bookings, reviews, referralCodes, referralUsage, jobAssignments, installers,
   scheduleNegotiations, leadRefunds, antiManipulation, installerTransactions, declinedRequests,
   storeUsers, resources
 } from "@shared/schema";
@@ -46,14 +46,14 @@ async function checkUserEmailPreferences(userId: string, emailType: 'general' | 
       bookingUpdates: users.bookingUpdates,
       marketingEmails: users.marketingEmails
     }).from(users).where(eq(users.id, userId)).limit(1);
-    
+
     if (!user || user.length === 0) {
       console.log(`User ${userId} not found, defaulting to no email`);
       return false;
     }
-    
+
     const userPrefs = user[0];
-    
+
     switch (emailType) {
       case 'general':
         return userPrefs.emailNotifications ?? true;
@@ -79,13 +79,13 @@ async function checkUserEmailPreferencesByEmail(email: string, emailType: 'gener
       bookingUpdates: users.bookingUpdates,
       marketingEmails: users.marketingEmails
     }).from(users).where(eq(users.email, email)).limit(1);
-    
+
     if (!user || user.length === 0) {
       console.log(`User with email ${email} not found, defaulting to send for essential communications`);
       // For users not in our system, we allow essential communications but not marketing
       return emailType !== 'marketing';
     }
-    
+
     return checkUserEmailPreferences(user[0].id, emailType);
   } catch (error) {
     console.error(`Error checking email preferences for email ${email}:`, error);
@@ -110,6 +110,16 @@ import { AIContentService } from "./services/aiContentService";
 import { checkAiCredits, recordAiUsage, AI_FEATURES, clearAiToolsCache, type AIRequest } from "./aiCreditMiddleware";
 import { InstallerWalletService } from "./installerWalletService";
 import { storeAuthService } from "./storeAuthService";
+import { storePartnerApplications } from "@shared/storePartnerSchema.js";
+import { storePartnerApplications } from "@shared/storePartnerSchema.js";
+import { storePartnerApplications } from "@shared/storePartnerSchema.js";
+import { mockCredentials } from "./mockData.js";
+import pricing from "@/pages/pricing.jsx";
+import pricing from "@/pages/pricing.jsx";
+import pricing from "@/pages/pricing.jsx";
+import pricing from "@/pages/pricing.jsx";
+import pricing from "@/pages/pricing.jsx";
+import pricing from "@/pages/pricing.jsx";
 
 // Auto-refund service for expired leads
 class LeadExpiryService {
@@ -120,22 +130,22 @@ class LeadExpiryService {
   static async processExpiredLeads(): Promise<void> {
     try {
       console.log('🕐 Checking for expired leads...');
-      
+
       // Calculate 5 days ago
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() - this.EXPIRY_DAYS);
-      
+
       // Find all purchased leads older than 5 days that haven't been selected
       const expiredLeads = await db.select({
         jobAssignment: jobAssignments,
         booking: bookings
       })
-      .from(jobAssignments)
-      .innerJoin(bookings, eq(jobAssignments.bookingId, bookings.id))
-      .where(and(
-        eq(jobAssignments.status, 'purchased'),
-        eq(jobAssignments.leadFeeStatus, 'paid')
-      ));
+        .from(jobAssignments)
+        .innerJoin(bookings, eq(jobAssignments.bookingId, bookings.id))
+        .where(and(
+          eq(jobAssignments.status, 'purchased'),
+          eq(jobAssignments.leadFeeStatus, 'paid')
+        ));
 
       // Filter by expiry date (assignments older than 5 days)
       const actuallyExpired = expiredLeads.filter(item => {
@@ -149,7 +159,7 @@ class LeadExpiryService {
       }
 
       console.log(`🔄 Processing ${actuallyExpired.length} expired leads...`);
-      
+
       // Group by booking ID to process each booking's expired leads
       const expiredByBooking = new Map<number, typeof actuallyExpired>();
       for (const item of actuallyExpired) {
@@ -169,13 +179,13 @@ class LeadExpiryService {
       for (const [bookingId, expiredItems] of expiredByBooking) {
         try {
           console.log(`📋 Processing booking ${bookingId} with ${expiredItems.length} expired lead(s)`);
-          
+
           for (const item of expiredItems) {
             const { jobAssignment } = item;
-            
+
             // Update assignment status to expired
             await db.update(jobAssignments)
-              .set({ 
+              .set({
                 status: 'expired'
               })
               .where(eq(jobAssignments.id, jobAssignment.id));
@@ -184,16 +194,16 @@ class LeadExpiryService {
             const leadFee = jobAssignment.leadFee ? parseFloat(jobAssignment.leadFee) : 0;
             const installerId = jobAssignment.installerId;
             if (!installerId) continue;
-            
+
             const wallet = await storage.getInstallerWallet(installerId);
-            
+
             if (wallet && leadFee > 0) {
               const newBalance = parseFloat(wallet.balance) + leadFee;
               const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - leadFee);
-              
+
               await storage.updateInstallerWalletBalance(installerId, newBalance);
               await storage.updateInstallerWalletTotalSpent(installerId, totalSpent);
-              
+
               // Add refund transaction record
               await storage.addInstallerTransaction({
                 installerId: installerId,
@@ -203,26 +213,26 @@ class LeadExpiryService {
                 jobAssignmentId: jobAssignment.id,
                 status: 'completed'
               });
-              
+
               totalRefunded++;
               totalAmount += leadFee;
-              
+
               console.log(`💰 Refunded €${leadFee} to installer ${installerId} for expired lead ${bookingId}`);
             }
           }
-          
+
           // Update booking status to indicate lead expired
           await storage.updateBookingStatus(bookingId, 'expired');
-          
+
         } catch (error) {
           console.error(`❌ Error processing expired booking ${bookingId}:`, error);
         }
       }
-      
+
       if (totalRefunded > 0) {
         console.log(`✅ Auto-refund complete: ${totalRefunded} refunds totaling €${totalAmount.toFixed(2)}`);
       }
-      
+
     } catch (error) {
       console.error('❌ Error processing expired leads:', error);
     }
@@ -232,12 +242,12 @@ class LeadExpiryService {
   static startExpiryMonitoring(): void {
     // Check every hour for expired leads
     const intervalMs = 60 * 60 * 1000; // 1 hour
-    
+
     console.log(`🚀 Starting lead expiry monitoring (checking every ${intervalMs / 1000 / 60} minutes)`);
-    
+
     // Run initial check
     this.processExpiredLeads();
-    
+
     // Set up recurring checks
     this.intervalId = setInterval(() => {
       this.processExpiredLeads();
@@ -262,16 +272,16 @@ class PreInstallationReminderService {
   static async processInstallationReminders(): Promise<void> {
     try {
       console.log('🔔 Checking for installations scheduled tomorrow...');
-      
+
       // Calculate tomorrow's date
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(0, 0, 0, 0); // Start of tomorrow
-      
+
       const dayAfterTomorrow = new Date(tomorrow);
       dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
       dayAfterTomorrow.setHours(0, 0, 0, 0); // Start of day after tomorrow
-      
+
       // Find all bookings scheduled for tomorrow that haven't received reminders
       const tomorrowInstallations = await db.select()
         .from(bookings)
@@ -293,46 +303,46 @@ class PreInstallationReminderService {
       }
 
       console.log(`📨 Processing ${tomorrowInstallations.length} installation reminder(s)...`);
-      
+
       let remindersSent = 0;
       let remindersSkipped = 0;
-      
+
       for (const booking of tomorrowInstallations) {
         try {
           console.log(`📋 Processing reminder for booking ${booking.qrCode} scheduled ${booking.scheduledDate}`);
-          
+
           // Send reminder to customer
           const customerReminderSent = await sendPreInstallationReminder(booking, 'customer');
-          
+
           // Send reminder to installer
           const installerReminderSent = await sendPreInstallationReminder(booking, 'installer');
-          
+
           if (customerReminderSent || installerReminderSent) {
             // Mark reminder as sent
             await db.update(bookings)
-              .set({ 
+              .set({
                 reminderSent: true,
                 reminderSentAt: new Date()
               })
               .where(eq(bookings.id, booking.id));
-              
+
             console.log(`✅ Reminder sent for booking ${booking.qrCode}: Customer: ${customerReminderSent}, Installer: ${installerReminderSent}`);
             remindersSent++;
           } else {
             console.log(`❌ Failed to send reminder for booking ${booking.qrCode}`);
             remindersSkipped++;
           }
-          
+
         } catch (error) {
           console.error(`❌ Error processing reminder for booking ${booking.id}:`, error);
           remindersSkipped++;
         }
       }
-      
+
       if (remindersSent > 0) {
         console.log(`✅ Reminder processing complete: ${remindersSent} sent, ${remindersSkipped} skipped`);
       }
-      
+
     } catch (error) {
       console.error('❌ Error processing installation reminders:', error);
     }
@@ -342,12 +352,12 @@ class PreInstallationReminderService {
   static startReminderMonitoring(): void {
     // Check every 4 hours for installations scheduled tomorrow
     const intervalMs = 4 * 60 * 60 * 1000; // 4 hours
-    
+
     console.log(`🔔 Starting pre-installation reminder monitoring (checking every ${intervalMs / 1000 / 60 / 60} hours)`);
-    
+
     // Run initial check
     this.processInstallationReminders();
-    
+
     // Set up recurring checks
     this.intervalId = setInterval(() => {
       this.processInstallationReminders();
@@ -376,13 +386,13 @@ function broadcastBookingUpdate(bookingId: number, event: string, data?: any) {
     data,
     timestamp: new Date().toISOString()
   });
-  
+
   wsClients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
       client.send(message);
     }
   });
-  
+
   console.log(`Broadcast booking update: ${event} for booking ${bookingId}`);
 }
 
@@ -394,13 +404,13 @@ const resetDemoLeads = async (installerId: number) => {
       delete (global as any).demoStatusUpdates;
       console.log('Cleared demo status cache for fresh session');
     }
-    
+
     // Get existing demo bookings
     const existingBookings = await storage.getAllBookings();
-    const demoBookings = existingBookings.filter(booking => 
+    const demoBookings = existingBookings.filter(booking =>
       booking.qrCode && booking.qrCode.includes('QR-DEMO')
     );
-    
+
     // Fixed set of 3 demo leads for consistency
     const fixedDemoLeads = [
       {
@@ -419,7 +429,7 @@ const resetDemoLeads = async (installerId: number) => {
       },
       {
         qrCode: "QR-DEMO-002",
-        address: "42 Patrick Street, Cork, Ireland", 
+        address: "42 Patrick Street, Cork, Ireland",
         tvSize: "65 inch",
         serviceType: "gold-premium-large",
         wallType: "Brick",
@@ -437,7 +447,7 @@ const resetDemoLeads = async (installerId: number) => {
       {
         qrCode: "QR-DEMO-003",
         address: "89 Henry Street, Galway, Ireland",
-        tvSize: "43 inch", 
+        tvSize: "43 inch",
         serviceType: "bronze-wall-mount",
         wallType: "Plasterboard",
         difficulty: "Moderate",
@@ -451,17 +461,17 @@ const resetDemoLeads = async (installerId: number) => {
     ];
 
     const processedIds = [];
-    
+
     // Process each fixed demo lead
     for (const leadTemplate of fixedDemoLeads) {
       const existingLead = demoBookings.find(booking => booking.qrCode === leadTemplate.qrCode);
-      
+
       if (existingLead) {
         // Reset existing lead to available status
         try {
           await storage.updateBookingStatus(existingLead.id, 'pending');
           // Reset installer assignment to make it available again
-          await storage.updateBooking(existingLead.id, { 
+          await storage.updateBooking(existingLead.id, {
             installerId: null,
             status: 'pending'
           });
@@ -477,10 +487,10 @@ const resetDemoLeads = async (installerId: number) => {
     }
 
     // Clean up any old demo bookings that aren't part of our fixed set
-    const extraDemoBookings = demoBookings.filter(booking => 
+    const extraDemoBookings = demoBookings.filter(booking =>
       !fixedDemoLeads.some(lead => lead.qrCode === booking.qrCode)
     );
-    
+
     for (const extraBooking of extraDemoBookings) {
       try {
         await storage.deleteBooking(extraBooking.id);
@@ -535,10 +545,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Auth middleware - sets up passport and sessions
   await setupAuth(app);
-  
+
   // Start the lead expiry monitoring system
   LeadExpiryService.startExpiryMonitoring();
-  
+
   // Start the pre-installation reminder monitoring system
   PreInstallationReminderService.startReminderMonitoring();
 
@@ -550,23 +560,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("Current user:", req.user);
     console.log("Is authenticated:", req.isAuthenticated ? req.isAuthenticated() : false);
     console.log("Session ID:", req.sessionID);
-    
+
     // Redirect installers to their dedicated login page
     if (req.query.role === 'installer') {
       console.log("Installer login detected, redirecting to installer login page");
       return res.redirect("/installer-login");
     }
-    
+
     try {
       // Store intended action and role in session
       (req.session as any).authAction = 'login';
       (req.session as any).intendedRole = req.query.role || 'customer';
-      
+
       // Store return URL if provided
       if (req.query.returnTo) {
         (req.session as any).returnTo = req.query.returnTo as string;
       }
-      
+
       // Determine strategy based on hostname
       const getStrategyName = (hostname: string): string | null => {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
@@ -580,38 +590,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return registeredDomain ? `googleauth:${registeredDomain}` : null;
         }
       };
-      
+
       const strategyName = getStrategyName(req.hostname);
       if (!strategyName) {
         console.error("No OAuth strategy found for hostname:", req.hostname);
         return res.status(400).json({ error: "OAuth not configured for this domain" });
       }
-      
+
       console.log("Using OAuth strategy:", strategyName);
-      
+
       // Check if strategy is registered
       const availableStrategies = Object.keys((passport as any)._strategies || {});
       console.log("Available strategies:", availableStrategies);
-      
+
       if (!availableStrategies.includes(strategyName)) {
         console.error(`Strategy ${strategyName} not found!`);
-        return res.status(500).json({ 
-          error: "OAuth strategy not available", 
+        return res.status(500).json({
+          error: "OAuth strategy not available",
           strategy: strategyName,
-          available: availableStrategies 
+          available: availableStrategies
         });
       }
-      
+
       // Save session before OAuth redirect
       req.session.save((saveErr) => {
         if (saveErr) {
           console.error("Session save error before OAuth:", saveErr);
           return res.status(500).json({ error: "Session save failed" });
         }
-        
+
         // Use passport authenticate - should redirect to OAuth provider
         console.log("About to call passport.authenticate for login...");
-        passport.authenticate(strategyName, { 
+        passport.authenticate(strategyName, {
           scope: "openid email profile "
           // Removed prompt parameter as it's not supported by Replit OAuth
         })(req, res, (authErr) => {
@@ -622,7 +632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("Passport authentication completed for login");
         });
       });
-      
+
     } catch (error) {
       console.error("OAuth login setup error:", error);
       res.status(500).json({ error: "OAuth login failed", details: error.message });
@@ -634,17 +644,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("=== OAUTH SIMPLE LOGIN REQUEST START ===");
     console.log("Simple login request from hostname:", req.hostname);
     console.log("Simple login query params:", req.query);
-    
+
     try {
       // Store intended action and role in session
       (req.session as any).authAction = 'login';
       (req.session as any).intendedRole = req.query.role || 'customer';
-      
+
       // Store return URL if provided
       if (req.query.returnTo) {
         (req.session as any).returnTo = req.query.returnTo as string;
       }
-      
+
       // Determine strategy based on hostname
       function getStrategyName(hostname: string): string | null {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
@@ -658,43 +668,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return registeredDomain ? `googleauth:${registeredDomain}` : null;
         }
       }
-      
+
       const strategyName = getStrategyName(req.hostname);
       if (!strategyName) {
         console.error("No OAuth strategy found for hostname:", req.hostname);
         return res.status(400).json({ error: "OAuth not configured for this domain" });
       }
-      
+
       console.log("Using OAuth strategy for account selection:", strategyName);
-      
+
       // Check if strategy is registered
       const availableStrategies = Object.keys((passport as any)._strategies || {});
       console.log("Available strategies:", availableStrategies);
-      
+
       if (!availableStrategies.includes(strategyName)) {
         console.error(`Strategy ${strategyName} not found!`);
-        return res.status(500).json({ 
-          error: "OAuth strategy not available", 
+        return res.status(500).json({
+          error: "OAuth strategy not available",
           strategy: strategyName,
-          available: availableStrategies 
+          available: availableStrategies
         });
       }
-      
+
       // Save session before OAuth redirect
       req.session.save((saveErr) => {
         if (saveErr) {
           console.error("Session save error before OAuth:", saveErr);
           return res.status(500).json({ error: "Session save failed" });
         }
-        
+
         console.log("About to call passport.authenticate for account selection...");
-        passport.authenticate(strategyName, { 
+        passport.authenticate(strategyName, {
           scope: "openid email profile ",
           // Add timestamp to force fresh request and clear cached auth state
           state: `account_selection_${Date.now()}`
         })(req, res, next);
       });
-      
+
     } catch (error) {
       console.error("OAuth account selection setup error:", error);
       res.status(500).json({ error: "OAuth account selection failed", details: error.message });
@@ -705,26 +715,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/installers/register", async (req, res) => {
     try {
       const { firstName, lastName, businessName, email, phone, address, county, yearsExperience, password, selectedServiceType } = req.body;
-      
+
       // Validate input
       if (!firstName || !lastName || !businessName || !email || !phone || !address || !county || !password) {
         return res.status(400).json({ error: "All fields are required" });
       }
-      
+
       if (password.length < 6) {
         return res.status(400).json({ error: "Password must be at least 6 characters" });
       }
-      
+
       // Check if email already exists
       const existingInstaller = await storage.getInstallerByEmail(email);
       if (existingInstaller) {
         return res.status(400).json({ error: "Email already registered" });
       }
-      
+
       // Use bcrypt to hash password
       const bcrypt = await import('bcrypt');
       const passwordHash = await bcrypt.default.hash(password, 10);
-      
+
       // Create installer account with full name information
       const fullName = `${firstName} ${lastName}`;
       const installer = await storage.registerInstaller(email, passwordHash, {
@@ -756,7 +766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Don't fail registration if service assignment fails
         }
       }
-      
+
       // Send welcome email to the installer
       try {
         console.log(`Attempting to send welcome email to: ${email}`);
@@ -770,7 +780,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('❌ Failed to send welcome email to installer:', emailError);
         // Don't fail registration if email fails
       }
-      
+
       // Send admin notification for new installer registration
       try {
         const { sendAdminNotification } = await import('./gmailService');
@@ -795,7 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('❌ Failed to send admin notification for installer registration:', notificationError);
         // Don't fail registration if notification fails
       }
-      
+
       // Return installer data (without password hash)
       const { passwordHash: _, ...installerData } = installer;
       res.status(201).json({
@@ -803,7 +813,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         installer: installerData,
         message: "Registration successful. Please complete your profile and wait for admin approval."
       });
-      
+
     } catch (error) {
       console.error("Installer registration error:", error);
       res.status(500).json({ error: "Registration failed" });
@@ -816,7 +826,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/installer/:id/public-profile", async (req, res) => {
     try {
       const installerId = parseInt(req.params.id);
-      
+
       if (!installerId) {
         return res.status(400).json({ error: "Invalid installer ID" });
       }
@@ -836,7 +846,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get job assignments and filter for completed ones
       const allJobs = await storage.getInstallerJobs(installerId);
       const completedJobs = allJobs.filter((job: any) => job.status === 'completed');
-      
+
       // Transform completed jobs to include photos and reviews
       const completedWork = await Promise.all(
         completedJobs.slice(0, 10).map(async (job: any) => {
@@ -869,7 +879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate total completed jobs
       const totalJobs = completedJobs.length;
-      
+
       // Get installer rating data
       const ratingData = await storage.getInstallerRating(installerId);
 
@@ -909,7 +919,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       res.json(publicProfile);
-      
+
     } catch (error) {
       console.error("Get public installer profile error:", error);
       res.status(500).json({ error: "Failed to get installer profile" });
@@ -922,16 +932,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if installer is authenticated via session OR if user is admin
       const isInstallerAuth = req.session.installerAuthenticated && req.session.installerId;
       const isAdminAuth = req.isAuthenticated() && req.user && (
-        req.user.role === 'admin' || 
-        req.user.email === 'admin@tradesbook.ie' || 
+        req.user.role === 'admin' ||
+        req.user.email === 'admin@tradesbook.ie' ||
         req.user.email === 'jude.okun@gmail.com' ||
         req.user.id === '42442296'
       );
-      
+
       if (!isInstallerAuth && !isAdminAuth) {
         return res.status(401).json({ error: "Not authenticated" });
       }
-      
+
       // For admin users, return a placeholder or first installer if no specific installer is selected
       let installer;
       if (isAdminAuth && !isInstallerAuth) {
@@ -940,8 +950,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (allInstallers && allInstallers.length > 0) {
           installer = allInstallers[0]; // Return first installer as example
         } else {
-          return res.json({ 
-            isAdminView: true, 
+          return res.json({
+            isAdminView: true,
             message: "Admin view - no installers available",
             id: 0,
             businessName: "Admin Dashboard View",
@@ -952,21 +962,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         installer = await storage.getInstaller(req.session.installerId);
       }
-      
+
       if (!installer) {
         return res.status(404).json({ error: "Installer not found" });
       }
-      
+
       // Return installer data (without password hash)
       const { passwordHash: _, ...installerData } = installer;
-      
+
       // Add flag if this is admin view
       if (isAdminAuth && !isInstallerAuth) {
         (installerData as any).isAdminView = true;
       }
-      
+
       res.json(installerData);
-      
+
     } catch (error) {
       console.error("Get profile error:", error);
       res.status(500).json({ error: "Failed to get profile" });
@@ -979,18 +989,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.session.installerAuthenticated || !req.session.installerId) {
         return res.status(401).json({ error: "Not authenticated" });
       }
-      
+
       const installerId = req.session.installerId;
-      
+
       // Validate installer exists
       const installer = await storage.getInstaller(installerId);
       if (!installer) {
         return res.status(404).json({ error: "Installer not found" });
       }
-      
+
       // Update profile
       const updatedInstaller = await storage.updateInstallerProfile(installerId, req.body);
-      
+
       // Return updated installer data (without password hash)
       const { passwordHash: _, ...installerData } = updatedInstaller;
       res.json({
@@ -998,7 +1008,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         installer: installerData,
         message: "Profile updated successfully"
       });
-      
+
     } catch (error) {
       console.error("Profile update error:", error);
       res.status(500).json({ error: "Profile update failed" });
@@ -1010,23 +1020,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log("=== OAUTH SIGNUP REQUEST START ===");
     console.log("Signup request from hostname:", req.hostname);
     console.log("Signup query params:", req.query);
-    
+
     // Redirect installers to their dedicated registration page
     if (req.query.role === 'installer') {
       console.log("Installer signup detected, redirecting to installer registration");
       return res.redirect("/installer-registration");
     }
-    
+
     try {
       // Store intended action and role in session
       (req.session as any).authAction = 'signup';
       (req.session as any).intendedRole = req.query.role || 'customer';
-      
+
       // Store return URL if provided
       if (req.query.returnTo) {
         (req.session as any).returnTo = req.query.returnTo as string;
       }
-      
+
       // Determine strategy based on hostname (matching login route exactly)
       const getStrategyName = (hostname: string): string | null => {
         if (hostname === 'localhost' || hostname === '127.0.0.1') {
@@ -1040,28 +1050,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return registeredDomain ? `googleauth:${registeredDomain}` : null;
         }
       };
-      
+
       const strategyName = getStrategyName(req.hostname);
       if (!strategyName) {
         console.error("No OAuth strategy found for hostname:", req.hostname);
         return res.status(400).json({ error: "OAuth not configured for this domain" });
       }
-      
+
       console.log("Using OAuth strategy:", strategyName);
-      
+
       // Save session before OAuth redirect (copying from login route)
       req.session.save((saveErr) => {
         if (saveErr) {
           console.error("Session save error before OAuth:", saveErr);
           return res.status(500).json({ error: "Session save failed" });
         }
-        
+
         console.log("About to call passport.authenticate for signup...");
-        passport.authenticate(strategyName, { 
+        passport.authenticate(strategyName, {
           scope: "openid email profile "
         })(req, res, next);
       });
-      
+
     } catch (error) {
       console.error("OAuth signup error:", error);
       res.status(500).json({ error: "OAuth signup failed" });
@@ -1077,11 +1087,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/service-tiers", async (req, res) => {
     try {
       const tvSize = req.query.tvSize ? parseInt(req.query.tvSize as string) : null;
-      
+
       // Get service tiers from database
       const dbTiers = await pricingManagementService.getAllPricing();
       const serviceTierCategories = ['table-top', 'wall-mount', 'premium'];
-      
+
       let serviceTiers = dbTiers
         .filter(tier => serviceTierCategories.includes(tier.category) && tier.isActive)
         .map(tier => ({
@@ -1120,7 +1130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           minTvSize: tier.minTvSize,
           maxTvSize: tier.maxTvSize
         }));
-        
+
         serviceTiers = dynamicTiers.length > 0 ? dynamicTiers : [
           {
             id: 1,
@@ -1135,7 +1145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           },
           {
             id: 2,
-            key: "table-top-large", 
+            key: "table-top-large",
             name: "Table Top Installation",
             description: "Professional table top setup for larger TVs",
             category: "table-top",
@@ -1235,7 +1245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/installer-service-assignments", async (req, res) => {
     try {
       const { installerId, serviceTypeId, assignedBy } = req.body;
-      
+
       if (!installerId || !serviceTypeId) {
         return res.status(400).json({ message: "installerId and serviceTypeId are required" });
       }
@@ -1252,7 +1262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assignedBy: assignedBy || 'admin_manual',
         isActive: true
       });
-      
+
       res.status(201).json(assignment);
     } catch (error) {
       console.error("Error assigning service to installer:", error);
@@ -1264,7 +1274,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/installer-service-assignments/:installerId/:serviceTypeId", async (req, res) => {
     try {
       const { installerId, serviceTypeId } = req.params;
-      
+
       await storage.removeServiceFromInstaller(parseInt(installerId), parseInt(serviceTypeId));
       res.json({ message: "Service assignment removed successfully" });
     } catch (error) {
@@ -1288,16 +1298,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/demo-login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       // Check for demo user credentials
       if (email === 'demo@tradesbook.ie' && password === '3UBg3nXAFLM48hQ>') {
         const demoUser = await storage.getUserByEmail(email);
-        
+
         if (demoUser) {
           // Set up session for demo user
           req.session.passport = { user: demoUser.id };
           (req.session as any).user = demoUser;
-          
+
           res.json({
             success: true,
             user: {
@@ -1328,15 +1338,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("GET /api/auth/user - req.user:", req.user);
       console.log("GET /api/auth/user - isAuthenticated:", req.isAuthenticated());
       console.log("GET /api/auth/user - Session:", req.session);
-      
+
       if (!req.isAuthenticated() || !req.user) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      
+
       // req.user now contains the full user object from database
       const user = req.user;
       console.log("Returning user data:", { id: user.id, email: user.email, role: user.role });
-      
+
       res.json({
         id: user.id,
         email: user.email,
@@ -1363,37 +1373,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("PATCH /api/auth/profile - req.user:", req.user);
       console.log("PATCH /api/auth/profile - isAuthenticated:", req.isAuthenticated());
       console.log("PATCH /api/auth/profile - Update data:", req.body);
-      
+
       if (!req.isAuthenticated() || !req.user) {
         return res.status(401).json({ message: "Unauthorized" });
       }
-      
+
       const user = req.user;
       const { firstName, lastName, email, phone } = req.body;
-      
+
       // Validate input
       if (!firstName || !lastName || !email) {
         return res.status(400).json({ message: "First name, last name, and email are required" });
       }
-      
+
       // Prepare update data
       const updateData: any = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim()
       };
-      
+
       // Add phone if provided
       if (phone !== undefined) {
         updateData.phone = phone ? phone.trim() : null;
       }
-      
+
       // Update user profile
       const updatedUser = await storage.updateUser(user.id, updateData);
-      
+
       console.log("Profile updated successfully:", { id: updatedUser.id, email: updatedUser.email });
-      
-      res.json({ 
+
+      res.json({
         message: "Profile updated successfully",
         user: updatedUser
       });
@@ -1409,7 +1419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("PATCH /api/auth/preferences - Session ID:", req.sessionID);
       console.log("PATCH /api/auth/preferences - req.user:", req.user);
       console.log("PATCH /api/auth/preferences - Preferences data:", req.body);
-      
+
       if (!req.isAuthenticated() || !req.user) {
         return res.status(401).json({ message: "Unauthorized" });
       }
@@ -1521,9 +1531,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           enabled: allUsers.filter(u => u.marketingEmails === true).length,
           disabled: allUsers.filter(u => u.marketingEmails === false).length
         },
-        allOptedOut: allUsers.filter(u => 
-          u.emailNotifications === false && 
-          u.bookingUpdates === false && 
+        allOptedOut: allUsers.filter(u =>
+          u.emailNotifications === false &&
+          u.bookingUpdates === false &&
           u.marketingEmails === false
         ).length,
         total: allUsers.length
@@ -1549,9 +1559,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           enabled: allInstallers.filter(i => i.marketingEmails === true).length,
           disabled: allInstallers.filter(i => i.marketingEmails === false).length
         },
-        allOptedOut: allInstallers.filter(i => 
-          i.emailNotifications === false && 
-          i.bookingUpdates === false && 
+        allOptedOut: allInstallers.filter(i =>
+          i.emailNotifications === false &&
+          i.bookingUpdates === false &&
           i.marketingEmails === false
         ).length,
         total: allInstallers.length
@@ -1585,7 +1595,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { userId } = req.params;
       const preferences = req.body;
-      
+
       // Update user preferences in the database
       await db.update(users)
         .set({
@@ -1594,7 +1604,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .where(eq(users.id, userId));
 
-      res.json({ 
+      res.json({
         message: "User preferences updated successfully",
         userId,
         preferences
@@ -1646,7 +1656,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           marketingEmails: users.marketingEmails,
           type: 'user' as const
         }).from(users).where(eq(users.id, userIds[0])); // Will be filtered properly below
-        
+
         // Get all users and then filter
         const allUsers = await db.select({
           id: users.id,
@@ -1658,10 +1668,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           marketingEmails: users.marketingEmails,
           type: 'user' as const
         }).from(users);
-        
+
         const filteredUserRecipients = allUsers.filter(user => {
           if (!userIds.includes(user.id)) return false;
-          
+
           // Check if user has opted in for this email type
           switch (emailType) {
             case 'general':
@@ -1674,7 +1684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return true;
           }
         });
-        
+
         allRecipients.push(...filteredUserRecipients);
       }
 
@@ -1684,7 +1694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .map(id => parseInt(id.toString().replace('installer_', '')));
       const directInstallerIds = recipientIds.filter(id => !isNaN(parseInt(id)) && !id.toString().startsWith('installer_')).map(id => parseInt(id));
       const allInstallerIds = [...installerIds, ...directInstallerIds];
-      
+
       if (allInstallerIds.length > 0 && (targetAudience === 'installers' || targetAudience === 'both')) {
         const allInstallersData = await db.select({
           id: installers.id,
@@ -1696,10 +1706,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           marketingEmails: installers.marketingEmails,
           type: 'installer' as const
         }).from(installers);
-        
+
         const filteredInstallerRecipients = allInstallersData.filter(installer => {
           if (!allInstallerIds.includes(installer.id)) return false;
-          
+
           // Check if installer has opted in for this email type
           switch (emailType) {
             case 'general':
@@ -1712,7 +1722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return true;
           }
         });
-        
+
         allRecipients.push(...filteredInstallerRecipients);
       }
 
@@ -1721,7 +1731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           let displayName;
           if (recipient.type === 'user') {
-            displayName = recipient.firstName && recipient.lastName 
+            displayName = recipient.firstName && recipient.lastName
               ? `${recipient.firstName} ${recipient.lastName}`
               : recipient.email.split('@')[0];
           } else {
@@ -1730,7 +1740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           const personalizedMessage = message.replace(/\{name\}/g, displayName);
           const recipientType = recipient.type === 'user' ? 'customer' : 'installer';
-          
+
           await sendGmailEmail({
             to: recipient.email,
             subject: subject,
@@ -1749,7 +1759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               </div>
             `
           });
-          
+
           sentCount++;
         } catch (emailError) {
           console.error(`Failed to send email to ${recipient.email}:`, emailError);
@@ -1759,7 +1769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const skippedCount = recipientIds.length - allRecipients.length;
 
-      res.json({ 
+      res.json({
         message: "Bulk email sent successfully",
         sentCount,
         skippedCount,
@@ -1821,7 +1831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { installerId } = req.params;
       const preferences = req.body;
-      
+
       // Update installer preferences in the database
       await db.update(installers)
         .set({
@@ -1843,13 +1853,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/send-verification", async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ message: "Email is required" });
       }
 
       const result = await resendVerificationEmail(email);
-      
+
       if (result.success) {
         res.json({ message: result.message });
       } else {
@@ -1864,13 +1874,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/auth/verify-email", async (req, res) => {
     try {
       const { token } = req.query;
-      
+
       if (!token || typeof token !== 'string') {
         return res.status(400).json({ message: "Invalid verification token" });
       }
 
       const result = await verifyEmailToken(token);
-      
+
       if (result.success && result.user) {
         // Auto-login the user after successful email verification
         req.login(result.user, (err) => {
@@ -1894,18 +1904,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users", async (req, res) => {
     try {
       const { name, email, phone, role } = req.body;
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         return res.json(existingUser);
       }
-      
+
       // Parse name into first and last name
       const nameParts = (name || '').split(' ');
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
-      
+
       const user = await storage.createUser({
         id: Date.now(), // Generate unique integer ID
         email: email,
@@ -1941,31 +1951,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const bookingId = parseInt(req.params.id);
       const { type = 'compressed' } = req.query; // 'original' or 'compressed'
-      
+
       const booking = await storage.getBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       // Check if user has permission (installer assigned to booking or admin)
       const isInstaller = req.installerUser && booking.installerId === req.installerUser.id;
       const isAdmin = req.user && req.user.role === 'admin';
-      
+
       if (!isInstaller && !isAdmin) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       // Check if photo storage consent was given
       if (!booking.photoStorageConsent) {
         return res.status(404).json({ message: "Room photo not available - customer consent not given" });
       }
-      
+
       const photoUrl = type === 'original' ? booking.roomPhotoUrl : booking.roomPhotoCompressedUrl;
-      
+
       if (!photoUrl) {
         return res.status(404).json({ message: "Room photo not found" });
       }
-      
+
       res.json({
         photoUrl,
         type,
@@ -1988,20 +1998,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const sharp = (await import('sharp')).default;
-      
+
       // Create optimized versions of the image
       const originalBuffer = req.file.buffer;
-      
+
       // Compress for storage (720p max, 80% quality) - saves bandwidth and storage
       const compressedBuffer = await sharp(originalBuffer)
         .resize(1280, 720, { fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 80 })
         .toBuffer();
-      
+
       // Convert to base64 for immediate display and AI processing
       const base64Image = originalBuffer.toString('base64');
       const compressedBase64 = compressedBuffer.toString('base64');
-      
+
       // Perform room analysis when photo is uploaded
       let analysis = null;
       try {
@@ -2010,7 +2020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error("Room analysis failed:", error);
         // Continue without analysis if it fails
       }
-      
+
       res.json({
         success: true,
         imageBase64: base64Image, // For immediate display
@@ -2031,12 +2041,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     upload.single('profilePhoto')(req, res, (err) => {
       if (err) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ 
-            message: "File too large. Maximum size allowed is 2MB" 
+          return res.status(400).json({
+            message: "File too large. Maximum size allowed is 2MB"
           });
         }
-        return res.status(400).json({ 
-          message: err.message || "File upload error" 
+        return res.status(400).json({
+          message: err.message || "File upload error"
         });
       }
       next();
@@ -2054,15 +2064,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Additional file size validation (2MB = 2,097,152 bytes)
       if (req.file.size > 2 * 1024 * 1024) {
-        return res.status(400).json({ 
-          message: "File too large. Maximum size allowed is 2MB" 
+        return res.status(400).json({
+          message: "File too large. Maximum size allowed is 2MB"
         });
       }
 
       // Validate file type
       if (!req.file.mimetype.startsWith('image/')) {
-        return res.status(400).json({ 
-          message: "Invalid file type. Only image files are allowed" 
+        return res.status(400).json({
+          message: "Invalid file type. Only image files are allowed"
         });
       }
 
@@ -2070,12 +2080,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Convert to base64 for storage
       const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-      
+
       // Update installer profile with new photo
       const updatedInstaller = await storage.updateInstaller(installerId, {
         profileImageUrl: base64Image
       });
-      
+
       res.json({
         success: true,
         message: "Profile photo updated successfully",
@@ -2091,26 +2101,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/analyze-room", async (req, res) => {
     try {
       const { image } = req.body;
-      
+
       if (!image) {
         return res.status(400).json({ message: "No image provided" });
       }
 
       // Extract base64 data from data URL
       const base64Image = image.replace(/^data:image\/[a-z]+;base64,/, '');
-      
+
       const analysis = await analyzeRoomForTVPlacement(base64Image);
-      
+
       res.json({
         success: true,
         analysis: analysis
       });
     } catch (error) {
       console.error("Error analyzing room:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: "Failed to analyze room", 
-        error: String(error) 
+      res.status(500).json({
+        success: false,
+        message: "Failed to analyze room",
+        error: String(error)
       });
     }
   });
@@ -2118,26 +2128,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/generate-ai-preview", checkAiCredits(AI_FEATURES.TV_PREVIEW), async (req: AIRequest, res) => {
     try {
       const { imageBase64, tvSize, mountType, wallType, selectedAddons } = req.body;
-      
+
       if (!imageBase64 || !tvSize) {
         return res.status(400).json({ message: "Missing required parameters" });
       }
 
       const result = await generateTVPreview(
-        imageBase64, 
-        tvSize, 
+        imageBase64,
+        tvSize,
         mountType || "fixed",
         wallType || "drywall",
         selectedAddons || []
       );
-      
+
       if (!result.success) {
         return res.status(500).json({ message: result.error });
       }
 
       // Record AI usage after successful generation
       await recordAiUsage(req);
-      
+
       res.json(result);
     } catch (error) {
       console.error("Error generating AI preview:", error);
@@ -2212,12 +2222,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             expectedLeadFee: expectedLeadFee.toFixed(2),
             actualLeadFee: actualLeadFee.toFixed(2),
             difference: difference.toFixed(2),
-            serviceTypes: bookingType === 'multi' 
+            serviceTypes: bookingType === 'multi'
               ? booking.tvInstallations.map((tv: any) => tv.serviceType).join(', ')
               : booking.serviceType,
             createdAt: booking.createdAt
           };
-          
+
           discrepancies.push(discrepancy);
           auditSummary.discrepanciesFound++;
           auditSummary.totalDiscrepancyAmount += difference;
@@ -2246,46 +2256,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Transform and validate the incoming data
       const rawData = req.body;
       console.log('Raw booking data before processing:', JSON.stringify(rawData, null, 2));
-      
+
       // Ensure userId is a string
       if (rawData.userId && typeof rawData.userId === 'number') {
         rawData.userId = String(rawData.userId);
       }
-      
+
       // Convert preferredDate string to Date object
       if (rawData.preferredDate && typeof rawData.preferredDate === 'string') {
         rawData.preferredDate = new Date(rawData.preferredDate);
       }
-      
+
       // Handle multi-TV or single TV pricing calculation
       let totalEstimatedPrice = 0;
       let totalAddonsPrice = 0;
       let totalBookingEstimate = 0;
       let totalLeadFee = 0; // NEW: Track total lead fee for audit and validation
-      
+
       if (rawData.tvInstallations && Array.isArray(rawData.tvInstallations) && rawData.tvInstallations.length > 0) {
         // Multi-TV booking: calculate pricing for each TV
         console.log('Processing multi-TV booking with', rawData.tvInstallations.length, 'TVs');
-        
+
         rawData.tvInstallations.forEach((tv: any, index: number) => {
           if (tv.serviceType && tv.addons) {
             const tvPricing = calculatePricing(tv.serviceType, tv.addons);
             const tvLeadFee = getLeadFee(tv.serviceType); // NEW: Calculate lead fee for each TV
-            
+
             tv.estimatedPrice = tvPricing.estimatedPrice;
             tv.estimatedAddonsPrice = tvPricing.addonsPrice;
             tv.estimatedTotal = tvPricing.totalEstimate;
             tv.leadFee = tvLeadFee; // NEW: Store lead fee for each TV
-            
+
             totalEstimatedPrice += tvPricing.estimatedPrice;
             totalAddonsPrice += tvPricing.addonsPrice;
             totalBookingEstimate += tvPricing.totalEstimate;
             totalLeadFee += tvLeadFee; // NEW: Sum up lead fees
-            
+
             console.log(`TV ${index + 1} (${tv.location || 'Unknown location'}): ${tv.tvSize}" ${tv.serviceType} = €${tvPricing.totalEstimate} (Lead Fee: €${tvLeadFee})`);
           }
         });
-        
+
         // Store multi-TV installations as JSONB
         rawData.tvInstallations = rawData.tvInstallations;
       } else {
@@ -2296,22 +2306,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rawData.addons || []
         );
         const singleLeadFee = getLeadFee(rawData.serviceType || 'bronze'); // NEW: Calculate lead fee for single TV
-        
+
         totalEstimatedPrice = pricing.estimatedPrice;
         totalAddonsPrice = pricing.addonsPrice;
         totalBookingEstimate = pricing.totalEstimate;
         totalLeadFee = singleLeadFee; // NEW: Set lead fee for single TV
       }
-      
+
       // Set installerId to null for initial booking creation
       rawData.installerId = null;
-      
+
       // Add calculated pricing to data as strings with null checks
       rawData.estimatedPrice = totalEstimatedPrice.toFixed(2);
       rawData.estimatedTotal = totalBookingEstimate.toFixed(2);
       rawData.estimatedAddonsPrice = totalAddonsPrice.toFixed(2);
       rawData.totalLeadFee = totalLeadFee.toFixed(2); // NEW: Store calculated lead fee for audit
-      
+
       // Add contact information (get from authenticated user or request)
       if (req.user) {
         rawData.contactName = `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'Demo User';
@@ -2324,7 +2334,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         rawData.contactPhone = rawData.contactPhone || '01-234-5678';
         rawData.userId = null; // No user linkage for guest bookings
       }
-      
+
       // Add invoice tracking for invoice-authenticated users
       if ((req.session as any).authMethod === 'invoice' && (req.session as any).invoiceNumber) {
         rawData.invoiceNumber = (req.session as any).invoiceNumber;
@@ -2333,12 +2343,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         console.log(`Booking created without invoice tracking, auth method: ${(req.session as any).authMethod}`);
       }
-      
+
       // NEW: Validate lead fee calculations for consistency
-      const expectedLeadFee = rawData.tvInstallations && rawData.tvInstallations.length > 0 
+      const expectedLeadFee = rawData.tvInstallations && rawData.tvInstallations.length > 0
         ? rawData.tvInstallations.reduce((sum: number, tv: any) => sum + (tv.leadFee || 0), 0)
         : getLeadFee(rawData.serviceType || 'bronze');
-      
+
       if (Math.abs(totalLeadFee - expectedLeadFee) > 0.01) {
         console.error('🚨 LEAD FEE CALCULATION MISMATCH:', {
           calculated: totalLeadFee,
@@ -2364,33 +2374,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isMultiTV: !!(rawData.tvInstallations && rawData.tvInstallations.length > 0),
         totalBookingValue: totalBookingEstimate
       });
-      
+
       const bookingData = insertBookingSchema.parse(rawData);
-      
+
       // Transform parsed data for storage
       if (bookingData.roomAnalysis === null) {
         bookingData.roomAnalysis = '';
       }
-      
+
       if (typeof bookingData.referralDiscount === 'number') {
         bookingData.referralDiscount = bookingData.referralDiscount.toFixed(2);
       } else if (bookingData.referralDiscount === null || bookingData.referralDiscount === undefined) {
         bookingData.referralDiscount = '0.00';
       }
-      
+
       // Convert userId to integer if it's a string
       if (bookingData.userId && typeof bookingData.userId === 'string') {
         bookingData.userId = parseInt(bookingData.userId, 10);
       }
-      
+
       // Handle image storage when user gives consent
       if (bookingData.photoStorageConsent && rawData.roomPhotoBase64 && rawData.compressedRoomPhoto) {
         console.log('Storing room photos - user has given consent');
-        
+
         // Store both original and compressed versions as data URLs for immediate access
         bookingData.roomPhotoUrl = `data:image/jpeg;base64,${rawData.roomPhotoBase64}`;
         bookingData.roomPhotoCompressedUrl = `data:image/jpeg;base64,${rawData.compressedRoomPhoto}`;
-        
+
         console.log('Images stored successfully with consent');
       } else if (!bookingData.photoStorageConsent) {
         console.log('Photo storage consent not given - images will not be stored');
@@ -2398,7 +2408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         bookingData.roomPhotoUrl = null;
         bookingData.roomPhotoCompressedUrl = null;
       }
-      
+
       let booking;
       try {
         booking = await storage.createBooking(bookingData);
@@ -2488,22 +2498,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Send confirmation to customer if user is authenticated
           if (req.user?.email) {
             await sendBookingConfirmation(
-              req.user.email, 
-              `${req.user.firstName} ${req.user.lastName}`.trim(), 
+              req.user.email,
+              `${req.user.firstName} ${req.user.lastName}`.trim(),
               bookingDetails
             );
           }
 
           // Notify only VIP installers about new booking (VIP feature)
           const installers = await storage.getAllInstallers();
-          const vipInstallers = installers.filter(installer => 
-            installer.approvalStatus === 'approved' && 
-            installer.email && 
+          const vipInstallers = installers.filter(installer =>
+            installer.approvalStatus === 'approved' &&
+            installer.email &&
             installer.isVip === true
           );
-          
+
           console.log(`Notifying ${vipInstallers.length} VIP installers about new booking ${bookingDetails.qrCode} (VIP exclusive feature)`);
-          
+
           for (const installer of vipInstallers) {
             try {
               await sendInstallerNotification(
@@ -2528,8 +2538,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Don't fail the booking creation if emails fail
         }
 
-        res.json({ 
-          booking: { ...booking, status: 'open' }, 
+        res.json({
+          booking: { ...booking, status: 'open' },
           qrCode: qrCodeDataURL,
           message: "Booking created successfully. Installers will be notified and can accept your request."
         });
@@ -2549,16 +2559,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const installerId = parseInt(req.params.id);
       const installer = await storage.getInstaller(installerId);
-      
+
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       // Only return approved and publicly visible installers
       if (installer.approvalStatus !== 'approved' || installer.isPubliclyVisible === false) {
         return res.status(404).json({ message: "Installer not available" });
       }
-      
+
       // Return safe installer info for direct booking
       const safeInstallerInfo = {
         id: installer.id,
@@ -2570,7 +2580,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yearsExperience: installer.yearsExperience,
         bio: installer.bio
       };
-      
+
       res.json(safeInstallerInfo);
     } catch (error) {
       console.error("Error fetching installer:", error);
@@ -2583,27 +2593,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const bookingData = req.body;
       console.log('Direct booking data:', JSON.stringify(bookingData, null, 2));
-      
+
       // Validate that installerId is provided
       if (!bookingData.preselectedInstallerId) {
         return res.status(400).json({ message: "Installer ID is required for direct booking" });
       }
-      
+
       // Verify the installer exists and is available
       const installer = await storage.getInstaller(bookingData.preselectedInstallerId);
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       if (installer.approvalStatus !== 'approved') {
         return res.status(400).json({ message: "Installer is not approved for bookings" });
       }
-      
+
       // Only VIP installers can accept direct bookings
       if (!installer.isVip) {
         return res.status(400).json({ message: "Direct booking is only available for VIP installers" });
       }
-      
+
       // Create the booking with direct installer assignment
       const insertBooking = {
         ...bookingData,
@@ -2613,14 +2623,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      
+
       // Remove the direct booking fields from the insert data
       delete insertBooking.preselectedInstallerId;
       delete insertBooking.directBooking;
       delete insertBooking.installerInfo;
-      
+
       const booking = await storage.createBooking(insertBooking);
-      
+
       // Create a job assignment for direct booking (no lead fee)
       await storage.createJobAssignment({
         bookingId: booking.id,
@@ -2631,13 +2641,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assignedDate: new Date(),
         acceptedDate: new Date()
       });
-      
+
       res.json({
         booking: { ...booking, status: 'confirmed', installer: installer.businessName },
         message: `Direct booking confirmed with ${installer.businessName}. You will be contacted directly.`,
         directBooking: true
       });
-      
+
     } catch (error) {
       console.error("Error creating direct booking:", error);
       res.status(400).json({ message: "Failed to create direct booking", error: String(error) });
@@ -2663,18 +2673,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       // Get job assignment details if exists
       let jobAssignment = null;
       let installer = null;
       let scheduleNegotiations = null;
-      
+
       if (booking.installerId) {
         installer = await storage.getInstaller(booking.installerId);
         const jobs = await storage.getInstallerJobs(booking.installerId);
         jobAssignment = jobs.find(job => job.bookingId === booking.id);
       }
-      
+
       // Get schedule negotiations with installer info for tracking progress
       try {
         const rawNegotiations = await db.select()
@@ -2712,19 +2722,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("Could not fetch schedule negotiations for tracking:", error);
         scheduleNegotiations = [];
       }
-      
+
       // Get the latest accepted schedule from negotiations
       const latestAcceptedSchedule = scheduleNegotiations
         .filter(n => n.status === 'accepted')
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-      
+
       // Format the date properly (extract just the date part from ISO string)
       let formattedScheduledDate = booking.scheduledDate;
       if (latestAcceptedSchedule?.proposedDate) {
         const dateObj = new Date(latestAcceptedSchedule.proposedDate);
         formattedScheduledDate = dateObj.toISOString().split('T')[0]; // Gets YYYY-MM-DD format
       }
-      
+
       // Format response with all tracking information
       const trackingData = {
         ...booking,
@@ -2752,7 +2762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: booking.contactEmail
         }
       };
-      
+
       res.json(trackingData);
     } catch (error) {
       console.error("Error fetching booking by QR code:", error);
@@ -2778,11 +2788,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let bookings;
-      
+
       // If user authenticated via invoice, filter by invoice number
       if ((req.session as any).authMethod === 'invoice' && (req.session as any).invoiceNumber) {
         const allBookings = await storage.getAllBookings();
-        bookings = allBookings.filter(booking => 
+        bookings = allBookings.filter(booking =>
           booking.invoiceNumber === (req.session as any).invoiceNumber ||
           booking.userId === req.user.id.toString()
         );
@@ -2801,13 +2811,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (installer) {
                 // Get installer rating data
                 const ratingData = await storage.getInstallerRating(installer.id);
-                
+
                 // Calculate completion date - use updatedAt if status is completed
                 let completedAt = booking.createdAt;
                 if (booking.status === 'completed' && booking.updatedAt && new Date(booking.updatedAt) > new Date(booking.createdAt)) {
                   completedAt = booking.updatedAt;
                 }
-                
+
                 return {
                   ...booking,
                   completedAt, // Add proper completion date
@@ -2854,7 +2864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get TV setup bookings by user email (matching the booking email)
       const tvSetupBookings = await storage.getTvSetupBookingsByEmail(req.user.email);
-      
+
       console.log(`Found ${tvSetupBookings.length} TV setup bookings for user ${req.user.email}`);
       res.json(tvSetupBookings);
     } catch (error) {
@@ -2874,7 +2884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           light: '#FFFFFF'
         }
       });
-      
+
       res.json({ qrCode: qrCodeDataURL });
     } catch (error) {
       console.error("Error generating QR code:", error);
@@ -2886,13 +2896,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/bookings", async (req, res) => {
     try {
       const bookings = await storage.getAllBookings();
-      
+
       // Enhance bookings with installer and user information
       const enhancedBookings = await Promise.all(
         bookings.map(async (booking) => {
           let installerInfo = null;
           let userInfo = null;
-          
+
           // Fetch installer details if booking is assigned
           if (booking.installerId) {
             try {
@@ -2910,7 +2920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.error(`Error fetching installer ${booking.installerId}:`, error);
             }
           }
-          
+
           // Fetch user details if booking has a userId (to show updated user info instead of booking contact info)
           if (booking.userId) {
             try {
@@ -2928,11 +2938,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.error(`Error fetching user ${booking.userId}:`, error);
             }
           }
-          
+
           // Calculate accurate lead fee using the pricing system
           let totalLeadFee = 0;
           let totalBookingValue = 0;
-          
+
           if (booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0) {
             // Multi-TV booking: calculate total lead fee and value
             booking.tvInstallations.forEach((tv: any) => {
@@ -2948,7 +2958,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const bookingPricing = calculatePricing(booking.serviceType, booking.addons || []);
             totalBookingValue = bookingPricing.totalEstimate;
           }
-          
+
           // Map database fields to expected frontend fields and add installer/user info
           return {
             ...booking,
@@ -2972,7 +2982,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         })
       );
-      
+
       res.json(enhancedBookings);
     } catch (error) {
       console.error("Error fetching all bookings:", error);
@@ -2983,7 +2993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
   // ====================== ADD-ONS ENDPOINT ======================
-  
+
   // Add-ons endpoint
   app.get("/api/addons", async (req, res) => {
     try {
@@ -2995,7 +3005,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { id: 5, key: 'weekend-installation', name: 'Weekend Installation', description: 'Saturday and Sunday installation availability', price: 49 },
         { id: 6, key: 'evening-installation', name: 'Evening Installation', description: 'After 6 PM installation service', price: 39 }
       ];
-      
+
       res.json(addons);
     } catch (error) {
       console.error("Error fetching add-ons:", error);
@@ -3004,12 +3014,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ====================== STRIPE PAYMENT ENDPOINTS ======================
-  
+
   // Create payment intent for booking
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { amount, bookingId, metadata = {} } = req.body;
-      
+
       // Validate amount
       if (!amount || amount < 50) { // Minimum 50 cents
         return res.status(400).json({ message: "Invalid payment amount" });
@@ -3028,14 +3038,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
       });
 
-      res.json({ 
+      res.json({
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id
       });
     } catch (error: any) {
       console.error("Error creating payment intent:", error);
-      res.status(500).json({ 
-        message: "Error creating payment intent: " + error.message 
+      res.status(500).json({
+        message: "Error creating payment intent: " + error.message
       });
     }
   });
@@ -3052,7 +3062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update booking status to paid
         if (bookingId) {
           await storage.updateBookingStatus(parseInt(bookingId), 'paid');
-          
+
           // Get booking details for confirmation
           const booking = await storage.getBooking(parseInt(bookingId));
           if (booking) {
@@ -3084,8 +3094,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error: any) {
       console.error("Error confirming payment:", error);
-      res.status(500).json({ 
-        message: "Error confirming payment: " + error.message 
+      res.status(500).json({
+        message: "Error confirming payment: " + error.message
       });
     }
   });
@@ -3105,8 +3115,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Error fetching payment status:", error);
-      res.status(500).json({ 
-        message: "Error fetching payment status: " + error.message 
+      res.status(500).json({
+        message: "Error fetching payment status: " + error.message
       });
     }
   });
@@ -3129,13 +3139,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object;
         console.log('Payment succeeded:', paymentIntent.id);
-        
+
         // Handle booking payments
         if (paymentIntent.metadata.bookingId) {
           if (paymentIntent.metadata.service === 'tv_setup') {
             // Handle TV setup booking payment
             await storage.updateTvSetupBookingPayment(
-              parseInt(paymentIntent.metadata.bookingId), 
+              parseInt(paymentIntent.metadata.bookingId),
               paymentIntent.id,
               'paid'
             );
@@ -3146,7 +3156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 parseInt(paymentIntent.metadata.bookingId),
                 'completed'
               );
-              
+
               // Update setup status to completed
               await storage.updateTvSetupBookingStatus(
                 parseInt(paymentIntent.metadata.bookingId),
@@ -3160,7 +3170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               if (booking) {
                 // Import email service dynamically to avoid circular dependencies
                 const { sendTvSetupConfirmationEmail, sendTvSetupAdminNotification, sendTvSetupPaymentCompletedEmail, sendTvSetupCredentialsEmail } = await import('./tvSetupEmailService');
-                
+
                 // Handle initial booking payment
                 if (paymentIntent.metadata.paymentType !== 'credentials') {
                   // Send confirmation email to customer
@@ -3171,7 +3181,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       console.log(`TV setup confirmation email sent for booking ${booking.id}`);
                     }
                   }
-                  
+
                   // Send admin notification
                   if (!booking.adminNotificationSent) {
                     const adminNotificationSent = await sendTvSetupAdminNotification(booking);
@@ -3183,18 +3193,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 } else {
                   // Handle credentials payment completion
                   console.log(`Processing credentials payment for booking ${booking.id}`);
-                  
+
                   // Send payment completion email to customer
                   const paymentCompletedSent = await sendTvSetupPaymentCompletedEmail(booking);
                   if (paymentCompletedSent) {
                     console.log(`TV setup payment completion email sent for booking ${booking.id}`);
                   }
-                  
+
                   // Auto-send credentials if they are available
                   const hasAppCredentials = booking.appUsername && booking.appPassword;
                   const hasIptvCredentials = booking.serverUsername && booking.serverPassword && booking.serverHostname;
                   const hasM3uUrl = booking.m3uUrl;
-                  
+
                   if ((hasAppCredentials || hasIptvCredentials || hasM3uUrl) && !booking.credentialsEmailSent) {
                     const credentialsSent = await sendTvSetupCredentialsEmail(booking);
                     if (credentialsSent) {
@@ -3202,14 +3212,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       console.log(`TV setup credentials email auto-sent for booking ${booking.id} after payment`);
                     }
                   }
-                  
+
                   // Send admin notification about completed payment
                   const { sendTvSetupAdminPaymentNotification } = await import('./tvSetupEmailService');
                   const adminPaymentNotificationSent = await sendTvSetupAdminPaymentNotification(booking);
                   if (adminPaymentNotificationSent) {
                     console.log(`TV setup admin payment notification sent for booking ${booking.id}`);
                   }
-                  
+
                   // Broadcast real-time update to connected clients
                   const updateMessage = {
                     type: 'booking_update',
@@ -3222,7 +3232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     },
                     timestamp: new Date().toISOString()
                   };
-                  
+
                   // Send to all connected WebSocket clients
                   wsClients.forEach((client) => {
                     if (client.readyState === WebSocket.OPEN) {
@@ -3236,7 +3246,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   const hasAppCredentials = booking.appUsername && booking.appPassword;
                   const hasIptvCredentials = booking.serverUsername && booking.serverPassword && booking.serverHostname;
                   const hasM3uUrl = booking.m3uUrl;
-                  
+
                   if ((hasAppCredentials || hasIptvCredentials || hasM3uUrl) && !booking.credentialsEmailSent) {
                     try {
                       const credentialsSent = await sendTvSetupCredentialsEmail(booking);
@@ -3256,7 +3266,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else {
             // Handle regular installation booking payment
             await storage.updateBookingStatus(
-              parseInt(paymentIntent.metadata.bookingId), 
+              parseInt(paymentIntent.metadata.bookingId),
               'paid'
             );
           }
@@ -3265,11 +3275,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Handle TV setup credentials payment
         if (paymentIntent.metadata.tvSetupBookingId && paymentIntent.metadata.type === 'tv_setup_credentials') {
           const bookingId = parseInt(paymentIntent.metadata.tvSetupBookingId);
-          
+
           try {
             // Update credentials payment status
             await storage.updateTvSetupBookingCredentialsPayment(bookingId, 'paid', new Date().toISOString());
-            
+
             // Get booking details for notifications
             const booking = await storage.getTvSetupBooking(bookingId);
             if (booking) {
@@ -3279,7 +3289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 to: booking.email,
                 subject: `Payment Confirmed - Your TV Setup Credentials Are Ready`,
                 html:
-                `
+                  `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                   <div style="background: linear-gradient(135deg, #10B981, #047857); color: white; padding: 30px; text-align: center;">
                     <h1 style="margin: 0; font-size: 28px;">Payment Confirmed!</h1>
@@ -3322,7 +3332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 to: 'admin@tradesbook.ie',
                 subject: `Credentials Payment Received - Booking #${booking.id}`,
                 html:
-                `
+                  `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                   <div style="background: #1F2937; color: white; padding: 20px;">
                     <h2 style="margin: 0;">TV Setup Credentials Payment Received</h2>
@@ -3366,7 +3376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 },
                 timestamp: new Date().toISOString()
               };
-              
+
               // Send to all connected WebSocket clients
               wsClients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
@@ -3380,12 +3390,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error('Error processing credentials payment:', error);
           }
         }
-        
+
         // Handle credit purchases
         if (paymentIntent.metadata.service === 'credit_purchase' && paymentIntent.metadata.installerId) {
           const installerId = parseInt(paymentIntent.metadata.installerId);
           const creditAmount = parseFloat(paymentIntent.metadata.creditAmount);
-          
+
           // Get current wallet
           let wallet = await storage.getInstallerWallet(installerId);
           if (!wallet) {
@@ -3396,14 +3406,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               totalEarned: "0.00"
             });
           }
-          
+
           // Calculate new balance
           const currentBalance = parseFloat(wallet.balance);
           const newBalance = currentBalance + creditAmount;
-          
+
           // Update wallet balance
           await storage.updateInstallerWalletBalance(installerId, newBalance);
-          
+
           // Add transaction record
           await storage.addInstallerTransaction({
             installerId,
@@ -3413,19 +3423,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             paymentIntentId: paymentIntent.id,
             status: "completed"
           });
-          
+
           console.log(`Added €${creditAmount} credits to installer ${installerId} wallet via webhook`);
         }
         break;
-      
+
       case 'payment_intent.payment_failed':
         const failedPayment = event.data.object;
         console.log('Payment failed:', failedPayment.id);
-        
+
         // Update booking status to payment_failed
         if (failedPayment.metadata.bookingId) {
           await storage.updateBookingStatus(
-            parseInt(failedPayment.metadata.bookingId), 
+            parseInt(failedPayment.metadata.bookingId),
             'payment_failed'
           );
         }
@@ -3443,7 +3453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Validate request data
       const validatedData = tvSetupBookingFormSchema.parse(req.body);
-      
+
       // Initialize pricing
       let originalAmount = 110.00;
       let discountAmount = 0.00;
@@ -3451,18 +3461,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let referralCodeId = null;
       let salesStaffName = null;
       let salesStaffStore = null;
-      
+
       // Process referral code if provided
       if (validatedData.referralCode) {
         try {
           const { harveyNormanReferralService } = await import('./harvestNormanReferralService');
           const referralService = harveyNormanReferralService;
-          
+
           const referralResult = await referralService.validateAndCalculateDiscount(
             validatedData.referralCode.toUpperCase(),
             originalAmount
           );
-          
+
           if (referralResult.success) {
             discountAmount = referralResult.discountAmount;
             finalAmount = originalAmount - discountAmount;
@@ -3475,7 +3485,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Continue with booking creation even if referral validation fails
         }
       }
-      
+
       // Create the booking in the database without payment
       const booking = await storage.createTvSetupBooking({
         name: validatedData.name,
@@ -3509,7 +3519,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (referralCode) {
             // Calculate reward amount (typically 5% of original amount for referrer)
             const rewardAmount = originalAmount * 0.05; // 5% commission for referrer
-            
+
             // Create referral usage record for TV setup booking
             await storage.createReferralUsage({
               referralCodeId: referralCodeId,
@@ -3525,13 +3535,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
             // Update referral code statistics
             await storage.updateReferralCodeStats(referralCodeId, rewardAmount);
-            
+
             // Track referral usage for store analytics if it's a staff referral
             if (salesStaffStore && referralCode.salesStaffStore) {
               try {
                 const { retailerDetectionService } = await import('./retailerDetectionService');
                 const parsedCode = retailerDetectionService.detectRetailerFromReferralCode(validatedData.referralCode);
-                
+
                 if (parsedCode && parsedCode.retailerCode) {
                   await storeAuthService.trackReferralUsage(
                     validatedData.referralCode,
@@ -3550,7 +3560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 // Don't fail booking if store tracking fails
               }
             }
-            
+
             console.log(`Created referral usage tracking for code ${validatedData.referralCode}, booking ${booking.id}, discount €${discountAmount}, reward €${rewardAmount}`);
           }
         } catch (referralTrackingError) {
@@ -3577,15 +3587,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('Failed to send TV setup admin notification email:', emailError);
       }
 
-      res.json({ 
-        success: true, 
-        bookingId: booking.id, 
-        message: "Booking created successfully. You will receive payment instructions once your login credentials are prepared." 
+      res.json({
+        success: true,
+        bookingId: booking.id,
+        message: "Booking created successfully. You will receive payment instructions once your login credentials are prepared."
       });
     } catch (error: any) {
       console.error("Error creating TV setup booking:", error);
-      res.status(500).json({ 
-        message: "Error creating TV setup booking: " + error.message 
+      res.status(500).json({
+        message: "Error creating TV setup booking: " + error.message
       });
     }
   });
@@ -3595,7 +3605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const bookingId = parseInt(req.params.id);
       const booking = await storage.getTvSetupBooking(bookingId);
-      
+
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
@@ -3605,8 +3615,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Calculate payment amount (use credentials payment amount or fallback to booking payment amount)
-      const paymentAmount = booking.credentialsPaymentAmount 
-        ? parseFloat(booking.credentialsPaymentAmount) 
+      const paymentAmount = booking.credentialsPaymentAmount
+        ? parseFloat(booking.credentialsPaymentAmount)
         : parseFloat(booking.paymentAmount);
 
       // Create Stripe Checkout Session
@@ -3637,18 +3647,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update booking with Stripe session info
       await storage.updateTvSetupBookingPayment(booking.id, session.payment_intent as string, 'pending');
-      
+
       // TODO: Send email to customer with payment link
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         sessionId: session.id,
-        message: "Payment link created successfully" 
+        message: "Payment link created successfully"
       });
     } catch (error: any) {
       console.error("Error creating payment session:", error);
-      res.status(500).json({ 
-        message: "Error creating payment session: " + error.message 
+      res.status(500).json({
+        message: "Error creating payment session: " + error.message
       });
     }
   });
@@ -3658,7 +3668,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const bookingId = parseInt(req.params.id);
       const booking = await storage.getTvSetupBooking(bookingId);
-      
+
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
@@ -3671,7 +3681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Payment already completed" });
       }
 
-      res.json({ 
+      res.json({
         booking: {
           id: booking.id,
           name: booking.name,
@@ -3684,8 +3694,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Error fetching booking for payment:", error);
-      res.status(500).json({ 
-        message: "Error fetching booking: " + error.message 
+      res.status(500).json({
+        message: "Error fetching booking: " + error.message
       });
     }
   });
@@ -3695,16 +3705,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const bookingId = parseInt(req.params.id);
       const booking = await storage.getTvSetupBooking(bookingId);
-      
+
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
-      
+
       res.json(booking);
     } catch (error: any) {
       console.error("Error fetching TV setup booking:", error);
-      res.status(500).json({ 
-        message: "Error fetching TV setup booking: " + error.message 
+      res.status(500).json({
+        message: "Error fetching TV setup booking: " + error.message
       });
     }
   });
@@ -3716,8 +3726,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(bookings);
     } catch (error: any) {
       console.error("Error fetching TV setup bookings:", error);
-      res.status(500).json({ 
-        message: "Error fetching TV setup bookings: " + error.message 
+      res.status(500).json({
+        message: "Error fetching TV setup bookings: " + error.message
       });
     }
   });
@@ -3726,10 +3736,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/tv-setup-booking/:id/credentials", isAuthenticated, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);
-      const { 
+      const {
         credentialsType,
         serverHostname,
-        serverUsername, 
+        serverUsername,
         serverPassword,
         numberOfDevices,
         m3uUrl
@@ -3762,10 +3772,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         numberOfDevices: numberOfDevices || 1,
         m3uUrl
       });
-      
+
       // Get updated booking details
       const booking = await storage.getTvSetupBooking(bookingId);
-      
+
       // Auto-send credentials email if payment is completed and email hasn't been sent yet
       if (booking && booking.paymentStatus === 'paid' && !booking.credentialsEmailSent) {
         try {
@@ -3784,8 +3794,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "Credentials updated successfully" });
     } catch (error: any) {
       console.error("Error updating TV setup credentials:", error);
-      res.status(500).json({ 
-        message: "Error updating TV setup credentials: " + error.message 
+      res.status(500).json({
+        message: "Error updating TV setup credentials: " + error.message
       });
     }
   });
@@ -3795,7 +3805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const bookingId = parseInt(req.params.id);
       const booking = await storage.getTvSetupBooking(bookingId);
-      
+
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
@@ -3809,7 +3819,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hasAppCredentials = booking.appUsername && booking.appPassword;
       const hasIptvCredentials = booking.serverUsername && booking.serverPassword && booking.serverHostname;
       const hasM3uUrl = booking.m3uUrl;
-      
+
       if (!hasAppCredentials && !hasIptvCredentials && !hasM3uUrl) {
         return res.status(400).json({ message: "No credentials or M3U URL available for this booking. Please add IPTV credentials or M3U URL first." });
       }
@@ -3817,7 +3827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send credentials email
       const { sendTvSetupCredentialsEmail } = await import('./tvSetupEmailService');
       const emailSent = await sendTvSetupCredentialsEmail(booking);
-      
+
       if (emailSent) {
         await storage.markTvSetupEmailSent(bookingId, 'credentials');
         res.json({ success: true, message: "Credentials email sent successfully" });
@@ -3826,8 +3836,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error: any) {
       console.error("Error sending credentials email:", error);
-      res.status(500).json({ 
-        message: "Error sending credentials email: " + error.message 
+      res.status(500).json({
+        message: "Error sending credentials email: " + error.message
       });
     }
   });
@@ -3850,10 +3860,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update the booking status
       await storage.updateTvSetupBookingStatus(bookingId, status, adminNotes, assignedTo);
-      
+
       // Get updated booking with new status
       const updatedBooking = await storage.getTvSetupBooking(bookingId);
-      
+
       // Send status update email to customer if status actually changed
       if (currentBooking.setupStatus !== status && updatedBooking) {
         try {
@@ -3869,8 +3879,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "Status updated successfully" });
     } catch (error: any) {
       console.error("Error updating TV setup booking status:", error);
-      res.status(500).json({ 
-        message: "Error updating TV setup booking status: " + error.message 
+      res.status(500).json({
+        message: "Error updating TV setup booking status: " + error.message
       });
     }
   });
@@ -3902,8 +3912,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "Referral information updated successfully" });
     } catch (error: any) {
       console.error("Error updating TV setup booking referral:", error);
-      res.status(500).json({ 
-        message: "Error updating TV setup booking referral: " + error.message 
+      res.status(500).json({
+        message: "Error updating TV setup booking referral: " + error.message
       });
     }
   });
@@ -3940,8 +3950,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "Expiry date updated successfully" });
     } catch (error: any) {
       console.error("Error updating TV setup booking expiry:", error);
-      res.status(500).json({ 
-        message: "Error updating TV setup booking expiry: " + error.message 
+      res.status(500).json({
+        message: "Error updating TV setup booking expiry: " + error.message
       });
     }
   });
@@ -3950,7 +3960,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/tv-setup-booking/:id/mark-credentials-paid", isAuthenticated, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);
-      
+
       if (!bookingId || isNaN(bookingId)) {
         return res.status(400).json({ message: "Valid booking ID is required" });
       }
@@ -3972,20 +3982,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Mark credentials payment as paid
       await storage.markTvSetupCredentialsPaid(bookingId);
-      
+
       // Update status to completed if all requirements are met
       if (booking.setupStatus !== 'completed') {
         await storage.updateTvSetupBookingStatus(bookingId, 'completed');
       }
 
-      res.json({ 
-        success: true, 
-        message: "IPTV credentials payment marked as received" 
+      res.json({
+        success: true,
+        message: "IPTV credentials payment marked as received"
       });
     } catch (error: any) {
       console.error("Error marking credentials payment as paid:", error);
-      res.status(500).json({ 
-        message: "Error marking credentials payment as paid: " + error.message 
+      res.status(500).json({
+        message: "Error marking credentials payment as paid: " + error.message
       });
     }
   });
@@ -3999,7 +4009,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const bookingId = parseInt(req.params.id);
       const booking = await storage.getTvSetupBooking(bookingId);
-      
+
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
@@ -4017,7 +4027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send payment request email
       const { sendTvSetupPaymentRequestEmail } = await import('./tvSetupEmailService');
       const emailSent = await sendTvSetupPaymentRequestEmail(booking);
-      
+
       if (emailSent) {
         res.json({ success: true, message: "Payment request email sent successfully" });
       } else {
@@ -4025,8 +4035,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     } catch (error: any) {
       console.error("Error sending payment request email:", error);
-      res.status(500).json({ 
-        message: "Error sending payment request email: " + error.message 
+      res.status(500).json({
+        message: "Error sending payment request email: " + error.message
       });
     }
   });
@@ -4035,7 +4045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/tv-setup-booking/:id", isAuthenticated, async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);
-      
+
       if (!bookingId || isNaN(bookingId)) {
         return res.status(400).json({ message: "Valid booking ID is required" });
       }
@@ -4050,8 +4060,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "TV setup booking deleted successfully" });
     } catch (error: any) {
       console.error("Error deleting TV setup booking:", error);
-      res.status(500).json({ 
-        message: "Error deleting TV setup booking: " + error.message 
+      res.status(500).json({
+        message: "Error deleting TV setup booking: " + error.message
       });
     }
   });
@@ -4060,13 +4070,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tv-setup-tracker", async (req, res) => {
     try {
       const { bookingId, email } = req.query;
-      
+
       if (!bookingId && !email) {
         return res.status(400).json({ message: "Booking ID or email is required" });
       }
 
       let booking;
-      
+
       if (bookingId) {
         const id = parseInt(bookingId as string);
         if (isNaN(id)) {
@@ -4109,33 +4119,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         preferredSetupDate: booking.preferredSetupDate,
         createdAt: booking.createdAt,
         updatedAt: booking.updatedAt,
-        
+
         // MAC Address fields
         macAddress: booking.macAddress,
         macAddressProvided: booking.macAddressProvided || false,
         macAddressProvidedAt: booking.macAddressProvidedAt,
         recommendedApp: booking.recommendedApp,
         appDownloadInstructions: booking.appDownloadInstructions,
-        
+
         // Credentials fields
         credentialsProvided: booking.credentialsProvided || false,
         credentialsEmailSent: booking.credentialsEmailSent || false,
         credentialsSentAt: booking.credentialsSentAt,
         credentialsType: booking.credentialsType,
-        
+
         // IPTV credentials (only show if payment is completed)
         serverHostname: booking.paymentStatus === 'paid' ? booking.serverHostname : undefined,
         serverUsername: booking.paymentStatus === 'paid' ? booking.serverUsername : undefined,
         serverPassword: booking.paymentStatus === 'paid' ? booking.serverPassword : undefined,
         numberOfDevices: booking.paymentStatus === 'paid' ? booking.numberOfDevices : undefined,
         m3uUrl: booking.paymentStatus === 'paid' ? booking.m3uUrl : undefined,
-        
+
         // Payment for credentials
         credentialsPaymentRequired: booking.credentialsProvided && booking.paymentStatus !== 'paid',
         credentialsPaymentStatus: booking.paymentStatus || 'pending',
         credentialsPaymentAmount: booking.paymentAmount,
         credentialsPaidAt: booking.paymentStatus === 'paid' ? booking.updatedAt : undefined,
-        
+
         // Admin tracking
         adminNotes: booking.adminNotes,
         assignedTo: booking.assignedTo,
@@ -4145,8 +4155,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(safeBooking);
     } catch (error: any) {
       console.error("Error fetching TV setup booking for tracking:", error);
-      res.status(500).json({ 
-        message: "Error fetching TV setup booking: " + error.message 
+      res.status(500).json({
+        message: "Error fetching TV setup booking: " + error.message
       });
     }
   });
@@ -4156,37 +4166,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const bookingId = parseInt(req.params.id);
       const { macAddress } = req.body;
-      
+
       if (!bookingId || isNaN(bookingId)) {
         return res.status(400).json({ message: "Valid booking ID is required" });
       }
-      
+
       if (!macAddress || !macAddress.trim()) {
         return res.status(400).json({ message: "MAC address is required" });
       }
-      
+
       // Get the booking
       const booking = await storage.getTvSetupBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
-      
+
       // Update MAC address and mark as provided
       await storage.updateTvSetupBookingMacAddress(bookingId, macAddress.trim());
-      
+
       // Update status to credentials_ready if not already set
       if (booking.setupStatus === 'pending' || booking.setupStatus === 'mac_required') {
         await storage.updateTvSetupBookingStatus(bookingId, 'credentials_ready');
       }
-      
-      res.json({ 
-        success: true, 
-        message: "MAC address submitted successfully" 
+
+      res.json({
+        success: true,
+        message: "MAC address submitted successfully"
       });
     } catch (error: any) {
       console.error("Error submitting MAC address:", error);
-      res.status(500).json({ 
-        message: "Error submitting MAC address: " + error.message 
+      res.status(500).json({
+        message: "Error submitting MAC address: " + error.message
       });
     }
   });
@@ -4195,32 +4205,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/tv-setup-booking/:id/send-payment", async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);
-      
+
       if (!bookingId || isNaN(bookingId)) {
         return res.status(400).json({ message: "Valid booking ID is required" });
       }
-      
+
       // Get the booking
       const booking = await storage.getTvSetupBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
-      
+
       // Check if credentials are provided and payment is required
       if (!booking.credentialsProvided) {
         return res.status(400).json({ message: "Credentials not yet available" });
       }
-      
+
       if (booking.credentialsPaymentStatus === 'paid') {
         return res.status(400).json({ message: "Payment already completed" });
       }
-      
+
       // Send payment link email
       const paymentAmount = booking.credentialsPaymentAmount || booking.paymentAmount;
       const subject = `Payment Required - Your TV Setup Credentials Are Ready - Booking #${booking.id}`;
-      
+
       const trackingUrl = `${req.get('origin') || 'https://tradesbook.ie'}/tv-setup-tracker?bookingId=${booking.id}`;
-      
+
       const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #3B82F6, #1E40AF); color: white; padding: 30px; text-align: center;">
@@ -4286,24 +4296,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           </div>
         </div>
       `;
-      
+
       const { sendGmailEmail } = await import('./gmailService');
       const emailSent = await sendGmailEmail(booking.email, subject, htmlContent);
-      
+
       if (emailSent) {
-        res.json({ 
-          success: true, 
-          message: "Payment link email sent successfully" 
+        res.json({
+          success: true,
+          message: "Payment link email sent successfully"
         });
       } else {
-        res.status(500).json({ 
-          message: "Failed to send payment link email" 
+        res.status(500).json({
+          message: "Failed to send payment link email"
         });
       }
     } catch (error: any) {
       console.error("Error sending payment link email:", error);
-      res.status(500).json({ 
-        message: "Error sending payment link email: " + error.message 
+      res.status(500).json({
+        message: "Error sending payment link email: " + error.message
       });
     }
   });
@@ -4312,33 +4322,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/tv-setup-bookings/:id/payment", async (req, res) => {
     try {
       const bookingId = parseInt(req.params.id);
-      
+
       if (!bookingId || isNaN(bookingId)) {
         return res.status(400).json({ message: "Valid booking ID is required" });
       }
-      
+
       // Get the booking
       const booking = await storage.getTvSetupBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
-      
+
       // Check if credentials are provided and payment is required
       if (!booking.credentialsProvided) {
         return res.status(400).json({ message: "Credentials not yet available" });
       }
-      
+
       if (booking.credentialsPaymentStatus === 'paid') {
         return res.status(400).json({ message: "Payment already completed" });
       }
-      
+
       // Calculate payment amount (use credentials payment amount or fallback to original)
-      const paymentAmount = booking.credentialsPaymentAmount 
-        ? parseFloat(booking.credentialsPaymentAmount) 
+      const paymentAmount = booking.credentialsPaymentAmount
+        ? parseFloat(booking.credentialsPaymentAmount)
         : parseFloat(booking.paymentAmount);
-      
+
       console.log(`Creating Stripe session for booking ${booking.id}, amount: €${paymentAmount}`);
-      
+
       // Create Stripe checkout session
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card', 'apple_pay', 'google_pay', 'link'],
@@ -4368,9 +4378,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Store the Stripe session ID
       await storage.updateTvSetupBookingStripeSession(bookingId, session.id);
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         stripeUrl: session.url,
         sessionId: session.id
       });
@@ -4382,8 +4392,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         code: error.code,
         stack: error.stack
       });
-      res.status(500).json({ 
-        message: "Error creating payment session: " + error.message 
+      res.status(500).json({
+        message: "Error creating payment session: " + error.message
       });
     }
   });
@@ -4397,25 +4407,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const bookingId = parseInt(req.params.id);
-      
+
       if (!bookingId || isNaN(bookingId)) {
         return res.status(400).json({ message: "Valid booking ID is required" });
       }
-      
+
       // Get the booking
       const booking = await storage.getTvSetupBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "TV setup booking not found" });
       }
-      
+
       // Check if payment is completed
       if (booking.credentialsPaymentStatus !== 'paid') {
         return res.status(400).json({ message: "Payment must be completed before marking as complete" });
       }
-      
+
       // Update booking status to completed
       await storage.updateTvSetupBookingStatus(bookingId, 'completed');
-      
+
       // Send completion notification to customer
       const { sendGmailEmail } = await import('./gmailService');
       await sendGmailEmail({
@@ -4458,15 +4468,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         </div>
         `
       });
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: "TV setup marked as completed and customer notified"
       });
     } catch (error: any) {
       console.error("Error marking TV setup as completed:", error);
-      res.status(500).json({ 
-        message: "Error marking setup as completed: " + error.message 
+      res.status(500).json({
+        message: "Error marking setup as completed: " + error.message
       });
     }
   });
@@ -4481,7 +4491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         earnings: "2,850",
         rating: "4.9"
       };
-      
+
       res.json(stats);
     } catch (error) {
       console.error("Error fetching installer stats:", error);
@@ -4495,20 +4505,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.session || !req.session.installerAuthenticated || !req.session.installerId) {
         return res.status(401).json({ message: "Not authenticated as installer" });
       }
-      
+
       const installerId = req.session.installerId;
 
       // Get bookings where this installer has purchased leads (jobAssignments)
       const installerAssignments = await storage.getInstallerJobAssignments(installerId);
       console.log(`Found ${installerAssignments.length} job assignments for installer ${installerId}`);
-      
+
       const enhancedBookings = [];
-      
+
       for (const assignment of installerAssignments) {
         try {
           const booking = await storage.getBooking(assignment.bookingId);
           if (!booking) continue;
-          
+
           // Get the most relevant schedule date from negotiations
           const scheduleQuery = await db.execute(sql`
             SELECT 
@@ -4536,15 +4546,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                LIMIT 1
               ) as negotiation_status
           `);
-          
+
           const negotiatedSchedule = scheduleQuery.rows[0];
-          
+
           // Skip if customer has selected a different installer (job is no longer available to this installer)
           if (booking.installerId && booking.installerId !== installerId) {
             console.log(`Skipping booking ${booking.id} - customer selected different installer`);
             continue;
           }
-          
+
           // Skip if job assignment is not in valid status for active jobs display
           if (!['assigned', 'accepted', 'in_progress'].includes(assignment.status)) {
             continue;
@@ -4615,20 +4625,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/referral/generate", async (req, res) => {
     try {
       const { userId } = req.body;
-      
+
       if (!userId) {
         return res.status(400).json({ message: "User ID required" });
       }
-      
+
       // Check if user already has a referral code
       const existingCode = await storage.getReferralCodeByUserId(userId);
       if (existingCode) {
         return res.json(existingCode);
       }
-      
+
       // Generate new referral code
       const referralCode = `TB${userId.slice(-4).toUpperCase()}${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
-      
+
       const newCode = await storage.createReferralCode({
         userId: userId,
         referralCode: referralCode,
@@ -4636,7 +4646,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalEarnings: "0.00",
         isActive: true
       });
-      
+
       res.json(newCode);
     } catch (error) {
       console.error("Error generating referral code:", error);
@@ -4665,17 +4675,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate real statistics
       const totalInstallers = installers.filter(installer => installer.approvalStatus === 'approved').length;
-      
+
       // Get unique counties from installer service areas
       const counties = new Set(installers
         .filter(installer => installer.approvalStatus === 'approved')
         .map(installer => installer.serviceArea)
         .filter(Boolean));
-      
+
       // Calculate average rating from all reviews
       const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
       const averageRating = reviews.length > 0 ? (totalRating / reviews.length) : 0;
-      
+
       // Count completed installations
       const completedInstallations = bookings.filter(booking => booking.status === 'completed').length;
 
@@ -4695,7 +4705,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/referrals/codes", async (req, res) => {
     try {
       const { code, referralType, discountPercentage, salesStaffName, salesStaffStore, isActive } = req.body;
-      
+
       if (!code || !referralType || discountPercentage === undefined) {
         return res.status(400).json({ message: "Missing required fields" });
       }
@@ -4728,7 +4738,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { code, discountPercentage, isActive, referralType, salesStaffName, salesStaffStore } = req.body;
-      
+
       if (!code || discountPercentage === undefined) {
         return res.status(400).json({ message: "Missing required fields" });
       }
@@ -4766,9 +4776,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/referrals/codes/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       const success = await storage.deleteReferralCode(parseInt(id));
-      
+
       if (!success) {
         return res.status(404).json({ message: "Referral code not found" });
       }
@@ -4806,26 +4816,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/retail-partner/create-code", async (req, res) => {
     try {
       const { salesStaffName, salesStaffStore, customCode, retailerCode } = req.body;
-      
+
       if (!salesStaffName || !salesStaffStore) {
         return res.status(400).json({ message: "Sales staff name and store required" });
       }
-      
+
       const { retailerDetectionService } = await import('./retailerDetectionService');
-      
+
       // Generate retailer-specific code or use custom code
       const referralCode = customCode || retailerDetectionService.generateReferralCode(
         retailerCode || 'RT', // Default to generic RT if no retailer specified
         salesStaffStore,
         salesStaffName
       );
-      
+
       const newCode = await harveyNormanReferralService.createSalesStaffCode(
         salesStaffName,
         salesStaffStore,
         referralCode
       );
-      
+
       res.json(newCode);
     } catch (error) {
       console.error("Error creating retail partner referral code:", error);
@@ -4836,31 +4846,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/retail-partner/validate", async (req, res) => {
     try {
       const { referralCode, bookingAmount } = req.body;
-      
+
       if (!referralCode || !bookingAmount) {
         return res.status(400).json({ message: "Referral code and booking amount required" });
       }
-      
+
       const { retailerDetectionService } = await import('./retailerDetectionService');
-      
+
       // Detect retailer from referral code
       const parsedCode = retailerDetectionService.detectRetailerFromReferralCode(referralCode);
-      
+
       const result = await harveyNormanReferralService.validateAndCalculateDiscount(
         referralCode,
         parseFloat(bookingAmount)
       );
-      
+
       // Enhance result with retailer information
       if (result.success && parsedCode) {
         result.retailerInfo = parsedCode.retailerInfo;
         result.storeName = retailerDetectionService.getStoreName(
-          parsedCode.retailerCode, 
+          parsedCode.retailerCode,
           parsedCode.storeCode
         );
         result.staffName = parsedCode.staffName;
       }
-      
+
       res.json(result);
     } catch (error) {
       console.error("Error validating retail partner referral code:", error);
@@ -4871,7 +4881,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/retail-partner/codes", async (req, res) => {
     try {
       const codes = await harveyNormanReferralService.getAllSalesStaffCodes();
-      
+
       // Enhance codes with retailer information
       const { retailerDetectionService } = await import('./retailerDetectionService');
       const enhancedCodes = codes.map(code => {
@@ -4880,13 +4890,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...code,
           retailerInfo: parsedCode?.retailerInfo,
           storeName: parsedCode ? retailerDetectionService.getStoreName(
-            parsedCode.retailerCode, 
+            parsedCode.retailerCode,
             parsedCode.storeCode
           ) : code.salesStaffStore,
           staffName: parsedCode?.staffName || code.salesStaffName
         };
       });
-      
+
       res.json(enhancedCodes);
     } catch (error) {
       console.error("Error fetching retail partner referral codes:", error);
@@ -4916,7 +4926,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { retailerDetectionService } = await import('./retailerDetectionService');
-      
+
       // Check if retailer already exists
       if (retailerDetectionService.retailerExists(code)) {
         return res.status(409).json({ message: "Retailer with this code already exists" });
@@ -4931,10 +4941,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         referralCodePrefix,
         storeLocations
       });
-      
+
       if (created) {
-        res.status(201).json({ 
-          success: true, 
+        res.status(201).json({
+          success: true,
           message: `Retailer ${code} created successfully`,
           retailer: retailerDetectionService.getRetailer(code.toUpperCase())
         });
@@ -4954,12 +4964,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updates = req.body;
 
       const { retailerDetectionService } = await import('./retailerDetectionService');
-      
+
       const updated = retailerDetectionService.updateRetailer(code, updates);
-      
+
       if (updated) {
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: `Retailer ${code} updated successfully`,
           retailer: retailerDetectionService.getRetailer(code.toUpperCase())
         });
@@ -4978,12 +4988,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { code } = req.params;
 
       const { retailerDetectionService } = await import('./retailerDetectionService');
-      
+
       const deleted = retailerDetectionService.deleteRetailer(code);
-      
+
       if (deleted) {
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: `Retailer ${code} deleted successfully`
         });
       } else {
@@ -5007,12 +5017,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const { retailerDetectionService } = await import('./retailerDetectionService');
       const updated = retailerDetectionService.updateStoreLocations(code.toUpperCase(), storeLocations);
-      
+
       if (updated) {
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: `Store locations updated for ${code}`,
-          storeLocations 
+          storeLocations
         });
       } else {
         res.status(404).json({ message: "Retailer not found" });
@@ -5027,20 +5037,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/retail-partner/detect", async (req, res) => {
     try {
       const { code, type } = req.body; // type: 'referral' or 'invoice'
-      
+
       if (!code || !type) {
         return res.status(400).json({ message: "Code and type required" });
       }
-      
+
       const { retailerDetectionService } = await import('./retailerDetectionService');
-      
+
       let result = null;
       if (type === 'referral') {
         result = retailerDetectionService.detectRetailerFromReferralCode(code);
       } else if (type === 'invoice') {
         result = retailerDetectionService.detectRetailerFromInvoice(code);
       }
-      
+
       if (result) {
         res.json({
           success: true,
@@ -5063,16 +5073,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/harvey-norman/validate", async (req, res) => {
     try {
       const { referralCode, bookingAmount } = req.body;
-      
+
       if (!referralCode || !bookingAmount) {
         return res.status(400).json({ message: "Referral code and booking amount required" });
       }
-      
+
       const result = await harveyNormanReferralService.validateAndCalculateDiscount(
         referralCode.trim().toUpperCase(),
         parseFloat(bookingAmount)
       );
-      
+
       res.json(result);
     } catch (error) {
       console.error("Error validating Harvey Norman referral code:", error);
@@ -5084,7 +5094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const success = await harveyNormanReferralService.deactivateSalesStaffCode(parseInt(id));
-      
+
       if (success) {
         res.json({ message: "Referral code deactivated successfully" });
       } else {
@@ -5100,11 +5110,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/public-reviews", async (req, res) => {
     try {
       const { bookingId, installerId, userId, rating, title, comment, reviewerName, qrCode } = req.body;
-      
+
       if (!rating || !title || !comment || !reviewerName) {
         return res.status(400).json({ message: "Missing required review fields" });
       }
-      
+
       const review = await storage.createReview({
         bookingId: bookingId || null,
         installerId: installerId || null,
@@ -5116,14 +5126,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
-      
+
       // Send notification to admin about new review
       await sendNotificationEmail(
         'admin@tradesbook.ie',
         `New ${rating}-Star Review Submitted`,
         `A new review has been submitted:\n\nRating: ${rating}/5 stars\nTitle: ${title}\nReviewer: ${reviewerName}\nComment: ${comment}\n\nBooking: ${qrCode || bookingId}`
       );
-      
+
       res.json({ success: true, review });
     } catch (error) {
       console.error("Error creating review:", error);
@@ -5146,10 +5156,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/fee-structures", async (req, res) => {
     try {
       const { installerId, serviceType, feePercentage } = req.body;
-      
+
       // Check if fee structure exists
       const existing = await storage.getFeeStructure(installerId, serviceType);
-      
+
       if (existing) {
         await storage.updateFeeStructure(installerId, serviceType, feePercentage);
         res.json({ message: "Fee structure updated" });
@@ -5178,7 +5188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all bookings for the current user
       const bookings = await storage.getAllBookings();
       const userBookings = bookings.filter(booking => booking.userId === user.id);
-      
+
       res.json(userBookings);
     } catch (error) {
       console.error("Error fetching customer bookings:", error);
@@ -5190,7 +5200,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/installers/register", async (req, res) => {
     try {
       const installerData = req.body;
-      
+
       // Check if installer already exists (for OAuth users who need profile completion)
       const existingInstaller = await storage.getInstallerByEmail(installerData.email);
       if (existingInstaller) {
@@ -5208,13 +5218,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           approvalStatus: 'pending',
           isActive: false // Requires admin approval
         });
-        
-        return res.json({ 
-          message: "Profile updated successfully. Awaiting admin approval.", 
+
+        return res.json({
+          message: "Profile updated successfully. Awaiting admin approval.",
           installer: { id: updatedInstaller.id, email: updatedInstaller.email, name: updatedInstaller.contactName }
         });
       }
-      
+
       // Create new installer for non-OAuth registrations
       const installer = await storage.createInstaller({
         contactName: installerData.name,
@@ -5229,9 +5239,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         approvalStatus: 'pending',
         isActive: false // Requires admin approval
       });
-      
-      res.json({ 
-        message: "Registration successful. Awaiting admin approval.", 
+
+      res.json({
+        message: "Registration successful. Awaiting admin approval.",
         installer: { id: installer.id, email: installer.email, name: installer.contactName }
       });
     } catch (error) {
@@ -5244,7 +5254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/installers/profile/update", async (req, res) => {
     try {
       const installerData = req.body;
-      
+
       if (!installerData.email) {
         return res.status(400).json({ error: "Email is required" });
       }
@@ -5269,8 +5279,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isActive: false // Requires admin approval
       });
 
-      res.json({ 
-        message: "Profile updated successfully. Awaiting admin approval.", 
+      res.json({
+        message: "Profile updated successfully. Awaiting admin approval.",
         installer: { id: updatedInstaller.id, email: updatedInstaller.email, name: updatedInstaller.contactName }
       });
     } catch (error) {
@@ -5283,7 +5293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/installer/available-requests", async (req, res) => {
     try {
       const { installerId } = req.query;
-      
+
       // Check if installer is demo account
       let isDemoAccount = false;
       if (installerId) {
@@ -5305,17 +5315,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (booking.status !== 'open' || booking.installerId || booking.assignmentType === 'direct') {
           return false;
         }
-        
+
         // Exclude leads already purchased by this installer
         if (installerId && purchasedBookingIds.has(booking.id)) {
           return false;
         }
-        
+
         // Demo accounts only see demo bookings
         if (isDemoAccount) {
           return booking.isDemo === true;
         }
-        
+
         // Regular installers only see non-demo bookings
         return booking.isDemo !== true;
       }).map(async (booking) => {
@@ -5339,13 +5349,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requests = availableRequests.map(booking => {
         // Handle multi-TV vs single TV data
         let tvInfo, serviceInfo, totalPrice, installerEarnings;
-        
+
         if (booking.tvInstallations && Array.isArray(booking.tvInstallations) && booking.tvInstallations.length > 0) {
           // Multi-TV booking
           const tvCount = booking.tvInstallations.length;
           const tvSizes = booking.tvInstallations.map((tv: any) => tv.tvSize).join(', ');
           const services = booking.tvInstallations.map((tv: any) => tv.serviceType).join(', ');
-          
+
           tvInfo = `${tvCount} TVs (${tvSizes}")`;
           serviceInfo = services;
           totalPrice = booking.estimatedTotal || booking.totalPrice;
@@ -5357,7 +5367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalPrice = booking.totalPrice;
           installerEarnings = (parseFloat(totalPrice || '0') * 0.75).toFixed(0);
         }
-        
+
         // Base information available to all installers
         const baseInfo = {
           id: booking.id,
@@ -5387,7 +5397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return {
             ...baseInfo,
             address: booking.address ? `${booking.address.split(',').slice(-2).join(',').trim()}` : 'Dublin, Ireland', // Only show city/county
-            county: "Dublin", 
+            county: "Dublin",
             customerNotes: "Purchase lead to view full details and contact information",
             customer: {
               name: "Customer Name Hidden",
@@ -5405,10 +5415,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...baseInfo,
           address: booking.address ? `${booking.address.split(',').slice(-2).join(',').trim()}` : 'Dublin, Ireland', // Only show city/county initially
           county: "Dublin",
-          customerNotes: "Purchase lead to view full details and contact information", 
+          customerNotes: "Purchase lead to view full details and contact information",
           customer: {
             name: "Purchase lead to view",
-            phone: "Purchase lead to view", 
+            phone: "Purchase lead to view",
             email: "Purchase lead to view"
           },
           demoRestricted: false,
@@ -5429,7 +5439,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const requestId = parseInt(req.params.requestId);
       const { installerId } = req.body;
-      
+
       // Check if installer is demo account
       const installer = await storage.getInstaller(installerId);
       if (!installer) {
@@ -5445,7 +5455,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status: 'accepted',
             installerId: installerId
           });
-          
+
           return res.json({
             success: true,
             message: "Demo lead purchased successfully",
@@ -5470,7 +5480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // In a real implementation, this would integrate with payment processing
       // For now, we'll simulate the lead purchase and assignment
-      
+
       // Assign the lead to the installer
       await storage.updateBooking(requestId, { installerId });
       await storage.updateBookingStatus(requestId, "assigned");
@@ -5519,56 +5529,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const requestId = parseInt(req.params.requestId);
       const { installerId } = req.body;
-      
+
       // Default to installer ID 2 if not provided (demo account)
       const targetInstallerId = installerId || 2;
-      
+
       console.log(`Accept request ${requestId} for installer ${targetInstallerId}`);
-      
+
       // Check if this is the demo installer account
       const installer = await storage.getInstaller(targetInstallerId);
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       // For demo account, check wallet balance and process purchase
       if (installer.email === "test@tradesbook.ie") {
         // Get the actual booking from database to find the lead fee
         const booking = await storage.getBooking(requestId);
-        
+
         if (!booking) {
           return res.status(404).json({ message: "Booking not found" });
         }
-        
+
         // Check if installer should pay lead fee (VIP, Free Leads Promotion, or First Lead Voucher)
         const shouldPayFee = await storage.shouldInstallerPayLeadFee(targetInstallerId);
-        
+
         if (shouldPayFee) {
           // Calculate lead fee based on service type (handles multi-TV)
           const leadFee = calculateBookingLeadFee(booking);
-          
+
           // Check wallet balance
           const wallet = await storage.getInstallerWallet(targetInstallerId);
           if (!wallet) {
             return res.status(400).json({ message: "Wallet not found" });
           }
-          
+
           const currentBalance = parseFloat(wallet.balance);
           if (currentBalance < leadFee) {
-            return res.status(400).json({ 
+            return res.status(400).json({
               message: "Insufficient wallet balance. Please add credits to purchase this lead.",
               required: leadFee,
-              available: currentBalance 
+              available: currentBalance
             });
           }
         } else {
           console.log(`Installer ${targetInstallerId} is exempt from lead fees (VIP, Free Leads Promotion, or First Lead Voucher)`);
         }
-        
+
         // Determine lead fee and fee status based on exemption
         const finalLeadFee = shouldPayFee ? calculateBookingLeadFee(booking) : 0;
         const feeStatus = shouldPayFee ? "paid" : "exempt";
-        
+
         // Create job assignment for demo lead purchase
         const jobAssignment = await storage.createJobAssignment({
           bookingId: requestId,
@@ -5579,17 +5589,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           leadFeeStatus: feeStatus,
           leadPaidDate: new Date()
         });
-        
+
         let newBalance = parseFloat(wallet.balance);
         let totalSpent = parseFloat(wallet.totalSpent);
-        
+
         // Only deduct fee if installer should pay
         if (shouldPayFee && finalLeadFee > 0) {
           newBalance = currentBalance - finalLeadFee;
           totalSpent = parseFloat(wallet.totalSpent) + finalLeadFee;
           await storage.updateInstallerWalletBalance(targetInstallerId, newBalance);
           await storage.updateInstallerWalletTotalSpent(targetInstallerId, totalSpent);
-          
+
           // Add transaction record for paid lead
           await storage.addInstallerTransaction({
             installerId: targetInstallerId,
@@ -5610,7 +5620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status: "completed"
           });
         }
-        
+
         return res.json({
           success: true,
           message: "Demo lead purchased successfully! Customer contact details are now available in your purchased leads.",
@@ -5619,7 +5629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           demo: true
         });
       }
-      
+
       // For real installers, allow multiple purchases of the same lead
       const booking = await storage.getBooking(requestId);
       if (!booking) {
@@ -5636,42 +5646,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .limit(1);
 
       if (existingAssignment.length > 0) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "You have already purchased this lead",
-          existingStatus: existingAssignment[0].status 
+          existingStatus: existingAssignment[0].status
         });
       }
 
       // Check if installer should pay lead fee (VIP, Free Leads Promotion, or First Lead Voucher)
       const shouldPayFee = await storage.shouldInstallerPayLeadFee(targetInstallerId);
-      
+
       // Get wallet for balance checking
       const wallet = await storage.getInstallerWallet(targetInstallerId);
       if (!wallet) {
         return res.status(400).json({ message: "Wallet not found" });
       }
-      
+
       const currentBalance = parseFloat(wallet.balance);
       let finalLeadFee = 0;
       let feeStatus = "exempt";
-      
+
       if (shouldPayFee) {
         // Calculate lead fee based on service type
         finalLeadFee = getLeadFee(booking.serviceType);
         feeStatus = "paid";
-        
+
         // Check wallet balance only if fee is required
         if (currentBalance < finalLeadFee) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             message: "Insufficient wallet balance. Please add credits to purchase this lead.",
             required: finalLeadFee,
-            available: currentBalance 
+            available: currentBalance
           });
         }
       } else {
         console.log(`Installer ${targetInstallerId} is exempt from lead fees (VIP, Free Leads Promotion, or First Lead Voucher)`);
       }
-      
+
       // Create job assignment with appropriate fee status
       const jobAssignment = await storage.createJobAssignment({
         bookingId: requestId,
@@ -5681,17 +5691,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         leadFeeStatus: feeStatus,
         leadPaidDate: new Date()
       });
-      
+
       let newBalance = currentBalance;
       let totalSpent = parseFloat(wallet.totalSpent);
-      
+
       // Only deduct fee if installer should pay
       if (shouldPayFee && finalLeadFee > 0) {
         newBalance = currentBalance - finalLeadFee;
         totalSpent = parseFloat(wallet.totalSpent) + finalLeadFee;
         await storage.updateInstallerWalletBalance(targetInstallerId, newBalance);
         await storage.updateInstallerWalletTotalSpent(targetInstallerId, totalSpent);
-        
+
         // Add transaction record for paid lead
         await storage.addInstallerTransaction({
           installerId: targetInstallerId,
@@ -5712,7 +5722,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "completed"
         });
       }
-      
+
       return res.json({
         success: true,
         message: "Lead purchased successfully! Wait for customer to select an installer.",
@@ -5731,7 +5741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/booking/:bookingId/interested-installers", async (req, res) => {
     try {
       const bookingId = parseInt(req.params.bookingId);
-      
+
       if (!bookingId) {
         return res.status(400).json({ message: "Invalid booking ID" });
       }
@@ -5750,22 +5760,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           rating: installers.adminScore
         }
       })
-      .from(jobAssignments)
-      .innerJoin(installers, eq(jobAssignments.installerId, installers.id))
-      .where(and(
-        eq(jobAssignments.bookingId, bookingId),
-        eq(jobAssignments.leadFeeStatus, 'paid')
-      ))
-      .orderBy(desc(jobAssignments.assignedDate));
+        .from(jobAssignments)
+        .innerJoin(installers, eq(jobAssignments.installerId, installers.id))
+        .where(and(
+          eq(jobAssignments.bookingId, bookingId),
+          eq(jobAssignments.leadFeeStatus, 'paid')
+        ))
+        .orderBy(desc(jobAssignments.assignedDate));
 
       // Get installer reviews for each installer
       const installersWithReviews = await Promise.all(
         interestedInstallers.map(async (item) => {
           const reviews = await storage.getInstallerReviews(item.installer.id);
-          const avgRating = reviews.length > 0 
+          const avgRating = reviews.length > 0
             ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
             : 0;
-          
+
           return {
             ...item.jobAssignment,
             installer: {
@@ -5813,7 +5823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Directly assign installer to booking (no lead fee for direct assignments)
       await db.update(bookings)
-        .set({ 
+        .set({
           installerId: installerId,
           status: 'assigned',
           assignmentType: assignmentType || 'direct'
@@ -5890,7 +5900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get all job assignments for this booking
       const allAssignments = await storage.getBookingJobAssignments(bookingId);
-      
+
       if (allAssignments.length === 0) {
         return res.status(400).json({ message: "No installers have purchased this lead" });
       }
@@ -5903,9 +5913,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Update the selected installer's status to "accepted"
       await db.update(jobAssignments)
-        .set({ 
-          status: "accepted", 
-          acceptedDate: new Date() 
+        .set({
+          status: "accepted",
+          acceptedDate: new Date()
         })
         .where(and(
           eq(jobAssignments.bookingId, bookingId),
@@ -5918,7 +5928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Process refunds for non-selected installers
       const nonSelectedAssignments = allAssignments.filter(a => a.installerId !== installerId);
-      
+
       for (const assignment of nonSelectedAssignments) {
         try {
           // Update assignment status to "refunded"
@@ -5929,14 +5939,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Refund the lead fee to installer wallet
           const leadFee = parseFloat(assignment.leadFee);
           const wallet = await storage.getInstallerWallet(assignment.installerId);
-          
+
           if (wallet) {
             const newBalance = parseFloat(wallet.balance) + leadFee;
             const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - leadFee);
-            
+
             await storage.updateInstallerWalletBalance(assignment.installerId, newBalance);
             await storage.updateInstallerWalletTotalSpent(assignment.installerId, totalSpent);
-            
+
             // Add refund transaction record
             await storage.addInstallerTransaction({
               installerId: assignment.installerId,
@@ -5946,7 +5956,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               jobAssignmentId: assignment.id,
               status: "completed"
             });
-            
+
             console.log(`Refunded €${leadFee} to installer ${assignment.installerId} for booking ${bookingId}`);
           }
         } catch (refundError) {
@@ -5956,7 +5966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get selected installer details for response
       const selectedInstaller = await storage.getInstaller(installerId);
-      
+
       // Send confirmation emails
       try {
         // Notify selected installer
@@ -6002,15 +6012,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/installer/decline-request/:requestId", async (req, res) => {
     try {
       const requestId = parseInt(req.params.requestId);
-      
+
       // Get installer ID from session
       const session = req.session as any;
       const installerId = session.installerId;
-      
+
       if (!installerId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
-      
+
       // For demo account (installer ID 2), remove from demo leads cache
       if (installerId === 2 && (global as any).demoLeadsCache && (global as any).demoLeadsCache[installerId]) {
         (global as any).demoLeadsCache[installerId] = (global as any).demoLeadsCache[installerId].filter((lead: any) => lead.id !== requestId);
@@ -6019,8 +6029,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // For real installers, track declined requests in database
         await storage.declineRequestForInstaller(installerId, requestId);
       }
-      
-      res.json({ 
+
+      res.json({
         message: "Request declined successfully"
       });
     } catch (error) {
@@ -6033,7 +6043,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/installer/:installerId/passed-leads", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       // Validate installerId is a valid number
       if (isNaN(installerId) || installerId <= 0) {
         return res.status(400).json({ error: "Invalid installer ID" });
@@ -6049,12 +6059,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // For real installers, get declined requests with booking details
         const declinedRequests = await storage.getDeclinedRequestsWithDetailsForInstaller(installerId);
-        
+
         // Transform to match the client-side interface
         const passedLeads = declinedRequests.map(declined => {
           // Calculate correct total price for multi-TV installations
           let totalPrice = declined.booking.customerTotal || declined.booking.estimatedPrice || "0";
-          
+
           // If we have tvInstallations data, calculate the total from individual TV totals
           if (declined.booking.tvInstallations && Array.isArray(declined.booking.tvInstallations) && declined.booking.tvInstallations.length > 1) {
             const calculatedTotal = declined.booking.tvInstallations.reduce((sum: number, tv: any) => {
@@ -6076,16 +6086,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Multi-TV support
             tvInstallations: declined.booking.tvInstallations || [],
             tvQuantity: declined.booking.tvQuantity || 1,
-          createdAt: declined.booking.createdAt,
-          declinedAt: declined.declinedAt,
-          needsWallMount: declined.booking.needsWallMount,
-          wallType: declined.booking.wallType,
-          mountType: declined.booking.mountType,
-          difficulty: declined.booking.difficulty,
-          customerNotes: declined.booking.customerNotes
+            createdAt: declined.booking.createdAt,
+            declinedAt: declined.declinedAt,
+            needsWallMount: declined.booking.needsWallMount,
+            wallType: declined.booking.wallType,
+            mountType: declined.booking.mountType,
+            difficulty: declined.booking.difficulty,
+            customerNotes: declined.booking.customerNotes
           };
         });
-        
+
         res.json(passedLeads);
       }
     } catch (error) {
@@ -6099,16 +6109,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const requestId = parseInt(req.params.requestId);
       const installerId = parseInt(req.params.installerId);
-      
+
       // Validate parameters
       if (isNaN(installerId) || installerId <= 0 || isNaN(requestId) || requestId <= 0) {
         return res.status(400).json({ error: "Invalid installer ID or request ID" });
       }
-      
+
       // Get installer ID from session for security
       const session = req.session as any;
       const sessionInstallerId = session.installerId;
-      
+
       if (!sessionInstallerId || sessionInstallerId !== installerId) {
         return res.status(401).json({ message: "Not authenticated or unauthorized" });
       }
@@ -6123,14 +6133,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // For real installers, remove from declined requests to make it available again
         await storage.removeDeclinedRequestForInstaller(installerId, requestId);
-        
+
         // Get the booking details to return to client
         const booking = await storage.getBooking(requestId);
         if (!booking) {
           return res.status(404).json({ message: "Lead not found" });
         }
-        
-        res.json({ 
+
+        res.json({
           message: "Lead retrieved successfully",
           lead: {
             id: booking.id,
@@ -6151,14 +6161,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/installer/:installerId/active-jobs", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       // Validate installerId is a valid number
       if (isNaN(installerId) || installerId <= 0) {
         return res.status(400).json({ error: "Invalid installer ID" });
       }
-      
+
       const jobs = await storage.getInstallerJobs(installerId);
-      
+
       // Get full booking details for each job
       const activeJobs = await Promise.all(
         jobs.map(async (job) => {
@@ -6184,15 +6194,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.session || !req.session.installerAuthenticated || !req.session.installerId) {
         return res.status(401).json({ message: "Not authenticated as installer" });
       }
-      
+
       const sessionInstallerId = req.session.installerId;
       const requestedInstallerId = parseInt(req.params.installerId);
-      
+
       // Ensure installer can only access their own assignments
       if (sessionInstallerId !== requestedInstallerId) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       const jobAssignments = await storage.getInstallerJobAssignments(requestedInstallerId);
       res.json(jobAssignments);
     } catch (error) {
@@ -6207,27 +6217,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!req.session || !req.session.installerAuthenticated || !req.session.installerId) {
         return res.status(401).json({ message: "Not authenticated as installer" });
       }
-      
+
       const installerId = req.session.installerId;
       const jobId = parseInt(req.params.jobId);
       const { status } = req.body;
-      
+
       // Validate status
       const validStatuses = ['accepted', 'in_progress', 'completed', 'declined'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: 'Invalid status. Must be one of: ' + validStatuses.join(', ') });
       }
-      
+
       // Get job assignment to find the booking
       const jobAssignments = await storage.getInstallerJobAssignments(installerId);
       const job = jobAssignments.find(j => j.id === jobId);
-      
+
       if (!job) {
         return res.status(404).json({ error: 'Job assignment not found' });
       }
-      
+
       await storage.updateJobStatus(jobId, status);
-      
+
       // Update booking status based on job assignment status
       switch (status) {
         case 'accepted':
@@ -6238,7 +6248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           break;
         case 'completed':
           await storage.updateBookingStatus(job.bookingId, "completed");
-          
+
           // Send completion notification to customer
           const booking = await storage.getBooking(job.bookingId);
           if (booking) {
@@ -6250,7 +6260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           break;
       }
-      
+
       res.json({ message: "Job status updated successfully" });
     } catch (error) {
       console.error("Error updating job status:", error);
@@ -6299,11 +6309,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const newInstaller = await storage.createInstaller(installerData);
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         installer: newInstaller,
-        message: "Registration successful! You can now access your dashboard." 
+        message: "Registration successful! You can now access your dashboard."
       });
     } catch (error) {
       console.error("Error registering installer:", error);
@@ -6318,7 +6328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Demo account with specific email and restricted access
       if (email === "test@tradesbook.ie" && password === "demo123") {
         let installer = await storage.getInstallerByEmail(email);
-        
+
         // If demo installer doesn't exist, create one (always enabled for demo access)
         if (!installer) {
           const demoInstallerData = {
@@ -6340,7 +6350,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Reset and regenerate mock leads for demo account on each login
         console.log(`Demo account login detected - resetting leads for installer ${installer.id}`);
         await resetDemoLeads(installer.id);
-        
+
         // Reset wallet for demo account
         await storage.resetInstallerWallet(installer.id);
         console.log(`Demo account wallet reset to €0.00 for installer ${installer.id}`);
@@ -6355,21 +6365,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error('Session save error:', err);
             return res.status(500).json({ error: 'Failed to save session' });
           }
-          
-          res.json({ 
-            success: true, 
+
+          res.json({
+            success: true,
             installer: {
               ...installer,
               isDemoAccount: true
             },
-            message: "Demo login successful! Limited access to protect customer privacy." 
+            message: "Demo login successful! Limited access to protect customer privacy."
           });
         });
       }
       // Regular demo access for other emails (legacy support)
       else if (password === "demo123") {
         let installer = await storage.getInstallerByEmail(email);
-        
+
         // If installer doesn't exist, create a demo installer (always enabled for demo access)
         if (!installer) {
           const demoInstallerData = {
@@ -6391,21 +6401,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Set installer session data
         (req.session as any).installerId = installer.id;
         (req.session as any).installerAuthenticated = true;
-        
+
         // Save session before sending response
         req.session.save((err) => {
           if (err) {
             console.error('Session save error:', err);
             return res.status(500).json({ error: 'Failed to save session' });
           }
-          
-          res.json({ 
-            success: true, 
+
+          res.json({
+            success: true,
             installer: {
               ...installer,
               isDemoAccount: false
             },
-            message: "Login successful!" 
+            message: "Login successful!"
           });
         });
       } else {
@@ -6414,18 +6424,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (!installer) {
           return res.status(401).json({ error: "Invalid email or password" });
         }
-        
+
         // Set installer session data regardless of approval status
         (req.session as any).installerId = installer.id;
         (req.session as any).installerAuthenticated = true;
-        
+
         // Save session before sending response
         req.session.save((err) => {
           if (err) {
             console.error('Session save error:', err);
             return res.status(500).json({ error: 'Failed to save session' });
           }
-          
+
           // Return installer data (without password hash)
           const { passwordHash: _, ...installerData } = installer;
           res.json({
@@ -6449,17 +6459,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Clear installer session data
       delete (req.session as any).installerId;
       delete (req.session as any).installerAuthenticated;
-      
+
       // Destroy the session
       req.session.destroy((err) => {
         if (err) {
           console.error('Session destruction error:', err);
           return res.status(500).json({ error: 'Failed to logout' });
         }
-        
-        res.json({ 
-          success: true, 
-          message: "Logged out successfully" 
+
+        res.json({
+          success: true,
+          message: "Logged out successfully"
         });
       });
     } catch (error) {
@@ -6473,17 +6483,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { serviceType } = req.query;
       const installers = await storage.getAllInstallers();
       const allServiceAssignments = await storage.getAllInstallerServiceAssignments();
-      
+
       // Return only public-safe installer information (hide contact details)
       let publicInstallers = installers
-        .filter(installer => 
-          installer.approvalStatus === 'approved' && 
+        .filter(installer =>
+          installer.approvalStatus === 'approved' &&
           installer.isPubliclyVisible !== false &&
           installer.businessName !== 'Demo TV Services'
         )
         .map(installer => {
           // Get services for this installer
-          const installerServices = allServiceAssignments.filter(assignment => 
+          const installerServices = allServiceAssignments.filter(assignment =>
             assignment.installerId === installer.id && assignment.isActive
           );
 
@@ -6517,25 +6527,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Filter by service type if specified
       if (serviceType && typeof serviceType === 'string') {
-        publicInstallers = publicInstallers.filter(installer => 
+        publicInstallers = publicInstallers.filter(installer =>
           installer.services.some(service => service.key === serviceType)
         );
       }
-      
+
       // Sort installers: VIP first, then by availability, then alphabetically
       publicInstallers.sort((a, b) => {
         // VIP installers first
         if (a.isVip && !b.isVip) return -1;
         if (!a.isVip && b.isVip) return 1;
-        
+
         // Then by availability
         if (a.isAvailable && !b.isAvailable) return -1;
         if (!a.isAvailable && b.isAvailable) return 1;
-        
+
         // Finally alphabetically by business name
         return a.businessName.localeCompare(b.businessName);
       });
-      
+
       res.json(publicInstallers);
     } catch (error) {
       console.error("Error fetching installers:", error);
@@ -6548,24 +6558,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const installerId = (req.session as any)?.installerId;
       const installerAuthenticated = (req.session as any)?.installerAuthenticated;
-      
+
       if (!installerId || !installerAuthenticated) {
-        return res.status(401).json({ 
-          authenticated: false, 
-          message: "Not authenticated as installer" 
+        return res.status(401).json({
+          authenticated: false,
+          message: "Not authenticated as installer"
         });
       }
-      
+
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
-      
+
       if (!installer) {
-        return res.status(404).json({ 
-          authenticated: false, 
-          message: "Installer profile not found" 
+        return res.status(404).json({
+          authenticated: false,
+          message: "Installer profile not found"
         });
       }
-      
+
       // Return authentication status with basic installer info
       const { passwordHash: _, ...installerData } = installer;
       res.json({
@@ -6574,9 +6584,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error checking installer auth status:", error);
-      res.status(500).json({ 
-        authenticated: false, 
-        message: "Failed to check authentication status" 
+      res.status(500).json({
+        authenticated: false,
+        message: "Failed to check authentication status"
       });
     }
   });
@@ -6585,18 +6595,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/installer/profile", async (req, res) => {
     try {
       const installerId = (req.session as any)?.installerId;
-      
+
       if (!installerId) {
         return res.status(401).json({ message: "Not authenticated as installer" });
       }
-      
+
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
-      
+
       if (!installer) {
         return res.status(404).json({ message: "Installer profile not found" });
       }
-      
+
       // Return profile without password hash
       const { passwordHash: _, ...profileData } = installer;
       res.json(profileData);
@@ -6610,23 +6620,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/installer/availability", async (req, res) => {
     try {
       const installerId = (req.session as any)?.installerId;
-      
+
       if (!installerId) {
         return res.status(401).json({ message: "Not authenticated as installer" });
       }
-      
+
       const { isAvailable } = req.body;
-      
+
       if (typeof isAvailable !== 'boolean') {
         return res.status(400).json({ message: "isAvailable must be a boolean" });
       }
-      
+
       await storage.updateInstallerAvailability(installerId, isAvailable);
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         isAvailable,
-        message: `Availability ${isAvailable ? 'enabled' : 'disabled'} successfully` 
+        message: `Availability ${isAvailable ? 'enabled' : 'disabled'} successfully`
       });
     } catch (error) {
       console.error("Error updating installer availability:", error);
@@ -6639,7 +6649,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const installerId = parseInt(req.params.installerId);
       const updateData = req.body;
-      
+
       // Verify installer authentication
       const sessionInstallerId = (req.session as any)?.installerId;
       if (!sessionInstallerId || sessionInstallerId !== installerId) {
@@ -6649,14 +6659,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get current installer profile
       const installers = await storage.getAllInstallers();
       const currentInstaller = installers.find(i => i.id === installerId);
-      
+
       if (!currentInstaller) {
         return res.status(404).json({ message: "Installer profile not found" });
       }
 
       // Determine what fields can be updated based on approval status
       let allowedUpdates: any = {};
-      
+
       if (currentInstaller.approvalStatus === 'rejected') {
         // Rejected installers can update Essential Profile Information only
         allowedUpdates = {
@@ -6704,30 +6714,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       } else {
         // Pending installers cannot update their profile
-        return res.status(403).json({ 
-          message: "Profile cannot be updated while application is pending review" 
+        return res.status(403).json({
+          message: "Profile cannot be updated while application is pending review"
         });
       }
 
       // Remove undefined values
-      Object.keys(allowedUpdates).forEach(key => 
+      Object.keys(allowedUpdates).forEach(key =>
         allowedUpdates[key] === undefined && delete allowedUpdates[key]
       );
 
       // Update the installer profile
       const updatedInstaller = await storage.updateInstaller(installerId, allowedUpdates);
-      
+
       // Return updated profile without password hash
       const { passwordHash: _, ...profileData } = updatedInstaller;
-      
+
       res.json({
         success: true,
-        message: currentInstaller.approvalStatus === 'rejected' 
+        message: currentInstaller.approvalStatus === 'rejected'
           ? "Profile updated and resubmitted for review"
           : "Profile updated successfully",
         installer: profileData
       });
-      
+
     } catch (error) {
       console.error("Error updating installer profile:", error);
       res.status(500).json({ message: "Failed to update installer profile" });
@@ -6742,26 +6752,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/test-installer-email", async (req, res) => {
     try {
       const { email, action, score, comments } = req.body;
-      
+
       if (!email || !action) {
         return res.status(400).json({ error: "Email and action are required" });
       }
-      
+
       // Find the installer
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.email === email);
-      
+
       if (!installer) {
         return res.status(404).json({ error: "Installer not found" });
       }
-      
+
       let result = false;
       let emailType = '';
-      
+
       if (action === 'approve') {
         console.log(`Sending TEST approval email to: ${email}`);
         result = await sendInstallerApprovalEmail(
-          email, 
+          email,
           installer.contactName || 'Installer',
           installer.businessName,
           score,
@@ -6771,7 +6781,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (action === 'reject') {
         console.log(`Sending TEST rejection email to: ${email}`);
         result = await sendInstallerRejectionEmail(
-          email, 
+          email,
           installer.contactName || 'Installer',
           installer.businessName,
           comments
@@ -6780,9 +6790,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         return res.status(400).json({ error: "Action must be 'approve' or 'reject'" });
       }
-      
-      res.json({ 
-        success: result, 
+
+      res.json({
+        success: result,
         message: `${emailType} email ${result ? 'sent successfully' : 'failed to send'}`,
         installer: {
           email: installer.email,
@@ -6817,7 +6827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { qrCode } = req.params;
       const booking = await storage.getBookingByQrCode(qrCode);
-      
+
       if (!booking) {
         return res.status(404).send(`
           <html>
@@ -6932,17 +6942,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const startTime = Date.now();
     try {
       const { answers, qrCodeId, storeLocation } = req.body;
-      
+
       if (!answers || typeof answers !== 'object') {
         return res.status(400).json({ error: "Valid answers object required" });
       }
 
       const recommendation = await generateTVRecommendation(answers);
       const processingTime = Date.now() - startTime;
-      
+
       // Record AI usage for credit tracking
       await recordAiUsage(req);
-      
+
       // Track detailed AI interaction for analytics
       const { AIAnalyticsService } = await import('./aiAnalyticsService');
       const sessionId = req.sessionID || req.session?.id || `tv-session-${Date.now()}`;
@@ -6962,7 +6972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         creditUsed: true,
         errorOccurred: false
       });
-      
+
       res.json(recommendation);
     } catch (error) {
       console.error("TV recommendation error:", error);
@@ -6974,14 +6984,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/generate-product-image', async (req, res) => {
     try {
       const { brand, model, tvType, size } = req.body;
-      
+
       if (!brand || !model || !tvType) {
         return res.status(400).json({ error: 'Missing required product information' });
       }
 
       const { getProductImageWithFallback } = await import('./productImageService');
       const imageUrl = await getProductImageWithFallback({ brand, model, tvType, size });
-      
+
       res.json({ success: true, imageUrl });
     } catch (error) {
       console.error('Product image generation error:', error);
@@ -7006,46 +7016,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/invoice-login', async (req, res) => {
     try {
       const { invoiceNumber } = req.body;
-      
+
       if (!invoiceNumber) {
         return res.status(400).json({ error: "Invoice number is required" });
       }
 
       const { retailerDetectionService } = await import('./retailerDetectionService');
-      
+
       // Use enhanced retailer detection service for login
       const result = await retailerDetectionService.loginWithInvoice(invoiceNumber);
-      
+
       if (result.success && result.user) {
         // First, logout any existing user session to ensure clean state
         req.logout((logoutErr) => {
           if (logoutErr) {
             console.error('Logout error during invoice login:', logoutErr);
           }
-          
+
           // Clear existing session data
           req.session.regenerate((regenerateErr) => {
             if (regenerateErr) {
               console.error('Session regeneration error:', regenerateErr);
               return res.status(500).json({ error: 'Failed to establish clean session' });
             }
-            
+
             // Establish proper Passport session for invoice-authenticated user
             req.login(result.user, (err) => {
               if (err) {
                 console.error('Session login error:', err);
                 return res.status(500).json({ error: 'Failed to establish session' });
               }
-              
+
               // Set additional session data for invoice authentication
               (req.session as any).userId = result.user.id;
               (req.session as any).isAuthenticated = true;
               (req.session as any).authMethod = 'invoice';
               (req.session as any).invoiceNumber = invoiceNumber;
               (req.session as any).invoiceSessionId = `invoice-${invoiceNumber}-${Date.now()}`;
-              
+
               console.log(`Invoice login successful for ${invoiceNumber}: User ${result.user.id}`);
-              
+
               res.json({
                 success: true,
                 user: result.user,
@@ -7058,18 +7068,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         });
       } else {
+        // Handle special responses that require user action
+        if (result.requiresUserDetails) {
+          // New invoice - requires user to provide contact details
+          console.log(`ℹ️ New invoice ${invoiceNumber} requires user details`);
+          return res.json({
+            success: false,
+            message: result.message,
+            requiresUserDetails: true,
+            invoiceNumber: result.invoiceNumber,
+            retailerInfo: result.retailerInfo,
+            storeName: result.storeName,
+            storeCode: result.storeCode
+          });
+        }
+        
         // Handle security-related errors with special response codes
         if (result.requiresPassword) {
           // User has a password set - require proper authentication
           console.log(`🔒 Security block: User with invoice ${invoiceNumber} has password, requiring proper login`);
-          return res.status(423).json({ 
+          return res.status(423).json({
             error: result.message,
             requiresPassword: true,
             userEmail: result.userEmail,
             security: "This account is secured with a password. Please use the standard login."
           });
         }
-        
+
         res.status(401).json({ error: result.message });
       }
     } catch (error) {
@@ -7082,13 +7107,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/complete-invoice-profile', async (req, res) => {
     try {
       const { invoiceNumber, email, firstName, lastName, phone } = req.body;
-      
+
       if (!invoiceNumber || !email || !firstName || !lastName) {
         return res.status(400).json({ error: "Invoice number, email, first and last name are required" });
       }
 
       const { retailerDetectionService } = await import('./retailerDetectionService');
-      
+
       // Find the temporary user by invoice number
       const user = await storage.getUserByRetailerInvoice(invoiceNumber);
       if (!user) {
@@ -7116,12 +7141,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
         const verificationToken = await generateVerificationToken();
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-        
+
         await storage.updateUser(user.id, {
           emailVerificationToken: verificationToken,
           emailVerificationExpires: expiresAt
         });
-        
+
         await sendVerificationEmail(email, firstName, verificationToken);
         console.log(`✅ Verification email sent to completed profile: ${email}`);
       } catch (emailError) {
@@ -7173,13 +7198,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/complete-invoice-registration', async (req, res) => {
     try {
       const { invoiceNumber, firstName, lastName, email, phone } = req.body;
-      
+
       if (!invoiceNumber || !firstName || !lastName || !email) {
         return res.status(400).json({ error: "Invoice number, name, and email are required" });
       }
 
       const { retailerDetectionService } = await import('./retailerDetectionService');
-      
+
       // Validate invoice format
       const parsedInvoice = retailerDetectionService.detectRetailerFromInvoice(invoiceNumber);
       if (!parsedInvoice) {
@@ -7187,7 +7212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create normalized invoice number
-      const normalizedInvoiceNumber = parsedInvoice.storeCode 
+      const normalizedInvoiceNumber = parsedInvoice.storeCode
         ? `${parsedInvoice.retailerCode}${parsedInvoice.storeCode}${parsedInvoice.invoiceNumber}`
         : `${parsedInvoice.retailerCode}${parsedInvoice.invoiceNumber}`;
 
@@ -7234,14 +7259,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
         const verificationToken = await generateVerificationToken();
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-        
+
         await db.update(users)
           .set({
             emailVerificationToken: verificationToken,
             emailVerificationExpires: expiresAt
           })
           .where(eq(users.id, createdUser.id));
-        
+
         await sendVerificationEmail(email, firstName, verificationToken);
         console.log(`✅ Verification email sent to new user: ${email}`);
       } catch (emailError) {
@@ -7271,14 +7296,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('Session login error after registration:', err);
           return res.status(500).json({ error: 'Registration successful but failed to establish session. Please login manually.' });
         }
-        
+
         (req.session as any).userId = createdUser.id;
         (req.session as any).isAuthenticated = true;
         (req.session as any).authMethod = 'invoice';
         (req.session as any).invoiceNumber = normalizedInvoiceNumber;
-        
+
         console.log(`✅ New invoice user registered: ${email} with invoice ${normalizedInvoiceNumber}`);
-        
+
         res.json({
           success: true,
           user: {
@@ -7296,7 +7321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           requiresEmailVerification: true
         });
       });
-      
+
     } catch (error) {
       console.error("Complete invoice registration error:", error);
       res.status(500).json({ error: "Failed to complete registration" });
@@ -7307,7 +7332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/invoice-email-login', async (req, res) => {
     try {
       const { invoiceNumber, email } = req.body;
-      
+
       if (!invoiceNumber || !email) {
         return res.status(400).json({ error: "Invoice number and email are required" });
       }
@@ -7315,15 +7340,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Find user by both invoice number and email
       const user = await storage.getUserByRetailerInvoiceAndEmail(invoiceNumber, email.toLowerCase());
       if (!user) {
-        return res.status(401).json({ 
-          error: "Invalid invoice number and email combination. Please check your details or complete your profile setup first." 
+        return res.status(401).json({
+          error: "Invalid invoice number and email combination. Please check your details or complete your profile setup first."
         });
       }
 
       // Ensure the account has been completed
       if (!user.profileCompleted) {
-        return res.status(400).json({ 
-          error: "Please complete your profile setup first using the invoice number." 
+        return res.status(400).json({
+          error: "Please complete your profile setup first using the invoice number."
         });
       }
 
@@ -7332,27 +7357,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (logoutErr) {
           console.error('Logout error during invoice-email login:', logoutErr);
         }
-        
+
         req.session.regenerate((regenerateErr) => {
           if (regenerateErr) {
             console.error('Session regeneration error:', regenerateErr);
             return res.status(500).json({ error: 'Failed to establish session' });
           }
-          
+
           req.login(user, (err) => {
             if (err) {
               console.error('Session login error:', err);
               return res.status(500).json({ error: 'Failed to establish session' });
             }
-            
+
             // Set session data
             (req.session as any).userId = user.id;
             (req.session as any).isAuthenticated = true;
             (req.session as any).authMethod = 'invoice-email';
             (req.session as any).invoiceNumber = invoiceNumber;
-            
+
             console.log(`Invoice-email login successful for ${invoiceNumber} / ${email}: User ${user.id}`);
-            
+
             res.json({
               success: true,
               user: {
@@ -7381,7 +7406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/auth/profile', requireAuth, async (req, res) => {
     try {
       const { firstName, lastName, phone, email } = req.body;
-      
+
       if (!firstName || !lastName) {
         return res.status(400).json({ error: "First name and last name are required" });
       }
@@ -7421,18 +7446,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/guest-booking', async (req, res) => {
     try {
       const { email, phone, firstName, lastName } = req.body;
-      
+
       if (!email || !phone) {
         return res.status(400).json({ error: "Email and phone number are required" });
       }
 
       // Check if user already exists
       let user = await storage.getUserByEmail(email);
-      
+
       if (!user) {
         // Create guest user account
         const userId = Math.floor(Math.random() * 1000000000); // Generate random integer ID
-        
+
         const userData = {
           id: userId,
           email,
@@ -7452,7 +7477,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.error('Guest session login error:', err);
           return res.status(500).json({ error: 'Failed to establish guest session' });
         }
-        
+
         // Set additional session data
         (req.session as any).userId = user.id;
         (req.session as any).isAuthenticated = true;
@@ -7480,7 +7505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/auth/login', async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       if (!email || !password) {
         return res.status(400).json({ error: "Email and password required" });
       }
@@ -7515,7 +7540,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/solar-enquiries", async (req, res) => {
     try {
       const enquiryData = req.body;
-      
+
       const enquiry = await storage.createSolarEnquiry({
         firstName: enquiryData.firstName,
         lastName: enquiryData.lastName,
@@ -7533,7 +7558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         additionalInfo: enquiryData.additionalInfo || null,
         status: "new"
       });
-      
+
       // Send notification email to admin
       await sendNotificationEmail(
         "admin@tradesbook.ie",
@@ -7560,11 +7585,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         Commission opportunity available upon successful conversion.
         `
       );
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: "Solar enquiry submitted successfully",
-        enquiryId: enquiry.id 
+        enquiryId: enquiry.id
       });
     } catch (error) {
       console.error("Error creating solar enquiry:", error);
@@ -7586,7 +7611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      
+
       await storage.updateSolarEnquiryStatus(parseInt(id), status);
       res.json({ message: "Solar enquiry status updated" });
     } catch (error) {
@@ -7598,7 +7623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/solar-enquiries/:id", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       await storage.deleteSolarEnquiry(parseInt(id));
       res.json({ message: "Solar enquiry deleted successfully" });
     } catch (error) {
@@ -7673,7 +7698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/consultation-booking', async (req, res) => {
     try {
       const bookingData = req.body;
-      
+
       const booking = await storage.createConsultationBooking({
         customerName: bookingData.customerName,
         customerEmail: bookingData.customerEmail,
@@ -7685,7 +7710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         specialRequests: bookingData.specialRequests || null,
         status: "pending"
       });
-      
+
       // Send notification email to admin
       await sendNotificationEmail(
         "admin@tradesbook.ie",
@@ -7717,7 +7742,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         Please contact the customer to confirm the appointment and assign a TV installation expert. Use the quiz preferences above to suggest alternative models if needed.
         `
       );
-      
+
       // Send confirmation email to customer
       await sendNotificationEmail(
         booking.customerEmail,
@@ -7757,10 +7782,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `
       );
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: "Consultation booking submitted successfully",
-        bookingId: booking.id 
+        bookingId: booking.id
       });
     } catch (error) {
       console.error("Error creating consultation booking:", error);
@@ -7782,7 +7807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      
+
       await storage.updateConsultationBookingStatus(parseInt(id), status);
       res.json({ message: "Consultation booking status updated" });
     } catch (error) {
@@ -7797,7 +7822,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/tv-recommendation/contact', async (req, res) => {
     try {
       const { name, email, phone, message, recommendation, preferences } = req.body;
-      
+
       if (!name || !email || !message) {
         return res.status(400).json({ error: "Name, email, and message are required" });
       }
@@ -7899,9 +7924,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         from: 'support@tradesbook.ie'
       });
 
-      res.json({ 
-        success: true, 
-        message: "Contact request sent successfully" 
+      res.json({
+        success: true,
+        message: "Contact request sent successfully"
       });
     } catch (error) {
       console.error("TV recommendation contact error:", error);
@@ -7910,13 +7935,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // ====================== ADMIN DASHBOARD ENDPOINTS ======================
-  
+
   // Admin authentication check middleware
   const isAdmin = async (req: any, res: any, next: any) => {
     try {
       console.log("Admin check - Session ID:", req.sessionID);
       console.log("Admin check - Session passport:", req.session?.passport);
-      
+
       // Check if session exists and has user ID
       if (!req.session?.passport?.user) {
         console.log("Admin check failed: No session user ID");
@@ -7935,18 +7960,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       console.log("Admin check - User from DB:", { id: user.id, email: user.email, role: user.role });
 
-      const isAdminUser = user.email === 'admin@tradesbook.ie' || 
-                         user.email === 'jude.okun@gmail.com' || 
-                         user.id === 42442296 ||
-                         user.role === 'admin';
-      
+      const isAdminUser = user.email === 'admin@tradesbook.ie' ||
+        user.email === 'jude.okun@gmail.com' ||
+        user.id === 42442296 ||
+        user.role === 'admin';
+
       console.log("Admin check - isAdminUser result:", isAdminUser);
-      
+
       if (!isAdminUser) {
         console.log("Admin check failed: User is not admin");
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       console.log("Admin check passed - proceeding");
       next();
     } catch (error) {
@@ -7960,16 +7985,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookings = await storage.getAllBookings();
       const installers = await storage.getAllInstallers();
-      
+
       // Calculate metrics
       const totalBookings = bookings.length;
       const monthlyBookings = bookings.filter(b => {
         const bookingDate = new Date(b.createdAt);
         const thisMonth = new Date();
-        return bookingDate.getMonth() === thisMonth.getMonth() && 
-               bookingDate.getFullYear() === thisMonth.getFullYear();
+        return bookingDate.getMonth() === thisMonth.getMonth() &&
+          bookingDate.getFullYear() === thisMonth.getFullYear();
       }).length;
-      
+
       // Calculate platform revenue from lead fees (not customer payments)
       // NEW: Use the stored totalLeadFee from database for accurate multi-TV calculations
       let totalRevenue = 0;
@@ -7993,19 +8018,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           }
         }
       }
-      
+
       // Average lead fee per booking
       const avgLeadFee = totalBookings > 0 ? totalRevenue / totalBookings : 0;
       const activeBookings = bookings.filter(b => b.status === 'pending' || b.status === 'confirmed').length;
       const completedBookings = bookings.filter(b => b.status === 'completed').length;
       const avgBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
-      
+
       // Get most popular service type
       const serviceTypeCounts = bookings.reduce((acc, b) => {
         acc[b.serviceType] = (acc[b.serviceType] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
-      const topServiceType = Object.keys(serviceTypeCounts).reduce((a, b) => 
+      const topServiceType = Object.keys(serviceTypeCounts).reduce((a, b) =>
         serviceTypeCounts[a] > serviceTypeCounts[b] ? a : b, 'None'
       );
 
@@ -8035,7 +8060,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Get all users from the users table
       const allUsers = await storage.getAllUsers();
       const bookings = await storage.getAllBookings();
-      
+
       // Create a map of user booking statistics
       const userStats = new Map();
       bookings.forEach(booking => {
@@ -8083,30 +8108,30 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/admin/installers", isAdmin, async (req, res) => {
     try {
       const installers = await storage.getAllInstallers();
-      
+
       const enhancedInstallers = await Promise.all(installers.map(async (installer) => {
         // Get actual job assignments for this installer
         const jobs = await storage.getInstallerJobs(installer.id);
         const completedJobs = jobs.filter(j => j.status === 'completed').length;
-        
+
         // Calculate real earnings from completed bookings
         let totalEarnings = 0;
         const allBookings = await storage.getAllBookings();
-        const installerBookings = allBookings.filter(booking => 
+        const installerBookings = allBookings.filter(booking =>
           booking.installerId === installer.id && booking.status === 'completed'
         );
-        
+
         totalEarnings = installerBookings.reduce((sum, booking) => {
           const estimatedPrice = parseFloat(booking.estimatedPrice || '0');
           return sum + estimatedPrice;
         }, 0);
-        
+
         // Get authentic rating from reviews
         const installerReviews = await storage.getInstallerReviews(installer.id);
-        const averageRating = installerReviews.length > 0 
+        const averageRating = installerReviews.length > 0
           ? installerReviews.reduce((sum, review) => sum + review.rating, 0) / installerReviews.length
           : 0;
-        
+
         return {
           ...installer,
           completedJobs,
@@ -8128,36 +8153,36 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 25;
       const offset = (page - 1) * limit;
-      
+
       // Get all installer transactions including:
       // 1. Lead fee payments (debits when installers claim leads)
       // 2. Credit top-ups (credits when installers add funds via Stripe)
       // 3. Earnings (credits when installers complete jobs)
-      
+
       const allTransactions = await storage.getAllInstallerTransactions();
-      
+
       // Filter out demo account transactions (installer ID 2 = test@tradesbook.ie)
       // Only include transactions from verified, non-demo installers
       const realTransactions = [];
       for (const transaction of allTransactions) {
         const installer = await storage.getInstaller(transaction.installerId);
         // Exclude demo account and unverified installers
-        if (installer && 
-            installer.id !== 2 && 
-            installer.email !== "test@tradesbook.ie" && 
-            installer.approvalStatus === 'approved') {
+        if (installer &&
+          installer.id !== 2 &&
+          installer.email !== "test@tradesbook.ie" &&
+          installer.approvalStatus === 'approved') {
           realTransactions.push(transaction);
         }
       }
-      
+
       // Sort by creation date (newest first)
-      const sortedTransactions = realTransactions.sort((a, b) => 
+      const sortedTransactions = realTransactions.sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-      
+
       // Apply pagination
       const paginatedTransactions = sortedTransactions.slice(offset, offset + limit);
-      
+
       // Enhance with installer business names
       const enhancedTransactions = await Promise.all(
         paginatedTransactions.map(async (transaction) => {
@@ -8189,21 +8214,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.delete("/api/admin/lead-payments/:id", isAdmin, async (req, res) => {
     try {
       const transactionId = parseInt(req.params.id);
-      
+
       if (!transactionId || isNaN(transactionId)) {
         return res.status(400).json({ message: "Valid transaction ID is required" });
       }
-      
+
       // Delete the transaction
       await storage.deleteInstallerTransaction(transactionId);
-      
-      res.json({ 
-        success: true, 
-        message: "Transaction deleted successfully" 
+
+      res.json({
+        success: true,
+        message: "Transaction deleted successfully"
       });
     } catch (error) {
       console.error('Error deleting transaction:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to delete transaction',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -8214,9 +8239,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.delete("/api/admin/lead-payments/bulk", isAdmin, async (req, res) => {
     try {
       const { transactionIds, olderThanDays } = req.body;
-      
+
       let deletedCount = 0;
-      
+
       if (transactionIds && Array.isArray(transactionIds)) {
         // Delete specific transactions by IDs
         for (const id of transactionIds) {
@@ -8231,12 +8256,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         // Delete transactions older than specified days
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
-        
+
         const allTransactions = await storage.getAllInstallerTransactions();
-        const oldTransactions = allTransactions.filter(t => 
+        const oldTransactions = allTransactions.filter(t =>
           new Date(t.createdAt) < cutoffDate
         );
-        
+
         for (const transaction of oldTransactions) {
           try {
             await storage.deleteInstallerTransaction(transaction.id);
@@ -8246,19 +8271,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           }
         }
       } else {
-        return res.status(400).json({ 
-          message: "Either transactionIds array or olderThanDays number is required" 
+        return res.status(400).json({
+          message: "Either transactionIds array or olderThanDays number is required"
         });
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: `Successfully deleted ${deletedCount} transaction(s)`,
-        deletedCount 
+        deletedCount
       });
     } catch (error) {
       console.error('Error bulk deleting transactions:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to bulk delete transactions',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -8272,7 +8297,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const allBookings = await storage.getAllBookings();
       const currentMonth = new Date().getMonth();
       const currentYear = new Date().getFullYear();
-      
+
       // Filter bookings by current month
       const monthlyBookings = allBookings.filter(booking => {
         if (!booking.createdAt) return false;
@@ -8282,9 +8307,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Get real service tiers from database
       const serviceTiers = await storage.getServiceTiers();
-      
+
       const leadRevenueByService: Record<string, { leadFee: number; count: number; revenue: number }> = {};
-      
+
       // Initialize service tracking using actual service tier data
       serviceTiers.forEach((tier: any) => {
         leadRevenueByService[tier.key] = {
@@ -8297,7 +8322,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Count actual bookings per service type
       monthlyBookings.forEach(booking => {
         const serviceKey = booking.serviceType;
-        
+
         // Try direct match first
         if (leadRevenueByService[serviceKey]) {
           leadRevenueByService[serviceKey].count += 1;
@@ -8312,7 +8337,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             'Table Mount': 'table-top-small',
             'Table Mount Large': 'table-top-large'
           };
-          
+
           const mappedKey = legacyMapping[serviceKey];
           if (mappedKey && leadRevenueByService[mappedKey]) {
             leadRevenueByService[mappedKey].count += 1;
@@ -8329,28 +8354,28 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         .reduce((sum, service) => sum + service.revenue, 0);
 
       // Calculate average lead value from actual service tiers
-      const averageLeadValue = serviceTiers.length > 0 
+      const averageLeadValue = serviceTiers.length > 0
         ? serviceTiers.reduce((sum: number, tier: any) => sum + (tier.leadFee || 0), 0) / serviceTiers.length
         : 0;
 
       // Calculate lead conversion rate (completed vs total bookings)
       const completedBookings = allBookings.filter(b => b.status === 'completed').length;
-      const leadConversionRate = allBookings.length > 0 
+      const leadConversionRate = allBookings.length > 0
         ? ((completedBookings / allBookings.length) * 100)
         : 0;
 
       // Calculate installer retention (active installers vs total)
       const allInstallers = await storage.getAllInstallers();
       const activeInstallers = allInstallers.filter(installer => installer.isActive).length;
-      const installerRetentionRate = allInstallers.length > 0 
+      const installerRetentionRate = allInstallers.length > 0
         ? ((activeInstallers / allInstallers.length) * 100)
         : 0;
 
       // Calculate addon revenue
-      const bookingsWithAddons = monthlyBookings.filter(booking => 
+      const bookingsWithAddons = monthlyBookings.filter(booking =>
         booking.addons && booking.addons.length > 0
       );
-      
+
       const addonRevenue = bookingsWithAddons.reduce((sum, booking) => {
         // Addon lead fees: Cable Concealment €5, Soundbar €7, Additional Devices €3
         const addonFees = {
@@ -8358,7 +8383,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           'soundbar-mounting': 7,
           'additional-devices': 3
         };
-        
+
         if (booking.addons && typeof booking.addons === 'string') {
           const bookingAddonRevenue = booking.addons.split(',').reduce((addonSum: number, addon: string) => {
             const cleanAddon = addon.trim().toLowerCase().replace(' ', '-');
@@ -8396,19 +8421,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.id);
       const { isActive } = req.body;
-      
+
       console.log(`Updating installer ${installerId} status to ${isActive ? 'active' : 'inactive'}`);
-      
+
       // Update the installer status in the database
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
-      
+
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       await storage.updateInstaller(installerId, { isActive });
-      
+
       res.json({ message: "Installer status updated successfully" });
     } catch (error) {
       console.error("Error updating installer status:", error);
@@ -8421,17 +8446,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.id);
       const { isPubliclyVisible } = req.body;
-      
+
       // Update the installer visibility in the database
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
-      
+
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       await storage.updateInstaller(installerId, { isPubliclyVisible });
-      
+
       res.json({ message: "Installer visibility updated successfully" });
     } catch (error) {
       console.error("Error updating installer visibility:", error);
@@ -8445,21 +8470,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const installerId = parseInt(req.params.id);
       const { isVip, vipNotes } = req.body;
       const adminUserId = req.session.passport?.user || 'admin';
-      
+
       console.log(`Updating installer ${installerId} VIP status to ${isVip ? 'VIP' : 'standard'}`);
-      
+
       // Get installer to verify existence
       const installer = await storage.getInstaller(installerId);
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       // Update VIP status with admin tracking
-      const updateData: any = { 
+      const updateData: any = {
         isVip,
         vipNotes: vipNotes || null
       };
-      
+
       if (isVip) {
         // Grant VIP status
         updateData.vipGrantedBy = adminUserId;
@@ -8469,10 +8494,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         updateData.vipGrantedBy = null;
         updateData.vipGrantedAt = null;
       }
-      
+
       await storage.updateInstaller(installerId, updateData);
-      
-      res.json({ 
+
+      res.json({
         message: `Installer ${isVip ? 'granted' : 'removed'} VIP status successfully`,
         isVip,
         vipGrantedBy: isVip ? adminUserId : null
@@ -8493,35 +8518,35 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       const userId = req.session.passport.user;
       const user = await storage.getUserById(userId);
-      
+
       if (!user) {
         return res.status(401).json({ message: "Authentication required" });
       }
 
-      const isAdminUser = user.email === 'admin@tradesbook.ie' || 
-                         user.email === 'jude.okun@gmail.com' || 
-                         user.id === 42442296 ||
-                         user.role === 'admin';
-      
+      const isAdminUser = user.email === 'admin@tradesbook.ie' ||
+        user.email === 'jude.okun@gmail.com' ||
+        user.id === 42442296 ||
+        user.role === 'admin';
+
       if (!isAdminUser) {
         return res.status(403).json({ message: "Admin access required" });
       }
 
       const installerId = parseInt(req.params.id);
       const { isVip, vipNotes } = req.body;
-      
+
       // Get installer to verify existence
       const installer = await storage.getInstaller(installerId);
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       // Update VIP status with admin tracking
-      const updateData: any = { 
+      const updateData: any = {
         isVip: Boolean(isVip),
         vipNotes: vipNotes || null
       };
-      
+
       if (isVip) {
         updateData.vipGrantedBy = userId;
         updateData.vipGrantedAt = new Date();
@@ -8529,10 +8554,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         updateData.vipGrantedBy = null;
         updateData.vipGrantedAt = null;
       }
-      
+
       await storage.updateInstaller(installerId, updateData);
-      
-      res.json({ 
+
+      res.json({
         message: `Installer ${isVip ? 'granted' : 'removed'} VIP status successfully`,
         isVip: Boolean(isVip),
         vipGrantedBy: isVip ? userId : null
@@ -8547,58 +8572,58 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/admin/installers/:id/image", isAuthenticated, isAdmin, upload.single('profileImage'), async (req, res) => {
     try {
       console.log(`🔄 Image upload request received for installer ID: ${req.params.id}`);
-      console.log(`📁 File info:`, req.file ? { 
-        fieldname: req.file.fieldname, 
-        originalname: req.file.originalname, 
-        mimetype: req.file.mimetype, 
-        size: req.file.size 
+      console.log(`📁 File info:`, req.file ? {
+        fieldname: req.file.fieldname,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size
       } : 'No file');
-      
+
       const installerId = parseInt(req.params.id);
-      
+
       if (!req.file) {
         console.log("❌ No image file provided in request");
         return res.status(400).json({ message: "No image file provided" });
       }
-      
+
       if (!installerId || isNaN(installerId)) {
         console.log(`❌ Invalid installer ID: ${req.params.id}`);
         return res.status(400).json({ message: "Valid installer ID is required" });
       }
-      
+
       // Get installer details to verify existence
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
-      
+
       if (!installer) {
         console.log(`❌ Installer with ID ${installerId} not found in database`);
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       console.log(`👤 Found installer: ${installer.businessName} (ID: ${installer.id})`);
-      
+
       // Convert uploaded file to base64 for storage
       const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
       console.log(`📸 Base64 image created, length: ${base64Image.length} characters`);
-      
+
       // Update installer profile with new image
       console.log(`💾 Updating installer image in database...`);
       const updatedInstaller = await storage.updateInstallerImage(installerId, base64Image);
-      
+
       console.log(`✅ Successfully uploaded image for installer ${installer.businessName}`);
-      console.log(`🔄 Updated installer:`, { 
-        id: updatedInstaller.id, 
-        businessName: updatedInstaller.businessName, 
+      console.log(`🔄 Updated installer:`, {
+        id: updatedInstaller.id,
+        businessName: updatedInstaller.businessName,
         hasImage: !!updatedInstaller.profileImageUrl,
         imageLength: updatedInstaller.profileImageUrl?.length || 0
       });
-      
-      res.json({ 
+
+      res.json({
         message: "Profile image uploaded successfully",
         profileImageUrl: base64Image,
         installer: updatedInstaller
       });
-      
+
     } catch (error) {
       console.error("❌ Error uploading installer image:", error);
       console.error("❌ Error stack:", error.stack);
@@ -8611,19 +8636,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.id);
       const profileData = req.body;
-      
+
       if (!installerId || isNaN(installerId)) {
         return res.status(400).json({ message: "Valid installer ID is required" });
       }
-      
+
       // Update installer profile
       const updatedInstaller = await storage.updateInstallerProfile(installerId, profileData);
-      
-      res.json({ 
-        message: "Installer profile updated successfully", 
-        installer: updatedInstaller 
+
+      res.json({
+        message: "Installer profile updated successfully",
+        installer: updatedInstaller
       });
-      
+
     } catch (error) {
       console.error("Error updating installer profile:", error);
       res.status(500).json({ message: "Failed to update installer profile" });
@@ -8637,32 +8662,32 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       console.log("Request params:", req.params);
       console.log("Request body:", req.body);
       console.log("User:", req.user);
-      
+
       const installerId = parseInt(req.params.id);
       const { approvalStatus, adminScore, adminComments } = req.body;
       const adminUserId = (req.user as any)?.id;
-      
+
       console.log(`📋 Processing approval for installer ID: ${installerId}`);
       console.log(`👤 Admin user ID: ${adminUserId}`);
       console.log(`⭐ Score: ${adminScore}, Comments: ${adminComments}`);
-      
+
       if (!installerId || isNaN(installerId)) {
         console.log("❌ Invalid installer ID");
         return res.status(400).json({ message: "Valid installer ID is required" });
       }
-      
+
       // Get installer details before updating
       console.log("📝 Fetching installer details...");
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
-      
+
       if (!installer) {
         console.log("❌ Installer not found");
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       console.log(`✅ Found installer: ${installer.businessName} (${installer.email})`);
-      
+
       // Update approval status
       console.log("💾 Updating installer approval status...");
       await storage.updateInstallerApproval(installerId, {
@@ -8673,21 +8698,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         reviewedAt: new Date()
       });
       console.log("✅ Database update completed");
-      
+
       // Send approval email
       console.log(`📧 Sending approval email to installer: ${installer.email}`);
       const emailSent = await sendInstallerApprovalEmail(
-        installer.email, 
+        installer.email,
         installer.contactName || 'Installer',
         installer.businessName,
         adminScore,
         adminComments
       );
       console.log(`📧 Email sent status: ${emailSent}`);
-      
+
       console.log("🎉 Installer approval process completed successfully");
-      
-      res.json({ 
+
+      res.json({
         message: "Installer approved successfully",
         emailSent,
         installer: {
@@ -8699,7 +8724,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     } catch (error) {
       console.error("❌ Error approving installer:", error);
       console.error("Error stack:", error instanceof Error ? error.stack : 'No stack trace');
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to approve installer",
         error: error instanceof Error ? error.message : "Unknown error"
       });
@@ -8711,15 +8736,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const installerId = parseInt(req.params.id);
       const { approvalStatus, adminComments } = req.body;
       const adminUserId = (req.user as any)?.id;
-      
+
       // Get installer details before updating
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
-      
+
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }
-      
+
       // Update rejection status
       await storage.updateInstallerApproval(installerId, {
         approvalStatus: 'rejected',
@@ -8727,17 +8752,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         reviewedBy: adminUserId?.toString(),
         reviewedAt: new Date()
       });
-      
+
       // Send rejection email
       console.log(`Sending rejection email to installer: ${installer.email}`);
       const emailSent = await sendInstallerRejectionEmail(
-        installer.email, 
+        installer.email,
         installer.contactName || 'Installer',
         installer.businessName,
         adminComments
       );
-      
-      res.json({ 
+
+      res.json({
         message: "Installer rejected",
         emailSent,
         installer: {
@@ -8756,7 +8781,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.delete("/api/admin/installers/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const installerId = parseInt(req.params.id);
-      
+
       if (!installerId || isNaN(installerId)) {
         return res.status(400).json({ message: "Valid installer ID is required" });
       }
@@ -8764,7 +8789,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Get installer details before deleting for logging
       const installers = await storage.getAllInstallers();
       const installer = installers.find(i => i.id === installerId);
-      
+
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
       }
@@ -8773,16 +8798,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Delete the installer and all related records
       await storage.deleteInstaller(installerId);
-      
+
       // Verify deletion was successful
       const installerAfterDeletion = await storage.getInstaller(installerId);
       if (installerAfterDeletion) {
         throw new Error("Installer deletion failed - record still exists");
       }
-      
+
       console.log(`✅ Installer successfully deleted: ${installer.businessName} (${installer.email})`);
-      
-      res.json({ 
+
+      res.json({
         message: "Installer permanently deleted from database",
         deletedInstaller: {
           id: installerId,
@@ -8792,8 +8817,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       });
     } catch (error) {
       console.error("❌ Error deleting installer:", error);
-      res.status(500).json({ 
-        message: "Failed to delete installer", 
+      res.status(500).json({
+        message: "Failed to delete installer",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
@@ -8804,27 +8829,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookingId = parseInt(req.params.id);
       const { status } = req.body;
-      
+
       // Get booking details before update for notification
       const booking = await storage.getBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       // Check if booking is already assigned to installer (restrict admin power for assigned bookings)
       if (booking.installerId && !['open', 'pending', 'confirmed'].includes(booking.status)) {
-        return res.status(400).json({ 
-          message: "Cannot modify booking status once assigned to installer and in progress" 
+        return res.status(400).json({
+          message: "Cannot modify booking status once assigned to installer and in progress"
         });
       }
-      
+
       await storage.updateBookingStatus(bookingId, status);
-      
+
       // Send real-time notifications for status changes
       if (booking.customerEmail) {
         await sendStatusUpdateNotification(booking.customerEmail, booking.qrCode || '', status);
       }
-      
+
       // If booking has an assigned installer, notify them too
       if (booking.installerId) {
         const installer = await storage.getInstaller(booking.installerId);
@@ -8832,7 +8857,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           await sendStatusUpdateNotification(installer.email, booking.qrCode || '', status);
         }
       }
-      
+
       res.json({ message: "Booking status updated successfully" });
     } catch (error) {
       console.error("Error updating booking status:", error);
@@ -8845,16 +8870,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookingId = parseInt(req.params.id);
       const { isDemo } = req.body;
-      
+
       // Validate booking exists
       const booking = await storage.getBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       // Update demo flag in database
       await storage.updateBookingDemoFlag(bookingId, isDemo);
-      
+
       res.json({ message: "Demo flag updated successfully" });
     } catch (error) {
       console.error("Error updating demo flag:", error);
@@ -8867,79 +8892,79 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookingId = parseInt(req.params.id);
       const forceDelete = req.query.force === 'true'; // Allow force deletion with query parameter
-      
+
       // Get booking details
       const booking = await storage.getBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       // Check if booking can be safely deleted (unless force delete is requested)
       if (!forceDelete && booking.installerId && ['installer_accepted', 'in_progress', 'completed'].includes(booking.status)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Booking is in active state. Use force=true parameter to override.",
           canForceDelete: true,
           currentStatus: booking.status,
           assignedInstaller: booking.installerId
         });
       }
-      
+
       console.log(`🗑️ Admin deletion initiated for booking ${bookingId} (force: ${forceDelete})`);
-      
+
       // Start transaction for safe deletion
       await db.transaction(async (trx) => {
         // 1. Delete all related records in proper order to avoid foreign key constraints
-        
+
         // Delete reviews
         await trx.delete(reviews).where(eq(reviews.bookingId, bookingId));
         console.log(`✅ Deleted reviews for booking ${bookingId}`);
-        
+
         // Delete installer transactions related to job assignments for this booking
         const jobAssignmentsForBooking = await trx.select({ id: jobAssignments.id }).from(jobAssignments).where(eq(jobAssignments.bookingId, bookingId));
         if (jobAssignmentsForBooking.length > 0) {
           const jobAssignmentIds = jobAssignmentsForBooking.map(ja => ja.id);
           await trx.delete(installerTransactions).where(
-            jobAssignmentIds.length === 1 
+            jobAssignmentIds.length === 1
               ? eq(installerTransactions.jobAssignmentId, jobAssignmentIds[0])
               : inArray(installerTransactions.jobAssignmentId, jobAssignmentIds)
           );
           console.log(`✅ Deleted installer transactions for booking ${bookingId}`);
         }
-        
+
         // Delete job assignments and purchased leads
         await trx.delete(jobAssignments).where(eq(jobAssignments.bookingId, bookingId));
         console.log(`✅ Deleted job assignments for booking ${bookingId}`);
-        
+
         // Delete schedule negotiations
         await trx.delete(scheduleNegotiations).where(eq(scheduleNegotiations.bookingId, bookingId));
         console.log(`✅ Deleted schedule negotiations for booking ${bookingId}`);
-        
+
         // Delete lead refunds
         await trx.delete(leadRefunds).where(eq(leadRefunds.bookingId, bookingId));
         console.log(`✅ Deleted lead refunds for booking ${bookingId}`);
-        
+
         // Note: Notifications table deletion not implemented due to schema issues
-        
+
         // Delete referral usage records
         await trx.delete(referralUsage).where(eq(referralUsage.bookingId, bookingId));
         console.log(`✅ Deleted referral usage for booking ${bookingId}`);
-        
+
         // Delete anti-manipulation records
         await trx.delete(antiManipulation).where(eq(antiManipulation.bookingId, bookingId));
         console.log(`✅ Deleted anti-manipulation records for booking ${bookingId}`);
-        
+
         // Delete declined requests
         await trx.delete(declinedRequests).where(eq(declinedRequests.bookingId, bookingId));
         console.log(`✅ Deleted declined requests for booking ${bookingId}`);
-        
+
         // Finally delete the booking itself
         await trx.delete(bookings).where(eq(bookings.id, bookingId));
         console.log(`✅ Deleted booking ${bookingId}`);
       });
-      
+
       // Log deletion for audit trail
       console.log(`🗑️ ADMIN DELETION COMPLETED - Booking ID: ${bookingId}, QR: ${booking.qrCode}, Customer: ${booking.customerEmail}, Force: ${forceDelete}`);
-      
+
       // Notify customer about cancellation
       if (booking.customerEmail) {
         try {
@@ -8962,19 +8987,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           // Continue with deletion even if email fails
         }
       }
-      
-      res.json({ 
+
+      res.json({
         message: "Booking and all associated data deleted successfully",
         deletedBookingId: bookingId,
         qrCode: booking.qrCode,
         wasForceDelete: forceDelete,
         customerNotified: !!booking.customerEmail
       });
-      
+
     } catch (error) {
       console.error("Error in admin booking deletion:", error);
-      res.status(500).json({ 
-        message: "Failed to delete booking", 
+      res.status(500).json({
+        message: "Failed to delete booking",
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
@@ -8985,14 +9010,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookingId = parseInt(req.params.id);
       const booking = await storage.getBooking(bookingId);
-      
+
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       const canModify = !booking.installerId || ['open', 'pending', 'confirmed'].includes(booking.status);
       const canDelete = !booking.installerId && !['installer_accepted', 'in_progress', 'completed'].includes(booking.status);
-      
+
       res.json({
         canModify,
         canDelete,
@@ -9011,11 +9036,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookingId = parseInt(req.params.id);
       const booking = await storage.getBooking(bookingId);
-      
+
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       // Return current booking status with timestamp for real-time sync
       res.json({
         id: booking.id,
@@ -9035,7 +9060,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/bookings/status-sync", async (req, res) => {
     try {
       const bookings = await storage.getAllBookings();
-      
+
       // Return essential status information for all bookings
       const statusData = bookings.map(booking => ({
         id: booking.id,
@@ -9044,7 +9069,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         installerId: booking.installerId,
         qrCode: booking.qrCode
       }));
-      
+
       res.json(statusData);
     } catch (error) {
       console.error("Error syncing booking statuses:", error);
@@ -9057,30 +9082,30 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const userId = parseInt(req.params.userId);
       const { firstName, lastName, email } = req.body;
-      
+
       console.log(`Admin attempting to update user: ${userId}`);
-      
+
       // Validate required fields
       if (!email || email.trim() === '') {
         return res.status(400).json({ message: "Email is required" });
       }
-      
+
       // Check if user exists
       const user = await storage.getUserById(userId.toString());
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Update user profile
       const updatedUser = await storage.updateUser(userId.toString(), {
         firstName: firstName?.trim() || null,
         lastName: lastName?.trim() || null,
         email: email.trim()
       });
-      
+
       if (updatedUser) {
         console.log(`✅ User profile updated successfully: ${email} (ID: ${userId})`);
-        res.json({ 
+        res.json({
           message: "User profile updated successfully",
           user: updatedUser
         });
@@ -9097,46 +9122,46 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.delete("/api/admin/users/:userId", isAdmin, async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      
+
       console.log(`Admin attempting to delete user: ${userId}`);
-      
+
       // First, check if user exists
       const user = await storage.getUserById(userId.toString());
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Prevent deletion of admin users
       if (user.role === 'admin') {
         return res.status(403).json({ message: "Cannot delete admin users" });
       }
-      
+
       // Delete related data first to avoid foreign key constraints
       try {
         // Delete user's bookings - set user_id to null rather than deleting bookings
         await db.update(bookings)
           .set({ userId: null })
           .where(eq(bookings.userId, userId));
-        
+
         // Delete user's reviews
         await db.delete(reviews)
           .where(eq(reviews.userId, userId.toString()));
-          
+
         // Delete user's referral codes
         await db.delete(referralCodes)
           .where(eq(referralCodes.userId, userId.toString()));
-          
+
         // Delete user's referral usage records
         await db.delete(referralUsage)
           .where(eq(referralUsage.userId, userId.toString()));
-          
+
       } catch (cleanupError) {
         console.log("Some related records cleanup failed (expected for new users):", cleanupError.message);
       }
-      
+
       // Finally delete the user
       const success = await storage.deleteUser(userId);
-      
+
       if (success) {
         console.log(`✅ User successfully deleted: ${user.email} (ID: ${userId})`);
         res.json({ message: "User deleted successfully" });
@@ -9150,7 +9175,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // ====================== BANNED USER MANAGEMENT ======================
-  
+
   // Get all banned users
   app.get("/api/admin/banned-users", isAdmin, async (req, res) => {
     try {
@@ -9238,13 +9263,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { email } = req.params;
       const bannedUser = await storage.isBanned(email);
-      
+
       if (bannedUser) {
-        res.json({ 
-          banned: true, 
+        res.json({
+          banned: true,
           banType: bannedUser.banType,
           banReason: bannedUser.banReason,
-          banExpiresAt: bannedUser.banExpiresAt 
+          banExpiresAt: bannedUser.banExpiresAt
         });
       } else {
         res.json({ banned: false });
@@ -9260,7 +9285,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { id } = req.params;
       const updates = req.body;
-      
+
       await storage.updateBannedUser(parseInt(id), updates);
       res.json({ message: "Banned user updated successfully" });
     } catch (error) {
@@ -9270,12 +9295,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // ====================== EMAIL TEST ENDPOINT ======================
-  
+
   // Test booking confirmation email with tracking URL
   app.post("/api/test-booking-email", async (req, res) => {
     try {
       const { qrCode } = req.body;
-      
+
       if (!qrCode) {
         return res.status(400).json({ error: 'QR code is required' });
       }
@@ -9308,11 +9333,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/test-email", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { to, subject, message } = req.body;
-      
+
       if (!to || !subject || !message) {
         return res.status(400).json({ error: "Missing required fields: to, subject, message" });
       }
-      
+
       const html = `
         <!DOCTYPE html>
         <html>
@@ -9353,7 +9378,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         </body>
         </html>
       `;
-      
+
       const emailSent = await sendGmailEmail({
         to,
         subject: `[TEST] ${subject}`,
@@ -9361,10 +9386,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         from: 'admin@tradesbook.ie',
         replyTo: 'support@tradesbook.ie'
       });
-      
+
       if (emailSent) {
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: "Test email sent successfully",
           details: {
             to,
@@ -9383,7 +9408,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // ====================== STRIPE CONFIGURATION ENDPOINT ======================
-  
+
   // Get Stripe publishable key for frontend
   app.get('/api/stripe/config', (req, res) => {
     res.json({
@@ -9397,7 +9422,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/create-payment-intent", async (req, res) => {
     try {
       const { amount, bookingId } = req.body;
-      
+
       if (!amount || amount < 0.5) {
         return res.status(400).json({ error: "Invalid amount" });
       }
@@ -9416,7 +9441,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         await storage.updateBookingPayment(bookingId, paymentIntent.id, "processing");
       }
 
-      res.json({ 
+      res.json({
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id
       });
@@ -9436,26 +9461,26 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
 
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      
+
       if (paymentIntent.status === "succeeded") {
         // Update booking payment status
         if (bookingId) {
           await storage.updateBookingPayment(
-            bookingId, 
-            paymentIntentId, 
-            "succeeded", 
+            bookingId,
+            paymentIntentId,
+            "succeeded",
             paymentIntent.amount / 100
           );
         }
-        
-        res.json({ 
-          success: true, 
+
+        res.json({
+          success: true,
           message: "Payment confirmed successfully",
           paymentStatus: paymentIntent.status
         });
       } else {
-        res.status(400).json({ 
-          success: false, 
+        res.status(400).json({
+          success: false,
           message: "Payment not completed",
           status: paymentIntent.status
         });
@@ -9471,7 +9496,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { paymentIntentId } = req.params;
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      
+
       res.json({
         id: paymentIntent.id,
         amount: paymentIntent.amount / 100,
@@ -9489,43 +9514,43 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/stripe-webhook", async (req, res) => {
     try {
       const event = req.body;
-      
+
       if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object;
         const bookingId = paymentIntent.metadata?.bookingId;
-        
+
         if (bookingId) {
           await storage.updateBookingPayment(
-            parseInt(bookingId), 
-            paymentIntent.id, 
-            "succeeded", 
+            parseInt(bookingId),
+            paymentIntent.id,
+            "succeeded",
             paymentIntent.amount / 100
           );
         }
       } else if (event.type === 'payment_intent.payment_failed') {
         const paymentIntent = event.data.object;
         const bookingId = paymentIntent.metadata?.bookingId;
-        
+
         if (bookingId) {
           await storage.updateBookingPayment(
-            parseInt(bookingId), 
-            paymentIntent.id, 
+            parseInt(bookingId),
+            paymentIntent.id,
             "failed"
           );
         }
       } else if (event.type === 'customer.subscription.updated') {
         const subscription = event.data.object;
         const customerId = subscription.customer;
-        
+
         // Find installer by Stripe customer ID
         const installer = await db.select().from(installers)
           .where(eq(installers.stripeCustomerId, customerId))
           .limit(1);
-        
+
         if (installer.length > 0) {
           const isActive = subscription.status === 'active';
           await db.update(installers)
-            .set({ 
+            .set({
               isVip: isActive,
               subscriptionStatus: subscription.status,
               subscriptionCurrentPeriodStart: new Date(subscription.current_period_start * 1000),
@@ -9539,15 +9564,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       } else if (event.type === 'customer.subscription.deleted') {
         const subscription = event.data.object;
         const customerId = subscription.customer;
-        
+
         // Find installer by Stripe customer ID and remove VIP status
         const installer = await db.select().from(installers)
           .where(eq(installers.stripeCustomerId, customerId))
           .limit(1);
-        
+
         if (installer.length > 0) {
           await db.update(installers)
-            .set({ 
+            .set({
               isVip: false,
               subscriptionStatus: 'canceled',
               stripeSubscriptionId: null,
@@ -9558,7 +9583,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             .where(eq(installers.id, installer[0].id));
         }
       }
-      
+
       res.json({ received: true });
     } catch (error: any) {
       console.error("Webhook error:", error);
@@ -9567,12 +9592,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // ====================== VIP SUBSCRIPTION ENDPOINTS ======================
-  
+
   // Create or retrieve VIP subscription for installer
   app.post('/api/installer/vip-subscription', async (req, res) => {
     try {
       const { installerId } = req.body;
-      
+
       if (!installerId) {
         return res.status(400).json({ message: "Installer ID required" });
       }
@@ -9593,16 +9618,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       console.log('Subscription check - installer.stripeSubscriptionId:', installer.stripeSubscriptionId);
       console.log('Subscription check - typeof:', typeof installer.stripeSubscriptionId);
       console.log('Subscription check - truthy:', !!installer.stripeSubscriptionId);
-      
+
       if (installer.stripeSubscriptionId) {
         console.log('Found existing subscription:', installer.stripeSubscriptionId);
-        
+
         try {
           console.log('About to retrieve subscription from Stripe:', installer.stripeSubscriptionId);
           const subscription = await stripe.subscriptions.retrieve(installer.stripeSubscriptionId, {
             expand: ['latest_invoice.payment_intent']
           });
-          
+
           console.log('Successfully retrieved subscription from Stripe');
           console.log('Full subscription object keys:', Object.keys(subscription));
           console.log('Retrieved subscription details:', {
@@ -9617,25 +9642,25 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             client_secret_exists: subscription.latest_invoice?.payment_intent?.client_secret ? 'exists' : 'null',
             client_secret: subscription.latest_invoice?.payment_intent?.client_secret
           });
-          
+
           // If subscription is incomplete, get or create payment intent
           if (subscription.status === 'incomplete') {
             let clientSecret = subscription.latest_invoice?.payment_intent?.client_secret;
-            
+
             // If no payment intent exists, we need to pay the invoice
             if (!clientSecret && subscription.latest_invoice?.id) {
               console.log('No payment intent found, paying invoice:', subscription.latest_invoice.id);
-              
+
               try {
                 const paidInvoice = await stripe.invoices.pay(subscription.latest_invoice.id, {
                   expand: ['payment_intent']
                 });
-                
+
                 clientSecret = paidInvoice.payment_intent?.client_secret;
                 console.log('Created payment intent via invoice payment:', clientSecret ? 'success' : 'failed');
               } catch (invoiceError) {
                 console.error('Error paying invoice:', invoiceError);
-                
+
                 // If paying invoice fails, try to create a setup intent for payment method collection
                 try {
                   const setupIntent = await stripe.setupIntents.create({
@@ -9643,9 +9668,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
                     usage: 'off_session',
                     payment_method_types: ['card']
                   });
-                  
+
                   console.log('Created setup intent as fallback:', setupIntent.id);
-                  
+
                   return res.json({
                     subscriptionId: subscription.id,
                     clientSecret: setupIntent.client_secret,
@@ -9658,19 +9683,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
                 }
               }
             }
-            
+
             if (!clientSecret) {
               console.error('Still no client secret after attempting payment setup');
               return res.status(500).json({ message: 'Payment setup incomplete - unable to create payment intent' });
             }
-            
+
             return res.json({
               subscriptionId: subscription.id,
               clientSecret: clientSecret,
               status: subscription.status
             });
           }
-          
+
           // If active, no payment needed
           if (subscription.status === 'active') {
             return res.json({
@@ -9682,9 +9707,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         } catch (stripeError) {
           console.error('Error retrieving subscription from Stripe:', stripeError);
           // Clear invalid subscription ID from database
-          await storage.updateInstallerStripeInfo(installerId, { 
+          await storage.updateInstallerStripeInfo(installerId, {
             stripeSubscriptionId: null,
-            subscriptionStatus: null 
+            subscriptionStatus: null
           });
         }
       }
@@ -9701,12 +9726,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             type: 'installer'
           }
         });
-        
+
         customerId = customer.id;
-        
+
         // Update installer with Stripe customer ID
         await db.update(installers)
-          .set({ 
+          .set({
             stripeCustomerId: customerId,
             updatedAt: new Date()
           })
@@ -9715,7 +9740,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Create or get VIP price
       let priceId = process.env.STRIPE_VIP_PRICE_ID;
-      
+
       if (!priceId) {
         // First create the product
         const product = await stripe.products.create({
@@ -9750,7 +9775,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Update installer with subscription details
       await db.update(installers)
-        .set({ 
+        .set({
           stripeSubscriptionId: subscription.id,
           subscriptionStatus: subscription.status,
           subscriptionCurrentPeriodStart: subscription.current_period_start ? new Date(subscription.current_period_start * 1000) : null,
@@ -9783,7 +9808,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/installer/cancel-vip-subscription', async (req, res) => {
     try {
       const { installerId } = req.body;
-      
+
       if (!installerId) {
         return res.status(400).json({ message: "Installer ID required" });
       }
@@ -9800,7 +9825,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Update installer record
       await db.update(installers)
-        .set({ 
+        .set({
           subscriptionCancelAt: subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : null,
           updatedAt: new Date()
         })
@@ -9822,7 +9847,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/installer/:installerId/subscription-status', async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       const installer = await storage.getInstaller(installerId);
       if (!installer) {
         return res.status(404).json({ message: "Installer not found" });
@@ -9865,11 +9890,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const userId = (req.user as any)?.id || (req.user as any)?.claims?.sub;
       const bookingId = parseInt(req.params.bookingId);
-      
+
       if (!userId) {
         return res.status(401).json({ message: "User ID required" });
       }
-      
+
       // Check if user has already reviewed this booking
       const existingReview = await db
         .select({
@@ -9887,7 +9912,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           )
         )
         .limit(1);
-      
+
       if (existingReview.length > 0) {
         return res.json(existingReview[0]);
       } else {
@@ -9903,32 +9928,32 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/reviews", isAuthenticated, async (req, res) => {
     try {
       const userId = (req.user as any)?.id || (req.user as any)?.claims?.sub;
-      
+
       if (!userId) {
         return res.status(401).json({ message: "User not authenticated" });
       }
 
       const { bookingId, installerId, rating, title, comment, qrCode } = req.body;
-      
+
       // Validate required fields
       if (!bookingId || !installerId || !rating || !title || !comment) {
         return res.status(400).json({ message: "Missing required fields" });
       }
-      
+
       // Verify booking exists and belongs to user
       const booking = await storage.getBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       if (booking.status !== 'completed') {
         return res.status(400).json({ message: "Can only review completed installations" });
       }
-      
+
       // Check if user has already reviewed this booking
       const existingReviews = await storage.getUserReviews(userId);
       const hasReviewed = existingReviews.some(review => review.bookingId === bookingId);
-      
+
       if (hasReviewed) {
         return res.status(400).json({ message: "You have already reviewed this installation" });
       }
@@ -9944,15 +9969,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       };
 
       const review = await storage.createReview(reviewData);
-      
+
       // Calculate review stars (2 stars max from customer review)
       // 5-star review = 2 review stars, 4-star = 1.5, 3-star = 1, 2-star = 0.5, 1-star = 0
       const reviewStars = Math.max(0, Math.min(2, (rating - 1) * 0.5));
-      
+
       // Get current photo stars and calculate total quality stars  
       const photoStars = booking.photoStars || 0;
       const totalQualityStars = photoStars + reviewStars;
-      
+
       // Update booking with review stars and total quality stars
       await storage.updateBooking(bookingId, {
         reviewStars: Math.round(reviewStars * 10) / 10, // Round to 1 decimal place
@@ -9960,9 +9985,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         starCalculatedAt: new Date(),
         eligibleForRefund: totalQualityStars >= 3 // Minimum 3 stars needed for refund eligibility
       });
-      
+
       console.log(`Review submitted for booking ${bookingId}: ${rating} stars -> ${reviewStars} review stars, ${totalQualityStars} total quality stars`);
-      
+
       // Check and process performance refund if newly eligible
       let refundMessage = '';
       if (totalQualityStars >= 3) {
@@ -9976,9 +10001,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           console.error('Error processing performance refund after review:', error);
         }
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         review,
         reviewStars,
         totalQualityStars,
@@ -10005,30 +10030,30 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/installer/:installerId/reviews", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       // Get all reviews for this installer
       const reviews = await storage.getInstallerReviews(installerId);
-      
+
       // Calculate review statistics
       const totalReviews = reviews.length;
-      const averageRating = totalReviews > 0 
-        ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+      const averageRating = totalReviews > 0
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
         : 0;
-      
+
       // Calculate rating distribution
       const ratingDistribution = [5, 4, 3, 2, 1].map(rating => ({
         rating,
         count: reviews.filter(r => r.rating === rating).length,
         percentage: totalReviews > 0 ? (reviews.filter(r => r.rating === rating).length / totalReviews) * 100 : 0
       }));
-      
+
       const reviewStats = {
         averageRating: Math.round(averageRating * 10) / 10,
         totalReviews,
         ratingDistribution,
         recentReviews: reviews.slice(0, 10) // Show 10 most recent reviews
       };
-      
+
       res.json(reviewStats);
     } catch (error) {
       console.error("Error fetching installer review stats:", error);
@@ -10051,20 +10076,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/installer/:installerId/past-leads", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       // Validate installerId is a valid number
       if (isNaN(installerId) || installerId <= 0) {
         return res.status(400).json({ error: "Invalid installer ID" });
       }
-      
+
       // Check if installer is demo account
       const installer = await storage.getInstaller(installerId);
       const isDemoAccount = installer?.email === "test@tradesbook.ie";
-      
+
       // Get actual purchased leads from job assignments
       const purchasedLeads = await storage.getInstallerPurchasedLeads(installerId);
       console.log(`Found ${purchasedLeads.length} purchased leads for installer ${installerId}`);
-      
+
       // Transform purchased leads to the expected format
       const transformedPurchasedLeads = purchasedLeads.map(booking => ({
         id: booking.id,
@@ -10074,7 +10099,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         address: booking.address,
         tvSize: booking.tvSize,
         serviceType: booking.serviceType,
-        wallType: booking.wallType || "Drywall", 
+        wallType: booking.wallType || "Drywall",
         mountType: booking.mountType || "Fixed",
         addons: booking.addons || [],
         estimatedPrice: booking.estimatedTotal || booking.estimatedPrice || booking.totalPrice || "0",
@@ -10092,7 +10117,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         roomPhotoUrl: booking.roomPhotoUrl,
         aiPreviewUrl: booking.aiPreviewUrl
       }));
-      
+
       // For backward compatibility, also get bookings directly assigned to installer
       // BUT exclude bookings that are already in purchasedLeads to avoid duplicates
       const allBookings = await storage.getAllBookings();
@@ -10102,26 +10127,26 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         if (booking.installerId !== installerId) {
           return false;
         }
-        
+
         // Skip if already included in purchased leads to avoid duplicates
         if (purchasedBookingIds.includes(booking.id)) {
           return false;
         }
-        
+
         // Demo accounts only see demo bookings
         if (isDemoAccount) {
           return booking.isDemo === true;
         }
-        
+
         // Regular installers only see non-demo bookings
         return booking.isDemo !== true;
       });
-      
+
       // Transform bookings to past leads format
       const pastLeads = installerBookings.map(booking => {
         let finalStatus = booking.status;
         let finalNotes = booking.customerNotes || booking.notes;
-        
+
         // For demo account, apply any cached status updates
         if (installerId === 2 && (global as any).demoStatusUpdates && (global as any).demoStatusUpdates[booking.id]) {
           const statusUpdate = (global as any).demoStatusUpdates[booking.id];
@@ -10129,7 +10154,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           finalStatus = statusUpdate.status;
           finalNotes = statusUpdate.message || finalNotes;
         }
-        
+
         return {
           id: booking.id,
           customerName: booking.contactName || "Customer",
@@ -10150,7 +10175,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           createdAt: booking.createdAt || new Date().toISOString()
         };
       });
-      
+
       // Apply status updates to purchased leads as well
       const updatedPurchasedLeads = transformedPurchasedLeads.map(lead => {
         if (installerId === 2 && (global as any).demoStatusUpdates && (global as any).demoStatusUpdates[lead.id]) {
@@ -10163,7 +10188,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         }
         return lead;
       });
-      
+
       // Return combined results with applied status updates
       res.json([...updatedPurchasedLeads, ...pastLeads]);
     } catch (error) {
@@ -10175,23 +10200,23 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/installer/:installerId/update-lead-status", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       // Validate installerId is a valid number
       if (isNaN(installerId) || installerId <= 0) {
         return res.status(400).json({ error: "Invalid installer ID" });
       }
-      
+
       const { leadId, status, message } = req.body;
-      
+
       if (!leadId || !status) {
         return res.status(400).json({ message: "Lead ID and status are required" });
       }
-      
+
       // For demo account (installer ID 2), handle status updates without database operations
       // since demo leads are generated dynamically and may have invalid date fields
       if (installerId === 2) {
         console.log(`Demo account status update: Lead ${leadId} status changed to ${status}`);
-        
+
         // Store demo status updates in memory for persistence across requests
         if (!(global as any).demoStatusUpdates) {
           (global as any).demoStatusUpdates = {};
@@ -10201,31 +10226,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           message: message,
           updatedAt: new Date().toISOString()
         };
-        
+
         console.log(`Stored demo status update for lead ${leadId}:`, (global as any).demoStatusUpdates[leadId]);
         console.log('Current cache state:', Object.keys((global as any).demoStatusUpdates));
-        
-        return res.json({ 
-          success: true, 
+
+        return res.json({
+          success: true,
           message: "Status updated successfully (demo mode)",
           newStatus: status
         });
       }
-      
+
       // For real installers, proceed with database operations
       const booking = await storage.getBooking(leadId);
       if (!booking) {
         return res.status(404).json({ message: "Lead not found" });
       }
-      
+
       // Verify installer owns this lead
       if (booking.installerId !== installerId) {
         return res.status(403).json({ message: "Unauthorized to update this lead" });
       }
-      
+
       // Update the booking status
       await storage.updateBookingStatus(leadId, status);
-      
+
       // Send customer notification email about status update
       try {
         await sendStatusUpdateNotification(
@@ -10245,9 +10270,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       } catch (emailError) {
         console.error("Failed to send status update notification:", emailError);
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: "Status updated successfully",
         newStatus: status
       });
@@ -10261,20 +10286,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/customer/update-lead-status", async (req, res) => {
     try {
       const { qrCode, status, message } = req.body;
-      
+
       if (!qrCode || !status) {
         return res.status(400).json({ message: "QR code and status are required" });
       }
-      
+
       // Find booking by QR code
       const booking = await storage.getBookingByQrCode(qrCode);
       if (!booking) {
         return res.status(404).json({ message: "Installation request not found" });
       }
-      
+
       // Update the booking status
       await storage.updateBookingStatus(booking.id, status);
-      
+
       // If the booking has an assigned installer, notify them
       if (booking.installerId) {
         const installer = await storage.getInstaller(booking.installerId);
@@ -10299,9 +10324,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           }
         }
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: "Status updated successfully",
         newStatus: status
       });
@@ -10315,7 +10340,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/installer/:installerId/reviews", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       // For demo installer (ID: 2), return mock review data
       if (installerId === 2) {
         const mockReviews = [
@@ -10359,17 +10384,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             createdAt: new Date('2025-06-25').toISOString()
           }
         ];
-        
+
         const totalReviews = mockReviews.length;
         const averageRating = mockReviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
-        
+
         // Calculate rating distribution
         const ratingCounts = [1, 2, 3, 4, 5].map(rating => ({
           rating,
           count: mockReviews.filter(r => r.rating === rating).length,
           percentage: totalReviews > 0 ? (mockReviews.filter(r => r.rating === rating).length / totalReviews) * 100 : 0
         }));
-        
+
         return res.json({
           totalReviews,
           averageRating: Math.round(averageRating * 10) / 10,
@@ -10377,30 +10402,30 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           recentReviews: mockReviews
         });
       }
-      
+
       // For other installers, get reviews from database
       const reviews = await storage.getInstallerReviews(installerId);
-      
+
       // Calculate review statistics
       const totalReviews = reviews.length;
-      const averageRating = totalReviews > 0 
-        ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+      const averageRating = totalReviews > 0
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews
         : 0;
-      
+
       // Calculate rating distribution
       const ratingCounts = [1, 2, 3, 4, 5].map(rating => ({
         rating,
         count: reviews.filter(r => r.rating === rating).length,
         percentage: totalReviews > 0 ? (reviews.filter(r => r.rating === rating).length / totalReviews) * 100 : 0
       }));
-      
+
       const reviewStats = {
         totalReviews,
         averageRating,
         ratingDistribution: ratingCounts,
         recentReviews: reviews.slice(0, 10) // Show 10 most recent reviews
       };
-      
+
       res.json(reviewStats);
     } catch (error) {
       console.error("Error fetching installer reviews:", error);
@@ -10423,15 +10448,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/installations/locations", async (req, res) => {
     try {
       const allBookings = await storage.getAllBookings();
-      
+
       // Group bookings by location (extract county from address)
       const locationMap = new Map<string, any[]>();
-      
+
       allBookings.forEach(booking => {
         // Extract county from address - assume address format includes county
         const addressParts = booking.address.split(',');
         let county = 'Unknown';
-        
+
         // Try to extract county from address
         if (addressParts.length >= 2) {
           county = addressParts[addressParts.length - 2].trim();
@@ -10441,21 +10466,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           const foundCounty = knownCounties.find(c => booking.address.toLowerCase().includes(c.toLowerCase()));
           if (foundCounty) county = foundCounty;
         }
-        
+
         if (!locationMap.has(county)) {
           locationMap.set(county, []);
         }
         locationMap.get(county)!.push(booking);
       });
-      
+
       // Transform to required format
       const locations = Array.from(locationMap.entries()).map(([location, bookings]) => {
         // Sort bookings by date (most recent first)
-        const sortedBookings = bookings.sort((a, b) => 
-          new Date(b.createdAt || b.scheduledDate || new Date()).getTime() - 
+        const sortedBookings = bookings.sort((a, b) =>
+          new Date(b.createdAt || b.scheduledDate || new Date()).getTime() -
           new Date(a.createdAt || a.scheduledDate || new Date()).getTime()
         );
-        
+
         // Format recent installations
         const recentInstallations = sortedBookings.slice(0, 5).map(booking => ({
           id: booking.id,
@@ -10464,19 +10489,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           date: booking.scheduledDate || booking.createdAt || new Date().toISOString(),
           status: booking.status || 'pending'
         }));
-        
+
         return {
           location,
           count: bookings.length,
           recentInstallations
         };
       });
-      
+
       // Sort locations by count (descending) and filter out Unknown
       const filteredLocations = locations
         .filter(loc => loc.location !== 'Unknown' && loc.count > 0)
         .sort((a, b) => b.count - a.count);
-      
+
       res.json(filteredLocations);
     } catch (error) {
       console.error("Error fetching installation locations:", error);
@@ -10507,9 +10532,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Update job assignment status for selected installer
       await storage.updateJobInstallerStatus(bookingId, installerId, 'assigned');
 
-      res.json({ 
+      res.json({
         success: true,
-        message: "Installer selected successfully. Installation can now be scheduled." 
+        message: "Installer selected successfully. Installation can now be scheduled."
       });
     } catch (error) {
       console.error("Error selecting installer:", error);
@@ -10522,7 +10547,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookingId = parseInt(req.params.bookingId);
       const assignments = await storage.getBookingJobAssignments(bookingId);
-      
+
       const acceptedInstallers = await Promise.all(
         assignments
           .filter(assignment => assignment.status === 'accepted')
@@ -10547,7 +10572,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/test-email', async (req, res) => {
     try {
       const { to, subject, message } = req.body;
-      
+
       if (!to || !subject || !message) {
         return res.status(400).json({ error: "Missing required fields: to, subject, message" });
       }
@@ -10599,7 +10624,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/send-booking-simulation', async (req, res) => {
     try {
       const { email } = req.body;
-      
+
       if (!email) {
         return res.status(400).json({ error: "Email address required" });
       }
@@ -10626,7 +10651,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       };
 
       const success = await sendBookingConfirmation(email, 'Jude Okun', bookingDetails);
-      
+
       if (success) {
         res.json({ success: true, message: "Booking simulation email sent successfully" });
       } else {
@@ -10641,7 +10666,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/referral/validate', async (req, res) => {
     try {
       const { code } = req.body;
-      
+
       if (!code) {
         return res.status(400).json({ valid: false, message: "Referral code required" });
       }
@@ -10658,21 +10683,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       // Get real referral statistics from database
       const referralCodes = await storage.getAllReferralCodes();
-      
+
       const totalReferrals = referralCodes.reduce((sum, code) => sum + code.totalReferrals, 0);
       const totalRewardsPaid = referralCodes.reduce((sum, code) => sum + parseFloat(code.totalEarnings.toString()), 0);
       const activeCodes = referralCodes.filter(code => code.isActive).length;
-      
+
       // Calculate conversion rate (referrals / active codes)
       const conversionRate = activeCodes > 0 ? (totalReferrals / activeCodes) : 0;
-      
+
       const stats = {
         totalReferrals,
         totalRewardsPaid,
         activeCodes,
         conversionRate: Math.round(conversionRate * 10) / 10
       };
-      
+
       res.json(stats);
     } catch (error) {
       console.error('Error fetching referral stats:', error);
@@ -10683,15 +10708,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/referrals/codes', async (req, res) => {
     try {
       const referralCodes = await storage.getAllReferralCodes();
-      
+
       // Get user details for each referral code
       const codesWithUserData = await Promise.all(
         referralCodes.map(async (code) => {
           // Only fetch user if userId is valid and not null
-          const user = code.userId && !isNaN(Number(code.userId)) 
-            ? await storage.getUserById(code.userId) 
+          const user = code.userId && !isNaN(Number(code.userId))
+            ? await storage.getUserById(code.userId)
             : null;
-          
+
           // Determine the referrer name based on the referral type
           let referrerName = 'Unknown User';
           if (code.referralType === 'sales_staff') {
@@ -10706,7 +10731,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               referrerName = code.salesStaffName;
             }
           }
-          
+
           return {
             id: code.id,
             referralCode: code.referralCode,
@@ -10722,7 +10747,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           };
         })
       );
-      
+
       res.json(codesWithUserData);
     } catch (error) {
       console.error('Error fetching referral codes:', error);
@@ -10733,7 +10758,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/referrals/settings', async (req, res) => {
     try {
       const settings = await storage.getReferralSettings();
-      
+
       if (!settings) {
         // Return default settings if none exist
         return res.json({
@@ -10741,7 +10766,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           isActive: true
         });
       }
-      
+
       res.json({
         globalDiscountPercentage: parseFloat(settings.globalDiscountPercentage),
         isActive: settings.isActive
@@ -10755,7 +10780,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.put('/api/referrals/settings', async (req, res) => {
     try {
       const { globalDiscountPercentage } = req.body;
-      
+
       if (!globalDiscountPercentage) {
         return res.status(400).json({ error: "Global discount percentage required" });
       }
@@ -10765,7 +10790,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         globalDiscountPercentage: globalDiscountPercentage.toString(),
         isActive: true
       });
-      
+
       res.json({ success: true, settings });
     } catch (error) {
       console.error('Error updating referral settings:', error);
@@ -10774,7 +10799,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // ====================== ADMIN PRICING MANAGEMENT ENDPOINTS ======================
-  
+
   // Get all pricing configurations
   app.get("/api/admin/pricing", isAdmin, async (req, res) => {
     try {
@@ -10793,7 +10818,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (!['service', 'addon', 'bracket'].includes(category)) {
         return res.status(400).json({ message: "Invalid category" });
       }
-      
+
       const pricing = await pricingManagementService.getPricingByCategory(category);
       res.json(pricing);
     } catch (error) {
@@ -10806,7 +10831,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/admin/pricing", isAdmin, async (req, res) => {
     try {
       const { category, itemKey, name, description, customerPrice, leadFee, minTvSize, maxTvSize } = req.body;
-      
+
       // Validation
       if (!category || !itemKey || !name || !customerPrice || !leadFee) {
         return res.status(400).json({ message: "Missing required fields" });
@@ -10849,7 +10874,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const id = parseInt(req.params.id);
       const { category, itemKey, name, description, customerPrice, leadFee, minTvSize, maxTvSize, isActive } = req.body;
-      
+
       if (!category || !itemKey || !name || customerPrice === undefined || leadFee === undefined) {
         return res.status(400).json({ message: "Missing required fields" });
       }
@@ -10892,7 +10917,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const id = parseInt(req.params.id);
       const success = await pricingManagementService.deletePricing(id);
-      
+
       if (success) {
         res.json({ message: "Pricing configuration deleted successfully" });
       } else {
@@ -10919,7 +10944,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/test-booking-emails", async (req, res) => {
     try {
       const { customerEmail, customerName } = req.body;
-      
+
       // Mock booking data for email testing with complete details
       const mockBooking = {
         id: 999,
@@ -10982,12 +11007,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // ====================== INSTALLER WALLET ENDPOINTS ======================
-  
+
   // Get installer wallet balance and transaction history
   app.get("/api/installer/:installerId/wallet", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       // Get or create wallet
       let wallet = await storage.getInstallerWallet(installerId);
       if (!wallet) {
@@ -10998,10 +11023,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           totalEarned: "0.00"
         });
       }
-      
+
       // Get recent transactions
       const transactions = await storage.getInstallerTransactions(installerId);
-      
+
       res.json({
         wallet,
         transactions: transactions.slice(0, 10) // Last 10 transactions
@@ -11017,11 +11042,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       const { amount } = req.body;
-      
+
       if (!amount || amount <= 0 || amount < 5) {
         return res.status(400).json({ message: "Invalid amount. Minimum €5 required." });
       }
-      
+
       if (amount > 500) {
         return res.status(400).json({ message: "Maximum €500 per transaction." });
       }
@@ -11046,14 +11071,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         },
       });
 
-      res.json({ 
+      res.json({
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id
       });
     } catch (error: any) {
       console.error("Error creating credit payment intent:", error);
-      res.status(500).json({ 
-        message: "Error creating payment intent: " + error.message 
+      res.status(500).json({
+        message: "Error creating payment intent: " + error.message
       });
     }
   });
@@ -11063,16 +11088,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       const { amount } = req.body;
-      
+
       // Only allow demo installer (ID: 2) to use this endpoint
       if (installerId !== 2) {
         return res.status(403).json({ message: "Demo credit simulation only available for demo account" });
       }
-      
+
       if (!amount || amount <= 0) {
         return res.status(400).json({ message: "Invalid amount" });
       }
-      
+
       // Get current wallet
       let wallet = await storage.getInstallerWallet(installerId);
       if (!wallet) {
@@ -11083,14 +11108,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           totalEarned: "0.00"
         });
       }
-      
+
       // Calculate new balance
       const currentBalance = parseFloat(wallet.balance);
       const newBalance = currentBalance + amount;
-      
+
       // Update wallet balance
       await storage.updateInstallerWalletBalance(installerId, newBalance);
-      
+
       // Add transaction record
       await storage.addInstallerTransaction({
         installerId,
@@ -11100,9 +11125,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         paymentIntentId: `demo-${Date.now()}`,
         status: "completed"
       });
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         newBalance,
         message: `Successfully added €${amount} demo credits to your wallet`
       });
@@ -11127,7 +11152,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       if (paymentIntent.status === 'succeeded') {
         const creditAmount = parseFloat(paymentIntent.metadata.creditAmount);
-        
+
         // Get current wallet
         let wallet = await storage.getInstallerWallet(installerId);
         if (!wallet) {
@@ -11138,14 +11163,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             totalEarned: "0.00"
           });
         }
-        
+
         // Calculate new balance
         const currentBalance = parseFloat(wallet.balance);
         const newBalance = currentBalance + creditAmount;
-        
+
         // Update wallet balance
         await storage.updateInstallerWalletBalance(installerId, newBalance);
-        
+
         // Add transaction record
         await storage.addInstallerTransaction({
           installerId,
@@ -11177,8 +11202,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
     } catch (error: any) {
       console.error("Error confirming credit payment:", error);
-      res.status(500).json({ 
-        message: "Error confirming payment: " + error.message 
+      res.status(500).json({
+        message: "Error confirming payment: " + error.message
       });
     }
   });
@@ -11188,26 +11213,26 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       const { bookingId, leadFee } = req.body;
-      
+
       if (!bookingId || !leadFee || leadFee <= 0) {
         return res.status(400).json({ message: "Invalid booking or lead fee" });
       }
-      
+
       // Check wallet balance
       const wallet = await storage.getInstallerWallet(installerId);
       if (!wallet) {
         return res.status(400).json({ message: "Wallet not found" });
       }
-      
+
       const currentBalance = parseFloat(wallet.balance);
       if (currentBalance < leadFee) {
-        return res.status(400).json({ 
-          message: "Insufficient balance", 
+        return res.status(400).json({
+          message: "Insufficient balance",
           required: leadFee,
-          available: currentBalance 
+          available: currentBalance
         });
       }
-      
+
       // Create job assignment
       const jobAssignment = await storage.createJobAssignment({
         bookingId,
@@ -11218,17 +11243,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         leadFeeStatus: "paid",
         leadPaidDate: new Date()
       });
-      
+
       // Automatically update booking status to "confirmed" (Customer Confirmed)
       // This happens when installer accepts/purchases the job
       await storage.updateBookingStatus(bookingId, 'confirmed');
-      
+
       // Deduct lead fee from wallet and update total spent
       const newBalance = currentBalance - leadFee;
       const totalSpent = parseFloat(wallet.totalSpent) + leadFee;
       await storage.updateInstallerWalletBalance(installerId, newBalance);
       await storage.updateInstallerWalletTotalSpent(installerId, totalSpent);
-      
+
       // Add transaction record
       await storage.addInstallerTransaction({
         installerId,
@@ -11238,14 +11263,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         jobAssignmentId: jobAssignment.id,
         status: "completed"
       });
-      
+
       // Update booking status to "installation_scheduled"
       await storage.updateBookingStatus(bookingId, "installation_scheduled");
-      
+
       // Get booking and installer details for email notification
       const booking = await storage.getBooking(bookingId);
       const installer = await storage.getInstaller(installerId);
-      
+
       if (booking && installer) {
         // Send email notification to customer
         try {
@@ -11272,12 +11297,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           console.error("Failed to send lead purchase notification:", emailError);
         }
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         jobAssignment,
         newBalance,
-        message: "Lead purchased successfully" 
+        message: "Lead purchased successfully"
       });
     } catch (error) {
       console.error("Error purchasing lead:", error);
@@ -11290,7 +11315,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/customer/wallet", isAuthenticated, async (req, res) => {
     try {
       const userId = (req as any).user.id;
-      
+
       // Get or create wallet
       let wallet = await storage.getCustomerWallet(userId);
       if (!wallet) {
@@ -11301,10 +11326,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           totalTopUps: "0.00"
         });
       }
-      
+
       // Get transaction history
       const transactions = await storage.getCustomerTransactions(userId);
-      
+
       res.json({
         wallet,
         transactions
@@ -11320,11 +11345,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { amount } = req.body;
       const userId = (req as any).user.id;
-      
+
       if (!amount || amount <= 0) {
         return res.status(400).json({ message: "Invalid amount" });
       }
-      
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
         currency: "eur",
@@ -11334,15 +11359,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           creditAmount: amount.toString()
         }
       });
-      
-      res.json({ 
+
+      res.json({
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id
       });
     } catch (error: any) {
       console.error("Error creating customer credit payment intent:", error);
-      res.status(500).json({ 
-        message: "Error creating payment intent: " + error.message 
+      res.status(500).json({
+        message: "Error creating payment intent: " + error.message
       });
     }
   });
@@ -11352,18 +11377,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { paymentIntentId } = req.body;
       const userId = (req as any).user.id;
-      
+
       if (!paymentIntentId) {
         return res.status(400).json({ message: "Payment intent ID required" });
       }
-      
+
       // Retrieve payment intent
       let paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-      
+
       // Payment should have been confirmed by Stripe Elements on the frontend
       if (paymentIntent.status === "succeeded") {
         const creditAmount = parseFloat(paymentIntent.metadata.creditAmount || "0");
-        
+
         // Get current wallet
         let wallet = await storage.getCustomerWallet(userId);
         if (!wallet) {
@@ -11374,14 +11399,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             totalTopUps: "0.00"
           });
         }
-        
+
         const currentBalance = parseFloat(wallet.balance);
         const currentTotalTopUps = parseFloat(wallet.totalTopUps);
-        
+
         // Update wallet balance
         await storage.updateCustomerWalletBalance(userId, currentBalance + creditAmount);
         await storage.updateCustomerWalletTotalTopUps(userId, currentTotalTopUps + creditAmount);
-        
+
         // Add transaction record
         await storage.addCustomerTransaction({
           userId,
@@ -11391,7 +11416,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           paymentIntentId: paymentIntentId,
           status: "completed"
         });
-        
+
         res.json({
           success: true,
           message: `Successfully added €${creditAmount} to your wallet`,
@@ -11413,8 +11438,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
     } catch (error: any) {
       console.error("Error confirming customer credit payment:", error);
-      res.status(500).json({ 
-        message: "Error confirming payment: " + error.message 
+      res.status(500).json({
+        message: "Error confirming payment: " + error.message
       });
     }
   });
@@ -11425,11 +11450,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const userId = (req as any).user.id;
       const { subject, message, category, priority } = req.body;
-      
+
       if (!subject || !message) {
         return res.status(400).json({ message: "Subject and message are required" });
       }
-      
+
       // Create the ticket
       const ticket = await storage.createSupportTicket({
         userId,
@@ -11438,7 +11463,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         priority: priority || "medium",
         category: category || "general"
       });
-      
+
       // Add the initial message
       await storage.addTicketMessage({
         ticketId: ticket.id,
@@ -11446,7 +11471,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         message,
         isAdminReply: false
       });
-      
+
       // Send email notification to admin
       try {
         const { sendGmailEmail } = await import('./gmailService');
@@ -11470,11 +11495,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       } catch (emailError) {
         console.error("Failed to send support ticket notification:", emailError);
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         ticket,
-        message: "Support ticket created successfully" 
+        message: "Support ticket created successfully"
       });
     } catch (error: any) {
       console.error("Error creating support ticket:", error);
@@ -11499,13 +11524,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const userId = (req as any).user.id;
       const ticketId = parseInt(req.params.ticketId);
-      
+
       // Verify user owns this ticket
       const ticket = await storage.getSupportTicket(ticketId);
       if (!ticket || ticket.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       const messages = await storage.getTicketMessages(ticketId);
       res.json(messages);
     } catch (error: any) {
@@ -11520,17 +11545,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const userId = (req as any).user.id;
       const ticketId = parseInt(req.params.ticketId);
       const { message } = req.body;
-      
+
       if (!message) {
         return res.status(400).json({ message: "Message is required" });
       }
-      
+
       // Verify user owns this ticket
       const ticket = await storage.getSupportTicket(ticketId);
       if (!ticket || ticket.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
-      
+
       // Add the message
       const newMessage = await storage.addTicketMessage({
         ticketId,
@@ -11538,16 +11563,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         message,
         isAdminReply: false
       });
-      
+
       // Update ticket status to open if it was closed
       if (ticket.status === 'closed') {
         await storage.updateSupportTicketStatus(ticketId, 'open');
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: newMessage,
-        notification: "Message sent successfully" 
+        notification: "Message sent successfully"
       });
     } catch (error: any) {
       console.error("Error adding ticket message:", error);
@@ -11563,7 +11588,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (userRole !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const tickets = await storage.getAllSupportTickets();
       res.json(tickets);
     } catch (error: any) {
@@ -11579,15 +11604,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (userRole !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const ticketId = parseInt(req.params.ticketId);
       const { status, assignedTo } = req.body;
-      
+
       await storage.updateSupportTicketStatus(ticketId, status, assignedTo);
-      
-      res.json({ 
-        success: true, 
-        message: "Ticket status updated successfully" 
+
+      res.json({
+        success: true,
+        message: "Ticket status updated successfully"
       });
     } catch (error: any) {
       console.error("Error updating ticket status:", error);
@@ -11602,15 +11627,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (userRole !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const ticketId = parseInt(req.params.ticketId);
       const userId = (req as any).user.id;
       const { message, status } = req.body;
-      
+
       if (!message) {
         return res.status(400).json({ message: "Message is required" });
       }
-      
+
       // Add admin reply
       await storage.addTicketMessage({
         ticketId,
@@ -11618,17 +11643,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         message,
         isAdminReply: true
       });
-      
+
       // Update ticket status if provided
       if (status) {
         await storage.updateSupportTicketStatus(ticketId, status, userId);
       }
-      
+
       // Send email notification to customer
       try {
         const ticket = await storage.getSupportTicket(ticketId);
         const user = await storage.getUser(ticket?.userId || '');
-        
+
         if (user?.email) {
           const { sendGmailEmail } = await import('./gmailService');
           await sendGmailEmail({
@@ -11649,10 +11674,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       } catch (emailError) {
         console.error("Failed to send customer notification:", emailError);
       }
-      
-      res.json({ 
-        success: true, 
-        message: "Reply sent successfully" 
+
+      res.json({
+        success: true,
+        message: "Reply sent successfully"
       });
     } catch (error: any) {
       console.error("Error sending admin reply:", error);
@@ -11667,9 +11692,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (userRole !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const ticketId = parseInt(req.params.ticketId);
-      
+
       const messages = await storage.getTicketMessages(ticketId);
       res.json(messages);
     } catch (error: any) {
@@ -11685,11 +11710,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (userRole !== 'admin') {
         return res.status(403).json({ message: "Admin access required" });
       }
-      
+
       const ticketId = parseInt(req.params.ticketId);
-      
+
       const deleted = await storage.deleteSupportTicket(ticketId);
-      
+
       if (deleted) {
         res.json({ success: true, message: "Support ticket deleted successfully" });
       } else {
@@ -11705,12 +11730,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/installer/:installerId/available-leads", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       // Validate installerId is a valid number
       if (isNaN(installerId) || installerId <= 0) {
         return res.status(400).json({ error: "Invalid installer ID" });
       }
-      
+
       // Check if this is the demo account and if we have cached demo leads
       if (installerId === 2 && (global as any).demoLeadsCache && (global as any).demoLeadsCache[installerId]) {
         const demoLeads = (global as any).demoLeadsCache[installerId];
@@ -11724,25 +11749,25 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.log(`Returning ${protectedDemoLeads.length} cached demo leads for installer ${installerId}`);
         return res.json(protectedDemoLeads);
       }
-      
+
       // Get declined requests for this installer to filter them out
       const declinedRequestIds = await storage.getDeclinedRequestsForInstaller(installerId);
-      
+
       // Get all booking IDs that this installer has already purchased
       const purchasedBookingIds = await db.select({
         bookingId: jobAssignments.bookingId
       })
-      .from(jobAssignments)
-      .where(and(
-        eq(jobAssignments.installerId, installerId),
-        or(
-          eq(jobAssignments.leadFeeStatus, 'paid'),
-          eq(jobAssignments.leadFeeStatus, 'exempt')
-        )
-      ));
-      
+        .from(jobAssignments)
+        .where(and(
+          eq(jobAssignments.installerId, installerId),
+          or(
+            eq(jobAssignments.leadFeeStatus, 'paid'),
+            eq(jobAssignments.leadFeeStatus, 'exempt')
+          )
+        ));
+
       const purchasedIds = purchasedBookingIds.map(row => row.bookingId);
-      
+
       // Get all unassigned bookings that can be purchased as leads
       const allBookings = await storage.getAllBookings();
       const availableBookings = await Promise.all(allBookings.filter(booking => {
@@ -11752,7 +11777,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           booking.assignmentType !== 'direct' && // Exclude directly assigned bookings
           !declinedRequestIds.includes(booking.id) && // Not declined by this installer
           !purchasedIds.includes(booking.id); // Not already purchased by this installer
-        
+
         // Demo filtering logic
         if (installerId === 2) {
           // Demo installer (ID 2) can see all available bookings including demo ones
@@ -11777,14 +11802,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         }
         return booking;
       })).then(results => results.filter(booking => booking !== null));
-      
+
       // Add lead fees and profit calculations with distance calculation
       const leadsWithFees = await Promise.all(availableBookings.map(async booking => {
         const leadFee = getLeadFee(booking.serviceType);
         const estimatedTotal = parseFloat(booking.estimatedTotal || booking.estimatedPrice || '0');
         const estimatedEarnings = estimatedTotal - leadFee;
         const profitMargin = estimatedTotal > 0 ? (estimatedEarnings / estimatedTotal * 100) : 0;
-        
+
         // Fetch referral information if available
         let referralInfo = null;
         if (booking.referralCodeId) {
@@ -11803,7 +11828,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             console.error('Error fetching referral info for booking', booking.id, ':', error);
           }
         }
-        
+
         // Calculate distance from installer to booking address
         let distance = null;
         try {
@@ -11811,27 +11836,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           const installer = await storage.getInstaller(installerId);
           const installerLat = installer?.lat || 53.3441; // Dublin latitude
           const installerLng = installer?.lng || -6.2675; // Dublin longitude
-          
+
           // Get customer coordinates using geocoding service
           const geocodingService = await import('./services/geocoding.js');
           const customerCoords = await geocodingService.geocodeAddress(booking.address);
-          
+
           if (customerCoords && customerCoords.lat && customerCoords.lng) {
             // Calculate distance using Haversine formula
             const R = 6371; // Earth's radius in km
             const dLat = (customerCoords.lat - installerLat) * Math.PI / 180;
             const dLng = (customerCoords.lng - installerLng) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(installerLat * Math.PI / 180) * Math.cos(customerCoords.lat * Math.PI / 180) *
-                      Math.sin(dLng/2) * Math.sin(dLng/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(installerLat * Math.PI / 180) * Math.cos(customerCoords.lat * Math.PI / 180) *
+              Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
             distance = Math.round(R * c);
           }
         } catch (error) {
           console.error('Error calculating distance for booking', booking.id, ':', error);
           distance = Math.floor(Math.random() * 20) + 5; // Fallback to random distance
         }
-        
+
         return {
           id: booking.id,
           address: booking.address,
@@ -11863,7 +11888,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           referralInfo // Complete referral context for installer
         };
       }));
-      
+
       res.json(leadsWithFees);
     } catch (error) {
       console.error("Error fetching available leads:", error);
@@ -11872,23 +11897,23 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // ====================== BOOKING TRACKER API ENDPOINT ======================
-  
+
   // Public booking tracker - allows users to track bookings without authentication
   app.get("/api/booking-tracker", async (req, res) => {
     try {
       const { code } = req.query;
-      
+
       if (!code || typeof code !== 'string') {
         return res.status(400).json({ message: "Tracking code is required" });
       }
-      
+
       // Search for booking by QR code, booking ID, or Harvey Norman invoice
       const bookings = await storage.getAllBookings();
       let booking = null;
-      
+
       // Try to find booking by QR code first
       booking = bookings.find(b => b.qrCode === code);
-      
+
       // If not found by QR code, try booking ID
       if (!booking) {
         const bookingId = parseInt(code);
@@ -11896,7 +11921,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           booking = bookings.find(b => b.id === bookingId);
         }
       }
-      
+
       // If not found, try Harvey Norman invoice format (both HN-GAL-009876 and HNGAL009876)
       if (!booking && code.toUpperCase().startsWith('HN')) {
         // Normalize the code to both formats for comparison
@@ -11905,9 +11930,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           // Remove hyphens for comparison
           return invoice.replace(/-/g, '').toUpperCase();
         };
-        
+
         const normalizedSearchCode = normalizeInvoice(code);
-        
+
         // Find user by Harvey Norman invoice (supporting both formats)
         const users = await storage.getAllUsers();
         const user = users.find(u => {
@@ -11915,11 +11940,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           const normalizedUserInvoice = normalizeInvoice(u.harveyNormanInvoiceNumber);
           return normalizedUserInvoice === normalizedSearchCode;
         });
-        
+
         if (user) {
           booking = bookings.find(b => b.userId === user.id);
         }
-        
+
         // Also try to find booking directly by invoice number
         if (!booking) {
           booking = bookings.find(b => {
@@ -11929,11 +11954,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           });
         }
       }
-      
+
       if (!booking) {
         return res.status(404).json({ message: "Booking not found" });
       }
-      
+
       // Get installer information if assigned
       let installerInfo = null;
       if (booking.installerId) {
@@ -11949,7 +11974,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           console.log("Could not fetch installer info:", error);
         }
       }
-      
+
       // Format response with booking details
       let parsedAddons = [];
       try {
@@ -11986,7 +12011,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         difficulty: booking.difficulty || 'moderate',
         notes: booking.customerNotes || booking.specialRequests
       };
-      
+
       res.json(response);
     } catch (error) {
       console.error("Error fetching booking details:", error);
@@ -11995,7 +12020,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // ====================== WALL MOUNT PRICING API ENDPOINTS ======================
-  
+
   // Get all wall mount pricing options (admin only)
   app.get("/api/admin/wall-mount-pricing", isAdmin, async (req, res) => {
     try {
@@ -12022,7 +12047,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/admin/wall-mount-pricing", isAdmin, async (req, res) => {
     try {
       const { key, name, description, price, isActive, displayOrder } = req.body;
-      
+
       if (!key || !name || !price) {
         return res.status(400).json({ message: "Key, name, and price are required" });
       }
@@ -12048,7 +12073,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const id = parseInt(req.params.id);
       const { key, name, description, price, isActive, displayOrder } = req.body;
-      
+
       await storage.updateWallMountPricing(id, {
         key,
         name,
@@ -12096,10 +12121,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/admin/email-templates", isAdmin, async (req, res) => {
     try {
       const { templateKey, templateName, fromEmail, replyToEmail, subject, htmlContent, textContent, shortcodes } = req.body;
-      
+
       if (!templateKey || !templateName || !fromEmail || !subject || !htmlContent) {
-        return res.status(400).json({ 
-          message: "Template key, name, from email, subject, and HTML content are required" 
+        return res.status(400).json({
+          message: "Template key, name, from email, subject, and HTML content are required"
         });
       }
 
@@ -12131,7 +12156,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const id = parseInt(req.params.id);
       const { templateName, fromEmail, replyToEmail, subject, htmlContent, textContent, shortcodes, isActive } = req.body;
-      
+
       const template = await storage.updateEmailTemplate(id, {
         templateName,
         fromEmail,
@@ -12155,7 +12180,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteEmailTemplate(id);
-      
+
       if (success) {
         res.json({ message: "Email template deleted successfully" });
       } else {
@@ -12172,7 +12197,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const id = parseInt(req.params.id);
       const template = await storage.getEmailTemplateById(id);
-      
+
       if (!template) {
         return res.status(404).json({ message: "Email template not found" });
       }
@@ -12246,10 +12271,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       });
 
       if (success) {
-        res.json({ 
+        res.json({
           message: "Test email sent successfully",
           sentTo: testEmail,
-          templateName: template.templateName 
+          templateName: template.templateName
         });
       } else {
         res.status(500).json({ message: "Failed to send test email" });
@@ -12265,7 +12290,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/resources", async (req, res) => {
     try {
       const { category, brand, featured } = req.query;
-      
+
       // Use storage methods that are already working correctly
       let resourceList;
       if (featured === 'true') {
@@ -12277,7 +12302,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       } else {
         resourceList = await storage.getAllResources();
       }
-      
+
       res.json(resourceList);
     } catch (error) {
       console.error("Error fetching resources:", error);
@@ -12314,12 +12339,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/admin/resources/generate-content", isAdmin, async (req, res) => {
     try {
       const { url, markdown } = req.body;
-      
+
       // Determine input method and validate
       if (url && markdown) {
         return res.status(400).json({ message: "Provide either URL or markdown content, not both" });
       }
-      
+
       if (!url && !markdown) {
         return res.status(400).json({ message: "Either URL or markdown content is required" });
       }
@@ -12345,7 +12370,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.log(`Generating AI content from markdown (${markdown.length} chars)`);
         generatedContent = await AIContentService.generateContentFromMarkdown(markdown);
       }
-      
+
       res.json({
         success: true,
         data: generatedContent,
@@ -12353,9 +12378,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       });
     } catch (error) {
       console.error("Error generating AI content:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        message: error.message || "Failed to generate content" 
+        message: error.message || "Failed to generate content"
       });
     }
   });
@@ -12365,9 +12390,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       // Preprocess the request body to handle date fields
       const processedBody = { ...req.body };
-      
+
       console.log('Original expiryDate:', processedBody.expiryDate, 'Type:', typeof processedBody.expiryDate);
-      
+
       // Handle expiryDate conversion
       if (processedBody.expiryDate) {
         if (typeof processedBody.expiryDate === 'string') {
@@ -12393,11 +12418,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.log('No expiryDate provided, setting to null');
         processedBody.expiryDate = null;
       }
-      
+
       console.log('Final expiryDate:', processedBody.expiryDate, 'Type:', typeof processedBody.expiryDate);
-      
+
       const resourceData = insertResourceSchema.parse(processedBody);
-      
+
       // Add admin user information
       const user = req.user as any;
       const enhancedData = {
@@ -12405,7 +12430,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         createdBy: user?.email || 'admin',
         lastModifiedBy: user?.email || 'admin'
       };
-      
+
       const resource = await storage.createResource(enhancedData);
       res.status(201).json(resource);
     } catch (error) {
@@ -12422,10 +12447,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.put("/api/admin/resources/:id", isAdmin, async (req, res) => {
     try {
       const resourceId = parseInt(req.params.id);
-      
+
       // Preprocess the request body to handle date fields
       const processedBody = { ...req.body };
-      
+
       // Handle expiryDate conversion
       if (processedBody.expiryDate) {
         if (typeof processedBody.expiryDate === 'string') {
@@ -12447,16 +12472,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         // Ensure null for missing or falsy values
         processedBody.expiryDate = null;
       }
-      
+
       const updateData = insertResourceSchema.partial().parse(processedBody);
-      
+
       // Add admin user information
       const user = req.user as any;
       const enhancedData = {
         ...updateData,
         lastModifiedBy: user?.email || 'admin'
       };
-      
+
       const resource = await storage.updateResource(resourceId, enhancedData);
       res.json(resource);
     } catch (error) {
@@ -12474,7 +12499,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const resourceId = parseInt(req.params.id);
       const success = await storage.deleteResource(resourceId);
-      
+
       if (success) {
         res.json({ message: "Resource deleted successfully" });
       } else {
@@ -12491,7 +12516,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const resourceId = parseInt(req.params.id);
       const { featured } = req.body;
-      
+
       await storage.toggleResourceFeatured(resourceId, featured);
       res.json({ message: "Resource featured status updated" });
     } catch (error) {
@@ -12505,7 +12530,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const resourceId = parseInt(req.params.id);
       const { isActive } = req.body;
-      
+
       await storage.updateResource(resourceId, { isActive });
       res.json({ message: "Resource status updated" });
     } catch (error) {
@@ -12519,7 +12544,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const resourceId = parseInt(req.params.id);
       const { priority } = req.body;
-      
+
       await storage.updateResourcePriority(resourceId, priority);
       res.json({ message: "Resource priority updated" });
     } catch (error) {
@@ -12532,14 +12557,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/maps/geocode", async (req, res) => {
     try {
       const { address } = req.body;
-      
+
       if (!address) {
         return res.status(400).json({ error: "Address is required" });
       }
 
       const { geocodeAddress } = await import('./services/geocoding');
       const result = await geocodeAddress(address);
-      
+
       if (!result) {
         return res.status(404).json({ error: "Address not found" });
       }
@@ -12554,14 +12579,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/maps/batch-geocode", async (req, res) => {
     try {
       const { addresses } = req.body;
-      
+
       if (!addresses || !Array.isArray(addresses)) {
         return res.status(400).json({ error: "Array of addresses is required" });
       }
 
       const { geocodeMultipleAddresses } = await import('./services/geocoding');
       const results = await geocodeMultipleAddresses(addresses);
-      
+
       res.json({ results: Array.from(results.entries()).map(([address, result]) => ({ address, ...result })) });
     } catch (error) {
       console.error("Batch geocoding error:", error);
@@ -12573,14 +12598,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/geocode", async (req, res) => {
     try {
       const { address } = req.body;
-      
+
       if (!address) {
         return res.status(400).json({ error: "Address is required" });
       }
 
       const { geocodeAddress } = await import('./services/geocoding');
       const result = await geocodeAddress(address);
-      
+
       if (!result) {
         return res.status(404).json({ error: "Address not found" });
       }
@@ -12597,13 +12622,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const validatedData = insertScheduleNegotiationSchema.parse(req.body);
       const negotiation = await storage.createScheduleNegotiation(validatedData);
-      
+
       // Send email notification about new schedule proposal
       if (validatedData.proposedBy === 'customer') {
         // Notify installer about customer's schedule proposal
         const booking = await storage.getBooking(validatedData.bookingId);
         const installer = await storage.getInstaller(validatedData.installerId);
-        
+
         if (booking && installer) {
           try {
             await sendScheduleProposalNotification(
@@ -12618,7 +12643,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       } else if (validatedData.proposedBy === 'installer') {
         // Notify customer about installer's schedule proposal
         const booking = await storage.getBooking(validatedData.bookingId);
-        
+
         if (booking && booking.contactEmail) {
           try {
             await sendScheduleProposalNotification(
@@ -12631,7 +12656,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           }
         }
       }
-      
+
       res.json(negotiation);
     } catch (error) {
       console.error("Schedule negotiation creation error:", error);
@@ -12642,7 +12667,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/bookings/:bookingId/schedule-negotiations", async (req, res) => {
     try {
       const bookingId = parseInt(req.params.bookingId);
-      
+
       // Temporary workaround using raw SQL query
       const result = await db.execute(sql`
         SELECT 
@@ -12655,7 +12680,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         WHERE sn.booking_id = ${bookingId}
         ORDER BY sn.created_at DESC
       `);
-      
+
       // Transform the results to include installer info
       const negotiations = result.rows.map((row: any) => ({
         id: row.id,
@@ -12682,7 +12707,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           profileImageUrl: row.installer_profile_image_url,
         } : null
       }));
-      
+
       res.json(negotiations);
     } catch (error) {
       console.error("Get schedule negotiations error:", error);
@@ -12705,7 +12730,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/installer/:installerId/schedule-calendar", async (req, res) => {
     try {
       const installerId = parseInt(req.params.installerId);
-      
+
       // Get BOTH confirmed schedules AND pending proposals for calendar display
       const calendarEvents = await db.execute(sql`
         -- Union confirmed schedules and pending proposals
@@ -12796,7 +12821,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookingId = parseInt(req.params.bookingId);
       const { reason, cancelledBy } = req.body; // 'customer' or 'installer'
-      
+
       // Get the active job assignment for this booking
       const assignment = await db.select()
         .from(jobAssignments)
@@ -12809,47 +12834,47 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           )
         ))
         .limit(1);
-        
+
       if (assignment.length === 0) {
         return res.status(404).json({ error: "No active job assignment found for this booking" });
       }
-      
+
       const jobAssignment = assignment[0];
-      
+
       // Verify the assignment is in a cancellable state
       if (!['purchased', 'accepted', 'assigned'].includes(jobAssignment.status)) {
         return res.status(400).json({ error: "This job cannot be cancelled in its current state" });
       }
-      
+
       // Get booking details
       const booking = await storage.getBooking(jobAssignment.bookingId!);
       if (!booking) {
         return res.status(404).json({ error: "Booking not found" });
       }
-      
+
       console.log(`🚫 Manual cancellation requested for assignment ${jobAssignment.id} by ${cancelledBy}`);
-      
+
       // Update assignment status to cancelled
       await db.update(jobAssignments)
-        .set({ 
+        .set({
           status: 'cancelled'
         })
         .where(eq(jobAssignments.id, jobAssignment.id));
-        
+
       // Process refund if there was a lead fee paid
       const leadFee = jobAssignment.leadFee ? parseFloat(jobAssignment.leadFee) : 0;
       const installerId = jobAssignment.installerId;
-      
+
       if (installerId && leadFee > 0) {
         const wallet = await storage.getInstallerWallet(installerId);
-        
+
         if (wallet) {
           const newBalance = parseFloat(wallet.balance) + leadFee;
           const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - leadFee);
-          
+
           await storage.updateInstallerWalletBalance(installerId, newBalance);
           await storage.updateInstallerWalletTotalSpent(installerId, totalSpent);
-          
+
           // Add refund transaction record
           await storage.addInstallerTransaction({
             installerId: installerId,
@@ -12859,14 +12884,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             jobAssignmentId: jobAssignment.id,
             status: 'completed'
           });
-          
+
           console.log(`💰 Refunded €${leadFee} to installer ${installerId} for manual cancellation of job ${booking.id}`);
         }
       }
-      
+
       // Reset booking status back to open so other installers can take it
       await storage.updateBookingStatus(jobAssignment.bookingId!, 'open');
-      
+
       // CRITICAL: Invalidate all existing schedule negotiations to prevent automatic re-assignment
       await db.update(scheduleNegotiations)
         .set({
@@ -12876,19 +12901,19 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           updatedAt: new Date()
         })
         .where(eq(scheduleNegotiations.bookingId, bookingId));
-      
+
       console.log(`🔄 Invalidated all schedule negotiations for booking ${bookingId} due to job cancellation`);
-      
+
       // Clear installer assignment from the booking
       await db.update(bookings)
-        .set({ 
+        .set({
           installerId: null,
           scheduledDate: null
         })
         .where(eq(bookings.id, jobAssignment.bookingId!));
-      
+
       // This is now handled above with more comprehensive logic
-      
+
       // Send cancellation notification emails
       try {
         if (booking.contact?.email) {
@@ -12897,13 +12922,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       } catch (emailError) {
         console.error("Failed to send cancellation notification:", emailError);
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: "Job successfully cancelled and refunded",
-        refundAmount: leadFee 
+        refundAmount: leadFee
       });
-      
+
     } catch (error) {
       console.error("Manual job cancellation error:", error);
       res.status(500).json({ error: "Failed to cancel job assignment" });
@@ -12915,21 +12940,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const negotiationId = parseInt(req.params.id);
       const { user } = req;
-      
+
       if (!user) {
         return res.status(401).json({ error: "Authentication required" });
       }
-      
+
       // Determine if user is installer or customer
       const isInstaller = user.role && user.role.includes('installer');
       const userId = isInstaller ? user.id : user.id; // For installers, use installer ID; for customers, use user ID
-      
+
       const result = await storage.deleteScheduleNegotiation(negotiationId, userId, isInstaller);
-      
+
       if (!result.success) {
         return res.status(400).json({ error: result.message });
       }
-      
+
       res.json({ success: true, message: result.message });
     } catch (error) {
       console.error("Delete schedule negotiation error:", error);
@@ -12941,17 +12966,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const negotiationId = parseInt(req.params.id);
       const { status, responseMessage } = req.body;
-      
+
       // If accepting a new proposal, standardize status and invalidate previous acceptances
       if (status === 'accepted' || status === 'accept') {
         // First, set all previous "accepted" or "accept" proposals for this booking to "superseded"
         const currentNegotiation = await db.execute(sql`
           SELECT booking_id FROM schedule_negotiations WHERE id = ${negotiationId}
         `);
-        
+
         if (currentNegotiation.rows.length > 0) {
           const bookingId = currentNegotiation.rows[0].booking_id;
-          
+
           // Mark all existing accepted proposals as superseded
           await db.execute(sql`
             UPDATE schedule_negotiations 
@@ -12960,7 +12985,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               AND (status = 'accepted' OR status = 'accept')
               AND id != ${negotiationId}
           `);
-          
+
           // Auto-decline all other pending proposals when one is accepted
           await db.execute(sql`
             UPDATE schedule_negotiations 
@@ -12973,24 +12998,24 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               AND id != ${negotiationId}
           `);
         }
-        
+
         // Now update this negotiation to "accepted" (standardized)
         await storage.updateScheduleNegotiationStatus(negotiationId, 'accepted', responseMessage);
       } else {
         // For other statuses (reject, etc.), use as-is
         await storage.updateScheduleNegotiationStatus(negotiationId, status, responseMessage);
       }
-      
+
       // Send email notification about response
       // Get the specific negotiation that was just updated, not just the latest one
       const acceptedNegotiation = await db.execute(sql`
         SELECT * FROM schedule_negotiations WHERE id = ${negotiationId}
       `);
-      
+
       if (acceptedNegotiation.rows.length > 0) {
         const negotiation = acceptedNegotiation.rows[0];
         const booking = await storage.getBooking(negotiation.booking_id);
-        
+
         if (status === 'accepted' || status === 'accept') {
           // Update booking with confirmed schedule and assign installer
           // Automatically set status to "scheduled" (Installation Scheduled)
@@ -12999,7 +13024,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             status: 'scheduled',
             installerId: negotiation.installer_id
           });
-          
+
           // Update job assignment status from "purchased" to "accepted" when proposal is accepted
           await db.execute(sql`
             UPDATE job_assignments 
@@ -13008,7 +13033,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               AND installer_id = ${negotiation.installer_id} 
               AND status = 'purchased'
           `);
-          
+
           // Send confirmation emails to both parties
           if (booking) {
             try {
@@ -13030,7 +13055,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           }
         }
       }
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error("Update schedule negotiation error:", error);
@@ -13067,22 +13092,22 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   }
 
   // Fraud Prevention API Endpoints
-  
+
   // Customer verification endpoints
   app.post('/api/fraud-prevention/verify-phone/:bookingId', async (req, res) => {
     try {
       const { bookingId } = req.params;
       const { phoneNumber } = req.body;
-      
+
       const { fraudPreventionService } = await import('./fraudPreventionService');
       const result = await fraudPreventionService.initiatePhoneVerification(
-        parseInt(bookingId), 
+        parseInt(bookingId),
         phoneNumber
       );
-      
+
       if (result.success) {
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: 'Verification code sent to your phone',
           // Only include code in development
           ...(process.env.NODE_ENV === 'development' && { verificationCode: result.verificationCode })
@@ -13100,13 +13125,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { bookingId } = req.params;
       const { code } = req.body;
-      
+
       const { fraudPreventionService } = await import('./fraudPreventionService');
       const verified = await fraudPreventionService.verifyPhoneCode(
-        parseInt(bookingId), 
+        parseInt(bookingId),
         code
       );
-      
+
       if (verified) {
         res.json({ success: true, message: 'Phone number verified successfully' });
       } else {
@@ -13123,13 +13148,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { bookingId } = req.params;
       const userId = req.user?.id;
-      
+
       const { fraudPreventionService } = await import('./fraudPreventionService');
       const assessment = await fraudPreventionService.assessCustomerQuality(
-        parseInt(bookingId), 
+        parseInt(bookingId),
         userId
       );
-      
+
       res.json(assessment);
     } catch (error) {
       console.error('Error assessing quality:', error);
@@ -13142,18 +13167,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installer = req.installerUser;
       const { bookingId, reason, evidence, installerNotes } = req.body;
-      
+
       if (!installer) {
         return res.status(401).json({ error: 'Installer authentication required' });
       }
-      
+
       const { fraudPreventionService } = await import('./fraudPreventionService');
       const result = await fraudPreventionService.processLeadRefund(
         installer.id,
         parseInt(bookingId),
         { reason, evidence, installerNotes }
       );
-      
+
       res.json(result);
     } catch (error) {
       console.error('Error requesting refund:', error);
@@ -13166,18 +13191,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const installer = req.installerUser;
       const { bookingId } = req.params;
       const { reason } = req.query;
-      
+
       if (!installer) {
         return res.status(401).json({ error: 'Installer authentication required' });
       }
-      
+
       const { fraudPreventionService } = await import('./fraudPreventionService');
       const eligibility = await fraudPreventionService.assessRefundEligibility(
         installer.id,
         parseInt(bookingId),
         reason as string
       );
-      
+
       res.json(eligibility);
     } catch (error) {
       console.error('Error checking refund eligibility:', error);
@@ -13214,20 +13239,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         if (assignment.leadFeeStatus === 'paid' && assignment.status !== 'refunded') {
           const leadFee = parseFloat(assignment.leadFee);
           const wallet = await storage.getInstallerWallet(assignment.installerId);
-          
+
           if (wallet && leadFee > 0) {
             // Full refund for customer cancellations
             const newBalance = parseFloat(wallet.balance) + leadFee;
             const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - leadFee);
-            
+
             await storage.updateInstallerWalletBalance(assignment.installerId, newBalance);
             await storage.updateInstallerWalletTotalSpent(assignment.installerId, totalSpent);
-            
+
             // Update assignment status
             await db.update(jobAssignments)
               .set({ status: 'refunded' })
               .where(eq(jobAssignments.id, assignment.id));
-            
+
             // Add refund transaction
             await storage.addInstallerTransaction({
               installerId: assignment.installerId,
@@ -13237,7 +13262,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               jobAssignmentId: assignment.id,
               status: 'completed'
             });
-            
+
             totalRefunded += leadFee;
           }
         }
@@ -13328,15 +13353,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         if (wallet) {
           const newBalance = parseFloat(wallet.balance) + refundAmount;
           const totalSpent = Math.max(0, parseFloat(wallet.totalSpent) - refundAmount);
-          
+
           await storage.updateInstallerWalletBalance(installer.id, newBalance);
           await storage.updateInstallerWalletTotalSpent(installer.id, totalSpent);
-          
+
           // Update assignment status
           await db.update(jobAssignments)
             .set({ status: 'refunded' })
             .where(eq(jobAssignments.id, jobAssignmentId));
-          
+
           // Add refund transaction
           await storage.addInstallerTransaction({
             installerId: installer.id,
@@ -13386,7 +13411,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/customer/booking-history/:userId', async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
-      
+
       if (!userId) {
         return res.status(400).json({ message: 'User ID is required' });
       }
@@ -13409,7 +13434,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           if (booking.status === 'cancelled') {
             // Get all job assignments for this booking
             const assignments = await storage.getBookingJobAssignments(booking.id);
-            
+
             for (const assignment of assignments) {
               if (assignment.leadFeeStatus === 'paid' && assignment.status === 'refunded') {
                 const refundAmount = parseFloat(assignment.leadFee || '0');
@@ -13484,9 +13509,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         jobAssignmentId: jobAssignment?.id,
         originalLeadFee: jobAssignment?.leadFee ? parseFloat(jobAssignment.leadFee) : 0,
         refundReason: transaction.description.includes('Customer cancelled') ? 'Customer Cancellation' :
-                     transaction.description.includes('Installer withdrawal') ? 'Installer Withdrawal' :
-                     transaction.description.includes('expired lead') ? 'Lead Expired' :
-                     transaction.description.includes('refund') ? 'Platform Refund' : 'Other',
+          transaction.description.includes('Installer withdrawal') ? 'Installer Withdrawal' :
+            transaction.description.includes('expired lead') ? 'Lead Expired' :
+              transaction.description.includes('refund') ? 'Platform Refund' : 'Other',
         status: transaction.status
       }));
 
@@ -13520,11 +13545,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ error: 'Admin access required' });
       }
-      
+
       const { status } = req.query;
       const { fraudPreventionService } = await import('./fraudPreventionService');
       const requests = await fraudPreventionService.getRefundRequests(status as string);
-      
+
       res.json(requests);
     } catch (error) {
       console.error('Error getting refund requests:', error);
@@ -13538,16 +13563,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ error: 'Admin access required' });
       }
-      
+
       const { refundId } = req.params;
       const { adminNotes } = req.body;
-      
+
       const { fraudPreventionService } = await import('./fraudPreventionService');
       const success = await fraudPreventionService.approveRefund(
         parseInt(refundId),
         adminNotes
       );
-      
+
       if (success) {
         res.json({ success: true, message: 'Refund approved and processed' });
       } else {
@@ -13632,31 +13657,31 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   const httpServer = createServer(app);
   // Email/Password Authentication Endpoints
-  
+
   // Register with email and password
   app.post("/api/auth/register", async (req, res) => {
     try {
       const { email, password, firstName, lastName } = req.body;
-      
+
       if (!email || !password || !firstName || !lastName) {
         return res.status(400).json({ error: "Email, password, first name, and last name are required" });
       }
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         return res.status(400).json({ error: "User already exists with this email" });
       }
-      
+
       // Hash password
       const bcrypt = require('bcrypt');
       const passwordHash = await bcrypt.hash(password, 10);
-      
+
       // Generate email verification token
       const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
       const verificationToken = await generateVerificationToken();
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-      
+
       // Create user with verification token
       const user = await storage.upsertUser({
         email,
@@ -13669,7 +13694,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         emailVerificationExpires: expiresAt,
         role: 'customer'
       });
-      
+
       // Send verification email
       try {
         const emailSent = await sendVerificationEmail(email, firstName.trim(), verificationToken);
@@ -13682,20 +13707,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.error('❌ Error sending verification email:', emailError);
         // Continue with registration even if email fails
       }
-      
+
       // Log user in (even unverified users can access limited features)
       req.login(user, (err) => {
         if (err) {
           console.error('Login error after registration:', err);
           return res.status(500).json({ error: "Registration successful but login failed" });
         }
-        
-        res.json({ 
-          success: true, 
+
+        res.json({
+          success: true,
           message: "Registration successful! Please check your email to verify your account.",
-          user: { 
-            id: user.id, 
-            email: user.email, 
+          user: {
+            id: user.id,
+            email: user.email,
             role: user.role,
             emailVerified: user.emailVerified,
             firstName: user.firstName,
@@ -13704,52 +13729,52 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           requiresEmailVerification: true
         });
       });
-      
+
     } catch (error) {
       console.error('Registration error:', error);
       res.status(500).json({ error: "Registration failed" });
     }
   });
-  
+
   // Login with email and password
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       if (!email || !password) {
         return res.status(400).json({ error: "Email and password are required" });
       }
-      
+
       // Get user
       const user = await storage.getUserByEmail(email);
       if (!user || !user.passwordHash) {
         return res.status(401).json({ error: "Invalid email or password" });
       }
-      
+
       // Verify password
       const bcrypt = require('bcrypt');
       const passwordValid = await bcrypt.compare(password, user.passwordHash);
       if (!passwordValid) {
         return res.status(401).json({ error: "Invalid email or password" });
       }
-      
+
       // Log user in (allow unverified users to login with limited features)
       req.login(user, (err) => {
         if (err) {
           console.error('Login error:', err);
           return res.status(500).json({ error: "Login failed" });
         }
-        
-        const response: any = { 
-          success: true, 
-          user: { 
-            id: user.id, 
-            email: user.email, 
+
+        const response: any = {
+          success: true,
+          user: {
+            id: user.id,
+            email: user.email,
             role: user.role,
             emailVerified: user.emailVerified,
             firstName: user.firstName,
             lastName: user.lastName
-          } 
+          }
         };
 
         // Add verification reminder for unverified users
@@ -13757,35 +13782,35 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           response.message = "Please verify your email address to access all features.";
           response.requiresEmailVerification = true;
         }
-        
+
         res.json(response);
       });
-      
+
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({ error: "Login failed" });
     }
   });
-  
+
   // Change password (for authenticated users)
   app.post("/api/auth/change-password", async (req, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "Authentication required" });
       }
-      
+
       const { currentPassword, newPassword } = req.body;
-      
+
       if (!currentPassword || !newPassword) {
         return res.status(400).json({ error: "Current password and new password are required" });
       }
-      
+
       // Get current user
       const user = await storage.getUserByEmail(req.user.email);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      
+
       // For OAuth users, current password is not required
       if (user.passwordHash) {
         const bcrypt = require('bcrypt');
@@ -13794,20 +13819,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           return res.status(401).json({ error: "Current password is incorrect" });
         }
       }
-      
+
       // Hash new password
       const bcrypt = require('bcrypt');
       const newPasswordHash = await bcrypt.hash(newPassword, 10);
-      
+
       // Update user
       await storage.upsertUser({
         ...user,
         passwordHash: newPasswordHash,
         registrationMethod: user.registrationMethod === 'oauth' ? 'oauth' : 'email'
       });
-      
+
       res.json({ success: true, message: "Password updated successfully" });
-      
+
     } catch (error) {
       console.error('Change password error:', error);
       res.status(500).json({ error: "Failed to change password" });
@@ -13819,41 +13844,41 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       // Check if user is admin
       const isAdminAuth = req.isAuthenticated() && req.user && (
-        req.user.role === 'admin' || 
-        req.user.email === 'admin@tradesbook.ie' || 
+        req.user.role === 'admin' ||
+        req.user.email === 'admin@tradesbook.ie' ||
         req.user.email === 'jude.okun@gmail.com' ||
         req.user.id === '42442296'
       );
-      
+
       if (!isAdminAuth) {
         return res.status(403).json({ error: "Admin access required" });
       }
-      
+
       const { installerId, newPassword } = req.body;
-      
+
       if (!installerId || !newPassword) {
         return res.status(400).json({ error: "Installer ID and new password are required" });
       }
-      
+
       if (newPassword.length < 6) {
         return res.status(400).json({ error: "Password must be at least 6 characters" });
       }
-      
+
       // Get installer
       const installer = await storage.getInstaller(installerId);
       if (!installer) {
         return res.status(404).json({ error: "Installer not found" });
       }
-      
+
       // Hash new password
       const bcrypt = require('bcrypt');
       const newPasswordHash = await bcrypt.hash(newPassword, 10);
-      
+
       // Update installer password
       await storage.updateInstaller(installerId, { passwordHash: newPasswordHash });
-      
+
       res.json({ success: true, message: "Installer password updated successfully" });
-      
+
     } catch (error) {
       console.error('Admin change installer password error:', error);
       res.status(500).json({ error: "Failed to change installer password" });
@@ -13865,37 +13890,37 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       // Check if user is admin
       const isAdminAuth = req.isAuthenticated() && req.user && (
-        req.user.role === 'admin' || 
-        req.user.email === 'admin@tradesbook.ie' || 
+        req.user.role === 'admin' ||
+        req.user.email === 'admin@tradesbook.ie' ||
         req.user.email === 'jude.okun@gmail.com' ||
         req.user.id === '42442296'
       );
-      
+
       if (!isAdminAuth) {
         return res.status(403).json({ error: "Admin access required" });
       }
-      
+
       const { name, email, businessName, phone, address, county, tradeSkill, yearsExperience } = req.body;
-      
+
       // Validate input
       if (!name || !email || !businessName) {
         return res.status(400).json({ error: "Name, email, and business name are required" });
       }
-      
+
       // Check if email already exists
       const existingInstaller = await storage.getInstallerByEmail(email);
       if (existingInstaller) {
         return res.status(400).json({ error: "Email already registered" });
       }
-      
+
       // Generate secure password
       const { generateSecurePassword } = await import('./passwordGeneratorService');
       const password = generateSecurePassword();
-      
+
       // Hash password
       const bcrypt = await import('bcrypt');
       const passwordHash = await bcrypt.default.hash(password, 10);
-      
+
       // Create installer account
       const installer = await storage.registerInstaller(email, passwordHash, {
         contactName: name,
@@ -13908,7 +13933,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         isApproved: false, // Admin needs to approve
         createdBy: req.user.email
       });
-      
+
       // Send invitation email with password
       try {
         const { sendInstallerInvitationEmail } = await import('./gmailService');
@@ -13923,7 +13948,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             createdBy: req.user.email
           }
         );
-        
+
         if (emailResult) {
           console.log(`✅ Invitation email sent successfully to: ${email}`);
         } else {
@@ -13933,7 +13958,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.error('❌ Failed to send invitation email:', emailError);
         // Don't fail invitation if email fails
       }
-      
+
       // Return installer data (without password hash)
       const { passwordHash: _, ...installerData } = installer;
       res.status(201).json({
@@ -13942,7 +13967,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         generatedPassword: password, // Include for admin reference
         message: "Installer invitation created successfully with auto-generated password"
       });
-      
+
     } catch (error) {
       console.error("Installer invitation error:", error);
       res.status(500).json({ error: "Failed to create installer invitation" });
@@ -13954,29 +13979,29 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       // Check if user is admin
       const isAdminAuth = req.isAuthenticated() && req.user && (
-        req.user.role === 'admin' || 
-        req.user.email === 'admin@tradesbook.ie' || 
+        req.user.role === 'admin' ||
+        req.user.email === 'admin@tradesbook.ie' ||
         req.user.email === 'jude.okun@gmail.com' ||
         req.user.id === '42442296'
       );
-      
+
       if (!isAdminAuth) {
         return res.status(403).json({ error: "Admin access required" });
       }
-      
+
       const { name, email, businessName, phone, county, tradeSkill, adminNotes } = req.body;
-      
+
       // Validate input
       if (!name || !email || !tradeSkill) {
         return res.status(400).json({ error: "Name, email, and trade skill are required" });
       }
-      
+
       // Check if email already exists
       const existingInstaller = await storage.getInstallerByEmail(email);
       if (existingInstaller) {
         return res.status(400).json({ error: "Email already registered" });
       }
-      
+
       // Create basic installer profile (no password yet, pending completion)
       const installer = await storage.registerInstaller(email, null, {
         contactName: name,
@@ -13992,7 +14017,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         adminNotes: adminNotes || null,
         createdBy: req.user.email
       });
-      
+
       // Send completion invitation email
       try {
         const { sendProfileCompletionInvitationEmail } = await import('./gmailService');
@@ -14007,7 +14032,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             adminNotes
           }
         );
-        
+
         if (emailResult) {
           console.log(`✅ Profile completion invitation sent successfully to: ${email}`);
         } else {
@@ -14017,7 +14042,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.error('❌ Failed to send completion invitation email:', emailError);
         // Don't fail creation if email fails
       }
-      
+
       // Return installer data
       const { passwordHash: _, completionToken: __, ...installerData } = installer;
       res.status(201).json({
@@ -14025,41 +14050,41 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         installer: installerData,
         message: "Basic profile created successfully. Completion invitation sent."
       });
-      
+
     } catch (error) {
       console.error("Basic profile creation error:", error);
       res.status(500).json({ error: "Failed to create basic installer profile" });
     }
   });
-  
+
   // Upgrade guest account to email/password account
   app.post("/api/auth/upgrade-account", async (req, res) => {
     try {
       if (!req.user) {
         return res.status(401).json({ error: "Authentication required" });
       }
-      
+
       const { password, firstName, lastName } = req.body;
-      
+
       if (!password) {
         return res.status(400).json({ error: "Password is required" });
       }
-      
+
       // Get current user
       const user = await storage.getUserByEmail(req.user.email);
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-      
+
       // Check if user already has a password (not guest)
       if (user.passwordHash) {
         return res.status(400).json({ error: "Account already has password authentication" });
       }
-      
+
       // Hash password
       const bcrypt = require('bcrypt');
       const passwordHash = await bcrypt.hash(password, 10);
-      
+
       // Update user
       const updatedUser = await storage.upsertUser({
         ...user,
@@ -14068,17 +14093,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         passwordHash,
         registrationMethod: 'email'
       });
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: "Account upgraded successfully",
-        user: { 
-          id: updatedUser.id, 
-          email: updatedUser.email, 
-          role: updatedUser.role 
-        } 
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          role: updatedUser.role
+        }
       });
-      
+
     } catch (error) {
       console.error('Account upgrade error:', error);
       res.status(500).json({ error: "Failed to upgrade account" });
@@ -14142,18 +14167,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/admin/performance-refund-settings', isAdmin, async (req, res) => {
     try {
       const { starLevel, refundPercentage, description, isActive } = req.body;
-      
+
       if (!starLevel || refundPercentage === undefined) {
         return res.status(400).json({ error: 'Star level and refund percentage are required' });
       }
-      
+
       const setting = await storage.createPerformanceRefundSetting({
         starLevel,
         refundPercentage,
         description,
         isActive: isActive !== false
       });
-      
+
       res.json(setting);
     } catch (error) {
       console.error('Error creating performance refund setting:', error);
@@ -14165,14 +14190,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { id } = req.params;
       const { starLevel, refundPercentage, description, isActive } = req.body;
-      
+
       const setting = await storage.updatePerformanceRefundSetting(parseInt(id), {
         starLevel,
         refundPercentage,
         description,
         isActive
       });
-      
+
       res.json(setting);
     } catch (error) {
       console.error('Error updating performance refund setting:', error);
@@ -14196,7 +14221,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { id } = req.params;
       const success = await storage.deletePerformanceRefundSetting(parseInt(id));
-      
+
       if (success) {
         res.json({ success: true, message: 'Performance refund setting deleted' });
       } else {
@@ -14225,9 +14250,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookingId = parseInt(req.params.bookingId);
       const { performanceRefundService } = await import('./performanceRefundService');
-      
+
       const result = await performanceRefundService.processPerformanceRefund(bookingId);
-      
+
       if (result.success) {
         res.json(result);
       } else {
@@ -14243,11 +14268,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { id } = req.params;
       const deleted = await storage.deletePerformanceRefundSetting(parseInt(id));
-      
+
       if (!deleted) {
         return res.status(404).json({ error: 'Performance refund setting not found' });
       }
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error('Error deleting performance refund setting:', error);
@@ -14301,39 +14326,39 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/installers/:id/first-lead-eligibility', async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Validate installer ID
       if (!id || id === 'undefined' || isNaN(parseInt(id))) {
         return res.status(400).json({ error: 'Invalid installer ID' });
       }
-      
+
       const voucher = await storage.getFirstLeadVoucher(parseInt(id));
-      
+
       // Check if they have platform setting enabled for first lead vouchers
       const settings = await storage.getAllPlatformSettings();
       const voucherEnabled = settings.find(s => s.key === 'first_lead_voucher_enabled');
-      
+
       if (!voucherEnabled || voucherEnabled.value !== 'true') {
         return res.json({ eligible: false, reason: 'Voucher system disabled' });
       }
-      
+
       // If no voucher record exists, they're eligible
       if (!voucher) {
         return res.json({ eligible: true, reason: 'First time installer' });
       }
-      
+
       // Check if they're still eligible and haven't used their voucher
       if (voucher.isEligible && !voucher.isUsed) {
-        return res.json({ 
-          eligible: true, 
+        return res.json({
+          eligible: true,
           voucherAmount: voucher.voucherAmount,
-          reason: 'Unused voucher available' 
+          reason: 'Unused voucher available'
         });
       }
-      
-      res.json({ 
-        eligible: false, 
-        reason: voucher.isUsed ? 'Voucher already used' : 'No longer eligible' 
+
+      res.json({
+        eligible: false,
+        reason: voucher.isUsed ? 'Voucher already used' : 'No longer eligible'
       });
     } catch (error) {
       console.error('Error checking first lead eligibility:', error);
@@ -14345,16 +14370,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/installers/:id/admin-promotion-status', async (req, res) => {
     try {
       const { id } = req.params;
-      
+
       // Validate installer ID
       if (!id || id === 'undefined' || isNaN(parseInt(id))) {
         return res.status(400).json({ error: 'Invalid installer ID' });
       }
-      
+
       // Check platform settings for active promotions
       const settings = await storage.getAllPlatformSettings();
       const freeLeadsPromotion = settings.find(s => s.key === 'free_leads_promotion_enabled');
-      
+
       if (freeLeadsPromotion && freeLeadsPromotion.value === 'true') {
         return res.json({
           isActive: true,
@@ -14363,7 +14388,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           message: 'Take advantage of this limited-time offer to grow your business without lead fees!'
         });
       }
-      
+
       // Check if installer has VIP status (also gets free leads)
       const installer = await storage.getInstaller(parseInt(id));
       if (installer && installer.isVip) {
@@ -14374,8 +14399,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           message: 'As a VIP installer, you get free access to all leads!'
         });
       }
-      
-      res.json({ 
+
+      res.json({
         isActive: false,
         title: '',
         description: '',
@@ -14392,13 +14417,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { id } = req.params;
       const { bookingId, originalLeadFee } = req.body;
-      
+
       const voucher = await storage.getFirstLeadVoucher(parseInt(id));
-      
+
       if (!voucher || !voucher.isEligible || voucher.isUsed) {
         return res.status(400).json({ error: 'No eligible voucher available' });
       }
-      
+
       // Mark voucher as used
       const usedVoucher = await storage.updateFirstLeadVoucher(voucher.id, {
         isUsed: true,
@@ -14406,11 +14431,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         usedForBookingId: bookingId,
         originalLeadFee
       });
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         voucherAmount: usedVoucher.voucherAmount,
-        message: 'First lead voucher applied successfully' 
+        message: 'First lead voucher applied successfully'
       });
     } catch (error) {
       console.error('Error using first lead voucher:', error);
@@ -14422,16 +14447,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/installer/upload-completion-photos', upload.array('photos'), async (req, res) => {
     try {
       const { bookingId, photos } = req.body;
-      
+
       if (!bookingId || !photos || !Array.isArray(photos)) {
         return res.status(400).json({ error: 'Booking ID and photos array are required' });
       }
-      
+
       // Update booking with completion photos
       await storage.updateBooking(parseInt(bookingId), {
         completionPhotos: photos
       });
-      
+
       res.json({ success: true, photoCount: photos.length });
     } catch (error) {
       console.error('Error uploading completion photos:', error);
@@ -14444,42 +14469,42 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/installer/verify-qr-code', async (req, res) => {
     try {
       const { qrCode, installerId } = req.body;
-      
+
       if (!qrCode || !installerId) {
         return res.status(400).json({ error: 'QR code and installer ID are required' });
       }
-      
+
       // Find booking by QR code
       const bookings = await storage.getAllBookings();
       const booking = bookings.find(b => b.qrCode === qrCode || b.qr_code === qrCode);
-      
+
       if (!booking) {
         return res.status(404).json({ error: 'Invalid QR code - booking not found' });
       }
-      
+
       // Check if installer is assigned to this booking
       const jobAssignments = await storage.getBookingJobAssignments(booking.id);
-      const installerAssignment = jobAssignments.find(job => 
+      const installerAssignment = jobAssignments.find(job =>
         job.installerId === parseInt(installerId) && (job.status === 'accepted' || job.status === 'in_progress')
       );
-      
+
       if (!installerAssignment) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'You are not assigned to this installation or have not accepted the job',
           isAssigned: false
         });
       }
-      
+
       // Check if job is already completed
       if (installerAssignment.status === 'completed') {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'This installation has already been marked as complete',
           alreadyCompleted: true
         });
       }
-      
-      res.json({ 
-        valid: true, 
+
+      res.json({
+        valid: true,
         booking: {
           id: booking.id,
           qrCode: booking.qrCode,
@@ -14502,27 +14527,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       res.status(500).json({ error: 'Failed to verify QR code' });
     }
   });
-  
+
   // Upload before and after photos for star rating system
   app.post('/api/installer/upload-before-after-photos', async (req, res) => {
     try {
       const { bookingId, photos } = req.body;
-      
+
       if (!bookingId || !photos || !Array.isArray(photos)) {
         return res.status(400).json({ error: 'Booking ID and photos array are required' });
       }
-      
+
       // Update the booking with before/after photos
       await storage.updateBooking(bookingId, {
         beforeAfterPhotos: photos
       });
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: 'Before and after photos uploaded successfully',
         photoCount: photos.length
       });
-      
+
     } catch (error: any) {
       console.error('Error uploading before/after photos:', error);
       res.status(500).json({ error: error.message || 'Failed to upload photos' });
@@ -14652,62 +14677,62 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/installer/complete-installation', async (req, res) => {
     try {
       const { qrCode, installerId, jobAssignmentId, beforeAfterPhotos } = req.body;
-      
+
       if (!qrCode || !installerId || !jobAssignmentId) {
         return res.status(400).json({ error: 'QR code, installer ID, and job assignment ID are required' });
       }
-      
+
       // Verify the QR code and assignment again for security
       const bookings = await storage.getAllBookings();
       const booking = bookings.find(b => b.qrCode === qrCode);
-      
+
       if (!booking) {
         return res.status(404).json({ error: 'Invalid QR code - booking not found' });
       }
-      
+
       const jobAssignments = await storage.getBookingJobAssignments(booking.id);
-      const installerAssignment = jobAssignments.find(job => 
-        job.id === jobAssignmentId && 
-        job.installerId === parseInt(installerId) && 
+      const installerAssignment = jobAssignments.find(job =>
+        job.id === jobAssignmentId &&
+        job.installerId === parseInt(installerId) &&
         (job.status === 'accepted' || job.status === 'in_progress')
       );
-      
+
       if (!installerAssignment) {
         return res.status(403).json({ error: 'Invalid job assignment' });
       }
-      
+
       // Get TV count from booking to validate photos
       const tvInstallations = Array.isArray(booking.tvInstallations) ? booking.tvInstallations : [];
       const tvCount = tvInstallations.length || 1; // Default to 1 for legacy bookings
-      
+
       // Validate before/after photos are provided
       if (!beforeAfterPhotos || !Array.isArray(beforeAfterPhotos) || beforeAfterPhotos.length !== tvCount) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: `Before and after photos required: ${tvCount} photo sets needed for ${tvCount} TV installation(s)`,
           requiredPhotoSets: tvCount,
           providedPhotoSets: beforeAfterPhotos ? beforeAfterPhotos.length : 0
         });
       }
-      
+
       // Validate each TV has both before and after photos
       const incompletePhotos = beforeAfterPhotos.filter(tvPhoto => !tvPhoto.beforePhoto || !tvPhoto.afterPhoto);
       if (incompletePhotos.length > 0) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: `Incomplete photo sets: ${incompletePhotos.length} TV installations missing before or after photos`,
           requiredPhotos: 'Each TV needs both before and after photos'
         });
       }
-      
+
       // Calculate photo completion rate and stars
       const photoCompletionRate = 100; // All photos completed if we reach this point
       const photoStars = 3; // Maximum photo stars for complete before/after photos
-      
+
       // Total stars will be updated when customer leaves a review (up to 5 total)
       // Photo stars (0-3) + Review stars (0-2) = Total stars (0-5)
       const totalStars = photoStars; // Will be updated to include review stars later
-      
+
       // Update booking with before/after photos, completion status, and star ratings
-      await storage.updateBooking(booking.id, { 
+      await storage.updateBooking(booking.id, {
         beforeAfterPhotos,
         photoCompletionRate,
         photoStars,
@@ -14715,7 +14740,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         starCalculatedAt: new Date(),
         eligibleForRefund: totalStars >= 3 // Eligible for performance-based refund with 3+ stars
       });
-      
+
       // Check and process performance refund if newly eligible
       if (totalStars >= 3) {
         try {
@@ -14728,13 +14753,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           console.error('Error processing performance refund after photo upload:', error);
         }
       }
-      
+
       // Mark job as completed
       await storage.updateJobStatus(jobAssignmentId, 'completed');
-      
+
       // Update booking status to completed
       await storage.updateBookingStatus(booking.id, 'completed');
-      
+
       // Update referral commission tracking for completed installations
       try {
         const { storeReferralCompletionService } = await import('./storeReferralCompletionService');
@@ -14743,9 +14768,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.error('Error updating referral completion:', referralError);
         // Don't fail installation completion for referral tracking errors
       }
-      
+
       // Note: Installer payment is handled directly by customer, no platform wallet transaction needed
-      
+
       // Send completion notifications
       try {
         const { sendGmailEmail } = await import('./gmailService');
@@ -14796,9 +14821,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         console.error('Failed to send completion notification:', emailError);
         // Don't fail the completion for email errors
       }
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         message: 'Installation marked as complete successfully',
         bookingId: booking.id,
         completedAt: new Date(),
@@ -14811,22 +14836,22 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       res.status(500).json({ error: 'Failed to complete installation' });
     }
   });
-  
+
   // Get installer's completed jobs
   app.get('/api/installer/:id/completed-jobs', async (req, res) => {
     try {
       const { id } = req.params;
       const jobAssignments = await storage.getInstallerJobAssignments(parseInt(id));
-      
+
       const completedJobs = jobAssignments
         .filter(job => job.status === 'completed')
         .sort((a, b) => new Date(b.completedDate || 0).getTime() - new Date(a.completedDate || 0).getTime());
-      
+
       // Get booking details for each completed job and check for existing reviews
       const completedJobsWithDetails = await Promise.all(
         completedJobs.map(async (job) => {
           const booking = await storage.getBooking(job.bookingId);
-          
+
           // Check if this booking already has a customer review
           let hasCustomerReview = false;
           if (booking) {
@@ -14838,7 +14863,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
               hasCustomerReview = false;
             }
           }
-          
+
           return {
             ...job,
             booking: booking ? {
@@ -14864,7 +14889,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           };
         })
       );
-      
+
       res.json(completedJobsWithDetails);
     } catch (error) {
       console.error('Error fetching completed jobs:', error);
@@ -14877,27 +14902,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { id } = req.params;
       const { showcaseInGallery } = req.body;
-      
+
       const booking = await storage.getBooking(parseInt(id));
       if (!booking) {
         return res.status(404).json({ error: 'Booking not found' });
       }
-      
+
       // Only allow showcase for completed bookings with photos
       if (booking.status !== 'completed') {
         return res.status(400).json({ error: 'Only completed installations can be showcased' });
       }
-      
+
       if (!booking.beforeAfterPhotos || booking.beforeAfterPhotos.length === 0) {
         return res.status(400).json({ error: 'Installations must have before/after photos to be showcased' });
       }
-      
-      await storage.updateBooking(parseInt(id), { 
-        showcaseInGallery: showcaseInGallery 
+
+      await storage.updateBooking(parseInt(id), {
+        showcaseInGallery: showcaseInGallery
       });
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         showcaseInGallery,
         message: showcaseInGallery ? 'Installation added to showcase gallery' : 'Installation removed from showcase gallery'
       });
@@ -14912,27 +14937,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { bookingId, installerId, customerEmail, customerName } = req.body;
       console.log('Review request data:', { bookingId, installerId, customerEmail, customerName });
-      
+
       const booking = await storage.getBooking(bookingId);
       if (!booking) {
         return res.status(404).json({ error: 'Booking not found' });
       }
-      
+
       if (booking.status !== 'completed') {
         return res.status(400).json({ error: 'Only completed installations can request reviews' });
       }
-      
+
       const installer = await storage.getInstaller(installerId);
       if (!installer) {
         return res.status(404).json({ error: 'Installer not found' });
       }
-      
+
       // Import and use gmail service
       const { sendReviewRequest } = await import('./gmailService.js');
       const emailSent = await sendReviewRequest(booking, installer, customerEmail, customerName);
-      
+
       if (emailSent) {
-        res.json({ 
+        res.json({
           success: true,
           message: `Review request sent to ${customerName}`
         });
@@ -14951,18 +14976,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const serviceType = req.query.serviceType as string;
-      
+
       const bookings = await storage.getAllBookings();
-      
+
       // Filter for showcased completed installations with photos from VIP installers only
       let showcasedBookings = [];
-      
+
       for (const booking of bookings) {
         if (booking.showcaseInGallery === true &&
-            booking.status === 'completed' &&
-            booking.beforeAfterPhotos && 
-            booking.beforeAfterPhotos.length > 0) {
-          
+          booking.status === 'completed' &&
+          booking.beforeAfterPhotos &&
+          booking.beforeAfterPhotos.length > 0) {
+
           // Check if installer is VIP
           const installer = await storage.getInstaller(booking.installerId);
           if (installer && installer.isVip) {
@@ -14970,46 +14995,46 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           }
         }
       }
-      
+
       // Filter by service type if specified
       if (serviceType && serviceType !== 'all') {
-        showcasedBookings = showcasedBookings.filter(booking => 
+        showcasedBookings = showcasedBookings.filter(booking =>
           booking.serviceType === serviceType
         );
       }
-      
+
       // Sort by completion date (newest first)
-      showcasedBookings.sort((a, b) => 
-        new Date(b.completedDate || b.updatedAt).getTime() - 
+      showcasedBookings.sort((a, b) =>
+        new Date(b.completedDate || b.updatedAt).getTime() -
         new Date(a.completedDate || a.updatedAt).getTime()
       );
-      
+
       const totalCount = showcasedBookings.length;
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
       const paginatedBookings = showcasedBookings.slice(startIndex, endIndex);
-      
+
       // Get installer details for each booking
       const installations = await Promise.all(paginatedBookings.map(async (booking) => {
         const installer = await storage.getInstaller(booking.installerId);
         const allReviews = await storage.getAllReviews();
         const bookingReviews = allReviews.filter(review => review.bookingId === booking.id);
         const primaryReview = bookingReviews.length > 0 ? bookingReviews[0] : null;
-        
+
         // Get customer info for review attribution
         const customer = booking.userId ? await storage.getUser(booking.userId) : null;
-        
+
         // Calculate real installer reviews and rating
         const installerReviews = allReviews.filter(review => {
           // Get booking for this review to find installer
           const reviewBooking = showcasedBookings.find(b => b.id === review.bookingId);
           return reviewBooking && reviewBooking.installerId === booking.installerId;
         });
-        const averageRating = installerReviews.length > 0 
-          ? installerReviews.reduce((sum, review) => sum + review.rating, 0) / installerReviews.length 
+        const averageRating = installerReviews.length > 0
+          ? installerReviews.reduce((sum, review) => sum + review.rating, 0) / installerReviews.length
           : 0;
         const totalReviews = installerReviews.length;
-        
+
         return {
           id: booking.id,
           location: booking.address,
@@ -15049,7 +15074,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           completedAt: booking.completedDate || booking.updatedAt
         };
       }));
-      
+
       res.json({
         installations,
         totalCount,
@@ -15067,23 +15092,23 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const bookings = await storage.getAllBookings();
       const { geocodeAddress, getFallbackLocation } = await import('./services/geocoding.js');
-      
+
       const geocodedInstallations = [];
-      
+
       for (const booking of bookings) {
         if (!booking.address) continue;
-        
+
         // Try to geocode the address
         let location = await geocodeAddress(booking.address);
-        
+
         // If geocoding fails, try fallback location
         if (!location) {
           location = getFallbackLocation(booking.address);
         }
-        
+
         // If still no location, skip this booking
         if (!location) continue;
-        
+
         geocodedInstallations.push({
           id: booking.id,
           address: booking.address,
@@ -15097,7 +15122,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           tvSize: booking.tvSize
         });
       }
-      
+
       res.json(geocodedInstallations);
     } catch (error) {
       console.error('Error fetching geocoded installations:', error);
@@ -15111,43 +15136,43 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       if (!req.user) {
         return res.status(401).json({ error: "Authentication required" });
       }
-      
+
       const { currentPassword, newPassword } = req.body;
-      
+
       if (!currentPassword || !newPassword) {
         return res.status(400).json({ error: "Current password and new password are required" });
       }
-      
+
       if (newPassword.length < 6) {
         return res.status(400).json({ error: "Password must be at least 6 characters long" });
       }
-      
+
       // Get installer by email
       const installer = await storage.getInstallerByEmail(req.user.email);
       if (!installer) {
         return res.status(404).json({ error: "Installer not found" });
       }
-      
+
       // Verify current password
       const bcrypt = require('bcrypt');
       if (!installer.passwordHash || !await bcrypt.compare(currentPassword, installer.passwordHash)) {
         return res.status(401).json({ error: "Current password is incorrect" });
       }
-      
+
       // Hash new password
       const newPasswordHash = await bcrypt.hash(newPassword, 10);
-      
+
       // Update installer password
       const updatedInstaller = await storage.updateInstaller(installer.id, {
         passwordHash: newPasswordHash
       });
-      
+
       if (!updatedInstaller) {
         return res.status(500).json({ error: "Failed to update password" });
       }
-      
+
       res.json({ success: true, message: "Password updated successfully" });
-      
+
     } catch (error) {
       console.error('Change installer password error:', error);
       res.status(500).json({ error: "Failed to change password" });
@@ -15158,17 +15183,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/password-reset/request', async (req, res) => {
     try {
       const { email, userType } = req.body;
-      
+
       if (!email || !userType) {
         return res.status(400).json({ message: 'Email and user type are required' });
       }
-      
+
       if (!['customer', 'installer'].includes(userType)) {
         return res.status(400).json({ message: 'Invalid user type' });
       }
-      
+
       const result = await requestPasswordReset(email, userType);
-      
+
       if (result.success) {
         res.json(result);
       } else {
@@ -15183,21 +15208,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/password-reset/confirm', async (req, res) => {
     try {
       const { token, newPassword, userType } = req.body;
-      
+
       if (!token || !newPassword || !userType) {
         return res.status(400).json({ message: 'Token, new password, and user type are required' });
       }
-      
+
       if (!['customer', 'installer'].includes(userType)) {
         return res.status(400).json({ message: 'Invalid user type' });
       }
-      
+
       if (newPassword.length < 8) {
         return res.status(400).json({ message: 'Password must be at least 8 characters long' });
       }
-      
+
       const result = await resetPassword(token, newPassword, userType);
-      
+
       if (result.success) {
         res.json({ message: result.message });
       } else {
@@ -15212,32 +15237,32 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/password-reset/verify-token', async (req, res) => {
     try {
       const { token, userType } = req.query;
-      
+
       console.log('=== PASSWORD RESET TOKEN VERIFICATION ===');
       console.log('Received token:', token);
       console.log('Received userType:', userType);
       console.log('Token length:', token ? (token as string).length : 'N/A');
-      
+
       if (!token || !userType) {
         console.log('Missing token or userType');
         return res.status(400).json({ message: 'Token and user type are required' });
       }
-      
+
       if (!['customer', 'installer'].includes(userType as string)) {
         console.log('Invalid userType:', userType);
         return res.status(400).json({ message: 'Invalid user type' });
       }
-      
+
       const { hashToken } = await import('./passwordResetService.js');
       const hashedToken = hashToken(token as string);
       console.log('Hashed token:', hashedToken);
-      
+
       const tokenRecord = await storage.getPasswordResetToken(hashedToken, userType as 'customer' | 'installer');
       console.log('Token record found:', !!tokenRecord);
-      
+
       if (!tokenRecord) {
         console.log('Token record not found in database');
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: 'Invalid or expired reset token',
           debug: process.env.NODE_ENV === 'development' ? {
             receivedToken: token,
@@ -15246,21 +15271,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           } : undefined
         });
       }
-      
+
       console.log('Token expires at:', tokenRecord.expiresAt);
       console.log('Current time:', new Date());
       console.log('Is expired?', tokenRecord.expiresAt < new Date());
-      
+
       if (tokenRecord.expiresAt < new Date()) {
         console.log('Token has expired');
         return res.status(400).json({ message: 'Reset token has expired' });
       }
-      
+
       if (tokenRecord.used) {
         console.log('Token has already been used');
         return res.status(400).json({ message: 'Reset token has already been used' });
       }
-      
+
       console.log('Token is valid!');
       res.json({ message: 'Token is valid' });
     } catch (error) {
@@ -15270,7 +15295,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Customer Resources Management API Routes
-  
+
   // Downloadable Guides Routes
   app.get("/api/downloadable-guides", async (req, res) => {
     try {
@@ -15386,17 +15411,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     const startTime = Date.now();
     try {
       const { question } = req.body;
-      
+
       if (!question || question.trim().length === 0) {
         return res.status(400).json({ error: "Question is required" });
       }
 
       const response = await askQuestion(question);
       const processingTime = Date.now() - startTime;
-      
+
       // Record AI usage for credit tracking
       await recordAiUsage(req);
-      
+
       // Track detailed AI interaction for analytics
       const { AIAnalyticsService } = await import('./aiAnalyticsService');
       await AIAnalyticsService.trackInteraction({
@@ -15412,13 +15437,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         creditUsed: true,
         errorOccurred: false
       });
-      
+
       res.json(response);
     } catch (error) {
       console.error("Error asking FAQ question:", error);
-      res.status(500).json({ 
-        error: "Failed to generate answer", 
-        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      res.status(500).json({
+        error: "Failed to generate answer",
+        message: error instanceof Error ? error.message : "Unknown error occurred"
       });
     }
   });
@@ -15439,17 +15464,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     const startTime = Date.now();
     try {
       const { model1, model2 } = req.body;
-      
+
       if (!model1 || !model2) {
         return res.status(400).json({ error: "Both TV models are required" });
       }
 
       const comparison = await compareTVModels(model1, model2);
       const processingTime = Date.now() - startTime;
-      
+
       // Record AI usage for credit tracking
       await recordAiUsage(req);
-      
+
       // Track detailed AI interaction for analytics
       const { AIAnalyticsService } = await import('./aiAnalyticsService');
       await AIAnalyticsService.trackInteraction({
@@ -15469,13 +15494,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         creditUsed: true,
         errorOccurred: false
       });
-      
+
       res.json(comparison);
     } catch (error) {
       console.error("Error comparing TV models:", error);
-      res.status(500).json({ 
-        error: "Failed to compare TV models", 
-        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      res.status(500).json({
+        error: "Failed to compare TV models",
+        message: error instanceof Error ? error.message : "Unknown error occurred"
       });
     }
   });
@@ -15485,37 +15510,37 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     const startTime = Date.now();
     try {
       const { product1, product2, productCategory, questionnaire } = req.body;
-      
+
       if (!product1 || !product2 || !productCategory) {
-        return res.status(400).json({ 
-          error: "Product 1, Product 2, and product category are required" 
+        return res.status(400).json({
+          error: "Product 1, Product 2, and product category are required"
         });
       }
 
       // Check if this is a skip-questions comparison (empty questionnaire)
-      const isSkipComparison = !questionnaire || Object.keys(questionnaire).length === 0 || 
+      const isSkipComparison = !questionnaire || Object.keys(questionnaire).length === 0 ||
         !questionnaire.question1 || !questionnaire.question2 || !questionnaire.question3;
 
       if (!isSkipComparison) {
         // Normal comparison with questionnaire validation
         if (!questionnaire.question1 || !questionnaire.question2 || !questionnaire.question3) {
-          return res.status(400).json({ 
-            error: "Questionnaire must include answers to all three category questions" 
+          return res.status(400).json({
+            error: "Questionnaire must include answers to all three category questions"
           });
         }
       }
 
       const comparison = await compareElectronicProducts(
-        product1, 
-        product2, 
-        productCategory, 
+        product1,
+        product2,
+        productCategory,
         isSkipComparison ? {} : questionnaire
       );
       const processingTime = Date.now() - startTime;
-      
+
       // Record AI usage for credit tracking
       await recordAiUsage(req);
-      
+
       // Track detailed AI interaction for analytics
       const { AIAnalyticsService } = await import('./aiAnalyticsService');
       await AIAnalyticsService.trackInteraction({
@@ -15535,13 +15560,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         creditUsed: true,
         errorOccurred: false
       });
-      
+
       res.json(comparison);
     } catch (error) {
       console.error("Error comparing electronic products:", error);
-      res.status(500).json({ 
-        error: "Failed to compare electronic products", 
-        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      res.status(500).json({
+        error: "Failed to compare electronic products",
+        message: error instanceof Error ? error.message : "Unknown error occurred"
       });
     }
   });
@@ -15550,27 +15575,27 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/ai/recommend", async (req, res) => {
     try {
       const { category, answers, maxBudgetEUR } = req.body;
-      
+
       if (!category || !answers || !maxBudgetEUR) {
-        return res.status(400).json({ 
-          error: "Category, answers, and maxBudgetEUR are required" 
+        return res.status(400).json({
+          error: "Category, answers, and maxBudgetEUR are required"
         });
       }
 
       console.log(`🎯 Finding products for category: ${category} with budget: €${maxBudgetEUR}`);
-      
+
       const recommendations = await getProductRecommendations(
-        category, 
-        answers, 
+        category,
+        answers,
         maxBudgetEUR
       );
-      
+
       res.json(recommendations);
     } catch (error) {
       console.error("Error getting product recommendations:", error);
-      res.status(500).json({ 
-        error: "Failed to get product recommendations", 
-        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      res.status(500).json({
+        error: "Failed to get product recommendations",
+        message: error instanceof Error ? error.message : "Unknown error occurred"
       });
     }
   });
@@ -15580,21 +15605,21 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     const startTime = Date.now();
     try {
       const { model } = req.body;
-      
+
       if (!model) {
-        return res.status(400).json({ 
-          error: "Product model is required" 
+        return res.status(400).json({
+          error: "Product model is required"
         });
       }
 
       console.log(`🔍 Getting product info for: ${model}`);
-      
+
       const productInfo = await getProductInfo(model);
       const processingTime = Date.now() - startTime;
-      
+
       // Record AI usage for credit tracking
       await recordAiUsage(req);
-      
+
       // Track detailed AI interaction for analytics
       const { AIAnalyticsService } = await import('./aiAnalyticsService');
       await AIAnalyticsService.trackInteraction({
@@ -15612,13 +15637,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         creditUsed: true,
         errorOccurred: false
       });
-      
+
       res.json(productInfo);
     } catch (error) {
       console.error("Error getting product info:", error);
-      res.status(500).json({ 
-        error: "Failed to get product information", 
-        message: error instanceof Error ? error.message : "Unknown error occurred" 
+      res.status(500).json({
+        error: "Failed to get product information",
+        message: error instanceof Error ? error.message : "Unknown error occurred"
       });
     }
   });
@@ -15632,11 +15657,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       const userId = req.user.id;
       const summary = await import("./aiCreditMiddleware").then(m => m.getAiUsageSummary(userId));
-      
+
       res.json(summary);
     } catch (error) {
       console.error('Error getting AI usage summary:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to get usage summary',
         message: 'Unable to retrieve AI usage information'
       });
@@ -15647,29 +15672,29 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/ai/product-care-analysis", checkAiCredits(AI_FEATURES.PRODUCT_CARE), async (req: AIRequest, res) => {
     try {
       const { productInfo, userContext } = req.body;
-      
+
       if (!productInfo || !productInfo.name || !productInfo.category) {
-        return res.status(400).json({ 
-          error: "Product information with name and category is required" 
+        return res.status(400).json({
+          error: "Product information with name and category is required"
         });
       }
 
       console.log(`🛡️ Analyzing product care for: ${productInfo.name} (${productInfo.category})`);
-      
+
       // The enhanced analyzeProductCare function now has built-in retry logic
       // and proper validation to minimize failures
       const analysis = await analyzeProductCare(productInfo, userContext);
-      
+
       console.log(`✅ Product care analysis completed successfully with ${analysis.criticalScenarios.length} scenarios`);
-      
+
       // Record AI usage after successful analysis
       await recordAiUsage(req);
-      
+
       res.json(analysis);
     } catch (error) {
       console.error("❌ Product Care analysis failed after all retries:", error);
-      res.status(500).json({ 
-        error: "Failed to analyze product care", 
+      res.status(500).json({
+        error: "Failed to analyze product care",
         message: error instanceof Error ? error.message : "AI analysis service unavailable",
         details: "Please ensure OpenAI API is available and try again"
       });
@@ -15681,7 +15706,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const id = parseInt(req.params.id);
       const { answer } = req.body;
-      
+
       if (!answer) {
         return res.status(400).json({ error: "Answer is required" });
       }
@@ -15709,12 +15734,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/consultations", async (req, res) => {
     try {
       const consultationData = req.body;
-      
+
       // Basic validation
-      if (!consultationData.customerName || !consultationData.customerEmail || 
-          !consultationData.customerPhone || !consultationData.consultationType ||
-          !consultationData.preferredContactMethod || !consultationData.subject || 
-          !consultationData.message) {
+      if (!consultationData.customerName || !consultationData.customerEmail ||
+        !consultationData.customerPhone || !consultationData.consultationType ||
+        !consultationData.preferredContactMethod || !consultationData.subject ||
+        !consultationData.message) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
@@ -15723,7 +15748,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Send email notification to support
       const { sendGmailEmail } = await import('./gmailService');
-      
+
       const consultationTypeLabels = {
         'technical-support': 'Technical Support',
         'tv-recommendation': 'TV Recommendation',
@@ -15733,7 +15758,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       const urgencyLabels = {
         'low': 'Low - Within a week',
-        'normal': 'Normal - Within 2-3 days',  
+        'normal': 'Normal - Within 2-3 days',
         'high': 'High - Within 24 hours',
         'urgent': 'Urgent - Same day'
       };
@@ -15785,8 +15810,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       console.log(`Consultation created: ID ${consultation.id}, Email sent: ${emailSent}`);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         consultation: consultation,
         emailSent: emailSent
       });
@@ -15802,11 +15827,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const consultationId = parseInt(req.params.id);
       const consultation = await storage.getConsultation(consultationId);
-      
+
       if (!consultation) {
         return res.status(404).json({ error: "Consultation not found" });
       }
-      
+
       res.json(consultation);
     } catch (error) {
       console.error("Error fetching consultation:", error);
@@ -15830,13 +15855,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const consultationId = parseInt(req.params.id);
       const updates = req.body;
-      
+
       const consultation = await storage.updateConsultation(consultationId, updates);
-      
+
       if (!consultation) {
         return res.status(404).json({ error: "Consultation not found" });
       }
-      
+
       res.json(consultation);
     } catch (error) {
       console.error("Error updating consultation:", error);
@@ -15844,44 +15869,44 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     }
   });
 
-  // Set up WebSocket server for real-time updates
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
-  wss.on('connection', (ws) => {
-    console.log('New WebSocket client connected');
-    wsClients.add(ws);
-    
-    ws.on('close', () => {
-      console.log('WebSocket client disconnected');
-      wsClients.delete(ws);
-    });
-    
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-      wsClients.delete(ws);
-    });
-    
-    // Send initial connection confirmation
-    ws.send(JSON.stringify({
-      type: 'connection_established',
-      timestamp: new Date().toISOString()
-    }));
-  });
-  
-  console.log('WebSocket server setup complete on path /ws');
+  // Set up WebSocket server for real-time updates (temporarily disabled for local development)
+  // const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+
+  // wss.on('connection', (ws) => {
+  //   console.log('New WebSocket client connected');
+  //   wsClients.add(ws);
+  //   
+  //   ws.on('close', () => {
+  //     console.log('WebSocket client disconnected');
+  //     wsClients.delete(ws);
+  //   });
+  //   
+  //   ws.on('error', (error) => {
+  //     console.error('WebSocket error:', error);
+  //     wsClients.delete(ws);
+  //   });
+  //   
+  //   // Send initial connection confirmation
+  //   ws.send(JSON.stringify({
+  //     type: 'connection_established',
+  //     timestamp: new Date().toISOString()
+  //   }));
+  // });
+
+  console.log('WebSocket server disabled for local development');
 
   // Manual trigger for expired lead processing (admin endpoint)
   app.post('/api/admin/process-expired-leads', async (req, res) => {
     try {
       console.log('🔧 Manual trigger for expired lead processing');
       await LeadExpiryService.processExpiredLeads();
-      res.json({ 
-        success: true, 
-        message: 'Expired leads processed successfully' 
+      res.json({
+        success: true,
+        message: 'Expired leads processed successfully'
       });
     } catch (error) {
       console.error('Error in manual expired lead processing:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to process expired leads',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -15893,13 +15918,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       console.log('🔧 Manual trigger for pre-installation reminders');
       await PreInstallationReminderService.processInstallationReminders();
-      res.json({ 
-        success: true, 
-        message: 'Pre-installation reminders processed successfully' 
+      res.json({
+        success: true,
+        message: 'Pre-installation reminders processed successfully'
       });
     } catch (error) {
       console.error('Error in manual reminder processing:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to process pre-installation reminders',
         details: error instanceof Error ? error.message : 'Unknown error'
       });
@@ -15939,10 +15964,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/product-categories/:identifier', async (req, res) => {
     try {
       const { identifier } = req.params;
-      
+
       // Try to find by slug first, then by ID
       let category = await storage.getProductCategoryBySlug(identifier);
-      
+
       if (!category && !isNaN(Number(identifier))) {
         category = await storage.getProductCategory(Number(identifier));
       }
@@ -15970,18 +15995,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Try AI tool QR code first
       const aiToolResult = await QRCodeService.trackAIToolQRCodeScan(
-        qrCodeId, 
-        sessionId, 
+        qrCodeId,
+        sessionId,
         storeLocation,
-        userAgent, 
-        ipAddress, 
+        userAgent,
+        ipAddress,
         userId
       );
 
       if (aiToolResult.success) {
         console.log(`AI Tool QR scan tracked: ${qrCodeId}, tool: ${aiToolResult.toolId}`);
-        return res.json({ 
-          success: true, 
+        return res.json({
+          success: true,
           type: 'ai-tool',
           toolId: aiToolResult.toolId,
           qrCodeDbId: aiToolResult.qrCodeDbId
@@ -15990,10 +16015,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       // Fallback to product category QR code
       const categoryResult = await QRCodeService.trackQRCodeScan(
-        qrCodeId, 
-        sessionId, 
-        userAgent, 
-        ipAddress, 
+        qrCodeId,
+        sessionId,
+        userAgent,
+        ipAddress,
         userId
       );
 
@@ -16002,10 +16027,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       }
 
       console.log(`Product category QR scan tracked: ${qrCodeId}, category: ${categoryResult.categoryId}`);
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         type: 'product-category',
-        categoryId: categoryResult.categoryId 
+        categoryId: categoryResult.categoryId
       });
     } catch (error) {
       console.error('Error tracking QR scan:', error);
@@ -16098,7 +16123,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const categoryId = parseInt(req.params.id);
       const success = await storage.deleteProductCategory(categoryId);
-      
+
       if (success) {
         res.json({ success: true });
       } else {
@@ -16119,7 +16144,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const categoryId = parseInt(req.params.id);
       const category = await storage.getProductCategory(categoryId);
-      
+
       if (!category) {
         return res.status(404).json({ error: 'Category not found' });
       }
@@ -16149,7 +16174,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
     try {
       const categories = await storage.getActiveProductCategories();
-      
+
       const flyerData = categories.map(category => ({
         name: category.name,
         description: category.description,
@@ -16201,7 +16226,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const sessionId = req.sessionID;
       const userId = req.session.user?.id;
-      
+
       const recommendationData = {
         ...req.body,
         sessionId,
@@ -16209,7 +16234,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       };
 
       const recommendation = await storage.createAiProductRecommendation(recommendationData);
-      
+
       // Increment category recommendation count
       if (recommendation.categoryId) {
         await storage.incrementCategoryRecommendationCount(recommendation.categoryId);
@@ -16241,7 +16266,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const sessionId = req.sessionID;
       const userId = req.session.user?.id;
-      
+
       const flowData = {
         ...req.body,
         sessionId,
@@ -16285,7 +16310,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   });
 
   // Tradesperson Onboarding API Routes
-  
+
   // Create onboarding invitation
   app.post('/api/admin/onboarding/create-invitation', async (req, res) => {
     try {
@@ -16301,10 +16326,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       };
 
       const invitation = await storage.createOnboardingInvitation(invitationData);
-      
+
       // TODO: Send invitation email using existing email service
       // await sendTradesPersonInvitationEmail(invitation);
-      
+
       res.json(invitation);
     } catch (error) {
       console.error('Error creating onboarding invitation:', error);
@@ -16328,16 +16353,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const invitationId = parseInt(req.params.id);
       const invitation = await storage.getOnboardingInvitation(invitationId);
-      
+
       if (!invitation) {
         return res.status(404).json({ error: 'Invitation not found' });
       }
 
       await storage.resendOnboardingInvitation(invitationId);
-      
+
       // TODO: Resend invitation email
       // await sendTradesPersonInvitationEmail(invitation);
-      
+
       res.json({ success: true, message: 'Invitation resent successfully' });
     } catch (error) {
       console.error('Error resending invitation:', error);
@@ -16349,7 +16374,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post('/api/admin/onboarding/register-installer', async (req, res) => {
     try {
       const { name, email, phone, businessName, county, tradeSkill, password } = req.body;
-      
+
       // Check if installer already exists
       const existingInstaller = await storage.getInstallerByEmail(email);
       if (existingInstaller) {
@@ -16375,10 +16400,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       };
 
       const installer = await storage.createInstaller(installerData);
-      
+
       // TODO: Send welcome email with login credentials
       // await sendInstallerWelcomeEmail(installer, password);
-      
+
       res.json({ success: true, installer: { ...installer, passwordHash: undefined } });
     } catch (error) {
       console.error('Error registering installer:', error);
@@ -16419,25 +16444,25 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // AI-powered email template generation
   app.post('/api/admin/onboarding/generate-ai-template', async (req, res) => {
     try {
-      const { 
-        tradeSkill, 
-        serviceType, 
-        businessName, 
-        customPromptDirection, 
+      const {
+        tradeSkill,
+        serviceType,
+        businessName,
+        customPromptDirection,
         allowProfileCreation,
-        templateName, 
-        tone, 
-        focus 
+        templateName,
+        tone,
+        focus
       } = req.body;
-      
+
       if (!tradeSkill) {
         return res.status(400).json({ error: 'Trade skill is required' });
       }
-      
+
       if (!serviceType) {
         return res.status(400).json({ error: 'Service type is required' });
       }
-      
+
       const aiTemplate = await generateEmailTemplate({
         tradeSkill,
         serviceType,
@@ -16448,7 +16473,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         tone: tone || 'professional',
         focus: focus || 'opportunity'
       });
-      
+
       res.json(aiTemplate);
     } catch (error) {
       console.error('Error generating AI email template:', error);
@@ -16460,13 +16485,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get('/api/admin/onboarding/preset-template/:tradeSkill', async (req, res) => {
     try {
       const { tradeSkill } = req.params;
-      
+
       const presetTemplate = getPresetTemplate(tradeSkill);
-      
+
       if (!presetTemplate) {
         return res.status(404).json({ error: 'No preset template found for this trade skill' });
       }
-      
+
       res.json(presetTemplate);
     } catch (error) {
       console.error('Error fetching preset template:', error);
@@ -16520,7 +16545,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           description: "Maintenance, repairs, various installations"
         }
       ];
-      
+
       res.json(serviceTypes);
     } catch (error) {
       console.error('Error fetching service types:', error);
@@ -16533,7 +16558,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { token } = req.params;
       const invitation = await storage.getOnboardingInvitationByToken(token);
-      
+
       if (!invitation) {
         return res.status(404).json({ error: 'Invalid or expired invitation' });
       }
@@ -16566,13 +16591,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { token } = req.params;
       const invitation = await storage.getOnboardingInvitationByToken(token);
-      
+
       if (!invitation) {
         return res.status(404).json({ error: 'Invalid or expired invitation' });
       }
 
       const { password, ...profileData } = req.body;
-      
+
       // Check if installer already exists
       const existingInstaller = await storage.getInstallerByEmail(invitation.email);
       if (existingInstaller) {
@@ -16599,17 +16624,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       };
 
       const installer = await storage.createInstaller(installerData);
-      
+
       // Update invitation status
       await storage.updateOnboardingInvitationStatus(invitation.id, 'profile_completed');
-      
+
       // Link invitation to created installer
       await db.update(onboardingInvitations)
         .set({ createdInstallerId: installer.id })
         .where(eq(onboardingInvitations.id, invitation.id));
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: 'Onboarding completed successfully! Your application is under review.',
         installer: { ...installer, passwordHash: undefined }
       });
@@ -16623,7 +16648,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/store-partner/apply", async (req, res) => {
     try {
       const application = req.body;
-      
+
       // Insert the store partner application
       const [newApplication] = await db.insert(storePartnerApplications)
         .values({
@@ -16656,8 +16681,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         .returning();
 
       console.log(`✅ New store partnership application received from ${application.storeName}`);
-      
-      res.json({ 
+
+      res.json({
         success: true,
         applicationId: newApplication.id,
         message: "Application submitted successfully! We'll review it within 2-3 business days."
@@ -16807,7 +16832,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { serviceTypeIds } = req.query;
       const typeIds = Array.isArray(serviceTypeIds) ? serviceTypeIds.map(Number) : [Number(serviceTypeIds)];
-      
+
       const resources = await storage.getResourcesByServiceTypes(typeIds.filter(id => !isNaN(id)));
       res.json(resources);
     } catch (error) {
@@ -16820,7 +16845,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { serviceTypeIds } = req.query;
       const typeIds = Array.isArray(serviceTypeIds) ? serviceTypeIds.map(Number) : [Number(serviceTypeIds)];
-      
+
       const guides = await storage.getDownloadableGuidesByServiceTypes(typeIds.filter(id => !isNaN(id)));
       res.json(guides);
     } catch (error) {
@@ -16833,7 +16858,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { serviceTypeIds } = req.query;
       const typeIds = Array.isArray(serviceTypeIds) ? serviceTypeIds.map(Number) : [Number(serviceTypeIds)];
-      
+
       const videos = await storage.getVideoTutorialsByServiceTypes(typeIds.filter(id => !isNaN(id)));
       res.json(videos);
     } catch (error) {
@@ -16870,14 +16895,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.id);
       const { serviceTypeId, assignedBy } = req.body;
-      
+
       const assignment = await storage.assignServiceToInstaller({
         installerId,
         serviceTypeId,
         assignedBy,
         isActive: true
       });
-      
+
       res.json(assignment);
     } catch (error) {
       console.error('Error assigning service to installer:', error);
@@ -16889,7 +16914,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const installerId = parseInt(req.params.installerId);
       const serviceTypeId = parseInt(req.params.serviceTypeId);
-      
+
       await storage.removeServiceFromInstaller(installerId, serviceTypeId);
       res.json({ success: true });
     } catch (error) {
@@ -16921,7 +16946,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
           'smart-home': 'Smart Home Setup',
           'general-install': 'General Installation'
         };
-        
+
         const mappedServiceType = serviceTypeMapping[serviceType];
         if (mappedServiceType) {
           whereConditions.push(eq(bookings.serviceType, mappedServiceType));
@@ -16976,33 +17001,33 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Combine jobs with their reviews
       const showcaseData = completedJobs.map(job => {
         const jobReview = jobReviews.find(review => review.bookingId === job.id);
-        
+
         // Parse before/after photos
-        const beforeAfterPhotos = Array.isArray(job.beforeAfterPhotos) 
-          ? job.beforeAfterPhotos 
+        const beforeAfterPhotos = Array.isArray(job.beforeAfterPhotos)
+          ? job.beforeAfterPhotos
           : [];
 
         // Parse TV installations for multi-TV jobs
-        const tvInstallations = Array.isArray(job.tvInstallations) 
-          ? job.tvInstallations 
+        const tvInstallations = Array.isArray(job.tvInstallations)
+          ? job.tvInstallations
           : [];
 
         // Determine display information
-        const displayInfo = tvInstallations.length > 0 
+        const displayInfo = tvInstallations.length > 0
           ? {
-              tvCount: tvInstallations.length,
-              services: tvInstallations.map(tv => `${tv.tvSize} ${tv.serviceType}`).join(', '),
-              primaryService: tvInstallations[0]?.serviceType || 'TV Installation'
-            }
+            tvCount: tvInstallations.length,
+            services: tvInstallations.map(tv => `${tv.tvSize} ${tv.serviceType}`).join(', '),
+            primaryService: tvInstallations[0]?.serviceType || 'TV Installation'
+          }
           : {
-              tvCount: 1,
-              services: `${job.tvSize} ${job.serviceType}`,
-              primaryService: job.serviceType || 'TV Installation'
-            };
+            tvCount: 1,
+            services: `${job.tvSize} ${job.serviceType}`,
+            primaryService: job.serviceType || 'TV Installation'
+          };
 
         return {
           id: job.id,
-          
+
           // Installer Profile Information
           installer: {
             id: job.installerId,
@@ -17015,15 +17040,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             expertise: Array.isArray(job.installerExpertise) ? job.installerExpertise : [],
             serviceArea: job.installerServiceArea || 'Ireland'
           },
-          
+
           // Service Type (no sensitive details)
           serviceType: displayInfo.primaryService,
-          
+
           // Photos (only show if they exist)
-          beforeAfterPhotos: beforeAfterPhotos.filter(photo => 
+          beforeAfterPhotos: beforeAfterPhotos.filter(photo =>
             photo && photo.beforePhoto && photo.afterPhoto
           ),
-          
+
           // Customer review (anonymous) - or placeholder if no review
           review: jobReview ? {
             rating: jobReview.rating,
@@ -17036,11 +17061,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
             comment: "Installation completed to professional standards with quality workmanship and attention to detail.",
             date: job.completedAt || job.createdAt
           },
-          
+
           // Completion date (kept general)
           completedAt: job.completedAt || job.createdAt
         };
-      }).filter(job => 
+      }).filter(job =>
         // Only include jobs with photos
         job.beforeAfterPhotos.length > 0
       );
@@ -17054,7 +17079,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
     } catch (error) {
       console.error('Error fetching installation showcase:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to fetch installation showcase',
         installations: [],
         totalCount: 0,
@@ -17130,7 +17155,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const toolId = parseInt(req.params.id);
       const { storeLocation } = req.body;
-      
+
       // Get the AI tool details
       const tool = await storage.getAiTool(toolId);
       if (!tool) {
@@ -17169,7 +17194,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const toolId = parseInt(req.params.id);
       const storeLocation = req.query.storeLocation as string;
-      
+
       // Get the AI tool details
       const tool = await storage.getAiTool(toolId);
       if (!tool) {
@@ -17207,7 +17232,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const toolId = parseInt(req.params.id);
       const { storeLocation } = req.body;
-      
+
       // Get the AI tool details
       const tool = await storage.getAiTool(toolId);
       if (!tool) {
@@ -17269,11 +17294,11 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const qrCodeId = parseInt(req.params.qrCodeId);
       const { isActive, storeLocation } = req.body;
-      
+
       const updates: any = {};
       if (typeof isActive !== 'undefined') updates.isActive = isActive;
       if (storeLocation !== undefined) updates.storeLocation = storeLocation;
-      
+
       const updatedQrCode = await storage.updateAiToolQrCode(qrCodeId, updates);
       res.json(updatedQrCode);
     } catch (error) {
@@ -17311,8 +17336,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       // Add credits using the wallet service
       const walletService = new InstallerWalletService(storage);
       await walletService.addCredits(
-        installerId, 
-        parseFloat(amount), 
+        installerId,
+        parseFloat(amount),
         `admin-credit-${Date.now()}` // Use a unique admin transaction ID
       );
 
@@ -17327,9 +17352,9 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         });
       }
 
-      res.json({ 
-        success: true, 
-        message: `€${amount} credits added to ${installer.businessName}'s wallet` 
+      res.json({
+        success: true,
+        message: `€${amount} credits added to ${installer.businessName}'s wallet`
       });
 
     } catch (error) {
@@ -17342,14 +17367,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/admin/ai-analytics/summary", isAdmin, async (req, res) => {
     try {
       const { startDate, endDate, storeLocation, aiTool } = req.query;
-      
+
       const summary = await AIAnalyticsService.getAnalyticsSummary({
         startDate: startDate ? new Date(startDate as string) : undefined,
         endDate: endDate ? new Date(endDate as string) : undefined,
         storeLocation: storeLocation as string,
         aiTool: aiTool as string
       });
-      
+
       res.json(summary);
     } catch (error) {
       console.error("Error fetching analytics summary:", error);
@@ -17359,17 +17384,17 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
   app.get("/api/admin/ai-analytics/interactions", isAdmin, async (req, res) => {
     try {
-      const { 
-        page = 1, 
-        limit = 50, 
-        storeLocation, 
-        aiTool, 
-        startDate, 
+      const {
+        page = 1,
+        limit = 50,
+        storeLocation,
+        aiTool,
+        startDate,
         endDate,
         category,
         searchTerm
       } = req.query;
-      
+
       const interactions = await AIAnalyticsService.getFilteredInteractions({
         page: parseInt(page as string),
         limit: parseInt(limit as string),
@@ -17380,7 +17405,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         category: category as string,
         searchTerm: searchTerm as string
       });
-      
+
       res.json(interactions);
     } catch (error) {
       console.error("Error fetching interactions:", error);
@@ -17391,12 +17416,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/admin/ai-analytics/stores", isAdmin, async (req, res) => {
     try {
       const { startDate, endDate } = req.query;
-      
+
       const storeAnalytics = await AIAnalyticsService.getStoreAnalytics({
         startDate: startDate ? new Date(startDate as string) : undefined,
         endDate: endDate ? new Date(endDate as string) : undefined
       });
-      
+
       res.json(storeAnalytics);
     } catch (error) {
       console.error("Error fetching store analytics:", error);
@@ -17408,12 +17433,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { storeLocation } = req.params;
       const { startDate, endDate } = req.query;
-      
+
       const insights = await AIAnalyticsService.getStoreInsights(storeLocation, {
         startDate: startDate ? new Date(startDate as string) : undefined,
         endDate: endDate ? new Date(endDate as string) : undefined
       });
-      
+
       res.json(insights);
     } catch (error) {
       console.error("Error fetching store insights:", error);
@@ -17424,14 +17449,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/admin/ai-analytics/popular-products", isAdmin, async (req, res) => {
     try {
       const { storeLocation, startDate, endDate, limit = 20 } = req.query;
-      
+
       const popularProducts = await AIAnalyticsService.getPopularProducts({
         storeLocation: storeLocation as string,
         startDate: startDate ? new Date(startDate as string) : undefined,
         endDate: endDate ? new Date(endDate as string) : undefined,
         limit: parseInt(limit as string)
       });
-      
+
       res.json(popularProducts);
     } catch (error) {
       console.error("Error fetching popular products:", error);
@@ -17442,16 +17467,16 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/admin/ai-analytics/export-csv", isAdmin, async (req, res) => {
     try {
       const { storeLocation, aiTool, startDate, endDate } = req.query;
-      
+
       const csvData = await AIAnalyticsService.exportInteractionsCSV({
         storeLocation: storeLocation as string,
         aiTool: aiTool as string,
         startDate: startDate ? new Date(startDate as string) : undefined,
         endDate: endDate ? new Date(endDate as string) : undefined
       });
-      
+
       const filename = `ai-analytics-${storeLocation || 'all'}-${new Date().toISOString().split('T')[0]}.csv`;
-      
+
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.send(csvData);
@@ -17464,12 +17489,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.get("/api/admin/ai-analytics/usage-patterns", isAdmin, async (req, res) => {
     try {
       const { storeLocation, timeRange = '7d' } = req.query;
-      
+
       const patterns = await AIAnalyticsService.getUsagePatterns(
         storeLocation as string,
         timeRange as string
       );
-      
+
       res.json(patterns);
     } catch (error) {
       console.error("Error fetching usage patterns:", error);
@@ -17481,14 +17506,14 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/qr-code/scan", async (req, res) => {
     try {
       const { qrCodeId } = req.body;
-      
+
       if (!qrCodeId) {
         return res.status(400).json({ error: 'QR code ID is required' });
       }
 
       // Increment the scan count for this QR code
       await storage.incrementQrCodeScanCount(qrCodeId);
-      
+
       res.json({ success: true, message: 'Scan tracked successfully' });
     } catch (error) {
       console.error('Error tracking QR code scan:', error);
@@ -17521,7 +17546,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       const { ObjectStorageService } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
-      
+
       // Set ACL policy for the uploaded photo
       const objectPath = await objectStorageService.trySetObjectEntityAclPolicy(
         photoURL,
@@ -17548,7 +17573,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
       const objectStorageService = new ObjectStorageService();
-      
+
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
@@ -17566,7 +17591,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const storeUsers = await db.select()
         .from(storeUsers as any)
         .orderBy(desc((storeUsers as any).createdAt));
-      
+
       res.json(storeUsers);
     } catch (error) {
       console.error("Error fetching store users:", error);
@@ -17577,18 +17602,18 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.post("/api/admin/store-users", async (req, res) => {
     try {
       const { email, password, retailerCode, storeCode } = req.body;
-      
+
       if (!email || !password || !retailerCode) {
         return res.status(400).json({ message: "Email, password, and retailer code are required" });
       }
 
       const result = await storeAuthService.registerStore(email, password, 'Harvey Norman');
-      
+
       if (result.success) {
-        res.status(201).json({ 
-          success: true, 
+        res.status(201).json({
+          success: true,
           message: result.message,
-          storeUser: result.storeUser 
+          storeUser: result.storeUser
         });
       } else {
         res.status(400).json({ message: result.message });
@@ -17603,12 +17628,12 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
     try {
       const userId = parseInt(req.params.id);
       const { email, password, retailerCode, storeCode } = req.body;
-      
+
       const updates: any = {};
       if (email) updates.email = email;
       if (retailerCode) updates.retailerCode = retailerCode;
       if (storeCode !== undefined) updates.storeCode = storeCode;
-      
+
       // Hash password if provided
       if (password) {
         const bcrypt = await import('bcrypt');
@@ -17621,10 +17646,10 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         .returning();
 
       if (updatedUser) {
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           message: "Store user updated successfully",
-          storeUser: updatedUser 
+          storeUser: updatedUser
         });
       } else {
         res.status(404).json({ message: "Store user not found" });
@@ -17638,15 +17663,15 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   app.delete("/api/admin/store-users/:id", async (req, res) => {
     try {
       const userId = parseInt(req.params.id);
-      
+
       const [deletedUser] = await db.delete(storeUsers as any)
         .where(eq((storeUsers as any).id, userId))
         .returning();
 
       if (deletedUser) {
-        res.json({ 
-          success: true, 
-          message: "Store user deleted successfully" 
+        res.json({
+          success: true,
+          message: "Store user deleted successfully"
         });
       } else {
         res.status(404).json({ message: "Store user not found" });
@@ -17665,8 +17690,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const { email, password, retailerName } = req.body;
 
       if (!email || !password || !retailerName) {
-        return res.status(400).json({ 
-          error: "Email, store code/password, and retailer name are required" 
+        return res.status(400).json({
+          error: "Email, store code/password, and retailer name are required"
         });
       }
 
@@ -17698,8 +17723,8 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({ 
-          error: "Email and store code/password are required" 
+        return res.status(400).json({
+          error: "Email and store code/password are required"
         });
       }
 
@@ -17788,13 +17813,13 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
         // Get completion-based earnings (actual commission from completed installations)
         const { storeReferralCompletionService } = await import('./storeReferralCompletionService');
         const completedEarnings = await storeReferralCompletionService.getCompletedReferralEarnings(
-          req.session.storeUser.retailerCode, 
+          req.session.storeUser.retailerCode,
           req.session.storeUser.storeCode
         );
-        
+
         // Get staff completion metrics
         const staffMetrics = await storeReferralCompletionService.getStaffCompletionMetrics(
-          req.session.storeUser.retailerCode, 
+          req.session.storeUser.retailerCode,
           req.session.storeUser.storeCode
         );
 
@@ -17831,7 +17856,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
       const { toolName } = req.params;
 
       const toolDetails = await storeAuthService.getAiToolDetails(storeUserId, toolName);
-      
+
       if (!toolDetails) {
         return res.status(404).json({ error: "AI tool details not found" });
       }
@@ -17865,7 +17890,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       const description = storeDataCleanupService.getTimeWindowDescription(timeWindow);
 
-      res.json({ 
+      res.json({
         preview,
         timeWindow,
         description,
@@ -17901,7 +17926,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       const description = storeDataCleanupService.getTimeWindowDescription(timeWindow);
 
-      res.json({ 
+      res.json({
         success: true,
         result,
         timeWindow,
@@ -17935,7 +17960,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       const description = storeDataCleanupService.getTimeWindowDescription(timeWindow);
 
-      res.json({ 
+      res.json({
         preview,
         timeWindow,
         description,
@@ -17967,7 +17992,7 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
 
       const description = storeDataCleanupService.getTimeWindowDescription(timeWindow);
 
-      res.json({ 
+      res.json({
         success: true,
         result,
         timeWindow,
@@ -18000,20 +18025,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Track QR code scan for store analytics
   app.post("/api/store/track-qr-scan", async (req, res) => {
     try {
-      const { 
-        qrCodeId, 
-        retailerCode, 
-        storeCode, 
-        userId, 
-        sessionId, 
+      const {
+        qrCodeId,
+        retailerCode,
+        storeCode,
+        userId,
+        sessionId,
         aiTool,
         ipAddress,
-        userAgent 
+        userAgent
       } = req.body;
 
       if (!qrCodeId || !retailerCode || !sessionId) {
-        return res.status(400).json({ 
-          error: "QR code ID, retailer code, and session ID are required" 
+        return res.status(400).json({
+          error: "QR code ID, retailer code, and session ID are required"
         });
       }
 
@@ -18038,20 +18063,20 @@ If you have any urgent questions, please call us at +353 1 XXX XXXX
   // Track referral code usage for store analytics
   app.post("/api/store/track-referral", async (req, res) => {
     try {
-      const { 
-        referralCode, 
-        retailerCode, 
-        storeCode, 
-        staffName, 
-        customerId, 
+      const {
+        referralCode,
+        retailerCode,
+        storeCode,
+        staffName,
+        customerId,
         bookingId,
         discountAmount,
-        rewardAmount 
+        rewardAmount
       } = req.body;
 
       if (!referralCode || !retailerCode || !customerId) {
-        return res.status(400).json({ 
-          error: "Referral code, retailer code, and customer ID are required" 
+        return res.status(400).json({
+          error: "Referral code, retailer code, and customer ID are required"
         });
       }
 

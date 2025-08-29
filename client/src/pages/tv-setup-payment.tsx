@@ -20,6 +20,10 @@ interface PaymentBooking {
   credentialsProvided: boolean;
 }
 
+interface BookingDataResponse {
+  booking: PaymentBooking;
+}
+
 function TvSetupPayment() {
   const [, params] = useRoute("/tv-setup-payment/:bookingId");
   const [location] = useLocation();
@@ -34,7 +38,9 @@ function TvSetupPayment() {
     retry: false,
   });
 
-  const booking = bookingData?.booking as PaymentBooking | undefined;
+  // Type the booking data response
+  const typedBookingData = bookingData as BookingDataResponse | undefined;
+  const booking = typedBookingData?.booking;
 
   const handlePayment = async () => {
     if (!booking) return;

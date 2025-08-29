@@ -8,11 +8,20 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Star, Medal, Award, Crown, Tv, ArrowRight, Building } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
+interface ServiceTier {
+  key: string;
+  customerPrice: number;
+  installerPrice: number;
+}
+
 export default function Pricing() {
   // Fetch dynamic pricing from backend
   const { data: apiServiceTiers, isLoading } = useQuery({
     queryKey: ['/api/service-tiers'],
   });
+
+  // Type the query response
+  const typedApiServiceTiers = apiServiceTiers as ServiceTier[] | undefined;
 
   // Fallback static tiers if API is loading
   const calculateCustomerPrice = (installerPrice: number, feePercentage: number = 15) => {
@@ -87,7 +96,7 @@ export default function Pricing() {
   ];
 
   // Map API data to display format
-  const serviceTiers = isLoading || !apiServiceTiers ? staticServiceTiers : [
+  const serviceTiers = isLoading || !typedApiServiceTiers ? staticServiceTiers : [
     {
       key: "table-top",
       name: "Table Top TV Setup",
@@ -99,11 +108,11 @@ export default function Pricing() {
       pricing: [
         { 
           label: "Up to 43\"", 
-          price: apiServiceTiers.find((t: any) => t.key === 'table-top-small')?.customerPrice || calculateCustomerPrice(89)
+          price: typedApiServiceTiers?.find((t: ServiceTier) => t.key === 'table-top-small')?.customerPrice || calculateCustomerPrice(89)
         },
         { 
           label: "Above 43\"", 
-          price: apiServiceTiers.find((t: any) => t.key === 'table-top-large')?.customerPrice || calculateCustomerPrice(109)
+          price: typedApiServiceTiers?.find((t: ServiceTier) => t.key === 'table-top-large')?.customerPrice || calculateCustomerPrice(109)
         }
       ]
     },
@@ -118,7 +127,7 @@ export default function Pricing() {
       pricing: [
         { 
           label: "Up to 42\"", 
-          price: apiServiceTiers.find((t: any) => t.key === 'bronze')?.customerPrice || calculateCustomerPrice(109)
+          price: typedApiServiceTiers?.find((t: ServiceTier) => t.key === 'bronze')?.customerPrice || calculateCustomerPrice(109)
         }
       ]
     },
@@ -134,11 +143,11 @@ export default function Pricing() {
       pricing: [
         { 
           label: "43\"-85\"", 
-          price: apiServiceTiers.find((t: any) => t.key === 'silver')?.customerPrice || calculateCustomerPrice(159)
+          price: typedApiServiceTiers?.find((t: ServiceTier) => t.key === 'silver')?.customerPrice || calculateCustomerPrice(159)
         },
         { 
           label: "85\"+ Large", 
-          price: apiServiceTiers.find((t: any) => t.key === 'silver-large')?.customerPrice || calculateCustomerPrice(259)
+          price: typedApiServiceTiers?.find((t: ServiceTier) => t.key === 'silver-large')?.customerPrice || calculateCustomerPrice(259)
         }
       ]
     },
@@ -153,7 +162,7 @@ export default function Pricing() {
       pricing: [
         { 
           label: "32\"-85\"", 
-          price: apiServiceTiers.find((t: any) => t.key === 'gold')?.customerPrice || calculateCustomerPrice(259)
+          price: typedApiServiceTiers?.find((t: ServiceTier) => t.key === 'gold')?.customerPrice || calculateCustomerPrice(259)
         }
       ]
     },

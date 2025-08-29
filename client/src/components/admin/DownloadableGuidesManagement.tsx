@@ -79,6 +79,10 @@ export default function DownloadableGuidesManagement() {
     select: (data: any[]) => data.filter((resource: any) => resource.type === 'guide'),
   });
 
+  // Type the query responses
+  const typedGuides = guides as DownloadableGuide[];
+  const typedResourceGuides = resourceGuides as any[];
+
   // Create guide mutation
   const createGuideMutation = useMutation({
     mutationFn: async (guideData: any) => {
@@ -193,8 +197,8 @@ export default function DownloadableGuidesManagement() {
 
   // Combine both guide sources
   const allGuides = [
-    ...guides,
-    ...resourceGuides.map((resource: any) => ({
+    ...typedGuides,
+    ...typedResourceGuides.map((resource: any) => ({
       id: `resource-${resource.id}`,
       title: resource.title,
       description: resource.description,

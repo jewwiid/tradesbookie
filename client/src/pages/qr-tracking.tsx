@@ -25,6 +25,20 @@ import {
 import Navigation from "@/components/navigation";
 import ExpandableQRCode from "@/components/ExpandableQRCode";
 
+interface ScheduleNegotiation {
+  id: number;
+  status: string;
+  proposedBy: string;
+  proposedDate: string;
+  proposedTimeSlot: string;
+  proposalMessage?: string;
+  installer?: {
+    businessName?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+}
+
 interface BookingDetails {
   id: number;
   qrCode: string;
@@ -105,6 +119,9 @@ export default function QRTracking() {
     enabled: !!booking?.id,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  // Type the schedule negotiations data
+  const typedScheduleNegotiations = scheduleNegotiations as ScheduleNegotiation[];
 
   const queryClient = useQueryClient();
 
@@ -482,7 +499,7 @@ export default function QRTracking() {
               )}
               
               {/* Display pending schedule proposals - only if no installer is assigned yet */}
-              {!booking.installer && (scheduleNegotiations as any[]).filter((n: any) => n.status === 'pending' && n.proposedBy === 'installer').map((proposal: any) => (
+              {!booking.installer && typedScheduleNegotiations.filter((n: ScheduleNegotiation) => n.status === 'pending' && n.proposedBy === 'installer').map((proposal: ScheduleNegotiation) => (
                 <div key={proposal.id} className="mt-4 p-4 border-2 border-amber-200 bg-amber-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-3">
                     <MessageSquare className="w-5 h-5 text-amber-600" />
@@ -545,7 +562,7 @@ export default function QRTracking() {
               {/* Cancel Job button - shows when there's an installer but scheduling is difficult */}
               {booking.installer && booking.jobAssignment && 
                !booking.scheduledDate && 
-               scheduleNegotiations.length > 0 && (
+               typedScheduleNegotiations.length > 0 && (
                 <div className="mt-4 p-4 border-2 border-red-200 bg-red-50 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>

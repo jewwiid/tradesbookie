@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Settings } from 'lucide-react';
 import { useBooking } from '@/lib/booking-context';
-import { MOUNT_TYPES } from '@/lib/constants';
+import { MOUNT_TYPES } from '@/lib/constants.tsx';
 
 interface StepMountTypeProps {
   onNext: () => void;

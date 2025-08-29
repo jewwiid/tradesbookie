@@ -19,10 +19,10 @@ export default function ContactReview({ onNext, onBack }: ContactReviewProps) {
     customerEmail: bookingData.customerEmail || '',
     customerPhone: bookingData.customerPhone || '',
     address: bookingData.address || '',
-    streetAddress: bookingData.streetAddress || '',
-    town: bookingData.town || '',
-    county: bookingData.county || '',
-    eircode: bookingData.eircode || '',
+    streetAddress: (bookingData as any).streetAddress || '',
+    town: (bookingData as any).town || '',
+    county: (bookingData as any).county || '',
+    eircode: (bookingData as any).eircode || '',
     customerNotes: bookingData.customerNotes || ''
   });
 

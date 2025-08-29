@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Home, Bed, Chef, Sofa, Baby, Plus } from "lucide-react";
+import { MapPin, Home, Bed, ChefHat, Sofa, Baby, Plus } from "lucide-react";
 import { useBookingData } from "@/hooks/use-booking-data";
 
 interface TvLocationSelectorProps {
@@ -12,7 +12,7 @@ interface TvLocationSelectorProps {
 const COMMON_LOCATIONS = [
   { id: "living-room", name: "Living Room", icon: Sofa },
   { id: "bedroom", name: "Bedroom", icon: Bed },
-  { id: "kitchen", name: "Kitchen", icon: Chef },
+  { id: "kitchen", name: "Kitchen", icon: ChefHat },
   { id: "dining-room", name: "Dining Room", icon: Home },
   { id: "nursery", name: "Nursery", icon: Baby },
   { id: "custom", name: "Other", icon: Plus },

@@ -9,6 +9,38 @@ import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import ExpandableQRCode from "@/components/ExpandableQRCode";
 
+interface InstallerStats {
+  monthlyJobs: number;
+  earnings: number;
+  rating: number;
+}
+
+interface Job {
+  id: number;
+  status: string;
+  customerName?: string;
+  customer?: string;
+  serviceTier: string;
+  tvSize: string;
+  address: string;
+  installerEarnings?: number;
+  earning?: number;
+  preferredDate?: string;
+  date?: string;
+  location?: string;
+  wallType?: string;
+  mountType?: string;
+  wallMount?: string;
+  addons?: Array<{ name: string; price: number }>;
+  difficulty?: string;
+  notes?: string;
+  originalImage: string;
+  completedImage?: string;
+  aiPreview: string;
+  qrCode?: string;
+  bookingReference?: string;
+}
+
 export default function InstallerDashboard() {
   const [, setLocation] = useLocation();
   const [jobFilter, setJobFilter] = useState('all');
@@ -22,6 +54,10 @@ export default function InstallerDashboard() {
   const { data: jobs = [], isLoading: jobsLoading } = useQuery({
     queryKey: ['/api/installer/bookings'],
   });
+
+  // Type the query responses
+  const typedInstallerStats = installerStats as InstallerStats;
+  const typedJobs = jobs as Job[];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -51,7 +87,7 @@ export default function InstallerDashboard() {
     window.open(`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`, '_blank');
   };
 
-  const filteredJobs = jobFilter === 'all' ? jobs : jobs.filter(job => job.status === jobFilter);
+  const filteredJobs = jobFilter === 'all' ? typedJobs : typedJobs.filter((job: Job) => job.status === jobFilter);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,7 +122,7 @@ export default function InstallerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Leads This Month</p>
-                  <p className="text-2xl font-bold text-gray-900">{installerStats.monthlyJobs}</p>
+                  <p className="text-2xl font-bold text-gray-900">{typedInstallerStats?.monthlyJobs}</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                   <Wrench className="w-6 h-6 text-blue-600" />
@@ -100,7 +136,7 @@ export default function InstallerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Earnings</p>
-                  <p className="text-2xl font-bold text-gray-900">€{installerStats.earnings}</p>
+                  <p className="text-2xl font-bold text-gray-900">€{typedInstallerStats?.earnings}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                   <Euro className="w-6 h-6 text-green-600" />
@@ -114,7 +150,7 @@ export default function InstallerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Rating</p>
-                  <p className="text-2xl font-bold text-gray-900">{installerStats.rating}</p>
+                  <p className="text-2xl font-bold text-gray-900">{typedInstallerStats?.rating}</p>
                 </div>
                 <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
                   <Star className="w-6 h-6 text-yellow-600" />
@@ -145,7 +181,7 @@ export default function InstallerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {filteredJobs.map((job) => (
+              {filteredJobs.map((job: Job) => (
                 <Card key={job.id} className={`${
                   job.status === 'accepted' ? 'border-green-200 bg-green-50' : 
                   job.status === 'completed' ? 'opacity-75' : ''
@@ -209,7 +245,7 @@ export default function InstallerDashboard() {
                         <div className="mt-3">
                           <span className="text-gray-500 text-sm">Add-ons:</span>
                           <div className="flex flex-wrap gap-2 mt-1">
-                            {job.addons.map((addon, index) => (
+                            {job.addons.map((addon: { name: string; price: number }, index: number) => (
                               <Badge key={index} variant="outline" className="text-xs">
                                 {addon.name} (+€{addon.price})
                               </Badge>
@@ -277,7 +313,7 @@ export default function InstallerDashboard() {
                           <p className="text-xs text-blue-700">Use this QR code to verify and complete the correct booking</p>
                         </div>
                         <ExpandableQRCode 
-                          qrCode={job.qrCode || job.bookingReference}
+                          qrCode={job.qrCode || job.bookingReference || `booking-${job.id}`}
                           bookingId={job.id}
                           title="Job QR Code"
                           description="Use this QR code to verify and complete the correct booking"

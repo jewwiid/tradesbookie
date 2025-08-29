@@ -1194,10 +1194,10 @@ export default function AiToolsManagement() {
                             )
                               .sort(([,a], [,b]) => (b as number) - (a as number))
                               .slice(0, 5)
-                              .map(([tool, count]) => (
+                              .map(([tool, count]: [string, unknown]) => (
                                 <div key={tool} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                   <span className="font-medium capitalize">{tool.replace('-', ' ')}</span>
-                                  <Badge variant="outline">{count} interactions</Badge>
+                                  <Badge variant="outline">{count as number} interactions</Badge>
                                 </div>
                               ))}
                           </div>

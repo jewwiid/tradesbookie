@@ -74,6 +74,7 @@ export const ADDON_SERVICES = {
 export const TV_SIZES = [
   { value: 32, label: '32"', category: 'Small' },
   { value: 43, label: '43"', category: 'Medium' },
+  { value: 50, label: '50"', category: 'Large' },
   { value: 55, label: '55"', category: 'Large' },
   { value: 65, label: '65"', category: 'X-Large' },
   { value: 75, label: '75"', category: 'XX-Large' },

@@ -349,6 +349,9 @@ export class RetailerDetectionService {
     hasPassword?: boolean;
     needsEmailAuth?: boolean;
     emailMismatch?: boolean;
+    requiresUserDetails?: boolean;
+    invoiceNumber?: string;
+    isNewInvoice?: boolean;
   }> {
     try {
       // Detect retailer from invoice
@@ -492,10 +495,15 @@ export class RetailerDetectionService {
         let customerEmail, firstName, lastName;
         
         if (isNewInvoice) {
-          // For new invoices, create temporary user that needs profile completion
-          customerEmail = `temp.${invoiceNumber.toLowerCase().replace(/[^a-z0-9]/g, '.')}@tradesbook.temp`;
-          firstName = 'Customer';
-          lastName = `[${invoiceNumber}]`;
+          // For new invoices, ask for user details upfront instead of creating temp account
+          return {
+            success: false,
+            message: "New invoice detected! Please provide your contact details to create your account.",
+            requiresUserDetails: true,
+            invoiceNumber: invoiceNumber,
+            retailerInfo: retailerInfo,
+            isNewInvoice: true
+          };
         } else {
           // Use existing invoice data
           const nameParts = invoice.customerName.split(' ');

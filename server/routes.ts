@@ -7090,6 +7090,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
+        if (result.requiresUserDetails) {
+          // New invoice - collect user details upfront
+          console.log(`📝 New invoice ${invoiceNumber} requires user details collection`);
+          return res.status(425).json({ 
+            error: result.message,
+            requiresUserDetails: true,
+            invoiceNumber: result.invoiceNumber,
+            retailerInfo: result.retailerInfo,
+            isNewInvoice: result.isNewInvoice
+          });
+        }
+        
         res.status(401).json({ error: result.message });
       }
     } catch (error) {

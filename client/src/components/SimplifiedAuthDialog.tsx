@@ -71,11 +71,8 @@ export default function SimplifiedAuthDialog({
       const responseData = await response.json();
       
       if (!response.ok) {
-        console.log('Response not ok. Status:', response.status, 'Data:', responseData);
-        
         // Handle specific security-related status codes as "successful" responses
         if (response.status === 424 && responseData.requiresEmailVerification) {
-          console.log('424 status detected - treating as success for email verification');
           // User needs email verification - return as success to trigger email-login step
           return { 
             ...responseData, 
@@ -104,6 +101,17 @@ export default function SimplifiedAuthDialog({
           };
         }
         
+        if (response.status === 425 && responseData.requiresUserDetails) {
+          // New invoice - collect user details upfront
+          return { 
+            ...responseData, 
+            requiresUserDetails: true, 
+            statusCode: 425,
+            invoiceNumber: responseData.invoiceNumber,
+            retailerInfo: responseData.retailerInfo
+          };
+        }
+        
         // Only throw errors for actual failures
         throw new Error(responseData.error || 'Invoice login failed');
       }
@@ -111,11 +119,8 @@ export default function SimplifiedAuthDialog({
       return responseData;
     },
     onSuccess: (data) => {
-      console.log('Invoice check onSuccess triggered with data:', data);
-      
       // Handle security-related responses
       if (data.requiresEmailVerification) {
-        console.log('Email verification required - transitioning to email-login step');
         // User needs email verification for security
         setCurrentInvoiceInfo(data);
         setEmail(''); // Don't pre-fill - user must know the email address
@@ -145,6 +150,21 @@ export default function SimplifiedAuthDialog({
           title: "Email Mismatch",
           description: data.error || "The email address provided does not match the account.",
           variant: "destructive",
+        });
+        return;
+      }
+      
+      if (data.requiresUserDetails) {
+        // New invoice - show profile completion form directly
+        setCurrentInvoiceInfo(data);
+        setEmail(''); // Clear email field for new user
+        setFirstName('');
+        setLastName('');
+        setPhone('');
+        setInvoiceStep('profile-completion');
+        toast({
+          title: "New Invoice Detected!",
+          description: data.error || "Please provide your contact details to create your account.",
         });
         return;
       }

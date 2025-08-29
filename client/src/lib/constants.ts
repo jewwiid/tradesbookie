@@ -237,7 +237,7 @@ export const MOUNT_TYPES = [
   }
 ];
 
-export const TV_SIZES = [32, 43, 55, 65, 75, 85];
+export const TV_SIZES = [32, 43, 50, 55, 65, 75, 85];
 
 export const TIME_SLOTS = [
   { value: '09:00', label: '9:00 AM - 11:00 AM' },

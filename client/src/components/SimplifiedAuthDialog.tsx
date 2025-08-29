@@ -64,20 +64,16 @@ export default function SimplifiedAuthDialog({
       const response = await apiRequest('POST', '/api/auth/invoice-login', data);
       if (!response.ok) {
         const error = await response.json();
+        // Special handling for requiresUserDetails response
+        if (error.requiresUserDetails) {
+          throw { requiresUserDetails: true, data: error };
+        }
         throw new Error(error.error || 'Invoice login failed');
       }
       return response.json();
     },
     onSuccess: (data) => {
-      if (data.user?.isTemporaryAccount) {
-        // New invoice - show profile completion form
-        setCurrentInvoiceInfo(data);
-        setInvoiceStep('profile-completion');
-        toast({
-          title: "New Invoice Detected!",
-          description: data.message,
-        });
-      } else if (data.user?.profileCompleted) {
+      if (data.success && data.user) {
         // Existing completed account - login successful
         toast({
           title: "Welcome back!",
@@ -90,20 +86,30 @@ export default function SimplifiedAuthDialog({
           onSuccess(data.user);
           onClose();
         }, 100);
-      } else {
-        // Existing account but profile not completed - show email login
-        setCurrentInvoiceInfo(data);
-        setInvoiceStep('email-login');
-        toast({
-          title: "Profile Setup Required",
-          description: "Please enter your email to continue with your account.",
-        });
       }
     },
-    onError: (error: Error) => {
+    onError: (error: any, variables, context) => {
+      // Check if this is a requiresUserDetails response
+      if (error.requiresUserDetails && error.data) {
+        // New invoice - show profile completion form
+        setCurrentInvoiceInfo({
+          invoiceNumber: variables.invoiceNumber,
+          retailerInfo: error.data.retailerInfo,
+          storeName: error.data.storeName,
+          storeCode: error.data.storeCode
+        });
+        setInvoiceNumber(variables.invoiceNumber);
+        setInvoiceStep('profile-completion');
+        toast({
+          title: "New Invoice Detected!",
+          description: error.data.message || "Please provide your contact details to complete registration.",
+        });
+        return;
+      }
+      
       toast({
         title: "Invoice Login Failed",
-        description: error.message,
+        description: error.message || "An error occurred during invoice login",
         variant: "destructive",
       });
     }
@@ -112,16 +118,16 @@ export default function SimplifiedAuthDialog({
   // Profile Completion for New Invoices
   const profileCompletionMutation = useMutation({
     mutationFn: async (data: { invoiceNumber: string; email: string; firstName: string; lastName: string; phone?: string }) => {
-      const response = await apiRequest('POST', '/api/auth/complete-invoice-profile', data);
+      const response = await apiRequest('POST', '/api/auth/complete-invoice-registration', data);
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Profile completion failed');
+        throw new Error(error.error || 'Registration failed');
       }
       return response.json();
     },
     onSuccess: (data) => {
       toast({
-        title: "Profile Completed!",
+        title: "Registration Completed!",
         description: data.message,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });

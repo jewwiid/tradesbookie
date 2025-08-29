@@ -361,43 +361,33 @@ export class RetailerDetectionService {
       const normalizedInvoiceNumber = parsedInvoice.storeCode 
         ? `${parsedInvoice.retailerCode}${parsedInvoice.storeCode}${parsedInvoice.invoiceNumber}`
         : `${parsedInvoice.retailerCode}${parsedInvoice.invoiceNumber}`;
+      
+      // Always use the normalized version for database operations
+      const searchInvoiceNumber = normalizedInvoiceNumber;
 
-      // Look up invoice in database using both original and normalized formats
+      // Look up invoice in database using normalized format
       let invoiceData = await db.select()
         .from(retailerInvoices)
-        .where(
-          or(
-            eq(retailerInvoices.invoiceNumber, invoiceNumber),
-            eq(retailerInvoices.invoiceNumber, normalizedInvoiceNumber)
-          )
-        )
+        .where(eq(retailerInvoices.invoiceNumber, searchInvoiceNumber))
         .limit(1);
 
       let invoice;
       let isNewInvoice = false;
 
       if (invoiceData.length === 0) {
-        // NEW FEATURE: Allow creating temporary account for new invoices
-        // Customer can login later using invoice number + email as password
-        console.log(`ℹ️ New invoice detected: ${invoiceNumber} - creating temporary account`);
+        // NEW INVOICE: Requires user to provide contact details
+        console.log(`ℹ️ New invoice detected: ${invoiceNumber} - requires user registration`);
         
         isNewInvoice = true;
-        // Create a temporary placeholder invoice entry
-        invoice = {
-          id: 0, // Temporary - will be created during profile completion
-          invoiceNumber: invoiceNumber,
-          customerEmail: '', // Will be collected during profile completion
-          customerName: '', // Will be collected during profile completion
-          customerPhone: null,
-          purchaseDate: new Date(),
-          tvModel: null,
-          tvSize: null,
-          purchaseAmount: null,
+        // Return early to prompt for user details instead of creating temporary account
+        return {
+          success: false,
+          message: "Invoice number recognized! Please provide your contact details to continue.",
+          requiresUserDetails: true,
+          invoiceNumber: searchInvoiceNumber,
+          retailerInfo: parsedInvoice.retailerInfo,
           storeName: parsedInvoice.storeCode ? parsedInvoice.retailerInfo.storeLocations?.[parsedInvoice.storeCode] : null,
-          storeCode: parsedInvoice.storeCode,
-          retailerCode: parsedInvoice.retailerCode,
-          isUsedForRegistration: false,
-          createdAt: new Date()
+          storeCode: parsedInvoice.storeCode
         };
       } else {
         invoice = invoiceData[0];
@@ -412,26 +402,11 @@ export class RetailerDetectionService {
           .limit(1);
       }
       
-      // For new invoices, also check if a temporary user already exists for this invoice
-      if (isNewInvoice) {
-        existingUser = await db.select()
-          .from(users)
-          .where(eq(users.retailerInvoiceNumber, invoiceNumber))
-          .limit(1);
-      }
-
-      // SECURITY CHECK: If no invoice was found, also check by normalized invoice
-      if (existingUser.length === 0) {
-        existingUser = await db.select()
-          .from(users)
-          .where(
-            or(
-              eq(users.retailerInvoiceNumber, invoiceNumber),
-              eq(users.retailerInvoiceNumber, normalizedInvoiceNumber)
-            )
-          )
-          .limit(1);
-      }
+      // For new invoices or all cases, check if a user already exists using normalized invoice number
+      existingUser = await db.select()
+        .from(users)
+        .where(eq(users.retailerInvoiceNumber, searchInvoiceNumber))
+        .limit(1);
 
       let user;
       let isNewRegistration = false;
@@ -461,21 +436,11 @@ export class RetailerDetectionService {
             .where(eq(users.id, user.id));
         }
       } else {
-        // Create new user from invoice data
-        let customerEmail, firstName, lastName;
-        
-        if (isNewInvoice) {
-          // For new invoices, create temporary user that needs profile completion
-          customerEmail = `temp.${invoiceNumber.toLowerCase().replace(/[^a-z0-9]/g, '.')}@tradesbook.temp`;
-          firstName = 'Customer';
-          lastName = `[${invoiceNumber}]`;
-        } else {
-          // Use existing invoice data
-          const nameParts = invoice.customerName.split(' ');
-          customerEmail = invoice.customerEmail;
-          firstName = nameParts[0] || '';
-          lastName = nameParts.slice(1).join(' ') || '';
-        }
+        // Create new user from existing invoice data
+        const nameParts = invoice.customerName.split(' ');
+        const customerEmail = invoice.customerEmail;
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
 
         const newUserData = {
           email: customerEmail,
@@ -484,10 +449,10 @@ export class RetailerDetectionService {
           phone: invoice.customerPhone || null,
           role: 'customer',
           registrationMethod: 'invoice',
-          retailerInvoiceNumber: invoiceNumber,
-          invoiceVerified: !isNewInvoice, // New invoices need completion
-          emailVerified: !isNewInvoice, // New invoices need email setup
-          profileCompleted: !isNewInvoice // New invoices need profile completion
+          retailerInvoiceNumber: searchInvoiceNumber,
+          invoiceVerified: true,
+          emailVerified: true,
+          profileCompleted: true
         };
 
         const [createdUser] = await db.insert(users)
@@ -497,46 +462,39 @@ export class RetailerDetectionService {
         user = createdUser;
         isNewRegistration = true;
         
-        // Handle email verification for new users
-        if (!isNewInvoice && customerEmail && !customerEmail.includes('@temp.')) {
-          // Send verification email for existing invoice users with real emails
-          try {
-            const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
-            const verificationToken = await generateVerificationToken();
-            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        // Send verification email for existing invoice users
+        try {
+          const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
+          const verificationToken = await generateVerificationToken();
+          const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+          
+          // Update user with verification token
+          await db.update(users)
+            .set({
+              emailVerificationToken: verificationToken,
+              emailVerificationExpires: expiresAt
+            })
+            .where(eq(users.id, createdUser.id));
             
-            // Update user with verification token
-            await db.update(users)
-              .set({
-                emailVerificationToken: verificationToken,
-                emailVerificationExpires: expiresAt
-              })
-              .where(eq(users.id, createdUser.id));
-              
-            // Send verification email
-            await sendVerificationEmail(customerEmail, firstName, verificationToken);
-            console.log(`✅ Verification email sent to invoice user: ${customerEmail}`);
-          } catch (emailError) {
-            console.error('❌ Error sending verification email to invoice user:', emailError);
-            // Continue with user creation even if email fails
-          }
+          // Send verification email
+          await sendVerificationEmail(customerEmail, firstName, verificationToken);
+          console.log(`✅ Verification email sent to invoice user: ${customerEmail}`);
+        } catch (emailError) {
+          console.error('❌ Error sending verification email to invoice user:', emailError);
+          // Continue with user creation even if email fails
         }
       }
 
-      // Mark invoice as used for registration (skip for temporary new invoices)
-      if (!isNewInvoice && invoice.id) {
+      // Mark invoice as used for registration
+      if (invoice.id) {
         await db.update(retailerInvoices)
           .set({ isUsedForRegistration: true })
           .where(eq(retailerInvoices.id, invoice.id));
       }
 
       let welcomeMessage;
-      let needsProfileCompletion = false;
 
-      if (isNewRegistration && isNewInvoice) {
-        welcomeMessage = `Welcome to tradesbook.ie! We've recognized your ${parsedInvoice.retailerInfo.name} invoice ${invoiceNumber}. You can now create bookings and login later using this invoice number and your email address. Please complete your profile to get started.`;
-        needsProfileCompletion = true;
-      } else if (isNewRegistration) {
+      if (isNewRegistration) {
         welcomeMessage = `Welcome to tradesbook.ie! We've created your account using your ${parsedInvoice.retailerInfo.name} purchase. Please verify your email address to complete your registration and allow installers to see your booking requests.`;
       } else {
         welcomeMessage = `Welcome back! You've been authenticated using your ${parsedInvoice.retailerInfo.name} purchase.`;
@@ -554,12 +512,11 @@ export class RetailerDetectionService {
           registrationMethod: user.registrationMethod,
           emailVerified: user.emailVerified,
           profileCompleted: user.profileCompleted || false,
-          isTemporaryAccount: isNewInvoice // Flag to indicate this needs profile completion
+          isTemporaryAccount: false
         },
         message: welcomeMessage,
         retailerInfo: parsedInvoice.retailerInfo,
         isNewRegistration,
-        needsProfileCompletion,
         invoiceNumber: invoiceNumber
       };
 

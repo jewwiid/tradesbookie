@@ -7169,6 +7169,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complete registration for new invoice users
+  app.post('/api/auth/complete-invoice-registration', async (req, res) => {
+    try {
+      const { invoiceNumber, firstName, lastName, email, phone } = req.body;
+      
+      if (!invoiceNumber || !firstName || !lastName || !email) {
+        return res.status(400).json({ error: "Invoice number, name, and email are required" });
+      }
+
+      const { retailerDetectionService } = await import('./retailerDetectionService');
+      
+      // Validate invoice format
+      const parsedInvoice = retailerDetectionService.detectRetailerFromInvoice(invoiceNumber);
+      if (!parsedInvoice) {
+        return res.status(400).json({ error: "Invalid invoice format" });
+      }
+
+      // Create normalized invoice number
+      const normalizedInvoiceNumber = parsedInvoice.storeCode 
+        ? `${parsedInvoice.retailerCode}${parsedInvoice.storeCode}${parsedInvoice.invoiceNumber}`
+        : `${parsedInvoice.retailerCode}${parsedInvoice.invoiceNumber}`;
+
+      // Check if user already exists with this email
+      const existingUserByEmail = await db.select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      if (existingUserByEmail.length > 0) {
+        return res.status(400).json({ error: "An account with this email already exists. Please use the login form instead." });
+      }
+
+      // Check if user already exists with this invoice
+      const existingUserByInvoice = await db.select()
+        .from(users)
+        .where(eq(users.retailerInvoiceNumber, normalizedInvoiceNumber))
+        .limit(1);
+
+      if (existingUserByInvoice.length > 0) {
+        return res.status(400).json({ error: "This invoice has already been used for registration." });
+      }
+
+      // Create the new user
+      const newUserData = {
+        email,
+        firstName,
+        lastName,
+        phone: phone || null,
+        role: 'customer',
+        registrationMethod: 'invoice',
+        retailerInvoiceNumber: normalizedInvoiceNumber,
+        invoiceVerified: true,
+        emailVerified: false,
+        profileCompleted: true
+      };
+
+      const [createdUser] = await db.insert(users)
+        .values([newUserData])
+        .returning();
+
+      // Send verification email
+      try {
+        const { generateVerificationToken, sendVerificationEmail } = await import('./emailVerificationService');
+        const verificationToken = await generateVerificationToken();
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        
+        await db.update(users)
+          .set({
+            emailVerificationToken: verificationToken,
+            emailVerificationExpires: expiresAt
+          })
+          .where(eq(users.id, createdUser.id));
+        
+        await sendVerificationEmail(email, firstName, verificationToken);
+        console.log(`✅ Verification email sent to new user: ${email}`);
+      } catch (emailError) {
+        console.error('❌ Error sending verification email:', emailError);
+      }
+
+      // Create retailer invoice record
+      try {
+        await storage.createRetailerInvoice({
+          invoiceNumber: normalizedInvoiceNumber,
+          customerEmail: email,
+          customerName: `${firstName} ${lastName}`,
+          customerPhone: phone || null,
+          purchaseDate: new Date(),
+          storeName: parsedInvoice.storeCode ? parsedInvoice.retailerInfo.storeLocations?.[parsedInvoice.storeCode] : null,
+          storeCode: parsedInvoice.storeCode,
+          retailerCode: parsedInvoice.retailerCode,
+          isUsedForRegistration: true
+        });
+      } catch (invoiceError) {
+        console.error('Warning: Could not create retailer invoice record:', invoiceError);
+      }
+
+      // Establish session
+      req.login(createdUser, (err) => {
+        if (err) {
+          console.error('Session login error after registration:', err);
+          return res.status(500).json({ error: 'Registration successful but failed to establish session. Please login manually.' });
+        }
+        
+        (req.session as any).userId = createdUser.id;
+        (req.session as any).isAuthenticated = true;
+        (req.session as any).authMethod = 'invoice';
+        (req.session as any).invoiceNumber = normalizedInvoiceNumber;
+        
+        console.log(`✅ New invoice user registered: ${email} with invoice ${normalizedInvoiceNumber}`);
+        
+        res.json({
+          success: true,
+          user: {
+            id: createdUser.id,
+            email: createdUser.email,
+            firstName: createdUser.firstName,
+            lastName: createdUser.lastName,
+            phone: createdUser.phone,
+            role: createdUser.role,
+            emailVerified: createdUser.emailVerified,
+            profileCompleted: true
+          },
+          message: `Welcome to tradesbook.ie! Your account has been created using your ${parsedInvoice.retailerInfo.name} invoice. Please check your email to verify your address.`,
+          retailerInfo: parsedInvoice.retailerInfo,
+          requiresEmailVerification: true
+        });
+      });
+      
+    } catch (error) {
+      console.error("Complete invoice registration error:", error);
+      res.status(500).json({ error: "Failed to complete registration" });
+    }
+  });
+
   // Invoice + Email login for customers who completed their profile
   app.post('/api/auth/invoice-email-login', async (req, res) => {
     try {
